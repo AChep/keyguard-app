@@ -1,0 +1,31 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+    resolutionStrategy {
+        eachPlugin {
+        }
+    }
+}
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
+    }
+}
+rootProject.name = "keyguard"
+
+include ':common'
+// apps
+include ':androidApp'
+include ':androidBenchmark'
+include ':desktopApp'
+

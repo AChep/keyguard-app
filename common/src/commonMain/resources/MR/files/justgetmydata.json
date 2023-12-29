@@ -1,0 +1,783 @@
+[
+  {
+    "name": "1688",
+    "domains": [],
+    "url": "https://1688.com",
+    "difficulty": "hard",
+    "notes": "Depending on your area you must follow the instructions shown in https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm'"
+  },
+  {
+    "name": "2K Games",
+    "domains": [],
+    "url": "https://support.2k.com/hc/en-us/articles/360022982514",
+    "difficulty": "hard",
+    "notes": "Go to the linked website and submit a request to download your account data."
+  },
+  {
+    "name": "Adobe",
+    "domains": [],
+    "url": "https://www.adobe.com/privacy/privacy-contact.html#form",
+    "difficulty": "hard",
+    "notes": "Go to the URL provided above and submit a request."
+  },
+  {
+    "name": "Akinator",
+    "domains": [],
+    "url": "https://en.akinator.com/content/13/privacy-policy",
+    "difficulty": "hard",
+    "notes": "According to privacy policy (item 8), you have to send an e-mail to them requesting the data.",
+    "email": "privacypolicy@elokence.com"
+  },
+  {
+    "name": "Algor Education",
+    "domains": [],
+    "url": "https://en.algoreducation.com/contact-us",
+    "difficulty": "hard",
+    "notes": "Contact the customer support and request your data.",
+    "email": "support@algoreducation.com"
+  },
+  {
+    "name": "Alibaba",
+    "domains": [],
+    "url": "https://alibaba.com",
+    "difficulty": "hard",
+    "notes": "Depending on your area you must follow the instructions shown in https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm'"
+  },
+  {
+    "name": "Aliexpress",
+    "domains": [],
+    "url": "https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm",
+    "difficulty": "hard",
+    "notes": "Depending on you area you must follow the instructions shown in 'https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm'"
+  },
+  {
+    "name": "Amazon",
+    "domains": [],
+    "url": "https://www.amazon.com/gp/help/customer/display/",
+    "difficulty": "hard",
+    "notes": "Go to https://www.amazon.com/gp/help/customer/display and down, in browse help topic, go to \"Security & Privacy\" and \"How Do I Request My Data?\". There click \"Request My Data\", choose whatever you need/want and click \"Send Request\". An e-mail will be send to your Amazon linked e-mail to confirm the Data Request. Just click confirm and within a few weeks your data will be ready for download. However here comes the hard part, you'll be presented with 100s of tiny files, with no option to download all at once."
+  },
+  {
+    "name": "Apple",
+    "domains": [],
+    "url": "https://privacy.apple.com",
+    "difficulty": "easy",
+    "notes": "Go to the url provided above and login with your Apple ID. Click on 'Get a copy of my data' and categories will be displayed to select the type of data to download. After selecting, information will be asked to confirm that you are the account's owner. You will recibe a notification when the data its available for download and you will have 2 weeks to do it."
+  },
+  {
+    "name": "The Atlantic",
+    "domains": [],
+    "url": "https://support.theatlantic.com/hc/requests/new",
+    "difficulty": "limited",
+    "notes": "Depending on where you live, you either have to select \"Submit a CPRA or VCDPA Data request\" or \"Submit an EEA Data Request\"."
+  },
+  {
+    "name": "Badoo",
+    "domains": [],
+    "url": "https://badoo.com/feedback",
+    "difficulty": "hard",
+    "notes": "Go to the url provided above and submit a request, picking 'General question' as subject, or send an email to [DPOcorp.badoo.com](mailto:DPO@corp.badoo.com)."
+  },
+  {
+    "name": "Battle.net / Blizzard",
+    "domains": [],
+    "url": "https://www.battle.net/support/help/product/services/1327",
+    "difficulty": "medium",
+    "notes": "Select the information you want to download. You will need to enter an email verification code and a 2FA code if enabled."
+  },
+  {
+    "name": "BBVA",
+    "domains": [],
+    "url": "https://web.bbva.es/index.html?v=12.3.22#areapersonal/menu/privacidadydatos",
+    "difficulty": "easy",
+    "notes": "On 'My profile' section, click on 'Security and privacy'. Go to 'Privacy and Data', click on 'Get Portability' and wait until it's done."
+  },
+  {
+    "name": "Best Buy",
+    "domains": [],
+    "url": "https://www.bestbuy.com/sentry/confirm/residency?context=ca&type=access",
+    "difficulty": "hard",
+    "notes": "Make sure not to skip signin to make the process faster."
+  },
+  {
+    "name": "Betnacional",
+    "domains": [],
+    "url": "https://assets.bet6.com.br/sistemans/skins/betnacional/doc/5eef829d8f.pdf",
+    "difficulty": "hard",
+    "notes": "According to privacy policy (item 8), you have to send an e-mail to them requesting the data.",
+    "email": "contato@betnacional.com"
+  },
+  {
+    "name": "Board Game Geek",
+    "domains": [],
+    "url": "https://boardgamegeek.com/privacy#toc33",
+    "difficulty": "hard",
+    "notes": "You have to contact with service support"
+  },
+  {
+    "name": "Booking",
+    "domains": [],
+    "url": "https://www.booking.com/content/dsar.en-gb.html",
+    "difficulty": "medium",
+    "notes": "Go to the form provided in the url above and fill it selecting the option 'Right of access to personal data'."
+  },
+  {
+    "name": "Burger King",
+    "domains": [],
+    "url": "https://privacyportal-eu-cdn.onetrust.com/dsarwebform/7ae425dd-1c76-46b0-a1b4-2422a364fae3/draft/1d4481aa-204a-4cb5-a40a-82e4369d16b2.html",
+    "difficulty": "medium",
+    "notes": "U.S. and Canada residents can fill out the linked web form or email [privacy@rbi.com](mailto:privacy@rbi.com)"
+  },
+  {
+    "name": "Chick-fil-A",
+    "domains": [],
+    "url": "https://privacyportal.onetrust.com/webform/63dc78c7-5612-4181-beae-47dead0569ee/01252c81-82df-4db5-9cb8-bf23a62a9a55",
+    "difficulty": "medium",
+    "notes": "In the mobile app, go to Account > Communications & privacy > Privacy Rights and fill out the provided [privacy web form](https://privacyportal.onetrust.com/webform/63dc78c7-5612-4181-beae-47dead0569ee/01252c81-82df-4db5-9cb8-bf23a62a9a55). U.S. residents can also send an email to [privacy@chick-fil-a.com](mailto:privacy@chick-fil-a.com) or call 1-866-232-2040; Canadian residents must email [privacy.canada@chick-fil-a.com](mailto:privacy.canada@chick-fil-a.com)."
+  },
+  {
+    "name": "Cloudflare",
+    "domains": [],
+    "url": "https://www.cloudflare.com/privacypolicy/",
+    "difficulty": "hard",
+    "notes": "Cloudflare only accepts access requests via email.",
+    "email": "SAR@cloudflare.com"
+  },
+  {
+    "name": "Coinbase",
+    "domains": [],
+    "url": "https://help.coinbase.com/en/pro/privacy-and-security/data-privacy/gdpr-how-to-access-information.html",
+    "difficulty": "easy",
+    "notes": "You can log into your Coinbase account and request your data in the Privacy section. You have a full guide in the url above."
+  },
+  {
+    "name": "Craigslist",
+    "domains": [],
+    "url": "https://www.craigslist.org/about/privacy.policy",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data to [privacy@craigslist.org](mailto:privacy@craigslist.org)."
+  },
+  {
+    "name": "Discord",
+    "domains": [],
+    "url": "https://discord.com",
+    "difficulty": "easy",
+    "notes": "You have to log into your Discord account, go to 'Settings > Privacy and security' and click on 'Request all my data'."
+  },
+  {
+    "name": "Duolingo",
+    "domains": [],
+    "url": "https://drive-thru.duolingo.com",
+    "difficulty": "medium",
+    "notes": "Must log in to Duolingo before accessing this site (will not redirect)."
+  },
+  {
+    "name": "eBay",
+    "domains": [],
+    "url": "https://www.sarweb.ebay.com/sar",
+    "difficulty": "easy",
+    "notes": "Go to your account settings, then click on \"Request your eBay data\", follow the simple steps and in 7 days you should receive your data back"
+  },
+  {
+    "name": "Edizioni Simone",
+    "domains": [],
+    "url": "https://edizioni.simone.it/informativa-sulla-privacy",
+    "difficulty": "hard",
+    "notes": "Contact the customer support via email and request a copy of your data.",
+    "email": "privacy@simone.it"
+  },
+  {
+    "name": "Electroneum",
+    "domains": [],
+    "url": "https://support.electroneum.com/hc/en-gb/requests/new",
+    "difficulty": "hard",
+    "notes": "Contact the customer support using the form or via email and request your data.",
+    "email": "support@electroneum.com"
+  },
+  {
+    "name": "Electronic Arts",
+    "domains": [],
+    "url": "https://myaccount.ea.com/cp-ui/downloaddata/index",
+    "difficulty": "easy",
+    "notes": "Go to your account settings, click on 'Your EA data', then hit the request button, and you should be able to download your data in a couple of hours"
+  },
+  {
+    "name": "Engadget",
+    "domains": [],
+    "url": "https://engadget.mydashboard.oath.com/#section-manage",
+    "difficulty": "medium",
+    "notes": "Scroll down to the bottom of page, and you should see an option to donwload your data. From there, you can select what types of data you want to download, and then request to download your data. It can take up to 30 days for Engadget to prepare your data. You can download in your account data in your account settings."
+  },
+  {
+    "name": "Epic Games",
+    "domains": [],
+    "url": "https://www.epicgames.com/account/personal",
+    "difficulty": "easy",
+    "notes": "Go to your account settings, then click on 'Download Account Information' button to receive your data"
+  },
+  {
+    "name": "Facebook",
+    "domains": [],
+    "url": "https://www.facebook.com/help/1701730696756992",
+    "difficulty": "easy",
+    "notes": "Go to the url provided above and follow the instructions. Logging into your account, you can access a summary of your data or download a copy. The data are categorized by type to help the search and you can download it in JSON or HTML formats."
+  },
+  {
+    "name": "Fandom",
+    "domains": [],
+    "url": "https://community.fandom.com/wiki/Special:DownloadYourData",
+    "difficulty": "easy"
+  },
+  {
+    "name": "FedEx",
+    "domains": [],
+    "url": "https://privacyportal.onetrust.com/webform/8a471a7b-6a52-49d0-bcb0-fa8bdb61598f/c121cce6-6cfb-4c3d-9b61-334f56a01b5f",
+    "difficulty": "hard",
+    "notes": "You will be asked to upload photo id after the initial form submission."
+  },
+  {
+    "name": "Fitbit",
+    "domains": [],
+    "url": "https://www.fitbit.com/settings/data/export",
+    "difficulty": "medium",
+    "notes": "Click the link sent to your email if you requested a full archive."
+  },
+  {
+    "name": "Freelancer",
+    "domains": [],
+    "url": "https://www.freelancer.com/about/privacy?w=f&ngsw-bypass=",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data to privacy-officer@freelancer.com.",
+    "email": "privacy-officer@freelancer.com"
+  },
+  {
+    "name": "GearBest",
+    "domains": [],
+    "url": "https://www.gearbest.com/",
+    "difficulty": "hard",
+    "notes": "You may send us an e-mail to support@gearbest.com to exercise your rights. We will respond to your request in a reasonable timeframe. We will take all reasonable steps to ensure that your personal data is correct and up to date."
+  },
+  {
+    "name": "Gettr",
+    "domains": [],
+    "url": "https://gettr.com/privacy",
+    "difficulty": "hard",
+    "notes": "According with item 11.IV, you have to send an e-mail to [privacyrights@gettr.com](mailto:privacyrights@gettr.com). And even sending the e-mail, they may refuse the request and not send the data."
+  },
+  {
+    "name": "GitHub",
+    "domains": [],
+    "url": "https://github.com/settings/admin",
+    "difficulty": "medium",
+    "notes": "In the section \"Export account data\" select \"Start report\". Once done, wait for an email to arrive."
+  },
+  {
+    "name": "Gmail",
+    "domains": [],
+    "url": "https://takeout.google.com/",
+    "difficulty": "easy",
+    "notes": "Since Gmail is a service by Google, please refer to the instructions for [Google](./#google)."
+  },
+  {
+    "name": "GOG",
+    "domains": [],
+    "url": "https://support.gog.com/hc/en-us/requests/new?form=other&product=gog",
+    "difficulty": "hard",
+    "notes": "Go to the url provided above and submit a request or send an email to [privacy@gog.com](mailto:privacy@gog.com)."
+  },
+  {
+    "name": "Google",
+    "domains": [],
+    "url": "https://takeout.google.com/",
+    "difficulty": "easy",
+    "notes": "Go to [Google Takeout](https://takeout.google.com/) while logged in to a Google Account and select the data from every Google Service you need/want and click \"Next Step\". Then you can choose between export now or once every 2 months for 1 year, the file type and size. Click \"Create Export\" and wait until the process is finished. Then, just download your data."
+  },
+  {
+    "name": "Huawei",
+    "domains": [],
+    "url": "https://consumer.huawei.com/en/support/content/en-us00746223/",
+    "difficulty": "medium",
+    "notes": "Log in to your HUAWEI ID and then click Privacy Centre > Request Your Data. When you request a copy of your data, Huawei will prepare the data you have requested. After the data is ready, you can download it to your device and will be available for 21 days. If you need to download the data after the expiry date, you need to submit a new request."
+  },
+  {
+    "name": "ING",
+    "domains": [],
+    "url": "https://www.ing.com/Privacy-Statement.htm",
+    "difficulty": "hard",
+    "notes": "Go to the url provided above and in section 9, 'Contact and questions', you must find the email address associated with your country. You will have to send an email to the corresponding address, stating that you want to obtain a copy of your personal data. You must provide your name, address and ID."
+  },
+  {
+    "name": "Instagram",
+    "domains": [],
+    "url": "https://www.instagram.com/download/request/",
+    "difficulty": "medium",
+    "notes": "Select 'Obtain the data' and fill in your email and password. Once done, wait for a message to arrive in the mail. WARNING: you can only do a data request once every 48 hours."
+  },
+  {
+    "name": "JetBrains",
+    "domains": [],
+    "url": "https://account.jetbrains.com/profile-details/JetBrainsPersonalData.xlsx",
+    "difficulty": "easy",
+    "notes": "Requires Microsoft Excel or equivalent to open."
+  },
+  {
+    "name": "Kwai",
+    "domains": [],
+    "url": "https://www.kwai.com/legal?type=1",
+    "difficulty": "hard",
+    "notes": "According to item 12, you have to send an e-mail to [privacy@kwai.com](mailto:privacy@kwai.com), with your Kwai ID user to request your data."
+  },
+  {
+    "name": "Linkedin",
+    "domains": [],
+    "url": "https://www.linkedin.com/",
+    "difficulty": "easy",
+    "notes": "1.-Click the Me icon at the top of your LinkedIn homepage. 2.-Select Settings & Privacy from the dropdown. 3.-Click the Data Privacy on the left rail. 4.-Under the How LinkedIn uses your data section, click Get a copy of your data. 5.-Select the data that you\u2019re looking for and Request archive."
+  },
+  {
+    "name": "Linode",
+    "domains": [],
+    "url": "https://www.linode.com/legal-dpr/",
+    "difficulty": "hard",
+    "notes": "Check the boxes under the \"Personal Data Disclosure\" section"
+  },
+  {
+    "name": "Livelo",
+    "domains": [],
+    "url": "https://www.livelo.com.br/profile?occsite=points&tab=tab_label_1",
+    "difficulty": "easy"
+  },
+  {
+    "name": "Lolja",
+    "domains": [],
+    "url": "https://www.lolja.com.br/privacidade/",
+    "difficulty": "hard",
+    "notes": "Send an email to [sac@lolja.com.br](mailto:sac@lolja.com.br) with all relevant information (name, email address, etc)."
+  },
+  {
+    "name": "Lyft",
+    "domains": [],
+    "url": "https://www.lyft.com/privacy/data",
+    "difficulty": "easy",
+    "notes": "Go to provided URL -> Log in (if prompted) -> Click the 'Start' button under 'Download Data'."
+  },
+  {
+    "name": "Mailfence",
+    "domains": [],
+    "url": "https://kb.mailfence.com/kb/how-to-export-data-from-mailfence-account/",
+    "difficulty": "medium",
+    "notes": "Log in to your account -> Go to 'Settings'-> 'Account' -> 'Back-up'."
+  },
+  {
+    "name": "Microsoft",
+    "domains": [],
+    "url": "https://microsoft.com/",
+    "difficulty": "hard",
+    "notes": "Not all personal data can be accessed using the tools above. If you want to access all the data it is needed to contact them using 'How to contact with us' or using their web form.."
+  },
+  {
+    "name": "Minecraft Tools",
+    "domains": [],
+    "url": "https://minecraft.tools/en/contact.php",
+    "difficulty": "impossible",
+    "notes": "The only way to contact them is by email, but no one responds.",
+    "email": "contact@minecraft.tools"
+  },
+  {
+    "name": "Modrinth",
+    "domains": [],
+    "url": "https://modrinth.com/legal/privacy",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data.",
+    "email": "gdpr@modrinth.com"
+  },
+  {
+    "name": "Mozilla",
+    "domains": [],
+    "url": "https://www.mozilla.org/privacy/#contact",
+    "difficulty": "medium",
+    "notes": "Go to the url provided abobe and click on 'See here for Data Subject Access Requests' and fill a form or send an email to [compliance@mozilla.com](mailto:compliance@mozilla.com)."
+  },
+  {
+    "name": "MSI",
+    "domains": [],
+    "url": "https://es.msi.com/",
+    "difficulty": "hard",
+    "notes": "To exercise the right to request access to, or copies of, your Relevant Personal Data, together with information regarding the nature, Processing and disclosure of those Relevant Personal Data, or others of your rights, or to ask a question about these rights or any other provision of Privacy Policy, or about our Processing of your Personal Data, please use the contact [privacy-eu@msi.com](mailto:privacy-eu@msi.com)."
+  },
+  {
+    "name": "My Lands",
+    "domains": [],
+    "url": "https://uk.mlgame.org/",
+    "difficulty": "hard",
+    "notes": "Contact the customer support via email and ask to access your data. You should use the email of the country where you are registered: it's in the contacts, at the bottom of the website.",
+    "email": "support_uk@elyland.net"
+  },
+  {
+    "name": "Netflix",
+    "domains": [],
+    "url": "https://www.netflix.com/",
+    "difficulty": "medium",
+    "notes": "Go to https://www.netflix.com/account/getmyinfo and follow the instructions."
+  },
+  {
+    "name": "Nintendo",
+    "domains": [],
+    "url": "https://privacyportal-cdn.onetrust.com/dsarwebform/50b45312-ab08-436b-adc7-79156d8394f7/e0b5b569-7fb1-43c9-befc-0e789ed712fb.html",
+    "difficulty": "hard",
+    "notes": "Select information request under request type. Request can also be completed via telephone (+1 855-822-9548)."
+  },
+  {
+    "name": "Norton",
+    "domains": [],
+    "url": "https://privacyportal.onetrust.com/webform/25b84167-55d3-4099-84e2-c9e08ec67d54/4d9f34ca-cc1d-4578-9590-35834c92f17b",
+    "difficulty": "easy",
+    "notes": "Click the link above and fill the form to confirm the request."
+  },
+  {
+    "name": "OpenAI",
+    "domains": [],
+    "url": "https://openai.com/policies/privacy-policy",
+    "difficulty": "easy",
+    "notes": "You can send an email to [dsar@openai.com](mailto:dsar@openai.com) or just click in Settings > Data Controls > Export Data. The link sent by e-mail will expire within 24 hours."
+  },
+  {
+    "name": "PAGBET",
+    "domains": [],
+    "url": "https://assets.bet6.com.br/sistemans/skins/pagbet/doc/ba98aa02a1.pdf",
+    "difficulty": "hard",
+    "notes": "According to privacy policy (item 8), you have to send an e-mail to them requesting the data.",
+    "email": "contato@pagbet.com"
+  },
+  {
+    "name": "Patreon",
+    "domains": [],
+    "url": "https://privacy.patreon.com/?action=ACCESS&modal=take-control",
+    "difficulty": "easy",
+    "notes": "Click the link and confirm the request. The email with the data is usually sent within a few minutes."
+  },
+  {
+    "name": "Paypal Account",
+    "domains": [],
+    "url": "https://www.paypal.com/myaccount/privacy/data/dar",
+    "difficulty": "easy",
+    "notes": "Download all your personal data (transaction history excluded). Click on the 'send request' button, you will be notified via email once your data is ready."
+  },
+  {
+    "name": "Paypal Transactions",
+    "domains": [],
+    "url": "https://www.paypal.com/reports/dlog",
+    "difficulty": "medium",
+    "notes": "This page allows you to download all the transactions of your account. Select 'all transactions' in the 'transaction type' dropdown, insert the date interval you want (note: you cannot go back more than ~6 years). Then click 'create report'. You will receive an email once your report is ready. "
+  },
+  {
+    "name": "PcComponentes",
+    "domains": [],
+    "url": "https://www.pccomponentes.com/",
+    "difficulty": "hard",
+    "notes": "You will have to send a written request with your passport, or another identification document, to  Av. Europa Parcela 2-3, Pol. Ind. Las Salinas 30840 Alhama de Murcia. You can also request the data throught a e-mail to [lopd@pccomponentes.com](mailto:lopd@pccomponentes.com)."
+  },
+  {
+    "name": "Popeyes",
+    "domains": [],
+    "url": "https://privacyportal-eu-cdn.onetrust.com/dsarwebform/7ae425dd-1c76-46b0-a1b4-2422a364fae3/draft/1d4481aa-204a-4cb5-a40a-82e4369d16b2.html",
+    "difficulty": "medium",
+    "notes": "U.S. and Canada residents can fill out the linked web form or email [privacy@rbi.com](mailto:privacy@rbi.com)"
+  },
+  {
+    "name": "PornHub",
+    "domains": [],
+    "url": "https://pornhub.com/information/privacy",
+    "difficulty": "medium",
+    "notes": "Go to the url provided above and click on the button 'Request a copy of my personal data', at the bottom of the page. They will send you an email to confirm the email address where they will send your data and another to verify your username and password. You will receive your data in about 24 hours."
+  },
+  {
+    "name": "Reddit",
+    "domains": [],
+    "url": "https://www.reddit.com/settings/data-request",
+    "difficulty": "easy",
+    "notes": "Click on getting the data from a range of time or all. Then, wait for the private message in reddit, click in \"Download here\" and we are done. WARNING: you can only do a data request once every 30 days. You must use the [ticket form](https://www.reddithelp.com/hc/requests/new?ticket_form_id=360001370251) if you do not have access to your account."
+  },
+  {
+    "name": "Riot Games",
+    "domains": [],
+    "url": "https://support-leagueoflegends.riotgames.com/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "You would have to make a ticket requesting your data, which will show data recorded on League of Legends, Valorant and Runeterra accounts. After filing a ticket, you have to wait 30 days for an email to be sent to you containing a zipped file, which contains all your data."
+  },
+  {
+    "name": "Roblox",
+    "domains": [],
+    "url": "https://www.roblox.com/support",
+    "difficulty": "limited",
+    "notes": "Select \"Right of Access\" under \"Data Privacy Requests\". Photo ID is required as proof of residency."
+  },
+  {
+    "name": "Roku",
+    "domains": [],
+    "url": "https://privacy.roku.com/contact",
+    "difficulty": "hard",
+    "notes": "Select \"Data access request\" for the topic."
+  },
+  {
+    "name": "Samsung",
+    "domains": [],
+    "url": "https://privacy.samsung.com/mydata/downloads/request",
+    "difficulty": "medium",
+    "notes": "Select the services you want to retrieve your data for, or click the first one and click the \"All\" button at the bottom of the screen."
+  },
+  {
+    "name": "Snapchat",
+    "domains": [],
+    "url": "https://support.snapchat.com/en-US/a/download-my-data",
+    "difficulty": "easy",
+    "notes": "Log into your account on accounts.snapchat.com and click on \"My Data\". Once you submit your request, Snapchat will send you a download link via email to the verified email address associated with your account."
+  },
+  {
+    "name": "SpaceHey",
+    "domains": [],
+    "url": "https://spacehey.com/settings",
+    "difficulty": "easy",
+    "notes": "Go to the URL provided above and click on 'Export your Account Data'."
+  },
+  {
+    "name": "Spotify",
+    "domains": [],
+    "url": "https://www.spotify.com/account/privacy/",
+    "difficulty": "medium",
+    "notes": "Log into your Spotify account, go to 'Profile > Account > Privacy settings' and follow the steps at the bottom of the page."
+  },
+  {
+    "name": "Stack Exchange (Stack Overflow)",
+    "domains": [],
+    "url": "https://stackoverflow.com/legal/gdpr/request",
+    "difficulty": "hard",
+    "notes": "You might need to contact support to get your data deleted from all Stack Exchange network websites. Your posts will be anonymized, not deleted."
+  },
+  {
+    "name": "Starbucks",
+    "domains": [],
+    "url": "https://www.starbucks.com/terms/privacy-policy/",
+    "difficulty": "hard",
+    "notes": "U.S. residents should use <a href='https://privacyportal-cdn.onetrust.com/dsarwebform/f9975fc5-c93f-4ff8-8169-846d8f6cd4d2/dd7e8c8f-839f-4be3-9ebc-060786941e92.html'>this form</a>, and Canadian residents should use <a href='https://privacyportal.onetrust.com/webform/f9975fc5-c93f-4ff8-8169-846d8f6cd4d2/2e24ae7b-8edf-411f-a11d-14a16ddaa413'>this form</a>. All others must send an email.",
+    "email": "privacy@starbucks.com"
+  },
+  {
+    "name": "Steam",
+    "domains": [],
+    "url": "https://help.steampowered.com/en/accountdata",
+    "difficulty": "medium",
+    "notes": "In most cases, you can access, manage, or delete Personal Data in the Privacy Dashboard, but you may also contact Valve with questions or requests by summiting a support ticket."
+  },
+  {
+    "name": "Student Beans",
+    "domains": [],
+    "url": "https://accounts.studentbeans.com/uk/info/privacy",
+    "difficulty": "hard",
+    "notes": "They require two different forms of identification (acceptable documents are Driver's License, Passport, and Student ID card) to process access requests, which are only accepted via email.",
+    "email": "infosec@studentbeans.com",
+    "email_body": "Please send me a copy of my personal data."
+  },
+  {
+    "name": "T-Mobile",
+    "domains": [],
+    "url": "https://privacyportal-t-mobile.my.onetrust.com/webform/d4a925f0-4ebf-40ba-817b-bccc309e602f/7831d667-1ebc-4b1e-a941-e545cb0d0523",
+    "difficulty": "hard",
+    "notes": "The email and phone number you use on the form must be associated with your T-Mobile account. Proof of identity (Driver's License or Passport, New Hampshire residents cannot submit a Driver's License as proof) is required."
+  },
+  {
+    "name": "T-shirt personalis\u00e9",
+    "domains": [],
+    "url": "https://vive-lamode.com/collections/t-shirt-personnalise",
+    "difficulty": "easy"
+  },
+  {
+    "name": "Taobao",
+    "domains": [],
+    "url": "https://taobao.com",
+    "difficulty": "hard",
+    "notes": "Depending on your area you must follow the instructions shown in https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm'"
+  },
+  {
+    "name": "Telegram",
+    "domains": [],
+    "url": "https://t.me/gdprbot",
+    "difficulty": "easy",
+    "notes": "The bots [@gdprbot](https://t.me/gdprbot) and [@lgpdbot](https://t.me/lgpdbot) in Telegram show us how to obtain our data in the app. The use of Telegram Desktop is needed in order to get the data. Once there, go to options, settings, advanced, export Telegram data, choose everything you want/need and export it in HTML or JSON format."
+  },
+  {
+    "name": "Tiktok",
+    "domains": [],
+    "url": "https://www.tiktok.com/legal/report/privacy",
+    "difficulty": "medium",
+    "notes": "Go to the form provided in the url above and fill it selecting the option 'Request information or an action regarding the account data'."
+  },
+  {
+    "name": "Tim Hortons",
+    "domains": [],
+    "url": "https://privacyportal-eu-cdn.onetrust.com/dsarwebform/7ae425dd-1c76-46b0-a1b4-2422a364fae3/draft/1d4481aa-204a-4cb5-a40a-82e4369d16b2.html",
+    "difficulty": "medium",
+    "notes": "U.S. and Canada residents can fill out the linked web form or email [privacy@rbi.com](mailto:privacy@rbi.com)"
+  },
+  {
+    "name": "Tinder",
+    "domains": [],
+    "url": "https://account.gotinder.com/data",
+    "difficulty": "easy",
+    "notes": "Go to the url provided above, log-in with your account credentials and provide and e-mail to receive a link to your data"
+  },
+  {
+    "name": "Tmall",
+    "domains": [],
+    "url": "https://tmall.com",
+    "difficulty": "hard",
+    "notes": "Depending on your area you must follow the instructions shown in https://www.alibabagroup.com/en/contact/law_e_commerce?spm=a271m.8038972.0.0.5a916d82MwfIzm'"
+  },
+  {
+    "name": "Twitch",
+    "domains": [],
+    "url": "https://www.twitch.tv/p/legal/privacy-notice/",
+    "difficulty": "hard",
+    "notes": "Send an email to [privacy@twitch.tv](mailto:privacy@twitch.tv) and include your name, address, telephone number and all relevant background."
+  },
+  {
+    "name": "Twitter",
+    "domains": [],
+    "url": "https://twitter.com/settings/your_twitter_data",
+    "difficulty": "medium",
+    "notes": "Go to your account settings (\"Settings and privacy\"), in the \"Account\" section, click on \"Your Twitter data\", then enter your password in \"Download your Twitter data\" and then click \"Confirm \". Once the download is ready, they will send you an email to your associated email account and from there you can download a compressed file of your Twitter data."
+  },
+  {
+    "name": "Uber",
+    "domains": [],
+    "url": "https://myprivacy.uber.com/privacy/exploreyourdata/download",
+    "difficulty": "medium",
+    "notes": "Details of the export will be sent via email when ready."
+  },
+  {
+    "name": "Ubisoft",
+    "domains": [],
+    "url": "https://account.ubisoft.com/en-US/privacy-settings",
+    "difficulty": "medium",
+    "notes": "Scroll down to the bottom of the page and request your data. They will send an email to you once your data download is ready. Emails take up to 24 hours to be sent."
+  },
+  {
+    "name": "Universidad Complutense de Madrid",
+    "domains": [],
+    "url": "https://www.ucm.es/como-ejercer-los-derechos",
+    "difficulty": "hard",
+    "notes": "You have to present a request form through E-mail or in person at the registry with your ID."
+  },
+  {
+    "name": "UOL",
+    "domains": [],
+    "url": "https://sac.uol.com.br/ajuda/content/como-solicitar-o-levantamento-dos-meus-dados-cadastrados-no-uol",
+    "difficulty": "easy",
+    "notes": "Just click in \"Clique aqui\" and click in \"Solicitar envio de dados\". An email is sent immediately."
+  },
+  {
+    "name": "Uphold",
+    "domains": [],
+    "url": "https://support.uphold.com/hc/en-us/requests/new?category=data_and_privacy_inquiries",
+    "difficulty": "hard",
+    "notes": "Contact the customer support with the provided form and request your data."
+  },
+  {
+    "name": "USACO Guide",
+    "domains": [],
+    "url": "https://usaco.guide/settings#user-data",
+    "difficulty": "easy",
+    "notes": "Click \"Export User Data\". The download will start immediately."
+  },
+  {
+    "name": "Vinted",
+    "domains": [],
+    "url": "https://www.vinted.com/request_data_export",
+    "difficulty": "easy",
+    "notes": "Click on your profile icon, then \"Settings\", \"Privacy settings\", \"Download account data\" and \"Request data\"."
+  },
+  {
+    "name": "Walmart",
+    "domains": [],
+    "url": "https://cpa-ui.walmart.com/affirmation?brandCode=WMT",
+    "difficulty": "hard",
+    "notes": "They only accept requests from California and Virginia, but they only check the state selected from the dropdown at the beginning."
+  },
+  {
+    "name": "WhatsApp",
+    "domains": [],
+    "url": "https://www.whatsapp.com/",
+    "difficulty": "easy",
+    "notes": "Open the application and go to Settings > Account > Request info. from my account. Select \"Request report \", that concludes the process. NOTICE: The report will be ready in approximately 3 days. When it is available, you will have a few weeks to download it. If you delete your account or modify the phone, the request will be canceled."
+  },
+  {
+    "name": "Wikimedia",
+    "domains": [],
+    "url": "https://www.mediawiki.org/wiki/API:Userinfo",
+    "difficulty": "hard",
+    "notes": "Wikipedia's data access is easy, but other data from Wikimedia like donation history can only be retrieved through email to [privacy@wikimedia.org](mailto:privacy@wikimedia.org)"
+  },
+  {
+    "name": "Wikipedia",
+    "domains": [],
+    "url": "https://en.wikipedia.org/w/api.php?action=query&meta=userinfo&uiprop=email%7Cregistrationdate%7Crights%7Cgroups%7Coptions%7Ceditcount%7Clatestcontrib",
+    "difficulty": "easy",
+    "notes": "Everything is accesible through an API link. For other wikipedias, you can change the language changing the url."
+  },
+  {
+    "name": "Withings",
+    "domains": [],
+    "url": "https://account.withings.com/export/user_select",
+    "difficulty": "easy",
+    "notes": "Visit the linked paged to request your data. After a short while you'll receive an email and you can download your data."
+  },
+  {
+    "name": "Yahoo!",
+    "domains": [],
+    "url": "https://yahoo.com/",
+    "difficulty": "easy",
+    "notes": "Go to https://yahoo.mydashboard.oath.com/ with a Yahoo! account, scroll down and select 'Request a download' and on the next page you select all the data you want to download, then add an email that you want notify when the download will be ready, this process may take about 30 days."
+  },
+  {
+    "name": "Yoigo",
+    "domains": [],
+    "url": "https://www.yoigo.com/",
+    "difficulty": "hard",
+    "notes": "You must to send e-mail to [datospersonales@yoigo.com](mailto:datospersonales@yoigo.com) with your DNI scaned by two sides with a request for what right you want to exercise."
+  },
+  {
+    "name": "YouTube / YouTube Music",
+    "domains": [],
+    "url": "https://takeout.google.com/",
+    "difficulty": "easy",
+    "notes": "Since YouTube and YouTube Music are services by Google, please refer to the instructions for [Google](./#google)."
+  },
+  {
+    "name": "Zanichelli",
+    "domains": [],
+    "url": "https://my.zanichelli.it/contattaci",
+    "difficulty": "hard",
+    "notes": "To request your data you need to contact customer service."
+  },
+  {
+    "name": "ZombieLink",
+    "domains": [],
+    "url": "https://zombiesrungame.com/zombielink/account",
+    "difficulty": "easy",
+    "notes": "Scroll down to 'Data Download' and click red button: 'Request Download'"
+  },
+  {
+    "name": "Zoom",
+    "domains": [],
+    "url": "https://zoom.us/gdpr",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data to [privacy@zoom.us](mailto:privacy@zoom.us)."
+  },
+  {
+    "name": "Zynga",
+    "domains": [],
+    "url": "https://zyngasupport.helpshift.com/hc/en/29-zyngagames-com/faq/12820-how-do-i-download-or-delete-my-data/?s=legal-privacy-security&f=how-do-i-download-or-delete-my-data",
+    "difficulty": "easy",
+    "notes": "Select the game you want to request your data from. Enter your Player ID and PIN for that game. Click on 'Request a Copy of Your Account Data' to submit your request."
+  }
+]

@@ -1,0 +1,67 @@
+import kotlinx.datetime.Instant;
+
+CREATE TABLE cipherUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT NOT NULL,
+  type INTEGER NOT NULL,
+  createdAt INTEGER AS Instant NOT NULL,
+  credentialId TEXT,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+insert:
+INSERT INTO cipherUsageHistory(cipherId, credentialId, type, createdAt)
+VALUES (?, ?, ?, ?);
+
+get:
+SELECT *
+FROM cipherUsageHistory
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getUsedPasskeyById:
+SELECT *
+FROM cipherUsageHistory
+WHERE
+    type = 2 AND
+    cipherId = :cipherId AND
+    credentialId = :credentialId
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getDistinctRecent:
+SELECT
+    id,
+    cipherId,
+    type,
+    max(createdAt) AS createdAt
+FROM cipherUsageHistory
+GROUP BY
+    cipherId
+ORDER BY cipherUsageHistory.createdAt DESC
+LIMIT :limit;
+
+getDistinctPopular:
+SELECT
+    id,
+    cipherId,
+    type,
+    createdAt,
+    COUNT(*) AS count
+FROM cipherUsageHistory
+GROUP BY
+    cipherId
+ORDER BY count DESC
+LIMIT :limit;
+
+getCount:
+SELECT
+    COUNT(*) AS count
+FROM cipherUsageHistory;
+
+deleteAll:
+DELETE FROM cipherUsageHistory;
+
+deleteByIds:
+DELETE FROM cipherUsageHistory
+WHERE id IN ?;

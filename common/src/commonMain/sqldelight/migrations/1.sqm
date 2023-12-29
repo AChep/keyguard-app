@@ -1,0 +1,5 @@
+CREATE TABLE passwordBreach (
+  password TEXT NOT NULL PRIMARY KEY,
+  count INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);

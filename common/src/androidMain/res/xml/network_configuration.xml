@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        Users can access their own servers even if
+        it's not though an HTTPS connection.
+        -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    <!--
+        Only trust pre-installed CAs for
+        Bitwarden's all domains.
+        -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">bitwarden.com</domain>
+        <domain includeSubdomains="true">bitwarden.eu</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

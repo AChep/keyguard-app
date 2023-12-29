@@ -1,0 +1,7 @@
+CREATE TABLE generatorEmailRelay (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  data TEXT NOT NULL,
+  createdAt INTEGER NOT NULL
+);

@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#00000000"
+        android:fillType="evenOdd"
+        android:pathData="M54.5,34L54.5,34A13.5,13.5 0,0 1,68 47.5L68,52.5A13.5,13.5 0,0 1,54.5 66L54.5,66A13.5,13.5 0,0 1,41 52.5L41,47.5A13.5,13.5 0,0 1,54.5 34z"
+        android:strokeWidth="6"
+        android:strokeColor="@color/launcher_handle" />
+    <path
+        android:fillColor="@color/launcher_body_1"
+        android:fillType="evenOdd"
+        android:pathData="M69,50C71.14,50 72.89,51.68 73,53.8L73,54L73,63.33C73,71.43 66.43,78 58.33,78L50.67,78C42.57,78 36,71.43 36,63.33L36,54C36,51.79 37.79,50 40,50L69,50Z" />
+    <path
+        android:fillColor="@color/launcher_body_2"
+        android:fillType="evenOdd"
+        android:pathData="M67,50C69.14,50 70.89,51.68 71,53.8L71,54L71,63.33C71,71.43 64.43,78 56.33,78L50.67,78C42.57,78 36,71.43 36,63.33L36,54C36,51.79 37.79,50 40,50L67,50Z" />
+    <path
+        android:fillColor="@color/launcher_body_3"
+        android:fillType="evenOdd"
+        android:pathData="M67,50C69.14,50 70.89,51.68 71,53.8L71,54L71,63.33C71,71.43 64.43,78 56.33,78L52.67,78C44.57,78 38,71.43 38,63.33L38,54C38,51.79 39.79,50 42,50L67,50Z" />
+    <path
+        android:fillAlpha="0.15675427"
+        android:fillColor="#282828"
+        android:fillType="evenOdd"
+        android:pathData="M54,56C57.31,56 60,58.35 60,61.25C60,63.34 58.6,65.15 56.57,65.99L56.57,69.5C56.57,70.33 55.9,71 55.07,71L52.93,71C52.1,71 51.43,70.33 51.43,69.5L51.43,65.99C49.4,65.15 48,63.34 48,61.25C48,58.35 50.69,56 54,56Z" />
+    <path
+        android:fillAlpha="0.13071585"
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M56,56C59.31,56 62,58.35 62,61.25C62,63.34 60.6,65.15 58.57,65.99L58.57,69.5C58.57,70.33 57.9,71 57.07,71L54.93,71C54.1,71 53.43,70.33 53.43,69.5L53.43,65.99C51.4,65.15 50,63.34 50,61.25C50,58.35 52.69,56 56,56Z" />
+    <path
+        android:fillColor="@color/launcher_handle"
+        android:fillType="evenOdd"
+        android:pathData="M54.5,56C57.54,56 60,58.35 60,61.25C60,63.34 58.72,65.15 56.86,65.99L56.86,69.5C56.86,70.33 56.19,71 55.36,71L53.64,71C52.81,71 52.14,70.33 52.14,69.5L52.14,65.99C50.28,65.15 49,63.34 49,61.25C49,58.35 51.46,56 54.5,56Z" />
+</vector>

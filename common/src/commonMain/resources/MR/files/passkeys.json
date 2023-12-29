@@ -1,0 +1,906 @@
+[
+  {
+    "name": "Adobe",
+    "domain": "adobe.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://helpx.adobe.com/manage-account/using/secure-sign-in-with-passkey.html#set-up",
+    "setup": "https://account.adobe.com/security",
+    "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
+  },
+  {
+    "name": "Amazon UK",
+    "domain": "amazon.co.uk",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.co.uk/your-account",
+    "notes": "Amazon is actively rolling out sign in with passkey support. Setting up a passkey on Amazon needs to meet one of the minimum software requirements of iOS 16, macOS Big Sur, or Android 9 (if applicable).\n\n#### To set up a passkey on your Amazon account:\n\n1. In Your Account, select Login & Security.\n2. Select Set up next to Passkey.\n3. Select Set up.\n4. Follow the instructions provided to complete setting up a passkey.\n\nSigning in to different Amazon marketplaces (Amazon.co.uk compared to Amazon.com for example) requires either a new passkey for that specific marketplace or using your Amazon password."
+  },
+  {
+    "name": "Amazon",
+    "domain": "amazon.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.com/your-account",
+    "notes": "Amazon is actively rolling out sign in with passkey support. Setting up a passkey on Amazon needs to meet one of the minimum software requirements of iOS 16, macOS Big Sur, or Android 9 (if applicable).\n\n#### To set up a passkey on your Amazon account:\n\n1. In Your Account, select Login & Security.\n2. Select Set up next to Passkey.\n3. Select Set up.\n4. Follow the instructions provided to complete setting up a passkey.\n\nSigning in to different Amazon marketplaces (Amazon.co.uk compared to Amazon.com for example) requires either a new passkey for that specific marketplace or using your Amazon password."
+  },
+  {
+    "name": "Apple",
+    "domain": "apple.com",
+    "features": [
+      "signin"
+    ]
+  },
+  {
+    "name": "nulab",
+    "domain": "apps.nulab.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.nulab.com/hc/en-us/articles/7745339110041-Passwordless-authentication-setup",
+    "setup": "https://apps.nulab.com/profile/security/security_device"
+  },
+  {
+    "name": "Arcalive",
+    "domain": "arca.live",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://arca.live/settings/account"
+  },
+  {
+    "name": "Arpari",
+    "domain": "arpari.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.arpari.com/login",
+    "notes": "Powered by Passage by 1Password."
+  },
+  {
+    "name": "Authgear",
+    "domain": "authgear.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://authgear.com"
+  },
+  {
+    "name": "Best Buy",
+    "domain": "bestbuy.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.bestbuy.com/identity/accountSettings/",
+    "notes": "Use the setup link provided and sign in with your email address and password, then follow the steps to create a passkey.\n\nSign out, then choose Sign In with a Passkey when you sign back in to use your passkey."
+  },
+  {
+    "name": "Beyond Identity",
+    "domain": "beyondidentity.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://console-us.beyondidentity.com/signup"
+  },
+  {
+    "name": "Binance",
+    "domain": "binance.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://www.binance.com/en/support/faq/how-to-create-a-passkey-for-my-binance-account-2aec8fe0437242f2a5fbef9cdb71d4c2",
+    "setup": "https://accounts.binance.com/en/manage-yubikey-authenticator",
+    "notes": "Please note: Saving and signing in with passkeys in the Binance app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "Boursorama",
+    "domain": "boursorama.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.boursorama.com/aide-en-ligne/securite/proteger-mon-espace-client/question/comment-se-connecter-a-votre-espace-client-grace-aux-cles-de-securite-5165516",
+    "setup": "https://www.boursorama.com"
+  },
+  {
+    "name": "Bridgecrest",
+    "domain": "bridgecrest.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://bridgecrest.com"
+  },
+  {
+    "name": "Cape Cod 5",
+    "domain": "capecodfive.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://online.capecodfive.com/settings/security/"
+  },
+  {
+    "name": "CardPointers",
+    "domain": "cardpointers.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://apps.apple.com/app/apple-store/id1472875808?pt=285054&ct=homepage&mt=8",
+    "notes": "Please note: Saving and signing in with passkeys in the CardPointers app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "Caremark",
+    "domain": "caremark.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.caremark.com/digital-fast/caremark-login-web/#/login"
+  },
+  {
+    "name": "Cloudflare",
+    "domain": "cloudflare.com",
+    "features": [
+      "mfa"
+    ],
+    "documentation": "https://support.cloudflare.com/hc/en-us/articles/200167906-Securing-user-access-with-two-factor-authentication-2FA-#6Gqe6f3nZtXSTpwyS2PBZ1",
+    "setup": "https://dash.cloudflare.com/profile/authentication"
+  },
+  {
+    "name": "Cloze",
+    "domain": "cloze.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://www.cloze.com/in/#setup",
+    "notes": "### To add a passkey to your account\n\nFrom the side menu bar:\n1. Select (\u2022\u2022\u2022 more)\n2. Select, settings\n3. Expand 'your account' and select [Add] passkeys"
+  },
+  {
+    "name": "Coinbase",
+    "domain": "coinbase.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/passkeys"
+  },
+  {
+    "name": "Corbado",
+    "domain": "corbado.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.corbado.com/"
+  },
+  {
+    "name": "Crowdin",
+    "domain": "crowdin.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://crowdin.com/settings#account"
+  },
+  {
+    "name": "Credit Union of Texas",
+    "domain": "cutx.org",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://online.cutx.org/settings/security"
+  },
+  {
+    "name": "CVS",
+    "domain": "cvs.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.cvs.com/account/login",
+    "notes": "Register individual passkeys using iOS, with Safari or Edge browsers.\n\nPlease note: Saving and signing in with passkeys on CVS is currently incompatible with 1Password in the browser and third-party passkey managers on iOS."
+  },
+  {
+    "name": "Dinero",
+    "domain": "dinero.dk",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://accountsettings.connect.visma.com/"
+  },
+  {
+    "name": "Discord",
+    "domain": "discord.com",
+    "features": [
+      "mfa"
+    ],
+    "notes": "### How to setup passkey\n\nGoto settings > My Account\n\n### Available on:\nWeb, desktop app and on iOS."
+  },
+  {
+    "name": "DocuSign",
+    "domain": "docusign.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://support.docusign.com/s/document-item?language=en_US&bundleId=jux1643235969954&topicId=niw1651694673085.html&_LANG=enus",
+    "setup": "https://app.docusign.com/auth",
+    "notes": "Click the setup link and sign in with your email address and password, then follow the steps to set up passwordless login using biometrics to create a passkey. \n\nSign out, then sign back in with your email address and choose Log in Without Password to use your passkey."
+  },
+  {
+    "name": "eBay",
+    "domain": "ebay.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://accounts.ebay.com/acctsec/security-center",
+    "notes": "Select the setup link above and sign in with your email address and password, then select \"Turn on\" next to \"Passkeys\" or \"Face/fingerprint/PIN sign in\" section and follow the steps to create a passkey.\n\nSign out, then sign back in. 1Password will sign in with your passkey automatically."
+  },
+  {
+    "name": "FormX.ai",
+    "domain": "formx.ai",
+    "features": [
+      "signin"
+    ],
+    "notes": "Uses AuthGear. Setup on register or at https://auth.formextractorai.com/settings"
+  },
+  {
+    "name": "FusionAuth",
+    "domain": "fusionauth.io",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://fusionauth.io/docs/v1/tech/passwordless/webauthn-passkeys",
+    "setup": "https://fusionauth.io/"
+  },
+  {
+    "name": "GitHub",
+    "domain": "github.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://docs.github.com/en/authentication/authenticating-with-a-passkey/about-passkeys",
+    "setup": "https://github.com/settings/security",
+    "notes": "#### To save a passkey on your GitHub account\n1. Navigate to your GitHub account's security settings by heading to https://github.com/settings/security or selecting the setup link above.\n2. Select \"Add a passkey\" under \"Passkeys.\"\n3. Select \"Add passkey\" and follow the on-screen instructions to save a passkey to your GitHub account.\n\nOnce added, you will be able to sign in to your GitHub account by selecting \"Sign in with a passkey\" on the sign in page.\n\n#### Blog post:\n\nhttps://github.blog/2023-09-21-passkeys-are-generally-available/"
+  },
+  {
+    "name": "GitLab",
+    "domain": "gitlab.com",
+    "features": [
+      "mfa"
+    ],
+    "documentation": "https://docs.gitlab.com/ee/user/profile/account/two_factor_authentication.html#set-up-a-webauthn-device",
+    "setup": "https://gitlab.com/-/profile/two_factor_auth"
+  },
+  {
+    "name": "GoDaddy",
+    "domain": "godaddy.com",
+    "features": [
+      "mfa"
+    ],
+    "setup": "https://sso.godaddy.com/security"
+  },
+  {
+    "name": "Google",
+    "domain": "google.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://support.google.com/accounts/answer/13548313",
+    "setup": "https://g.co/passkeys",
+    "notes": "Visit setup link and sign in to a personal Google account with your email address and password, then follow the steps to create a passkey.\n\nSign out, then sign back in. You may need to click \"Try another way\" to see the option to use your passkey."
+  },
+  {
+    "name": "haeppie",
+    "domain": "haeppie.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://be.haeppie.com/#register",
+    "notes": "Passkeys offered after sign up or sign in, after verifying email address. "
+  },
+  {
+    "name": "Hancock",
+    "domain": "hancock.ink",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.hancock.ink",
+    "notes": "During logon and account setup, passkeys are presented as an option. If you decide not to set up passkeys at that time, you will be prompted to set them up during application use. Should you choose not to do so, or if you want to manage your passkeys, you can go to your user profile to perform these tasks"
+  },
+  {
+    "name": "Hanko.io",
+    "domain": "hanko.io",
+    "features": [
+      "signin"
+    ]
+  },
+  {
+    "name": "Visma",
+    "domain": "home.visma.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://community.visma.com/t5/Brukertips-i-Visma-net-ERP/Hvordan-kan-du-aktivere-totrinnskontroll-med-FIDO2/ta-p/293830",
+    "setup": "https://accountsettings.connect.visma.com"
+  },
+  {
+    "name": "Horizon Pics",
+    "domain": "horizon.pics",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://docs.hrzn.cool/pics/webauthn",
+    "setup": "https://horizon.pics/settings"
+  },
+  {
+    "name": "World of Hyatt",
+    "domain": "hyatt.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.hyatt.com/en-US/member/passkey/what-is-passkey",
+    "setup": "https://www.hyatt.com/member/passkey/manage",
+    "notes": "Hyatt.com will require verification via an emailed code in order to create or manage passkeys."
+  },
+  {
+    "name": "au",
+    "domain": "id.auone.jp",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.au.com/support/faq/detail/26/a00000000826/",
+    "setup": "https://connect.auone.jp/net/vw/cca_eu_net/cca?ID=ENET0570"
+  },
+  {
+    "name": "Money Forward ID",
+    "domain": "id.moneyforward.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://id.moneyforward.com/webauthn/credentials"
+  },
+  {
+    "name": "Docomo",
+    "domain": "id.smt.docomo.ne.jp",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://id.smt.docomo.ne.jp/ast/tra/id/conts/setwebauthn/top/"
+  },
+  {
+    "name": "Instacart",
+    "domain": "instacart.com",
+    "features": [
+      "signin"
+    ],
+    "notes": "New users signing up in the Instacart app will be asked to set up a passkey. Existing users or new users signing up through a web browser are not yet able to add a passkey to their accounts.\n\nIf you are an Instacart shopper, you are able to add a passkey to your existing account through the Shopper app.\n\n#### To set up a passkey on your Shopper account:\n\nStep 1: Go to the Account tab in the Shopper app.\n\nStep 2: Tap Settings.\n\nStep 3: Tap Set up passkey.\n\nPlease note: Saving and signing in with passkeys in the Instacart app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "Intastellar Accounts",
+    "domain": "intastellaraccounts.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://my.intastellaraccounts.com/security/passkeys"
+  },
+  {
+    "name": "Mercari",
+    "domain": "jp.mercari.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.jp.mercari.com/guide/articles/1103/",
+    "setup": "https://jp.mercari.com/mypage/personal_info/passkeys"
+  },
+  {
+    "name": "KAYAK",
+    "domain": "kayak.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.kayak.com/profile/account",
+    "notes": "From the setup link, click \"Sign in\" > \"Continue with email\" to create a new account with a passkey.\n\nSign out, then repeat the same process to sign in with your passkey.\n\nPlease note: Saving and signing in with passkeys in the KAYAK app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "L\u00e4\u00e4k\u00e4ri.chat",
+    "domain": "laakari.chat",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://l\u00e4\u00e4k\u00e4ri.chat/help#webauthn"
+  },
+  {
+    "name": "LGTM.lol",
+    "domain": "lgtm.lol",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://lgtm.lol/signin"
+  },
+  {
+    "name": "Link by Stripe",
+    "domain": "link.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.link.com",
+    "notes": "Link by Stripe offers a quick checkout solution, ensuring the secure storage of credit card information. By default, it sends 2FA codes to the customer's phone number.  However, users also have the option to create passkeys, either after signing in or from the user account menu when they are logged in."
+  },
+  {
+    "name": "lnk.bio",
+    "domain": "lnk.bio",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://lnk.bio/linkin/log-in-with-passkeys-to-lnkbio",
+    "setup": "https://lnk.bio/manage/settings"
+  },
+  {
+    "name": "Locker ",
+    "domain": "locker.io",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.locker.io/articles/What-are-passkeys-How-to-create-passkeys-for-a-Locker-account-d59668df96034b42859c05ed50149ba4",
+    "setup": "https://id.locker.io/security/webauthn"
+  },
+  {
+    "name": "Login.gov",
+    "domain": "login.gov",
+    "features": [
+      "mfa"
+    ],
+    "setup": "https://secure.login.gov/account"
+  },
+  {
+    "name": "MIXI M",
+    "domain": "m.mixi.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://account.mixi.com/security/authenticators"
+  },
+  {
+    "name": "Mangadex",
+    "domain": "mangadex.org",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://auth.mangadex.org/"
+  },
+  {
+    "name": "Daylite",
+    "domain": "marketcircle.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.marketcircle.com/learn/passkeys"
+  },
+  {
+    "name": "Marshmallow",
+    "domain": "marshmallow-qa.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://diverdown.wraptas.site/3ec9bbfd244d41149909d1cd5f8003ec",
+    "setup": "https://marshmallow-qa.com/setting"
+  },
+  {
+    "name": "Microsoft",
+    "domain": "microsoft.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://support.microsoft.com/en-us/windows/sign-in-to-your-microsoft-account-with-windows-hello-or-a-security-key-800a8c01-6b61-49f5-0660-c2159bea4d84",
+    "setup": "https://account.live.com/proofs/manage/additional",
+    "notes": "Not available using Safari right now.\n\nClick the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey."
+  },
+  {
+    "name": "minter.io",
+    "domain": "minter.io",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.minter.io/en/articles/8207212-adding-a-passkey-for-your-minter-io-account",
+    "setup": "https://minter.io/app/edit/passkeys/add"
+  },
+  {
+    "name": "KEMBA Financial Credit Union",
+    "domain": "my.kemba.org",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://my.kemba.org/settings/security"
+  },
+  {
+    "name": "Namecheap",
+    "domain": "namecheap.com",
+    "features": [
+      "mfa"
+    ],
+    "documentation": "https://www.namecheap.com/support/knowledgebase/article.aspx/10102/45/how-can-i-use-the-u2f-method-for-twofactor-authentication/?_ga=2.209547478.59346046.1668175019-514097103.1666667155&_gl=1*8xtpo2*_ga*NTE0MDk3MTAzLjE2NjY2NjcxNTU.*_ga_7DMJMG20P8*MTY2ODE3NTAxOS4yLjEuMTY2ODE3NTIyOC4zOS4wLjA.",
+    "setup": "https://ap.www.namecheap.com/settings/security/twofa/manage"
+  },
+  {
+    "name": "Nintendo",
+    "domain": "nintendo.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://en-americas-support.nintendo.com/app/answers/detail/a_id/62531",
+    "setup": "https://accounts.nintendo.com/"
+  },
+  {
+    "name": "Nord Account",
+    "domain": "nordaccount.com",
+    "features": [
+      "mfa"
+    ],
+    "setup": "https://my.nordaccount.com/account-settings/account-security/"
+  },
+  {
+    "name": "Nvidia",
+    "domain": "nvidia.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://profile.nvgs.nvidia.com/security",
+    "notes": "Click the setup link and sign in with your email address and password, then choose Hardware Security Device, click Add New Security Device, and follow the steps to create a passkey.\n\nSign out, then choose \"Log In With Security Device\" at the bottom of the page when you sign back in to use your passkey."
+  },
+  {
+    "name": "okta",
+    "domain": "okta.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.okta.com/oie/en-us/Content/Topics/identity-engine/authenticators/configure-webauthn.htm"
+  },
+  {
+    "name": "OKX",
+    "domain": "okx.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.okx.com/account/security/passkeys"
+  },
+  {
+    "name": "omg.lol",
+    "domain": "omg.lol",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://home.omg.lol/account",
+    "notes": "Powered by Passage by 1Password."
+  },
+  {
+    "name": "OneLog",
+    "domain": "onelog.ch",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://profile.onelog.ch/global.security"
+  },
+  {
+    "name": "OneLogin",
+    "domain": "onelogin.com",
+    "features": [
+      "mfa"
+    ],
+    "documentation": "https://onelogin.service-now.com/support?id=kb_article&sys_id=927dc6659778e150c90c3b0e6253af9a",
+    "notes": "Passkeys Support can be enabled by an Administrator of a OneLogin environment by enabling the Webauthn authentication factor on a User Security policy which is then allocated to either a group of users or all users in the environment. "
+  },
+  {
+    "name": "OnlyFans",
+    "domain": "onlyfans.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://onlyfans.com/my/settings/account/passwordless-sign-in",
+    "notes": "Setup 'passwordless login' through Account Settings. "
+  },
+  {
+    "name": "Passage Authentication Demo",
+    "domain": "passage.1password.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://passage.1password.com/demo",
+    "setup": "https://passage.1password.com/demo"
+  },
+  {
+    "name": "Passage",
+    "domain": "passage.id",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://console.passage.id/register"
+  },
+  {
+    "name": "Descope passkeys demo",
+    "domain": "passkeys.guru",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://passkeys.guru",
+    "setup": "https://passkeys.guru",
+    "notes": "Passkeys demo powered by descope"
+  },
+  {
+    "name": "Pastery",
+    "domain": "pastery.net",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.pastery.net/login/"
+  },
+  {
+    "name": "PayFit",
+    "domain": "payfit.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.payfit.com/en/articles/74363-two-factor-authentication-for-employees",
+    "setup": "https://payfit.com",
+    "notes": "PayFit do not explicitly call setting up 'biometric authentication' option as a passkey or use terminology/iconography from the FIDO passkey guidelines but these are passkeys."
+  },
+  {
+    "name": "PayPal",
+    "domain": "paypal.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.paypal.com/us/cshelp/article/what-are-paypal-passkeys-help997",
+    "setup": "https://www.paypal.com/myaccount/security/",
+    "notes": "Passkeys on PayPal can only be created on mobile devices in Chrome on Android or iOS, and in Safari on iOS. Signing in with passkeys is not yet available on Google Chrome (and other Chromium browsers) on desktop.\n\n#### To set up a passkey on your PayPal account:\n1. On your mobile device, navigate to PayPal's settings > Security or use the setup link above.\n2.  Select \"Passkeys.\"\n3. Select \"Create a passkey.\"\n4. Follow the instructions provided to complete setting up a passkey.\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)\n\nPlease note: Saving and signing in with passkeys in the PayPal app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "Porkbun",
+    "domain": "porkbun.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://kb.porkbun.com/article/119-how-to-secure-your-account-with-a-physical-security-key-using-webauthn",
+    "setup": "https://porkbun.com/account"
+  },
+  {
+    "name": "Qapital",
+    "domain": "qapital.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://qapital.com"
+  },
+  {
+    "name": "rad.dad",
+    "domain": "rad.dad",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://rad.dad/help#accessing",
+    "setup": "https://rad.dad/control-panel/",
+    "notes": "Powered by Passage by 1Password."
+  },
+  {
+    "name": "Robinhood",
+    "domain": "robinhood.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://robinhood.com/us/en/support/articles/passkeys/",
+    "setup": "https://apps.apple.com/us/app/robinhood-investing-for-all/id938003185",
+    "notes": "Select Account \u2192 Menu \u2192 Security and Privacy \u2192 Create passkey \u2192 Continue\n\nPlease note: Saving and signing in with passkeys in the Robinhood app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "Roblox",
+    "domain": "roblox.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://en.help.roblox.com/hc/en-us/articles/20669991483156-Login-with-a-Passkey",
+    "setup": "https://www.roblox.com/my/account#!/info",
+    "notes": "### Setting up passkeys: \n\n- Navigate to Settings on your iOS app or web browser. Log in if prompted.\n*Note: Android support will be coming soon*\n- Under Account Info > Login Methods > Passkeys, press the \u201cAdd passkey\u201d button.\n- Note: You may need to verify your identity with your password or a one-time code sent to your email.\n\nTo complete adding a passkey, you will be asked to unlock your device.\n\n\n### Manage your passkeys\n\nGo to Settings on your iOS app or web browser. Login to your account if prompted.\n\n*Note: Android support will be coming soon*\n- Under Account Info > Login Methods > Passkeys, press the \u201cManage\u201d button.\n- Press the trashcan icon next to the passkey you want to remove.\n- You may be asked to verify your identity using passwords or an email one-time code."
+  },
+  {
+    "name": "Scrooge Games",
+    "domain": "scrooge.games",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://scrooge.games/login/"
+  },
+  {
+    "name": "Shop Pay",
+    "domain": "shop.app",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://pay.shopify.com/pay/webauthn/new"
+  },
+  {
+    "name": "Shopify",
+    "domain": "shopify.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.shopify.com/manual/your-account/logging-in/passkeys#create-a-passkey",
+    "setup": "https://www.shopify.com",
+    "notes": "Sign in to Shopify with your email address and password, then follow the steps in the documentation link above to create a passkey. \n\nSign out, then sign back in with your email address and choose \"Log in with passkey\" to use your passkey."
+  },
+  {
+    "name": "Skiff",
+    "domain": "skiff.com",
+    "features": [
+      "mfa"
+    ],
+    "setup": "https://app.skiff.com/mail/inbox?settingTab=security"
+  },
+  {
+    "name": "Synology",
+    "domain": "synology.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://account.synology.com/security/"
+  },
+  {
+    "name": "Tailscale",
+    "domain": "tailscale.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://tailscale.com/kb/1269/passkeys/",
+    "setup": "https://login.tailscale.com/admin/users",
+    "notes": "Saving and signing in with passkeys on Tailscale is limited to new user accounts only.  Users also cannot create a new tailnet using passkey key authentication. The tailnet must first be created using a different authentication method then invited users can use passkey authentication for their accounts."
+  },
+  {
+    "name": "Tender",
+    "domain": "tender.run",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://tender.run/passkeys",
+    "setup": "https://app.tender.run/create-account",
+    "notes": "Tender only supports passkeys for authentication"
+  },
+  {
+    "name": "The Hendrix",
+    "domain": "thehendrixjc.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://apply.thehendrixjc.com/new-application"
+  },
+  {
+    "name": "TikTok",
+    "domain": "tiktok.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.tiktok.com/en/log-in-troubleshoot/log-in/log-in-with-a-passkey#4",
+    "notes": "TikTok is rolling out passkeys for iOS to users and requires the following criteria to be met:\n- Have an Apple device running iOS 16 or macOS Ventura or later.\n- iCloud Keychain must be turned on in your Apple device settings.\n- Two-factor authentication must be turned on for your Apple ID.\n\n#### To set up a passkey on your TikTok account:\n\n1. In the TikTok app, tap Profile at the bottom.\n2. Tap the Menu button at the top.\n3. Tap Settings and privacy.\n4. Tap Account.\n5. Tap iCloud passkey, then tap Set up on the next screen and follow the instructions provided to complete setup.\n\nPlease note: Saving and signing in with passkeys in the TikTok app is currently incompatible with third-party passkey managers on iOS. We are anticipating this to be fixed in future iOS 17 releases. Saving and signing in with passkeys in web browsers on iOS will work as expected."
+  },
+  {
+    "name": "Trusona Authentication Cloud",
+    "domain": "trusona.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.trusona.com/customers/authentication-cloud",
+    "setup": "https://portal.trusona.io",
+    "notes": "Requires a commercial license. Contact Trusona at info@trusona.com for more information."
+  },
+  {
+    "name": "Trustworthy",
+    "domain": "trustworthy.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://trustworthy.com",
+    "notes": "Available on iOS after signing up / signing in. "
+  },
+  {
+    "name": "Uber",
+    "domain": "uber.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.uber.com/riders/article/using-passkeys-to-sign-in?nodeId=61701cda-3615-43b2-8187-1440e91035d8",
+    "setup": "https://account.uber.com/passkeys"
+  },
+  {
+    "name": "United Southeast Federal Credit Union",
+    "domain": "usfcu.org",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://my.usfcu.org/settings/security"
+  },
+  {
+    "name": "Vault Vision",
+    "domain": "vaultvision.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://docs.vaultvision.com/index.html",
+    "setup": "https://auth.vaultvision.com/signup"
+  },
+  {
+    "name": "Virgin Media",
+    "domain": "virginmedia.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://virginmedia.com"
+  },
+  {
+    "name": "vk",
+    "domain": "vk.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://vk.com/press/id-onepass",
+    "setup": "https://id.vk.ru/account/#/connected-keys",
+    "notes": "VK.com / VK.ru provide passkey sign in using their 'OnePass' ID. A phone number or email address is required to create a passkey."
+  },
+  {
+    "name": "Voura",
+    "domain": "voura.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.voura.com/auth/login",
+    "notes": "When signing up for Voura, you will be automatically prompted to save a passkey for your account.\n\nPowered by Passage by 1Password."
+  },
+  {
+    "name": "WebAuthn.io",
+    "domain": "webauthn.io",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://webauthn.io"
+  },
+  {
+    "name": "Yahoo! JAPAN",
+    "domain": "yahoo.co.jp",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://about.yahoo.co.jp/pr/release/2023/03/14b/",
+    "setup": "https://id.yahoo.co.jp",
+    "notes": "https://fidoalliance.org/yahoo-japan-announces-support-for-passkeys-across-available-platforms/"
+  },
+  {
+    "name": "Yahoo!",
+    "domain": "yahoo.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://in.help.yahoo.com/kb/SLN35635.html",
+    "setup": "https://login.yahoo.com/myaccount/security",
+    "notes": "Users may need to remove authenticator app before passkeys will be offered."
+  },
+  {
+    "name": "Zoho",
+    "domain": "zoho.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.zoho.com/portal/en/kb/accounts/faqs-troubleshooting/troubleshooting/sign-in/articles/passkey-sign-in-failed-on-mac#What_happened",
+    "setup": "https://accounts.zoho.com/home#multiTFA/modes",
+    "notes": "Recently updated this listing to include passkey support for signing in, in addition to MFA."
+  }
+]

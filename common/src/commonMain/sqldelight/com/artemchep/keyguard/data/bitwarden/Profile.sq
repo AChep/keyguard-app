@@ -1,0 +1,53 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile;
+
+CREATE TABLE profile (
+  profileId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT AS BitwardenProfile NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE profile
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    profileId = :profileId;
+
+  INSERT OR IGNORE INTO profile(profileId, accountId, data)
+  VALUES (:profileId, :accountId, :data);
+}
+
+get:
+SELECT *
+FROM profile;
+
+getIds:
+SELECT profileId
+FROM profile;
+
+getByProfileId:
+SELECT *
+FROM profile
+WHERE
+    profileId == :profileId;
+
+getByAccountId:
+SELECT *
+FROM profile
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM profile;
+
+deleteByProfileId:
+DELETE FROM profile
+WHERE
+    profileId == :profileId;
+
+deleteByAccountId:
+DELETE FROM profile
+WHERE
+    accountId == :accountId;

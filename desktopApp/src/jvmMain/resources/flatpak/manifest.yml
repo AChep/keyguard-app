@@ -1,0 +1,34 @@
+app-id: com.artemchep.keyguard
+runtime: org.gnome.Platform
+runtime-version: '45'
+sdk: org.gnome.Sdk
+tags: [ proprietary ]
+command: /app/bin/Keyguard
+finish-args:
+  - --share=network
+  - --socket=x11
+  - --socket=fallback-x11
+  - --device=dri
+  - --talk-name=org.gtk.vfs.*
+  - --filesystem=xdg-run/gvfsd
+modules:
+  - name: keyguard
+    buildsystem: simple
+    build-commands:
+      - cp -r bin/ /app/bin/
+      - cp -r lib/ /app/lib/
+      - mkdir -p /app/share/applications
+      - install -D com.artemchep.keyguard.desktop /app/share/applications/com.artemchep.keyguard.desktop
+      - mkdir -p /app/share/icons/hicolor/scalable/apps/
+      - cp -r icon.png /app/share/icons/hicolor/scalable/apps/com.artemchep.keyguard.png
+    sources:
+      - type: file
+        path: icon.png
+      - type: dir
+        path: "bin/"
+        dest: "bin/"
+      - type: dir
+        path: "lib/"
+        dest: "lib/"
+      - type: file
+        path: com.artemchep.keyguard.desktop

@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ok">OK</string>
+    <string name="close">Закрыть</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <!-- A name of a thing, such as an account -->
+    <string name="generic_name">Название</string>
+    <string name="account_name">Название учетной записи</string>
+    <string name="username">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string name="app_password">Пароль приложения</string>
+    <string name="current_password">Текущий пароль</string>
+    <string name="new_password">Новый пароль</string>
+    <string name="email">Эл. почта</string>
+    <string name="email_verified">Подтверждено</string>
+    <string name="email_not_verified">Не подтверждено</string>
+    <string name="email_visibility">Видимость email</string>
+    <string name="public_url">Публичный URL</string>
+    <string name="url">URL</string>
+    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="access_count">Количество посещений</string>
+    <string name="learn_more">Узнать больше</string>
+    <string name="phone_number">Номер телефона</string>
+    <string name="passport_number">Номер паспорта</string>
+    <string name="license_number">Номер лицензии</string>
+    <string name="card_number">Номер карты</string>
+    <string name="card_number_empty_label">Нет номера карты</string>
+    <string name="card_type">Тип карты</string>
+    <string name="card_cvv">CVV</string>
+    <string name="card_valid_from">Действует с</string>
+    <string name="card_valid_to">Действует до</string>
+    <string name="card_expiry_month">Card expiry month</string>
+    <string name="card_expiry_year">Card expiry year</string>
+    <string name="cardholder_name">Имя владельца карты</string>
+    <string name="valid_from">Действует с</string>
+    <string name="expiry_date">Дата окончания</string>
+    <string name="company">Компания</string>
+    <string name="sync">Синхронизировать</string>
+    <!-- Opposite of 'visible' -->
+    <string name="hidden">Скрыто</string>
+    <!-- Opposite of 'hidden' -->
+    <string name="visible">Видимый</string>
+    <!-- Shows up instead of a value if a value is an empty text -->
+    <string name="empty_value">Пусто</string>
+    <!-- Social Security Number -->
+    <string name="ssn">SSN</string>
+    <string name="city">Город</string>
+    <string name="state">Штат/Область</string>
+    <string name="info">Информация</string>
+    <string name="cancel">Отмена</string>
+    <string name="continue_">Продолжить</string>
+    <string name="country">Страна</string>
+    <string name="address">Адрес</string>
+    <string name="postal_code">Почтовый индекс</string>
+    <string name="pull_to_search">Потяните для поиска</string>
+    <string name="save">Сохранить</string>
+    <string name="uri">URI</string>
+    <string name="uris">URI-адреса</string>
+    <string name="note">Заметка</string>
+    <string name="notes">Заметки</string>
+    <string name="attachments">Вложения</string>
+    <string name="attachments_empty_label">Без вложений</string>
+    <string name="expiring_soon">Срок действия истекает</string>
+    <string name="item_incomplete_title">Неполные данные</string>
+    <string name="item_incomplete_text">В элементе отсутствует некоторая важная информация.</string>
+    <string name="item">Элемент</string>
+    <string name="items">Элементы</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> записей</string>
+    <string name="items_all">Все элементы</string>
+    <string name="items_empty_label">Нет элементов</string>
+    <string name="folder_none">Без папки</string>
+    <string name="folder_new">Новая папка</string>
+    <string name="folder">Папка</string>
+    <string name="folders">Папки</string>
+    <string name="folders_empty_label">Нет папок</string>
+    <string name="collection_none">Без коллекции</string>
+    <string name="collection">Коллекция</string>
+    <string name="collections">Коллекции</string>
+    <string name="collections_empty_label">Нет коллекций</string>
+    <string name="organization_none">Моё хранилище</string>
+    <string name="organization">Организация</string>
+    <string name="organizations">Организации</string>
+    <string name="organizations_empty_label">Нет организаций</string>
+    <string name="misc">Разное</string>
+    <string name="add_integration">Добавить интеграцию</string>
+    <string name="account">Учётная запись</string>
+    <string name="accounts">Учетные записи</string>
+    <string name="accounts_empty_label">Нет учетных записей</string>
+    <string name="account_none">Нет аккаунта</string>
+    <string name="type">Тип</string>
+    <string name="options">Параметры</string>
+    <string name="send">Отправить</string>
+    <string name="reset">Сброс</string>
+    <string name="length">Длина</string>
+    <string name="security">Безопасность</string>
+    <string name="contact_info">Контактная информация</string>
+    <string name="identity_title">Титул</string>
+    <string name="identity_first_name">Имя</string>
+    <string name="identity_middle_name">Отчество</string>
+    <string name="identity_last_name">Фамилия</string>
+    <string name="identity_full_name">Full name</string>
+    <string name="address1">Адрес, строка 1</string>
+    <string name="address2">Адрес, строка 2</string>
+    <string name="address3">Адрес, строка 3</string>
+    <string name="rename">Переименовать</string>
+    <string name="select_linked_type">Select type</string>
+    <string name="autofill">Автозаполнение</string>
+    <string name="passkey">Ключ доступа</string>
+    <string name="passkey_create_header">Создать passkey</string>
+    <string name="passkey_unlock_header">Разблокировать Keyguard</string>
+    <string name="passkey_auth_via_header">Подтверждение запроса авторизации…</string>
+    <string name="passkeys">Ключи доступа</string>
+    <!--
+        Signature counter is incremented each time a user uses a passkey. See:
+        https://www.w3.org/TR/webauthn-2/#signature-counter
+        -->
+    <string name="passkey_signature_counter">Количество использований</string>
+    <!--
+        The entity whose web application utilizes the Web Authentication API
+        to register and authenticate users. For example "Google" is a relying party.
+        https://www.w3.org/TR/webauthn-2/#relying-party
+        -->
+    <string name="passkey_relying_party">Проверяющая сторона</string>
+    <!--
+        https://www.w3.org/TR/webauthn-2/#discoverable-credential
+        -->
+    <string name="passkey_discoverable">Источник данных авторизации</string>
+    <string name="passkey_user_username">Имя пользователя</string>
+    <string name="passkey_user_display_name">Отображаемое имя</string>
+    <string name="api_key">Ключ API</string>
+    <string name="domain">Домен</string>
+    <string name="edit">Редактировать</string>
+    <string name="delete">Удалить</string>
+    <string name="remove">Удалить</string>
+    <string name="remove_from_history">Удалить из истории</string>
+    <string name="reused_password">Повторно использованный пароль</string>
+    <string name="reused_passwords">Повторно использованные пароли</string>
+    <string name="one_time_password">Одноразовый пароль</string>
+    <string name="one_time_password_authenticator_key">Ключ аутентификатора</string>
+    <string name="passkey_use_short">Использовать</string>
+    <string name="passkey_save">Сохранить ключ доступа</string>
+    <string name="passkey_available">Доступен Passkey</string>
+    <string name="twofa_available">Доступна двухфакторная аутентификация</string>
+    <string name="custom">Пользовательское</string>
+    <string name="follow_system_settings">Как в системе</string>
+    <!-- A feature is coming soon! -->
+    <string name="coming_soon">В ближайшее время</string>
+    <string name="powered_by">С помощью</string>
+    <string name="verification_code">Проверочный код</string>
+    <string name="resend_verification_code">Отправить код подтверждения заново</string>
+    <string name="requested_verification_email">Запрошено письмо с подтверждением</string>
+    <string name="web_vault">Веб-хранилище</string>
+    <string name="launch_web_vault">Запустить веб-хранилище</string>
+    <!-- Remember me to not have to enter OTP code second time -->
+    <string name="remember_me">Запомнить меня</string>
+    <!-- A Trash screen -->
+    <string name="trash">Корзина</string>
+    <!-- To download something -->
+    <string name="download">Скачать</string>
+    <string name="downloads">Загрузки</string>
+    <string name="downloads_empty_label">Нет загрузок</string>
+    <string name="duplicates_empty_label">Дубликатов нет</string>
+    <string name="encryption">Шифрование</string>
+    <!-- Encryption key -->
+    <string name="encryption_key">Ключ</string>
+    <string name="encryption_hash">Хэш</string>
+    <string name="encryption_salt">Соль</string>
+    <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
+    <string name="encryption_random_bits_data">Случайные <xliff:g id="length" example="64">%1$d</xliff:g>-битные данные</string>
+    <string name="none">Нет</string>
+    <string name="text">Текст</string>
+    <string name="linked_apps">Связанные приложения</string>
+    <string name="linked_uris">Связанные URI</string>
+    <string name="custom_fields">Пользовательские поля</string>
+    <string name="reveal_secure_note">Показать защищенную заметку</string>
+    <string name="hide_secure_note">Скрыть защищенную заметку</string>
+    <string name="master_password_hint">Подсказка к мастер-паролю</string>
+    <string name="fingerprint_phrase">Фраза отпечатка</string>
+    <string name="fingerprint_phrase_help_title">Что такое фраза отпечатка?</string>
+    <string name="bitwarden_premium">Bitwarden премиум</string>
+    <string name="bitwarden_unofficial_server">Неофициальный Bitwarden сервер</string>
+    <string name="account_last_synced_at">Последний раз синхронизировано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_action_change_name_title">Изменить название</string>
+    <string name="account_action_change_color_title">Изменить цвет</string>
+    <string name="account_action_change_master_password_hint_title">Изменить подсказку к мастер-паролю</string>
+    <string name="account_action_sign_out_title">Выйти</string>
+    <string name="account_action_sign_in_title">Войти</string>
+    <string name="account_action_email_verify_instructions_title">Посетите веб-хранилище для подтверждения адреса вашей электронной почты</string>
+    <string name="account_action_premium_purchase_instructions_title">Перейдите на Премиум и получите некоторые замечательные дополнительные функции</string>
+    <string name="account_action_tfa_title">Двухфакторная аутентификация</string>
+    <string name="account_action_tfa_text">Требовать подтверждения входа с помощью другого устройства, например ключа безопасности, приложения для аутентификации, SMS или электронной почты</string>
+    <string name="account_action_tfa_active_status">Активно</string>
+    <string name="account_action_items_title">Записи</string>
+    <string name="account_action_log_out_title">Выход</string>
+    <string name="account_log_out_confirmation_title">Выход?</string>
+    <string name="account_log_out_confirmation_text">Все не синхронизированные изменения будут потеряны!</string>
+    <string name="folder_action_change_name_title">Изменить название</string>
+    <string name="folder_action_change_names_title">Изменить названия</string>
+    <string name="folder_delete_one_confirmation_title">Удалить папку?</string>
+    <string name="folder_delete_many_confirmation_title">Удалить папки?</string>
+    <string name="folder_delete_confirmation_text">Эта запись(и) будет удалено. Вы не можете отменить это действие.</string>
+    <string name="ciphers_recently_opened">Недавно открытые</string>
+    <string name="ciphers_often_opened">Часто открытые</string>
+    <string name="ciphers_view_details">Подробнее</string>
+    <string name="ciphers_save_to">Сохранить в</string>
+    <string name="ciphers_action_add_to_favorites_title">Добавить в избранное</string>
+    <string name="ciphers_action_remove_from_favorites_title">Удалить из избранного</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Включить двойную аутентификацию</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Отключить двойную аутентификацию</string>
+    <string name="ciphers_action_edit_title">Редактировать</string>
+    <string name="ciphers_action_merge_title">Объединить в…</string>
+    <string name="ciphers_action_copy_title">Копировать в…</string>
+    <string name="ciphers_action_change_folder_title">Переместить в папку</string>
+    <string name="ciphers_action_change_name_title">Изменить название</string>
+    <string name="ciphers_action_change_names_title">Изменить названия</string>
+    <string name="ciphers_action_add_password_title">Добавить пароль</string>
+    <string name="ciphers_action_add_passwords_title">Добавить пароли</string>
+    <string name="ciphers_action_change_password_title">Изменить пароль</string>
+    <string name="ciphers_action_change_passwords_title">Изменить пароли</string>
+    <string name="ciphers_action_view_password_history_title">Просмотреть историю паролей</string>
+    <string name="ciphers_action_trash_title">Корзина</string>
+    <string name="ciphers_action_restore_title">Восстановить</string>
+    <string name="ciphers_action_delete_title">Удалить навсегда</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Переместить связанные записи в корзину</string>
+    <string name="file_action_open_with_title">Открыть с помощью…</string>
+    <string name="file_action_send_with_title">Отправить с помощью…</string>
+    <string name="file_action_open_in_file_manager_title">Открыть в файловом менеджере</string>
+    <string name="file_action_delete_local_title">Удалить локальный файл</string>
+    <string name="file_action_view_cipher_title">Просмотр родительского элемента</string>
+    <string name="vault_action_always_show_keyboard_title">Всегда показывать клавиатуру</string>
+    <string name="vault_action_sync_vault_title">Синхронизировать хранилище</string>
+    <string name="vault_action_lock_vault_title">Заблокировать хранилище</string>
+    <string name="vault_action_rename_folder_title">Переименовать папку</string>
+    <string name="email_action_check_data_breach_title">Проверить электронную почту в известных утечках данных</string>
+    <string name="username_action_check_data_breach_title">Проверить имя пользователя в известных утечках данных</string>
+    <string name="password_action_check_data_breach_title">Проверить пароль в известных утечках данных</string>
+    <string name="website_action_check_data_breach_title">Проверить сайт в известных утечках данных</string>
+    <string name="uri_action_launch_app_title">Запустить приложение</string>
+    <string name="uri_action_launch_website_title">Открыть сайт</string>
+    <string name="uri_action_launch_docs_title">Открыть документацию</string>
+    <string name="uri_action_launch_browser_title">Запустить браузер</string>
+    <string name="uri_action_launch_browser_main_page_title">Открыть главную страницу</string>
+    <string name="uri_action_launch_play_store_title">Открыть Play маркет</string>
+    <string name="uri_action_launch_in_app_title">Запустить в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_smth_title">Запустить в…</string>
+    <string name="uri_action_how_to_delete_account_title">Как удалить мою учетную запись?</string>
+    <string name="uri_unsecure">Незащищенный</string>
+    <string name="uri_match_app_title">Выбрать приложение</string>
+    <string name="uri_match_detection_title">Обнаружение совпадений</string>
+    <string name="uri_match_detection_domain_title">Основной домен</string>
+    <string name="uri_match_detection_domain_note">Сравнивать ресурсы по доменам первого и второго уровня.</string>
+    <string name="uri_match_detection_host_title">Хост</string>
+    <string name="uri_match_detection_host_note">Сравнивать ресурсы по имени хоста и порта (если указано).</string>
+    <string name="uri_match_detection_startswith_title">Начинается с</string>
+    <string name="uri_match_detection_startswith_note">Сравнивать ресурсы, когда обнаруженный ресурс начинается с URI.</string>
+    <string name="uri_match_detection_exact_title">Точно</string>
+    <string name="uri_match_detection_exact_note">Сравнивать ресурсы посимвольно начиная с начала URI-ссылки, требовать полное совпадение ссылки.</string>
+    <string name="uri_match_detection_regex_title">Регулярное выражение</string>
+    <string name="uri_match_detection_regex_note">Сравнивать ресурсы с помощью регулярного выражения. Настройка продвинутого уровня.</string>
+    <string name="uri_match_detection_never_title">Никогда</string>
+    <string name="uri_match_detection_never_note">Игнорировать URI во время поиска записей с автозаполнением.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> привязан к паролю</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени пользователя</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени владельца карты</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к месяцу истечения срока</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к году истечения срока</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к коду карты</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к карточному бренду</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру карты</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к названию</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к отечеству</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к улице</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру дома (квартиры)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к адресной строке (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к городу</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к региону</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к почтовому индексу</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к стране</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к компании</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к электронной почте</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру телефона</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> призван к имени пользователя</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру паспорта</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> призван к номеру лицензии</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к фамилии</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к полному имени</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан в неизвестному полю</string>
+    <string name="text_action_share_with_title">Поделиться через…</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> выбрано</string>
+    <string name="copy">Копировать</string>
+    <string name="copy_value">Копировать значение</string>
+    <string name="copy_url">Скопировать URL</string>
+    <string name="copy_uri">Скопировать URI</string>
+    <string name="copy_package_name">Скопировать имя пакета</string>
+    <string name="copy_password">Скопировать пароль</string>
+    <string name="copy_username">Скопировать имя пользователя</string>
+    <string name="copy_email">Скопировать email</string>
+    <string name="copy_phone_number">Скопировать номер телефона</string>
+    <string name="copy_passport_number">Скопировать номер паспорта</string>
+    <string name="copy_license_number">Скопировать номер лицензии</string>
+    <string name="copy_card_number">Скопировать номер карты</string>
+    <string name="copy_cardholder_name">Скопировать имя держателя карты</string>
+    <string name="copy_expiration_year">Скопировать год истечения срока действия</string>
+    <string name="copy_expiration_month">Скопировать месяц истечения срока действия</string>
+    <string name="copy_cvv_code">Скопировать CVV код</string>
+    <string name="copy_otp_code">Копировать одноразовый пароль</string>
+    <string name="copy_otp_secret_code">Копировать секретный ключ</string>
+    <string name="autofill_unlock_keyguard">Разблокировать Keyguard</string>
+    <string name="autofill_open_keyguard">Открыть Keyguard</string>
+    <string name="january">Январь</string>
+    <string name="february">Февраль</string>
+    <string name="march">Март</string>
+    <string name="april">Апрель</string>
+    <string name="may">Май</string>
+    <string name="june">Июнь</string>
+    <string name="july">Июль</string>
+    <string name="august">Август</string>
+    <string name="september">Сентябрь</string>
+    <string name="october">Октябрь</string>
+    <string name="november">Ноябрь</string>
+    <string name="december">Декабрь</string>
+    <string name="list_move_up">Переместить вверх</string>
+    <string name="list_move_down">Переместить вниз</string>
+    <string name="list_remove">Удалить</string>
+    <string name="list_remove_confirmation_title">Удалить элемент?</string>
+    <string name="list_add">Добавить ещё</string>
+    <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
+    <string name="fido2webauthn_action_go_title">Авторизация WebAutn</string>
+    <string name="fido2webauthn_action_return_title">Вернуться в приложение</string>
+    <!--
+        Empty string is a string that contains zero symbols in it,
+        e.g. "" is an empty string -->
+    <string name="error_must_not_be_empty">Не должно быть пустым</string>
+    <!--
+        Blank string is an empty string or a string that consists
+        solely of whitespace characters. It's OK to translate it exactly the same
+        as the "Must not be empty" error. -->
+    <string name="error_must_not_be_blank">Не должно быть пустым</string>
+    <string name="error_must_be_custom_domain">Должен быть собственный домен</string>
+    <string name="error_must_contain_only_us_ascii_chars">Должен содержать только символы US-ASCII</string>
+    <string name="error_must_have_at_least_n_symbols">Должно быть не менее <xliff:g id="length" example="15">%1$d</xliff:g> символов</string>
+    <string name="error_must_have_exactly_n_symbols">Должно быть <xliff:g id="length" example="15">%1$d</xliff:g> символов</string>
+    <string name="error_invalid_domain">Недопустимый домен</string>
+    <string name="error_invalid_email">Недопустимый e-mail</string>
+    <string name="error_invalid_url">Недопустимый URL-адрес</string>
+    <string name="error_invalid_uri">Неверный URI</string>
+    <string name="error_invalid_card_number">Недействительный номер карты</string>
+    <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
+    <string name="error_failed_create_passkey">Не удалось создать passkey</string>
+    <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
+    <!-- Title of the 'Show as Barcode' dialog -->
+    <string name="barcodetype_title">Штрих-код</string>
+    <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Скопируйте аутентификатор на другое устройство, отсканировав QR-код.</string>
+    <!-- Title of the 'Date picker' dialog -->
+    <string name="datepicker_title">Выбор даты</string>
+    <!-- Title of the 'Color picker' dialog -->
+    <string name="colorpicker_title">Цветовая палитра</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justdeleteme_title">Как удалить мою учетную запись?</string>
+    <string name="justdeleteme_subtitle">Коллекция информации о том, как удалить ваш аккаунт из вебсервисов</string>
+    <!-- Simple process -->
+    <string name="justdeleteme_difficulty_easy_label">Легко</string>
+    <!-- Some extra steps involved -->
+    <string name="justdeleteme_difficulty_medium_label">Средне</string>
+    <!-- Cannot be fully deleted without contacting customer services -->
+    <string name="justdeleteme_difficulty_hard_label">Сложно</string>
+    <!-- Account can only be deleted if you live in a location with privacy rights -->
+    <string name="justdeleteme_difficulty_limited_availability_label">Ограниченная доступность</string>
+    <!-- Cannot be deleted -->
+    <string name="justdeleteme_difficulty_impossible_label">Невозможно</string>
+    <string name="justdeleteme_send_email_title">Отправить e-mail</string>
+    <string name="justdeleteme_search_placeholder">Поиск веб-сайтов</string>
+    <string name="justdeleteme_empty_label">Нет инструкций</string>
+    <string name="tfa_directory_title">Двухфакторная аутентификация</string>
+    <string name="tfa_directory_text">Список сайтов с двухфакторной аутентификацией</string>
+    <string name="tfa_directory_search_placeholder">Поиск веб-сайтов</string>
+    <string name="passkeys_directory_title">Ключи доступа</string>
+    <string name="passkeys_directory_text">Список сайтов с поддержкой ключей доступа</string>
+    <string name="passkeys_directory_search_placeholder">Поиск веб-сайтов</string>
+    <!-- Title of the 'Email data breach' dialog -->
+    <string name="emailleak_title">Утечка данных</string>
+    <string name="emailleak_note">Скомпрометированные учетные записи могут предоставить злоумышленникам доступ к вашим персональным и финансовым данным, что подвергает вас риску кражи личных данных, финансовому мошенничеству и другим формам киберпреступлений.</string>
+    <string name="emailleak_breach_not_found_title">Утечки не найдены</string>
+    <string name="emailleak_breach_found_title">Обнаружены скомпрометированные учетные данные</string>
+    <string name="emailleak_breach_section">Утечки</string>
+    <string name="emailleak_breach_occurred_at">Произошло <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Стало известно <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Не удалось проверить утечку данных, возможно, вы сейчас не в сети</string>
+    <string name="passwordleak_title">Утечка данных</string>
+    <string name="passwordleak_note">Пароль, который обнаружен в результате утечки данных, требует значительно меньше времени для взлома и никогда не должен использоваться.</string>
+    <string name="passwordleak_occurrences_found_title">Пароль взломан</string>
+    <string name="passwordleak_occurrences_found_text">Пароль обнаружен в известных утечках данных. Пожалуйста, измените его немедленно, чтобы защитить свою безопасность в Интернете</string>
+    <string name="passwordleak_occurrences_not_found_title">Утечки не найдены</string>
+    <string name="passwordleak_failed_to_load_status_text">Не удалось проверить утечку данных, возможно, вы не в сети</string>
+    <!-- Title of the 'Show in Large Type' dialog -->
+    <string name="largetype_title">Крупно</string>
+    <string name="largetype_action_show_in_large_type_title">Показать крупным шрифтом</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Показать крупным шрифтом и заблокировать хранилище</string>
+    <string name="apppicker_header_title">Выбор приложения</string>
+    <string name="apppicker_search_placeholder">Поиск установленных приложений</string>
+    <string name="apppicker_system_app_label">Системное приложение</string>
+    <string name="apppicker_empty_label">Нет приложений</string>
+    <string name="folderpicker_header_title">Выбрать папку</string>
+    <string name="folderpicker_create_new_folder">Создать новую папку:</string>
+    <!--
+        When you copy an item to a new destination and choose to copy it into
+        an organization, this text shows up to warn you about ownership. -->
+    <string name="destinationpicker_organization_ownership_note">Эта организация будет иметь право собственности на копию. Вы не будете непосредственным владельцем.</string>
+    <string name="emailrelay_list_header_title">Перенаправляющие письма</string>
+    <string name="emailrelay_list_section_title">Перенаправляющие письма</string>
+    <string name="emailrelay_delete_one_confirmation_title">Удалить пересыльщика сообщения?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Удалить пересыльщиков сообщений?</string>
+    <string name="emailrelay_integration_title">Интеграция с пересыльщиком сообщений</string>
+    <string name="emailrelay_empty_label">Нет пересыльщиков сообщений</string>
+    <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
+    <string name="setup_field_app_password_label">Пароль приложения</string>
+    <string name="setup_checkbox_biometric_auth">Вход по биометрии</string>
+    <string name="setup_biometric_auth_confirm_title">Создать хранилище</string>
+    <string name="setup_button_send_crash_reports">Отправлять отчеты об ошибках</string>
+    <string name="setup_button_create_vault">Создать хранилище</string>
+    <string name="setup_action_erase_data_title">Удалить все данные приложения</string>
+    <string name="setup_action_erase_data_text">Закрыть приложение и удалить все локальные данные</string>
+    <string name="unlock_header_text">Хранилище заблокировано. Чтобы продолжить, введите пароль приложения.</string>
+    <string name="unlock_button_unlock">Разблокировать</string>
+    <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_title">Разблокировать хранилище</string>
+    <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_text">Используйте биометрическую аутентификацию для разблокировки хранилища.</string>
+    <string name="userverification_header_text">Хранилище заблокировано. Чтобы продолжить, введите пароль приложения.</string>
+    <string name="userverification_button_go">Подтвердить</string>
+    <string name="syncstatus_header_title">Статус синхронизации</string>
+    <string name="syncstatus_status_up_to_date">Актуально</string>
+    <string name="syncstatus_status_pending">В ожидании</string>
+    <string name="syncstatus_status_syncing">Синхронизация</string>
+    <string name="syncstatus_status_failed">Ошибка синхронизации</string>
+    <string name="additem_header_new_title">Новая запись</string>
+    <string name="additem_header_edit_title">Редактировать запись</string>
+    <string name="additem_markdown_note">Стилизуйте текст используя <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> и другое. Ограниченная поддержка синтаксиса Markdown.</string>
+    <string name="additem_markdown_note_italic">курсив</string>
+    <string name="additem_markdown_note_bold">жирный</string>
+    <string name="additem_markdown_render_preview">Предпросмотр</string>
+    <string name="additem_auth_reprompt_title">Повторная аутентификация</string>
+    <string name="additem_auth_reprompt_text">Запрашивать повторную аутентификацию при просмотре или автозаполнении шифра</string>
+    <string name="addaccount_header_title">Добавить аккаунт Bitwarden</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Мы не являемся аффилированными, связанными, уполномоченными, одобренными или каким-либо образом официально связанными с Bitwarden Inc., или с одним из её дочерних предприятий или филиалов.</string>
+    <!--
+        A note on top of the Client secret field, that explains why (and how)
+        we need a user to get and type his client secret in a field below -->
+    <string name="addaccount_captcha_need_client_secret_note">Для прохождения проверки капчи в неофициальном клиенте Bitwarden необходимо указать закрытый ключ клиента. Чтобы найти его, посетите Веб-хранилище → Параметры → API Key.</string>
+    <!-- A label on top of the Client secret field -->
+    <string name="addaccount_captcha_need_client_secret_label">Закрытый ключ клиента</string>
+    <string name="addaccount_sign_in_button">Авторизация</string>
+    <string name="addaccount_region_section">Регион</string>
+    <string name="addaccount_region_us_type">США</string>
+    <string name="addaccount_region_eu_type">Европа</string>
+    <string name="addaccount_region_custom_type">Собственный сервер (self-hosted)</string>
+    <string name="addaccount_http_header_section">HTTP заголовки</string>
+    <string name="addaccount_http_header_type">HTTP заголовок</string>
+    <string name="addaccount_http_header_note">Вы можете добавить пользовательские HTTP-заголовки, которые будут отправляться с каждым запросом на сервер.</string>
+    <string name="addaccount_http_header_key_label">Ключ</string>
+    <string name="addaccount_http_header_value_label">Значение</string>
+    <string name="addaccount_http_header_add_more_button">Добавить еще</string>
+    <string name="addaccount_base_env_server_url_label">URL сервера</string>
+    <string name="addaccount_base_env_note">Укажите URL-адрес bitwarden на вашем сервере.</string>
+    <string name="addaccount_custom_env_section">Пользовательское окружение</string>
+    <string name="addaccount_custom_env_note">Вы можете указать базовый URL каждого сервиса отдельно.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">URL сервера веб-хранилища</string>
+    <string name="addaccount_custom_env_api_url_label">URL API сервера</string>
+    <string name="addaccount_custom_env_icons_url_label">URL сервера значков</string>
+    <string name="addaccount_custom_env_identity_url_label">URL сервера идентификации</string>
+    <string name="addaccount2fa_header_title">Верификация</string>
+    <string name="addaccount2fa_unsupported_note">Этот метод аутентификации еще не поддерживается.</string>
+    <string name="addaccount2fa_otp_note">Введите код подтверждения из приложения для аутентификации.</string>
+    <string name="addaccount2fa_email_note">Введите код подтверждения, который был отправлен на адрес электронной почты <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
+    <string name="addaccount2fa_yubikey_manual_text">Введите код подтверждения YubiKey вручную. Поместите курсор на поле ниже и запустите YubiKey.</string>
+    <string name="provider_2fa_authenticator">Аутентификатор</string>
+    <string name="provider_2fa_duo_organization">Duo (Организация)</string>
+    <string name="provider_2fa_fido2_webauthn">FIDO2 Web аутентификация</string>
+    <string name="provider_2fa_email">Эл. почта</string>
+    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
+    <string name="yubikey_usb_title">Подключить YubiKey через USB</string>
+    <string name="yubikey_usb_text">Требуется поддержка USB OTG.</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Коснитесь золотого датчика на вашем YubiKey сейчас.</string>
+    <string name="yubikey_nfc_title">Приложите YubiKey к задней панели устройства</string>
+    <string name="yubikey_nfc_text">Требуется поддержка NFC.</string>
+    <string name="yubikey_error_failed_to_read">Не удалось прочитать YubiKey</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Для использования FIDO2 WebAuthn необходимо использовать веб-хранилище Bitwarden версии <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> или новее. В более старых версиях результат аутентификации будет ошибочно перенаправлен в официальное приложение Bitwarden.</string>
+    <string name="elevatedaccess_header_title">Подтвердить доступ</string>
+    <string name="elevatedaccess_header_text">Эти данные защищены, чтобы продолжить, введите ваш пароль приложения.</string>
+    <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_title">Подтвердите доступ</string>
+    <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_text">Использовать биометрическую аутентификацию для подтверждения доступа и разблокировки этих данных.</string>
+    <string name="home_vault_label">Хранилище</string>
+    <string name="home_send_label">Send</string>
+    <string name="home_generator_label">Генератор</string>
+    <string name="home_watchtower_label">Доз. башня</string>
+    <string name="home_settings_label">Настройки</string>
+    <string name="lock_reason_inactivity">Заблокировано из-за бездействия</string>
+    <string name="send_type_text">Текст</string>
+    <string name="send_type_file">Файл</string>
+    <string name="cipher_type_login">Логин</string>
+    <string name="cipher_type_card">Карта</string>
+    <string name="cipher_type_identity">Личные данные</string>
+    <string name="cipher_type_note">Заметка</string>
+    <string name="cipher_type_passkey">Ключ доступа</string>
+    <string name="field_type_text">Текст</string>
+    <string name="field_type_boolean">Логическое значение</string>
+    <string name="field_type_linked">Связанный</string>
+    <!--
+        Displayed below a password that was exposed in the known data breached. It
+        ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
+    <string name="password_pwned_label">Скомпрометировано</string>
+    <string name="password_strength_very_strong_label">Очень надёжный</string>
+    <string name="password_strength_strong_label">Надёжный</string>
+    <string name="password_strength_good_label">Хороший</string>
+    <string name="password_strength_fair_label">Посредственный</string>
+    <string name="password_strength_weak_label">Слабый</string>
+    <string name="passwords_very_strong_label">Очень надёжные пароли</string>
+    <string name="passwords_strong_label">Надёжные пароли</string>
+    <string name="passwords_good_label">Хорошие пароли</string>
+    <string name="passwords_fair_label">Посредственные пароли</string>
+    <string name="passwords_weak_label">Слабые пароли</string>
+    <string name="filter_header_title">Фильтр</string>
+    <string name="filter_empty_label">Нет доступных фильтров</string>
+    <string name="sort_header_title">Сортировка</string>
+    <string name="sort_empty_label">Нет доступных сортировок</string>
+    <string name="sortby_title_title">Название</string>
+    <string name="sortby_title_normal_mode">По возрастанию (от A до Я)</string>
+    <string name="sortby_title_reverse_mode">По убыванию (от Я до А)</string>
+    <string name="sortby_access_count_title">Количество обращений</string>
+    <string name="sortby_access_count_normal_mode">Сначала больше</string>
+    <string name="sortby_access_count_reverse_mode">Сначала меньше</string>
+    <string name="sortby_modification_date_title">Дата изменения</string>
+    <string name="sortby_modification_date_normal_mode">Сначала новые</string>
+    <string name="sortby_modification_date_reverse_mode">Сначала старые</string>
+    <string name="sortby_expiration_date_title">Срок окончания</string>
+    <string name="sortby_expiration_date_normal_mode">Сначала новые</string>
+    <string name="sortby_expiration_date_reverse_mode">Сначала старые</string>
+    <string name="sortby_deletion_date_title">Дата удаления</string>
+    <string name="sortby_deletion_date_normal_mode">Сначала новые</string>
+    <string name="sortby_deletion_date_reverse_mode">Сначала старые</string>
+    <string name="sortby_password_title">Пароль</string>
+    <string name="sortby_password_normal_mode">По возрастанию (от A до Я)</string>
+    <string name="sortby_password_reverse_mode">По убыванию (от Я до А)</string>
+    <string name="sortby_password_modification_date_title">Дата изменения пароля</string>
+    <string name="sortby_password_modification_date_normal_mode">Сначала новые</string>
+    <string name="sortby_password_modification_date_reverse_mode">Сначала старые</string>
+    <string name="sortby_password_strength_title">Надёжность пароля</string>
+    <string name="sortby_password_strength_normal_mode">Сначала слабые</string>
+    <string name="sortby_password_strength_reverse_mode">Сначала надёжные</string>
+    <string name="vault_main_search_placeholder">Поиск по хранилищу</string>
+    <string name="vault_main_new_item_button">Новая запись</string>
+    <string name="vault_main_no_suggested_items">Нет предложенных пунктов для этого контекста</string>
+    <!-- A label for the CVV code of the card -->
+    <string name="vault_view_card_cvv_label">Код безопасности</string>
+    <string name="vault_view_saved_to_label">Сохранено в <xliff:g id="email" example="username@example.com">%1$s</xliff:g> на <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Пароль последний раз изменен <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Ключ доступа создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">Последний раз изменено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">Создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">Удалено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Закончился срок действия <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Срок действия закончится <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Будет удалено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <!-- Call the phone number. The text should be as short as possible! -->
+    <string name="vault_view_call_phone_action">Вызов</string>
+    <!-- Text the phone number (SMS). The text should be as short as possible! -->
+    <string name="vault_view_text_phone_action">SMS</string>
+    <!-- Compose an email. The text should be as short as possible! -->
+    <string name="vault_view_email_action">Эл. почта</string>
+    <!-- Open navigation to address. The text should be as short as possible! -->
+    <string name="vault_view_navigate_action">Направление</string>
+    <string name="send_main_header_title">Sends</string>
+    <string name="send_main_search_placeholder">Поиск Sends</string>
+    <string name="send_main_new_item_button">Новая запись</string>
+    <string name="send_password_is_required_to_access_label">Для доступа к этой отправке необходимо будет ввести пароль</string>
+    <string name="generator_header_title">Генератор</string>
+    <string name="generator_header_username_title">Генератор имени пользователя</string>
+    <string name="generator_header_password_title">Генератор паролей</string>
+    <string name="generator_generate_button">Сгенерировать</string>
+    <string name="generator_regenerate_button">Перегенерировать</string>
+    <string name="generator_passphrase_type">Парольная фраза</string>
+    <string name="generator_passphrase_note">Случайные парольные фразы обеспечивают наилучшее сочетание запоминаемости и безопасности.</string>
+    <string name="generator_passphrase_delimiter_title">Разделитель</string>
+    <string name="generator_passphrase_capitalize_title">Прописные</string>
+    <string name="generator_passphrase_number_title">Цифры</string>
+    <string name="generator_username_type">Имя пользователя</string>
+    <string name="generator_username_delimiter_title">Разделитель</string>
+    <string name="generator_username_custom_word_title">Пользовательское слово</string>
+    <string name="generator_username_capitalize_title">Прописные</string>
+    <string name="generator_username_number_title">Число</string>
+    <string name="generator_password_type">Случайные символы</string>
+    <string name="generator_password_note">Надежный пароль содержит как минимум <xliff:g id="length" example="15">%1$d</xliff:g> символов, заглавные и строчные буквы, цифры и специальные символы.</string>
+    <string name="generator_password_numbers_title">Цифры</string>
+    <string name="generator_password_symbols_title">Спец. символы</string>
+    <string name="generator_password_uppercase_letters_title">Заглавные буквы</string>
+    <string name="generator_password_lowercase_letters_title">Строчные буквы</string>
+    <!-- An option to exclude symbols like this: il1Lo0O -->
+    <string name="generator_password_exclude_similar_symbols_title">Исключить похожие символы</string>
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <string name="generator_password_exclude_ambiguous_symbols_title">Исключить неоднозначные символы</string>
+    <string name="generator_email_catch_all_type">Универсальный e-mail</string>
+    <string name="generator_email_catch_all_note">Универсальный адрес электронной почты предоставляет пользователям возможность получать всю почту, отправляемую на их домен, даже если она отправляется на адрес электронной почты, который не был настроен для их домена. Убедитесь, что ваш почтовый хостинг поддерживает эту функцию, прежде чем использовать её.</string>
+    <!-- Referring to a website domain -->
+    <string name="generator_email_catch_all_domain_title">Домен</string>
+    <string name="generator_email_plus_addressing_type">Адрес эл. почты с плюсом</string>
+    <string name="generator_email_plus_addressing_note">Плюс адресация означает, что любые сообщения, отправленные на <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g>, по-прежнему отправляются на адрес вашего аккаунта. Это означает, что вы можете иметь много вариантов адреса своей электронной почты, чтобы предоставлять его разным людям, сайтам или спискам рассылки. Перед использованием убедитесь, что хостинг электронной почты поддерживает эту функцию.</string>
+    <string name="generator_email_plus_addressing_email_title">E-mail</string>
+    <string name="generator_email_subdomain_addressing_type">Адрес эл.почты для поддомена</string>
+    <string name="generator_email_subdomain_addressing_note">Поддоменная адресация означает, что любые сообщения, отправленные на <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g>, по-прежнему отправляются на адрес вашего аккаунта. Это означает, что вы можете иметь много вариантов адреса своей электронной почты, чтобы предоставлять его разным людям, сайтам или спискам рассылки. Перед использованием убедитесь, что хостинг электронной почты поддерживает эту функцию.</string>
+    <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
+    <string name="generator_email_forward_alias_type">Псевдоним электронной почты для пересылки</string>
+    <string name="generator_create_item_with_password_title">Использовать в качестве пароля</string>
+    <string name="generator_create_item_with_username_title">Использовать в качестве логина</string>
+    <string name="generator_password_history_title">История паролей</string>
+    <string name="generator_show_tips_title">Показать советы</string>
+    <string name="generatorhistory_header_title">История генерации</string>
+    <string name="generatorhistory_clear_history_title">Очистить историю</string>
+    <string name="generatorhistory_clear_history_confirmation_title">Очистить историю генератора?</string>
+    <string name="generatorhistory_clear_history_confirmation_text">Все записи из истории будут удалены.</string>
+    <string name="passwordhistory_header_title">История паролей</string>
+    <string name="passwordhistory_clear_history_title">Очистить историю</string>
+    <string name="passwordhistory_clear_history_confirmation_title">Очистить историю паролей?</string>
+    <string name="passwordhistory_clear_history_confirmation_text">Все пароли из истории будут удалены.</string>
+    <string name="watchtower_header_title">Дозорная башня</string>
+    <string name="watchtower_section_password_strength_label">Надёжность пароля</string>
+    <string name="watchtower_section_security_label">Безопасность</string>
+    <string name="watchtower_section_maintenance_label">Инструменты</string>
+    <string name="watchtower_item_pwned_passwords_title">Скомпрометированные пароли</string>
+    <string name="watchtower_item_pwned_passwords_text">Пароли, раскрытые в результате утечки данных. Такие пароли следует немедленно изменить.</string>
+    <string name="watchtower_item_reused_passwords_title">Повторно использованные пароли</string>
+    <string name="watchtower_item_reused_passwords_text">Не используйте один и тот же пароль на разных сайтах. Создавайте уникальные пароли для повышения безопасности.</string>
+    <string name="watchtower_item_vulnerable_accounts_title">Уязвимые аккаунты</string>
+    <string name="watchtower_item_vulnerable_accounts_text">Сайты, на которых произошла утечка данных с момента последней смены пароля. Измените пароль, чтобы сохранить свою учетную запись в безопасности.</string>
+    <string name="watchtower_item_unsecure_websites_title">Небезопасные сайты</string>
+    <string name="watchtower_item_unsecure_websites_text">Измените URL-адреса, использующие протокол HTTP, на протокол HTTPS, поскольку последний использует самое современное шифрование.</string>
+    <string name="watchtower_item_inactive_2fa_title">Неактивная двухфакторная аутентификация</string>
+    <string name="watchtower_item_inactive_2fa_text">Сайты, на которых доступна, но еще не настроена двухфакторная аутентификация.</string>
+    <string name="watchtower_item_inactive_passkey_title">Доступные ключи доступа</string>
+    <string name="watchtower_item_inactive_passkey_text">Сайты, на которых есть ключ доступа (Passkey), но вы его еще не настроили. Это проще и, безопаснее пароля.</string>
+    <string name="watchtower_item_incomplete_items_title">Незавершенные записи</string>
+    <string name="watchtower_item_incomplete_items_text">Помогает найти недостающие или неполные данные в вашем хранилище. Это могут быть записи без названий или имен пользователей.</string>
+    <string name="watchtower_item_expiring_items_title">Истекающие записи</string>
+    <string name="watchtower_item_expiring_items_text">Записи, срок действия которых истек или скоро истекают.</string>
+    <string name="watchtower_item_duplicate_websites_title">Повторяющиеся URI-адреса</string>
+    <string name="watchtower_item_duplicate_websites_text">Записи с URI-адресами, которые после обработки на обнаружение совпадений покрывают одинаковые веб-сайты.</string>
+    <string name="watchtower_item_trashed_items_title">Удаленные записи</string>
+    <string name="watchtower_item_trashed_items_text">Записи, которые были перемещены в корзину. Слишком большое количество записей в корзине может замедлить операции с хранилищем.</string>
+    <string name="watchtower_item_empty_folders_title">Пустые папки</string>
+    <string name="watchtower_item_empty_folders_text">Папки, которые не содержат записей.</string>
+    <string name="watchtower_item_duplicate_items_title">Повторяющиеся записи</string>
+    <string name="watchtower_item_duplicate_items_text">Помогает найти и исправить записи с повторяющимися данными.</string>
+    <string name="watchtower_item_compromised_accounts_title">Скомпрометированные учетные записи</string>
+    <string name="watchtower_item_compromised_accounts_text">Проверить утечку данных по имени пользователя или адресу электронной почты.</string>
+    <string name="changepassword_header_title">Изменить пароль приложения</string>
+    <string name="changepassword_change_password_button">Изменить пароль</string>
+    <string name="changepassword_biometric_auth_checkbox">Биометрическая аутентификация</string>
+    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
+    <string name="changepassword_biometric_auth_confirm_title">Изменить пароль приложения</string>
+    <string name="changepassword_disclaimer_local_note">Пароль приложения никогда не хранится на устройстве и не отправляется по сети. Он используется для генерации секретного ключа, используемого для шифрования локальных данных.</string>
+    <string name="changepassword_disclaimer_abuse_note">Если вы не подозреваете, что к вашему устройству был несанкционированный доступ, или вы не нашли вредоносное программное обеспечение, то не нужно изменять текущий пароль приложения, если он достаточно надежный и уникальный.</string>
+    <string name="contactus_header_title">Связаться с нами</string>
+    <string name="contactus_message_label">Ваше сообщение</string>
+    <string name="contactus_english_note">Пишите на английском, чтобы убедиться, что ваше сообщение не будет понято неправильно.</string>
+    <string name="contactus_thanks_note">Мы ценим время, которое вы тратите, отправляя нам сообщение. Ваше сообщение поступает непосредственно к нам, и мы используем его для решения проблем и усовершенствования продукта. Хотя мы отвечаем не на каждое сообщение, мы просматриваем их и как можно быстрее устраняем проблемы, а также улучшаем функциональность.</string>
+    <string name="account_main_header_title">Учетные записи</string>
+    <string name="account_main_add_account_title">Добавить учётную запись</string>
+    <string name="team_header_title">Команда Keyguard</string>
+    <string name="team_artem_whoami_text">Я инженер-программист из Украины. Я специализируюсь на дизайне и разработке приложений.</string>
+    <string name="team_follow_me_section">Подписаться</string>
+    <string name="settingssearch_header_title">Поиск</string>
+    <string name="settingssearch_header_subtitle">Настройки</string>
+    <string name="settingssearch_search_placeholder">Поиск настроек</string>
+    <string name="settings_appearance_header_title">Оформление</string>
+    <string name="settings_autofill_header_title">Автозаполнение</string>
+    <string name="settings_dev_header_title">Разработка</string>
+    <string name="settings_experimental_header_title">Экспериментальные</string>
+    <string name="settings_main_header_title">Настройки</string>
+    <string name="settings_notifications_header_title">Уведомления</string>
+    <string name="settings_other_header_title">Прочее</string>
+    <string name="settings_permissions_header_title">Разрешения</string>
+    <string name="settings_security_header_title">Безопасность</string>
+    <string name="settings_subscriptions_header_title">Keyguard премиум</string>
+    <string name="settings_watchtower_header_title">Дозорная башня</string>
+    <string name="settings_open_source_licenses_header_title">Лицензии открытого программного обеспечения</string>
+    <string name="pref_item_accounts_title">Учетные записи</string>
+    <string name="pref_item_accounts_text">Добавление и просмотр учётных записей</string>
+    <string name="pref_item_autofill_title">Автозаполнение</string>
+    <string name="pref_item_autofill_text">Служба автозаполнения Android</string>
+    <string name="pref_item_security_title">Безопасность</string>
+    <string name="pref_item_security_text">Биометрия, изменение пароля, таймаут хранилища</string>
+    <string name="pref_item_subscription_title">Keyguard премиум</string>
+    <string name="pref_item_subscription_text">Откройте все функции и поддержите разработку приложения</string>
+    <string name="pref_item_watchtower_title">Дозорная башня</string>
+    <string name="pref_item_watchtower_text">Скомпрометированные сервисы, уязвимые пароли</string>
+    <string name="pref_item_notifications_title">Уведомления</string>
+    <string name="pref_item_notifications_text">Предупреждения</string>
+    <string name="pref_item_appearance_title">Оформление</string>
+    <string name="pref_item_appearance_text">Язык, тема и анимации</string>
+    <string name="pref_item_dev_title">Разработка</string>
+    <string name="pref_item_dev_text">Тестовые настройки для разработки</string>
+    <string name="pref_item_other_title">Прочее</string>
+    <string name="pref_item_other_text">Сайты сообщества, информация о приложении</string>
+    <string name="pref_item_nav_label_title">Показывать надписи на кнопках навигации</string>
+    <string name="pref_item_app_version_title">Версия приложения</string>
+    <string name="pref_item_app_build_date_title">Дата сборки приложения</string>
+    <string name="pref_item_app_team_title">Команда Keyguard</string>
+    <string name="pref_item_reddit_community_title">Сообщество Reddit</string>
+    <string name="pref_item_github_title">Проект на GitHub</string>
+    <string name="pref_item_crowdin_title">Проект на Crowdin</string>
+    <string name="pref_item_open_source_licenses_title">Лицензии открытого программного обеспечения</string>
+    <string name="pref_item_download_apk_title">Скачать APK файл</string>
+    <string name="pref_item_load_app_icons_title">Загрузить значки приложений</string>
+    <string name="pref_item_load_website_icons_title">Загрузить значки веб-сайтов</string>
+    <string name="pref_item_load_website_icons_text">Запрос значка сайта может привести к утечке адреса сайта к интернет-провайдеру</string>
+    <string name="pref_item_markdown_title">Форматирование текста</string>
+    <string name="pref_item_markdown_text">Использовать Markdown для форматирования заметок</string>
+    <string name="pref_item_locale_title">Язык</string>
+    <string name="pref_item_locale_help_translation_button">Предложить перевод</string>
+    <string name="pref_item_font_title">Шрифт</string>
+    <string name="pref_item_rate_on_play_store_title">Оценить в Play Store</string>
+    <string name="pref_item_color_accent_title">Цвет оттенка</string>
+    <string name="pref_item_color_scheme_title">Тема</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">Использовать черную контрастную тему</string>
+    <string name="pref_item_open_links_in_external_browser_title">Открывать ссылки во внешнем браузере</string>
+    <string name="pref_item_conceal_fields_title">Скрыть поля</string>
+    <string name="pref_item_conceal_fields_text">Скрыть конфиденциальную информацию, например пароли и номера кредитных карт</string>
+    <!--
+        When a user clicks this button, the app crashes. Not visible to
+        regular users. -->
+    <string name="pref_item_crash_title">Сбой</string>
+    <string name="pref_item_credential_provider_title">Поставщик учетных данных</string>
+    <string name="pref_item_credential_provider_text">Пасскеи, пароли и сервисы данных</string>
+    <string name="pref_item_privacy_policy_title">Политика конфиденциальности</string>
+    <string name="pref_item_contact_us_title">Связаться с нами</string>
+    <string name="pref_item_experimental_title">Экспериментальные</string>
+    <string name="pref_item_change_app_password_title">Изменить пароль приложения</string>
+    <string name="pref_item_require_app_password_title">Требовать пароль приложения</string>
+    <string name="pref_item_require_app_password_note">В дополнение к вашим обычным настройкам безопасности, после этого времени или при изменении настроек биометрии потребуется пароль приложения</string>
+    <string name="pref_item_require_app_password_immediately_text">Немедленно</string>
+    <string name="pref_item_require_app_password_never_text">Никогда</string>
+    <string name="pref_item_send_crash_reports_title">Отправлять отчеты об ошибках</string>
+    <string name="pref_item_nav_animation_title">Анимация переходов</string>
+    <string name="pref_item_erase_data_title">Удалить все данные приложения</string>
+    <string name="pref_item_erase_data_text">Закрыть приложение и удалить все локальные данные</string>
+    <string name="pref_item_allow_screenshots_title">Разрешить скриншоты</string>
+    <string name="pref_item_allow_screenshots_text_on">Показывать содержимое приложения при переключении между недавними приложениями и отображении экрана</string>
+    <string name="pref_item_allow_screenshots_text_off">Скрыть содержимое приложения при переключении между недавними приложениями и запретить создание скриншотов</string>
+    <string name="pref_item_data_safety_title">Безопасность данных</string>
+    <string name="pref_item_lock_vault_title">Заблокировать хранилище</string>
+    <string name="pref_item_lock_vault_after_reboot_title">Заблокировать после перезагрузки</string>
+    <string name="pref_item_lock_vault_after_reboot_text">Заблокировать хранилище после перезагрузки устройства</string>
+    <string name="pref_item_lock_vault_after_screen_off_title">Заблокировать после выключения экрана</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">Заблокировать хранилище через несколько секунд после выключения экрана</string>
+    <string name="pref_item_lock_vault_after_delay_title">Заблокировать после задержки</string>
+    <string name="pref_item_lock_vault_after_delay_immediately_text">Немедленно</string>
+    <string name="pref_item_lock_vault_after_delay_never_text">Никогда</string>
+    <string name="pref_item_persist_vault_key_title">Сохранять ключ хранилища на диске</string>
+    <string name="pref_item_persist_vault_key_text_on">Ключ хранилища сохраняется на внутреннем хранилище</string>
+    <string name="pref_item_persist_vault_key_text_off">Хранилище блокируется после выгрузки приложения из памяти</string>
+    <string name="pref_item_persist_vault_key_note">Хранение ключа хранилища на диске представляет собой угрозу безопасности. Если внутреннее хранилище устройства скомпрометировано, злоумышленник получит доступ к локальным данным хранилища.</string>
+    <string name="pref_item_permissions_title">Разрешения</string>
+    <string name="pref_item_features_overview_title">Обзор возможностей</string>
+    <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
+    <!--
+        A title of the system popup that asks a user to use his biometric to later
+        be able to use it to unlock the vault. -->
+    <string name="pref_item_biometric_unlock_confirm_title">Биометрическая разблокировка</string>
+    <string name="pref_item_keep_screen_on_title">Держать экран включенным во время просмотра записей</string>
+    <string name="pref_item_autofill_service_title">Служба автозаполнения</string>
+    <string name="pref_item_autofill_service_text">Использовать фреймворк автозаполнения Android для заполнения информации о входе в другие приложения на устройстве</string>
+    <string name="pref_item_autofill_auto_copy_otp_title">Автокопирование одноразовых паролей</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">При заполнении регистрационной информации автоматически копировать одноразовые пароли</string>
+    <string name="pref_item_autofill_inline_suggestions_title">Встроенные предложения</string>
+    <string name="pref_item_autofill_inline_suggestions_text">Встраивает предложения автозаполнения прямо в совместимые клавиатуры</string>
+    <string name="pref_item_autofill_manual_selection_title">Ручной выбор</string>
+    <string name="pref_item_autofill_manual_selection_text">Отображать параметр для ручного поиска в записях хранилища</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Соблюдать отключение автозаполнения</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">Отключает автозаполнение поля браузера, в котором отключен флажок автозаполнения</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Обратите внимание, что некоторые сайты отключают автозаполнение поля пароля, а некоторые браузеры известны тем, что игнорируют флаг отключения автозаполнения</string>
+    <string name="pref_item_autofill_save_request_title">Запрашивать сохранение данных</string>
+    <string name="pref_item_autofill_save_request_text">Запрашивать обновление хранилища при заполнении формы</string>
+    <string name="pref_item_autofill_auto_save_source_title">Автосохранение информации приложения или сайта</string>
+    <string name="pref_item_clipboard_auto_clear_title">Автоматически очищать буфер обмена</string>
+    <string name="pref_item_clipboard_auto_clear_immediately_text">Немедленно</string>
+    <string name="pref_item_clipboard_auto_clear_never_text">Никогда</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Длительность уведомления о разовых паролях</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">При заполнении логина с одноразовым паролем уведомление с кодом подтверждения появляется по крайней мере на заданную длительность</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Никогда</string>
+    <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
+    <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
+    <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>
+    <string name="pref_item_premium_membership_section_products_title">Товары</string>
+    <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
+    <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
+    <string name="pref_item_premium_status_active">Активно</string>
+    <string name="pref_item_premium_status_will_not_renew">Не будет продлеваться</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
+    <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>
+    <string name="pref_item_permission_post_notifications_text">Используется для отправки уведомлений о загрузке</string>
+    <string name="pref_item_permission_camera_title">Камера</string>
+    <string name="pref_item_permission_camera_text">Используется для сканирования QR-кодов</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Разрешить два панели в альбомном режиме</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Разрешить два панели в портретном режиме</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="nav_animation_disabled">Отключено</string>
+    <string name="nav_animation_dynamic">Динамический</string>
+    <string name="nav_animation_crossfade">Перекрестный переход</string>
+    <string name="font_atkinson_hyperlegible_text">Разработан специально для повышения разборчивости и улучшения понимания для читателей со слабым зрением</string>
+    <string name="feat_header_title">Обзор возможностей</string>
+    <string name="feat_keyguard_premium_label">Keyguard премиум</string>
+    <string name="feat_item_multiple_accounts_title">Несколько аккаунтов</string>
+    <string name="feat_item_multiple_accounts_text">Вход в несколько аккаунтов одновременно.</string>
+    <string name="feat_item_two_way_sync_title">Двухсторонняя синхронизация</string>
+    <string name="feat_item_two_way_sync_text">Добавляйте или редактируйте записи и синхронизируйте их в облачном хранилище.</string>
+    <string name="feat_item_offline_editing_title">Автономное редактирование</string>
+    <string name="feat_item_offline_editing_text">Добавление или редактирование записей без подключения к интернету.</string>
+    <string name="feat_section_search_title">Поиск</string>
+    <string name="feat_item_search_by_anything_title">Поиск чего-либо</string>
+    <string name="feat_item_search_by_anything_text">Имя, email, пароль, номер телефона и т. д.</string>
+    <string name="feat_item_filter_title">Фильтр</string>
+    <string name="feat_item_filter_text">Фильтр по папке, организации, типу и т.д.</string>
+    <string name="feat_item_multiple_keywords_title">Несколько ключевых слов</string>
+    <string name="feat_item_multiple_keywords_text">Введите в поиске \'bitw test\', чтобы найти запись \'Bitwarden Test Account\'.</string>
+    <string name="feat_section_watchtower_title">Дозорная башня</string>
+    <string name="feat_item_pwned_passwords_title">Скомпрометированные пароли</string>
+    <string name="feat_item_pwned_passwords_text">Найти записи с открытыми паролями, связанными с утечкой данных.</string>
+    <string name="feat_item_password_strength_title">Надёжность пароля</string>
+    <string name="feat_item_password_strength_text">Найдите записи со слабыми паролями.</string>
+    <string name="feat_item_reused_passwords_title">Повторно использованные пароли</string>
+    <string name="feat_item_reused_passwords_text">Найдите записи с повторяющимися паролями.</string>
+    <string name="feat_item_inactive_totp_title">Неактивная двухфакторная аутентификация</string>
+    <string name="feat_item_inactive_totp_text">Найдите логины с доступной двухфакторной аутентификацией TOTP.</string>
+    <string name="feat_item_unsecure_websites_title">Небезопасные сайты</string>
+    <string name="feat_item_unsecure_websites_text">Найти веб-сайты, которые используют HTTP-протокол, автоисправление в HTTPS.</string>
+    <string name="feat_item_incomplete_items_title">Незавершенные элементы</string>
+    <string name="feat_item_incomplete_items_text">Найти пустые записи, которые могут потребовать замену</string>
+    <string name="feat_item_expiring_items_title">Истекающие элементы</string>
+    <string name="feat_item_expiring_items_text">Найти устаревшие или скоро устаревшие элементы.</string>
+    <string name="feat_item_duplicate_items_title">Повторяющиеся записи</string>
+    <string name="feat_item_duplicate_items_text">Находите и объединяйте повторяющиеся элементы.</string>
+    <string name="feat_section_misc_title">Разное</string>
+    <string name="feat_item_multi_selection_title">Мультивыбор</string>
+    <string name="feat_item_multi_selection_text">Объединяйте шифры, закрепляйте рефакторинг пакетными операциями.</string>
+    <string name="feat_item_show_barcode_title">Показать как штрих-код</string>
+    <string name="feat_item_show_barcode_text">Кодируйте текст в виде различных штрих-кодов.</string>
+    <string name="feat_item_generator_title">Генератор</string>
+    <string name="feat_item_generator_text">Генерировать пароли или имена пользователей.</string>
+    <string name="datasafety_header_title">Безопасность данных</string>
+    <string name="datasafety_local_section">Локальные данные</string>
+    <string name="datasafety_local_text">Локальные данные состоят из загрузок, настроек пользователя и хранилища. Они хранятся во внутренней памяти устройства, которая доступна только для системы Android или Keyguard.</string>
+    <string name="datasafety_local_downloads_section">Загрузки</string>
+    <string name="datasafety_local_settings_section">Настройки пользователя</string>
+    <string name="datasafety_local_settings_note">Настройки пользователя зашифрованы с помощью ключа устройства.</string>
+    <string name="datasafety_local_vault_section">Настройки пользователя</string>
+    <string name="datasafety_local_encryption_algorithm_intro">Хранилище шифруется с помощью ключа, полученного на основе пароля приложения, следующим образом:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">После этого соль и хэш сохраняются локально на устройстве, для последующей генерации мастер-ключа для разблокировки хранилища.</string>
+    <string name="datasafety_local_unlocking_vault">Разблокировка хранилища означает сохранение корректного ключа в оперативной памяти устройства, что дает возможность читать и изменять зашифрованное хранилище.</string>
+    <string name="datasafety_remote_section">Облачные данные</string>
+    <string name="datasafety_remote_text">Облачные данные хранятся на серверах Bitwarden с шифрованием с нулевым знанием.</string>
+</resources>

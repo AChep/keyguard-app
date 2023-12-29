@@ -1,0 +1,42 @@
+import kotlinx.datetime.Instant;
+import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup;
+
+CREATE TABLE accountBreach (
+  username TEXT NOT NULL PRIMARY KEY,
+  count INTEGER NOT NULL,
+  updatedAt INTEGER AS Instant NOT NULL,
+  data TEXT AS HibpBreachGroup NOT NULL
+);
+
+insert {
+  UPDATE accountBreach
+  SET
+    count = :count,
+    updatedAt = :updatedAt,
+    data = :data
+  WHERE
+    username = :username;
+
+  INSERT OR IGNORE INTO accountBreach(username, count, updatedAt, data)
+  VALUES (:username, :count, :updatedAt, :data);
+}
+
+getByUsername:
+SELECT *
+FROM accountBreach
+WHERE
+    username = :username;
+
+getByUsernames:
+SELECT *
+FROM accountBreach
+WHERE
+    username IN ?;
+
+deleteAll:
+DELETE FROM accountBreach;
+
+deleteByUsername:
+DELETE FROM accountBreach
+WHERE
+    username IN ?;

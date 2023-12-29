@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ok">OK</string>
+    <string name="close">Tanca</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    <!-- A name of a thing, such as an account -->
+    <string name="generic_name">Nom</string>
+    <string name="account_name">Nom del compte</string>
+    <string name="username">Nom d’usuari</string>
+    <string name="password">Contrasenya</string>
+    <string name="app_password">Contrasenya d\'aplicació</string>
+    <string name="current_password">Contrasenya actual</string>
+    <string name="new_password">Nova Contrasenya</string>
+    <string name="email">Correu electrònic</string>
+    <string name="email_verified">Verificat</string>
+    <string name="email_not_verified">No verificat</string>
+    <string name="email_visibility">Visibilitat del correu electrònic</string>
+    <string name="public_url">URL pública</string>
+    <string name="url">URL</string>
+    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="access_count">Recompte d\'accessos</string>
+    <string name="learn_more">Més informació</string>
+    <string name="phone_number">Número de telèfon</string>
+    <string name="passport_number">Número de passaport</string>
+    <string name="license_number">Número de llicència</string>
+    <string name="card_number">Número de Targeta</string>
+    <string name="card_number_empty_label">Cap número de targeta</string>
+    <string name="card_type">Marca</string>
+    <string name="card_cvv">CVV</string>
+    <string name="card_valid_from">Vàlida des de</string>
+    <string name="card_valid_to">Vàlida fins a</string>
+    <string name="card_expiry_month">Mes de venciment de la targeta</string>
+    <string name="card_expiry_year">Any de caducitat de la targeta</string>
+    <string name="cardholder_name">Nom del titular</string>
+    <string name="valid_from">Vàlid des de</string>
+    <string name="expiry_date">Data d\'expiració</string>
+    <string name="company">Empresa</string>
+    <string name="sync">Sincronitza</string>
+    <!-- Opposite of 'visible' -->
+    <string name="hidden">Amagat</string>
+    <!-- Opposite of 'hidden' -->
+    <string name="visible">Visible</string>
+    <!-- Shows up instead of a value if a value is an empty text -->
+    <string name="empty_value">Buit</string>
+    <!-- Social Security Number -->
+    <string name="ssn">SSN</string>
+    <string name="city">Ciutat</string>
+    <string name="state">Província</string>
+    <string name="info">Info</string>
+    <string name="cancel">Cancel·lar</string>
+    <string name="continue_">Continuar</string>
+    <string name="country">País</string>
+    <string name="address">Adreça</string>
+    <string name="postal_code">Codi postal</string>
+    <string name="pull_to_search">Estira per a cercar</string>
+    <string name="save">Desa</string>
+    <string name="uri">URI</string>
+    <string name="uris">URIs</string>
+    <string name="note">Nota</string>
+    <string name="notes">Notes</string>
+    <string name="attachments">Adjunts</string>
+    <string name="attachments_empty_label">Sense adjunts</string>
+    <string name="expiring_soon">Expira prompte</string>
+    <string name="item_incomplete_title">Dades incompletes</string>
+    <string name="item_incomplete_text">A aquest element li falta informació important.</string>
+    <string name="item">Element</string>
+    <string name="items">Elements</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elements</string>
+    <string name="items_all">Tots els elements</string>
+    <string name="items_empty_label">Cap element</string>
+    <string name="folder_none">Cap carpeta</string>
+    <string name="folder_new">Carpeta nova</string>
+    <string name="folder">Carpeta</string>
+    <string name="folders">Carpetes</string>
+    <string name="folders_empty_label">Cap carpeta</string>
+    <string name="collection_none">Cap col·lecció</string>
+    <string name="collection">Col·lecció</string>
+    <string name="collections">Col·leccions</string>
+    <string name="collections_empty_label">Cap col·lecció</string>
+    <string name="organization_none">Caixa forta</string>
+    <string name="organization">Organització</string>
+    <string name="organizations">Organitzacions</string>
+    <string name="organizations_empty_label">Cap organització</string>
+    <string name="misc">Miscel·lània</string>
+    <string name="add_integration">Afegir integració</string>
+    <string name="account">Compte</string>
+    <string name="accounts">Comptes</string>
+    <string name="accounts_empty_label">Cap compte</string>
+    <string name="account_none">Cap compte</string>
+    <string name="type">Tipus</string>
+    <string name="options">Opcions</string>
+    <string name="send">Envia</string>
+    <string name="reset">Restablir</string>
+    <string name="length">Longitud</string>
+    <string name="security">Seguretat</string>
+    <string name="contact_info">Informació de Contacte</string>
+    <string name="identity_title">Títol</string>
+    <string name="identity_first_name">Nom</string>
+    <string name="identity_middle_name">Primer cognom</string>
+    <string name="identity_last_name">Segon Cognom</string>
+    <string name="identity_full_name">Nom complet</string>
+    <string name="address1">Línia 1 de l\'adreça</string>
+    <string name="address2">Línia 2 de l\'adreça</string>
+    <string name="address3">Línia 3 de l\'adreça</string>
+    <string name="rename">Reanomenar</string>
+    <string name="select_linked_type">Seleccioneu tipus</string>
+    <string name="autofill">Emplenament automàtic</string>
+    <string name="passkey">Passkey</string>
+    <string name="passkey_create_header">Crea una passkey</string>
+    <string name="passkey_unlock_header">Desbloqueja Keyguard</string>
+    <string name="passkey_auth_via_header">Confirmant la petició d\'autenticació…</string>
+    <string name="passkeys">Passkeys</string>
+    <!--
+        Signature counter is incremented each time a user uses a passkey. See:
+        https://www.w3.org/TR/webauthn-2/#signature-counter
+        -->
+    <string name="passkey_signature_counter">Recompte de signatures</string>
+    <!--
+        The entity whose web application utilizes the Web Authentication API
+        to register and authenticate users. For example "Google" is a relying party.
+        https://www.w3.org/TR/webauthn-2/#relying-party
+        -->
+    <string name="passkey_relying_party">Partit de confiança</string>
+    <!--
+        https://www.w3.org/TR/webauthn-2/#discoverable-credential
+        -->
+    <string name="passkey_discoverable">Detectable</string>
+    <string name="passkey_user_username">Nom d’Usuari</string>
+    <string name="passkey_user_display_name">Nom visible</string>
+    <string name="api_key">Clau d\'API</string>
+    <string name="domain">Domini</string>
+    <string name="edit">Edita</string>
+    <string name="delete">Eliminar</string>
+    <string name="remove">Suprimir</string>
+    <string name="remove_from_history">Suprimir de l\'historial</string>
+    <string name="reused_password">Contrasenya reutilitzada</string>
+    <string name="reused_passwords">Contrasenyes reutilitzades</string>
+    <string name="one_time_password">Contrasenya d\'un sol ús</string>
+    <string name="one_time_password_authenticator_key">Clau autenticadora</string>
+    <string name="passkey_use_short">Utilitza</string>
+    <string name="passkey_save">Guarda la passkey</string>
+    <string name="passkey_available">Passkey disponible</string>
+    <string name="twofa_available">Autenticació de dos factors disponible</string>
+    <string name="custom">Personalitzat</string>
+    <string name="follow_system_settings">Segueix el sistema</string>
+    <!-- A feature is coming soon! -->
+    <string name="coming_soon">Aviat</string>
+    <string name="powered_by">Impulsat per</string>
+    <string name="verification_code">Codi de verificació</string>
+    <string name="resend_verification_code">Reenvia el codi de verificació</string>
+    <string name="requested_verification_email">Sol·licita un correu de verificació</string>
+    <string name="web_vault">Caixa forta web</string>
+    <string name="launch_web_vault">Inicia la caixa forta web</string>
+    <!-- Remember me to not have to enter OTP code second time -->
+    <string name="remember_me">Recorda\'m</string>
+    <!-- A Trash screen -->
+    <string name="trash">Paperera</string>
+    <!-- To download something -->
+    <string name="download">Descarrega</string>
+    <string name="downloads">Descàrregues</string>
+    <string name="downloads_empty_label">Cap descàrrega</string>
+    <string name="duplicates_empty_label">Cap duplicat</string>
+    <string name="encryption">Xifratge</string>
+    <!-- Encryption key -->
+    <string name="encryption_key">Clau</string>
+    <string name="encryption_hash">Hash</string>
+    <string name="encryption_salt">Sal</string>
+    <string name="encryption_algorithm_256bit_aes">AES de 256-bits</string>
+    <string name="encryption_random_bits_data">Dades de <xliff:g id="length" example="64">%1$d</xliff:g> bits aleatòries</string>
+    <string name="none">Cap</string>
+    <string name="text">Text</string>
+    <string name="linked_apps">Aplicacions enllaçades</string>
+    <string name="linked_uris">URIs enllaçades</string>
+    <string name="custom_fields">Camps personalitzats</string>
+    <string name="reveal_secure_note">Revel·la una nota segura</string>
+    <string name="hide_secure_note">Amaga una nota segura</string>
+    <string name="master_password_hint">Pista de la contrasenya mestra</string>
+    <string name="fingerprint_phrase">Frase d\'empremta digital</string>
+    <string name="fingerprint_phrase_help_title">Què és una empremta?</string>
+    <string name="bitwarden_premium">Bitwarden Premium</string>
+    <string name="bitwarden_unofficial_server">Servidor de Bitwarden no oficial</string>
+    <string name="account_last_synced_at">Última sincronització <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_action_change_name_title">Canvia el nom</string>
+    <string name="account_action_change_color_title">Canvia el color</string>
+    <string name="account_action_change_master_password_hint_title">Canvia la pista de contrasenya mestra</string>
+    <string name="account_action_sign_out_title">Tanca la sessió</string>
+    <string name="account_action_sign_in_title">Inicia sessió</string>
+    <string name="account_action_email_verify_instructions_title">Visita la caixa forta web per a verificar la teva adreça de correu electrònic</string>
+    <string name="account_action_premium_purchase_instructions_title">Actualitzeu el vostre compte a una subscripció prèmium i desbloquegeu algunes característiques addicionals excel·lents</string>
+    <string name="account_action_tfa_title">Autenticació en dos passos</string>
+    <string name="account_action_tfa_text">Requereix verificació d\'inici de sessió amb un altre dispositiu com una clau de seguretat, aplicació d\'autenticació, SMS o correu electrònic</string>
+    <string name="account_action_tfa_active_status">Activa</string>
+    <string name="account_action_items_title">Elements</string>
+    <string name="account_action_log_out_title">Desconnecta</string>
+    <string name="account_log_out_confirmation_title">Desconnectar-se?</string>
+    <string name="account_log_out_confirmation_text">Tots els elements no sincronitzats es perdran!</string>
+    <string name="folder_action_change_name_title">Canvia el nom</string>
+    <string name="folder_action_change_names_title">Canviar noms</string>
+    <string name="folder_delete_one_confirmation_title">Eliminar carpeta?</string>
+    <string name="folder_delete_many_confirmation_title">Eliminar carpetes?</string>
+    <string name="folder_delete_confirmation_text">Aquest element/s seran eliminats immediatament. No pots desfer aquesta acció.</string>
+    <string name="ciphers_recently_opened">Oberts recentment</string>
+    <string name="ciphers_often_opened">Oberts a sovint</string>
+    <string name="ciphers_view_details">Mostra els detalls</string>
+    <string name="ciphers_save_to">Desa a</string>
+    <string name="ciphers_action_add_to_favorites_title">Afegir a Favorits</string>
+    <string name="ciphers_action_remove_from_favorites_title">Eliminar de favorits</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Habilita la re-autenticació</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Deshabilita la re-autenticació</string>
+    <string name="ciphers_action_edit_title">Edita</string>
+    <string name="ciphers_action_merge_title">Mescla a…</string>
+    <string name="ciphers_action_copy_title">Copia a…</string>
+    <string name="ciphers_action_change_folder_title">Mou a la carpeta</string>
+    <string name="ciphers_action_change_name_title">Canvia el nom</string>
+    <string name="ciphers_action_change_names_title">Canvia els noms</string>
+    <string name="ciphers_action_add_password_title">Afegir contrasenya</string>
+    <string name="ciphers_action_add_passwords_title">Afegir contrasenyes</string>
+    <string name="ciphers_action_change_password_title">Canvia la contrasenya</string>
+    <string name="ciphers_action_change_passwords_title">Canvia contrasenyes</string>
+    <string name="ciphers_action_view_password_history_title">Veure l\'historial de contrasenyes</string>
+    <string name="ciphers_action_trash_title">Paperera</string>
+    <string name="ciphers_action_restore_title">Restaura</string>
+    <string name="ciphers_action_delete_title">Elimina per sempre</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Mou els elements associats a la paperera</string>
+    <string name="file_action_open_with_title">Obre amb…</string>
+    <string name="file_action_send_with_title">Envia amb…</string>
+    <string name="file_action_open_in_file_manager_title">Obre a l\'administrador de fitxers</string>
+    <string name="file_action_delete_local_title">Elimina el fitxer local</string>
+    <string name="file_action_view_cipher_title">Veure l\'element pare</string>
+    <string name="vault_action_always_show_keyboard_title">Sempre mostra el teclat</string>
+    <string name="vault_action_sync_vault_title">Sincronitza la caixa forta</string>
+    <string name="vault_action_lock_vault_title">Bloqueja la caixa forta</string>
+    <string name="vault_action_rename_folder_title">Canvia el nom a la carpeta</string>
+    <string name="email_action_check_data_breach_title">Revisa el teu correu electrònic a la llista de filtracions conegudes</string>
+    <string name="username_action_check_data_breach_title">Revisa el teu nom d\'usuari a la llista de filtracions conegudes</string>
+    <string name="password_action_check_data_breach_title">Revisa la teua contrasenya a la llista de filtracions conegudes</string>
+    <string name="website_action_check_data_breach_title">Revisa la pàgina web a la llista de filtracions conegudes</string>
+    <string name="uri_action_launch_app_title">Inicia app</string>
+    <string name="uri_action_launch_website_title">Obri la web</string>
+    <string name="uri_action_launch_docs_title">Obri el document</string>
+    <string name="uri_action_launch_browser_title">Inicia el navegador</string>
+    <string name="uri_action_launch_browser_main_page_title">Inicia la pàgina principal</string>
+    <string name="uri_action_launch_play_store_title">Inicia el Play Store</string>
+    <string name="uri_action_launch_in_app_title">Inicia amb <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_smth_title">Inicia amb…</string>
+    <string name="uri_action_how_to_delete_account_title">Com eliminar un compte?</string>
+    <string name="uri_unsecure">No segura</string>
+    <string name="uri_match_app_title">Coincideix amb l\'app</string>
+    <string name="uri_match_detection_title">Detecció de coincidències</string>
+    <string name="uri_match_detection_domain_title">Domini base</string>
+    <string name="uri_match_detection_domain_note">Coincidències de recursos per domini de primer i segon nivell.</string>
+    <string name="uri_match_detection_host_title">Amfitrió</string>
+    <string name="uri_match_detection_host_note">Coincidències de recursos per nom d\'amfitrió i (si hi ha) port.</string>
+    <string name="uri_match_detection_startswith_title">Comença amb</string>
+    <string name="uri_match_detection_startswith_note">Coincidències de recursos quan el recurs detectat comença amb l\'URI.</string>
+    <string name="uri_match_detection_exact_title">Exactament</string>
+    <string name="uri_match_detection_exact_note">Coincidències de recursos quan el recurs detectat coincideix exactament amb l\'URI.</string>
+    <string name="uri_match_detection_regex_title">Expressió regular</string>
+    <string name="uri_match_detection_regex_note">Coincidències de recursos per expressió regular. Opció avançada.</string>
+    <string name="uri_match_detection_never_title">Mai</string>
+    <string name="uri_match_detection_never_note">Ignorar l\'URI en cercar l\'element d\'emplenament automàtic.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> enllaços a la contrasenya</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom d\'usuari</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom del titular</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al mes d\'expiració</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a l\'any d\'expiració</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al codi de la targeta</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a la marca de la targeta</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al número de la targeta</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al títol</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al primer cognom</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a la primera línia d\'adreça</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a la segona línia d\'adreça</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a la tercera línia d\'adreça</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a la ciutat</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a l\'estat</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al codi postal</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al país</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a la companyia</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al correu electrònic</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al telèfon mòbil</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a l\'SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom d\'usuari</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al número de passaport</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al número de llicència</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al cognom</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom complet</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a un camp desconegut</string>
+    <string name="text_action_share_with_title">Comparteix amb…</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seleccionats</string>
+    <string name="copy">Copia</string>
+    <string name="copy_value">Copia el valor</string>
+    <string name="copy_url">Copia l\'URL</string>
+    <string name="copy_uri">Copia l\'URI</string>
+    <string name="copy_package_name">Copia el nom de paquet</string>
+    <string name="copy_password">Copia la contrasenya</string>
+    <string name="copy_username">Copia el nom d\'usuari</string>
+    <string name="copy_email">Copia el correu electrònic</string>
+    <string name="copy_phone_number">Copia el telèfon mòbil</string>
+    <string name="copy_passport_number">Copia el número de passaport</string>
+    <string name="copy_license_number">Copia el número de llicència</string>
+    <string name="copy_card_number">Copia el número de targeta</string>
+    <string name="copy_cardholder_name">Copia el nom del titular</string>
+    <string name="copy_expiration_year">Copia l\'any d\'expiració</string>
+    <string name="copy_expiration_month">Copia el mes d\'expiració</string>
+    <string name="copy_cvv_code">Còpia el codi CVV</string>
+    <string name="copy_otp_code">Copia la contrasenya d\'un sol ús</string>
+    <string name="copy_otp_secret_code">Copia la clau secreta</string>
+    <string name="autofill_unlock_keyguard">Desbloqueja Keyguard</string>
+    <string name="autofill_open_keyguard">Obre Keyguard</string>
+    <string name="january">Gener</string>
+    <string name="february">Febrer</string>
+    <string name="march">Març</string>
+    <string name="april">Abril</string>
+    <string name="may">Maig</string>
+    <string name="june">Juny</string>
+    <string name="july">Juliol</string>
+    <string name="august">Agost</string>
+    <string name="september">Setembre</string>
+    <string name="october">Octubre</string>
+    <string name="november">Novembre</string>
+    <string name="december">Desembre</string>
+    <string name="list_move_up">Mou dalt</string>
+    <string name="list_move_down">Mou avall</string>
+    <string name="list_remove">Elimina</string>
+    <string name="list_remove_confirmation_title">Eliminar element?</string>
+    <string name="list_add">Afegeix més</string>
+    <string name="fido2webauthn_web_title">WebAuthn FIDO2</string>
+    <string name="fido2webauthn_action_go_title">Autenticar WebAuthn</string>
+    <string name="fido2webauthn_action_return_title">Torna a l\'app</string>
+    <!--
+        Empty string is a string that contains zero symbols in it,
+        e.g. "" is an empty string -->
+    <string name="error_must_not_be_empty">No pot estar buit</string>
+    <!--
+        Blank string is an empty string or a string that consists
+        solely of whitespace characters. It's OK to translate it exactly the same
+        as the "Must not be empty" error. -->
+    <string name="error_must_not_be_blank">No pot estar en blanc</string>
+    <string name="error_must_be_custom_domain">Ha de ser un domini personalitzat</string>
+    <string name="error_must_contain_only_us_ascii_chars">Només pot contenir caràcters US-ASCII</string>
+    <string name="error_must_have_at_least_n_symbols">Ha de tenir com a mínim <xliff:g id="length" example="15">%1$d</xliff:g> símbols</string>
+    <string name="error_must_have_exactly_n_symbols">Ha de tenir <xliff:g id="length" example="15">%1$d</xliff:g> símbols</string>
+    <string name="error_invalid_domain">Domini invàlid</string>
+    <string name="error_invalid_email">Correu electrònic invàlid</string>
+    <string name="error_invalid_url">URL invàlida</string>
+    <string name="error_invalid_uri">URI invàlida</string>
+    <string name="error_invalid_card_number">Número de targeta no vàlid</string>
+    <string name="error_incorrect_password">Contrasenya incorrecta</string>
+    <string name="error_failed_generate_otp_code">No s\'ha pogut generar el codi OTP</string>
+    <string name="error_failed_create_passkey">No s\'ha pogut crear la passkey</string>
+    <string name="error_failed_use_passkey">No s\'ha pogut autoritzar la petició</string>
+    <!-- Title of the 'Show as Barcode' dialog -->
+    <string name="barcodetype_title">Codi de barres</string>
+    <string name="barcodetype_action_show_in_barcode_title">Mostra com a codi de barres</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Copia aquest autenticador a un altre dispositiu escanejant el codi QR.</string>
+    <!-- Title of the 'Date picker' dialog -->
+    <string name="datepicker_title">Selecció de data</string>
+    <!-- Title of the 'Color picker' dialog -->
+    <string name="colorpicker_title">Selector de color</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justdeleteme_title">Com eliminar un compte?</string>
+    <string name="justdeleteme_subtitle">Una col·lecció d\'informació sobre com eliminar el teu compte de serveis web</string>
+    <!-- Simple process -->
+    <string name="justdeleteme_difficulty_easy_label">Fàcil</string>
+    <!-- Some extra steps involved -->
+    <string name="justdeleteme_difficulty_medium_label">Mitjà</string>
+    <!-- Cannot be fully deleted without contacting customer services -->
+    <string name="justdeleteme_difficulty_hard_label">Difícil</string>
+    <!-- Account can only be deleted if you live in a location with privacy rights -->
+    <string name="justdeleteme_difficulty_limited_availability_label">Disponibilitat limitada</string>
+    <!-- Cannot be deleted -->
+    <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
+    <string name="justdeleteme_send_email_title">Envia correu electrònic</string>
+    <string name="justdeleteme_search_placeholder">Cerca llocs web</string>
+    <string name="justdeleteme_empty_label">Sense instruccions</string>
+    <string name="tfa_directory_title">Autenticació en dos passos</string>
+    <string name="tfa_directory_text">Llista de llocs web amb suport per a autenticació en dos-passes</string>
+    <string name="tfa_directory_search_placeholder">Cerca llocs web</string>
+    <string name="passkeys_directory_title">Passkeys</string>
+    <string name="passkeys_directory_text">Llista de llocs web amb suport per a passkeys</string>
+    <string name="passkeys_directory_search_placeholder">Cerca llocs web</string>
+    <!-- Title of the 'Email data breach' dialog -->
+    <string name="emailleak_title">Filtració de dades</string>
+    <string name="emailleak_note">Dades de comptes filtrades poden proporcionar les teves dades personals i financeres a criminals, el qual pot dur a suplantació d\'identitat, frau financer i altres formes de ciber-crims.</string>
+    <string name="emailleak_breach_not_found_title">No s\'ha trobat cap filtració</string>
+    <string name="emailleak_breach_found_title">S\'han trobat comptes filtrats</string>
+    <string name="emailleak_breach_section">Filtracions</string>
+    <string name="emailleak_breach_occurred_at">Ocorregut el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Reportat el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">No s\'han pogut comprovar les filtracions de dades. És possible que no tinguis connexió</string>
+    <string name="passwordleak_title">Filtració de dades</string>
+    <string name="passwordleak_note">Una contrasenya que es troba a una llista de filtracions és menys segura, ja que és de les primeres que es proven a l\'intentar accedir a un compte.</string>
+    <string name="passwordleak_occurrences_found_title">S\'han trobat contrasenyes filtrades</string>
+    <string name="passwordleak_occurrences_found_text">La contrasenya ha sigut identificada a la llista de filtracions. Per favor, canvia-la immediatament per a protegir la teva seguretat en línia</string>
+    <string name="passwordleak_occurrences_not_found_title">Cap filtració trobada</string>
+    <string name="passwordleak_failed_to_load_status_text">No s\'han pogut comprovar les filtracions de dades. És possible que no tinguis connexió</string>
+    <!-- Title of the 'Show in Large Type' dialog -->
+    <string name="largetype_title">Lletra Gran</string>
+    <string name="largetype_action_show_in_large_type_title">Mostra en Lletra Gran</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Mostra en Lletra Gran i bloqueja la caixa forta</string>
+    <string name="apppicker_header_title">Selector d\'apps</string>
+    <string name="apppicker_search_placeholder">Cerca aplicacions instal·lades</string>
+    <string name="apppicker_system_app_label">Aplicació del sistema</string>
+    <string name="apppicker_empty_label">Cap aplicació</string>
+    <string name="folderpicker_header_title">Tria una carpeta</string>
+    <string name="folderpicker_create_new_folder">Crea una nova carpeta:</string>
+    <!--
+        When you copy an item to a new destination and choose to copy it into
+        an organization, this text shows up to warn you about ownership. -->
+    <string name="destinationpicker_organization_ownership_note">Aquesta organització serà propietària de la còpia. No seràs el propietari directe.</string>
+    <string name="emailrelay_list_header_title">Redireccionadors d\'Email</string>
+    <string name="emailrelay_list_section_title">Redireccionadors d\'Email</string>
+    <string name="emailrelay_delete_one_confirmation_title">Eliminar el redireccionador d\'email?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Eliminar els redireccionadors d\'email?</string>
+    <string name="emailrelay_integration_title">Integració amb redireccionador d\'email</string>
+    <string name="emailrelay_empty_label">Cap redireccionador d\'email</string>
+    <string name="setup_header_text">Crea una caixa forta encriptada on es desaran totes les dades locals.</string>
+    <string name="setup_field_app_password_label">Contrasenya d\'aplicació</string>
+    <string name="setup_checkbox_biometric_auth">Autenticació biomètrica</string>
+    <string name="setup_biometric_auth_confirm_title">Crea una caixa forta</string>
+    <string name="setup_button_send_crash_reports">Enviar informes d\'errors</string>
+    <string name="setup_button_create_vault">Crea una caixa forta</string>
+    <string name="setup_action_erase_data_title">Elimina les dades de l\'app</string>
+    <string name="setup_action_erase_data_text">Tanca l\'app i elimina totes les dades locals</string>
+    <string name="unlock_header_text">La caixa forta està bloquejada. Introdueix la teva contrasenya per a continuar.</string>
+    <string name="unlock_button_unlock">Desbloqueja</string>
+    <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_title">Desbloqueja una caixa forta</string>
+    <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_text">Fes servir una autenticació biomètrica per a desbloquejar la caixa forta.</string>
+    <string name="userverification_header_text">Cal verificar l\'usuari. Introdueix la teua contrasenya d\'app per a continuar.</string>
+    <string name="userverification_button_go">Verificar</string>
+    <string name="syncstatus_header_title">Estat de la sincronització</string>
+    <string name="syncstatus_status_up_to_date">Actualitzada</string>
+    <string name="syncstatus_status_pending">Pendent</string>
+    <string name="syncstatus_status_syncing">Sincronitzant</string>
+    <string name="syncstatus_status_failed">Error de sincronització</string>
+    <string name="additem_header_new_title">Nou element</string>
+    <string name="additem_header_edit_title">Editar element</string>
+    <string name="additem_markdown_note">Estilitza el text amb <xliff:g id="italic" example="italic">%1$s</xliff:g> o <xliff:g id="bold" example="bold">%2$s</xliff:g> i més. Suport per a Markdown limitat.</string>
+    <string name="additem_markdown_note_italic">cursiva</string>
+    <string name="additem_markdown_note_bold">negreta</string>
+    <string name="additem_markdown_render_preview">Renderitzar previsualització</string>
+    <string name="additem_auth_reprompt_title">Torna a autenticar</string>
+    <string name="additem_auth_reprompt_text">Demana autenticar-se altre vegada quan visualitzes o emplenes automàticament</string>
+    <string name="addaccount_header_title">Afegir un compte de Bitwarden</string>
+    <string name="addaccount_disclaimer_bitwarden_label">No estem afiliats, associats, autoritzats, finançats, ni relacionats de cap manera oficial amb Bitwarden, Inc., o qualsevol dels seus afiliats o subsidiàries.</string>
+    <!--
+        A note on top of the Client secret field, that explains why (and how)
+        we need a user to get and type his client secret in a field below -->
+    <string name="addaccount_captcha_need_client_secret_note">Per a passar la verificació del captcha en un client de Bitwarden no oficial, has d\'especificar un secret de client. Per a trobar-lo ves a Caixa Forta Web / Configuració / Clau d\'API.</string>
+    <!-- A label on top of the Client secret field -->
+    <string name="addaccount_captcha_need_client_secret_label">Secret del client</string>
+    <string name="addaccount_sign_in_button">Inicia sessió</string>
+    <string name="addaccount_region_section">Regió</string>
+    <string name="addaccount_region_us_type">Estats Units</string>
+    <string name="addaccount_region_eu_type">Europa</string>
+    <string name="addaccount_region_custom_type">Personalitzat (a un servidor propi)</string>
+    <string name="addaccount_http_header_section">Capçaleres HTTP</string>
+    <string name="addaccount_http_header_type">Capçalera HTTP</string>
+    <string name="addaccount_http_header_note">Pots afegir capçaleres HTTP que seran enviades amb cada petició al servidor.</string>
+    <string name="addaccount_http_header_key_label">Clau</string>
+    <string name="addaccount_http_header_value_label">Valor</string>
+    <string name="addaccount_http_header_add_more_button">Afegeix Més</string>
+    <string name="addaccount_base_env_server_url_label">URL del servidor</string>
+    <string name="addaccount_base_env_note">Especifiqueu l\'URL base de la vostra instal·lació de Bitwarden allotjada a un entorn propi.</string>
+    <string name="addaccount_custom_env_section">Entorn personalitzat</string>
+    <string name="addaccount_custom_env_note">Pots especificar l\'URL base de cada servei independentment.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">URL de la caixa forta del servidor</string>
+    <string name="addaccount_custom_env_api_url_label">URL del servidor API</string>
+    <string name="addaccount_custom_env_icons_url_label">URL del servidor d\'icones</string>
+    <string name="addaccount_custom_env_identity_url_label">URL del servidor d\'identitat</string>
+    <string name="addaccount2fa_header_title">Verificació</string>
+    <string name="addaccount2fa_unsupported_note">Aquest mètode d\'autenticació encara no està suportat.</string>
+    <string name="addaccount2fa_otp_note">Introduïu el codi de verificació de l\'aplicació autenticadora.</string>
+    <string name="addaccount2fa_email_note">Introdueix el codi de verificació que s\'ha enviat a <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
+    <string name="addaccount2fa_yubikey_manual_text">Introdueix el codi de YubiKey manualment. Col·loca el cursor al camp inferior i activa la YubiKey.</string>
+    <string name="provider_2fa_authenticator">Autenticador</string>
+    <string name="provider_2fa_duo_organization">Duo (Organització)</string>
+    <string name="provider_2fa_fido2_webauthn">Autenticació Web FIDO2</string>
+    <string name="provider_2fa_email">Correu electrònic</string>
+    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
+    <string name="yubikey_usb_title">Connecta una YubiKey per USB</string>
+    <string name="yubikey_usb_text">Requereix suport d\'USB OTG.</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Toca el sensor daurat de la teva YubiKey.</string>
+    <string name="yubikey_nfc_title">Subjecta la teva YubiKey plana contra la part posterior del teu dispositiu</string>
+    <string name="yubikey_nfc_text">Requereix suport d\'NFC.</string>
+    <string name="yubikey_error_failed_to_read">No s\'ha pogut llegir la YubiKey</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Fer servir WebAuthn FIDO2 necessita una versió de Bitwarden web igual o major a <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g>. En versions més antigues no s\'interpreta correctament el resultat de l\'autenticació i se\'t redirigirà a l\'aplicació oficial de Bitwarden.</string>
+    <string name="elevatedaccess_header_title">Confirmeu l\'accés</string>
+    <string name="elevatedaccess_header_text">Aquestes dades estan protegides, per a continuar introdueix la teva contrasenya.</string>
+    <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_title">Confirmeu l\'accés</string>
+    <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_text">Utilitza autenticació biomètrica per a confirmar l\'accés i desbloquejar aquestes dades.</string>
+    <string name="home_vault_label">Caixa Forta</string>
+    <string name="home_send_label">Envia</string>
+    <string name="home_generator_label">Generador</string>
+    <string name="home_watchtower_label">Vigilància</string>
+    <string name="home_settings_label">Configuració</string>
+    <string name="lock_reason_inactivity">S\'ha bloquejat per inactivitat</string>
+    <string name="send_type_text">Text</string>
+    <string name="send_type_file">Arxiu</string>
+    <string name="cipher_type_login">Inici de sessió</string>
+    <string name="cipher_type_card">Targeta</string>
+    <string name="cipher_type_identity">Identitat</string>
+    <string name="cipher_type_note">Nota</string>
+    <string name="cipher_type_passkey">Passkey</string>
+    <string name="field_type_text">Text</string>
+    <string name="field_type_boolean">Booleà</string>
+    <string name="field_type_linked">Enllaçat</string>
+    <!--
+        Displayed below a password that was exposed in the known data breached. It
+        ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
+    <string name="password_pwned_label">Filtrada</string>
+    <string name="password_strength_very_strong_label">Molt segura</string>
+    <string name="password_strength_strong_label">Forta</string>
+    <string name="password_strength_good_label">Bona</string>
+    <string name="password_strength_fair_label">Correcta</string>
+    <string name="password_strength_weak_label">Poc segura</string>
+    <string name="passwords_very_strong_label">Contrasenyes molt segures</string>
+    <string name="passwords_strong_label">Contrasenyes segures</string>
+    <string name="passwords_good_label">Bones contrasenyes</string>
+    <string name="passwords_fair_label">Contrasenyes correctes</string>
+    <string name="passwords_weak_label">Contrasenyes poc segures</string>
+    <string name="filter_header_title">Filtra</string>
+    <string name="filter_empty_label">No hi ha filtres disponibles</string>
+    <string name="sort_header_title">Ordena per</string>
+    <string name="sort_empty_label">No es pot ordenar</string>
+    <string name="sortby_title_title">Títol</string>
+    <string name="sortby_title_normal_mode">Alfabèticament</string>
+    <string name="sortby_title_reverse_mode">Al contrari d\'alfabèticament</string>
+    <string name="sortby_access_count_title">Recompte d\'accessos</string>
+    <string name="sortby_access_count_normal_mode">Els més grans primer</string>
+    <string name="sortby_access_count_reverse_mode">Els més petits primer</string>
+    <string name="sortby_modification_date_title">Data de modificació</string>
+    <string name="sortby_modification_date_normal_mode">Els més nous primer</string>
+    <string name="sortby_modification_date_reverse_mode">Els més antics primer</string>
+    <string name="sortby_expiration_date_title">Data de caducitat</string>
+    <string name="sortby_expiration_date_normal_mode">Els més nous primer</string>
+    <string name="sortby_expiration_date_reverse_mode">Els més antics primer</string>
+    <string name="sortby_deletion_date_title">Data d\'eliminació</string>
+    <string name="sortby_deletion_date_normal_mode">Els més nous primer</string>
+    <string name="sortby_deletion_date_reverse_mode">Els més antics primer</string>
+    <string name="sortby_password_title">Contrasenya</string>
+    <string name="sortby_password_normal_mode">Alfabèticament</string>
+    <string name="sortby_password_reverse_mode">Al contrari d\'alfabèticament</string>
+    <string name="sortby_password_modification_date_title">Data de modificació de la contrasenya</string>
+    <string name="sortby_password_modification_date_normal_mode">Els més nous primer</string>
+    <string name="sortby_password_modification_date_reverse_mode">Els més antics primer</string>
+    <string name="sortby_password_strength_title">Seguretat de la contrasenya</string>
+    <string name="sortby_password_strength_normal_mode">Les més fluixes primer</string>
+    <string name="sortby_password_strength_reverse_mode">Les més fortes primer</string>
+    <string name="vault_main_search_placeholder">Cerca a la caixa forta</string>
+    <string name="vault_main_new_item_button">Nou element</string>
+    <string name="vault_main_no_suggested_items">No hi ha cap element sugerit disponible per a aquest context</string>
+    <!-- A label for the CVV code of the card -->
+    <string name="vault_view_card_cvv_label">Codi de seguretat</string>
+    <string name="vault_view_saved_to_label">Desat a <xliff:g id="email" example="username@example.com">%1$s</xliff:g> a <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">La contrasenya es va modificar per última vegada el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Passkey creada el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">Modificat per última vegada el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">Creat el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">Eliminat el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Va expirar el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Expirarà el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Eliminant la programació el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <!-- Call the phone number. The text should be as short as possible! -->
+    <string name="vault_view_call_phone_action">Truca</string>
+    <!-- Text the phone number (SMS). The text should be as short as possible! -->
+    <string name="vault_view_text_phone_action">Missatge</string>
+    <!-- Compose an email. The text should be as short as possible! -->
+    <string name="vault_view_email_action">Email</string>
+    <!-- Open navigation to address. The text should be as short as possible! -->
+    <string name="vault_view_navigate_action">Direccions</string>
+    <string name="send_main_header_title">Enviaments</string>
+    <string name="send_main_search_placeholder">Cerca enviaments</string>
+    <string name="send_main_new_item_button">Nou element</string>
+    <string name="send_password_is_required_to_access_label">Una contrasenya és necessària per accedir aquesta compartició</string>
+    <string name="generator_header_title">Generador</string>
+    <string name="generator_header_username_title">Generador de nom d\'usuari</string>
+    <string name="generator_header_password_title">Generador de contrasenya</string>
+    <string name="generator_generate_button">Genera</string>
+    <string name="generator_regenerate_button">Regenerar</string>
+    <string name="generator_passphrase_type">Contrasenya</string>
+    <string name="generator_passphrase_note">Les contrasenyes aleatòries proporcionen la millor combinació de memoritzabilitat i seguretat.</string>
+    <string name="generator_passphrase_delimiter_title">Delimitador</string>
+    <string name="generator_passphrase_capitalize_title">Majúscules</string>
+    <string name="generator_passphrase_number_title">Número</string>
+    <string name="generator_username_type">Nom d’usuari</string>
+    <string name="generator_username_delimiter_title">Delimitador</string>
+    <string name="generator_username_custom_word_title">Paraula personalitzada</string>
+    <string name="generator_username_capitalize_title">Majúscules inicials</string>
+    <string name="generator_username_number_title">Número</string>
+    <string name="generator_password_type">Símbols aleatoris</string>
+    <string name="generator_password_note">Una contrasenya forta té almenys <xliff:g id="length" example="15">%1$d</xliff:g> caràcters, lletres majúscules &amp; minúscules, dígits i símbols.</string>
+    <string name="generator_password_numbers_title">Dígits</string>
+    <string name="generator_password_symbols_title">Símbols</string>
+    <string name="generator_password_uppercase_letters_title">Lletres majúscules</string>
+    <string name="generator_password_lowercase_letters_title">Lletres minúscules</string>
+    <!-- An option to exclude symbols like this: il1Lo0O -->
+    <string name="generator_password_exclude_similar_symbols_title">Exclou símbols similars</string>
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <string name="generator_password_exclude_ambiguous_symbols_title">Exclou símbols ambigus</string>
+    <string name="generator_email_catch_all_type">Captura de tot el correu</string>
+    <string name="generator_email_catch_all_note">Una adreça de correu de captura total dona l\'opció als usuaris de rebre tot el correu electrònic que s\'enviï al seu domini, inclús si s\'envia a una adreça de correu que no ha sigut configurada per al domini. Assegura\'t que el teu proveïdor suporta aquesta funció abans de fer-la servir.</string>
+    <!-- Referring to a website domain -->
+    <string name="generator_email_catch_all_domain_title">Domini</string>
+    <string name="generator_email_plus_addressing_type">Afegit al correu</string>
+    <string name="generator_email_plus_addressing_note">Els afegits al correu volen dir que qualsevol correu enviat a <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> també serà enviat al teu compte. Açò vol dir que pots tenir un gran número de variacions al teu correu electrònic per a donar a cada persona, lloc web, o llista de correu. Assegura\'t que el teu proveïdor de correu electònic suporta aquesta funció abans de fer-la servir.</string>
+    <string name="generator_email_plus_addressing_email_title">Correu Electrònic</string>
+    <string name="generator_email_subdomain_addressing_type">Subdomini de correu electrònic</string>
+    <string name="generator_email_subdomain_addressing_note">Amb aquesta configuració, tot el correu enviat a <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> també s\'enviarà al teu compte. Açò vol dir que pots tindre moltes variacions del teu correu electrònic per a donar a cada persona, lloc web o llista de correu. Assegura\'t que el teu proveïdor de correu suporta la funció abans de fer-la servir.</string>
+    <string name="generator_email_subdomain_addressing_email_title">Correu Electrònic</string>
+    <string name="generator_email_forward_alias_type">Àlies de correu electrònic reenviat</string>
+    <string name="generator_create_item_with_password_title">Crea un nou inici de sessió amb la contrasenya</string>
+    <string name="generator_create_item_with_username_title">Crea un nou inici de sessió amb l\'usuari</string>
+    <string name="generator_password_history_title">Historial de contrasenyes</string>
+    <string name="generator_show_tips_title">Mostra consells</string>
+    <string name="generatorhistory_header_title">Historial del generador</string>
+    <string name="generatorhistory_clear_history_title">Neteja l\'historial</string>
+    <string name="generatorhistory_clear_history_confirmation_title">Netejar l\'historial del generador?</string>
+    <string name="generatorhistory_clear_history_confirmation_text">Açò eliminarà tots els elements de l\'historial.</string>
+    <string name="passwordhistory_header_title">Historial de contrasenyes</string>
+    <string name="passwordhistory_clear_history_title">Buida l\'historial</string>
+    <string name="passwordhistory_clear_history_confirmation_title">Buidar l\'historial de contrasenyes?</string>
+    <string name="passwordhistory_clear_history_confirmation_text">Açò eliminarà totes les contrasenyes de l\'historial.</string>
+    <string name="watchtower_header_title">Torre de Vigilància</string>
+    <string name="watchtower_section_password_strength_label">Seguretat de la contrasenya</string>
+    <string name="watchtower_section_security_label">Seguretat</string>
+    <string name="watchtower_section_maintenance_label">Manteniment</string>
+    <string name="watchtower_item_pwned_passwords_title">Contrasenyes filtrades</string>
+    <string name="watchtower_item_pwned_passwords_text">Contrasenyes que han sigut filtrades en bases de dades. Aquestes contrasenyes haurien de ser canviades immediatament.</string>
+    <string name="watchtower_item_reused_passwords_title">Contrasenyes reutilitzades</string>
+    <string name="watchtower_item_reused_passwords_text">No facis servir la mateixa contrasenya en diversos llocs. Genera contrasenyes úniques per millorar la seguretat.</string>
+    <string name="watchtower_item_vulnerable_accounts_title">Comptes Vulnerables</string>
+    <string name="watchtower_item_vulnerable_accounts_text">Llocs web que van ser afectats per una filtracions de dades després de l\'última vegada que vas canviar la contrasenya. Canvia-la per a mantenir el teu compte assegurat.</string>
+    <string name="watchtower_item_unsecure_websites_title">Llocs web no segurs</string>
+    <string name="watchtower_item_unsecure_websites_text">Canvia les URL que fan servir HTTP en comptes d\'HTTPS, ja que aquest últim fa servir els algoritmes d\'encriptació més segurs possibles.</string>
+    <string name="watchtower_item_inactive_2fa_title">Autenticació de dos factors inactiva</string>
+    <string name="watchtower_item_inactive_2fa_text">Llocs que tenen autenticació de dos factors disponible, però als quals no l\'has activada.</string>
+    <string name="watchtower_item_inactive_passkey_title">Passkeys Disponibles</string>
+    <string name="watchtower_item_inactive_passkey_text">Llocs web que tenen disponibilitat per a passkeys però els quals encara no has configurat. És més simple i segur que una contrasenya.</string>
+    <string name="watchtower_item_incomplete_items_title">Elements incomplets</string>
+    <string name="watchtower_item_incomplete_items_text">Ajuda a identificar dades que falten o incompletes a la teua caixa forta. Això pot dur a identitats sense nom o inicis de sessió sense nom d\'usuari.</string>
+    <string name="watchtower_item_expiring_items_title">Expiració d\'elements</string>
+    <string name="watchtower_item_expiring_items_text">Elements que han expirat o van a expirar prompte.</string>
+    <string name="watchtower_item_duplicate_websites_title">URIs duplicades</string>
+    <string name="watchtower_item_duplicate_websites_text">Elements que tenen una o més URIs que cobreixen les mateixes pàgines web després d\'aplicar la detecció de coincidències.</string>
+    <string name="watchtower_item_trashed_items_title">Elements esborrats</string>
+    <string name="watchtower_item_trashed_items_text">Elements que s\'han mogut a la papereta. Tindre molts elements a la paperera pot endarrerir les operacions amb la teva caixa forta.</string>
+    <string name="watchtower_item_empty_folders_title">Carpetes Buides</string>
+    <string name="watchtower_item_empty_folders_text">Les carpetes que no contenen cap element.</string>
+    <string name="watchtower_item_duplicate_items_title">Elements duplicats</string>
+    <string name="watchtower_item_duplicate_items_text">Ajuda a identificar i eliminar elements duplicats a la teua caixa forta.</string>
+    <string name="watchtower_item_compromised_accounts_title">Comptes Compromesos</string>
+    <string name="watchtower_item_compromised_accounts_text">Comprova filtracions de dades per nom d\'usuari o direcció de correu electrònic.</string>
+    <string name="changepassword_header_title">Canvia la contrasenya de l\'aplicació</string>
+    <string name="changepassword_change_password_button">Canvia la contrasenya</string>
+    <string name="changepassword_biometric_auth_checkbox">Autenticació biomètrica</string>
+    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
+    <string name="changepassword_biometric_auth_confirm_title">Canvia la contrasenya de l\'app</string>
+    <string name="changepassword_disclaimer_local_note">La contrasenya d\'aplicació mai es desa al dispositiu ni s\'envia a través de la xarxa. Es fa servir per a generar un secret que s\'utilitza per a encriptar les dades locals.</string>
+    <string name="changepassword_disclaimer_abuse_note">A no ser que sospites d\'un accés no autoritzat, o descobreixis programari maliciós al teu dispositiu, no hi ha cap necessitat de canviar la contrasenya si és una forta i única.</string>
+    <string name="contactus_header_title">Contacta\'ns</string>
+    <string name="contactus_message_label">El teu missatge</string>
+    <string name="contactus_english_note">Fes servir l\'anglès per assegurar-nos que no hi ha malentesos.</string>
+    <string name="contactus_thanks_note">Apreciem el temps que has dedicat escrivint-nos un missatge. El teu missatge va directament a nosaltres, i el fem servir per a solucionar problemes i millorar el producte. Encara que no contestem a tots els missatges, els llegim tots i solucionem els problemes tan prompte com podem.</string>
+    <string name="account_main_header_title">Comptes</string>
+    <string name="account_main_add_account_title">Afegeix un compte</string>
+    <string name="team_header_title">L\'equip darrere de l\'aplicació</string>
+    <string name="team_artem_whoami_text">Soc un enginyer de software ucraïnès. M\'especialitzo en disseny i desenvolupament d\'aplicacions.</string>
+    <string name="team_follow_me_section">Segueix-me</string>
+    <string name="settingssearch_header_title">Cerca</string>
+    <string name="settingssearch_header_subtitle">Configuració</string>
+    <string name="settingssearch_search_placeholder">Configuració de cerca</string>
+    <string name="settings_appearance_header_title">Aparença</string>
+    <string name="settings_autofill_header_title">Emplenament automàtic</string>
+    <string name="settings_dev_header_title">Desenvolupament</string>
+    <string name="settings_experimental_header_title">Experimental</string>
+    <string name="settings_main_header_title">Configuració</string>
+    <string name="settings_notifications_header_title">Notificacions</string>
+    <string name="settings_other_header_title">Altres</string>
+    <string name="settings_permissions_header_title">Permisos</string>
+    <string name="settings_security_header_title">Seguretat</string>
+    <string name="settings_subscriptions_header_title">Keyguard Prèmium</string>
+    <string name="settings_watchtower_header_title">Torre de Vigilància</string>
+    <string name="settings_open_source_licenses_header_title">Llicències de programari lliure</string>
+    <string name="pref_item_accounts_title">Comptes</string>
+    <string name="pref_item_accounts_text">Afegir &amp; veure comptes</string>
+    <string name="pref_item_autofill_title">Emplenament automàtic</string>
+    <string name="pref_item_autofill_text">Servei d\'emplenament automàtic d\'Android</string>
+    <string name="pref_item_security_title">Seguretat</string>
+    <string name="pref_item_security_text">Biometria, canvi de contrasenya i temps d\'espera de la caixa forta</string>
+    <string name="pref_item_subscription_title">Keyguard Prèmium</string>
+    <string name="pref_item_subscription_text">Desbloqueja funcions &amp; dona suport al desenvolupament de l\'app</string>
+    <string name="pref_item_watchtower_title">Torre de Vigilància</string>
+    <string name="pref_item_watchtower_text">Serveis compromesos, contrasenyes vulnerables</string>
+    <string name="pref_item_notifications_title">Notificacions</string>
+    <string name="pref_item_notifications_text">Alertes</string>
+    <string name="pref_item_appearance_title">Aparença</string>
+    <string name="pref_item_appearance_text">Idioma, tema i animacions</string>
+    <string name="pref_item_dev_title">Desenvolupament</string>
+    <string name="pref_item_dev_text">Configuració de prova per al desenvolupament</string>
+    <string name="pref_item_other_title">Altres</string>
+    <string name="pref_item_other_text">Llocs web de la comunitat, informació de l\'app</string>
+    <string name="pref_item_nav_label_title">Mostra etiquetes als botons de navegació</string>
+    <string name="pref_item_app_version_title">Versió de l\'app</string>
+    <string name="pref_item_app_build_date_title">Data de compilació de l\'app</string>
+    <string name="pref_item_app_team_title">L\'equip darrere de l\'aplicació</string>
+    <string name="pref_item_reddit_community_title">Comunitat de Reddit</string>
+    <string name="pref_item_github_title">Projecte de GitHub</string>
+    <string name="pref_item_crowdin_title">Projecte de Crowdin</string>
+    <string name="pref_item_open_source_licenses_title">Llicències de programari lliure</string>
+    <string name="pref_item_download_apk_title">Descarrega l\'arxiu APK</string>
+    <string name="pref_item_load_app_icons_title">Carrega icones d\'App</string>
+    <string name="pref_item_load_website_icons_title">Carrega icones Web</string>
+    <string name="pref_item_load_website_icons_text">Sol·licitar la icona del lloc web pot filtrar la direcció al proveïdor d\'Internet</string>
+    <string name="pref_item_markdown_title">Format de text enriquit</string>
+    <string name="pref_item_markdown_text">Fes servir Markdown per a prendre notes</string>
+    <string name="pref_item_locale_title">Idioma</string>
+    <string name="pref_item_locale_help_translation_button">Suggerir traducció</string>
+    <string name="pref_item_font_title">Tipus de lletra</string>
+    <string name="pref_item_rate_on_play_store_title">Valorar al Play Store</string>
+    <string name="pref_item_color_accent_title">Color de tint</string>
+    <string name="pref_item_color_scheme_title">Tema</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">Fes servir el tema negre contrastrant</string>
+    <string name="pref_item_open_links_in_external_browser_title">Obre els enllaços a un navegador extern</string>
+    <string name="pref_item_conceal_fields_title">Amaga camps</string>
+    <string name="pref_item_conceal_fields_text">Amaga informació sensible, tal com contrasenyes i números de targeta de crèdit</string>
+    <!--
+        When a user clicks this button, the app crashes. Not visible to
+        regular users. -->
+    <string name="pref_item_crash_title">Crash</string>
+    <string name="pref_item_credential_provider_title">Proveïdor de credencials</string>
+    <string name="pref_item_credential_provider_text">Passkeys, contrasenyes i serveis de dades</string>
+    <string name="pref_item_privacy_policy_title">Política de privadesa</string>
+    <string name="pref_item_contact_us_title">Contacta\'ns</string>
+    <string name="pref_item_experimental_title">Experimental</string>
+    <string name="pref_item_change_app_password_title">Canvia la contrasenya de l\'app</string>
+    <string name="pref_item_require_app_password_title">Requereix la contrasenya d\'app</string>
+    <string name="pref_item_require_app_password_note">A més de la teva configuració de seguretat habitual, la teva contrasenya de l\'app serà requerida després d\'aquest temps, o quan es canviï la configuració de biometria</string>
+    <string name="pref_item_require_app_password_immediately_text">Immediatament</string>
+    <string name="pref_item_require_app_password_never_text">Mai</string>
+    <string name="pref_item_send_crash_reports_title">Envia informes d\'errors</string>
+    <string name="pref_item_nav_animation_title">Animacions de transició</string>
+    <string name="pref_item_erase_data_title">Elimina les dades de l\'app</string>
+    <string name="pref_item_erase_data_text">Tanca l\'app i elimina totes les dades locals</string>
+    <string name="pref_item_allow_screenshots_title">Permet captures de pantalla</string>
+    <string name="pref_item_allow_screenshots_text_on">Mostra el contingut de l\'aplicació quan es canviï entre aplicacions recents, i permet fer captures de pantalla</string>
+    <string name="pref_item_allow_screenshots_text_off">Amaga el contingut de l\'aplicació quan es canviï entre aplicacions recents, i prohibeix fer captures de pantalla</string>
+    <string name="pref_item_data_safety_title">Seguretat de Dades</string>
+    <string name="pref_item_lock_vault_title">Bloqueja la caixa forta</string>
+    <string name="pref_item_lock_vault_after_reboot_title">Bloqueja després d\'un reinici</string>
+    <string name="pref_item_lock_vault_after_reboot_text">Bloqueja la caixa forta després de reiniciar el dispositiu</string>
+    <string name="pref_item_lock_vault_after_screen_off_title">Bloqueja quan s\'apagui la pantalla</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">Bloqueja la caixa forta uns segons després d\'apagar la pantalla</string>
+    <string name="pref_item_lock_vault_after_delay_title">Bloqueja després d\'un temps</string>
+    <string name="pref_item_lock_vault_after_delay_immediately_text">Immediatament</string>
+    <string name="pref_item_lock_vault_after_delay_never_text">Mai</string>
+    <string name="pref_item_persist_vault_key_title">Desa la clau de la caixa forta a un disc</string>
+    <string name="pref_item_persist_vault_key_text_on">La clau de la caixa forta es desa a l\'emmagatzematge intern</string>
+    <string name="pref_item_persist_vault_key_text_off">La caixa forta el bloqueja després de descarregar l\'app de la memòria</string>
+    <string name="pref_item_persist_vault_key_note">Desar la clau de la caixa forta a un disc és un risc de seguretat. Si l\'emmagatzematge del dispositiu es compromet, l\'atacant tindrà accés a les dades.</string>
+    <string name="pref_item_permissions_title">Permisos</string>
+    <string name="pref_item_features_overview_title">Visió general de funcions</string>
+    <string name="pref_item_biometric_unlock_title">Desbloqueig biomètric</string>
+    <!--
+        A title of the system popup that asks a user to use his biometric to later
+        be able to use it to unlock the vault. -->
+    <string name="pref_item_biometric_unlock_confirm_title">Desbloqueig biomètric</string>
+    <string name="pref_item_keep_screen_on_title">Mantè encesa la pantalla mentre es visualitzen els elements</string>
+    <string name="pref_item_autofill_service_title">Servei d\'emplenament automàtic</string>
+    <string name="pref_item_autofill_service_text">Fes servir el servei d\'emplenament automàtic d\'Android per ajudar-te emplenant informació d\'inici de sessió a altres apps del dispositiu</string>
+    <string name="pref_item_autofill_auto_copy_otp_title">Copia contrasenyes d\'un sol ús automàticament</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">En emplenar informació d\'inici de sessió, còpia automàticament les contrasenyes d\'un sol ús</string>
+    <string name="pref_item_autofill_inline_suggestions_title">Suggeriments en línia</string>
+    <string name="pref_item_autofill_inline_suggestions_text">Ofereix els suggeriments directament als teclats compatibles</string>
+    <string name="pref_item_autofill_manual_selection_title">Selecció manual</string>
+    <string name="pref_item_autofill_manual_selection_text">Mostra una opció per a cercar manualment una entrada a la caixa forta</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Respecta la bandera d\'emplenament automàtic desconnectat</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">Deshabilita l\'emplenament automàtic per a un camp del buscador web que tingui la bandera d\'emplenament automàtic desconnectada</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Tingues en compte que algunes pàgines web tendeixen a deshabilitar l\'emplenament automàtic per a camps de contrasenya, i alguns navegadors ignoren la bandera</string>
+    <string name="pref_item_autofill_save_request_title">Demana desar dades</string>
+    <string name="pref_item_autofill_save_request_text">Demana actualitzar la caixa forta quan es completi un formulari</string>
+    <string name="pref_item_autofill_auto_save_source_title">Desa informació d\'apps o pàgines web automàticament</string>
+    <string name="pref_item_clipboard_auto_clear_title">Buida el porta-retalls automàticament</string>
+    <string name="pref_item_clipboard_auto_clear_immediately_text">Immediatament</string>
+    <string name="pref_item_clipboard_auto_clear_never_text">Mai</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Durada de la notificació de la contrasenya d\'un sol ús</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Quan emplenes un camp d\'inici de sessió automàticament, i té una contrasenya d\'un sol ús, la notificació amb el codi de verificació es mostrarà almenys durant la durada indicada</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Mai</string>
+    <string name="pref_item_premium_membership_title">Sobre la subscripció de Keyguard</string>
+    <string name="pref_item_premium_membership_text">El Prèmium desbloqueja funcions extra i finança el desenvolupament de l\'app. Gràcies per donar-nos suport! ❤️</string>
+    <string name="pref_item_premium_membership_section_subscriptions_title">Subscripcions</string>
+    <string name="pref_item_premium_membership_section_products_title">Productes</string>
+    <string name="pref_item_premium_membership_failed_to_load_subscriptions">No s\'han pogut carregar les subscripcions</string>
+    <string name="pref_item_premium_membership_failed_to_load_products">No s\'han pogut carregar els productes</string>
+    <string name="pref_item_premium_status_active">Actiu</string>
+    <string name="pref_item_premium_status_will_not_renew">No es renovarà</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Administra al Play Store</string>
+    <string name="pref_item_permission_post_notifications_title">Penja notificacions</string>
+    <string name="pref_item_permission_post_notifications_text">Es fa servir per a penjar notificacions de descàrregues</string>
+    <string name="pref_item_permission_camera_title">Càmera</string>
+    <string name="pref_item_permission_camera_text">Es fa servir per a escanejar codis QR</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Permet la distribució en dos panells en el mode apaïsat</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Permet la distribució en dos panells en el mode de retrat</string>
+    <string name="theme_dark">Fosc</string>
+    <string name="theme_light">Clar</string>
+    <string name="nav_animation_disabled">Desactivat</string>
+    <string name="nav_animation_dynamic">Dinàmic</string>
+    <string name="nav_animation_crossfade">Transició</string>
+    <string name="font_atkinson_hyperlegible_text">Desenvolupat especialment per a millorar la llegibilitat per als lectors amb baixa visió, i millorar la comprensió</string>
+    <string name="feat_header_title">Visió general de funcions</string>
+    <string name="feat_keyguard_premium_label">Keyguard Prèmium</string>
+    <string name="feat_item_multiple_accounts_title">Comptes múltiples</string>
+    <string name="feat_item_multiple_accounts_text">Inicia sessió amb diversos comptes al mateix temps.</string>
+    <string name="feat_item_two_way_sync_title">Sincronització en dos sentits</string>
+    <string name="feat_item_two_way_sync_text">Afegeix o edita elements i sincronitza els canvis en l\'altre sentit.</string>
+    <string name="feat_item_offline_editing_title">Edició offline</string>
+    <string name="feat_item_offline_editing_text">Afegeix o elimina elements sense connexió.</string>
+    <string name="feat_section_search_title">Cerca</string>
+    <string name="feat_item_search_by_anything_title">Cerca per qualsevol terme</string>
+    <string name="feat_item_search_by_anything_text">Nom, correu electrònic, contrasenya, número de mòbil etc.</string>
+    <string name="feat_item_filter_title">Filtre</string>
+    <string name="feat_item_filter_text">Filtra per carpeta, organització, tipus etc.</string>
+    <string name="feat_item_multiple_keywords_title">Vàries paraules clau</string>
+    <string name="feat_item_multiple_keywords_text">Cerca per \'bitw test\' per a trobar el teu element \'Bitwarden Test Account\'.</string>
+    <string name="feat_section_watchtower_title">Torre de Vigilància</string>
+    <string name="feat_item_pwned_passwords_title">Contrasenyes filtrades</string>
+    <string name="feat_item_pwned_passwords_text">Troba contrasenyes exposades en filtracions de dades.</string>
+    <string name="feat_item_password_strength_title">Seguretat de la contrasenya</string>
+    <string name="feat_item_password_strength_text">Cerca elements amb contrasenyes dèbils.</string>
+    <string name="feat_item_reused_passwords_title">Contrasenyes reutilitzades</string>
+    <string name="feat_item_reused_passwords_text">Cerca elements amb contrasenyes reutilitzades.</string>
+    <string name="feat_item_inactive_totp_title">2FA inactiva</string>
+    <string name="feat_item_inactive_totp_text">Troba inicis de sessió amb autenticació de dos factors TOTP disponible.</string>
+    <string name="feat_item_unsecure_websites_title">Llocs web no segurs</string>
+    <string name="feat_item_unsecure_websites_text">Troba llocs web que fan servir el protocol HTTP, canvia automàticament a HTTPS.</string>
+    <string name="feat_item_incomplete_items_title">Elements incomplets</string>
+    <string name="feat_item_incomplete_items_text">Troba elements buits que poden necessitar actualitzacions.</string>
+    <string name="feat_item_expiring_items_title">Elements a expirar</string>
+    <string name="feat_item_expiring_items_text">Troba elements que van a expirar o que falta poc perquè ho facin.</string>
+    <string name="feat_item_duplicate_items_title">Elements duplicats</string>
+    <string name="feat_item_duplicate_items_text">Busca i mescla elements duplicats.</string>
+    <string name="feat_section_misc_title">Misc</string>
+    <string name="feat_item_multi_selection_title">Selecció múltiple</string>
+    <string name="feat_item_multi_selection_text">Mescla els xifrats, i accelera la refactorització amb operacions en grup.</string>
+    <string name="feat_item_show_barcode_title">Mostra com a codi de barres</string>
+    <string name="feat_item_show_barcode_text">Codifica el text com a codis de barres diferents.</string>
+    <string name="feat_item_generator_title">Generador</string>
+    <string name="feat_item_generator_text">Genera contrasenyes o noms d\'usuari.</string>
+    <string name="datasafety_header_title">Seguretat de Dades</string>
+    <string name="datasafety_local_section">Dades locals</string>
+    <string name="datasafety_local_text">Les dades locals consisteixen en baixades, configuració d\'usuari i caixa forta. Es desen en l\'emmagatzematge intern del dispositiu, que sols pot ser accedit per Android o Keyguard.</string>
+    <string name="datasafety_local_downloads_section">Descàrregues</string>
+    <string name="datasafety_local_settings_section">Configuració de l\'usuari</string>
+    <string name="datasafety_local_settings_note">La configuració d\'usuari s\'encripta amb una clau única del dispositiu.</string>
+    <string name="datasafety_local_vault_section">Configuració de l\'usuari</string>
+    <string name="datasafety_local_encryption_algorithm_intro">La caixa forta s\'encripta amb una clau, derivada de la contrasenya de l\'app seguint aquestes passes:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">La sal i el hash es guarden localment al dispositiu, per a fer-se servir més tard per a generar una clau mestra i desbloquejar la caixa forta.</string>
+    <string name="datasafety_local_unlocking_vault">Desbloquejar una caixa forta vol dir desar una clau correcta a la RAM del dispositiu, guanyant l\'habilitat de llegir i modificar la caixa forta encriptada.</string>
+    <string name="datasafety_remote_section">Dades remotes</string>
+    <string name="datasafety_remote_text">Les dades es desen remotament als servidors de Bitwarden amb encriptació de zero-coneixement.</string>
+</resources>

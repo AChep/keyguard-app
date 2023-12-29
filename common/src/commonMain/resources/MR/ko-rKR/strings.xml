@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ok">확인</string>
+    <string name="close">닫기</string>
+    <string name="yes">예</string>
+    <string name="no">아니오</string>
+    <!-- A name of a thing, such as an account -->
+    <string name="generic_name">이름</string>
+    <string name="account_name">계정 이름</string>
+    <string name="username">사용자 이름</string>
+    <string name="password">비밀번호</string>
+    <string name="app_password">앱 비밀번호</string>
+    <string name="current_password">현재 비밀번호</string>
+    <string name="new_password">새 비밀번호</string>
+    <string name="email">이메일</string>
+    <string name="email_verified">확인됨</string>
+    <string name="email_not_verified">확인되지 않음</string>
+    <string name="email_visibility">이메일 보기 권한</string>
+    <string name="public_url">공개 URL</string>
+    <string name="url">URL</string>
+    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="access_count">조회수</string>
+    <string name="learn_more">자세히 알아보기</string>
+    <string name="phone_number">전화 번호</string>
+    <string name="passport_number">여권 번호</string>
+    <string name="license_number">운전면허 번호</string>
+    <string name="card_number">카드 번호</string>
+    <string name="card_number_empty_label">카드 번호 없음</string>
+    <string name="card_type">브랜드</string>
+    <string name="card_cvv">보안 코드(CVV)</string>
+    <string name="card_valid_from">유효 시작 날짜</string>
+    <string name="card_valid_to">만료 날짜</string>
+    <string name="card_expiry_month">Card expiry month</string>
+    <string name="card_expiry_year">Card expiry year</string>
+    <string name="cardholder_name">카드 소유자 이름</string>
+    <string name="valid_from">유효 시작 날짜</string>
+    <string name="expiry_date">만료 날짜</string>
+    <string name="company">회사</string>
+    <string name="sync">동기화</string>
+    <!-- Opposite of 'visible' -->
+    <string name="hidden">숨김</string>
+    <!-- Opposite of 'hidden' -->
+    <string name="visible">표시</string>
+    <!-- Shows up instead of a value if a value is an empty text -->
+    <string name="empty_value">비어 있음</string>
+    <!-- Social Security Number -->
+    <string name="ssn">SSN</string>
+    <string name="city">시</string>
+    <string name="state">도/주</string>
+    <string name="info">정보</string>
+    <string name="cancel">취소</string>
+    <string name="continue_">계속</string>
+    <string name="country">국가</string>
+    <string name="address">주소</string>
+    <string name="postal_code">우편 번호</string>
+    <string name="pull_to_search">아래로 당겨 검색</string>
+    <string name="save">저장</string>
+    <string name="uri">URI</string>
+    <string name="uris">URI</string>
+    <string name="note">메모</string>
+    <string name="notes">메모</string>
+    <string name="attachments">첨부 파일</string>
+    <string name="attachments_empty_label">첨부 파일 없음</string>
+    <string name="expiring_soon">곧 만료</string>
+    <string name="item_incomplete_title">불완전 데이터</string>
+    <string name="item_incomplete_text">중요한 정보가 비어 있는 항목입니다.</string>
+    <string name="item">항목</string>
+    <string name="items">항목</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g>개 항목</string>
+    <string name="items_all">모든 항목</string>
+    <string name="items_empty_label">항목 없음</string>
+    <string name="folder_none">폴더 없음</string>
+    <string name="folder_new">새 폴더</string>
+    <string name="folder">폴더</string>
+    <string name="folders">폴더</string>
+    <string name="folders_empty_label">폴더 없음</string>
+    <string name="collection_none">컬렉션 없음</string>
+    <string name="collection">컬렉션</string>
+    <string name="collections">컬렉션</string>
+    <string name="collections_empty_label">컬렉션 없음</string>
+    <string name="organization_none">내 보관함</string>
+    <string name="organization">조직</string>
+    <string name="organizations">조직</string>
+    <string name="organizations_empty_label">조직 없음</string>
+    <string name="misc">기타</string>
+    <string name="add_integration">통합 기능 추가</string>
+    <string name="account">계정</string>
+    <string name="accounts">계정</string>
+    <string name="accounts_empty_label">계정 없음</string>
+    <string name="account_none">계정 없음</string>
+    <string name="type">유형</string>
+    <string name="options">옵션</string>
+    <string name="send">Send</string>
+    <string name="reset">초기화</string>
+    <string name="length">길이</string>
+    <string name="security">보안</string>
+    <string name="contact_info">연락처 정보</string>
+    <string name="identity_title">제목</string>
+    <string name="identity_first_name">이름</string>
+    <string name="identity_middle_name">가운데 이름</string>
+    <string name="identity_last_name">성</string>
+    <string name="identity_full_name">Full name</string>
+    <string name="address1">주소 1</string>
+    <string name="address2">주소 2</string>
+    <string name="address3">주소 3</string>
+    <string name="rename">이름 바꾸기</string>
+    <string name="select_linked_type">Select type</string>
+    <string name="autofill">자동 완성</string>
+    <string name="passkey">패스키</string>
+    <string name="passkey_create_header">패스키 만들기</string>
+    <string name="passkey_unlock_header">Keyguard 잠금 해제</string>
+    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkeys">패스키</string>
+    <!--
+        Signature counter is incremented each time a user uses a passkey. See:
+        https://www.w3.org/TR/webauthn-2/#signature-counter
+        -->
+    <string name="passkey_signature_counter">서명 카운터</string>
+    <!--
+        The entity whose web application utilizes the Web Authentication API
+        to register and authenticate users. For example "Google" is a relying party.
+        https://www.w3.org/TR/webauthn-2/#relying-party
+        -->
+    <string name="passkey_relying_party">Relying party</string>
+    <!--
+        https://www.w3.org/TR/webauthn-2/#discoverable-credential
+        -->
+    <string name="passkey_discoverable">Discoverable</string>
+    <string name="passkey_user_username">Username</string>
+    <string name="passkey_user_display_name">Display name</string>
+    <string name="api_key">API 키</string>
+    <string name="domain">도메인</string>
+    <string name="edit">편집</string>
+    <string name="delete">삭제</string>
+    <string name="remove">제거</string>
+    <string name="remove_from_history">기록에서 제거</string>
+    <string name="reused_password">재사용 비밀번호</string>
+    <string name="reused_passwords">재사용 비밀번호</string>
+    <string name="one_time_password">OTP</string>
+    <string name="one_time_password_authenticator_key">인증기 키</string>
+    <string name="passkey_use_short">사용</string>
+    <string name="passkey_save">패스키 저장</string>
+    <string name="passkey_available">패스키 사용 가능</string>
+    <string name="twofa_available">2단계 인증 사용 가능</string>
+    <string name="custom">사용자 지정</string>
+    <string name="follow_system_settings">시스템 설정에 따름</string>
+    <!-- A feature is coming soon! -->
+    <string name="coming_soon">출시 예정</string>
+    <string name="powered_by">기술 지원:</string>
+    <string name="verification_code">인증 코드</string>
+    <string name="resend_verification_code">인증 코드 다시 보내기</string>
+    <string name="requested_verification_email">인증 메일을 보냈습니다.</string>
+    <string name="web_vault">웹 보관함</string>
+    <string name="launch_web_vault">웹 보관함 열기</string>
+    <!-- Remember me to not have to enter OTP code second time -->
+    <string name="remember_me">이 설정 기억</string>
+    <!-- A Trash screen -->
+    <string name="trash">휴지통</string>
+    <!-- To download something -->
+    <string name="download">다운로드</string>
+    <string name="downloads">다운로드</string>
+    <string name="downloads_empty_label">다운로드 없음</string>
+    <string name="duplicates_empty_label">중복 항목 없음</string>
+    <string name="encryption">암호화</string>
+    <!-- Encryption key -->
+    <string name="encryption_key">키</string>
+    <string name="encryption_hash">해시</string>
+    <string name="encryption_salt">솔트</string>
+    <string name="encryption_algorithm_256bit_aes">256비트 AES</string>
+    <string name="encryption_random_bits_data">무작위 데이터 <xliff:g id="length" example="64">%1$d</xliff:g>비트</string>
+    <string name="none">없음</string>
+    <string name="text">텍스트</string>
+    <string name="linked_apps">연결된 앱</string>
+    <string name="linked_uris">연결된 URI</string>
+    <string name="custom_fields">사용자 지정 필드</string>
+    <string name="reveal_secure_note">보안 노트 보이기</string>
+    <string name="hide_secure_note">보안 노트 숨기기</string>
+    <string name="master_password_hint">마스터 비밀번호 힌트</string>
+    <string name="fingerprint_phrase">핑거프린트 구문</string>
+    <string name="fingerprint_phrase_help_title">핑거프린트가 뭔가요?</string>
+    <string name="bitwarden_premium">Bitwarden 프리미엄</string>
+    <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
+    <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
+    <string name="account_action_change_name_title">이름 바꾸기</string>
+    <string name="account_action_change_color_title">색상 바꾸기</string>
+    <string name="account_action_change_master_password_hint_title">마스터 비밀번호 힌트 변경</string>
+    <string name="account_action_sign_out_title">로그아웃</string>
+    <string name="account_action_sign_in_title">로그인</string>
+    <string name="account_action_email_verify_instructions_title">웹 보관함에 접속하여 이메일 주소를 인증하세요.</string>
+    <string name="account_action_premium_purchase_instructions_title">계정을 프리미엄으로 업그레이드하고 다양한 추가 기능을 잠금 해제하세요.</string>
+    <string name="account_action_tfa_title">2단계 인증</string>
+    <string name="account_action_tfa_text">보안 키, 인증 앱, SMS, 이메일 등 다른 기기를 통한 로그인 인증을 요청합니다.</string>
+    <string name="account_action_tfa_active_status">사용 중</string>
+    <string name="account_action_items_title">항목</string>
+    <string name="account_action_log_out_title">로그아웃</string>
+    <string name="account_log_out_confirmation_title">로그아웃하시겠습니까?</string>
+    <string name="account_log_out_confirmation_text">동기화하지 않은 변경 사항이 모두 사라집니다!</string>
+    <string name="folder_action_change_name_title">이름 바꾸기</string>
+    <string name="folder_action_change_names_title">이름 바꾸기</string>
+    <string name="folder_delete_one_confirmation_title">폴더를 삭제하시겠습니까?</string>
+    <string name="folder_delete_many_confirmation_title">폴더를 삭제하시겠습니까?</string>
+    <string name="folder_delete_confirmation_text">항목이 즉시 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="ciphers_recently_opened">최근에 연 항목</string>
+    <string name="ciphers_often_opened">자주 연 항목</string>
+    <string name="ciphers_view_details">자세히 보기</string>
+    <string name="ciphers_save_to">Save to</string>
+    <string name="ciphers_action_add_to_favorites_title">즐겨찾기에 추가</string>
+    <string name="ciphers_action_remove_from_favorites_title">즐겨찾기에서 제거</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">인증 재요청 켜기</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">인증 재요청 끄기</string>
+    <string name="ciphers_action_edit_title">편집</string>
+    <string name="ciphers_action_merge_title">…에 병합</string>
+    <string name="ciphers_action_copy_title">…로 복사</string>
+    <string name="ciphers_action_change_folder_title">폴더로 이동</string>
+    <string name="ciphers_action_change_name_title">이름 바꾸기</string>
+    <string name="ciphers_action_change_names_title">이름 바꾸기</string>
+    <string name="ciphers_action_add_password_title">비밀번호 추가</string>
+    <string name="ciphers_action_add_passwords_title">비밀번호 추가</string>
+    <string name="ciphers_action_change_password_title">비밀번호 변경</string>
+    <string name="ciphers_action_change_passwords_title">비밀번호 변경</string>
+    <string name="ciphers_action_view_password_history_title">비밀번호 생성 기록</string>
+    <string name="ciphers_action_trash_title">휴지통</string>
+    <string name="ciphers_action_restore_title">복원</string>
+    <string name="ciphers_action_delete_title">완전히 삭제</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">연관 항목을 휴지통으로 이동</string>
+    <string name="file_action_open_with_title">Open with…</string>
+    <string name="file_action_send_with_title">Send with…</string>
+    <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
+    <string name="file_action_delete_local_title">Delete local file</string>
+    <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="vault_action_always_show_keyboard_title">키보드 항상 보이기</string>
+    <string name="vault_action_sync_vault_title">보관함 동기화</string>
+    <string name="vault_action_lock_vault_title">보관함 잠그기</string>
+    <string name="vault_action_rename_folder_title">폴더 이름 바꾸기</string>
+    <string name="email_action_check_data_breach_title">이메일 유출 확인</string>
+    <string name="username_action_check_data_breach_title">사용자 이름 유출 확인</string>
+    <string name="password_action_check_data_breach_title">비밀번호 유출 확인</string>
+    <string name="website_action_check_data_breach_title">웹사이트 유출 확인</string>
+    <string name="uri_action_launch_app_title">앱 실행</string>
+    <string name="uri_action_launch_website_title">웹사이트 열기</string>
+    <string name="uri_action_launch_docs_title">문서 열기</string>
+    <string name="uri_action_launch_browser_title">브라우저 실행</string>
+    <string name="uri_action_launch_browser_main_page_title">메인 페이지 열기</string>
+    <string name="uri_action_launch_play_store_title">Play 스토어 실행</string>
+    <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> 앱으로 열기</string>
+    <string name="uri_action_launch_in_smth_title">다른 앱으로 열기</string>
+    <string name="uri_action_how_to_delete_account_title">회원 탈퇴는 어떻게 하지?</string>
+    <string name="uri_unsecure">안전하지 않음</string>
+    <string name="uri_match_app_title">앱 일치</string>
+    <string name="uri_match_detection_title">일치 인식</string>
+    <string name="uri_match_detection_domain_title">기본 도메인</string>
+    <string name="uri_match_detection_domain_note">최상위 및 2단계 도메인으로 리소스를 감지합니다.</string>
+    <string name="uri_match_detection_host_title">호스트</string>
+    <string name="uri_match_detection_host_note">호스트 이름과 포트로 리소스를 감지합니다.</string>
+    <string name="uri_match_detection_startswith_title">다음으로 시작</string>
+    <string name="uri_match_detection_startswith_note">리소스가 URI로 시작할 때 감지합니다.</string>
+    <string name="uri_match_detection_exact_title">정확히 일치</string>
+    <string name="uri_match_detection_exact_note">리소스가 정확히 URI와 일치할 때 감지합니다.</string>
+    <string name="uri_match_detection_regex_title">정규 표현식</string>
+    <string name="uri_match_detection_regex_note">정규 표현식으로 리소스를 감지합니다. 고급 옵션입니다.</string>
+    <string name="uri_match_detection_never_title">인식 안 함</string>
+    <string name="uri_match_detection_never_note">자동 완성 항목을 검색할 때 URI를 무시합니다.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="text_action_share_with_title">공유…</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g>개 항목 선택됨</string>
+    <string name="copy">복사</string>
+    <string name="copy_value">값 복사</string>
+    <string name="copy_url">URL 복사</string>
+    <string name="copy_uri">URI 복사</string>
+    <string name="copy_package_name">패키지 이름 복사</string>
+    <string name="copy_password">비밀번호 복사</string>
+    <string name="copy_username">사용자 이름 복사</string>
+    <string name="copy_email">이메일 복사</string>
+    <string name="copy_phone_number">전화 번호 복사</string>
+    <string name="copy_passport_number">여권 번호 복사</string>
+    <string name="copy_license_number">운전면허 번호 복사</string>
+    <string name="copy_card_number">카드 번호 복사</string>
+    <string name="copy_cardholder_name">카드 소유자 이름 복사</string>
+    <string name="copy_expiration_year">만료 날짜 복사</string>
+    <string name="copy_expiration_month">만료 월 복사</string>
+    <string name="copy_cvv_code">보안 코드(CVV) 복사</string>
+    <string name="copy_otp_code">OTP 코드 복사</string>
+    <string name="copy_otp_secret_code">비밀 키 복사</string>
+    <string name="autofill_unlock_keyguard">Keyguard 잠금 해제</string>
+    <string name="autofill_open_keyguard">Keyguard 열기</string>
+    <string name="january">1월</string>
+    <string name="february">2월</string>
+    <string name="march">3월</string>
+    <string name="april">4월</string>
+    <string name="may">5월</string>
+    <string name="june">6월</string>
+    <string name="july">7월</string>
+    <string name="august">8월</string>
+    <string name="september">9월</string>
+    <string name="october">10월</string>
+    <string name="november">11월</string>
+    <string name="december">12월</string>
+    <string name="list_move_up">위로 이동</string>
+    <string name="list_move_down">아래로 이동</string>
+    <string name="list_remove">제거</string>
+    <string name="list_remove_confirmation_title">항목을 제거하시겠습니까?</string>
+    <string name="list_add">더 추가</string>
+    <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
+    <string name="fido2webauthn_action_go_title">WebAuthn 인증</string>
+    <string name="fido2webauthn_action_return_title">앱으로 돌아가기</string>
+    <!--
+        Empty string is a string that contains zero symbols in it,
+        e.g. "" is an empty string -->
+    <string name="error_must_not_be_empty">비워둘 수 없는 칸입니다.</string>
+    <!--
+        Blank string is an empty string or a string that consists
+        solely of whitespace characters. It's OK to translate it exactly the same
+        as the "Must not be empty" error. -->
+    <string name="error_must_not_be_blank">비워둘 수 없는 칸입니다.</string>
+    <string name="error_must_be_custom_domain">사용자 지정 도메인을 입력해야 합니다.</string>
+    <string name="error_must_contain_only_us_ascii_chars">US-ASCII 문자만 사용할 수 있습니다.</string>
+    <string name="error_must_have_at_least_n_symbols">최소 <xliff:g id="length" example="15">%1$d</xliff:g>글자 이상이어야 합니다.</string>
+    <string name="error_must_have_exactly_n_symbols">정확히 <xliff:g id="length" example="15">%1$d</xliff:g>글자여야 합니다.</string>
+    <string name="error_invalid_domain">잘못된 도메인입니다.</string>
+    <string name="error_invalid_email">잘못된 이메일입니다.</string>
+    <string name="error_invalid_url">잘못된 URL입니다.</string>
+    <string name="error_invalid_uri">잘못된 URI입니다.</string>
+    <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
+    <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
+    <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
+    <string name="error_failed_create_passkey">Failed to create a passkey</string>
+    <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <!-- Title of the 'Show as Barcode' dialog -->
+    <string name="barcodetype_title">바코드</string>
+    <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>
+    <string name="barcodetype_copy_otp_secret_code_note">QR 코드를 스캔하여 이 인증기를 다른 기기에 복사할 수 있습니다.</string>
+    <!-- Title of the 'Date picker' dialog -->
+    <string name="datepicker_title">날짜 선택</string>
+    <!-- Title of the 'Color picker' dialog -->
+    <string name="colorpicker_title">색상 선택</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justdeleteme_title">회원 탈퇴는 어떻게 하지?</string>
+    <string name="justdeleteme_subtitle">웹 서비스에서 회원 탈퇴하는 방법 모음</string>
+    <!-- Simple process -->
+    <string name="justdeleteme_difficulty_easy_label">쉬움</string>
+    <!-- Some extra steps involved -->
+    <string name="justdeleteme_difficulty_medium_label">보통</string>
+    <!-- Cannot be fully deleted without contacting customer services -->
+    <string name="justdeleteme_difficulty_hard_label">어려움</string>
+    <!-- Account can only be deleted if you live in a location with privacy rights -->
+    <string name="justdeleteme_difficulty_limited_availability_label">제한적으로 가능</string>
+    <!-- Cannot be deleted -->
+    <string name="justdeleteme_difficulty_impossible_label">불가능</string>
+    <string name="justdeleteme_send_email_title">이메일 보내기</string>
+    <string name="justdeleteme_search_placeholder">웹사이트 검색</string>
+    <string name="justdeleteme_empty_label">설명 없음</string>
+    <string name="tfa_directory_title">2단계 인증</string>
+    <string name="tfa_directory_text">2단계 인증을 지원하는 웹사이트 목록</string>
+    <string name="tfa_directory_search_placeholder">웹사이트 검색</string>
+    <string name="passkeys_directory_title">패스키</string>
+    <string name="passkeys_directory_text">패스키를 지원하는 웹사이트 목록</string>
+    <string name="passkeys_directory_search_placeholder">웹사이트 검색</string>
+    <!-- Title of the 'Email data breach' dialog -->
+    <string name="emailleak_title">데이터 유출</string>
+    <string name="emailleak_note">계정 데이터가 유출되면 민감한 개인 및 금융 정보에 대한 접근 권한을 악성 사용자에게 제공할 수 있으며, 잠재적으로 신원 도용, 금융 사기 및 다른 형태의 사이버 범죄로 이어질 수 있습니다.</string>
+    <string name="emailleak_breach_not_found_title">유출된 계정 없음</string>
+    <string name="emailleak_breach_found_title">유출된 계정 발견</string>
+    <string name="emailleak_breach_section">유출</string>
+    <string name="emailleak_breach_occurred_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 유출됨</string>
+    <string name="emailleak_breach_reported_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 보고됨</string>
+    <string name="emailleak_failed_to_load_status_text">데이터 유출을 확인하지 못했습니다. 앱이 오프라인 상태일 수 있습니다.</string>
+    <string name="passwordleak_title">데이터 유출</string>
+    <string name="passwordleak_note">유출된 비밀번호는 크래킹에 걸리는 시간이 매우 짧으므로 사용하지 않아야 합니다.</string>
+    <string name="passwordleak_occurrences_found_title">유출된 비밀번호 발견</string>
+    <string name="passwordleak_occurrences_found_text">유출 데이터베이스에 포함된 비밀번호입니다. 온라인 보안을 유지하기 위해 지금 비밀번호를 변경하세요.</string>
+    <string name="passwordleak_occurrences_not_found_title">유출된 비밀번호 없음</string>
+    <string name="passwordleak_failed_to_load_status_text">데이터 유출을 확인하지 못했습니다. 앱이 오프라인 상태일 수 있습니다.</string>
+    <!-- Title of the 'Show in Large Type' dialog -->
+    <string name="largetype_title">큰 글자</string>
+    <string name="largetype_action_show_in_large_type_title">큰 글자로 표시</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">큰 글자로 표시하고 보관함 잠그기</string>
+    <string name="apppicker_header_title">앱 선택</string>
+    <string name="apppicker_search_placeholder">설치된 앱 검색</string>
+    <string name="apppicker_system_app_label">시스템 앱</string>
+    <string name="apppicker_empty_label">앱 없음</string>
+    <string name="folderpicker_header_title">폴더 선택</string>
+    <string name="folderpicker_create_new_folder">새 폴더 만들기:</string>
+    <!--
+        When you copy an item to a new destination and choose to copy it into
+        an organization, this text shows up to warn you about ownership. -->
+    <string name="destinationpicker_organization_ownership_note">이 조직은 사본에 대한 소유권을 가집니다. 원본의 소유자는 될 수 없습니다.</string>
+    <string name="emailrelay_list_header_title">이메일 포워딩 서비스</string>
+    <string name="emailrelay_list_section_title">이메일 포워딩 서비스</string>
+    <string name="emailrelay_delete_one_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
+    <string name="emailrelay_delete_many_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
+    <string name="emailrelay_integration_title">이메일 포워딩 서비스 통합</string>
+    <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
+    <string name="setup_field_app_password_label">앱 비밀번호</string>
+    <string name="setup_checkbox_biometric_auth">생체 정보 인증</string>
+    <string name="setup_biometric_auth_confirm_title">보관함 만들기</string>
+    <string name="setup_button_send_crash_reports">오류 보고서 보내기</string>
+    <string name="setup_button_create_vault">보관함 만들기</string>
+    <string name="setup_action_erase_data_title">앱 데이터 삭제</string>
+    <string name="setup_action_erase_data_text">앱을 닫고 모든 앱 데이터를 지웁니다.</string>
+    <string name="unlock_header_text">보관함이 잠겨 있습니다. 계속하려면 앱 비밀번호를 입력하세요.</string>
+    <string name="unlock_button_unlock">잠금 해제</string>
+    <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_title">보관함 잠금 해제</string>
+    <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_text">생체 정보를 사용하여 보관함을 잠금 해제합니다.</string>
+    <string name="userverification_header_text">사용자 인증이 필요합니다. 계속하려면 앱 비밀번호를 입력하세요.</string>
+    <string name="userverification_button_go">인증</string>
+    <string name="syncstatus_header_title">동기화 상태</string>
+    <string name="syncstatus_status_up_to_date">최신</string>
+    <string name="syncstatus_status_pending">보류 중</string>
+    <string name="syncstatus_status_syncing">동기화 중</string>
+    <string name="syncstatus_status_failed">동기화 실패</string>
+    <string name="additem_header_new_title">새 항목</string>
+    <string name="additem_header_edit_title">항목 편집</string>
+    <string name="additem_markdown_note"><xliff:g id="italic" example="italic">%1$s</xliff:g> 또는 <xliff:g id="bold" example="bold">%2$s</xliff:g> 등을 사용하여 텍스트를 꾸밀 수 있습니다. 일부 마크다운 문법을 지원합니다.</string>
+    <string name="additem_markdown_note_italic">기울임꼴</string>
+    <string name="additem_markdown_note_bold">굵게</string>
+    <string name="additem_markdown_render_preview">미리보기</string>
+    <string name="additem_auth_reprompt_title">인증 재요청</string>
+    <string name="additem_auth_reprompt_text">비밀번호를 보거나 자동 완성할 때 다시 인증 요청</string>
+    <string name="addaccount_header_title">Bitwarden 계정 추가</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Keyguard 팀은 Bitwarden, Inc. 또는 그 계열사와 제휴, 연관, 승인, 보증 또는 공식적으로 어떤 식으로든 연결되어 있지 않습니다.</string>
+    <!--
+        A note on top of the Client secret field, that explains why (and how)
+        we need a user to get and type his client secret in a field below -->
+    <string name="addaccount_captcha_need_client_secret_note">비공식 Bitwarden 클라이언트에서 캡차 인증을 통과하려면 클라이언트 비밀 키를 설정해야 합니다. 웹 보관함의 설정 / API 키 페이지에서 클라이언트 비밀 키를 확인할 수 있습니다.</string>
+    <!-- A label on top of the Client secret field -->
+    <string name="addaccount_captcha_need_client_secret_label">클라이언트 비밀 키</string>
+    <string name="addaccount_sign_in_button">로그인</string>
+    <string name="addaccount_region_section">리전</string>
+    <string name="addaccount_region_us_type">미국</string>
+    <string name="addaccount_region_eu_type">유럽</string>
+    <string name="addaccount_region_custom_type">사용자 지정 (셀프 호스팅)</string>
+    <string name="addaccount_http_header_section">HTTP 헤더</string>
+    <string name="addaccount_http_header_type">HTTP 헤더</string>
+    <string name="addaccount_http_header_note">서버에 대한 모든 요청에 포함될 사용자 지정 HTTP 헤더를 추가할 수 있습니다.</string>
+    <string name="addaccount_http_header_key_label">키</string>
+    <string name="addaccount_http_header_value_label">값</string>
+    <string name="addaccount_http_header_add_more_button">더 추가</string>
+    <string name="addaccount_base_env_server_url_label">서버 URL</string>
+    <string name="addaccount_base_env_note">Bitwarden이 호스팅되고 있는 서버의 기본 URL을 입력하세요.</string>
+    <string name="addaccount_custom_env_section">사용자 지정 환경</string>
+    <string name="addaccount_custom_env_note">각 서비스에 대한 기본 URL을 따로 입력할 수 있습니다.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">웹 보관함 서버 URL</string>
+    <string name="addaccount_custom_env_api_url_label">API 서버 URL</string>
+    <string name="addaccount_custom_env_icons_url_label">아이콘 서버 URL</string>
+    <string name="addaccount_custom_env_identity_url_label">ID 서버 URL</string>
+    <string name="addaccount2fa_header_title">인증</string>
+    <string name="addaccount2fa_unsupported_note">이 인증 방법은 아직 지원하지 않습니다.</string>
+    <string name="addaccount2fa_otp_note">인증 앱에서 인증 코드를 입력하세요.</string>
+    <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> 이메일로 전송된 인증 코드를 입력하세요.</string>
+    <string name="addaccount2fa_yubikey_manual_text">YubiKey 인증 코드를 직접 입력해 주세요. 아래 필드에 커서를 둔 뒤 YubiKey를 켜세요.</string>
+    <string name="provider_2fa_authenticator">인증 앱</string>
+    <string name="provider_2fa_duo_organization">Duo (조직)</string>
+    <string name="provider_2fa_fido2_webauthn">FIDO2 웹 인증</string>
+    <string name="provider_2fa_email">이메일</string>
+    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
+    <string name="yubikey_usb_title">USB를 사용하여 YubiKey 연결</string>
+    <string name="yubikey_usb_text">기기가 USB OTG를 지원해야 합니다.</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">YubiKey의 금색 센서에 손가락을 올리세요.</string>
+    <string name="yubikey_nfc_title">YubiKey를 기기의 뒷면에 평평하게 가져다 대세요.</string>
+    <string name="yubikey_nfc_text">기기가 NFC를 지원해야 합니다.</string>
+    <string name="yubikey_error_failed_to_read">YubiKey를 읽지 못했습니다.</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn을 사용하려면 Bitwarden 웹 보관함 <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> 버전 이상이 필요합니다. 이 버전보다 낮을 경우 인증 결과가 Bitwarden 공식 앱에 잘못 전달될 수 있습니다.</string>
+    <string name="elevatedaccess_header_title">접근 확인</string>
+    <string name="elevatedaccess_header_text">이 데이터는 보호되어 있습니다. 계속하려면 앱 비밀번호를 입력하세요.</string>
+    <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_title">접근 확인</string>
+    <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_text">생체 정보를 사용하여 이 데이터를 잠금 해제합니다.</string>
+    <string name="home_vault_label">보관함</string>
+    <string name="home_send_label">Send</string>
+    <string name="home_generator_label">생성기</string>
+    <string name="home_watchtower_label">Watchtower</string>
+    <string name="home_settings_label">설정</string>
+    <string name="lock_reason_inactivity">일정 시간 미사용으로 잠김</string>
+    <string name="send_type_text">텍스트</string>
+    <string name="send_type_file">파일</string>
+    <string name="cipher_type_login">로그인</string>
+    <string name="cipher_type_card">카드</string>
+    <string name="cipher_type_identity">신원</string>
+    <string name="cipher_type_note">메모</string>
+    <string name="cipher_type_passkey">패스키</string>
+    <string name="field_type_text">텍스트</string>
+    <string name="field_type_boolean">참/거짓</string>
+    <string name="field_type_linked">링크됨</string>
+    <!--
+        Displayed below a password that was exposed in the known data breached. It
+        ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
+    <string name="password_pwned_label">유출됨</string>
+    <string name="password_strength_very_strong_label">매우 강함</string>
+    <string name="password_strength_strong_label">강함</string>
+    <string name="password_strength_good_label">우수</string>
+    <string name="password_strength_fair_label">양호</string>
+    <string name="password_strength_weak_label">약함</string>
+    <string name="passwords_very_strong_label">매우 강한 비밀번호</string>
+    <string name="passwords_strong_label">강한 비밀번호</string>
+    <string name="passwords_good_label">우수한 비밀번호</string>
+    <string name="passwords_fair_label">양호한 비밀번호</string>
+    <string name="passwords_weak_label">약한 비밀번호</string>
+    <string name="filter_header_title">필터</string>
+    <string name="filter_empty_label">사용할 수 있는 필터 없음</string>
+    <string name="sort_header_title">정렬 기준</string>
+    <string name="sort_empty_label">사용할 수 있는 정렬 방식 없음</string>
+    <string name="sortby_title_title">제목</string>
+    <string name="sortby_title_normal_mode">가나다순</string>
+    <string name="sortby_title_reverse_mode">가나다 역순</string>
+    <string name="sortby_access_count_title">사용 횟수</string>
+    <string name="sortby_access_count_normal_mode">큰 순</string>
+    <string name="sortby_access_count_reverse_mode">작은 순</string>
+    <string name="sortby_modification_date_title">변경 날짜</string>
+    <string name="sortby_modification_date_normal_mode">새로운 순</string>
+    <string name="sortby_modification_date_reverse_mode">오래된 순</string>
+    <string name="sortby_expiration_date_title">만료 날짜</string>
+    <string name="sortby_expiration_date_normal_mode">새로운 순</string>
+    <string name="sortby_expiration_date_reverse_mode">오래된 순</string>
+    <string name="sortby_deletion_date_title">삭제 날짜</string>
+    <string name="sortby_deletion_date_normal_mode">새로운 순</string>
+    <string name="sortby_deletion_date_reverse_mode">오래된 순</string>
+    <string name="sortby_password_title">비밀번호</string>
+    <string name="sortby_password_normal_mode">가나다순</string>
+    <string name="sortby_password_reverse_mode">가나다 역순</string>
+    <string name="sortby_password_modification_date_title">비밀번호 변경 날짜</string>
+    <string name="sortby_password_modification_date_normal_mode">새로운 순</string>
+    <string name="sortby_password_modification_date_reverse_mode">오래된 순</string>
+    <string name="sortby_password_strength_title">비밀번호 보안 강도</string>
+    <string name="sortby_password_strength_normal_mode">약한 순</string>
+    <string name="sortby_password_strength_reverse_mode">강한 순</string>
+    <string name="vault_main_search_placeholder">보관함 검색</string>
+    <string name="vault_main_new_item_button">새 항목</string>
+    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <!-- A label for the CVV code of the card -->
+    <string name="vault_view_card_cvv_label">보안 코드(CVV)</string>
+    <string name="vault_view_saved_to_label"><xliff:g id="email" example="username@example.com">%1$s</xliff:g>에 저장됨 (<xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g>)</string>
+    <string name="vault_view_password_revision_label">비밀번호를 <xliff:g id="date" example="1 January 1970 12:30">%s</xliff:g>에 마지막으로 변경함</string>
+    <string name="vault_view_passkey_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만든 패스키</string>
+    <string name="vault_view_revision_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 변경함</string>
+    <string name="vault_view_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만듦</string>
+    <string name="vault_view_deleted_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 삭제됨</string>
+    <string name="vault_view_expired_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만료됨</string>
+    <string name="vault_view_expiration_scheduled_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만료될 예정</string>
+    <string name="vault_view_deletion_scheduled_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 삭제될 예정</string>
+    <!-- Call the phone number. The text should be as short as possible! -->
+    <string name="vault_view_call_phone_action">통화</string>
+    <!-- Text the phone number (SMS). The text should be as short as possible! -->
+    <string name="vault_view_text_phone_action">문자</string>
+    <!-- Compose an email. The text should be as short as possible! -->
+    <string name="vault_view_email_action">이메일</string>
+    <!-- Open navigation to address. The text should be as short as possible! -->
+    <string name="vault_view_navigate_action">위치</string>
+    <string name="send_main_header_title">Send</string>
+    <string name="send_main_search_placeholder">Send 검색</string>
+    <string name="send_main_new_item_button">새 항목</string>
+    <string name="send_password_is_required_to_access_label">이 공유 항목을 보려면 비밀번호가 필요합니다.</string>
+    <string name="generator_header_title">생성기</string>
+    <string name="generator_header_username_title">사용자 이름 생성기</string>
+    <string name="generator_header_password_title">비밀번호 생성기</string>
+    <string name="generator_generate_button">생성</string>
+    <string name="generator_regenerate_button">다시 생성</string>
+    <string name="generator_passphrase_type">비밀번호 문구</string>
+    <string name="generator_passphrase_note">무작위 비밀번호 문구는 외우기 쉽고 보안성이 뛰어난 문구 조합을 제공합니다.</string>
+    <string name="generator_passphrase_delimiter_title">구분 기호</string>
+    <string name="generator_passphrase_capitalize_title">첫 글자를 대문자로</string>
+    <string name="generator_passphrase_number_title">숫자 포함</string>
+    <string name="generator_username_type">사용자 이름</string>
+    <string name="generator_username_delimiter_title">구분 기호</string>
+    <string name="generator_username_custom_word_title">사용자 지정 단어</string>
+    <string name="generator_username_capitalize_title">첫 글자를 대문자로</string>
+    <string name="generator_username_number_title">숫자 포함</string>
+    <string name="generator_password_type">무작위 비밀번호</string>
+    <string name="generator_password_note">강한 비밀번호는 최소 <xliff:g id="length" example="15">%d</xliff:g>자에 대문자 및 소문자, 숫자와 기호를 모두 포함해야 합니다.</string>
+    <string name="generator_password_numbers_title">숫자</string>
+    <string name="generator_password_symbols_title">기호</string>
+    <string name="generator_password_uppercase_letters_title">대문자</string>
+    <string name="generator_password_lowercase_letters_title">소문자</string>
+    <!-- An option to exclude symbols like this: il1Lo0O -->
+    <string name="generator_password_exclude_similar_symbols_title">비슷한 문자 제외</string>
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <string name="generator_password_exclude_ambiguous_symbols_title">알아보기 힘든 문자 제외</string>
+    <string name="generator_email_catch_all_type">Catch-all 이메일</string>
+    <string name="generator_email_catch_all_note">Catch-all 이메일 주소를 사용하면 이메일 설정에 관계없이 도메인으로 오는 모든 이메일을 받을 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인하세요.</string>
+    <!-- Referring to a website domain -->
+    <string name="generator_email_catch_all_domain_title">도메인</string>
+    <string name="generator_email_plus_addressing_type">플러스 주소 이메일</string>
+    <string name="generator_email_plus_addressing_note">플러스 주소를 사용하면 <xliff:g id="email" example="username+abc@example.com">%s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인하세요.</string>
+    <string name="generator_email_plus_addressing_email_title">이메일</string>
+    <string name="generator_email_subdomain_addressing_type">서브도메인 주소 이메일</string>
+    <string name="generator_email_subdomain_addressing_note">서브도메인 주소를 사용하면 <xliff:g id="email" example="username@abc.example.com">%s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인하세요.</string>
+    <string name="generator_email_subdomain_addressing_email_title">이메일</string>
+    <string name="generator_email_forward_alias_type">포워딩된 이메일 별칭</string>
+    <string name="generator_create_item_with_password_title">생성한 비밀번호로 새 로그인 만들기</string>
+    <string name="generator_create_item_with_username_title">생성한 사용자 이름으로 새 로그인 만들기</string>
+    <string name="generator_password_history_title">비밀번호 생성 기록</string>
+    <string name="generator_show_tips_title">팁 보이기</string>
+    <string name="generatorhistory_header_title">생성기 기록</string>
+    <string name="generatorhistory_clear_history_title">기록 삭제</string>
+    <string name="generatorhistory_clear_history_confirmation_title">생성기 기록을 삭제하시겠습니까?</string>
+    <string name="generatorhistory_clear_history_confirmation_text">모든 생성기 기록을 삭제합니다.</string>
+    <string name="passwordhistory_header_title">비밀번호 생성 기록</string>
+    <string name="passwordhistory_clear_history_title">기록 삭제</string>
+    <string name="passwordhistory_clear_history_confirmation_title">비밀번호 기록을 삭제하시겠습니까?</string>
+    <string name="passwordhistory_clear_history_confirmation_text">모든 비밀번호 기록을 삭제합니다.</string>
+    <string name="watchtower_header_title">Watchtower</string>
+    <string name="watchtower_section_password_strength_label">비밀번호 보안 강도</string>
+    <string name="watchtower_section_security_label">보안</string>
+    <string name="watchtower_section_maintenance_label">관리</string>
+    <string name="watchtower_item_pwned_passwords_title">유출된 비밀번호</string>
+    <string name="watchtower_item_pwned_passwords_text">유출 데이터베이스에 포함된 비밀번호입니다. 유출된 비밀번호는 지금 당장 변경해야 합니다.</string>
+    <string name="watchtower_item_reused_passwords_title">재사용 비밀번호</string>
+    <string name="watchtower_item_reused_passwords_text">여러 웹사이트에 같은 비밀번호를 사용하지 마세요. 웹사이트마다 다른 비밀번호를 생성하여 보안을 강화할 수 있습니다.</string>
+    <string name="watchtower_item_vulnerable_accounts_title">취약한 계정</string>
+    <string name="watchtower_item_vulnerable_accounts_text">비밀번호를 마지막으로 변경한 뒤에 데이터가 유출된 사이트입니다. 계정을 안전하게 유지하기 위해 비밀번호를 변경하세요.</string>
+    <string name="watchtower_item_unsecure_websites_title">안전하지 않은 웹사이트</string>
+    <string name="watchtower_item_unsecure_websites_text">HTTP 프로토콜을 사용하는 URL을 HTTPS로 변경하세요. HTTPS 프로토콜은 가장 강력한 암호화를 사용할 수 있습니다.</string>
+    <string name="watchtower_item_inactive_2fa_title">2단계 인증 꺼짐</string>
+    <string name="watchtower_item_inactive_2fa_text">2단계 인증을 지원하지만 아직 설정하지 않은 사이트입니다.</string>
+    <string name="watchtower_item_inactive_passkey_title">패스키 사용 가능</string>
+    <string name="watchtower_item_inactive_passkey_text">패스키를 지원하지만 아직 설정하지 않은 사이트입니다. 패스키는 비밀번호보다 간단하고 더 안전합니다.</string>
+    <string name="watchtower_item_incomplete_items_title">불완전 항목</string>
+    <string name="watchtower_item_incomplete_items_text">보관함에 있는 불완전한 데이터입니다. 이름이 없거나 사용자 이름이 없는 로그인 항목일 수 있습니다.</string>
+    <string name="watchtower_item_expiring_items_title">만료 항목</string>
+    <string name="watchtower_item_expiring_items_text">만료되었거나 곧 만료될 항목입니다.</string>
+    <string name="watchtower_item_duplicate_websites_title">중복 URI</string>
+    <string name="watchtower_item_duplicate_websites_text">일치 인식을 적용한 뒤, 같은 사이트에 하나 이상의 URI가 있는 항목입니다.</string>
+    <string name="watchtower_item_trashed_items_title">휴지통에 있는 항목</string>
+    <string name="watchtower_item_trashed_items_text">휴지통으로 간 항목입니다. 휴지통에 항목이 너무 많으면 보관함이 느려질 수 있습니다.</string>
+    <string name="watchtower_item_empty_folders_title">빈 폴더</string>
+    <string name="watchtower_item_empty_folders_text">아무 항목도 저장되어 있지 않은 폴더입니다.</string>
+    <string name="watchtower_item_duplicate_items_title">중복 항목</string>
+    <string name="watchtower_item_duplicate_items_text">보관함에 있는 중복된 항목입니다.</string>
+    <string name="watchtower_item_compromised_accounts_title">유출된 계정</string>
+    <string name="watchtower_item_compromised_accounts_text">사용자 이름이나 이메일 주소가 유출되었는지 확인합니다.</string>
+    <string name="changepassword_header_title">앱 비밀번호 변경</string>
+    <string name="changepassword_change_password_button">비밀번호 변경</string>
+    <string name="changepassword_biometric_auth_checkbox">생체 정보 인증</string>
+    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
+    <string name="changepassword_biometric_auth_confirm_title">앱 비밀번호 변경</string>
+    <string name="changepassword_disclaimer_local_note">앱 비밀번호는 기기에 저장되거나 인터넷으로 전송되지 않습니다. 로컬 데이터를 암호화하기 위한 비밀 키를 생성하는 데에만 사용됩니다.</string>
+    <string name="changepassword_disclaimer_abuse_note">강력한 비밀번호를 웹사이트마다 다르게 사용하고 있다면, 무단 접속이 의심되거나 기기에서 악성 코드가 발견되지 않는 한 비밀번호를 변경할 필요가 없습니다.</string>
+    <string name="contactus_header_title">고객 지원</string>
+    <string name="contactus_message_label">메시지 입력</string>
+    <string name="contactus_english_note">메시지가 정확히 전달될 수 있도록 영어를 사용해 주세요.</string>
+    <string name="contactus_thanks_note">시간을 내어 메시지를 보내 주셔서 감사합니다. 입력하신 메시지는 Keyguard 팀에 직접 전달되며, 저희는 전달받은 메시지를 문제 해결 및 제품 개선에 활용합니다. 모든 신고에 답변을 드릴 수는 없지만, 최대한 빠르게 문제를 해결하고 개선 사항을 검토하기 위해 노력하고 있습니다.</string>
+    <string name="account_main_header_title">계정</string>
+    <string name="account_main_add_account_title">계정 추가</string>
+    <string name="team_header_title">앱 개발 팀</string>
+    <string name="team_artem_whoami_text">우크라이나의 소프트웨어 엔지니어입니다. 앱 디자인과 개발이 특기입니다.</string>
+    <string name="team_follow_me_section">소셜 미디어</string>
+    <string name="settingssearch_header_title">검색</string>
+    <string name="settingssearch_header_subtitle">설정</string>
+    <string name="settingssearch_search_placeholder">설정 검색</string>
+    <string name="settings_appearance_header_title">외관</string>
+    <string name="settings_autofill_header_title">자동 완성</string>
+    <string name="settings_dev_header_title">개발</string>
+    <string name="settings_experimental_header_title">실험용 기능</string>
+    <string name="settings_main_header_title">설정</string>
+    <string name="settings_notifications_header_title">알림</string>
+    <string name="settings_other_header_title">기타</string>
+    <string name="settings_permissions_header_title">권한</string>
+    <string name="settings_security_header_title">보안</string>
+    <string name="settings_subscriptions_header_title">Keyguard 프리미엄</string>
+    <string name="settings_watchtower_header_title">Watchtower</string>
+    <string name="settings_open_source_licenses_header_title">오픈 소스 라이선스</string>
+    <string name="pref_item_accounts_title">계정</string>
+    <string name="pref_item_accounts_text">계정 추가 및 확인</string>
+    <string name="pref_item_autofill_title">자동 완성</string>
+    <string name="pref_item_autofill_text">Android 자동 완성 서비스</string>
+    <string name="pref_item_security_title">보안</string>
+    <string name="pref_item_security_text">생체 정보, 비밀번호 변경, 보관함 시간 제한</string>
+    <string name="pref_item_subscription_title">Keyguard 프리미엄</string>
+    <string name="pref_item_subscription_text">추가 기능 잠금 해제, 앱 개발 지원</string>
+    <string name="pref_item_watchtower_title">Watchtower</string>
+    <string name="pref_item_watchtower_text">유출된 서비스, 취약한 비밀번호</string>
+    <string name="pref_item_notifications_title">알림</string>
+    <string name="pref_item_notifications_text">알림 관리</string>
+    <string name="pref_item_appearance_title">외관</string>
+    <string name="pref_item_appearance_text">언어, 테마 및 애니메이션</string>
+    <string name="pref_item_dev_title">개발</string>
+    <string name="pref_item_dev_text">개발용 테스트 설정</string>
+    <string name="pref_item_other_title">기타</string>
+    <string name="pref_item_other_text">커뮤니티 웹사이트, 앱 정보</string>
+    <string name="pref_item_nav_label_title">내비게이션 버튼에 라벨 보이기</string>
+    <string name="pref_item_app_version_title">앱 버전</string>
+    <string name="pref_item_app_build_date_title">앱 빌드 날짜</string>
+    <string name="pref_item_app_team_title">앱 개발 팀</string>
+    <string name="pref_item_reddit_community_title">Reddit 커뮤니티</string>
+    <string name="pref_item_github_title">GitHub 프로젝트</string>
+    <string name="pref_item_crowdin_title">CrowdIn 프로젝트</string>
+    <string name="pref_item_open_source_licenses_title">오픈 소스 라이선스</string>
+    <string name="pref_item_download_apk_title">APK 파일 다운로드</string>
+    <string name="pref_item_load_app_icons_title">앱 아이콘 불러오기</string>
+    <string name="pref_item_load_website_icons_title">웹사이트 아이콘 불러오기</string>
+    <string name="pref_item_load_website_icons_text">웹사이트 아이콘을 불러오면 인터넷 제공사에 웹사이트 주소가 노출될 수 있습니다.</string>
+    <string name="pref_item_markdown_title">리치 텍스트 포맷</string>
+    <string name="pref_item_markdown_text">메모에 마크다운 문법을 사용합니다.</string>
+    <string name="pref_item_locale_title">언어</string>
+    <string name="pref_item_locale_help_translation_button">번역 제안</string>
+    <string name="pref_item_font_title">글꼴</string>
+    <string name="pref_item_rate_on_play_store_title">Play 스토어에서 평가</string>
+    <string name="pref_item_color_accent_title">강조 색상</string>
+    <string name="pref_item_color_scheme_title">테마</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">다크 테마에 검정색 사용</string>
+    <string name="pref_item_open_links_in_external_browser_title">외부 브라우저에서 열기</string>
+    <string name="pref_item_conceal_fields_title">필드 감추기</string>
+    <string name="pref_item_conceal_fields_text">비밀번호, 신용 카드 번호 등 민감한 정보를 숨깁니다.</string>
+    <!--
+        When a user clicks this button, the app crashes. Not visible to
+        regular users. -->
+    <string name="pref_item_crash_title">충돌</string>
+    <string name="pref_item_credential_provider_title">Credential provider</string>
+    <string name="pref_item_credential_provider_text">패스키, 비밀번호 및 데이터 서비스</string>
+    <string name="pref_item_privacy_policy_title">개인 정보 보호 정책</string>
+    <string name="pref_item_contact_us_title">고객 지원</string>
+    <string name="pref_item_experimental_title">실험용 기능</string>
+    <string name="pref_item_change_app_password_title">앱 비밀번호 변경</string>
+    <string name="pref_item_require_app_password_title">앱 비밀번호 요청</string>
+    <string name="pref_item_require_app_password_note">생체 정보 설정을 변경한 뒤에 앱 비밀번호를 추가로 요청합니다.</string>
+    <string name="pref_item_require_app_password_immediately_text">즉시</string>
+    <string name="pref_item_require_app_password_never_text">잠그지 않음</string>
+    <string name="pref_item_send_crash_reports_title">오류 보고서 보내기</string>
+    <string name="pref_item_nav_animation_title">전환 애니메이션</string>
+    <string name="pref_item_erase_data_title">앱 데이터 삭제</string>
+    <string name="pref_item_erase_data_text">앱을 닫고 모든 앱 데이터를 지웁니다.</string>
+    <string name="pref_item_allow_screenshots_title">스크린샷 촬영 허용</string>
+    <string name="pref_item_allow_screenshots_text_on">앱 전환 화면에 앱 내용을 표시하고 스크린샷 캡처를 허용합니다.</string>
+    <string name="pref_item_allow_screenshots_text_off">앱 전환 화면에서 앱 내용을 숨기고 스크린샷 캡처를 금지합니다.</string>
+    <string name="pref_item_data_safety_title">데이터 안전성</string>
+    <string name="pref_item_lock_vault_title">보관함 잠그기</string>
+    <string name="pref_item_lock_vault_after_reboot_title">다시 시작 이후 잠그기</string>
+    <string name="pref_item_lock_vault_after_reboot_text">기기 다시 시작 이후 보관함을 잠급니다.</string>
+    <string name="pref_item_lock_vault_after_screen_off_title">화면 꺼짐 이후 잠그기</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">기기 화면이 꺼지고 몇 초 뒤에 보관함을 잠급니다.</string>
+    <string name="pref_item_lock_vault_after_delay_title">일정 시간 이후 잠그기</string>
+    <string name="pref_item_lock_vault_after_delay_immediately_text">즉시</string>
+    <string name="pref_item_lock_vault_after_delay_never_text">잠그지 않음</string>
+    <string name="pref_item_persist_vault_key_title">보관함 키를 기기에 저장</string>
+    <string name="pref_item_persist_vault_key_text_on">보관함 키를 내부 저장소에 보관합니다.</string>
+    <string name="pref_item_persist_vault_key_text_off">앱이 메모리에서 내려가면 보관함이 잠깁니다.</string>
+    <string name="pref_item_persist_vault_key_note">보관함 키를 기기에 저장하면 보안에 취약합니다. 기기의 내부 저장소가 손상되면 공격자가 로컬 보관함 데이터에 접근할 수 있습니다.</string>
+    <string name="pref_item_permissions_title">권한</string>
+    <string name="pref_item_features_overview_title">기능 살펴보기</string>
+    <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
+    <!--
+        A title of the system popup that asks a user to use his biometric to later
+        be able to use it to unlock the vault. -->
+    <string name="pref_item_biometric_unlock_confirm_title">생체 정보 잠금 해제</string>
+    <string name="pref_item_keep_screen_on_title">항목을 보고 있을 때 화면 켜짐 유지</string>
+    <string name="pref_item_autofill_service_title">자동 완성 서비스</string>
+    <string name="pref_item_autofill_service_text">Android 자동 완성 프레임워크를 사용하여 기기의 다른 앱에서 로그인 정보를 채울 수 있도록 합니다.</string>
+    <string name="pref_item_autofill_auto_copy_otp_title">OTP 자동 복사</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">로그인 정보를 입력할 때 OTP를 자동으로 복사합니다.</string>
+    <string name="pref_item_autofill_inline_suggestions_title">인라인 제안</string>
+    <string name="pref_item_autofill_inline_suggestions_text">호환 가능한 키보드 앱에서 자동 완성을 제안합니다.</string>
+    <string name="pref_item_autofill_manual_selection_title">직접 선택</string>
+    <string name="pref_item_autofill_manual_selection_text">자동 완성 항목을 직접 검색할 수 있는 옵션을 표시합니다.</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">자동 완성 사용 안 함 플래그 인식</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">자동 완성 사용 안 함 플래그가 설정된 브라우저 필드에는 자동 완성을 사용하지 않습니다.</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">일부 웹사이트는 비밀번호 필드의 자동 완성을 꺼 두는 경우도 있습니다. 마찬가지로 일부 브라우저는 자동 완성 사용 안 함 플래그를 무시하는 경우가 있습니다.</string>
+    <string name="pref_item_autofill_save_request_title">데이터 저장 확인</string>
+    <string name="pref_item_autofill_save_request_text">양식을 입력한 뒤에 보관함을 업데이트할 것인지 물어봅니다.</string>
+    <string name="pref_item_autofill_auto_save_source_title">앱 또는 웹사이트 정보 자동 저장</string>
+    <string name="pref_item_clipboard_auto_clear_title">클립보드 자동 비우기</string>
+    <string name="pref_item_clipboard_auto_clear_immediately_text">즉시</string>
+    <string name="pref_item_clipboard_auto_clear_never_text">비우지 않음</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">OTP 알림 길이</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">OTP가 있는 로그인 아이템을 자동 완성했을 때, 지정한 시간만큼 OTP 인증 코드를 알림으로 띄웁니다.</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">알림을 띄우지 않음</string>
+    <string name="pref_item_premium_membership_title">Keyguard 멤버십 정보</string>
+    <string name="pref_item_premium_membership_text">프리미엄을 구매하시면 추가 기능을 사용할 수 있으며 앱 개발에 도움이 됩니다. 구매해 주셔서 감사합니다! ❤️</string>
+    <string name="pref_item_premium_membership_section_subscriptions_title">구독</string>
+    <string name="pref_item_premium_membership_section_products_title">상품</string>
+    <string name="pref_item_premium_membership_failed_to_load_subscriptions">구독 목록을 불러오지 못했습니다.</string>
+    <string name="pref_item_premium_membership_failed_to_load_products">상품 목록을 불러오지 못했습니다.</string>
+    <string name="pref_item_premium_status_active">사용 중</string>
+    <string name="pref_item_premium_status_will_not_renew">갱신 안 함</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Play 스토어에서 관리</string>
+    <string name="pref_item_permission_post_notifications_title">알림 게시</string>
+    <string name="pref_item_permission_post_notifications_text">다은로드 중 알림을 게시하는 데 사용합니다.</string>
+    <string name="pref_item_permission_camera_title">카메라</string>
+    <string name="pref_item_permission_camera_text">QR 코드를 스캔하는 데 사용합니다.</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">가로 모드에서 이중 패널 허용</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">세로 모드에서 이중 패널 허용</string>
+    <string name="theme_dark">다크</string>
+    <string name="theme_light">라이트</string>
+    <string name="nav_animation_disabled">사용 안 함</string>
+    <string name="nav_animation_dynamic">다이나믹</string>
+    <string name="nav_animation_crossfade">크로스페이드</string>
+    <string name="font_atkinson_hyperlegible_text">저시력자의 가독성을 높이고 이해를 돕기 위해 개발되었습니다.</string>
+    <string name="feat_header_title">기능 살펴보기</string>
+    <string name="feat_keyguard_premium_label">Keyguard 프리미엄</string>
+    <string name="feat_item_multiple_accounts_title">다중 계정</string>
+    <string name="feat_item_multiple_accounts_text">여러 개의 계정으로 동시에 로그인합니다.</string>
+    <string name="feat_item_two_way_sync_title">양방향 동기화</string>
+    <string name="feat_item_two_way_sync_text">항목을 추가하거나 편집한 뒤 변경 사항을 동기화합니다.</string>
+    <string name="feat_item_offline_editing_title">오프라인 편집</string>
+    <string name="feat_item_offline_editing_text">인터넷 연결 없이 항목을 추가하거나 편집합니다.</string>
+    <string name="feat_section_search_title">검색</string>
+    <string name="feat_item_search_by_anything_title">아무거나 검색</string>
+    <string name="feat_item_search_by_anything_text">이름, 이메일, 비밀번호, 전화 번호 등</string>
+    <string name="feat_item_filter_title">필터</string>
+    <string name="feat_item_filter_text">폴더, 조직, 유형 등으로 항목을 필터링합니다.</string>
+    <string name="feat_item_multiple_keywords_title">다중 키워드</string>
+    <string name="feat_item_multiple_keywords_text">예를 들어 \'Bitwarden Test Account\' 항목을 검색하려면 \'bitw test\'를 입력하세요.</string>
+    <string name="feat_section_watchtower_title">Watchtower</string>
+    <string name="feat_item_pwned_passwords_title">유출된 비밀번호</string>
+    <string name="feat_item_pwned_passwords_text">알려진 유출 데이터베이스를 통해 비밀번호가 유출된 항목을 찾습니다.</string>
+    <string name="feat_item_password_strength_title">비밀번호 보안 강도</string>
+    <string name="feat_item_password_strength_text">비밀번호의 보안 강도가 약한 항목을 찾습니다.</string>
+    <string name="feat_item_reused_passwords_title">재사용 비밀번호</string>
+    <string name="feat_item_reused_passwords_text">비밀번호가 재사용된 항목을 찾습니다.</string>
+    <string name="feat_item_inactive_totp_title">2단계 인증 꺼짐</string>
+    <string name="feat_item_inactive_totp_text">TOTP 2단계 인증을 지원하는 로그인 항목을 찾습니다.</string>
+    <string name="feat_item_unsecure_websites_title">안전하지 않은 웹사이트</string>
+    <string name="feat_item_unsecure_websites_text">HTTP 프로토콜을 사용하는 웹사이트를 찾아 HTTPS로 수정합니다.</string>
+    <string name="feat_item_incomplete_items_title">불완전 항목</string>
+    <string name="feat_item_incomplete_items_text">업데이트가 필요한 빈 항목을 찾습니다.</string>
+    <string name="feat_item_expiring_items_title">만료 항목</string>
+    <string name="feat_item_expiring_items_text">만료되었거나 곧 만료될 항목을 찾습니다.</string>
+    <string name="feat_item_duplicate_items_title">중복 항목</string>
+    <string name="feat_item_duplicate_items_text">중복된 항목을 찾고 하나로 합칩니다.</string>
+    <string name="feat_section_misc_title">기타</string>
+    <string name="feat_item_multi_selection_title">다중 선택</string>
+    <string name="feat_item_multi_selection_text">일괄 작업으로 일관성을 강화하고 비밀번호를 하나로 합칩니다.</string>
+    <string name="feat_item_show_barcode_title">바코드로 표시</string>
+    <string name="feat_item_show_barcode_text">텍스트를 다른 바코드로 인코딩합니다.</string>
+    <string name="feat_item_generator_title">생성기</string>
+    <string name="feat_item_generator_text">비밀번호나 사용자 이름을 생성합니다.</string>
+    <string name="datasafety_header_title">데이터 안전성</string>
+    <string name="datasafety_local_section">로컬 데이터</string>
+    <string name="datasafety_local_text">로컬 데이터는 다운로드한 파일, 유저 설정, 보관함으로 이루어집니다. 이는 Android 시스템이나 Keyguard 앱을 통해서만 접근할 수 있는 기기 내부 저장소에 저장됩니다.</string>
+    <string name="datasafety_local_downloads_section">다운로드</string>
+    <string name="datasafety_local_settings_section">사용자 설정</string>
+    <string name="datasafety_local_settings_note">사용자 설정은 기기별 키를 사용하여 암호화됩니다.</string>
+    <string name="datasafety_local_vault_section">사용자 설정</string>
+    <string name="datasafety_local_encryption_algorithm_intro">보관함은 아래와 같은 단계를 통해 앱 비밀번호로부터 생성된 키를 사용하여 암호화됩니다:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">그 후 솔트와 해시는 기기에 오프라인으로 저장되며, 나중에 보관함 잠금을 해제하기 위한 마스터 키를 생성합니다.</string>
+    <string name="datasafety_local_unlocking_vault">보관함을 잠금 해제한다는 것은 기기의 RAM에 올바른 키를 저장하여 암호화된 보관함을 읽고 편집할 수 있게 하는 것입니다.</string>
+    <string name="datasafety_remote_section">원격 데이터</string>
+    <string name="datasafety_remote_text">원격 데이터는 영지식 증명으로 암호화한 뒤 Bitwarden 서버에 저장됩니다.</string>
+</resources>

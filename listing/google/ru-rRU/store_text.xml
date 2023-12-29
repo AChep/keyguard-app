@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="listing_store_google_app_name">Keyguard для Bitwarden</string>
+    <string name="listing_store_google_short_description">Клиент для наилучшего впечатления от использования.</string>
+    <!-- A name of the Yearly subscription plan -->
+    <string name="listing_store_google_subscription_yearly">Годовой план</string>
+    <!-- A name of the Quarterly subscription plan -->
+    <string name="listing_store_google_subscription_quarterly">Квартальный план</string>
+    <!-- A name of the One-time purchase plan -->
+    <string name="listing_store_google_product_lifetime">Единоразовая покупка</string>
+</resources>

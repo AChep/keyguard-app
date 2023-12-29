@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Requesting legacy storage is needed to be able to write to additionalTestOutputDir on API 29 -->
+    <application android:requestLegacyExternalStorage="true" />
+
+    <queries>
+        <package android:name="com.artemchep.keyguard" />
+    </queries>
+
+</manifest>

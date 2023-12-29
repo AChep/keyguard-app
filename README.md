@@ -14,8 +14,19 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 #### Highlights:
 - a beautiful rich **Material You** user interface;
 - a **powerful** and **fast search**;
-- a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other; 
+- a support for creating & using **passkeys** - a modern alternative to passwords.
+- a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** with secure login and two-factor authentication support;
 - add items, modify, and view your vault **offline**.
 - beautiful **Light**/**Dark theme**;
 - and much more!
+
+#### Looks:
+|        |        |        |
+| :----: | :----: | :----: |
+| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233006.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233040.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233118.png) | 
+| ![4](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233159.png) | ![5](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233236.png) | ![6](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233342.png) |
+
+## License:
+
+The source code is available for **personal use** only.

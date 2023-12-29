@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ok">OK</string>
+    <string name="close">閉じる</string>
+    <string name="yes">はい</string>
+    <string name="no">いいえ</string>
+    <!-- A name of a thing, such as an account -->
+    <string name="generic_name">名前</string>
+    <string name="account_name">アカウント名</string>
+    <string name="username">ユーザー名</string>
+    <string name="password">パスワード</string>
+    <string name="app_password">アプリのパスワード</string>
+    <string name="current_password">現在のパスワード</string>
+    <string name="new_password">新しいパスワード</string>
+    <string name="email">メールアドレス</string>
+    <string name="email_verified">確認済み</string>
+    <string name="email_not_verified">未確認</string>
+    <string name="email_visibility">メールアドレスの表示</string>
+    <string name="public_url">公開 URL</string>
+    <string name="url">URL</string>
+    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="access_count">アクセス数</string>
+    <string name="learn_more">もっと詳しく</string>
+    <string name="phone_number">電話番号</string>
+    <string name="passport_number">パスポート番号</string>
+    <string name="license_number">免許証番号</string>
+    <string name="card_number">カード番号</string>
+    <string name="card_number_empty_label">カード番号なし</string>
+    <string name="card_type">ブランド</string>
+    <string name="card_cvv">セキュリティコード</string>
+    <string name="card_valid_from">Valid from</string>
+    <string name="card_valid_to">Valid to</string>
+    <string name="card_expiry_month">Card expiry month</string>
+    <string name="card_expiry_year">Card expiry year</string>
+    <string name="cardholder_name">カードの名義人名</string>
+    <string name="valid_from">有効開始</string>
+    <string name="expiry_date">有効期限</string>
+    <string name="company">会社名</string>
+    <string name="sync">同期</string>
+    <!-- Opposite of 'visible' -->
+    <string name="hidden">非表示</string>
+    <!-- Opposite of 'hidden' -->
+    <string name="visible">表示</string>
+    <!-- Shows up instead of a value if a value is an empty text -->
+    <string name="empty_value">なし</string>
+    <!-- Social Security Number -->
+    <string name="ssn">社会保障番号</string>
+    <string name="city">市町村</string>
+    <string name="state">都道府県</string>
+    <string name="info">情報</string>
+    <string name="cancel">キャンセル</string>
+    <string name="continue_">続ける</string>
+    <string name="country">国</string>
+    <string name="address">住所</string>
+    <string name="postal_code">郵便番号</string>
+    <string name="pull_to_search">引っ張って検索</string>
+    <string name="save">保存</string>
+    <string name="uri">URI</string>
+    <string name="uris">URI</string>
+    <string name="note">メモ</string>
+    <string name="notes">メモ</string>
+    <string name="attachments">添付ファイル</string>
+    <string name="attachments_empty_label">添付ファイルなし</string>
+    <string name="expiring_soon">Expiring soon</string>
+    <string name="item_incomplete_title">Incomplete data</string>
+    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="item">アイテム</string>
+    <string name="items">アイテム</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> アイテム</string>
+    <string name="items_all">すべてのアイテム</string>
+    <string name="items_empty_label">アイテムなし</string>
+    <string name="folder_none">フォルダーなし</string>
+    <string name="folder_new">新しいフォルダー</string>
+    <string name="folder">フォルダー</string>
+    <string name="folders">フォルダー</string>
+    <string name="folders_empty_label">フォルダーなし</string>
+    <string name="collection_none">コレクションなし</string>
+    <string name="collection">コレクション</string>
+    <string name="collections">コレクション</string>
+    <string name="collections_empty_label">コレクションなし</string>
+    <string name="organization_none">保管庫</string>
+    <string name="organization">組織</string>
+    <string name="organizations">組織</string>
+    <string name="organizations_empty_label">組織なし</string>
+    <string name="misc">その他</string>
+    <string name="add_integration">統合を追加</string>
+    <string name="account">アカウント</string>
+    <string name="accounts">アカウント</string>
+    <string name="accounts_empty_label">アカウントなし</string>
+    <string name="account_none">アカウントがありません</string>
+    <string name="type">タイプ</string>
+    <string name="options">オプション</string>
+    <string name="send">Send</string>
+    <string name="reset">リセット</string>
+    <string name="length">長さ</string>
+    <string name="security">セキュリティ</string>
+    <string name="contact_info">連絡先情報</string>
+    <string name="identity_title">タイトル</string>
+    <string name="identity_first_name">名</string>
+    <string name="identity_middle_name">ミドルネーム</string>
+    <string name="identity_last_name">姓</string>
+    <string name="identity_full_name">Full name</string>
+    <string name="address1">住所1</string>
+    <string name="address2">住所2</string>
+    <string name="address3">住所3</string>
+    <string name="rename">名前の変更</string>
+    <string name="select_linked_type">Select type</string>
+    <string name="autofill">自動入力</string>
+    <string name="passkey">パスキー</string>
+    <string name="passkey_create_header">Create a passkey</string>
+    <string name="passkey_unlock_header">Unlock Keyguard</string>
+    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkeys">パスキー</string>
+    <!--
+        Signature counter is incremented each time a user uses a passkey. See:
+        https://www.w3.org/TR/webauthn-2/#signature-counter
+        -->
+    <string name="passkey_signature_counter">Signature counter</string>
+    <!--
+        The entity whose web application utilizes the Web Authentication API
+        to register and authenticate users. For example "Google" is a relying party.
+        https://www.w3.org/TR/webauthn-2/#relying-party
+        -->
+    <string name="passkey_relying_party">Relying party</string>
+    <!--
+        https://www.w3.org/TR/webauthn-2/#discoverable-credential
+        -->
+    <string name="passkey_discoverable">Discoverable</string>
+    <string name="passkey_user_username">ユーザー名</string>
+    <string name="passkey_user_display_name">表示名</string>
+    <string name="api_key">API キー</string>
+    <string name="domain">ドメイン</string>
+    <string name="edit">編集</string>
+    <string name="delete">削除</string>
+    <string name="remove">削除</string>
+    <string name="remove_from_history">履歴から削除</string>
+    <string name="reused_password">再利用パスワード</string>
+    <string name="reused_passwords">再利用パスワード</string>
+    <string name="one_time_password">ワンタイムパスワード</string>
+    <string name="one_time_password_authenticator_key">認証キー</string>
+    <string name="passkey_use_short">Use</string>
+    <string name="passkey_save">Save passkey</string>
+    <string name="passkey_available">パスキーが利用可能です</string>
+    <string name="twofa_available">2段階認証が利用可能です</string>
+    <string name="custom">カスタム</string>
+    <string name="follow_system_settings">システム設定に従う</string>
+    <!-- A feature is coming soon! -->
+    <string name="coming_soon">近日公開</string>
+    <string name="powered_by">Powered by</string>
+    <string name="verification_code">確認コード</string>
+    <string name="resend_verification_code">確認コードを再送信</string>
+    <string name="requested_verification_email">確認メールをリクエストしました</string>
+    <string name="web_vault">ウェブ保管庫</string>
+    <string name="launch_web_vault">ウェブ保管庫を開く</string>
+    <!-- Remember me to not have to enter OTP code second time -->
+    <string name="remember_me">記憶する</string>
+    <!-- A Trash screen -->
+    <string name="trash">ごみ箱</string>
+    <!-- To download something -->
+    <string name="download">ダウンロード</string>
+    <string name="downloads">ダウンロード</string>
+    <string name="downloads_empty_label">ダウンロードなし</string>
+    <string name="duplicates_empty_label">重複なし</string>
+    <string name="encryption">暗号化</string>
+    <!-- Encryption key -->
+    <string name="encryption_key">キー</string>
+    <string name="encryption_hash">ハッシュ</string>
+    <string name="encryption_salt">ソルト</string>
+    <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
+    <string name="encryption_random_bits_data">ランダムな<xliff:g id="length" example="64">%1$d</xliff:g>ビットのデータ</string>
+    <string name="none">なし</string>
+    <string name="text">テキスト</string>
+    <string name="linked_apps">リンクされたアプリ</string>
+    <string name="linked_uris">リンクされた URI</string>
+    <string name="custom_fields">カスタムフィールド</string>
+    <string name="reveal_secure_note">セキュアメモを表示</string>
+    <string name="hide_secure_note">セキュアメモを非表示</string>
+    <string name="master_password_hint">マスターパスワードのヒント</string>
+    <string name="fingerprint_phrase">フィンガープリントフレーズ</string>
+    <string name="fingerprint_phrase_help_title">フィンガープリントとは</string>
+    <string name="bitwarden_premium">Bitwarden プレミアム</string>
+    <string name="bitwarden_unofficial_server">非公式 Bitwarden サーバー</string>
+    <string name="account_last_synced_at">最終同期時刻: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_action_change_name_title">名前の変更</string>
+    <string name="account_action_change_color_title">色の変更</string>
+    <string name="account_action_change_master_password_hint_title">マスターパスワードのヒントの変更</string>
+    <string name="account_action_sign_out_title">ログアウト</string>
+    <string name="account_action_sign_in_title">ログイン</string>
+    <string name="account_action_email_verify_instructions_title">ウェブ保管庫へアクセスして、メールアドレスを確認してください。</string>
+    <string name="account_action_premium_purchase_instructions_title">プレミアム会員にアップグレードして他の素晴らしい追加機能を使えるようにします。</string>
+    <string name="account_action_tfa_title">2段階認証</string>
+    <string name="account_action_tfa_text">ログインする際にセキュリティキー、認証アプリ、SMS、メールなど、別のデバイスによる認証を必要とします。</string>
+    <string name="account_action_tfa_active_status">アクティブ</string>
+    <string name="account_action_items_title">アイテム</string>
+    <string name="account_action_log_out_title">ログアウト</string>
+    <string name="account_log_out_confirmation_title">ログアウトしますか？</string>
+    <string name="account_log_out_confirmation_text">同期されていない変更はすべて失われます！</string>
+    <string name="folder_action_change_name_title">名前の変更</string>
+    <string name="folder_action_change_names_title">名前の変更</string>
+    <string name="folder_delete_one_confirmation_title">フォルダーを削除しますか？</string>
+    <string name="folder_delete_many_confirmation_title">フォルダーを削除しますか？</string>
+    <string name="folder_delete_confirmation_text">このアイテムはすぐに削除されます。この操作は元に戻せません。</string>
+    <string name="ciphers_recently_opened">最近開いたアイテム</string>
+    <string name="ciphers_often_opened">よく開くアイテム</string>
+    <string name="ciphers_view_details">詳細を表示</string>
+    <string name="ciphers_save_to">保存先</string>
+    <string name="ciphers_action_add_to_favorites_title">お気に入りに追加</string>
+    <string name="ciphers_action_remove_from_favorites_title">お気に入りから削除</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">認証の再要求の有効化</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">認証の再要求の無効化</string>
+    <string name="ciphers_action_edit_title">編集</string>
+    <string name="ciphers_action_merge_title">統合…</string>
+    <string name="ciphers_action_copy_title">コピー…</string>
+    <string name="ciphers_action_change_folder_title">フォルダーへ移動</string>
+    <string name="ciphers_action_change_name_title">名前の変更</string>
+    <string name="ciphers_action_change_names_title">名前の変更</string>
+    <string name="ciphers_action_add_password_title">パスワードの追加</string>
+    <string name="ciphers_action_add_passwords_title">パスワードの追加</string>
+    <string name="ciphers_action_change_password_title">パスワードの変更</string>
+    <string name="ciphers_action_change_passwords_title">パスワードの変更</string>
+    <string name="ciphers_action_view_password_history_title">パスワードの履歴を表示</string>
+    <string name="ciphers_action_trash_title">ごみ箱へ移動</string>
+    <string name="ciphers_action_restore_title">元に戻す</string>
+    <string name="ciphers_action_delete_title">完全に削除</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">関連するアイテムをごみ箱に移動</string>
+    <string name="file_action_open_with_title">開く…</string>
+    <string name="file_action_send_with_title">送信…</string>
+    <string name="file_action_open_in_file_manager_title">ファイルマネージャーで開く</string>
+    <string name="file_action_delete_local_title">Delete local file</string>
+    <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="vault_action_always_show_keyboard_title">常にキーボードを表示</string>
+    <string name="vault_action_sync_vault_title">保管庫を同期</string>
+    <string name="vault_action_lock_vault_title">保管庫をロック</string>
+    <string name="vault_action_rename_folder_title">フォルダー名の変更</string>
+    <string name="email_action_check_data_breach_title">既知のデータ漏洩でメールアドレスをチェック</string>
+    <string name="username_action_check_data_breach_title">既知のデータ漏洩でユーザー名をチェック</string>
+    <string name="password_action_check_data_breach_title">既知のデータ漏洩でパスワードをチェック</string>
+    <string name="website_action_check_data_breach_title">既知のデータ漏洩でウェブサイトをチェック</string>
+    <string name="uri_action_launch_app_title">アプリを開く</string>
+    <string name="uri_action_launch_website_title">ウェブサイトを開く</string>
+    <string name="uri_action_launch_docs_title">ドキュメントを開く</string>
+    <string name="uri_action_launch_browser_title">ブラウザで開く</string>
+    <string name="uri_action_launch_browser_main_page_title">メインページを開く</string>
+    <string name="uri_action_launch_play_store_title">Play ストアで開く</string>
+    <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> で開く</string>
+    <string name="uri_action_launch_in_smth_title">開く…</string>
+    <string name="uri_action_how_to_delete_account_title">アカウントの削除方法</string>
+    <string name="uri_unsecure">非セキュア</string>
+    <string name="uri_match_app_title">一致するアプリ</string>
+    <string name="uri_match_detection_title">一致検出方法</string>
+    <string name="uri_match_detection_domain_title">ベースドメイン</string>
+    <string name="uri_match_detection_domain_note">トップレベルドメインとセカンドレベルドメインによってリソースを照合します。</string>
+    <string name="uri_match_detection_host_title">ホスト</string>
+    <string name="uri_match_detection_host_note">ホスト名と (指定されている場合) ポートでリソースを照合します。</string>
+    <string name="uri_match_detection_startswith_title">前方一致</string>
+    <string name="uri_match_detection_startswith_note">検出されたリソースが URI で始まる場合にリソースを照合します。</string>
+    <string name="uri_match_detection_exact_title">完全一致</string>
+    <string name="uri_match_detection_exact_note">検出されたリソースが URI と完全一致する場合にリソースを照合します。</string>
+    <string name="uri_match_detection_regex_title">正規表現</string>
+    <string name="uri_match_detection_regex_note">正規表現でリソースを照合します。高度なオプションです。</string>
+    <string name="uri_match_detection_never_title">しない</string>
+    <string name="uri_match_detection_never_note">自動入力アイテム検索時に URI を無視します。</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="text_action_share_with_title">共有…</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> 件選択済み</string>
+    <string name="copy">コピー</string>
+    <string name="copy_value">値をコピー</string>
+    <string name="copy_url">URL をコピー</string>
+    <string name="copy_uri">URI をコピー</string>
+    <string name="copy_package_name">パッケージ名をコピー</string>
+    <string name="copy_password">パスワードをコピー</string>
+    <string name="copy_username">ユーザー名をコピー</string>
+    <string name="copy_email">メールアドレスをコピー</string>
+    <string name="copy_phone_number">電話番号をコピー</string>
+    <string name="copy_passport_number">パスポート番号をコピー</string>
+    <string name="copy_license_number">免許証番号をコピー</string>
+    <string name="copy_card_number">カード番号をコピー</string>
+    <string name="copy_cardholder_name">カードの名義人名をコピー</string>
+    <string name="copy_expiration_year">有効期限年をコピー</string>
+    <string name="copy_expiration_month">有効期限月をコピー</string>
+    <string name="copy_cvv_code">CVV コードをコピー</string>
+    <string name="copy_otp_code">ワンタイムパスワードをコピー</string>
+    <string name="copy_otp_secret_code">秘密鍵をコピー</string>
+    <string name="autofill_unlock_keyguard">Keyguard のロック解除</string>
+    <string name="autofill_open_keyguard">Keyguard を開く</string>
+    <string name="january">1月</string>
+    <string name="february">2月</string>
+    <string name="march">3月</string>
+    <string name="april">4月</string>
+    <string name="may">5月</string>
+    <string name="june">6月</string>
+    <string name="july">7月</string>
+    <string name="august">8月</string>
+    <string name="september">9月</string>
+    <string name="october">10月</string>
+    <string name="november">11月</string>
+    <string name="december">12月</string>
+    <string name="list_move_up">上に移動</string>
+    <string name="list_move_down">下に移動</string>
+    <string name="list_remove">削除</string>
+    <string name="list_remove_confirmation_title">アイテムを削除しますか？</string>
+    <string name="list_add">追加</string>
+    <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
+    <string name="fido2webauthn_action_go_title">WebAuthn の認証</string>
+    <string name="fido2webauthn_action_return_title">アプリに戻る</string>
+    <!--
+        Empty string is a string that contains zero symbols in it,
+        e.g. "" is an empty string -->
+    <string name="error_must_not_be_empty">空にすることはできません</string>
+    <!--
+        Blank string is an empty string or a string that consists
+        solely of whitespace characters. It's OK to translate it exactly the same
+        as the "Must not be empty" error. -->
+    <string name="error_must_not_be_blank">空にすることはできません</string>
+    <string name="error_must_be_custom_domain">カスタムドメインである必要があります</string>
+    <string name="error_must_contain_only_us_ascii_chars">US-ASCII 文字のみである必要があります</string>
+    <string name="error_must_have_at_least_n_symbols">少なくとも<xliff:g id="length" example="15">%1$d</xliff:g>文字以上である必要があります</string>
+    <string name="error_must_have_exactly_n_symbols"><xliff:g id="length" example="15">%1$d</xliff:g>文字である必要があります</string>
+    <string name="error_invalid_domain">無効なドメイン</string>
+    <string name="error_invalid_email">無効なメールアドレス</string>
+    <string name="error_invalid_url">無効な URL</string>
+    <string name="error_invalid_uri">無効な URI</string>
+    <string name="error_invalid_card_number">無効なカード番号</string>
+    <string name="error_incorrect_password">パスワードが間違っています</string>
+    <string name="error_failed_generate_otp_code">OTP コードの生成に失敗しました</string>
+    <string name="error_failed_create_passkey">Failed to create a passkey</string>
+    <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <!-- Title of the 'Show as Barcode' dialog -->
+    <string name="barcodetype_title">バーコード</string>
+    <string name="barcodetype_action_show_in_barcode_title">バーコードとして表示</string>
+    <string name="barcodetype_copy_otp_secret_code_note">QR コードをスキャンして、この認証コードを別のデバイスにコピーします。</string>
+    <!-- Title of the 'Date picker' dialog -->
+    <string name="datepicker_title">日付の選択</string>
+    <!-- Title of the 'Color picker' dialog -->
+    <string name="colorpicker_title">色の選択</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justdeleteme_title">アカウントの削除方法</string>
+    <string name="justdeleteme_subtitle">ウェブサービスからアカウントを削除する方法に関する情報</string>
+    <!-- Simple process -->
+    <string name="justdeleteme_difficulty_easy_label">簡単</string>
+    <!-- Some extra steps involved -->
+    <string name="justdeleteme_difficulty_medium_label">普通</string>
+    <!-- Cannot be fully deleted without contacting customer services -->
+    <string name="justdeleteme_difficulty_hard_label">難しい</string>
+    <!-- Account can only be deleted if you live in a location with privacy rights -->
+    <string name="justdeleteme_difficulty_limited_availability_label">限定的</string>
+    <!-- Cannot be deleted -->
+    <string name="justdeleteme_difficulty_impossible_label">不可能</string>
+    <string name="justdeleteme_send_email_title">メール送信</string>
+    <string name="justdeleteme_search_placeholder">ウェブサイトを検索</string>
+    <string name="justdeleteme_empty_label">手順なし</string>
+    <string name="tfa_directory_title">2段階認証</string>
+    <string name="tfa_directory_text">2段階認証対応ウェブサイト一覧</string>
+    <string name="tfa_directory_search_placeholder">ウェブサイトを検索</string>
+    <string name="passkeys_directory_title">パスキー</string>
+    <string name="passkeys_directory_text">パスキー対応ウェブサイト一覧</string>
+    <string name="passkeys_directory_search_placeholder">ウェブサイトを検索</string>
+    <!-- Title of the 'Email data breach' dialog -->
+    <string name="emailleak_title">データ漏洩</string>
+    <string name="emailleak_note">漏洩したアカウントデータは、悪意のある者に機密性の高い個人情報や財務情報へのアクセスを提供し、なりすましや金融詐欺、その他の形態のサイバー犯罪につながる可能性があります。</string>
+    <string name="emailleak_breach_not_found_title">漏洩は見つかりませんでした</string>
+    <string name="emailleak_breach_found_title">漏洩したアカウントは見つかりませんでした</string>
+    <string name="emailleak_breach_section">漏洩</string>
+    <string name="emailleak_breach_occurred_at">発生日: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">報告日: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">データ漏洩のチェックに失敗しました。現在オフラインになっている可能性があります。</string>
+    <string name="passwordleak_title">データ漏洩</string>
+    <string name="passwordleak_note">データ漏洩で流出したパスワードは、解読にかかる時間が大幅に短く、決して使用すべきではありません。</string>
+    <string name="passwordleak_occurrences_found_title">パスワードは漏洩しています</string>
+    <string name="passwordleak_occurrences_found_text">このパスワードは、既知のデータ漏洩で確認されています。オンラインセキュリティを保護するために、すぐにパスワードを変更してください。</string>
+    <string name="passwordleak_occurrences_not_found_title">漏洩は見つかりませんでした</string>
+    <string name="passwordleak_failed_to_load_status_text">データ漏洩のチェックに失敗しました。現在オフラインになっている可能性があります。</string>
+    <!-- Title of the 'Show in Large Type' dialog -->
+    <string name="largetype_title">Large Type</string>
+    <string name="largetype_action_show_in_large_type_title">大きい画面で表示</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">大きい画面で表示して保管庫をロック</string>
+    <string name="apppicker_header_title">アプリの選択</string>
+    <string name="apppicker_search_placeholder">インストール済みアプリを検索</string>
+    <string name="apppicker_system_app_label">システムアプリ</string>
+    <string name="apppicker_empty_label">アプリがありません</string>
+    <string name="folderpicker_header_title">フォルダーの選択</string>
+    <string name="folderpicker_create_new_folder">新しいフォルダーの作成:</string>
+    <!--
+        When you copy an item to a new destination and choose to copy it into
+        an organization, this text shows up to warn you about ownership. -->
+    <string name="destinationpicker_organization_ownership_note">この組織はコピーの所有権を持ちます。あなたが直接の所有者になることはありません。</string>
+    <string name="emailrelay_list_header_title">メール転送</string>
+    <string name="emailrelay_list_section_title">メール転送</string>
+    <string name="emailrelay_delete_one_confirmation_title">メール転送を削除しますか？</string>
+    <string name="emailrelay_delete_many_confirmation_title">メール転送を削除しますか？</string>
+    <string name="emailrelay_integration_title">メール転送統合</string>
+    <string name="emailrelay_empty_label">メール転送なし</string>
+    <string name="setup_header_text">ローカルデータを保存するための暗号化された保管庫を作成します。</string>
+    <string name="setup_field_app_password_label">アプリのパスワード</string>
+    <string name="setup_checkbox_biometric_auth">生体認証</string>
+    <string name="setup_biometric_auth_confirm_title">保管庫の作成</string>
+    <string name="setup_button_send_crash_reports">クラッシュレポートを送信</string>
+    <string name="setup_button_create_vault">保管庫を作成</string>
+    <string name="setup_action_erase_data_title">アプリデータを消去</string>
+    <string name="setup_action_erase_data_text">アプリを閉じて、ローカルのアプリデータをすべて消去します</string>
+    <string name="unlock_header_text">保管庫がロックされています。続行するには、アプリのパスワードを入力してください。</string>
+    <string name="unlock_button_unlock">ロック解除</string>
+    <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_title">保管庫のロック解除</string>
+    <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_text">生体認証を使用して保管庫のロックを解除します</string>
+    <string name="userverification_header_text">ユーザー認証が必要です。続行するには、アプリのパスワードを入力してください。</string>
+    <string name="userverification_button_go">Verify</string>
+    <string name="syncstatus_header_title">同期ステータス</string>
+    <string name="syncstatus_status_up_to_date">最新の状態</string>
+    <string name="syncstatus_status_pending">保留中</string>
+    <string name="syncstatus_status_syncing">同期中</string>
+    <string name="syncstatus_status_failed">同期失敗</string>
+    <string name="additem_header_new_title">新しいアイテム</string>
+    <string name="additem_header_edit_title">アイテムの編集</string>
+    <string name="additem_markdown_note">テキストを <xliff:g id="italic" example="italic">%1$s</xliff:g> または <xliff:g id="bold" example="bold">%2$s</xliff:g> のように修飾します。 一部の Markdown シンタックスがサポートされています。</string>
+    <string name="additem_markdown_note_italic">斜体</string>
+    <string name="additem_markdown_note_bold">太字</string>
+    <string name="additem_markdown_render_preview">プレビュー表示</string>
+    <string name="additem_auth_reprompt_title">認証の再要求</string>
+    <string name="additem_auth_reprompt_text">情報を表示または自動入力する際に再度認証を求める</string>
+    <string name="addaccount_header_title">Bitwarden アカウントを追加</string>
+    <string name="addaccount_disclaimer_bitwarden_label">私たちは、Bitwarden, Inc. またはその子会社および関連会社と、いかなる形においても、提携、承認、支持、または公式な関係はありません。</string>
+    <!--
+        A note on top of the Client secret field, that explains why (and how)
+        we need a user to get and type his client secret in a field below -->
+    <string name="addaccount_captcha_need_client_secret_note">非公式の Bitwarden クライアントで CAPTCHA 認証を通過するには、クライアントシークレットを指定する必要があります。クライアントシークレットを取得するには、ウェブ保管庫 / 設定 / API キー にアクセスしてください。</string>
+    <!-- A label on top of the Client secret field -->
+    <string name="addaccount_captcha_need_client_secret_label">クライアントシークレット</string>
+    <string name="addaccount_sign_in_button">サインイン</string>
+    <string name="addaccount_region_section">地域</string>
+    <string name="addaccount_region_us_type">アメリカ合衆国</string>
+    <string name="addaccount_region_eu_type">ヨーロッパ</string>
+    <string name="addaccount_region_custom_type">カスタム (セルフホスティング)</string>
+    <string name="addaccount_http_header_section">HTTP ヘッダー</string>
+    <string name="addaccount_http_header_type">HTTP ヘッダー</string>
+    <string name="addaccount_http_header_note">サーバーへ送信されるすべてのリクエストにカスタム HTTP ヘッダーを追加できます。</string>
+    <string name="addaccount_http_header_key_label">キー</string>
+    <string name="addaccount_http_header_value_label">値</string>
+    <string name="addaccount_http_header_add_more_button">追加</string>
+    <string name="addaccount_base_env_server_url_label">サーバー URL</string>
+    <string name="addaccount_base_env_note">セルフホスティングしている Bitwarden のベース URL を指定してください。</string>
+    <string name="addaccount_custom_env_section">カスタム環境</string>
+    <string name="addaccount_custom_env_note">各サービスのベース URL を個別に指定することができます。</string>
+    <string name="addaccount_custom_env_web_vault_url_label">ウェブ保管庫サーバー URL</string>
+    <string name="addaccount_custom_env_api_url_label">API サーバー URL</string>
+    <string name="addaccount_custom_env_icons_url_label">アイコンサーバー URL</string>
+    <string name="addaccount_custom_env_identity_url_label">ID サーバー URL</string>
+    <string name="addaccount2fa_header_title">認証</string>
+    <string name="addaccount2fa_unsupported_note">この認証方法はまだサポートされていません。</string>
+    <string name="addaccount2fa_otp_note">認証アプリに表示された認証コードを入力してください。</string>
+    <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> に送信された確認コードを入力してください。</string>
+    <string name="addaccount2fa_yubikey_manual_text">YubiKey 認証コードを手動で入力してください。下のフィールドにカーソルを置いて、YubiKey をトリガーしてください。</string>
+    <string name="provider_2fa_authenticator">認証アプリ</string>
+    <string name="provider_2fa_duo_organization">Duo (組織)</string>
+    <string name="provider_2fa_fido2_webauthn">FIDO2 ウェブ認証</string>
+    <string name="provider_2fa_email">メールアドレス</string>
+    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
+    <string name="yubikey_usb_title">YubiKey を USB 経由で接続してください</string>
+    <string name="yubikey_usb_text">USB OTG の対応が必要です。</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">YubiKey の金色のセンサーをタッチしてください。</string>
+    <string name="yubikey_nfc_title">YubiKey をデバイスの背面に平らに当ててください</string>
+    <string name="yubikey_nfc_text">NFC の対応が必要です。</string>
+    <string name="yubikey_error_failed_to_read">YubiKey の読み取りに失敗しました</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn を使用するには、Butwarden ウェブ保管庫バージョン <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> 以上を使用する必要があります。古いバージョンでは、認証の結果が誤って公式の Bitwarden アプリに転送されます。</string>
+    <string name="elevatedaccess_header_title">アクセスの確認</string>
+    <string name="elevatedaccess_header_text">このデータは保護されています。続行するには、アプリのパスワードを入力してください。</string>
+    <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_title">アクセスの確認</string>
+    <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_text">生体認証を使用してアクセスを確認し、このデータのロックを解除します。</string>
+    <string name="home_vault_label">保管庫</string>
+    <string name="home_send_label">Send</string>
+    <string name="home_generator_label">パス生成</string>
+    <string name="home_watchtower_label">監視</string>
+    <string name="home_settings_label">設定</string>
+    <string name="lock_reason_inactivity">ロックされています</string>
+    <string name="send_type_text">テキスト</string>
+    <string name="send_type_file">ファイル</string>
+    <string name="cipher_type_login">ログイン</string>
+    <string name="cipher_type_card">カード</string>
+    <string name="cipher_type_identity">ID</string>
+    <string name="cipher_type_note">メモ</string>
+    <string name="cipher_type_passkey">パスキー</string>
+    <string name="field_type_text">テキスト</string>
+    <string name="field_type_boolean">真偽値</string>
+    <string name="field_type_linked">リンク</string>
+    <!--
+        Displayed below a password that was exposed in the known data breached. It
+        ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
+    <string name="password_pwned_label">漏洩</string>
+    <string name="password_strength_very_strong_label">非常に強い</string>
+    <string name="password_strength_strong_label">強い</string>
+    <string name="password_strength_good_label">良い</string>
+    <string name="password_strength_fair_label">普通</string>
+    <string name="password_strength_weak_label">弱い</string>
+    <string name="passwords_very_strong_label">非常に強いパスワード</string>
+    <string name="passwords_strong_label">強いパスワード</string>
+    <string name="passwords_good_label">良いパスワード</string>
+    <string name="passwords_fair_label">普通のパスワード</string>
+    <string name="passwords_weak_label">弱いパスワード</string>
+    <string name="filter_header_title">フィルター</string>
+    <string name="filter_empty_label">フィルターは利用できません</string>
+    <string name="sort_header_title">並べ替え</string>
+    <string name="sort_empty_label">並べ替えは利用できません</string>
+    <string name="sortby_title_title">タイトル</string>
+    <string name="sortby_title_normal_mode">アルファベット順</string>
+    <string name="sortby_title_reverse_mode">アルファベット逆順</string>
+    <string name="sortby_access_count_title">アクセス数</string>
+    <string name="sortby_access_count_normal_mode">多い順</string>
+    <string name="sortby_access_count_reverse_mode">少ない順</string>
+    <string name="sortby_modification_date_title">更新日</string>
+    <string name="sortby_modification_date_normal_mode">新しい順</string>
+    <string name="sortby_modification_date_reverse_mode">古い順</string>
+    <string name="sortby_expiration_date_title">有効期限</string>
+    <string name="sortby_expiration_date_normal_mode">新しい順</string>
+    <string name="sortby_expiration_date_reverse_mode">古い順</string>
+    <string name="sortby_deletion_date_title">削除日</string>
+    <string name="sortby_deletion_date_normal_mode">新しい順</string>
+    <string name="sortby_deletion_date_reverse_mode">古い順</string>
+    <string name="sortby_password_title">パスワード</string>
+    <string name="sortby_password_normal_mode">アルファベット順</string>
+    <string name="sortby_password_reverse_mode">アルファベット逆順</string>
+    <string name="sortby_password_modification_date_title">パスワード更新日</string>
+    <string name="sortby_password_modification_date_normal_mode">新しい順</string>
+    <string name="sortby_password_modification_date_reverse_mode">古い順</string>
+    <string name="sortby_password_strength_title">パスワード強度</string>
+    <string name="sortby_password_strength_normal_mode">弱い順</string>
+    <string name="sortby_password_strength_reverse_mode">強い順</string>
+    <string name="vault_main_search_placeholder">保管庫を検索</string>
+    <string name="vault_main_new_item_button">新しいアイテム</string>
+    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <!-- A label for the CVV code of the card -->
+    <string name="vault_view_card_cvv_label">セキュリティコード</string>
+    <string name="vault_view_saved_to_label"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> (<xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g>) に保存しました</string>
+    <string name="vault_view_password_revision_label">パスワードの最終更新時刻: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">パスキー作成日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">最終更新時刻: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">作成日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">削除日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">有効期限切れ: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">有効期限: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">削除予定日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <!-- Call the phone number. The text should be as short as possible! -->
+    <string name="vault_view_call_phone_action">通話</string>
+    <!-- Text the phone number (SMS). The text should be as short as possible! -->
+    <string name="vault_view_text_phone_action">SMS</string>
+    <!-- Compose an email. The text should be as short as possible! -->
+    <string name="vault_view_email_action">メール</string>
+    <!-- Open navigation to address. The text should be as short as possible! -->
+    <string name="vault_view_navigate_action">ルート</string>
+    <string name="send_main_header_title">Send</string>
+    <string name="send_main_search_placeholder">Send を検索</string>
+    <string name="send_main_new_item_button">新しいアイテム</string>
+    <string name="send_password_is_required_to_access_label">この共有にアクセスするにはパスワードが必要です</string>
+    <string name="generator_header_title">パスワード生成</string>
+    <string name="generator_header_username_title">ユーザー名生成</string>
+    <string name="generator_header_password_title">パスワード生成</string>
+    <string name="generator_generate_button">生成</string>
+    <string name="generator_regenerate_button">再生成</string>
+    <string name="generator_passphrase_type">パスフレーズ</string>
+    <string name="generator_passphrase_note">ランダムなパスフレーズは、記憶性とセキュリティの最良の組み合わせを提供します。</string>
+    <string name="generator_passphrase_delimiter_title">区切り文字</string>
+    <string name="generator_passphrase_capitalize_title">英単語の先頭を大文字にする</string>
+    <string name="generator_passphrase_number_title">数字を含める</string>
+    <string name="generator_username_type">ユーザー名</string>
+    <string name="generator_username_delimiter_title">区切り文字</string>
+    <string name="generator_username_custom_word_title">カスタムワード</string>
+    <string name="generator_username_capitalize_title">英単語の先頭を大文字にする</string>
+    <string name="generator_username_number_title">数字を含める</string>
+    <string name="generator_password_type">ランダムな文字</string>
+    <string name="generator_password_note">強力なパスワードは、少なくとも<xliff:g id="length" example="15">%1$d</xliff:g>文字、大文字、小文字、数字、記号を含んでいます。</string>
+    <string name="generator_password_numbers_title">数字</string>
+    <string name="generator_password_symbols_title">記号</string>
+    <string name="generator_password_uppercase_letters_title">大文字</string>
+    <string name="generator_password_lowercase_letters_title">小文字</string>
+    <!-- An option to exclude symbols like this: il1Lo0O -->
+    <string name="generator_password_exclude_similar_symbols_title">類似した文字を除外</string>
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <string name="generator_password_exclude_ambiguous_symbols_title">あいまいな文字を除外</string>
+    <string name="generator_email_catch_all_type">Catch-All メールアドレス</string>
+    <string name="generator_email_catch_all_note">キャッチオールメールアドレスは、ドメインに送信されたすべてのメールを受信できるメールアドレスです。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
+    <!-- Referring to a website domain -->
+    <string name="generator_email_catch_all_domain_title">ドメイン</string>
+    <string name="generator_email_plus_addressing_type">プラスメールアドレス</string>
+    <string name="generator_email_plus_addressing_note">プラスアドレスとは、<xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> のようなメールアドレスに送信されたすべてのメールが、あなたのアカウントに送信されることを意味します。これにより、さまざまな人、サイト、メーリングリストに提供するための、メールアドレスのバリエーションを多く持つことができます。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
+    <string name="generator_email_plus_addressing_email_title">メールアドレス</string>
+    <string name="generator_email_subdomain_addressing_type">サブドメインメールアドレス</string>
+    <string name="generator_email_subdomain_addressing_note">サブドメインアドレスとは、<xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> のようなメールアドレスに送信されたすべてのメールが、あなたのアカウントに送信されることを意味します。これにより、さまざまな人、サイト、メーリングリストに提供するための、メールアドレスのバリエーションを多く持つことができます。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
+    <string name="generator_email_subdomain_addressing_email_title">メールアドレス</string>
+    <string name="generator_email_forward_alias_type">転送メールアドレス</string>
+    <string name="generator_create_item_with_password_title">このパスワードで新しいログインを作成</string>
+    <string name="generator_create_item_with_username_title">このユーザー名で新しいログインを作成</string>
+    <string name="generator_password_history_title">パスワードの履歴</string>
+    <string name="generator_show_tips_title">ヒントを表示</string>
+    <string name="generatorhistory_header_title">生成履歴</string>
+    <string name="generatorhistory_clear_history_title">履歴を消去</string>
+    <string name="generatorhistory_clear_history_confirmation_title">生成履歴を消去しますか？</string>
+    <string name="generatorhistory_clear_history_confirmation_text">すべてのアイテムが履歴から削除されます</string>
+    <string name="passwordhistory_header_title">パスワードの履歴</string>
+    <string name="passwordhistory_clear_history_title">履歴を消去</string>
+    <string name="passwordhistory_clear_history_confirmation_title">パスワードの履歴を消去しますか？</string>
+    <string name="passwordhistory_clear_history_confirmation_text">すべてのパスワードが履歴から削除されます</string>
+    <string name="watchtower_header_title">監視</string>
+    <string name="watchtower_section_password_strength_label">パスワード強度</string>
+    <string name="watchtower_section_security_label">セキュリティ</string>
+    <string name="watchtower_section_maintenance_label">メンテナンス</string>
+    <string name="watchtower_item_pwned_passwords_title">漏洩したパスワード</string>
+    <string name="watchtower_item_pwned_passwords_text">データ漏洩で公開されたパスワード。このようなパスワードはすぐに変更すべきです。</string>
+    <string name="watchtower_item_reused_passwords_title">再利用パスワード</string>
+    <string name="watchtower_item_reused_passwords_text">複数のウェブサイトで同じパスワードを使用しないでください。セキュリティを向上させるために、一意のパスワードを生成してください。</string>
+    <string name="watchtower_item_vulnerable_accounts_title">脆弱なアカウント</string>
+    <string name="watchtower_item_vulnerable_accounts_text">パスワードを最後に変更してから、データ漏洩の影響を受けたサイトです。アカウントの安全性を保つために、パスワードを変更してください。</string>
+    <string name="watchtower_item_unsecure_websites_title">安全でないウェブサイト</string>
+    <string name="watchtower_item_unsecure_websites_text">HTTP プロトコルを使用している URL を、より高度な暗号化を利用した HTTPS プロトコルを使用するように変更します。</string>
+    <string name="watchtower_item_inactive_2fa_title">非アクティブな2段階認証</string>
+    <string name="watchtower_item_inactive_2fa_text">2段階認証が利用できるサイトですが、まだ設定していません。</string>
+    <string name="watchtower_item_inactive_passkey_title">パスキーが利用可能</string>
+    <string name="watchtower_item_inactive_passkey_text">パスキーを設定可能なサイトですが、まだ設定していません。パスキーはパスワードよりも簡単で安全です。</string>
+    <string name="watchtower_item_incomplete_items_title">不完全なアイテム</string>
+    <string name="watchtower_item_incomplete_items_text">保管庫内の不足または不完全なデータを識別するのに役立ちます。これには、名前が欠落している ID や、ユーザー名が欠落しているログインが含まれます。</string>
+    <string name="watchtower_item_expiring_items_title">期限切れのアイテム</string>
+    <string name="watchtower_item_expiring_items_text">有効期限切れになったアイテムまたはまもなく期限切れになるアイテム。</string>
+    <string name="watchtower_item_duplicate_websites_title">重複した URI</string>
+    <string name="watchtower_item_duplicate_websites_text">一致検出を適用した後、同じウェブサイトをカバーする URI が1つ以上あるアイテム。</string>
+    <string name="watchtower_item_trashed_items_title">ごみ箱のアイテム</string>
+    <string name="watchtower_item_trashed_items_text">ごみ箱に移動されたアイテムです。ごみ箱にアイテムが多すぎると、保管庫の操作が遅くなることがあります。</string>
+    <string name="watchtower_item_empty_folders_title">空のフォルダー</string>
+    <string name="watchtower_item_empty_folders_text">アイテムが何も入っていないフォルダー。</string>
+    <string name="watchtower_item_duplicate_items_title">重複したアイテム</string>
+    <string name="watchtower_item_duplicate_items_text">保管庫内の重複するアイテムを特定して削除するのに役立ちます。</string>
+    <string name="watchtower_item_compromised_accounts_title">漏洩したアカウント</string>
+    <string name="watchtower_item_compromised_accounts_text">ユーザー名またはメールアドレスでデータ漏洩をチェックします。</string>
+    <string name="changepassword_header_title">アプリパスワードの変更</string>
+    <string name="changepassword_change_password_button">パスワードの変更</string>
+    <string name="changepassword_biometric_auth_checkbox">生体認証</string>
+    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
+    <string name="changepassword_biometric_auth_confirm_title">アプリパスワードの変更</string>
+    <string name="changepassword_disclaimer_local_note">アプリのパスワードは、デバイスに保存されることも、ネットワーク経由で送信されることもありません。ローカルデータを暗号化するために使用される秘密鍵を生成するために使用されます。</string>
+    <string name="changepassword_disclaimer_abuse_note">不正アクセスが疑われる場合やデバイスにマルウェアを発見した場合を除いて、強力で一意のパスワードであれば、変更する必要はありません。</string>
+    <string name="contactus_header_title">お問い合わせ</string>
+    <string name="contactus_message_label">メッセージ</string>
+    <string name="contactus_english_note">フィードバックが誤解されないように、英語を使用してください。</string>
+    <string name="contactus_thanks_note">メッセージをお送りいただきありがとうございます。メッセージは私たちに直接届き、トラブルシューティングや製品の改善、問題の解決に役立てています。すべての報告に返信できない場合もありますが、できる限り早く改善や問題の解決に取り組んでいます。</string>
+    <string name="account_main_header_title">アカウント</string>
+    <string name="account_main_add_account_title">アカウントを追加</string>
+    <string name="team_header_title">アプリの開発チーム</string>
+    <string name="team_artem_whoami_text">私はウクライナ出身のソフトウェアエンジニアです。アプリの設計と開発を専門としています。</string>
+    <string name="team_follow_me_section">ソーシャルメディア</string>
+    <string name="settingssearch_header_title">検索</string>
+    <string name="settingssearch_header_subtitle">設定</string>
+    <string name="settingssearch_search_placeholder">設定を検索</string>
+    <string name="settings_appearance_header_title">外観</string>
+    <string name="settings_autofill_header_title">自動入力</string>
+    <string name="settings_dev_header_title">開発</string>
+    <string name="settings_experimental_header_title">実験的機能</string>
+    <string name="settings_main_header_title">設定</string>
+    <string name="settings_notifications_header_title">通知</string>
+    <string name="settings_other_header_title">その他</string>
+    <string name="settings_permissions_header_title">権限</string>
+    <string name="settings_security_header_title">セキュリティ</string>
+    <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_watchtower_header_title">監視</string>
+    <string name="settings_open_source_licenses_header_title">オープンソースライセンス</string>
+    <string name="pref_item_accounts_title">アカウント</string>
+    <string name="pref_item_accounts_text">アカウントの追加と表示</string>
+    <string name="pref_item_autofill_title">自動入力</string>
+    <string name="pref_item_autofill_text">Android の自動入力サービス</string>
+    <string name="pref_item_security_title">セキュリティ</string>
+    <string name="pref_item_security_text">生体認証、パスワードの変更、保管庫のタイムアウト</string>
+    <string name="pref_item_subscription_title">Keyguard Premium</string>
+    <string name="pref_item_subscription_text">機能をアンロックして開発をサポート</string>
+    <string name="pref_item_watchtower_title">監視</string>
+    <string name="pref_item_watchtower_text">侵害されたサービス、脆弱なパスワード</string>
+    <string name="pref_item_notifications_title">通知</string>
+    <string name="pref_item_notifications_text">アラート</string>
+    <string name="pref_item_appearance_title">外観</string>
+    <string name="pref_item_appearance_text">言語、テーマ、アニメーション</string>
+    <string name="pref_item_dev_title">開発</string>
+    <string name="pref_item_dev_text">開発用テスト設定</string>
+    <string name="pref_item_other_title">その他</string>
+    <string name="pref_item_other_text">コミュニティ、アプリ情報</string>
+    <string name="pref_item_nav_label_title">ナビゲーションのラベル表示</string>
+    <string name="pref_item_app_version_title">アプリのバージョン</string>
+    <string name="pref_item_app_build_date_title">アプリのビルド日</string>
+    <string name="pref_item_app_team_title">アプリの開発チーム</string>
+    <string name="pref_item_reddit_community_title">Reddit コミュニティ</string>
+    <string name="pref_item_github_title">GitHub プロジェクト</string>
+    <string name="pref_item_crowdin_title">Crowdin プロジェクト</string>
+    <string name="pref_item_open_source_licenses_title">オープンソースライセンス</string>
+    <string name="pref_item_download_apk_title">APK ファイルのダウンロード</string>
+    <string name="pref_item_load_app_icons_title">アプリアイコンの読み込み</string>
+    <string name="pref_item_load_website_icons_title">ウェブサイトアイコンの読み込み</string>
+    <string name="pref_item_load_website_icons_text">ウェブサイトのアイコンを取得すると、インターネットプロバイダーにウェブサイトの URL が漏洩する可能性があります。</string>
+    <string name="pref_item_markdown_title">テキストの装飾</string>
+    <string name="pref_item_markdown_text">Markdown でメモをフォーマットします</string>
+    <string name="pref_item_locale_title">言語</string>
+    <string name="pref_item_locale_help_translation_button">翻訳を提案</string>
+    <string name="pref_item_font_title">フォント</string>
+    <string name="pref_item_rate_on_play_store_title">Play ストアでアプリを評価</string>
+    <string name="pref_item_color_accent_title">色合い</string>
+    <string name="pref_item_color_scheme_title">テーマ</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">高コントラストの黒いテーマを使用</string>
+    <string name="pref_item_open_links_in_external_browser_title">外部ブラウザでリンクを開く</string>
+    <string name="pref_item_conceal_fields_title">フィールドを隠す</string>
+    <string name="pref_item_conceal_fields_text">パスワードやクレジットカード番号などの機密情報を隠します</string>
+    <!--
+        When a user clicks this button, the app crashes. Not visible to
+        regular users. -->
+    <string name="pref_item_crash_title">クラッシュ</string>
+    <string name="pref_item_credential_provider_title">認証プロバイダー</string>
+    <string name="pref_item_credential_provider_text">パスキー、パスワード、データサービス</string>
+    <string name="pref_item_privacy_policy_title">プライバシーポリシー</string>
+    <string name="pref_item_contact_us_title">お問い合わせ</string>
+    <string name="pref_item_experimental_title">実験的機能</string>
+    <string name="pref_item_change_app_password_title">アプリのパスワードを変更</string>
+    <string name="pref_item_require_app_password_title">アプリのパスワードの要求</string>
+    <string name="pref_item_require_app_password_note">通常のセキュリティ設定に加えて、この期間の経過後または生体認証の設定が変更された場合は、アプリのパスワードが必要になります。</string>
+    <string name="pref_item_require_app_password_immediately_text">即時</string>
+    <string name="pref_item_require_app_password_never_text">なし</string>
+    <string name="pref_item_send_crash_reports_title">クラッシュレポートを送信</string>
+    <string name="pref_item_nav_animation_title">遷移アニメーション</string>
+    <string name="pref_item_erase_data_title">アプリデータを消去</string>
+    <string name="pref_item_erase_data_text">アプリを閉じて、ローカルのアプリデータをすべて消去します</string>
+    <string name="pref_item_allow_screenshots_title">スクリーンショットを許可</string>
+    <string name="pref_item_allow_screenshots_text_on">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを許可します。</string>
+    <string name="pref_item_allow_screenshots_text_off">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを禁止します。</string>
+    <string name="pref_item_data_safety_title">データセーフティ</string>
+    <string name="pref_item_lock_vault_title">保管庫をロック</string>
+    <string name="pref_item_lock_vault_after_reboot_title">再起動後にロック</string>
+    <string name="pref_item_lock_vault_after_reboot_text">デバイスの再起動後に保管庫をロック</string>
+    <string name="pref_item_lock_vault_after_screen_off_title">画面消灯時にロック</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">画面がオフになってから数秒後に保管庫をロックします。</string>
+    <string name="pref_item_lock_vault_after_delay_title">保管庫のタイムアウト</string>
+    <string name="pref_item_lock_vault_after_delay_immediately_text">即時</string>
+    <string name="pref_item_lock_vault_after_delay_never_text">なし</string>
+    <string name="pref_item_persist_vault_key_title">保管庫のキーをデバイスに保持</string>
+    <string name="pref_item_persist_vault_key_text_on">保管庫のキーを内部ストレージに保持します。</string>
+    <string name="pref_item_persist_vault_key_text_off">アプリがメモリからアンロードされた後、保管庫はロックされます。</string>
+    <string name="pref_item_persist_vault_key_note">デバイスに保管庫のキーを保存することはセキュリティリスクとなります。デバイスの内部ストレージが侵害された場合、攻撃者はローカルの保管庫のデータにアクセスすることができます。</string>
+    <string name="pref_item_permissions_title">権限</string>
+    <string name="pref_item_features_overview_title">機能の概要</string>
+    <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
+    <!--
+        A title of the system popup that asks a user to use his biometric to later
+        be able to use it to unlock the vault. -->
+    <string name="pref_item_biometric_unlock_confirm_title">生体認証によるロック解除</string>
+    <string name="pref_item_keep_screen_on_title">アイテムの表示中は画面をオンのままにする</string>
+    <string name="pref_item_autofill_service_title">自動入力サービス</string>
+    <string name="pref_item_autofill_service_text">Android 自動入力フレームワークを使用して、デバイス上の他のアプリにログイン情報を入力します。</string>
+    <string name="pref_item_autofill_auto_copy_otp_title">ワンタイムパスワードの自動コピー</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">ログイン情報を入力するときに、ワンタイムパスワードを自動的にコピーします。</string>
+    <string name="pref_item_autofill_inline_suggestions_title">インライン自動入力の候補</string>
+    <string name="pref_item_autofill_inline_suggestions_text">互換性のあるキーボードに自動入力の候補を表示します。</string>
+    <string name="pref_item_autofill_manual_selection_title">手動選択</string>
+    <string name="pref_item_autofill_manual_selection_text">保管庫内のエントリを手動で検索するオプションを表示します。</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">自動入力無効フラグに従う</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">自動入力無効フラグが設定されているブラウザフィールドの自動入力を無効にします。</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">一部のウェブサイトではパスワードフィールドの自動入力が無効化されており、一部のブラウザでは自動入力無効化フラグが無視されることに注意してください。</string>
+    <string name="pref_item_autofill_save_request_title">データを保存するか尋ねる</string>
+    <string name="pref_item_autofill_save_request_text">フォームの入力が完了したときに保管庫を更新するかどうかを尋ねます。</string>
+    <string name="pref_item_autofill_auto_save_source_title">アプリまたはウェブサイト情報の自動保存</string>
+    <string name="pref_item_clipboard_auto_clear_title">クリップボードを自動的に消去</string>
+    <string name="pref_item_clipboard_auto_clear_immediately_text">即時</string>
+    <string name="pref_item_clipboard_auto_clear_never_text">しない</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">ワンタイムパスワード通知の表示時間</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">ワンタイムパスワードを含むログインアイテムを自動入力すると、認証コードの通知が指定された時間表示されます。</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">なし</string>
+    <string name="pref_item_premium_membership_title">Keyguard メンバーシップについて</string>
+    <string name="pref_item_premium_membership_text">プレミアムプランは、追加の機能をアンロックして、アプリの開発を支援します。ご支援いただきありがとうございます！❤️</string>
+    <string name="pref_item_premium_membership_section_subscriptions_title">サブスクリプション</string>
+    <string name="pref_item_premium_membership_section_products_title">プロダクト</string>
+    <string name="pref_item_premium_membership_failed_to_load_subscriptions">サブスクリプションのリストの読み込みに失敗しました</string>
+    <string name="pref_item_premium_membership_failed_to_load_products">プロダクトのリストの読み込みに失敗しました</string>
+    <string name="pref_item_premium_status_active">アクティブ</string>
+    <string name="pref_item_premium_status_will_not_renew">更新されません</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Play ストアで管理</string>
+    <string name="pref_item_permission_post_notifications_title">通知</string>
+    <string name="pref_item_permission_post_notifications_text">ダウンロード通知の表示に使用されます</string>
+    <string name="pref_item_permission_camera_title">カメラ</string>
+    <string name="pref_item_permission_camera_text">QR コードのスキャンに使用されます</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">横画面モードで2パネルレイアウトを使用</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">縦画面モードで2パネルレイアウトを使用</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="theme_light">ライト</string>
+    <string name="nav_animation_disabled">無効</string>
+    <string name="nav_animation_dynamic">ダイナミック</string>
+    <string name="nav_animation_crossfade">クロスフェード</string>
+    <string name="font_atkinson_hyperlegible_text">視覚障害者の可読性を高め、理解を向上させるために、特別に開発されました。</string>
+    <string name="feat_header_title">機能の概要</string>
+    <string name="feat_keyguard_premium_label">Keyguard Premium</string>
+    <string name="feat_item_multiple_accounts_title">複数アカウント</string>
+    <string name="feat_item_multiple_accounts_text">複数のアカウントに同時にログインできます。</string>
+    <string name="feat_item_two_way_sync_title">双方向同期</string>
+    <string name="feat_item_two_way_sync_text">アイテムを追加または編集すると、変更が同期されます。</string>
+    <string name="feat_item_offline_editing_title">オフライン編集</string>
+    <string name="feat_item_offline_editing_text">インターネット接続がなくても、アイテムを追加または編集できます。</string>
+    <string name="feat_section_search_title">検索</string>
+    <string name="feat_item_search_by_anything_title">何でも検索</string>
+    <string name="feat_item_search_by_anything_text">名前、​メールアドレス、​パスワード、​電話番号など。</string>
+    <string name="feat_item_filter_title">絞り込み</string>
+    <string name="feat_item_filter_text">フォルダー、​組織、​タイプなどで絞り込めます。</string>
+    <string name="feat_item_multiple_keywords_title">複数キーワード</string>
+    <string name="feat_item_multiple_keywords_text">「bitw test」と入力して、「Bitwarden Test Account」アイテムを検索できます。</string>
+    <string name="feat_section_watchtower_title">監視</string>
+    <string name="feat_item_pwned_passwords_title">漏洩したパスワード</string>
+    <string name="feat_item_pwned_passwords_text">データ漏洩で流出したパスワードが使用されているアイテムを見つけます。</string>
+    <string name="feat_item_password_strength_title">パスワード強度</string>
+    <string name="feat_item_password_strength_text">脆弱なパスワードを使用しているアイテム見つけます。</string>
+    <string name="feat_item_reused_passwords_title">再利用パスワード</string>
+    <string name="feat_item_reused_passwords_text">再利用されたパスワードを使用しているアイテムを見つけます。</string>
+    <string name="feat_item_inactive_totp_title">非アクティブ 2FA</string>
+    <string name="feat_item_inactive_totp_text">TOTP 2段階認証が利用可能なログインを見つけます。</string>
+    <string name="feat_item_unsecure_websites_title">安全でないウェブサイト</string>
+    <string name="feat_item_unsecure_websites_text">HTTP プロトコルを使用しているウェブサイトを見つけ、HTTPS に自動修正します。</string>
+    <string name="feat_item_incomplete_items_title">不完全なアイテム</string>
+    <string name="feat_item_incomplete_items_text">編集が必要な空のアイテムを見つけます。</string>
+    <string name="feat_item_expiring_items_title">期限切れのアイテム</string>
+    <string name="feat_item_expiring_items_text">有効期限切れまたは期限が近いアイテムを見つけます。</string>
+    <string name="feat_item_duplicate_items_title">重複したアイテム</string>
+    <string name="feat_item_duplicate_items_text">重複したアイテムを見つけて統合します。</string>
+    <string name="feat_section_misc_title">その他</string>
+    <string name="feat_item_multi_selection_title">複数選択</string>
+    <string name="feat_item_multi_selection_text">情報を統合し、バッチ操作で整理を高速化します。</string>
+    <string name="feat_item_show_barcode_title">バーコードとして表示</string>
+    <string name="feat_item_show_barcode_text">テキストをバーコードとしてエンコードします。</string>
+    <string name="feat_item_generator_title">パスワード生成</string>
+    <string name="feat_item_generator_text">パスワードまたはユーザー名を生成します。</string>
+    <string name="datasafety_header_title">データセーフティ</string>
+    <string name="datasafety_local_section">ローカルデータ</string>
+    <string name="datasafety_local_text">ローカルデータは、ダウンロード、ユーザー設定、保管庫で構成されています。これらはデバイスの内部ストレージに保存されており、Android システムまたは Keyguard からのみアクセスできます。</string>
+    <string name="datasafety_local_downloads_section">ダウンロード</string>
+    <string name="datasafety_local_settings_section">ユーザー設定</string>
+    <string name="datasafety_local_settings_note">ユーザー設定はデバイス固有のキーを使用して暗号化されます。</string>
+    <string name="datasafety_local_vault_section">保管庫</string>
+    <string name="datasafety_local_encryption_algorithm_intro">保管庫は、以下の手順でアプリのパスワードから派生したキーを使用して暗号化されます:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">ソルトとハッシュは、後で保管庫をロック解除するマスターキーを生成するため、デバイス上に保存されます。</string>
+    <string name="datasafety_local_unlocking_vault">保管庫のロック解除とは、デバイスの RAM に正しいキーを保存し、暗号化された保管庫を読み書きできるようになることを意味します。</string>
+    <string name="datasafety_remote_section">リモートデータ</string>
+    <string name="datasafety_remote_text">リモートデータは、ゼロ知識暗号化を使用して Bitwarden のサーバー上に保存されます。</string>
+</resources>

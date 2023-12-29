@@ -1,0 +1,50 @@
+name: "🕒 Synchronize Passkeys"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      # Configuration.
+      - '.github/update_passkeys.py'
+      - '.github/update_passkeys.requirements.txt'
+  schedule:
+    - cron: '0 0 * * 5'
+
+jobs:
+  sync-passkeys:
+    name: Synchronize Passkeys
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r .github/update_passkeys.requirements.txt
+      - name: "Update library"
+        run: |
+          python .github/update_passkeys.py "${{ secrets.PASSKEYS_API_KEY }}"
+      - name: "Check if any changes"
+        id: check-changes
+        run: |
+          has_changes=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)
+          echo "$has_changes"
+          echo "{HAS_CHANGES}={$has_changes}" >> "$GITHUB_OUTPUT"
+      - name: Commit and push changes
+        uses: devops-infra/action-commit-push@v0.9.2
+        if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
+        with:
+          github_token: "${{ secrets.PERSONAL_TOKEN }}"
+          add_timestamp: false
+          commit_prefix: "[AUTO]"
+          commit_message: "Update passkeys library"
+          force: true
+          target_branch: passkeys_action
+      - name: Create pull request
+        uses: devops-infra/action-pull-request@v0.5.5
+        if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
+        with:
+          github_token: "${{ secrets.PERSONAL_TOKEN }}"
+          source_branch: passkeys_action
+          target_branch: master
+          assignee: AChep
+          label: "robot,enhancement"
+          title: New Passkeys by GitHub Action

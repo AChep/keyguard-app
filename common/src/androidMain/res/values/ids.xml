@@ -1,0 +1,5 @@
+<resources>
+    <item name="notification_attachment_upload_id" type="integer">1100</item>
+    <item name="notification_attachment_download_id" type="integer">1200</item>
+    <item name="notification_sync_vault_id" type="integer">1300</item>
+</resources>

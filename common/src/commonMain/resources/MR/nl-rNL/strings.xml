@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="ok">Ok</string>
+    <string name="close">Sluiten</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <!-- A name of a thing, such as an account -->
+    <string name="generic_name">Naam</string>
+    <string name="account_name">Accountnaam</string>
+    <string name="username">Gebruikersnaam</string>
+    <string name="password">Wachtwoord</string>
+    <string name="app_password">App wachtwoord</string>
+    <string name="current_password">Huidig wachtwoord</string>
+    <string name="new_password">Nieuw wachtwoord</string>
+    <string name="email">E-mail</string>
+    <string name="email_verified">Geverifieerd</string>
+    <string name="email_not_verified">Niet geverifieerd</string>
+    <string name="email_visibility">E-mail zichtbaarheid</string>
+    <string name="public_url">Publieke URL</string>
+    <string name="url">URL</string>
+    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="access_count">Aantal keer bekeken</string>
+    <string name="learn_more">Lees meer</string>
+    <string name="phone_number">Telefoonnummer</string>
+    <string name="passport_number">Paspoortnummer</string>
+    <string name="license_number">Licentienummer</string>
+    <string name="card_number">Kaart nummer</string>
+    <string name="card_number_empty_label">No card number</string>
+    <string name="card_type">Merk</string>
+    <string name="card_cvv">CVV</string>
+    <string name="card_valid_from">Valid from</string>
+    <string name="card_valid_to">Valid to</string>
+    <string name="card_expiry_month">Card expiry month</string>
+    <string name="card_expiry_year">Card expiry year</string>
+    <string name="cardholder_name">Naam kaarthouder</string>
+    <string name="valid_from">Geldig vanaf</string>
+    <string name="expiry_date">Vervaldatum</string>
+    <string name="company">Bedrijfsnaam</string>
+    <string name="sync">Synchroniseren</string>
+    <!-- Opposite of 'visible' -->
+    <string name="hidden">Verborgen</string>
+    <!-- Opposite of 'hidden' -->
+    <string name="visible">Zichtbaar</string>
+    <!-- Shows up instead of a value if a value is an empty text -->
+    <string name="empty_value">Leeg</string>
+    <!-- Social Security Number -->
+    <string name="ssn">BSN</string>
+    <string name="city">Stad</string>
+    <string name="state">Staat</string>
+    <string name="info">Info</string>
+    <string name="cancel">Annuleren</string>
+    <string name="continue_">Doorgaan</string>
+    <string name="country">Land</string>
+    <string name="address">Adres</string>
+    <string name="postal_code">Postcode</string>
+    <string name="pull_to_search">Trek om te zoeken</string>
+    <string name="save">Opslaan</string>
+    <string name="uri">URI</string>
+    <string name="uris">URIs</string>
+    <string name="note">Notitie</string>
+    <string name="notes">Notities</string>
+    <string name="attachments">Bijlagen</string>
+    <string name="attachments_empty_label">No attachments</string>
+    <string name="expiring_soon">Expiring soon</string>
+    <string name="item_incomplete_title">Incomplete data</string>
+    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="item">Item</string>
+    <string name="items">Items</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
+    <string name="items_all">All items</string>
+    <string name="items_empty_label">No items</string>
+    <string name="folder_none">Geen map</string>
+    <string name="folder_new">Nieuwe map</string>
+    <string name="folder">Map</string>
+    <string name="folders">Mappen</string>
+    <string name="folders_empty_label">No folders</string>
+    <string name="collection_none">Geen collectie</string>
+    <string name="collection">Collectie</string>
+    <string name="collections">Collecties</string>
+    <string name="collections_empty_label">No collections</string>
+    <string name="organization_none">Mijn kluis</string>
+    <string name="organization">Organisatie</string>
+    <string name="organizations">Organisaties</string>
+    <string name="organizations_empty_label">No organizations</string>
+    <string name="misc">Overige</string>
+    <string name="add_integration">Integratie toevoegen</string>
+    <string name="account">Account</string>
+    <string name="accounts">Accounts</string>
+    <string name="accounts_empty_label">No accounts</string>
+    <string name="account_none">Geen account</string>
+    <string name="type">Type</string>
+    <string name="options">Opties</string>
+    <string name="send">Verzenden</string>
+    <string name="reset">Reset</string>
+    <string name="length">Lengte</string>
+    <string name="security">Beveiliging</string>
+    <string name="contact_info">Contact info</string>
+    <string name="identity_title">Titel</string>
+    <string name="identity_first_name">Voornaam</string>
+    <string name="identity_middle_name">Tussenvoegsels</string>
+    <string name="identity_last_name">Achternaam</string>
+    <string name="identity_full_name">Full name</string>
+    <string name="address1">Adresregel 1</string>
+    <string name="address2">Adresregel 2</string>
+    <string name="address3">Adresregel 3</string>
+    <string name="rename">Hernoemen</string>
+    <string name="select_linked_type">Select type</string>
+    <string name="autofill">Autofill</string>
+    <string name="passkey">Passkey</string>
+    <string name="passkey_create_header">Create a passkey</string>
+    <string name="passkey_unlock_header">Unlock Keyguard</string>
+    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkeys">Passkeys</string>
+    <!--
+        Signature counter is incremented each time a user uses a passkey. See:
+        https://www.w3.org/TR/webauthn-2/#signature-counter
+        -->
+    <string name="passkey_signature_counter">Signature counter</string>
+    <!--
+        The entity whose web application utilizes the Web Authentication API
+        to register and authenticate users. For example "Google" is a relying party.
+        https://www.w3.org/TR/webauthn-2/#relying-party
+        -->
+    <string name="passkey_relying_party">Relying party</string>
+    <!--
+        https://www.w3.org/TR/webauthn-2/#discoverable-credential
+        -->
+    <string name="passkey_discoverable">Discoverable</string>
+    <string name="passkey_user_username">Username</string>
+    <string name="passkey_user_display_name">Display name</string>
+    <string name="api_key">API sleutel</string>
+    <string name="domain">Domein</string>
+    <string name="edit">Bewerken</string>
+    <string name="delete">Verwijderen</string>
+    <string name="remove">Verwijderen</string>
+    <string name="remove_from_history">Verwijderen uit geschiedenis</string>
+    <string name="reused_password">Hergebruikt wachtwoord</string>
+    <string name="reused_passwords">Hergebruikte wachtwoorden</string>
+    <string name="one_time_password">Verificatie code</string>
+    <string name="one_time_password_authenticator_key">Verificatie sleutel</string>
+    <string name="passkey_use_short">Use</string>
+    <string name="passkey_save">Save passkey</string>
+    <string name="passkey_available">Passkey beschikbaar</string>
+    <string name="twofa_available">Tweestapsverificatie beschikbaar</string>
+    <string name="custom">Aangepast</string>
+    <string name="follow_system_settings">Gebruik systeeminstellingen</string>
+    <!-- A feature is coming soon! -->
+    <string name="coming_soon">Binnenkort beschikbaar</string>
+    <string name="powered_by">Mogelijk gemaakt door</string>
+    <string name="verification_code">Verificatiecode</string>
+    <string name="resend_verification_code">Verificatiecode opnieuw verzenden</string>
+    <string name="requested_verification_email">Verificatie e-mail verzenden</string>
+    <string name="web_vault">Webkluis</string>
+    <string name="launch_web_vault">Open web kluis</string>
+    <!-- Remember me to not have to enter OTP code second time -->
+    <string name="remember_me">Mijn gegevens onthouden</string>
+    <!-- A Trash screen -->
+    <string name="trash">Prullenbak</string>
+    <!-- To download something -->
+    <string name="download">Download</string>
+    <string name="downloads">Downloads</string>
+    <string name="downloads_empty_label">No downloads</string>
+    <string name="duplicates_empty_label">No duplicates</string>
+    <string name="encryption">Encryptie</string>
+    <!-- Encryption key -->
+    <string name="encryption_key">Sleutel</string>
+    <string name="encryption_hash">Hash</string>
+    <string name="encryption_salt">Salt</string>
+    <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
+    <string name="encryption_random_bits_data">Willekeurige <xliff:g id="length" example="64">%1$d</xliff:g>-bits van gegevens</string>
+    <string name="none">Geen</string>
+    <string name="text">Tekst</string>
+    <string name="linked_apps">Gekoppelde apps</string>
+    <string name="linked_uris">Gekoppelde URI\'s</string>
+    <string name="custom_fields">Extra velden</string>
+    <string name="reveal_secure_note">Een beveiligde notitie onthullen</string>
+    <string name="hide_secure_note">Verberg een beveiligde notitie</string>
+    <string name="master_password_hint">Hint voor hoofdwachtwoord</string>
+    <string name="fingerprint_phrase">Vingerafdrukzin</string>
+    <string name="fingerprint_phrase_help_title">Wat is een vingerafdruk?</string>
+    <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_unofficial_server">Onofficiële Bitwarden server</string>
+    <string name="account_last_synced_at">Laatst gesynchroniseerd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_action_change_name_title">Naam wijzigen</string>
+    <string name="account_action_change_color_title">Verander kleur</string>
+    <string name="account_action_change_master_password_hint_title">Hint voor hoofdwachtwoord wijzigen</string>
+    <string name="account_action_sign_out_title">Uitloggen</string>
+    <string name="account_action_sign_in_title">Inloggen</string>
+    <string name="account_action_email_verify_instructions_title">Bezoek de webkluis om uw e-mailadres te verifiëren</string>
+    <string name="account_action_premium_purchase_instructions_title">Upgrade naar een Premium-abonnement en ontgrendel geweldige extra functies</string>
+    <string name="account_action_tfa_title">Tweestapsverificatie</string>
+    <string name="account_action_tfa_text">Vereist inlogverificatie met een ander apparaat zoals een beveiligingssleutel, authenticatie-app, SMS of e-mail</string>
+    <string name="account_action_tfa_active_status">Actief</string>
+    <string name="account_action_items_title">Items</string>
+    <string name="account_action_log_out_title">Uitloggen</string>
+    <string name="account_log_out_confirmation_title">Uitloggen?</string>
+    <string name="account_log_out_confirmation_text">Alle niet gesynchroniseerde wijzigingen zullen verloren gaan!</string>
+    <string name="folder_action_change_name_title">Naam wijzigen</string>
+    <string name="folder_action_change_names_title">Namen wijzigen</string>
+    <string name="folder_delete_one_confirmation_title">Map verwijderen?</string>
+    <string name="folder_delete_many_confirmation_title">Mappen verwijderen?</string>
+    <string name="folder_delete_confirmation_text">Deze items worden onmiddellijk verwijderd. U kunt deze actie niet ongedaan maken.</string>
+    <string name="ciphers_recently_opened">Onlangs geopend</string>
+    <string name="ciphers_often_opened">Vaak geopend</string>
+    <string name="ciphers_view_details">View details</string>
+    <string name="ciphers_save_to">Save to</string>
+    <string name="ciphers_action_add_to_favorites_title">Toevoegen aan favorieten</string>
+    <string name="ciphers_action_remove_from_favorites_title">Verwijder uit favorieten</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Opnieuw om authenticatie vragen</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Niet opnieuw om authenticatie vragen</string>
+    <string name="ciphers_action_edit_title">Bewerken</string>
+    <string name="ciphers_action_merge_title">Samenvoegen in…</string>
+    <string name="ciphers_action_copy_title">Kopiëren naar…</string>
+    <string name="ciphers_action_change_folder_title">Naar map verplaatsen</string>
+    <string name="ciphers_action_change_name_title">Naam wijzigen</string>
+    <string name="ciphers_action_change_names_title">Namen wijzigen</string>
+    <string name="ciphers_action_add_password_title">Wachtwoord toevoegen</string>
+    <string name="ciphers_action_add_passwords_title">Wachtwoorden toevoegen</string>
+    <string name="ciphers_action_change_password_title">Wachtwoord wijzigen</string>
+    <string name="ciphers_action_change_passwords_title">Wachtwoorden wijzigen</string>
+    <string name="ciphers_action_view_password_history_title">Wachtwoordgeschiedenis bekijken</string>
+    <string name="ciphers_action_trash_title">Prullenbak</string>
+    <string name="ciphers_action_restore_title">Herstel</string>
+    <string name="ciphers_action_delete_title">Definitief verwijderen</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Verwante items verplaatsen naar prullenbak</string>
+    <string name="file_action_open_with_title">Open with…</string>
+    <string name="file_action_send_with_title">Send with…</string>
+    <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
+    <string name="file_action_delete_local_title">Delete local file</string>
+    <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="vault_action_always_show_keyboard_title">Toetsenbord altijd weergeven</string>
+    <string name="vault_action_sync_vault_title">Kluis synchroniseren</string>
+    <string name="vault_action_lock_vault_title">Kluis vergrendelen</string>
+    <string name="vault_action_rename_folder_title">Map hernoemen</string>
+    <string name="email_action_check_data_breach_title">Controleer het e-mailadres in bekende datalekken</string>
+    <string name="username_action_check_data_breach_title">Controleer de gebruikersnaam in bekende datalekken</string>
+    <string name="password_action_check_data_breach_title">Controleer het wachtwoord in bekende datalekken</string>
+    <string name="website_action_check_data_breach_title">Controleer de website in bekende datalekken</string>
+    <string name="uri_action_launch_app_title">App openen</string>
+    <string name="uri_action_launch_website_title">Website openen</string>
+    <string name="uri_action_launch_docs_title">Docs openen</string>
+    <string name="uri_action_launch_browser_title">Browser openen</string>
+    <string name="uri_action_launch_browser_main_page_title">Hoofdpagina openen</string>
+    <string name="uri_action_launch_play_store_title">Play Store openen</string>
+    <string name="uri_action_launch_in_app_title">Openen met <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_smth_title">Openen met…</string>
+    <string name="uri_action_how_to_delete_account_title">Hoe verwijder ik mijn account?</string>
+    <string name="uri_unsecure">Onveilig</string>
+    <string name="uri_match_app_title">App koppelen</string>
+    <string name="uri_match_detection_title">Overeenkomst detectie</string>
+    <string name="uri_match_detection_domain_title">Basisdomein</string>
+    <string name="uri_match_detection_domain_note">Controleer op het top-level en het second-level domein.</string>
+    <string name="uri_match_detection_host_title">Host</string>
+    <string name="uri_match_detection_host_note">Controleer op hostnaam en (indien opgegeven) poort.</string>
+    <string name="uri_match_detection_startswith_title">Begint met</string>
+    <string name="uri_match_detection_startswith_note">Controleer of de gedetecteerde URI met de opgegeven URI begint.</string>
+    <string name="uri_match_detection_exact_title">Exacte overeenkomst</string>
+    <string name="uri_match_detection_exact_note">Controleer of de gedetecteerde URI exact overeenkomt.</string>
+    <string name="uri_match_detection_regex_title">Reguliere expressie</string>
+    <string name="uri_match_detection_regex_note">Controleer de gedetecteerde URI met een reguliere expressie. Dit is een geavanceerde optie.</string>
+    <string name="uri_match_detection_never_title">Nooit</string>
+    <string name="uri_match_detection_never_note">Negeer URI tijdens het zoeken van items in het automatisch aanvullen scherm.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="text_action_share_with_title">Delen met…</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> geselecteerd</string>
+    <string name="copy">Kopiëren</string>
+    <string name="copy_value">Kopieer waarde</string>
+    <string name="copy_url">URL kopiëren</string>
+    <string name="copy_uri">URI kopiëren</string>
+    <string name="copy_package_name">Pakketnaam kopiëren</string>
+    <string name="copy_password">Wachtwoord kopiëren</string>
+    <string name="copy_username">Gebruikersnaam kopiëren</string>
+    <string name="copy_email">E-mail kopiëren</string>
+    <string name="copy_phone_number">Telefoonnummer kopiëren</string>
+    <string name="copy_passport_number">Paspoortnummer kopiëren</string>
+    <string name="copy_license_number">Licentienummer kopiëren</string>
+    <string name="copy_card_number">Kaartnummer kopiëren</string>
+    <string name="copy_cardholder_name">Kopieer naam kaarthouder</string>
+    <string name="copy_expiration_year">Vervaldatum kopiëren</string>
+    <string name="copy_expiration_month">Vervalmaand kopiëren</string>
+    <string name="copy_cvv_code">Veiligheidscode kopiëren</string>
+    <string name="copy_otp_code">Verificatie code kopiëren</string>
+    <string name="copy_otp_secret_code">Geheime sleutel kopiëren</string>
+    <string name="autofill_unlock_keyguard">Keyguard ontgrendelen</string>
+    <string name="autofill_open_keyguard">Open Keyguard</string>
+    <string name="january">Januari</string>
+    <string name="february">Februari</string>
+    <string name="march">Maart</string>
+    <string name="april">April</string>
+    <string name="may">Mei</string>
+    <string name="june">Juni</string>
+    <string name="july">Juli</string>
+    <string name="august">Augustus</string>
+    <string name="september">September</string>
+    <string name="october">Oktober</string>
+    <string name="november">November</string>
+    <string name="december">December</string>
+    <string name="list_move_up">Verplaats omhoog</string>
+    <string name="list_move_down">Verplaats omlaag</string>
+    <string name="list_remove">Verwijderen</string>
+    <string name="list_remove_confirmation_title">Item verwijderen?</string>
+    <string name="list_add">Meer toevoegen</string>
+    <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
+    <string name="fido2webauthn_action_go_title">Authenticeer WebAuthn</string>
+    <string name="fido2webauthn_action_return_title">Terug naar app</string>
+    <!--
+        Empty string is a string that contains zero symbols in it,
+        e.g. "" is an empty string -->
+    <string name="error_must_not_be_empty">Veld mag niet leeg zijn</string>
+    <!--
+        Blank string is an empty string or a string that consists
+        solely of whitespace characters. It's OK to translate it exactly the same
+        as the "Must not be empty" error. -->
+    <string name="error_must_not_be_blank">Veld mag niet leeg zijn</string>
+    <string name="error_must_be_custom_domain">Moet een aangepast domein zijn</string>
+    <string name="error_must_contain_only_us_ascii_chars">Mag alleen US-ASCII tekens bevatten</string>
+    <string name="error_must_have_at_least_n_symbols">Moet minstens <xliff:g id="length" example="15">%1$d</xliff:g> symbolen lang zijn</string>
+    <string name="error_must_have_exactly_n_symbols">Moet exact <xliff:g id="length" example="15">%1$d</xliff:g> symbolen lang zijn</string>
+    <string name="error_invalid_domain">Ongeldig domein</string>
+    <string name="error_invalid_email">Ongeldig e-mailadres</string>
+    <string name="error_invalid_url">Ongeldige URL</string>
+    <string name="error_invalid_uri">Ongeldige URI</string>
+    <string name="error_invalid_card_number">Ongeldige kaartnummer</string>
+    <string name="error_incorrect_password">Onjuist wachtwoord</string>
+    <string name="error_failed_generate_otp_code">Genereren van verificatie code mislukt</string>
+    <string name="error_failed_create_passkey">Failed to create a passkey</string>
+    <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <!-- Title of the 'Show as Barcode' dialog -->
+    <string name="barcodetype_title">Barcode</string>
+    <string name="barcodetype_action_show_in_barcode_title">Toon als barcode</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Kopieer deze verificatiecode naar een ander apparaat door de QR-code te scannen.</string>
+    <!-- Title of the 'Date picker' dialog -->
+    <string name="datepicker_title">Datumkiezer</string>
+    <!-- Title of the 'Color picker' dialog -->
+    <string name="colorpicker_title">Kleurenkiezer</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justdeleteme_title">Hoe verwijder ik mijn account?</string>
+    <string name="justdeleteme_subtitle">Een verzameling van informatie over hoe je je account kunt verwijderen van webdiensten</string>
+    <!-- Simple process -->
+    <string name="justdeleteme_difficulty_easy_label">Gemakkelijk</string>
+    <!-- Some extra steps involved -->
+    <string name="justdeleteme_difficulty_medium_label">Gemiddeld</string>
+    <!-- Cannot be fully deleted without contacting customer services -->
+    <string name="justdeleteme_difficulty_hard_label">Moeilijk</string>
+    <!-- Account can only be deleted if you live in a location with privacy rights -->
+    <string name="justdeleteme_difficulty_limited_availability_label">Beperkte beschikbaarheid</string>
+    <!-- Cannot be deleted -->
+    <string name="justdeleteme_difficulty_impossible_label">Onmogelijk</string>
+    <string name="justdeleteme_send_email_title">Verstuur e-mail</string>
+    <string name="justdeleteme_search_placeholder">Zoek websites</string>
+    <string name="justdeleteme_empty_label">Geen instructies gevonden</string>
+    <string name="tfa_directory_title">Tweestapsverificatie</string>
+    <string name="tfa_directory_text">Lijst van websites met ondersteuning voor tweestapsverificatie</string>
+    <string name="tfa_directory_search_placeholder">Zoek websites</string>
+    <string name="passkeys_directory_title">Passkeys</string>
+    <string name="passkeys_directory_text">Lijst van websites met ondersteuning voor passkeys</string>
+    <string name="passkeys_directory_search_placeholder">Zoek websites</string>
+    <!-- Title of the 'Email data breach' dialog -->
+    <string name="emailleak_title">Datalek</string>
+    <string name="emailleak_note">Gelekte accountgegevens kunnen kwaadaardige personen toegang geven tot gevoelige, persoonlijke en financiële informatie. Dit kan leiden tot identiteitsdiefstal, financiële fraude en andere vormen van cybercriminaliteit.</string>
+    <string name="emailleak_breach_not_found_title">Geen datalekken gevonden</string>
+    <string name="emailleak_breach_found_title">Gelekte accounts gevonden</string>
+    <string name="emailleak_breach_section">Datalekken</string>
+    <string name="emailleak_breach_occurred_at">Voorgevallen op <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Gerapporteerd op <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Gegevenslekken kunnen niet worden gecontroleerd. Mogelijk ben je momenteel offline</string>
+    <string name="passwordleak_title">Datalek</string>
+    <string name="passwordleak_note">Een wachtwoord dat in een datalek aangetroffen is kan makkelijker gekraakt worden en mag nooit gebruikt worden.</string>
+    <string name="passwordleak_occurrences_found_title">Wachtwoord is gelekt</string>
+    <string name="passwordleak_occurrences_found_text">Het wachtwoord is gevonden in bekende datalekken. Wijzig uw wachtword zo snel mogelijk om uw online gegevens te beschermen</string>
+    <string name="passwordleak_occurrences_not_found_title">Geen datalekken gevonden</string>
+    <string name="passwordleak_failed_to_load_status_text">Gegevenslekken kunnen niet worden gecontroleerd. Mogelijk ben je momenteel offline</string>
+    <!-- Title of the 'Show in Large Type' dialog -->
+    <string name="largetype_title">Groot type</string>
+    <string name="largetype_action_show_in_large_type_title">Weergeven in groot type</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Toon in Groot Type en vergrendel de kluis</string>
+    <string name="apppicker_header_title">App kiezer</string>
+    <string name="apppicker_search_placeholder">Geïnstalleerde apps zoeken</string>
+    <string name="apppicker_system_app_label">Systeem app</string>
+    <string name="apppicker_empty_label">Geen apps</string>
+    <string name="folderpicker_header_title">Kies een map</string>
+    <string name="folderpicker_create_new_folder">Nieuwe map aanmaken:</string>
+    <!--
+        When you copy an item to a new destination and choose to copy it into
+        an organization, this text shows up to warn you about ownership. -->
+    <string name="destinationpicker_organization_ownership_note">Deze organisatie zal eigendom zijn van de kopie. U bent niet de directe eigenaar.</string>
+    <string name="emailrelay_list_header_title">E-mail forwarders</string>
+    <string name="emailrelay_list_section_title">E-mail forwarders</string>
+    <string name="emailrelay_delete_one_confirmation_title">Verwijder e-mail forwarder?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Verwijder e-mail forwarders?</string>
+    <string name="emailrelay_integration_title">E-mail forwarder integratie</string>
+    <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="setup_header_text">Maak een versleutelde kluis aan waar de lokale gegevens worden opgeslagen.</string>
+    <string name="setup_field_app_password_label">App-wachtwoord</string>
+    <string name="setup_checkbox_biometric_auth">Biometrische authenticatie</string>
+    <string name="setup_biometric_auth_confirm_title">Nieuwe kluis aanmaken</string>
+    <string name="setup_button_send_crash_reports">Verstuur crashrapporten</string>
+    <string name="setup_button_create_vault">Nieuwe kluis aanmaken</string>
+    <string name="setup_action_erase_data_title">Verwijder app gegevens</string>
+    <string name="setup_action_erase_data_text">Sluit de app en wis alle lokale app data</string>
+    <string name="unlock_header_text">De kluis is vergrendeld. Voer het app-wachtwoord in om door te gaan.</string>
+    <string name="unlock_button_unlock">Ontgrendelen</string>
+    <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_title">Kluis ontgrendelen</string>
+    <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
+    <string name="unlock_biometric_auth_confirm_text">Gebruik biometrische authenticatie om de kluis te ontgrendelen.</string>
+    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
+    <string name="userverification_button_go">Verify</string>
+    <string name="syncstatus_header_title">Synchronisatie status</string>
+    <string name="syncstatus_status_up_to_date">Bijgewerkt</string>
+    <string name="syncstatus_status_pending">In behandeling</string>
+    <string name="syncstatus_status_syncing">Aan het synchroniseren</string>
+    <string name="syncstatus_status_failed">Synchroniseren mislukt</string>
+    <string name="additem_header_new_title">Nieuw item</string>
+    <string name="additem_header_edit_title">Item bewerken</string>
+    <string name="additem_markdown_note">Stijl tekst met <xliff:g id="italic" example="italic">%1$s</xliff:g> of <xliff:g id="bold" example="bold">%2$s</xliff:g> en meer. Beperkte Markdown syntax wordt ondersteund.</string>
+    <string name="additem_markdown_note_italic">cursief</string>
+    <string name="additem_markdown_note_bold">dikgedrukt</string>
+    <string name="additem_markdown_render_preview">Voorbeeld weergeven</string>
+    <string name="additem_auth_reprompt_title">Herauthenticatie</string>
+    <string name="additem_auth_reprompt_text">Vraag om opnieuw te verifiëren wanneer je een item wilt bekijken of automatisch wilt aanvullen</string>
+    <string name="addaccount_header_title">Bitwarden account toevoegen</string>
+    <string name="addaccount_disclaimer_bitwarden_label">We zijn niet geaffilieerd, geassocieerd, geautoriseerd, goedgekeurd door of op enige manier officieel verbonden met Bitwarden, Inc. of een van zijn filialen of medewerkers.</string>
+    <!--
+        A note on top of the Client secret field, that explains why (and how)
+        we need a user to get and type his client secret in a field below -->
+    <string name="addaccount_captcha_need_client_secret_note">Om de captcha verificatie te voltooien in een niet-officiële Bitwarden client moet u een API-sleutel invullen, deze is te vinden in uw Bitwarden account. Bezoek de Bitwarden Web kluis / Instellingen / Beveiliging / Sleutels / API-sleutel, en kopieer de getoonde client secret waarde.</string>
+    <!-- A label on top of the Client secret field -->
+    <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_sign_in_button">Login</string>
+    <string name="addaccount_region_section">Regio</string>
+    <string name="addaccount_region_us_type">Verenigde Staten</string>
+    <string name="addaccount_region_eu_type">Europa</string>
+    <string name="addaccount_region_custom_type">Aangepast (selfhosted)</string>
+    <string name="addaccount_http_header_section">HTTP headers</string>
+    <string name="addaccount_http_header_type">HTTP header</string>
+    <string name="addaccount_http_header_note">U kunt aangepaste HTTP-headers toevoegen die verzonden worden met elk verzoek aan de server.</string>
+    <string name="addaccount_http_header_key_label">Sleutel</string>
+    <string name="addaccount_http_header_value_label">Waarde</string>
+    <string name="addaccount_http_header_add_more_button">Meer toevoegen</string>
+    <string name="addaccount_base_env_server_url_label">Server URL</string>
+    <string name="addaccount_base_env_note">Vul de basis-URL van jouw zelfgehoste Bitwarden-installatie in.</string>
+    <string name="addaccount_custom_env_section">Aangepaste omgeving</string>
+    <string name="addaccount_custom_env_note">U kunt de basis-URL van elke dienst afzonderlijk instellen.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Webkluis Server URL</string>
+    <string name="addaccount_custom_env_api_url_label">API Server URL</string>
+    <string name="addaccount_custom_env_icons_url_label">Pictogrammen Server URL</string>
+    <string name="addaccount_custom_env_identity_url_label">Identiteit Server URL</string>
+    <string name="addaccount2fa_header_title">Verificatie</string>
+    <string name="addaccount2fa_unsupported_note">Deze verificatiemethode wordt nog niet ondersteund.</string>
+    <string name="addaccount2fa_otp_note">Voer de 6-cijferige verificatiecode in die in uw authenticatie-app staat.</string>
+    <string name="addaccount2fa_email_note">Voer de verificatiecode in die per e-mail werd verstuurd naar <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
+    <string name="addaccount2fa_yubikey_manual_text">Voer de YubiKey authenticatie code handmatig in. Plaats de cursor op het veld hieronder en trigger de YubiKey.</string>
+    <string name="provider_2fa_authenticator">Authenticator</string>
+    <string name="provider_2fa_duo_organization">Duo (Organisatie)</string>
+    <string name="provider_2fa_fido2_webauthn">FIDO2 webauthenticatie</string>
+    <string name="provider_2fa_email">E-mail</string>
+    <string name="provider_2fa_fido_u2f">FIDO U2F</string>
+    <string name="yubikey_usb_title">Verbind YubiKey via USB</string>
+    <string name="yubikey_usb_text">Vereist USB OTG ondersteuning.</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Raak de gouden sensor aan op uw YubiKey.</string>
+    <string name="yubikey_nfc_title">Houd je YubiKey plat tegen de achterkant van je apparaat</string>
+    <string name="yubikey_nfc_text">Vereist NFC ondersteuning.</string>
+    <string name="yubikey_error_failed_to_read">Fout bij het lezen van de YubiKey</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn vereist versie <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> of hoger van de Bitwarden Web kluis. Op oudere versies wordt het verificatieresultaat verkeerd doorgestuurd naar de officiële Bitwarden-app.</string>
+    <string name="elevatedaccess_header_title">Bevestig toegang</string>
+    <string name="elevatedaccess_header_text">Deze gegevens zijn beveiligd, voer het app-wachtwoord in om door te gaan.</string>
+    <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_title">Bevestig toegang</string>
+    <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
+    <string name="elevatedaccess_biometric_auth_confirm_text">Gebruik biometrische authenticatie om uw gegevens te ontgrendelen.</string>
+    <string name="home_vault_label">Kluis</string>
+    <string name="home_send_label">Send</string>
+    <string name="home_generator_label">Generator</string>
+    <string name="home_watchtower_label">Watchtower</string>
+    <string name="home_settings_label">Instellingen</string>
+    <string name="lock_reason_inactivity">Vergrendeld door inactiviteit</string>
+    <string name="send_type_text">Tekst</string>
+    <string name="send_type_file">Bestand</string>
+    <string name="cipher_type_login">Login</string>
+    <string name="cipher_type_card">Kaart</string>
+    <string name="cipher_type_identity">Identiteit</string>
+    <string name="cipher_type_note">Notitie</string>
+    <string name="cipher_type_passkey">Passkey</string>
+    <string name="field_type_text">Tekst</string>
+    <string name="field_type_boolean">Boolean</string>
+    <string name="field_type_linked">Gekoppeld</string>
+    <!--
+        Displayed below a password that was exposed in the known data breached. It
+        ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
+    <string name="password_pwned_label">Gelekt</string>
+    <string name="password_strength_very_strong_label">Zeer sterk</string>
+    <string name="password_strength_strong_label">Sterk</string>
+    <string name="password_strength_good_label">Goed</string>
+    <string name="password_strength_fair_label">Redelijk</string>
+    <string name="password_strength_weak_label">Zwak</string>
+    <string name="passwords_very_strong_label">Zeer sterke wachtwoorden</string>
+    <string name="passwords_strong_label">Sterke wachtwoorden</string>
+    <string name="passwords_good_label">Goede wachtwoorden</string>
+    <string name="passwords_fair_label">Redelijke wachtwoorden</string>
+    <string name="passwords_weak_label">Zwakke wachtwoorden</string>
+    <string name="filter_header_title">Filter</string>
+    <string name="filter_empty_label">Geen filters beschikbaar</string>
+    <string name="sort_header_title">Sorteren op</string>
+    <string name="sort_empty_label">Geen sortering beschikbaar</string>
+    <string name="sortby_title_title">Titel</string>
+    <string name="sortby_title_normal_mode">Alfabetisch</string>
+    <string name="sortby_title_reverse_mode">Omgekeerd alfabetisch</string>
+    <string name="sortby_access_count_title">Aantal keer bekeken</string>
+    <string name="sortby_access_count_normal_mode">Grootste eerst</string>
+    <string name="sortby_access_count_reverse_mode">Kleinste eerst</string>
+    <string name="sortby_modification_date_title">Wijzigingsdatum</string>
+    <string name="sortby_modification_date_normal_mode">Nieuwste eerst</string>
+    <string name="sortby_modification_date_reverse_mode">Oudste eerst</string>
+    <string name="sortby_expiration_date_title">Verloopdatum</string>
+    <string name="sortby_expiration_date_normal_mode">Nieuwste eerst</string>
+    <string name="sortby_expiration_date_reverse_mode">Oudste eerst</string>
+    <string name="sortby_deletion_date_title">Verwijderdatum</string>
+    <string name="sortby_deletion_date_normal_mode">Nieuwste eerst</string>
+    <string name="sortby_deletion_date_reverse_mode">Oudste eerst</string>
+    <string name="sortby_password_title">Wachtwoord</string>
+    <string name="sortby_password_normal_mode">Alfabetisch</string>
+    <string name="sortby_password_reverse_mode">Omgekeerd alfabetisch</string>
+    <string name="sortby_password_modification_date_title">Wachtwoord wijzigingsdatum</string>
+    <string name="sortby_password_modification_date_normal_mode">Nieuwste eerst</string>
+    <string name="sortby_password_modification_date_reverse_mode">Oudste eerst</string>
+    <string name="sortby_password_strength_title">Wachtwoordsterkte</string>
+    <string name="sortby_password_strength_normal_mode">Zwakste eerst</string>
+    <string name="sortby_password_strength_reverse_mode">Sterkste eerst</string>
+    <string name="vault_main_search_placeholder">Kluis doorzoeken</string>
+    <string name="vault_main_new_item_button">Nieuw item</string>
+    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <!-- A label for the CVV code of the card -->
+    <string name="vault_view_card_cvv_label">Veiligheidscode</string>
+    <string name="vault_view_saved_to_label">Opgeslagen in <xliff:g id="email" example="username@example.com">%1$s</xliff:g> bij <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Wachtwoord laatst gewijzigd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Passkey aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">Laatst gewijzigd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">Aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">Verwijderd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Verlopen op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Vervaldatum gepland op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Verwijderen gepland op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <!-- Call the phone number. The text should be as short as possible! -->
+    <string name="vault_view_call_phone_action">Bellen</string>
+    <!-- Text the phone number (SMS). The text should be as short as possible! -->
+    <string name="vault_view_text_phone_action">Tekst</string>
+    <!-- Compose an email. The text should be as short as possible! -->
+    <string name="vault_view_email_action">E-mail</string>
+    <!-- Open navigation to address. The text should be as short as possible! -->
+    <string name="vault_view_navigate_action">Routebeschrijving</string>
+    <string name="send_main_header_title">Sends</string>
+    <string name="send_main_search_placeholder">Sends zoeken</string>
+    <string name="send_main_new_item_button">Nieuw item</string>
+    <string name="send_password_is_required_to_access_label">Een wachtwoord is vereist om toegang te krijgen tot dit bericht</string>
+    <string name="generator_header_title">Generator</string>
+    <string name="generator_header_username_title">Gebruikersnaam generator</string>
+    <string name="generator_header_password_title">Wachtwoord generator</string>
+    <string name="generator_generate_button">Genereren</string>
+    <string name="generator_regenerate_button">Opnieuw genereren</string>
+    <string name="generator_passphrase_type">Wachtwoordzin</string>
+    <string name="generator_passphrase_note">Willekeurige wachtwoordzinnen bieden de beste combinatie van geheugen en veiligheid.</string>
+    <string name="generator_passphrase_delimiter_title">Scheidingsteken</string>
+    <string name="generator_passphrase_capitalize_title">Hoofdletters</string>
+    <string name="generator_passphrase_number_title">Nummers</string>
+    <string name="generator_username_type">Gebruikersnaam</string>
+    <string name="generator_username_delimiter_title">Scheidingsteken</string>
+    <string name="generator_username_custom_word_title">Aangepast woord</string>
+    <string name="generator_username_capitalize_title">Hoofdletters</string>
+    <string name="generator_username_number_title">Nummers</string>
+    <string name="generator_password_type">Willekeurige symbolen</string>
+    <string name="generator_password_note">Een sterk wachtwoord heeft ten minste <xliff:g id="length" example="15">%1$d</xliff:g> tekens, hoofdletters &amp; kleine letters, cijfers en symbolen.</string>
+    <string name="generator_password_numbers_title">Cijfers</string>
+    <string name="generator_password_symbols_title">Symbolen</string>
+    <string name="generator_password_uppercase_letters_title">Hoofdletters</string>
+    <string name="generator_password_lowercase_letters_title">Kleine letters</string>
+    <!-- An option to exclude symbols like this: il1Lo0O -->
+    <string name="generator_password_exclude_similar_symbols_title">Gelijksoortige symbolen uitsluiten</string>
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <string name="generator_password_exclude_ambiguous_symbols_title">Dubbele symbolen uitsluiten</string>
+    <string name="generator_email_catch_all_type">Catch-all e-mail</string>
+    <string name="generator_email_catch_all_note">Een catch-all e-mailadres biedt gebruikers de mogelijkheid om alle e-mails te ontvangen die naar hun domein zijn verzonden. Zelfs als ze worden verzonden naar een e-mailadres dat niet is ingesteld voor hun domein. Zorg ervoor dat uw e-mail hosting deze functie ondersteunt voordat u deze gebruikt.</string>
+    <!-- Referring to a website domain -->
+    <string name="generator_email_catch_all_domain_title">Domein</string>
+    <string name="generator_email_plus_addressing_type">E-mail met plus</string>
+    <string name="generator_email_plus_addressing_note">Een e-mailadres met plus betekent dat elke e-mail verzonden naar <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> nog steeds naar uw account wordt verzonden. Dit betekent dat je veel variaties kunt hebben op je e-mailadres om uit te geven aan verschillende personen, sites of mailinglijsten. Zorg ervoor dat uw e-mail hosting deze functie ondersteunt voordat u deze gebruikt.</string>
+    <string name="generator_email_plus_addressing_email_title">E-mail</string>
+    <string name="generator_email_subdomain_addressing_type">E-mail met subdomein</string>
+    <string name="generator_email_subdomain_addressing_note">Een subdomein e-mailadres betekent dat elke e-mail verzonden naar <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> nog steeds naar uw account wordt verzonden. Dit betekent dat je veel variaties kunt hebben op je e-mailadres om uit te geven aan verschillende personen, sites of mailinglijsten. Zorg ervoor dat uw e-mail hosting deze functie ondersteunt voordat u deze gebruikt.</string>
+    <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
+    <string name="generator_email_forward_alias_type">Doorgestuurde e-mail alias</string>
+    <string name="generator_create_item_with_password_title">Maak een nieuwe login met het wachtwoord</string>
+    <string name="generator_create_item_with_username_title">Maak een nieuwe login met de gebruikersnaam</string>
+    <string name="generator_password_history_title">Wachtwoord geschiedenis</string>
+    <string name="generator_show_tips_title">Tips weergeven</string>
+    <string name="generatorhistory_header_title">Generator geschiedenis</string>
+    <string name="generatorhistory_clear_history_title">Wis geschiedenis</string>
+    <string name="generatorhistory_clear_history_confirmation_title">Generator geschiedenis wissen?</string>
+    <string name="generatorhistory_clear_history_confirmation_text">Dit zal alle items uit de geschiedenis verwijderen.</string>
+    <string name="passwordhistory_header_title">Wachtwoord geschiedenis</string>
+    <string name="passwordhistory_clear_history_title">Geschiedenis wissen</string>
+    <string name="passwordhistory_clear_history_confirmation_title">Wachtwoord geschiedenis wissen?</string>
+    <string name="passwordhistory_clear_history_confirmation_text">Dit verwijdert alle wachtwoorden uit de geschiedenis.</string>
+    <string name="watchtower_header_title">Watchtower</string>
+    <string name="watchtower_section_password_strength_label">Wachtwoordsterkte</string>
+    <string name="watchtower_section_security_label">Beveiliging</string>
+    <string name="watchtower_section_maintenance_label">Onderhoud</string>
+    <string name="watchtower_item_pwned_passwords_title">Gelekte wachtwoorden</string>
+    <string name="watchtower_item_pwned_passwords_text">Wachtwoorden die zijn gevonden in datalekken. Dergelijke wachtwoorden moeten onmiddellijk worden gewijzigd.</string>
+    <string name="watchtower_item_reused_passwords_title">Hergebruikte wachtwoorden</string>
+    <string name="watchtower_item_reused_passwords_text">Gebruik niet hetzelfde wachtwoord op meerdere websites. Genereer unieke wachtwoorden om de beveiliging te verbeteren.</string>
+    <string name="watchtower_item_vulnerable_accounts_title">Kwetsbare Accounts</string>
+    <string name="watchtower_item_vulnerable_accounts_text">Websites die getroffen zijn door datalekken sinds je voor het laatst je wachtwoord hebt gewijzigd. Wijzig je wachtwoord om je account veilig te houden.</string>
+    <string name="watchtower_item_unsecure_websites_title">Onveilige websites</string>
+    <string name="watchtower_item_unsecure_websites_text">Wijzig de URL\'s die het HTTP-protocol gebruiken om het HTTPS-protocol te gebruiken, dit zorgt ervoor dat de meest geavanceerde beschikbare versleuteling wordt gebruikt.</string>
+    <string name="watchtower_item_inactive_2fa_title">Inactieve tweestapsverificatie</string>
+    <string name="watchtower_item_inactive_2fa_text">Websites met tweestapsverificatie beschikbaar, maar u hebt deze nog niet ingesteld.</string>
+    <string name="watchtower_item_inactive_passkey_title">Beschikbare Passkeys</string>
+    <string name="watchtower_item_inactive_passkey_text">Websites die passkeys ondersteunen, maar waar je deze nog niet hebt ingesteld. Het is eenvoudiger en veiliger dan een wachtwoord.</string>
+    <string name="watchtower_item_incomplete_items_title">Onvolledige items</string>
+    <string name="watchtower_item_incomplete_items_text">Helpt u ontbrekende of onvolledige gegevens in uw kluis te identificeren. Dit kan verwijzen naar identiteiten met ontbrekende namen of logins zonder gebruikersnamen.</string>
+    <string name="watchtower_item_expiring_items_title">Verlopende items</string>
+    <string name="watchtower_item_expiring_items_text">Items die verlopen zijn of binnenkort verlopen.</string>
+    <string name="watchtower_item_duplicate_websites_title">Dubbele URIs</string>
+    <string name="watchtower_item_duplicate_websites_text">Items met een of meer URI\'s die dezelfde websites bevatten na het toepassen van de overeenkomst detectie.</string>
+    <string name="watchtower_item_trashed_items_title">Weggegooide items</string>
+    <string name="watchtower_item_trashed_items_text">Voorwerpen die naar de prullenbak zijn verplaatst. Te veel voorwerpen in de prullenbak kunnen de reactietijd van je kluis verlagen.</string>
+    <string name="watchtower_item_empty_folders_title">Lege mappen</string>
+    <string name="watchtower_item_empty_folders_text">Mappen die geen items bevatten.</string>
+    <string name="watchtower_item_duplicate_items_title">Dubbele items</string>
+    <string name="watchtower_item_duplicate_items_text">Helpt u dubbele items in uw kluis te identificeren en te verwijderen.</string>
+    <string name="watchtower_item_compromised_accounts_title">Gecompromitteerde Accounts</string>
+    <string name="watchtower_item_compromised_accounts_text">Controleer of je gebruikersnamen en wachtwoorden zijn gevonden in bekende datalekken.</string>
+    <string name="changepassword_header_title">App-wachtwoord wijzigen</string>
+    <string name="changepassword_change_password_button">Wachtwoord wijzigen</string>
+    <string name="changepassword_biometric_auth_checkbox">Biometrische authenticatie</string>
+    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
+    <string name="changepassword_biometric_auth_confirm_title">App-wachtwoord wijzigen</string>
+    <string name="changepassword_disclaimer_local_note">Het app-wachtwoord wordt nooit op het apparaat opgeslagen of via het netwerk verzonden. Het wordt gebruikt om een geheime sleutel te genereren die wordt gebruikt om de lokale gegevens te versleutelen.</string>
+    <string name="changepassword_disclaimer_abuse_note">Zolang u geen onbevoegde toegang vermoedt of malware hebt ontdekt op uw apparaat is het niet nodig om het wachtwoord te wijzigen als u een sterk en uniek wachtwoord gebruikt.</string>
+    <string name="contactus_header_title">Contacteer ons</string>
+    <string name="contactus_message_label">Jouw bericht</string>
+    <string name="contactus_english_note">Gebruik Engels om ervoor te zorgen dat je feedback niet verkeerd wordt begrepen.</string>
+    <string name="contactus_thanks_note">Wij waarderen de tijd die u besteedt aan het sturen van een bericht. Je bericht gaat rechtstreeks naar ons en we gebruiken het om problemen op te lossen, productverbeteringen te maken en problemen op te lossen. Hoewel we niet op elk bericht kunnen reageren, zijn we bezig om verbeteringen &amp; problemen zo snel mogelijk op te lossen.</string>
+    <string name="account_main_header_title">Accounts</string>
+    <string name="account_main_add_account_title">Account toevoegen</string>
+    <string name="team_header_title">Team achter de app</string>
+    <string name="team_artem_whoami_text">Ik ben een software engineer uit Oekraïne. Ik ben gespecialiseerd in app-ontwerp en -ontwikkeling.</string>
+    <string name="team_follow_me_section">Volg mij</string>
+    <string name="settingssearch_header_title">Zoeken</string>
+    <string name="settingssearch_header_subtitle">Instellingen</string>
+    <string name="settingssearch_search_placeholder">Zoeken in instellingen</string>
+    <string name="settings_appearance_header_title">Uiterlijk</string>
+    <string name="settings_autofill_header_title">Automatisch aanvullen</string>
+    <string name="settings_dev_header_title">Ontwikkeling</string>
+    <string name="settings_experimental_header_title">Experimenteel</string>
+    <string name="settings_main_header_title">Instellingen</string>
+    <string name="settings_notifications_header_title">Meldingen</string>
+    <string name="settings_other_header_title">Overige</string>
+    <string name="settings_permissions_header_title">Rechten</string>
+    <string name="settings_security_header_title">Beveiliging</string>
+    <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_watchtower_header_title">Watchtower</string>
+    <string name="settings_open_source_licenses_header_title">Open-source licenties</string>
+    <string name="pref_item_accounts_title">Accounts</string>
+    <string name="pref_item_accounts_text">Toon &amp; voeg accounts toe</string>
+    <string name="pref_item_autofill_title">Automatisch aanvullen</string>
+    <string name="pref_item_autofill_text">Android autofill service</string>
+    <string name="pref_item_security_title">Beveiliging</string>
+    <string name="pref_item_security_text">Biometrie, verander wachtwoord, kluis timeout</string>
+    <string name="pref_item_subscription_title">Keyguard Premium</string>
+    <string name="pref_item_subscription_text">Ontgrendel functies &amp; ondersteun de ontwikkeling van de app</string>
+    <string name="pref_item_watchtower_title">Watchtower</string>
+    <string name="pref_item_watchtower_text">Gecompromitteerde diensten, kwetsbare wachtwoorden</string>
+    <string name="pref_item_notifications_title">Meldingen</string>
+    <string name="pref_item_notifications_text">Waarschuwingen</string>
+    <string name="pref_item_appearance_title">Uiterlijk</string>
+    <string name="pref_item_appearance_text">Taal, thema en animaties</string>
+    <string name="pref_item_dev_title">Ontwikkeling</string>
+    <string name="pref_item_dev_text">Test instellingen voor ontwikkeling</string>
+    <string name="pref_item_other_title">Overige</string>
+    <string name="pref_item_other_text">Community websites, app informatie</string>
+    <string name="pref_item_nav_label_title">Labels weergeven op navigatieknoppen</string>
+    <string name="pref_item_app_version_title">App versie</string>
+    <string name="pref_item_app_build_date_title">App bouw datum</string>
+    <string name="pref_item_app_team_title">Team achter de app</string>
+    <string name="pref_item_reddit_community_title">Reddit community</string>
+    <string name="pref_item_github_title">GitHub project</string>
+    <string name="pref_item_crowdin_title">Crowdin project</string>
+    <string name="pref_item_open_source_licenses_title">Open-source licenties</string>
+    <string name="pref_item_download_apk_title">APK-bestand downloaden</string>
+    <string name="pref_item_load_app_icons_title">Laad app pictogrammen</string>
+    <string name="pref_item_load_website_icons_title">Laad website iconen</string>
+    <string name="pref_item_load_website_icons_text">Website iconen tonen kan het adres van de website lekken naar uw internetprovider</string>
+    <string name="pref_item_markdown_title">Rijke tekst opmaak</string>
+    <string name="pref_item_markdown_text">Gebruik Markdown om notities te formatteren</string>
+    <string name="pref_item_locale_title">Taal</string>
+    <string name="pref_item_locale_help_translation_button">Help om deze app te vertalen</string>
+    <string name="pref_item_font_title">Lettertype</string>
+    <string name="pref_item_rate_on_play_store_title">Beoordeel in de Play Store</string>
+    <string name="pref_item_color_accent_title">Tint kleur</string>
+    <string name="pref_item_color_scheme_title">Thema</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">Gebruik zwart contrast thema</string>
+    <string name="pref_item_open_links_in_external_browser_title">Open links in externe browser</string>
+    <string name="pref_item_conceal_fields_title">Verberg velden</string>
+    <string name="pref_item_conceal_fields_text">Verberg gevoelige informatie, zoals wachtwoorden en creditcardnummers</string>
+    <!--
+        When a user clicks this button, the app crashes. Not visible to
+        regular users. -->
+    <string name="pref_item_crash_title">Crash</string>
+    <string name="pref_item_credential_provider_title">Credential provider</string>
+    <string name="pref_item_credential_provider_text">Passkeys, passwords and data services</string>
+    <string name="pref_item_privacy_policy_title">Privacy policy</string>
+    <string name="pref_item_contact_us_title">Contacteer ons</string>
+    <string name="pref_item_experimental_title">Experimenteel</string>
+    <string name="pref_item_change_app_password_title">App-wachtwoord wijzigen</string>
+    <string name="pref_item_require_app_password_title">Vereis app-wachtwoord</string>
+    <string name="pref_item_require_app_password_note">Naast de normale beveiligingsinstellingen is het app-wachtwoord vereist na deze tijd of wanneer de biometrische instellingen zijn gewijzigd</string>
+    <string name="pref_item_require_app_password_immediately_text">Onmiddelijk</string>
+    <string name="pref_item_require_app_password_never_text">Nooit</string>
+    <string name="pref_item_send_crash_reports_title">Verstuur crashrapporten</string>
+    <string name="pref_item_nav_animation_title">Overgang animatie</string>
+    <string name="pref_item_erase_data_title">Erase app data</string>
+    <string name="pref_item_erase_data_text">Close the app and erase all local app data</string>
+    <string name="pref_item_allow_screenshots_title">Schermafbeeldingen toestaan</string>
+    <string name="pref_item_allow_screenshots_text_on">Laat de inhoud van de app zien wanneer u schakelt tussen recente apps en laat het maken van een schermopnames toe</string>
+    <string name="pref_item_allow_screenshots_text_off">Verberg de inhoud van de app wanneer u schakelt tussen recente apps en verbied het maken van schermopnames</string>
+    <string name="pref_item_data_safety_title">Veiligheid van gegevens</string>
+    <string name="pref_item_lock_vault_title">Kluis vergrendelen</string>
+    <string name="pref_item_lock_vault_after_reboot_title">Vergrendelen na een herstart</string>
+    <string name="pref_item_lock_vault_after_reboot_text">Vergrendel de kluis na een systeem herstart</string>
+    <string name="pref_item_lock_vault_after_screen_off_title">Vergrendelen wanneer het scherm wordt uitgeschakeld</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">Vergrendel de kluis na enkele seconden nadat het scherm uitgeschakeld is</string>
+    <string name="pref_item_lock_vault_after_delay_title">Vergrendelen na vertraging</string>
+    <string name="pref_item_lock_vault_after_delay_immediately_text">Onmiddelijk</string>
+    <string name="pref_item_lock_vault_after_delay_never_text">Nooit</string>
+    <string name="pref_item_persist_vault_key_title">Sla de kluissleutel op in opslag</string>
+    <string name="pref_item_persist_vault_key_text_on">Kluissleutel blijft opgeslagen in interne opslag</string>
+    <string name="pref_item_persist_vault_key_text_off">Kluis wordt vergrendeld nadat de app volledig is afgesloten</string>
+    <string name="pref_item_persist_vault_key_note">Het opslaan van de kluissleutel op een schijf zorgt voor een veiligheidsrisico. Als de interne opslag van het apparaat gecompromitteerd is zal de aanvaller toegang krijgen tot de lokale kluisgegevens.</string>
+    <string name="pref_item_permissions_title">Machtigingen</string>
+    <string name="pref_item_features_overview_title">Overzicht van functies</string>
+    <string name="pref_item_biometric_unlock_title">Biometrische ontgrendeling</string>
+    <!--
+        A title of the system popup that asks a user to use his biometric to later
+        be able to use it to unlock the vault. -->
+    <string name="pref_item_biometric_unlock_confirm_title">Biometrische ontgrendeling</string>
+    <string name="pref_item_keep_screen_on_title">Houd het scherm aan tijdens het bekijken van items</string>
+    <string name="pref_item_autofill_service_title">Autofill service</string>
+    <string name="pref_item_autofill_service_text">Gebruik het Android Autofill Framework om te helpen bij het automatisch invullen van inloggegevens in andere apps op het apparaat</string>
+    <string name="pref_item_autofill_auto_copy_otp_title">Automatisch verificatie codes kopiëren</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">Bij het invullen van een inloggegevens worden eenmalige verificatie codes gekopieerd</string>
+    <string name="pref_item_autofill_inline_suggestions_title">Inline suggesties</string>
+    <string name="pref_item_autofill_inline_suggestions_text">Voeg automatische invulsuggesties toe in compatibele toetsenborden</string>
+    <string name="pref_item_autofill_manual_selection_title">Handmatige selectie</string>
+    <string name="pref_item_autofill_manual_selection_text">Toont een optie om handmatig een item te zoeken in de kluis</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Respecteer de \'Autofill disabled\' flag</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">Schakelt automatisch invullen uit voor een browserveld dat automatisch invullen uitgeschakeld heeft</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Houd er rekening mee dat sommige websites automatisch invullen uitschakelen voor een wachtwoordveld en dat ook sommige browsers deze optie negeren</string>
+    <string name="pref_item_autofill_save_request_title">Vraag om gegevens op te slaan</string>
+    <string name="pref_item_autofill_save_request_text">Vraag om een item van de kluis bij te werken nadat het invullen van een formulier is voltooid</string>
+    <string name="pref_item_autofill_auto_save_source_title">App- of website-informatie automatisch opslaan</string>
+    <string name="pref_item_clipboard_auto_clear_title">Klembord automatisch wissen</string>
+    <string name="pref_item_clipboard_auto_clear_immediately_text">Onmiddelijk</string>
+    <string name="pref_item_clipboard_auto_clear_never_text">Nooit</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Eenmalige wachtwoord notificatie duur</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Wanneer u een inlogitem met een eenmalig verificatiecode invult, zal de notificatie met verificatiecode verschijnen voor tenminste de gedefinieerde duur</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Nooit</string>
+    <string name="pref_item_premium_membership_title">Over het Keyguard lidmaatschap</string>
+    <string name="pref_item_premium_membership_text">De premium versie ontgrendelt extra functionaliteiten en financiert de ontwikkeling van de app. Bedankt voor uw steun! ❤️</string>
+    <string name="pref_item_premium_membership_section_subscriptions_title">Abonnementen</string>
+    <string name="pref_item_premium_membership_section_products_title">Producten</string>
+    <string name="pref_item_premium_membership_failed_to_load_subscriptions">Fout bij het laden van de lijst met abonnementen</string>
+    <string name="pref_item_premium_membership_failed_to_load_products">Fout bij het laden van de lijst met producten</string>
+    <string name="pref_item_premium_status_active">Actief</string>
+    <string name="pref_item_premium_status_will_not_renew">Wordt niet verlengd</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Beheren in Play Store</string>
+    <string name="pref_item_permission_post_notifications_title">Meldingen sturen</string>
+    <string name="pref_item_permission_post_notifications_text">Wordt gebruikt voor het plaatsen van downloadmeldingen</string>
+    <string name="pref_item_permission_camera_title">Camera</string>
+    <string name="pref_item_permission_camera_text">Wordt gebruikt om QR-codes te scannen</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Twee panelen indeling in landschap modus toestaan</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Twee panelen indeling in portret modus toestaan</string>
+    <string name="theme_dark">Donker</string>
+    <string name="theme_light">Licht</string>
+    <string name="nav_animation_disabled">Uitgeschakeld</string>
+    <string name="nav_animation_dynamic">Dynamisch</string>
+    <string name="nav_animation_crossfade">Overvloeien</string>
+    <string name="font_atkinson_hyperlegible_text">Speciaal ontwikkeld om de leesbaarheid voor lezers met een laag zicht te vergroten en het begrip te verbeteren</string>
+    <string name="feat_header_title">Overzicht van functies</string>
+    <string name="feat_keyguard_premium_label">Keyguard Premium</string>
+    <string name="feat_item_multiple_accounts_title">Meerdere accounts</string>
+    <string name="feat_item_multiple_accounts_text">Aanmelden bij meerdere accounts tegelijkertijd.</string>
+    <string name="feat_item_two_way_sync_title">Synchronisatie in twee richtingen</string>
+    <string name="feat_item_two_way_sync_text">Voeg items toe en bewerk bestaande items en synchroniseer de wijzigingen terug.</string>
+    <string name="feat_item_offline_editing_title">Offline bewerken</string>
+    <string name="feat_item_offline_editing_text">Items toevoegen of bewerken zonder internet verbinding.</string>
+    <string name="feat_section_search_title">Zoeken</string>
+    <string name="feat_item_search_by_anything_title">Zoeken naar alles</string>
+    <string name="feat_item_search_by_anything_text">Naam, e-mail, wachtwoord, telefoonnummer etc.</string>
+    <string name="feat_item_filter_title">Filter</string>
+    <string name="feat_item_filter_text">Filter op map, organisatie, type etc.</string>
+    <string name="feat_item_multiple_keywords_title">Meerdere trefwoorden</string>
+    <string name="feat_item_multiple_keywords_text">Zoek op \'bitw test\' om je \'Bitwarden Test Account\' item te vinden.</string>
+    <string name="feat_section_watchtower_title">Watchtower</string>
+    <string name="feat_item_pwned_passwords_title">Gelekte wachtwoorden</string>
+    <string name="feat_item_pwned_passwords_text">Zoek gelekte wachtwoorden in bekende datalekken.</string>
+    <string name="feat_item_password_strength_title">Wachtwoordsterkte</string>
+    <string name="feat_item_password_strength_text">Vind items met zwakke wachtwoorden.</string>
+    <string name="feat_item_reused_passwords_title">Hergebruikte wachtwoorden</string>
+    <string name="feat_item_reused_passwords_text">Vind items met hergebruikte wachtwoorden.</string>
+    <string name="feat_item_inactive_totp_title">Inactieve 2FA</string>
+    <string name="feat_item_inactive_totp_text">Vind logins met beschikbare TOTP tweestapsverificatie.</string>
+    <string name="feat_item_unsecure_websites_title">Onveilige websites</string>
+    <string name="feat_item_unsecure_websites_text">Zoek websites die het HTTP-protocol gebruiken, auto-fix naar HTTPS.</string>
+    <string name="feat_item_incomplete_items_title">Onvolledige items</string>
+    <string name="feat_item_incomplete_items_text">Lege items zoeken die mogelijk updates nodig hebben.</string>
+    <string name="feat_item_expiring_items_title">Verlopende items</string>
+    <string name="feat_item_expiring_items_text">Vind verlopen of binnenkort verlopende items.</string>
+    <string name="feat_item_duplicate_items_title">Dubbele items</string>
+    <string name="feat_item_duplicate_items_text">Zoek dubbele items en voeg deze samen.</string>
+    <string name="feat_section_misc_title">Overige</string>
+    <string name="feat_item_multi_selection_title">Meervoudige selectie</string>
+    <string name="feat_item_multi_selection_text">Samenvoegen van items, of het verwijderen van meerdere items in één keer.</string>
+    <string name="feat_item_show_barcode_title">Toon als streepjescode</string>
+    <string name="feat_item_show_barcode_text">Coderen van tekst als barcode.</string>
+    <string name="feat_item_generator_title">Generator</string>
+    <string name="feat_item_generator_text">Genereer wachtwoorden en gebruikersnamen.</string>
+    <string name="datasafety_header_title">Veiligheid van gegevens</string>
+    <string name="datasafety_local_section">Lokale gegevens</string>
+    <string name="datasafety_local_text">Lokale gegevens bestaan uit Downloads, Gebruikersinstellingen en Kluis gegevens. Ze worden opgeslagen in de interne opslag van uw apparaat, dat alleen toegankelijk is door het Android-systeem of de Keyguard app.</string>
+    <string name="datasafety_local_downloads_section">Downloads</string>
+    <string name="datasafety_local_settings_section">Gebruikersinstellingen</string>
+    <string name="datasafety_local_settings_note">De gebruikersinstellingen worden versleuteld met behulp van een apparaatspecifieke sleutel.</string>
+    <string name="datasafety_local_vault_section">Gebruikersinstellingen</string>
+    <string name="datasafety_local_encryption_algorithm_intro">De kluis is versleuteld met behulp van een sleutel die is afgeleid van het app-wachtwoord met behulp van de volgende stappen:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">De Salt en de Hash worden vervolgens lokaal opgeslagen op uw apparaat, om vervolgens een hoofdsleutel mee te genereren om de kluis te ontgrendelen.</string>
+    <string name="datasafety_local_unlocking_vault">Een kluis ontgrendelen betekent dat een correcte sleutel opgeslagen wordt in de RAM van het apparaat, zodat u de mogelijkheid krijgt om de versleutelde kluis te lezen en aan te passen.</string>
+    <string name="datasafety_remote_section">Externe gegevens</string>
+    <string name="datasafety_remote_text">Externe gegevens worden opgeslagen op Bitwarden servers met zero-knowledge encryptie.</string>
+</resources>

@@ -1,0 +1,28 @@
+import kotlinx.datetime.Instant;
+import kotlin.Boolean;
+
+CREATE TABLE generatorHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  value TEXT NOT NULL,
+  createdAt INTEGER AS Instant NOT NULL,
+  isPassword INTEGER AS Boolean NOT NULL,
+  isUsername INTEGER AS Boolean NOT NULL,
+  isEmailRelay INTEGER AS Boolean
+);
+
+insert:
+INSERT INTO generatorHistory(value, createdAt, isPassword, isUsername, isEmailRelay)
+VALUES (?, ?, ?,?, ?);
+
+get:
+SELECT *
+FROM generatorHistory
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+deleteAll:
+DELETE FROM generatorHistory;
+
+deleteByIds:
+DELETE FROM generatorHistory
+WHERE id IN (:ids);

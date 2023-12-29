@@ -1,0 +1,40 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta;
+
+CREATE TABLE meta (
+  accountId TEXT NOT NULL PRIMARY KEY,
+  data TEXT AS BitwardenMeta NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE meta
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId;
+
+  INSERT OR IGNORE INTO meta(accountId, data)
+  VALUES (:accountId, :data);
+}
+
+get:
+SELECT *
+FROM meta;
+
+getIds:
+SELECT accountId
+FROM meta;
+
+getByAccountId:
+SELECT *
+FROM meta
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM meta;
+
+deleteByAccountId:
+DELETE FROM meta
+WHERE
+    accountId == :accountId;

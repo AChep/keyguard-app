@@ -1,0 +1,53 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection;
+
+CREATE TABLE collection (
+  collectionId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT AS BitwardenCollection NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE collection
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    collectionId = :collectionId;
+
+  INSERT OR IGNORE INTO collection(collectionId, accountId, data)
+  VALUES (:collectionId, :accountId, :data);
+}
+
+get:
+SELECT *
+FROM collection;
+
+getIds:
+SELECT collectionId
+FROM collection;
+
+getByCollectionId:
+SELECT *
+FROM collection
+WHERE
+    collectionId == :collectionId;
+
+getByAccountId:
+SELECT *
+FROM collection
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM collection;
+
+deleteByCollectionId:
+DELETE FROM collection
+WHERE
+    collectionId == :collectionId;
+
+deleteByAccountIds:
+DELETE FROM collection
+WHERE
+    accountId IN :accountId;

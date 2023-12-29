@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!--
+        I need this permission to be able to check if linked app is installed on the
+        system or not. -->
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <!--
+        I need this permission to wait till the connectivity is available
+        before connecting to a various network services.
+        -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Vibrate on long click -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Camera -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+
+    <!-- Chrome OS -->
+    <meta-data
+        android:name="WindowManagerPreference:SuppressWindowControlNavigationButton"
+        android:value="true" />
+    <meta-data
+        android:name="WindowManagerPreference:FreeformWindowSize"
+        android:value="tablet" />
+    <meta-data
+        android:name="WindowManagerPreference:FreeformWindowOrientation"
+        android:value="landscape" />
+
+    <!-- Security keys -->
+    <uses-permission android:name="android.permission.NFC" />
+
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="false" />
+
+    <!-- we use another library for the lower sdk -->
+    <uses-sdk tools:overrideLibrary="androidx.security" />
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/backup_data_extraction_rules"
+        android:fullBackupContent="@xml/backup_full_backup_content">
+        <activity
+            android:name="com.artemchep.keyguard.android.MainActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="keyguard" />
+                <data android:scheme="bitwarden" />
+
+                <data android:host="webauthn-callback" />
+            </intent-filter>
+
+            <layout
+                android:defaultWidth="640dp"
+                android:defaultHeight="480dp" />
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity>
+        <activity
+            android:name="com.artemchep.keyguard.android.LargeTypeActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":autofill"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.artemchep.keyguard.android.AutofillActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":autofill"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.artemchep.keyguard.android.PasskeyCreateActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":passkey"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":passkey"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.artemchep.keyguard.android.PasskeyGetUnlockActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":passkey"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.artemchep.keyguard.android.AutofillSaveActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":autofill"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name="com.artemchep.keyguard.android.AutofillFakeAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":autofill_fake_auth" />
+
+        <receiver
+            android:name="com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="${applicationId}.ACTION_ATTACHMENT_DOWNLOAD_CANCEL" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name="com.artemchep.keyguard.android.downloader.receiver.CopyActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="${applicationId}.ACTION_COPY" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="com.artemchep.keyguard.android.clipboard.KeyguardClipboardService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Show/update one-time password notifications" />
+        </service>
+
+        <service
+            android:name="com.artemchep.keyguard.android.autofill.KeyguardAutofillService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_AUTOFILL_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.autofill.AutofillService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.autofill"
+                android:resource="@xml/config_autofill_service" />
+        </service>
+        <service
+            android:name="com.artemchep.keyguard.android.autofill.KeyguardCredentialService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.credentials.CredentialProviderService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.credentials.provider"
+                android:resource="@xml/config_credential_service" />
+        </service>
+
+        <service
+            android:name="com.artemchep.keyguard.android.shortcut.ShortcutTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_lock_outline"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="false" />
+        </service>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <profileable
+            android:shell="true"
+            tools:targetApi="q" />
+
+        <!--
+            We use work manager to download the files, therefore
+            we have to append the correct foreground service type.
+            -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
+        <!-- Analytics opt-out by default -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+
+        <!-- Crashlytics opt-out by default -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+    </application>
+</manifest>

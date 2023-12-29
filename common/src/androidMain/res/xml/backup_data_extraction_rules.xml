@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <!-- https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-12 -->
+    <cloud-backup>
+        <!-- do no backup anything -->
+    </cloud-backup>
+    <device-transfer>
+        <!-- do no backup anything -->
+    </device-transfer>
+</data-extraction-rules>

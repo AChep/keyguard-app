@@ -1,0 +1,6 @@
+CREATE TABLE accountBreach (
+  username TEXT NOT NULL PRIMARY KEY,
+  count INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  data TEXT NOT NULL
+);

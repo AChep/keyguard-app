@@ -1,0 +1,53 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization;
+
+CREATE TABLE organization (
+  organizationId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT AS BitwardenOrganization NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE organization
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    organizationId = :organizationId;
+
+  INSERT OR IGNORE INTO organization(organizationId, accountId, data)
+  VALUES (:organizationId, :accountId, :data);
+}
+
+get:
+SELECT *
+FROM organization;
+
+getIds:
+SELECT organizationId
+FROM organization;
+
+getByOrganizationId:
+SELECT *
+FROM organization
+WHERE
+    organizationId == :organizationId;
+
+getByAccountId:
+SELECT *
+FROM organization
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM organization;
+
+deleteByOrganizationId:
+DELETE FROM organization
+WHERE
+    organizationId == :organizationId;
+
+deleteByAccountId:
+DELETE FROM organization
+WHERE
+    accountId == :accountId;

@@ -1,0 +1,39 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken;
+
+CREATE TABLE account (
+  accountId TEXT NOT NULL PRIMARY KEY,
+  data TEXT AS BitwardenToken NOT NULL
+);
+
+insert {
+  UPDATE account
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId;
+
+  INSERT OR IGNORE INTO account(accountId, data)
+  VALUES (:accountId, :data);
+}
+
+get:
+SELECT *
+FROM account;
+
+getIds:
+SELECT accountId
+FROM account;
+
+getByAccountId:
+SELECT *
+FROM account
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM account;
+
+deleteByAccountId:
+DELETE FROM account
+WHERE
+    accountId == :accountId;

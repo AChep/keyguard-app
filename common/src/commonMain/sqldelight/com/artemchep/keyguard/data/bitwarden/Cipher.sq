@@ -1,0 +1,61 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher;
+
+CREATE TABLE cipher (
+  cipherId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  folderId TEXT,
+  data TEXT AS BitwardenCipher NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE cipher
+  SET
+    folderId = :folderId,
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    cipherId = :cipherId;
+
+  INSERT OR IGNORE INTO cipher(cipherId, accountId, folderId, data)
+  VALUES (:cipherId, :accountId, :folderId, :data);
+}
+
+get:
+SELECT *
+FROM cipher;
+
+getIds:
+SELECT cipherId
+FROM cipher;
+
+getByCipherId:
+SELECT *
+FROM cipher
+WHERE
+    cipherId == :cipherId;
+
+getByAccountId:
+SELECT *
+FROM cipher
+WHERE
+    accountId == :accountId;
+
+getByFolderId:
+SELECT *
+FROM cipher
+WHERE
+    folderId == :folderId;
+
+deleteAll:
+DELETE FROM cipher;
+
+deleteByCipherId:
+DELETE FROM cipher
+WHERE
+    cipherId == :cipherId;
+
+deleteByAccountIds:
+DELETE FROM cipher
+WHERE
+    accountId IN :accountId;

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-11 -->
+    <!-- do no backup anything -->
+</full-backup-content>

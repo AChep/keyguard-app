@@ -1,0 +1,53 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend;
+
+CREATE TABLE send (
+  sendId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT AS BitwardenSend NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE send
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    sendId = :sendId;
+
+  INSERT OR IGNORE INTO send(sendId, accountId, data)
+  VALUES (:sendId, :accountId, :data);
+}
+
+get:
+SELECT *
+FROM send;
+
+getIds:
+SELECT sendId
+FROM send;
+
+getBySendId:
+SELECT *
+FROM send
+WHERE
+    sendId == :sendId;
+
+getByAccountId:
+SELECT *
+FROM send
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM send;
+
+deleteBySendId:
+DELETE FROM send
+WHERE
+    sendId == :sendId;
+
+deleteByAccountIds:
+DELETE FROM send
+WHERE
+    accountId IN :accountId;

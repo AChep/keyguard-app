@@ -1,0 +1,53 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder;
+
+CREATE TABLE folder (
+  folderId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT AS BitwardenFolder NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE folder
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    folderId = :folderId;
+
+  INSERT OR IGNORE INTO folder(folderId, accountId, data)
+  VALUES (:folderId, :accountId, :data);
+}
+
+get:
+SELECT *
+FROM folder;
+
+getIds:
+SELECT folderId
+FROM folder;
+
+getByFolderId:
+SELECT *
+FROM folder
+WHERE
+    folderId == :folderId;
+
+getByAccountId:
+SELECT *
+FROM folder
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM folder;
+
+deleteByFolderId:
+DELETE FROM folder
+WHERE
+    folderId == :folderId;
+
+deleteByAccountId:
+DELETE FROM folder
+WHERE
+    accountId == :accountId;

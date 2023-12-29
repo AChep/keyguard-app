@@ -81,7 +81,7 @@ kotlinDsl = "4.2.1"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinSerialization = "1.6.2"
 # https://github.com/google/ksp/releases
-kspPlugin = "1.9.21-1.0.16"
+kspPlugin = "1.9.22-1.0.16"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"

@@ -785,6 +785,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
                     this += copyText.FlatItemAction(
                         title = scope.translate(Res.strings.copy),
                         value = email,
+                        type = CopyText.Type.EMAIL,
                     )
                 }
                 section {

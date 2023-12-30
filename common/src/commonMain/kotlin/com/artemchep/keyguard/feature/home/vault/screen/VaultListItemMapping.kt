@@ -227,7 +227,11 @@ private suspend fun DSecret.createLogin(
                     getTotpCode(token)
                         .toIO()
                         .effectTap { code ->
-                            copy.copy(code.code, false)
+                            copy.copy(
+                                text = code.code,
+                                hidden = false,
+                                type = CopyText.Type.OTP,
+                            )
                         }
                         .attempt()
                         .launchIn(GlobalScope)

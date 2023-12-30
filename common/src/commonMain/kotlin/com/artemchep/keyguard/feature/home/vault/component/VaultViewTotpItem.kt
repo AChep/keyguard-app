@@ -196,7 +196,11 @@ fun VaultViewTotpBadge2(
                 .clickable(enabled = state is VaultViewTotpItemBadgeState.Success) {
                     val code = (state as? VaultViewTotpItemBadgeState.Success)
                         ?.codeRaw ?: return@clickable
-                    copyText.copy(code, hidden = false)
+                    copyText.copy(
+                        text = code,
+                        hidden = false,
+                        type = CopyText.Type.OTP,
+                    )
                 }
                 .padding(
                     start = 8.dp,

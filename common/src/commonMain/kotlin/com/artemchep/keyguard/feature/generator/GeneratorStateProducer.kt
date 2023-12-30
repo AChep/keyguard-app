@@ -38,6 +38,7 @@ import com.artemchep.keyguard.common.model.isExpensive
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
 import com.artemchep.keyguard.common.usecase.GetPassword
@@ -1226,6 +1227,7 @@ fun produceGeneratorState(
                     this += copyItemFactory.FlatItemAction(
                         title = translate(Res.strings.copy),
                         value = password,
+                        type = CopyText.Type.PASSWORD,
                     )
                 }
                 val actions = kotlin.run {
@@ -1263,6 +1265,7 @@ fun produceGeneratorState(
                         copyItemFactory::copy
                             .partially1(password)
                             .partially1(false)
+                            .partially1(CopyText.Type.PASSWORD)
                     } else {
                         null
                     },

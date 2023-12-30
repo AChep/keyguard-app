@@ -190,6 +190,7 @@ fun CopyText.FlatItemAction(
     title: String,
     value: String,
     hidden: Boolean = false,
+    type: CopyText.Type = CopyText.Type.VALUE,
 ) = FlatItemAction(
     leading = leading,
     icon = Icons.Outlined.ContentCopy,
@@ -197,8 +198,11 @@ fun CopyText.FlatItemAction(
     text = value.takeUnless { hidden },
     type = FlatItemAction.Type.COPY,
     onClick = {
-        println("Copying!")
-        copy(value, hidden)
+        copy(
+            text = value,
+            hidden = hidden,
+            type = type,
+        )
     },
 )
 

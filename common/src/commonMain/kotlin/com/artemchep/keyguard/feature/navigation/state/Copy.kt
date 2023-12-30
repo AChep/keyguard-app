@@ -7,5 +7,6 @@ fun RememberStateFlowScope.copy(
     clipboardService: ClipboardService,
 ) = CopyText(
     clipboardService = clipboardService,
+    translator = this@copy,
     onMessage = ::message,
 )

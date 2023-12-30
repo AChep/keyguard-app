@@ -33,9 +33,10 @@ class AnonAddyEmailRelay(
         private const val ENDPOINT = "https://app.addy.io/api/v1/aliases"
 
         private const val KEY_API_KEY = "apiKey"
-        private const val HINT_API_KEY = "TODO"
+        private const val HINT_API_KEY =
+            "addy_io_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         private const val KEY_DOMAIN = "domain"
-        private const val HINT_DOMAIN = "TODO"
+        private const val HINT_DOMAIN = "anonaddy.me"
     }
 
     override val type = "AnonAddy"

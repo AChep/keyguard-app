@@ -23,7 +23,6 @@ class GetAppBuildDateImpl(
             val dateFormat = SimpleDateFormat("yyyyMMdd")
             val date = dateFormat.parse(BuildKonfig.buildDate)!!
             Instant.fromEpochMilliseconds(date.time)
-            Clock.System.now()
         }
         val date = formatter.formatDate(instant)
         emit(date)

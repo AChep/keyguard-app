@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.usecase.impl.isSubdomain
-import com.artemchep.keyguard.provider.bitwarden.CreatePasskeyAttestation
+import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskeyAttestation
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get

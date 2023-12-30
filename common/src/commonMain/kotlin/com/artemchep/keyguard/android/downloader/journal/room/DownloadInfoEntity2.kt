@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.android.downloader.journal.room
 
-import com.artemchep.keyguard.ui.canRetry
+import com.artemchep.keyguard.common.util.canRetry
 import kotlinx.datetime.Instant
 
 data class DownloadInfoEntity2(

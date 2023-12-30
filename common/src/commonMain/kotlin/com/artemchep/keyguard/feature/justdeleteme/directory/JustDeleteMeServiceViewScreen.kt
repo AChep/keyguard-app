@@ -30,7 +30,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.markdown.Md
+import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.poweredby.PoweredByJustDeleteMe
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -66,7 +66,7 @@ fun JustDeleteMeScreen(
             Column {
                 val notes = args.justDeleteMe.notes
                 if (notes != null) {
-                    Md(
+                    MarkdownText(
                         modifier = Modifier
                             .padding(horizontal = Dimens.horizontalPadding),
                         markdown = notes,

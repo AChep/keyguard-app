@@ -37,7 +37,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.markdown.Md
+import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -137,7 +137,7 @@ fun TwoFaServiceViewScreen(
                 val state = loadableState.getOrNull()?.content?.getOrNull()
                 val notes = state?.model?.notes
                 if (notes != null) {
-                    Md(
+                    MarkdownText(
                         modifier = Modifier
                             .padding(horizontal = Dimens.horizontalPadding),
                         markdown = notes,

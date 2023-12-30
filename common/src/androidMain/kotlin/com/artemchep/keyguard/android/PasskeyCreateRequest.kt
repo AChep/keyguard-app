@@ -11,7 +11,7 @@ import androidx.credentials.provider.ProviderCreateCredentialRequest
 import androidx.credentials.webauthn.Cbor
 import com.artemchep.keyguard.common.model.AddPasskeyCipherRequest
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.provider.bitwarden.CreatePasskey
+import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder

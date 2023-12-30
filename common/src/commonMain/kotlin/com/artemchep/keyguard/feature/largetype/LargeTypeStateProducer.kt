@@ -5,7 +5,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.ui.asCodePointsSequence
+import com.artemchep.keyguard.common.util.asCodePointsSequence
 import kotlinx.coroutines.flow.map
 
 @Composable

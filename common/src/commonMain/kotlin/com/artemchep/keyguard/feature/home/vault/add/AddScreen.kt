@@ -4,7 +4,6 @@ package com.artemchep.keyguard.feature.home.vault.add
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,7 +81,6 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
-import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -135,7 +133,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardOrganization
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.markdown.Md
+import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
@@ -882,7 +880,7 @@ private fun NoteTextField(
                 text = "Markdown",
                 style = MaterialTheme.typography.titleLarge,
             )
-            Md(
+            MarkdownText(
                 modifier = Modifier
                     .padding(
                         horizontal = Dimens.horizontalPadding,

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
-import com.artemchep.keyguard.ui.canRetry
+import com.artemchep.keyguard.common.util.canRetry
 import io.ktor.http.HttpStatusCode
 import kotlinx.datetime.Instant
 

@@ -14,8 +14,8 @@ import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.ui.CodeException
-import com.artemchep.keyguard.ui.getHttpCode
+import com.artemchep.keyguard.common.util.CodeException
+import com.artemchep.keyguard.common.util.getHttpCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job

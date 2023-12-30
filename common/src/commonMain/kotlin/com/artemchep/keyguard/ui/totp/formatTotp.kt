@@ -3,7 +3,7 @@ package com.artemchep.keyguard.ui.totp
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import com.artemchep.keyguard.common.model.TotpCode
-import com.artemchep.keyguard.ui.asCodePointsSequence
+import com.artemchep.keyguard.common.util.asCodePointsSequence
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.android
 
-import com.artemchep.keyguard.provider.bitwarden.CreatePasskeyPubKeyCredParams
+import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskeyPubKeyCredParams
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.PrivateKey

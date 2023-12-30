@@ -88,7 +88,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIcon
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.items.FlatItemSkeleton
+import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
@@ -358,7 +358,7 @@ fun SettingPaneContent2(
         when (val contentState = state.list) {
             is Loadable.Loading -> {
                 item("skeleton") {
-                    FlatItemSkeleton()
+                    SkeletonItem()
                 }
             }
 

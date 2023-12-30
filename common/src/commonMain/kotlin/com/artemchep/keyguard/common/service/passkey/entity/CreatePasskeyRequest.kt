@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.provider.bitwarden
+package com.artemchep.keyguard.common.service.passkey.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

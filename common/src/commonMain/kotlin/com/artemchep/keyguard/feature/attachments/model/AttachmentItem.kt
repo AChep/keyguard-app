@@ -3,8 +3,8 @@ package com.artemchep.keyguard.feature.attachments.model
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.ui.ContextItem
-import com.artemchep.keyguard.ui.canRetry
-import com.artemchep.keyguard.ui.getHttpCode
+import com.artemchep.keyguard.common.util.canRetry
+import com.artemchep.keyguard.common.util.getHttpCode
 import kotlinx.coroutines.flow.StateFlow
 
 data class AttachmentItem(

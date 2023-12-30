@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.ui
+package com.artemchep.keyguard.common.util
 
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.home.settings.accounts
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -32,8 +31,8 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.SyncIcon
-import com.artemchep.keyguard.ui.items.FlatItemSkeleton
 import com.artemchep.keyguard.ui.selection.SelectionBar
+import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import dev.icerock.moko.resources.compose.stringResource
 
@@ -145,7 +144,7 @@ fun AccountListScreenContent(
         if (state.items.isEmpty()) {
             item("header") {
                 if (state.isLoading) {
-                    FlatItemSkeleton()
+                    SkeletonItem()
                 } else {
                     EmptyView(
                         icon = {

@@ -6,8 +6,8 @@ import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.api.refresh
-import com.artemchep.keyguard.ui.canRetry
-import com.artemchep.keyguard.ui.getHttpCode
+import com.artemchep.keyguard.common.util.canRetry
+import com.artemchep.keyguard.common.util.getHttpCode
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay

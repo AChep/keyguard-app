@@ -31,7 +31,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.markdown.Md
+import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.poweredby.PoweredByPasskeys
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -130,7 +130,7 @@ fun PasskeysViewScreen(
                 val state = loadableState.getOrNull()?.content?.getOrNull()
                 val notes = state?.model?.notes
                 if (notes != null) {
-                    Md(
+                    MarkdownText(
                         modifier = Modifier
                             .padding(horizontal = Dimens.horizontalPadding),
                         markdown = notes,

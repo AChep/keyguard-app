@@ -10,7 +10,7 @@ import com.halilibo.richtext.ui.resolveDefaults
 import com.halilibo.richtext.ui.string.RichTextStringStyle
 
 @Composable
-fun Md(
+fun MarkdownText(
     modifier: Modifier = Modifier,
     markdown: String,
 ) {

@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.ui
+package com.artemchep.keyguard.common.util
 
 import kotlin.streams.asSequence
 

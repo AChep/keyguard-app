@@ -14,17 +14,16 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.URL_2FA
+import com.artemchep.keyguard.URL_HAVE_I_BEEN_PWNED
+import com.artemchep.keyguard.URL_JUST_DELETE_ME
+import com.artemchep.keyguard.URL_PASSKEYS
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import dev.icerock.moko.resources.compose.stringResource
-
-const val URL_JUST_DELETE_ME = "https://justdeleteme.xyz/"
-const val URL_HAVE_I_BEEN_PWNED = "https://haveibeenpwned.com/"
-const val URL_2FA = "https://2fa.directory/"
-const val URL_PASSKEYS = "https://passkeys.directory/"
 
 @Composable
 fun PoweredByJustDeleteMe(

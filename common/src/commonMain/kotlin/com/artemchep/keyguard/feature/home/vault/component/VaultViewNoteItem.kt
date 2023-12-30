@@ -17,7 +17,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.VisibilityIcon
-import com.artemchep.keyguard.ui.markdown.Md
+import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.theme.Dimens
 import dev.icerock.moko.resources.compose.stringResource
 
@@ -79,7 +79,7 @@ fun VaultViewNoteItem(
             ) {
                 SelectionContainer {
                     if (item.markdown) {
-                        Md(
+                        MarkdownText(
                             markdown = item.text,
                         )
                     } else {

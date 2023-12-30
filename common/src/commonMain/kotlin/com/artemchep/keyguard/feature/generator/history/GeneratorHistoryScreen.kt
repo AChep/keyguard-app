@@ -42,7 +42,7 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.Stub
-import com.artemchep.keyguard.ui.items.FlatItemSkeleton
+import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import dev.icerock.moko.resources.compose.stringResource
@@ -113,7 +113,7 @@ private fun GeneratorPaneMaster(
 
 private fun LazyListScope.populateGeneratorPaneMasterSkeleton() {
     item("skeleton") {
-        FlatItemSkeleton()
+        SkeletonItem()
     }
 }
 

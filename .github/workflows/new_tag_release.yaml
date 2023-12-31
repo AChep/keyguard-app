@@ -230,3 +230,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             artifacts/*
+            artifacts/**/*.apk

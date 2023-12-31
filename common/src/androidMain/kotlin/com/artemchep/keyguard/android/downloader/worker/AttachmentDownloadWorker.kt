@@ -257,7 +257,7 @@ class AttachmentDownloadWorker(
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                     )
                 }
-                val cancelTitle = "Cancel"
+                val cancelTitle = applicationContext.getString(android.R.string.cancel)
                 NotificationCompat.Action.Builder(R.drawable.ic_cancel, cancelTitle, cancelAction)
                     .build()
             }

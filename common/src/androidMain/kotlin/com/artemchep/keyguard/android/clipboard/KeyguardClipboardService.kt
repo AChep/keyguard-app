@@ -361,8 +361,8 @@ class KeyguardClipboardService : Service(), DIAware {
         }
 
         val contentTitle = when (type) {
-            CopyValueEvent.Type.TOTP -> "Copied a one-time password"
-            CopyValueEvent.Type.VALUE -> "Copied a value"
+            CopyValueEvent.Type.TOTP -> getString(R.string.copied_otp_code)
+            CopyValueEvent.Type.VALUE -> getString(R.string.copied_value)
         }
         val contentText = kotlin.run {
             val suffix = expiration
@@ -388,7 +388,7 @@ class KeyguardClipboardService : Service(), DIAware {
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                 )
             }
-            val copyTitle = "Copy"
+            val copyTitle = getString(R.string.copy)
             NotificationCompat.Action.Builder(R.drawable.ic_copy, copyTitle, copyAction)
                 .build()
         }
@@ -405,7 +405,7 @@ class KeyguardClipboardService : Service(), DIAware {
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                 )
             }
-            val cancelTitle = "Cancel"
+            val cancelTitle = getString(android.R.string.cancel)
             NotificationCompat.Action.Builder(R.drawable.ic_cancel, cancelTitle, cancelAction)
                 .build()
         }

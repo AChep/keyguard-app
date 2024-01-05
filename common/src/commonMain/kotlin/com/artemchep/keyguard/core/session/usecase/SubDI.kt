@@ -19,6 +19,8 @@ import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageD
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageRepositoryImpl
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepository
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
+import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepository
+import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepositoryImpl
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
@@ -28,6 +30,7 @@ import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.AddPasskeyCipher
 import com.artemchep.keyguard.common.usecase.AddUriCipher
+import com.artemchep.keyguard.common.usecase.AddUrlOverride
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
@@ -69,6 +72,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
+import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
@@ -82,6 +86,7 @@ import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
 import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
+import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
@@ -95,6 +100,7 @@ import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.common.usecase.impl.AddEmailRelayImpl
 import com.artemchep.keyguard.common.usecase.impl.AddGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
@@ -160,6 +166,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetMetasImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetOrganizationsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetProfilesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSendsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlOverridesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MergeFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MoveCipherToFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountColorByIdImpl
@@ -171,6 +178,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveEmailRelayByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveFolderByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlOverrideByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RenameFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RestoreCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RetryCipherImpl
@@ -218,6 +226,15 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<RemoveEmailRelayById> {
         RemoveEmailRelayByIdImpl(this)
+    }
+    bindSingleton<AddUrlOverride> {
+        AddUrlOverrideImpl(this)
+    }
+    bindSingleton<GetUrlOverrides> {
+        GetUrlOverridesImpl(this)
+    }
+    bindSingleton<RemoveUrlOverrideById> {
+        RemoveUrlOverrideByIdImpl(this)
     }
     bindSingleton<GetAccounts> {
         GetAccountsImpl(this)
@@ -418,6 +435,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GeneratorEmailRelayRepository> {
         GeneratorEmailRelayRepositoryImpl(this)
+    }
+    bindSingleton<UrlOverrideRepository> {
+        UrlOverrideRepositoryImpl(this)
     }
     bindSingleton<PasswordPwnageDataSourceLocal> {
         PasswordPwnageDataSourceLocalImpl(this)

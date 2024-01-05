@@ -1,0 +1,7 @@
+CREATE TABLE urlOverride (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  regex TEXT NOT NULL,
+  command TEXT NOT NULL,
+  createdAt INTEGER NOT NULL
+);

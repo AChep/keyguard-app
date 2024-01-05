@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.copy
+package com.artemchep.keyguard.common.service.extract.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect

@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.outlined.PhoneIphone
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.Textsms
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
@@ -47,6 +45,7 @@ import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolderTree
+import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
@@ -65,9 +64,17 @@ import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
+import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.CommentPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.CustomPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.DateTimePlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.TextTransformPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.UrlPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
@@ -98,6 +105,7 @@ import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
@@ -209,6 +217,7 @@ fun vaultViewScreenState(
         getWebsiteIcons = instance(),
         getTotpCode = instance(),
         getPasswordStrength = instance(),
+        getUrlOverrides = instance(),
         passkeyTargetCheck = instance(),
         cipherUnsecureUrlCheck = instance(),
         cipherUnsecureUrlAutoFix = instance(),
@@ -219,6 +228,7 @@ fun vaultViewScreenState(
         changeCipherPasswordById = instance(),
         checkPasswordLeak = instance(),
         retryCipher = instance(),
+        executeCommand = instance(),
         copyCipherById = instance(),
         restoreCipherById = instance(),
         trashCipherById = instance(),
@@ -250,7 +260,14 @@ fun vaultViewScreenState(
 private class Holder(
     val uri: DSecret.Uri,
     val info: List<LinkInfo>,
-)
+    val overrides: List<Override> = emptyList(),
+) {
+    data class Override(
+        val override: DGlobalUrlOverride,
+        val uri: String,
+        val info: List<LinkInfo>,
+    )
+}
 
 @Composable
 fun vaultViewScreenState(
@@ -270,6 +287,7 @@ fun vaultViewScreenState(
     getWebsiteIcons: GetWebsiteIcons,
     getTotpCode: GetTotpCode,
     getPasswordStrength: GetPasswordStrength,
+    getUrlOverrides: GetUrlOverrides,
     passkeyTargetCheck: PasskeyTargetCheck,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
@@ -280,6 +298,7 @@ fun vaultViewScreenState(
     changeCipherPasswordById: ChangeCipherPasswordById,
     checkPasswordLeak: CheckPasswordLeak,
     retryCipher: RetryCipher,
+    executeCommand: ExecuteCommand,
     copyCipherById: CopyCipherById,
     restoreCipherById: RestoreCipherById,
     trashCipherById: TrashCipherById,
@@ -408,6 +427,7 @@ fun vaultViewScreenState(
         getAppIcons(),
         getWebsiteIcons(),
         getCanWrite(),
+        getUrlOverrides(),
     ) { array ->
         val accountOrNull = array[0] as DAccount?
         val secretOrNull = array[1] as DSecret?
@@ -419,6 +439,7 @@ fun vaultViewScreenState(
         val appIcons = array[7] as Boolean
         val websiteIcons = array[8] as Boolean
         val canAddSecret = array[9] as Boolean
+        val urlOverrides = array[10] as List<DGlobalUrlOverride>
 
         val content = when {
             accountOrNull == null || secretOrNull == null -> VaultViewState.Content.NotFound
@@ -447,15 +468,69 @@ fun vaultViewScreenState(
                 val canEdit = canAddSecret && secretOrNull.canEdit() && !hasCanNotWriteCiphers
                 val canDelete = canAddSecret && secretOrNull.canDelete() && !hasCanNotWriteCiphers
 
+                val placeholders = listOf(
+                    CipherPlaceholder(secretOrNull),
+                    CommentPlaceholder(),
+                    CustomPlaceholder(secretOrNull),
+                    DateTimePlaceholder(),
+                    TextTransformPlaceholder(),
+                )
                 val extractors = LinkInfoRegistry(linkInfoExtractors)
                 val cipherUris = secretOrNull
                     .uris
                     .map { uri ->
-                        val extra = extractors.process(uri)
-                        Holder(
-                            uri = uri,
-                            info = extra,
-                        )
+                        when (uri.match) {
+                            // Regular expressions may use the {} control
+                            // symbols already. Since we do not want to break
+                            // existing data we ignore the placeholders and overrides.
+                            DSecret.Uri.MatchType.RegularExpression -> {
+                                val extra = extractors.process(uri)
+                                Holder(
+                                    uri = uri,
+                                    info = extra,
+                                )
+                            }
+                            else -> {
+                                val newUriString = uri.uri.placeholderFormat(placeholders)
+                                val newUri = uri.copy(uri = newUriString)
+
+                                // Process URL overrides
+                                val urlOverridePlaceholders by lazy {
+                                    placeholders + listOf(
+                                        UrlPlaceholder(newUriString),
+                                    )
+                                }
+                                val urlOverrideList = urlOverrides
+                                    .filter { override ->
+                                        override.regex
+                                            .matches(newUriString)
+                                    }
+                                    .map { override ->
+                                        val command = override.command
+                                            .placeholderFormat(
+                                                placeholders = urlOverridePlaceholders,
+                                            )
+                                        val extra = extractors.process(
+                                            DSecret.Uri(
+                                                uri = command,
+                                                match = DSecret.Uri.MatchType.Exact,
+                                            ),
+                                        )
+                                        Holder.Override(
+                                            override = override,
+                                            uri = command,
+                                            info = extra,
+                                        )
+                                    }
+
+                                val extra = extractors.process(newUri)
+                                Holder(
+                                    uri = newUri,
+                                    info = extra,
+                                    overrides = urlOverrideList,
+                                )
+                            }
+                        }
                     }
                 val icon = secretOrNull.toVaultItemIcon(
                     appIcons = appIcons,
@@ -605,6 +680,7 @@ fun vaultViewScreenState(
                         cipherFieldSwitchToggle = cipherFieldSwitchToggle,
                         checkPasswordLeak = checkPasswordLeak,
                         retryCipher = retryCipher,
+                        executeCommand = executeCommand,
                         markdown = markdown,
                         concealFields = concealFields || secretOrNull.reprompt,
                         websiteIcons = websiteIcons,
@@ -655,6 +731,7 @@ private fun RememberStateFlowScope.oh(
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
     checkPasswordLeak: CheckPasswordLeak,
     retryCipher: RetryCipher,
+    executeCommand: ExecuteCommand,
     markdown: Boolean,
     concealFields: Boolean,
     websiteIcons: Boolean,
@@ -1295,7 +1372,7 @@ private fun RememberStateFlowScope.oh(
         linkedApps
             .mapIndexed { index, holder ->
                 val id = "link.app.$index"
-                val item = aaaa(
+                val item = createUriItem(
                     canEdit = canEdit,
                     contentColor = contentColor,
                     disabledContentColor = disabledContentColor,
@@ -1303,6 +1380,7 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                    executeCommand = executeCommand,
                     holder = holder,
                     id = id,
                     accountId = account.accountId(),
@@ -1335,7 +1413,7 @@ private fun RememberStateFlowScope.oh(
         linkedWebsites
             .mapIndexed { index, holder ->
                 val id = "link.website.$index"
-                val item = aaaa(
+                val item = createUriItem(
                     canEdit = canEdit,
                     contentColor = contentColor,
                     disabledContentColor = disabledContentColor,
@@ -1343,6 +1421,7 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                    executeCommand = executeCommand,
                     holder = holder,
                     id = id,
                     accountId = account.accountId(),
@@ -1741,7 +1820,7 @@ private fun RememberStateFlowScope.oh(
     }
 }
 
-private suspend fun RememberStateFlowScope.aaaa(
+private suspend fun RememberStateFlowScope.createUriItem(
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,
@@ -1749,12 +1828,35 @@ private suspend fun RememberStateFlowScope.aaaa(
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    executeCommand: ExecuteCommand,
     holder: Holder,
     id: String,
     accountId: String,
     cipherId: String,
     copy: CopyText,
 ): VaultViewItem.Uri {
+    val overrides = holder
+        .overrides
+        .map {
+            val command = it.uri
+            val dropdown = createUriItemContextItems(
+                canEdit = false,
+                cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+                cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
+                getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                executeCommand = executeCommand,
+                uri = command,
+                info = it.info,
+                cipherId = cipherId,
+                copy = copy,
+            )
+            VaultViewItem.Uri.Override(
+                title = it.override.name,
+                text = command,
+                dropdown = dropdown,
+            )
+        }
+
     val uri = holder.uri
 
     val matchTypeTitle = holder.uri.match
@@ -1764,6 +1866,18 @@ private suspend fun RememberStateFlowScope.aaaa(
             translate(it)
         }
 
+    val dropdown = createUriItemContextItems(
+        canEdit = canEdit,
+        cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+        cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
+        getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+        executeCommand = executeCommand,
+        uri = holder.uri.uri,
+        info = holder.info,
+        cipherId = cipherId,
+        copy = copy,
+    )
+
     val platformMarker = holder.info
         .firstOrNull { it is LinkInfoPlatform } as LinkInfoPlatform?
     when (platformMarker) {
@@ -1772,55 +1886,6 @@ private suspend fun RememberStateFlowScope.aaaa(
                 .firstOrNull { it is LinkInfoAndroid } as LinkInfoAndroid?
             when (androidMarker) {
                 is LinkInfoAndroid.Installed -> {
-                    val dropdown = buildContextItems {
-                        section {
-                            this += copy.FlatItemAction(
-                                title = translate(Res.strings.copy_package_name),
-                                value = platformMarker.packageName,
-                            )
-                        }
-                        section {
-                            this += FlatItemAction(
-                                leading = {
-                                    Image(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(CircleShape),
-                                        painter = androidMarker.icon,
-                                        contentDescription = null,
-                                    )
-                                },
-                                title = translate(Res.strings.uri_action_launch_app_title),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToApp(platformMarker.packageName)
-                                    navigate(intent)
-                                },
-                            )
-                            this += FlatItemAction(
-                                icon = Icons.Outlined.Launch,
-                                title = translate(Res.strings.uri_action_launch_play_store_title),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
-                                    navigate(intent)
-                                },
-                            )
-                        }
-                        section {
-                            this += createShareAction(
-                                translator = this@aaaa,
-                                text = platformMarker.playStoreUrl,
-                                navigate = ::navigate,
-                            )
-                        }
-                    }
                     return VaultViewItem.Uri(
                         id = id,
                         icon = {
@@ -1839,35 +1904,6 @@ private suspend fun RememberStateFlowScope.aaaa(
                 }
 
                 else -> {
-                    val dropdown = buildContextItems {
-                        section {
-                            this += copy.FlatItemAction(
-                                title = translate(Res.strings.copy_package_name),
-                                value = platformMarker.packageName,
-                            )
-                        }
-                        section {
-                            this += FlatItemAction(
-                                icon = Icons.Outlined.Launch,
-                                title = translate(Res.strings.uri_action_launch_play_store_title),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
-                                    navigate(intent)
-                                },
-                            )
-                        }
-                        section {
-                            this += createShareAction(
-                                translator = this@aaaa,
-                                text = platformMarker.playStoreUrl,
-                                navigate = ::navigate,
-                            )
-                        }
-                    }
                     return VaultViewItem.Uri(
                         id = id,
                         icon = {
@@ -1885,14 +1921,6 @@ private suspend fun RememberStateFlowScope.aaaa(
         }
 
         is LinkInfoPlatform.IOS -> {
-            val dropdown = buildContextItems {
-                section {
-                    this += copy.FlatItemAction(
-                        title = translate(Res.strings.copy_package_name),
-                        value = platformMarker.packageName,
-                    )
-                }
-            }
             return VaultViewItem.Uri(
                 id = id,
                 icon = {
@@ -1909,99 +1937,14 @@ private suspend fun RememberStateFlowScope.aaaa(
 
         is LinkInfoPlatform.Web -> {
             val url = platformMarker.url.toString()
-            val isJustDeleteMe = getJustDeleteMeByUrl(url)
-                .attempt()
-                .bind()
-                .getOrNull()
 
             val isUnsecure = cipherUnsecureUrlCheck(holder.uri.uri)
-            val dropdown = buildContextItems {
-                section {
-                    this += copy.FlatItemAction(
-                        title = translate(Res.strings.copy_url),
-                        value = url,
-                    )
-                }
-                section {
-                    this += FlatItemAction(
-                        icon = Icons.Outlined.Launch,
-                        title = translate(Res.strings.uri_action_launch_browser_title),
-                        text = url,
-                        trailing = {
-                            ChevronIcon()
-                        },
-                        onClick = {
-                            val intent = NavigationIntent.NavigateToBrowser(url)
-                            navigate(intent)
-                        },
-                    )
-                    if (
-                        url.removeSuffix("/") !=
-                        platformMarker.frontPageUrl.toString().removeSuffix("/")
-                    ) {
-                        val launchUrl = platformMarker.frontPageUrl.toString()
-                        this += FlatItemAction(
-                            icon = Icons.Outlined.Launch,
-                            title = translate(Res.strings.uri_action_launch_browser_main_page_title),
-                            text = launchUrl,
-                            trailing = {
-                                ChevronIcon()
-                            },
-                            onClick = {
-                                val intent = NavigationIntent.NavigateToBrowser(launchUrl)
-                                navigate(intent)
-                            },
-                        )
-                    }
-                }
-                if (isUnsecure) {
-                    section {
-                        this += FlatItemAction(
-                            icon = Icons.Outlined.AutoAwesome,
-                            title = "Auto-fix unsecure URL",
-                            text = "Changes a protocol to secure variant if it is available",
-                            onClick = if (canEdit) {
-                                // lambda
-                                {
-                                    val ff = mapOf(
-                                        cipherId to setOf(holder.uri.uri),
-                                    )
-                                    cipherUnsecureUrlAutoFix(ff)
-                                        .launchIn(appScope)
-                                }
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                }
-                section {
-                    this += createShareAction(
-                        translator = this@aaaa,
-                        text = uri.uri,
-                        navigate = ::navigate,
-                    )
-                }
-                section {
-                    this += WebsiteLeakRoute.checkBreachesWebsiteActionOrNull(
-                        translator = this@aaaa,
-                        host = platformMarker.url.host,
-                        navigate = ::navigate,
-                    )
-                    if (isJustDeleteMe != null) {
-                        this += JustDeleteMeServiceViewRoute.justDeleteMeActionOrNull(
-                            translator = this@aaaa,
-                            justDeleteMe = isJustDeleteMe,
-                            navigate = ::navigate,
-                        )
-                    }
-                }
-            }
             val faviconUrl = FaviconUrl(
                 serverId = accountId,
                 url = url,
             ).takeIf { websiteIcons }
-            val warningTitle = "Unsecure".takeIf { isUnsecure }
+            val warningTitle = translate(Res.strings.uri_unsecure)
+                .takeIf { isUnsecure }
             return VaultViewItem.Uri(
                 id = id,
                 icon = {
@@ -2037,6 +1980,7 @@ private suspend fun RememberStateFlowScope.aaaa(
                 warningTitle = warningTitle,
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
+                overrides = overrides,
             )
         }
 
@@ -2045,93 +1989,6 @@ private suspend fun RememberStateFlowScope.aaaa(
                 .firstNotNullOfOrNull { it as? LinkInfoLaunch.Allow }
             val canExecute = holder.info
                 .firstNotNullOfOrNull { it as? LinkInfoExecute.Allow }
-            val dropdown = buildContextItems {
-                section {
-                    this += copy.FlatItemAction(
-                        title = translate(Res.strings.copy),
-                        value = uri.uri,
-                    )
-                }
-                section {
-                    if (canExecute != null) {
-                        this += FlatItemAction(
-                            icon = Icons.Outlined.Terminal,
-                            title = "Execute",
-                            trailing = {
-                                ChevronIcon()
-                            },
-                            onClick = {
-                                val intent = NavigationIntent.NavigateToBrowser(uri.uri)
-                                navigate(intent)
-                            },
-                        )
-                    }
-                    if (canLuanch != null) {
-                        if (canLuanch.apps.size > 1) {
-                            this += FlatItemAction(
-                                icon = Icons.Outlined.Launch,
-                                title = translate(Res.strings.uri_action_launch_in_smth_title),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent = NavigationIntent.NavigateToBrowser(uri.uri)
-                                    navigate(intent)
-                                },
-                            )
-                        } else {
-                            val icon = canLuanch.apps.first().icon
-                            this += FlatItemAction(
-                                leading = {
-                                    if (icon != null) {
-                                        Image(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .clip(CircleShape),
-                                            painter = icon,
-                                            contentDescription = null,
-                                        )
-                                    } else {
-                                        Icon(Icons.Outlined.Launch, null)
-                                    }
-                                },
-                                title = translate(
-                                    Res.strings.uri_action_launch_in_app_title,
-                                    canLuanch.apps.first().label,
-                                ),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent = NavigationIntent.NavigateToBrowser(uri.uri)
-                                    navigate(intent)
-                                },
-                            )
-                        }
-                    }
-                }
-                section {
-                    this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                        translator = this@aaaa,
-                        text = uri.uri,
-                        colorize = true,
-                        navigate = ::navigate,
-                    )
-                    this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                        translator = this@aaaa,
-                        text = uri.uri,
-                        colorize = true,
-                        navigate = ::navigate,
-                    )
-                }
-                section {
-                    this += createShareAction(
-                        translator = this@aaaa,
-                        text = uri.uri,
-                        navigate = ::navigate,
-                    )
-                }
-            }
             return VaultViewItem.Uri(
                 id = id,
                 icon = {
@@ -2214,6 +2071,310 @@ private suspend fun RememberStateFlowScope.aaaa(
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
             )
+        }
+    }
+}
+
+private suspend fun RememberStateFlowScope.createUriItemContextItems(
+    canEdit: Boolean,
+    cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
+    cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
+    getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    executeCommand: ExecuteCommand,
+    uri: String,
+    info: List<LinkInfo>,
+    cipherId: String,
+    copy: CopyText,
+): List<ContextItem> {
+    val platformMarker = info
+        .firstOrNull { it is LinkInfoPlatform } as LinkInfoPlatform?
+    when (platformMarker) {
+        is LinkInfoPlatform.Android -> {
+            val androidMarker = info
+                .firstOrNull { it is LinkInfoAndroid } as LinkInfoAndroid?
+            when (androidMarker) {
+                is LinkInfoAndroid.Installed -> {
+                    val dropdown = buildContextItems {
+                        section {
+                            this += copy.FlatItemAction(
+                                title = translate(Res.strings.copy_package_name),
+                                value = platformMarker.packageName,
+                            )
+                        }
+                        section {
+                            this += FlatItemAction(
+                                leading = {
+                                    Image(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(CircleShape),
+                                        painter = androidMarker.icon,
+                                        contentDescription = null,
+                                    )
+                                },
+                                title = translate(Res.strings.uri_action_launch_app_title),
+                                trailing = {
+                                    ChevronIcon()
+                                },
+                                onClick = {
+                                    val intent =
+                                        NavigationIntent.NavigateToApp(platformMarker.packageName)
+                                    navigate(intent)
+                                },
+                            )
+                            this += FlatItemAction(
+                                icon = Icons.Outlined.Launch,
+                                title = translate(Res.strings.uri_action_launch_play_store_title),
+                                trailing = {
+                                    ChevronIcon()
+                                },
+                                onClick = {
+                                    val intent =
+                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
+                                    navigate(intent)
+                                },
+                            )
+                        }
+                        section {
+                            this += createShareAction(
+                                translator = this@createUriItemContextItems,
+                                text = platformMarker.playStoreUrl,
+                                navigate = ::navigate,
+                            )
+                        }
+                    }
+                    return dropdown
+                }
+
+                else -> {
+                    val dropdown = buildContextItems {
+                        section {
+                            this += copy.FlatItemAction(
+                                title = translate(Res.strings.copy_package_name),
+                                value = platformMarker.packageName,
+                            )
+                        }
+                        section {
+                            this += FlatItemAction(
+                                icon = Icons.Outlined.Launch,
+                                title = translate(Res.strings.uri_action_launch_play_store_title),
+                                trailing = {
+                                    ChevronIcon()
+                                },
+                                onClick = {
+                                    val intent =
+                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
+                                    navigate(intent)
+                                },
+                            )
+                        }
+                        section {
+                            this += createShareAction(
+                                translator = this@createUriItemContextItems,
+                                text = platformMarker.playStoreUrl,
+                                navigate = ::navigate,
+                            )
+                        }
+                    }
+                    return dropdown
+                }
+            }
+        }
+
+        is LinkInfoPlatform.IOS -> {
+            val dropdown = buildContextItems {
+                section {
+                    this += copy.FlatItemAction(
+                        title = translate(Res.strings.copy_package_name),
+                        value = platformMarker.packageName,
+                    )
+                }
+            }
+            return dropdown
+        }
+
+        is LinkInfoPlatform.Web -> {
+            val url = platformMarker.url.toString()
+
+            val isJustDeleteMe = getJustDeleteMeByUrl(url)
+                .attempt()
+                .bind()
+                .getOrNull()
+
+            val isUnsecure = cipherUnsecureUrlCheck(uri)
+            val dropdown = buildContextItems {
+                section {
+                    this += copy.FlatItemAction(
+                        title = translate(Res.strings.copy_url),
+                        value = url,
+                    )
+                }
+                section {
+                    this += FlatItemAction(
+                        icon = Icons.Outlined.Launch,
+                        title = translate(Res.strings.uri_action_launch_browser_title),
+                        text = url,
+                        trailing = {
+                            ChevronIcon()
+                        },
+                        onClick = {
+                            val intent = NavigationIntent.NavigateToBrowser(url)
+                            navigate(intent)
+                        },
+                    )
+                    if (
+                        url.removeSuffix("/") !=
+                        platformMarker.frontPageUrl.toString().removeSuffix("/")
+                    ) {
+                        val launchUrl = platformMarker.frontPageUrl.toString()
+                        this += FlatItemAction(
+                            icon = Icons.Outlined.Launch,
+                            title = translate(Res.strings.uri_action_launch_browser_main_page_title),
+                            text = launchUrl,
+                            trailing = {
+                                ChevronIcon()
+                            },
+                            onClick = {
+                                val intent = NavigationIntent.NavigateToBrowser(launchUrl)
+                                navigate(intent)
+                            },
+                        )
+                    }
+                }
+                if (isUnsecure && canEdit) {
+                    section {
+                        this += FlatItemAction(
+                            icon = Icons.Outlined.AutoAwesome,
+                            title = translate(Res.strings.uri_action_autofix_unsecure_title),
+                            text = translate(Res.strings.uri_action_autofix_unsecure_text),
+                            onClick = {
+                                val ff = mapOf(
+                                    cipherId to setOf(uri),
+                                )
+                                cipherUnsecureUrlAutoFix(ff)
+                                    .launchIn(appScope)
+                            },
+                        )
+                    }
+                }
+                section {
+                    this += createShareAction(
+                        translator = this@createUriItemContextItems,
+                        text = uri,
+                        navigate = ::navigate,
+                    )
+                }
+                section {
+                    this += WebsiteLeakRoute.checkBreachesWebsiteActionOrNull(
+                        translator = this@createUriItemContextItems,
+                        host = platformMarker.url.host,
+                        navigate = ::navigate,
+                    )
+                    if (isJustDeleteMe != null) {
+                        this += JustDeleteMeServiceViewRoute.justDeleteMeActionOrNull(
+                            translator = this@createUriItemContextItems,
+                            justDeleteMe = isJustDeleteMe,
+                            navigate = ::navigate,
+                        )
+                    }
+                }
+            }
+            return dropdown
+        }
+
+        else -> {
+            val canLuanch = info
+                .firstNotNullOfOrNull { it as? LinkInfoLaunch.Allow }
+            val canExecute = info
+                .firstNotNullOfOrNull { it as? LinkInfoExecute.Allow }
+            val dropdown = buildContextItems {
+                section {
+                    this += copy.FlatItemAction(
+                        title = translate(Res.strings.copy),
+                        value = uri,
+                    )
+                }
+                section {
+                    if (canExecute != null) {
+                        this += FlatItemAction(
+                            icon = Icons.Outlined.Terminal,
+                            title = translate(Res.strings.execute_command),
+                            trailing = {
+                                ChevronIcon()
+                            },
+                            onClick = {
+                                executeCommand(canExecute.command)
+                                    .launchIn(appScope)
+                            },
+                        )
+                    }
+                    if (canLuanch != null) {
+                        if (canLuanch.apps.size > 1) {
+                            this += FlatItemAction(
+                                icon = Icons.Outlined.Launch,
+                                title = translate(Res.strings.uri_action_launch_in_smth_title),
+                                trailing = {
+                                    ChevronIcon()
+                                },
+                                onClick = {
+                                    val intent = NavigationIntent.NavigateToBrowser(uri)
+                                    navigate(intent)
+                                },
+                            )
+                        } else {
+                            val icon = canLuanch.apps.first().icon
+                            this += FlatItemAction(
+                                leading = {
+                                    if (icon != null) {
+                                        Image(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .clip(CircleShape),
+                                            painter = icon,
+                                            contentDescription = null,
+                                        )
+                                    } else {
+                                        Icon(Icons.Outlined.Launch, null)
+                                    }
+                                },
+                                title = translate(
+                                    Res.strings.uri_action_launch_in_app_title,
+                                    canLuanch.apps.first().label,
+                                ),
+                                trailing = {
+                                    ChevronIcon()
+                                },
+                                onClick = {
+                                    val intent = NavigationIntent.NavigateToBrowser(uri)
+                                    navigate(intent)
+                                },
+                            )
+                        }
+                    }
+                }
+                section {
+                    this += LargeTypeRoute.showInLargeTypeActionOrNull(
+                        translator = this@createUriItemContextItems,
+                        text = uri,
+                        colorize = true,
+                        navigate = ::navigate,
+                    )
+                    this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
+                        translator = this@createUriItemContextItems,
+                        text = uri,
+                        colorize = true,
+                        navigate = ::navigate,
+                    )
+                }
+                section {
+                    this += createShareAction(
+                        translator = this@createUriItemContextItems,
+                        text = uri,
+                        navigate = ::navigate,
+                    )
+                }
+            }
+            return dropdown
         }
     }
 }

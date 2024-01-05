@@ -1,17 +1,26 @@
-package com.artemchep.keyguard.feature.generator.emailrelay
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package com.artemchep.keyguard.feature.urloverride
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -19,52 +28,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.flatMap
-import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
+import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
-import com.artemchep.keyguard.ui.DropdownMenuItemFlat
-import com.artemchep.keyguard.ui.DropdownMinWidth
-import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
-import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
-import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
-import com.artemchep.keyguard.ui.util.DividerColor
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.withIndex
 
 @Composable
-fun EmailRelayListScreen(
-) {
-    val loadableState = produceEmailRelayListState(
+fun UrlOverrideListScreen() {
+    val loadableState = produceUrlOverrideListState(
     )
     EmailRelayListScreen(
         loadableState = loadableState,
@@ -74,7 +76,7 @@ fun EmailRelayListScreen(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun EmailRelayListScreen(
-    loadableState: Loadable<EmailRelayListState>,
+    loadableState: Loadable<UrlOverrideListState>,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -102,17 +104,6 @@ fun EmailRelayListScreen(
         listState.scrollToItem(0, 0)
     }
 
-    val dp = remember {
-        mutableStateOf(false)
-    }
-    val rp = remember {
-        mutableStateOf(false)
-    }
-    val pitems = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions
-    if (pitems.isNullOrEmpty()) {
-        dp.value = false
-    }
-
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -120,10 +111,26 @@ fun EmailRelayListScreen(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.emailrelay_list_header_title))
+                    Text(stringResource(Res.strings.urloverride_list_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
+                },
+                actions = {
+                    val navigationController by rememberUpdatedState(LocalNavigationController.current)
+                    IconButton(
+                        onClick = {
+                            val intent = NavigationIntent.NavigateToBrowser(
+                                url = "https://github.com/AChep/keyguard-app/blob/master/wiki/URL_OVERRIDE.md",
+                            )
+                            navigationController.queue(intent)
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.HelpOutline,
+                            contentDescription = null,
+                        )
+                    }
                 },
                 scrollBehavior = scrollBehavior,
             )
@@ -136,51 +143,22 @@ fun EmailRelayListScreen(
             )
         },
         floatingActionState = run {
-            val fabVisible = !pitems.isNullOrEmpty()
-            val fabState = if (fabVisible) {
-                FabState(
-                    onClick = {
-                        dp.value = true
-                    },
-                    model = null,
-                )
-            } else {
-                null
-            }
-            rememberUpdatedState(newValue = fabState)
+            val onClick =
+                loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryAction
+            val state = FabState(
+                onClick = onClick,
+                model = null,
+            )
+            rememberUpdatedState(newValue = state)
         },
         floatingActionButton = {
             DefaultFab(
                 icon = {
                     IconBox(main = Icons.Outlined.Add)
-
-                    // Inject the dropdown popup to the bottom of the
-                    // content.
-                    val onDismissRequest = remember(dp) {
-                        // lambda
-                        {
-                            dp.value = false
-                        }
-                    }
-                    DropdownMenu(
-                        modifier = Modifier
-                            .widthIn(min = DropdownMinWidth),
-                        expanded = dp.value,
-                        onDismissRequest = onDismissRequest,
-                    ) {
-                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                        with(scope) {
-                            pitems?.forEachIndexed { index, action ->
-                                DropdownMenuItemFlat(
-                                    action = action,
-                                )
-                            }
-                        }
-                    }
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.add_integration),
+                        text = stringResource(Res.strings.add),
                     )
                 },
             )
@@ -204,7 +182,7 @@ fun EmailRelayListScreen(
                         item("error") {
                             ErrorView(
                                 text = {
-                                    Text(text = "Failed to load app list!")
+                                    Text(text = "Failed to load URL override list!")
                                 },
                                 exception = e,
                             )
@@ -222,7 +200,7 @@ fun EmailRelayListScreen(
                             items = items,
                             key = { it.key },
                         ) { item ->
-                            AppItem(
+                            UrlOverrideItem(
                                 modifier = Modifier
                                     .animateItemPlacement(),
                                 item = item,
@@ -243,16 +221,16 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.emailrelay_empty_label),
+                text = stringResource(Res.strings.urloverride_empty_label),
             )
         },
     )
 }
 
 @Composable
-private fun AppItem(
+private fun UrlOverrideItem(
     modifier: Modifier,
-    item: EmailRelayListState.Item,
+    item: UrlOverrideListState.Item,
 ) {
     val selectableState by item.selectableState.collectAsState()
     val backgroundColor = when {
@@ -281,30 +259,66 @@ private fun AppItem(
                 title = {
                     Text(item.title)
                 },
+                text = {
+                    Column {
+                        Spacer(
+                            modifier = Modifier
+                                .height(4.dp),
+                        )
+                        val codeModifier = Modifier
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .width(14.dp),
+                                imageVector = Icons.Outlined.Search,
+                                contentDescription = null,
+                                tint = LocalTextStyle.current.color,
+                            )
+                            Spacer(
+                                modifier = Modifier
+                                    .width(8.dp),
+                            )
+                            Text(
+                                modifier = codeModifier,
+                                text = item.regex,
+                                fontFamily = FontFamily.Monospace,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 2,
+                            )
+                        }
+                        Spacer(
+                            modifier = Modifier
+                                .height(4.dp),
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .width(14.dp),
+                                imageVector = Icons.Outlined.Terminal,
+                                contentDescription = null,
+                                tint = LocalTextStyle.current.color,
+                            )
+                            Spacer(
+                                modifier = Modifier
+                                    .width(8.dp),
+                            )
+                            Text(
+                                modifier = codeModifier,
+                                text = item.command,
+                                fontFamily = FontFamily.Monospace,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 6,
+                            )
+                        }
+                    }
+                },
             )
         },
         trailing = {
-            Text(
-                modifier = Modifier
-                    .widthIn(max = 128.dp)
-                    .padding(
-                        top = 8.dp,
-                        bottom = 8.dp,
-                    )
-                    .border(
-                        Dp.Hairline,
-                        DividerColor,
-                        MaterialTheme.shapes.small,
-                    )
-                    .padding(
-                        horizontal = 8.dp,
-                        vertical = 4.dp,
-                    ),
-                text = item.service,
-                style = MaterialTheme.typography.labelSmall,
-                textAlign = TextAlign.End,
-                maxLines = 2,
-            )
             ExpandedIfNotEmptyForRow(
                 selectableState.selected.takeIf { selectableState.selecting },
             ) { selected ->

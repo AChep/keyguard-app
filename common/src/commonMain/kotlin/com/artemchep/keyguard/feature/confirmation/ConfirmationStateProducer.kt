@@ -78,7 +78,9 @@ fun confirmationState(
                                         item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
                             val monospace =
                                 item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
+                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token ||
+                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Regex ||
+                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Command
                             val password =
                                 item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password
                             val generator = when (item.type) {
@@ -86,6 +88,8 @@ fun confirmationState(
                                 ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
                                 ConfirmationRoute.Args.Item.StringItem.Type.Token,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Text,
+                                ConfirmationRoute.Args.Item.StringItem.Type.Regex,
+                                ConfirmationRoute.Args.Item.StringItem.Type.Command,
                                 -> null
                             }
                             requireNotNull(state)
@@ -99,6 +103,7 @@ fun confirmationState(
                             ConfirmationState.Item.StringItem(
                                 key = item.key,
                                 title = item.title,
+                                description = item.description,
                                 sensitive = sensitive,
                                 monospace = monospace,
                                 password = password,

@@ -19,6 +19,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - **multi-account support** with secure login and two-factor authentication support;
 - add items, modify, and view your vault **offline**.
 - beautiful **Light**/**Dark theme**;
+- a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!
 
 #### Looks:

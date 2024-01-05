@@ -29,6 +29,7 @@ data class ConfirmationState(
             override val value: String,
             val state: TextFieldModel2,
             val title: String,
+            val description: String?,
             val sensitive: Boolean,
             val monospace: Boolean,
             val password: Boolean,

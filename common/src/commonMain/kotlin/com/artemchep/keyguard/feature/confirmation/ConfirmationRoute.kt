@@ -34,6 +34,7 @@ class ConfirmationRoute(
                 override val value: String = "",
                 val title: String,
                 val hint: String? = null,
+                val description: String? = null,
                 val type: Type = Type.Text,
                 /**
                  * `true` if the empty value is a valid
@@ -44,6 +45,8 @@ class ConfirmationRoute(
                 enum class Type {
                     Text,
                     Token,
+                    Regex,
+                    Command,
                     Password,
                     Username,
                 }

@@ -78,6 +78,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptio
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUseExternalBrowserProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterRebootProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterScreenOffProvider
@@ -147,6 +148,7 @@ object Setting {
     const val LAUNCH_YUBIKEY = "launch_yubikey"
     const val DATA_SAFETY = "data_safety"
     const val FEATURES_OVERVIEW = "features_overview"
+    const val URL_OVERRIDE = "url_override"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -221,6 +223,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LAUNCH_APP_PICKER to ::settingLaunchAppPicker,
     Setting.DATA_SAFETY to ::settingDataSafetyProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
+    Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,

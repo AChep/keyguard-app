@@ -222,78 +222,95 @@ private fun ConfirmationStringItem(
             isVisible = !item.sensitive,
         )
     }
-    FlatTextField(
-        modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        label = item.title,
-        value = item.state,
-        textStyle = when {
-            item.monospace ->
-                TextStyle(
-                    fontFamily = monoFontFamily,
-                )
+    Column(
+        modifier = modifier,
+    ) {
+        FlatTextField(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding),
+            label = item.title,
+            value = item.state,
+            textStyle = when {
+                item.monospace ->
+                    TextStyle(
+                        fontFamily = monoFontFamily,
+                    )
 
-            else -> LocalTextStyle.current
-        },
-        visualTransformation = if (visibilityState.isVisible) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
-        keyboardOptions = when {
-            item.password ->
-                KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Password,
-                )
+                else -> LocalTextStyle.current
+            },
+            visualTransformation = if (visibilityState.isVisible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            keyboardOptions = when {
+                item.password ->
+                    KeyboardOptions(
+                        autoCorrect = false,
+                        keyboardType = KeyboardType.Password,
+                    )
 
-            else -> KeyboardOptions.Default
-        },
-        singleLine = true,
-        maxLines = 1,
-        trailing = {
-            ExpandedIfNotEmptyForRow(
-                Unit.takeIf { item.sensitive },
-            ) {
-                VisibilityToggle(
-                    visibilityState = visibilityState,
-                )
-            }
-            ExpandedIfNotEmptyForRow(
-                item.generator,
-            ) { generator ->
-                val key = when (generator) {
-                    ConfirmationState.Item.StringItem.Generator.Username -> "username"
-                    ConfirmationState.Item.StringItem.Generator.Password -> "password"
+                else -> KeyboardOptions.Default
+            },
+            singleLine = true,
+            maxLines = 1,
+            trailing = {
+                ExpandedIfNotEmptyForRow(
+                    Unit.takeIf { item.sensitive },
+                ) {
+                    VisibilityToggle(
+                        visibilityState = visibilityState,
+                    )
                 }
-                AutofillButton(
-                    key = key,
-                    username = generator == ConfirmationState.Item.StringItem.Generator.Username,
-                    password = generator == ConfirmationState.Item.StringItem.Generator.Password,
-                    onValueChange = item.state.onChange,
-                )
-            }
-        },
-        content = {
-            ExpandedIfNotEmpty(
-                valueOrNull = Unit
-                    .takeIf {
-                        item.value.isNotEmpty() &&
-                                item.password &&
-                                item.state.error == null
-                    },
-            ) {
-                PasswordStrengthBadge(
-                    modifier = Modifier
-                        .padding(
-                            top = 8.dp,
-                            bottom = 8.dp,
-                        ),
-                    password = item.value,
-                )
-            }
-        },
-    )
+                ExpandedIfNotEmptyForRow(
+                    item.generator,
+                ) { generator ->
+                    val key = when (generator) {
+                        ConfirmationState.Item.StringItem.Generator.Username -> "username"
+                        ConfirmationState.Item.StringItem.Generator.Password -> "password"
+                    }
+                    AutofillButton(
+                        key = key,
+                        username = generator == ConfirmationState.Item.StringItem.Generator.Username,
+                        password = generator == ConfirmationState.Item.StringItem.Generator.Password,
+                        onValueChange = item.state.onChange,
+                    )
+                }
+            },
+            content = {
+                ExpandedIfNotEmpty(
+                    valueOrNull = Unit
+                        .takeIf {
+                            item.value.isNotEmpty() &&
+                                    item.password &&
+                                    item.state.error == null
+                        },
+                ) {
+                    PasswordStrengthBadge(
+                        modifier = Modifier
+                            .padding(
+                                top = 8.dp,
+                                bottom = 8.dp,
+                            ),
+                        password = item.value,
+                    )
+                }
+            },
+        )
+        if (item.description != null) {
+            Text(
+                modifier = Modifier
+                    .padding(
+                        horizontal = Dimens.horizontalPadding,
+                        vertical = 8.dp,
+                    ),
+                text = item.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

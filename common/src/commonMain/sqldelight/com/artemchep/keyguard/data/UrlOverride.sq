@@ -1,0 +1,38 @@
+import kotlinx.datetime.Instant;
+
+CREATE TABLE urlOverride (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  regex TEXT NOT NULL,
+  command TEXT NOT NULL,
+  createdAt INTEGER AS Instant NOT NULL
+);
+
+update {
+  UPDATE urlOverride
+  SET
+    name = :name,
+    regex = :regex,
+    command = :command,
+    createdAt = :createdAt
+  WHERE
+    id = :id;
+}
+
+insert {
+  INSERT OR IGNORE INTO urlOverride(name, regex, command, createdAt)
+  VALUES (:name, :regex, :command, :createdAt);
+}
+
+get:
+SELECT *
+FROM urlOverride
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+deleteAll:
+DELETE FROM urlOverride;
+
+deleteByIds:
+DELETE FROM urlOverride
+WHERE id IN (:ids);

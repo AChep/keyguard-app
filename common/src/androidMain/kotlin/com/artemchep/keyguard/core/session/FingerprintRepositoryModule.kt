@@ -3,7 +3,6 @@ package com.artemchep.keyguard.core.session
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
 import com.artemchep.keyguard.android.downloader.DownloadClientAndroid
 import com.artemchep.keyguard.android.downloader.DownloadManagerImpl
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
@@ -44,7 +43,7 @@ import com.artemchep.keyguard.copy.ClipboardServiceAndroid
 import com.artemchep.keyguard.copy.ConnectivityServiceAndroid
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
-import com.artemchep.keyguard.copy.LinkInfoExtractorExecute
+import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
 import com.artemchep.keyguard.copy.LinkInfoExtractorLaunch
 import com.artemchep.keyguard.copy.LogRepositoryAndroid
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
@@ -59,24 +58,8 @@ import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.util.isRelease
 import db_key_value.crypto_prefs.SecurePrefKeyValueStore
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.UserAgent
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
-import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.bindProvider
@@ -178,9 +161,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
         LinkInfoExtractorLaunch(
             packageManager = instance(),
         )
-    }
-    bindSingleton<LinkInfoExtractorExecute> {
-        LinkInfoExtractorExecute()
     }
     bindSingleton<TextService> {
         TextServiceAndroid(

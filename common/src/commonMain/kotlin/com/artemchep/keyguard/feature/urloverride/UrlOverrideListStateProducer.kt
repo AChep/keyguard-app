@@ -1,20 +1,21 @@
-package com.artemchep.keyguard.feature.generator.emailrelay
+package com.artemchep.keyguard.feature.urloverride
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.AnnotatedString
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
+import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.service.relays.api.EmailRelay
-import com.artemchep.keyguard.common.usecase.AddEmailRelay
-import com.artemchep.keyguard.common.usecase.GetEmailRelays
-import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
+import com.artemchep.keyguard.common.service.execute.ExecuteCommand
+import com.artemchep.keyguard.common.usecase.AddUrlOverride
+import com.artemchep.keyguard.common.usecase.GetUrlOverrides
+import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
@@ -26,16 +27,15 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.navigation.state.translate
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -45,107 +45,111 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Clock
-import org.kodein.di.allInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 
-private class EmailRelayListUiException(
+private class UrlOverrideListUiException(
     msg: String,
     cause: Throwable,
 ) : RuntimeException(msg, cause)
 
 @Composable
-fun produceEmailRelayListState(
+fun produceUrlOverrideListState(
 ) = with(localDI().direct) {
-    produceEmailRelayListState(
-        emailRelays = allInstances(),
-        addEmailRelay = instance(),
-        removeEmailRelayById = instance(),
-        getEmailRelays = instance(),
+    produceUrlOverrideListState(
+        addUrlOverride = instance(),
+        removeUrlOverrideById = instance(),
+        getUrlOverrides = instance(),
+        executeCommand = instance(),
     )
 }
 
 @Composable
-fun produceEmailRelayListState(
-    emailRelays: List<EmailRelay>,
-    addEmailRelay: AddEmailRelay,
-    removeEmailRelayById: RemoveEmailRelayById,
-    getEmailRelays: GetEmailRelays,
-): Loadable<EmailRelayListState> = produceScreenState(
-    key = "emailrelay_list",
+fun produceUrlOverrideListState(
+    addUrlOverride: AddUrlOverride,
+    removeUrlOverrideById: RemoveUrlOverrideById,
+    getUrlOverrides: GetUrlOverrides,
+    executeCommand: ExecuteCommand,
+): Loadable<UrlOverrideListState> = produceScreenState(
+    key = "urloverride_list",
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
     val selectionHandle = selectionHandle("selection")
 
-    fun onEdit(model: EmailRelay, entity: DGeneratorEmailRelay?) {
-        val keyName = "name"
+    fun onEdit(entity: DGlobalUrlOverride?) {
+        val nameKey = "name"
+        val nameItem = ConfirmationRoute.Args.Item.StringItem(
+            key = nameKey,
+            value = entity?.name.orEmpty(),
+            title = translate(Res.strings.generic_name),
+            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
+            canBeEmpty = false,
+        )
 
-        val items2 = model
-            .schema
-            .map { emailRelay ->
-                val itemKey = emailRelay.key
-                val itemValue = entity?.data?.get(itemKey).orEmpty()
-                ConfirmationRoute.Args.Item.StringItem(
-                    key = itemKey,
-                    value = itemValue,
-                    title = translate(emailRelay.value.title),
-                    hint = emailRelay.value.hint?.let { translate(it) },
-                    type = emailRelay.value.type,
-                    canBeEmpty = emailRelay.value.canBeEmpty,
-                )
-            }
-            .let {
-                val out = mutableListOf<ConfirmationRoute.Args.Item<*>>()
-                out += ConfirmationRoute.Args.Item.StringItem(
-                    key = keyName,
-                    value = entity?.name
-                        ?: model.name,
-                    title = translate(Res.strings.generic_name),
-                )
-                out += it
-                out
-            }
+        val regexKey = "regex"
+        val regexItem = ConfirmationRoute.Args.Item.StringItem(
+            key = regexKey,
+            value = entity?.regex?.toString().orEmpty(),
+            title = translate(Res.strings.regex),
+            // A hint explains how would a user write a regex that
+            // matches both HTTPS and HTTP schemes.
+            hint = "^https?://.*",
+            description = translate(Res.strings.urloverride_regex_note),
+            type = ConfirmationRoute.Args.Item.StringItem.Type.Regex,
+            canBeEmpty = false,
+        )
+
+        val commandKey = "command"
+        val commandItem = ConfirmationRoute.Args.Item.StringItem(
+            key = commandKey,
+            value = entity?.command.orEmpty(),
+            title = translate(Res.strings.command),
+            // A hint explains how would a user write a command that
+            // converts all links to use the HTTPS scheme.
+            hint = "https://{url:rmvscm}",
+            type = ConfirmationRoute.Args.Item.StringItem.Type.Command,
+            canBeEmpty = false,
+        )
+
+        val items2 = listOf(
+            nameItem,
+            regexItem,
+            commandItem,
+        )
         val route = registerRouteResultReceiver(
             route = ConfirmationRoute(
                 args = ConfirmationRoute.Args(
                     icon = icon(
-                        main = Icons.Outlined.Email,
+                        main = Icons.Outlined.Link,
                         secondary = if (entity != null) {
                             Icons.Outlined.Edit
                         } else {
                             Icons.Outlined.Add
                         },
                     ),
-                    title = model.name,
-                    subtitle = translate(Res.strings.emailrelay_integration_title),
+                    title = translate(Res.strings.urloverride_header_title),
                     items = items2,
-                    docUrl = model.docUrl,
                 ),
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
-                val name = result.data[keyName] as? String
+                val name = result.data[nameKey] as? String
+                    ?: return@registerRouteResultReceiver
+                val regex = result.data[regexKey] as? String
+                    ?: return@registerRouteResultReceiver
+                val placeholder = result.data[commandKey] as? String
                     ?: return@registerRouteResultReceiver
                 val createdAt = Clock.System.now()
-                val data = model
-                    .schema
-                    .mapNotNull { entry ->
-                        val value = result.data[entry.key] as? String
-                            ?: return@mapNotNull null
-                        entry.key to value
-                    }
-                    .toMap()
-                    .toPersistentMap()
-                val model = DGeneratorEmailRelay(
+                val model = DGlobalUrlOverride(
                     id = entity?.id,
                     name = name,
-                    type = model.type,
-                    data = data,
+                    regex = regex.toRegex(),
+                    command = placeholder,
                     createdDate = createdAt,
                 )
-                addEmailRelay(model)
+                addUrlOverride(model)
                     .launchIn(appScope)
             }
         }
@@ -153,15 +157,15 @@ fun produceEmailRelayListState(
         navigate(intent)
     }
 
-    fun onNew(model: EmailRelay) = onEdit(model, null)
+    fun onNew() = onEdit(null)
 
-    fun onDuplicate(entity: DGeneratorEmailRelay) {
+    fun onDuplicate(entity: DGlobalUrlOverride) {
         val createdAt = Clock.System.now()
         val model = entity.copy(
             id = null,
             createdDate = createdAt,
         )
-        addEmailRelay(model)
+        addUrlOverride(model)
             .launchIn(appScope)
     }
 
@@ -169,34 +173,21 @@ fun produceEmailRelayListState(
         emailRelayIds: Set<String>,
     ) {
         val title = if (emailRelayIds.size > 1) {
-            translate(Res.strings.emailrelay_delete_many_confirmation_title)
+            translate(Res.strings.urloverride_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.emailrelay_delete_one_confirmation_title)
+            translate(Res.strings.urloverride_delete_one_confirmation_title)
         }
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Delete),
             title = title,
         ) {
-            removeEmailRelayById(emailRelayIds)
+            removeUrlOverrideById(emailRelayIds)
                 .launchIn(appScope)
         }
         navigate(intent)
     }
 
-    val primaryActions = emailRelays
-        .map { emailRelay ->
-            val key = emailRelay.type
-            FlatItemAction(
-                id = key,
-                title = emailRelay.name,
-                onClick = ::onNew
-                    .partially1(emailRelay),
-            )
-        }
-        .sortedBy { it.title }
-        .toImmutableList()
-
-    val itemsRawFlow = getEmailRelays()
+    val itemsRawFlow = getUrlOverrides()
     // Automatically de-select items
     // that do not exist.
     combine(
@@ -256,19 +247,14 @@ fun produceEmailRelayListState(
         .map { list ->
             list
                 .map {
-                    val relay = emailRelays
-                        .firstOrNull { r -> r.type == it.type }
                     val dropdown = buildContextItems {
                         section {
-                            if (relay != null) {
-                                this += FlatItemAction(
-                                    icon = Icons.Outlined.Edit,
-                                    title = translate(Res.strings.edit),
-                                    onClick = ::onEdit
-                                        .partially1(relay)
-                                        .partially1(it),
-                                )
-                            }
+                            this += FlatItemAction(
+                                icon = Icons.Outlined.Edit,
+                                title = translate(Res.strings.edit),
+                                onClick = ::onEdit
+                                    .partially1(it),
+                            )
                             this += FlatItemAction(
                                 icon = Icons.Outlined.CopyAll,
                                 title = translate(Res.strings.duplicate),
@@ -332,10 +318,13 @@ fun produceEmailRelayListState(
                         } else {
                             selectableFlow.stateIn(this)
                         }
-                    EmailRelayListState.Item(
+                    val regex = it.regex.toString().let(::AnnotatedString)
+                    val command = it.command.let(::AnnotatedString)
+                    UrlOverrideListState.Item(
                         key = it.id.orEmpty(),
                         title = it.name,
-                        service = relay?.name ?: it.type,
+                        regex = regex,
+                        command = command,
                         icon = icon,
                         accentLight = it.accentColor.light,
                         accentDark = it.accentColor.dark,
@@ -346,8 +335,8 @@ fun produceEmailRelayListState(
                 .toPersistentList()
         }
         .crashlyticsAttempt { e ->
-            val msg = "Failed to get the email relay list!"
-            EmailRelayListUiException(
+            val msg = "Failed to get the URL override list!"
+            UrlOverrideListUiException(
                 msg = msg,
                 cause = e,
             )
@@ -358,18 +347,18 @@ fun produceEmailRelayListState(
     ) { selection, itemsResult ->
         val contentOrException = itemsResult
             .map { items ->
-                EmailRelayListState.Content(
+                UrlOverrideListState.Content(
                     revision = 0,
                     items = items,
                     selection = selection,
-                    primaryActions = primaryActions,
+                    primaryAction = ::onNew,
                 )
             }
         Loadable.Ok(contentOrException)
     }
     contentFlow
         .map { content ->
-            val state = EmailRelayListState(
+            val state = UrlOverrideListState(
                 content = content,
             )
             Loadable.Ok(state)

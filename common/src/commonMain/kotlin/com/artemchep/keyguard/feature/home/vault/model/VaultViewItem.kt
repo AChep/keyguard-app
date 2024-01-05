@@ -214,8 +214,19 @@ sealed interface VaultViewItem {
          * to the item.
          */
         val dropdown: List<ContextItem> = emptyList(),
+        val overrides: List<Override> = emptyList(),
     ) : VaultViewItem {
-        companion object
+        companion object;
+
+        data class Override(
+            val title: String,
+            val text: String,
+            /**
+             * List of the callable actions appended
+             * to the item.
+             */
+            val dropdown: List<ContextItem> = emptyList(),
+        )
     }
 
     data class Totp(

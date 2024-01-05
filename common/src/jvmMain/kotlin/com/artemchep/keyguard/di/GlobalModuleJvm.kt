@@ -10,6 +10,9 @@ import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.deeplink.impl.DeeplinkServiceImpl
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
+import com.artemchep.keyguard.common.service.execute.ExecuteCommand
+import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
+import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoPlatformExtractor
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.service.gpmprivapps.impl.PrivilegedAppsServiceImpl
@@ -954,6 +957,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<ExecuteCommand> {
+        ExecuteCommandImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<WordlistService> {
         WordlistServiceImpl(
             directDI = this,
@@ -996,6 +1004,9 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<LinkInfoPlatformExtractor> {
         LinkInfoPlatformExtractor()
+    }
+    bindSingleton<LinkInfoExtractorExecute> {
+        LinkInfoExtractorExecute()
     }
     bindSingleton<SimilarityService> {
         SimilarityServiceJvm(

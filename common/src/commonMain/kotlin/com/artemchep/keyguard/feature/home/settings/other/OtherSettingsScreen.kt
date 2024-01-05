@@ -19,6 +19,12 @@ fun OtherSettingsScreen() {
                 ),
             ),
             SettingPaneItem.Group(
+                key = "other",
+                list = listOf(
+                    SettingPaneItem.Item(Setting.URL_OVERRIDE),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "security",
                 list = listOf(
                     SettingPaneItem.Item(Setting.CRASHLYTICS),

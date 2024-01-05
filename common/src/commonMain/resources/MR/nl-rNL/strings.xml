@@ -83,6 +83,10 @@
     <string name="organizations">Organisaties</string>
     <string name="organizations_empty_label">No organizations</string>
     <string name="misc">Overige</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">Integratie toevoegen</string>
     <string name="account">Account</string>
     <string name="accounts">Accounts</string>
@@ -161,6 +165,8 @@
     <string name="downloads">Downloads</string>
     <string name="downloads_empty_label">No downloads</string>
     <string name="duplicates_empty_label">No duplicates</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">Encryptie</string>
     <!-- Encryption key -->
     <string name="encryption_key">Sleutel</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">Openen met <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Openen met…</string>
     <string name="uri_action_how_to_delete_account_title">Hoe verwijder ik mijn account?</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">Onveilig</string>
     <string name="uri_match_app_title">App koppelen</string>
     <string name="uri_match_detection_title">Overeenkomst detectie</string>
@@ -323,7 +331,7 @@
     <string name="copied_expiration_year">Copied an expiration year</string>
     <string name="copied_expiration_month">Copied an expiration month</string>
     <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
+    <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
     <string name="autofill_unlock_keyguard">Keyguard ontgrendelen</string>
     <string name="autofill_open_keyguard">Open Keyguard</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Verwijder e-mail forwarders?</string>
     <string name="emailrelay_integration_title">E-mail forwarder integratie</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Maak een versleutelde kluis aan waar de lokale gegevens worden opgeslagen.</string>
     <string name="setup_field_app_password_label">App-wachtwoord</string>
     <string name="setup_checkbox_biometric_auth">Biometrische authenticatie</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">Het opslaan van de kluissleutel op een schijf zorgt voor een veiligheidsrisico. Als de interne opslag van het apparaat gecompromitteerd is zal de aanvaller toegang krijgen tot de lokale kluisgegevens.</string>
     <string name="pref_item_permissions_title">Machtigingen</string>
     <string name="pref_item_features_overview_title">Overzicht van functies</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">Biometrische ontgrendeling</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

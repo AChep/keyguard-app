@@ -83,6 +83,10 @@
     <string name="organizations">Организации</string>
     <string name="organizations_empty_label">Нет организаций</string>
     <string name="misc">Разное</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">Добавить интеграцию</string>
     <string name="account">Учётная запись</string>
     <string name="accounts">Учетные записи</string>
@@ -161,6 +165,8 @@
     <string name="downloads">Загрузки</string>
     <string name="downloads_empty_label">Нет загрузок</string>
     <string name="duplicates_empty_label">Дубликатов нет</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">Шифрование</string>
     <!-- Encryption key -->
     <string name="encryption_key">Ключ</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">Запустить в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Запустить в…</string>
     <string name="uri_action_how_to_delete_account_title">Как удалить мою учетную запись?</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">Незащищенный</string>
     <string name="uri_match_app_title">Выбрать приложение</string>
     <string name="uri_match_detection_title">Обнаружение совпадений</string>
@@ -308,23 +316,23 @@
     <string name="copy_cvv_code">Скопировать CVV код</string>
     <string name="copy_otp_code">Копировать одноразовый пароль</string>
     <string name="copy_otp_secret_code">Копировать секретный ключ</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">Скопировано значение</string>
+    <string name="copied_url">Скопирован URL</string>
+    <string name="copied_uri">Скопирован URI</string>
+    <string name="copied_package_name">Скопировано имя пакета</string>
+    <string name="copied_password">Скопирован пароль</string>
+    <string name="copied_username">Скопировано имя пользователя</string>
+    <string name="copied_email">Скопирован e-mail</string>
+    <string name="copied_phone_number">Скопирован номер телефона</string>
+    <string name="copied_passport_number">Скопирован номер паспорта</string>
+    <string name="copied_license_number">Скопирован номер лицензии</string>
+    <string name="copied_card_number">Скопирован номер карты</string>
+    <string name="copied_cardholder_name">Скопировано имя владельца карты</string>
+    <string name="copied_expiration_year">Скопирован год истечения срока</string>
+    <string name="copied_expiration_month">Скопирован месяц истечения срока</string>
+    <string name="copied_cvv_code">Скопирован защитный код</string>
+    <string name="copied_otp_code">Скопирован одноразовый пароль</string>
+    <string name="copied_otp_secret_code">Скопирован секретный ключ</string>
     <string name="autofill_unlock_keyguard">Разблокировать Keyguard</string>
     <string name="autofill_open_keyguard">Открыть Keyguard</string>
     <string name="january">Январь</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Удалить пересыльщиков сообщений?</string>
     <string name="emailrelay_integration_title">Интеграция с пересыльщиком сообщений</string>
     <string name="emailrelay_empty_label">Нет пересыльщиков сообщений</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
     <string name="setup_field_app_password_label">Пароль приложения</string>
     <string name="setup_checkbox_biometric_auth">Вход по биометрии</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">Хранение ключа хранилища на диске представляет собой угрозу безопасности. Если внутреннее хранилище устройства скомпрометировано, злоумышленник получит доступ к локальным данным хранилища.</string>
     <string name="pref_item_permissions_title">Разрешения</string>
     <string name="pref_item_features_overview_title">Обзор возможностей</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

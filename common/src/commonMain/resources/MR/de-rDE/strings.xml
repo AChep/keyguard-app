@@ -83,6 +83,10 @@
     <string name="organizations">Organisationen</string>
     <string name="organizations_empty_label">Keine Organisationen vorhanden</string>
     <string name="misc">Diverses</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">Integration hinzufügen</string>
     <string name="account">Konto</string>
     <string name="accounts">Konten</string>
@@ -161,6 +165,8 @@
     <string name="downloads">Heruntergeladenes</string>
     <string name="downloads_empty_label">Keine Downloads vorhanden</string>
     <string name="duplicates_empty_label">Keine Duplikate vorhanden</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">Verschlüsselung</string>
     <!-- Encryption key -->
     <string name="encryption_key">Schlüssel</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">Mit <xliff:g id="app" example="Keyguard">%1$s</xliff:g> starten</string>
     <string name="uri_action_launch_in_smth_title">Starten mit…</string>
     <string name="uri_action_how_to_delete_account_title">Wie lösche ich ein Konto?</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">Unsicher</string>
     <string name="uri_match_app_title">Passende App</string>
     <string name="uri_match_detection_title">Übereinstimmungserkennung</string>
@@ -323,7 +331,7 @@
     <string name="copied_expiration_year">Copied an expiration year</string>
     <string name="copied_expiration_month">Copied an expiration month</string>
     <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
+    <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
     <string name="autofill_unlock_keyguard">Keyguard entsperren</string>
     <string name="autofill_open_keyguard">Keyguard öffnen</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">E-Mail-Weiterleitungen löschen?</string>
     <string name="emailrelay_integration_title">E-Mail-Weiterleitung Integration</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in dem lokale Daten gespeichert werden.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
     <string name="setup_checkbox_biometric_auth">Biometrische Authentifizierung</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">Die Speicherung eines Tresorschlüssels auf dem internen Speicher ist ein Sicherheitsrisiko. Wenn der interne Speicher des Geräts kompromittiert ist, erhält der Angreifer Zugriff auf die lokalen Tresor-Daten.</string>
     <string name="pref_item_permissions_title">Berechtigungen</string>
     <string name="pref_item_features_overview_title">Feature-Überblick</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">Biometrisches Entsperren</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

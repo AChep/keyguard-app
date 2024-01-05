@@ -83,6 +83,10 @@
     <string name="organizations">Organitzacions</string>
     <string name="organizations_empty_label">Cap organització</string>
     <string name="misc">Miscel·lània</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">Afegir integració</string>
     <string name="account">Compte</string>
     <string name="accounts">Comptes</string>
@@ -161,6 +165,8 @@
     <string name="downloads">Descàrregues</string>
     <string name="downloads_empty_label">Cap descàrrega</string>
     <string name="duplicates_empty_label">Cap duplicat</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">Xifratge</string>
     <!-- Encryption key -->
     <string name="encryption_key">Clau</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">Inicia amb <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Inicia amb…</string>
     <string name="uri_action_how_to_delete_account_title">Com eliminar un compte?</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">No segura</string>
     <string name="uri_match_app_title">Coincideix amb l\'app</string>
     <string name="uri_match_detection_title">Detecció de coincidències</string>
@@ -308,23 +316,23 @@
     <string name="copy_cvv_code">Còpia el codi CVV</string>
     <string name="copy_otp_code">Copia la contrasenya d\'un sol ús</string>
     <string name="copy_otp_secret_code">Copia la clau secreta</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">S\'ha copiat un valor</string>
+    <string name="copied_url">S\'ha copiat una URL</string>
+    <string name="copied_uri">S\'ha copiat una URI</string>
+    <string name="copied_package_name">S\'ha copiat un nom de paquet</string>
+    <string name="copied_password">S\'ha copiat una contrasenya</string>
+    <string name="copied_username">S\'ha copiat un nom d\'usuari</string>
+    <string name="copied_email">S\'ha copiat un correu electrònic</string>
+    <string name="copied_phone_number">S\'ha copiat un número de mòbil</string>
+    <string name="copied_passport_number">S\'ha copiat un número de passaport</string>
+    <string name="copied_license_number">S\'ha copiat un número de llicència</string>
+    <string name="copied_card_number">S\'ha copiat un número de targeta</string>
+    <string name="copied_cardholder_name">S\'ha copiat un nom de titular</string>
+    <string name="copied_expiration_year">S\'ha copiat un any d\'expiració</string>
+    <string name="copied_expiration_month">S\'ha copiat un mes d\'expiració</string>
+    <string name="copied_cvv_code">S\'ha copiat un codi de seguretat</string>
+    <string name="copied_otp_code">S\'ha copiat una contrasenya d\'un sol ús</string>
+    <string name="copied_otp_secret_code">S\'ha copiat una clau secreta</string>
     <string name="autofill_unlock_keyguard">Desbloqueja Keyguard</string>
     <string name="autofill_open_keyguard">Obre Keyguard</string>
     <string name="january">Gener</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Eliminar els redireccionadors d\'email?</string>
     <string name="emailrelay_integration_title">Integració amb redireccionador d\'email</string>
     <string name="emailrelay_empty_label">Cap redireccionador d\'email</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Crea una caixa forta encriptada on es desaran totes les dades locals.</string>
     <string name="setup_field_app_password_label">Contrasenya d\'aplicació</string>
     <string name="setup_checkbox_biometric_auth">Autenticació biomètrica</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">Desar la clau de la caixa forta a un disc és un risc de seguretat. Si l\'emmagatzematge del dispositiu es compromet, l\'atacant tindrà accés a les dades.</string>
     <string name="pref_item_permissions_title">Permisos</string>
     <string name="pref_item_features_overview_title">Visió general de funcions</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueig biomètric</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

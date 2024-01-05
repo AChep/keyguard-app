@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.halilibo.richtext.markdown.Markdown
 import com.halilibo.richtext.ui.RichTextStyle
-import com.halilibo.richtext.ui.material3.Material3RichText
+import com.halilibo.richtext.ui.material3.RichText
 import com.halilibo.richtext.ui.resolveDefaults
 import com.halilibo.richtext.ui.string.RichTextStringStyle
 
@@ -21,7 +21,7 @@ fun MarkdownText(
             ),
         ),
     )
-    Material3RichText(
+    RichText(
         modifier = modifier,
         style = richTextStyle,
     ) {

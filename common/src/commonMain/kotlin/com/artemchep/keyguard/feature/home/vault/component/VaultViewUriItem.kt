@@ -82,6 +82,9 @@ fun VaultViewUriItem(
                         ) { matchTypeTitle ->
                             Text(
                                 modifier = Modifier
+                                    .padding(
+                                        start = 8.dp,
+                                    )
                                     .widthIn(max = 128.dp)
                                     .border(
                                         Dp.Hairline,

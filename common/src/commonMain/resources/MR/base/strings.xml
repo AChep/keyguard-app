@@ -472,7 +472,6 @@
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
     <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
     <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
-    <string name="urloverride_integration_title">Email forwarder integration</string>
     <string name="urloverride_empty_label">No URL overrides</string>
 
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>

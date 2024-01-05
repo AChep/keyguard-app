@@ -83,6 +83,10 @@
     <string name="organizations">Організації</string>
     <string name="organizations_empty_label">Організації відсутні</string>
     <string name="misc">Різне</string>
+    <string name="command">Команда</string>
+    <string name="execute_command">Виконати</string>
+    <!-- Add (something) -->
+    <string name="add">Додати</string>
     <string name="add_integration">Додати інтеграцію</string>
     <string name="account">Обліковий запис</string>
     <string name="accounts">Облікові записи</string>
@@ -161,6 +165,8 @@
     <string name="downloads">Завантаження</string>
     <string name="downloads_empty_label">Завантаження відсутні</string>
     <string name="duplicates_empty_label">Дублікати відсутні</string>
+    <string name="duplicate">Дублювати</string>
+    <string name="regex">Регулярний вираз</string>
     <string name="encryption">Шифрування</string>
     <!-- Encryption key -->
     <string name="encryption_key">Ключ</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">Відкрити в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Відкрити в…</string>
     <string name="uri_action_how_to_delete_account_title">Як видалити мій обліковий запис?</string>
+    <string name="uri_action_autofix_unsecure_title">Виправити незахищену URL-адресу</string>
+    <string name="uri_action_autofix_unsecure_text">Якщо можливо, змінює протокол адреси на захищений</string>
     <string name="uri_unsecure">Незахищений</string>
     <string name="uri_match_app_title">Обрати застосунок</string>
     <string name="uri_match_detection_title">Виявлення збігів</string>
@@ -308,23 +316,23 @@
     <string name="copy_cvv_code">Скопіювати CVV-код</string>
     <string name="copy_otp_code">Скопіювати одноразовий пароль</string>
     <string name="copy_otp_secret_code">Скопіювати секретний ключ</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">Скопійовано значення</string>
+    <string name="copied_url">Скопійований URL</string>
+    <string name="copied_uri">Скопійований URI</string>
+    <string name="copied_package_name">Скопійовано назву пакету</string>
+    <string name="copied_password">Скопійовано пароль</string>
+    <string name="copied_username">Скопійовано ім\'я користувача</string>
+    <string name="copied_email">Скопійовано електронну пошту</string>
+    <string name="copied_phone_number">Скопійовано номер телефону</string>
+    <string name="copied_passport_number">Скопійовано номер паспорта</string>
+    <string name="copied_license_number">Скопійовано номер ліцензії</string>
+    <string name="copied_card_number">Скопійовано номер картки</string>
+    <string name="copied_cardholder_name">Скопійовано ім\'я власника карти</string>
+    <string name="copied_expiration_year">Скопійовано рік закінчення терміну дії</string>
+    <string name="copied_expiration_month">Скопійовано місяць закінчення терміну дії</string>
+    <string name="copied_cvv_code">Скопійовано код безпеки</string>
+    <string name="copied_otp_code">Скопійовано одноразовий пароль</string>
+    <string name="copied_otp_secret_code">Скопійовано секретний ключ</string>
     <string name="autofill_unlock_keyguard">Розблокувати Keyguard</string>
     <string name="autofill_open_keyguard">Відкрити Keyguard</string>
     <string name="january">Січень</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Видалити сервіси пересилання електронної пошти?</string>
     <string name="emailrelay_integration_title">Інтеграція сервісу пересилання ел. пошти</string>
     <string name="emailrelay_empty_label">Сервіси пересилання електронної пошти відсутні</string>
+    <string name="urloverride_header_title">Перевизначення URL-адреси</string>
+    <string name="urloverride_list_header_title">Перевизначення URL-адреси</string>
+    <string name="urloverride_list_section_title">Перевизначення URL-адреси</string>
+    <string name="urloverride_regex_note">Перевизначення буде застосовано до URL-адрес, які відповідають регулярному виразу.</string>
+    <string name="urloverride_delete_one_confirmation_title">Видалити перевизначення URL-адреси?</string>
+    <string name="urloverride_delete_many_confirmation_title">Видалити перевизначення URL-адреси?</string>
+    <string name="urloverride_empty_label">Немає перевизначених URL-адрес</string>
     <string name="setup_header_text">Створити зашифроване сховище локальних даних.</string>
     <string name="setup_field_app_password_label">Пароль застосунку</string>
     <string name="setup_checkbox_biometric_auth">Біометрична автентифікація</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">Зберігання ключа сховища на диску становить загрозу безпеці. Якщо внутрішнє сховище пристрою скомпрометовано, зловмисник отримає доступ до даних локального сховища.</string>
     <string name="pref_item_permissions_title">Дозволи</string>
     <string name="pref_item_features_overview_title">Перегляд можливостей</string>
+    <string name="pref_item_url_override_title">Перевизначення URL-адреси</string>
     <string name="pref_item_biometric_unlock_title">Біометричне розблокування</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

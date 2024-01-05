@@ -83,6 +83,10 @@
     <string name="organizations">組織</string>
     <string name="organizations_empty_label">組織なし</string>
     <string name="misc">その他</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">統合を追加</string>
     <string name="account">アカウント</string>
     <string name="accounts">アカウント</string>
@@ -161,6 +165,8 @@
     <string name="downloads">ダウンロード</string>
     <string name="downloads_empty_label">ダウンロードなし</string>
     <string name="duplicates_empty_label">重複なし</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">暗号化</string>
     <!-- Encryption key -->
     <string name="encryption_key">キー</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> で開く</string>
     <string name="uri_action_launch_in_smth_title">開く…</string>
     <string name="uri_action_how_to_delete_account_title">アカウントの削除方法</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">非セキュア</string>
     <string name="uri_match_app_title">一致するアプリ</string>
     <string name="uri_match_detection_title">一致検出方法</string>
@@ -323,7 +331,7 @@
     <string name="copied_expiration_year">Copied an expiration year</string>
     <string name="copied_expiration_month">Copied an expiration month</string>
     <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
+    <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
     <string name="autofill_unlock_keyguard">Keyguard のロック解除</string>
     <string name="autofill_open_keyguard">Keyguard を開く</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">メール転送を削除しますか？</string>
     <string name="emailrelay_integration_title">メール転送統合</string>
     <string name="emailrelay_empty_label">メール転送なし</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">ローカルデータを保存するための暗号化された保管庫を作成します。</string>
     <string name="setup_field_app_password_label">アプリのパスワード</string>
     <string name="setup_checkbox_biometric_auth">生体認証</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">デバイスに保管庫のキーを保存することはセキュリティリスクとなります。デバイスの内部ストレージが侵害された場合、攻撃者はローカルの保管庫のデータにアクセスすることができます。</string>
     <string name="pref_item_permissions_title">権限</string>
     <string name="pref_item_features_overview_title">機能の概要</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

@@ -83,6 +83,10 @@
     <string name="organizations">Organizações</string>
     <string name="organizations_empty_label">Sem organizações</string>
     <string name="misc">Diversos</string>
+    <string name="command">Comando</string>
+    <string name="execute_command">Executar</string>
+    <!-- Add (something) -->
+    <string name="add">Adicionar</string>
     <string name="add_integration">Adicionar integração</string>
     <string name="account">Conta</string>
     <string name="accounts">Contas</string>
@@ -161,6 +165,8 @@
     <string name="downloads">Transferências</string>
     <string name="downloads_empty_label">Sem transferências</string>
     <string name="duplicates_empty_label">Sem duplicados</string>
+    <string name="duplicate">Duplicar</string>
+    <string name="regex">Expressão regular</string>
     <string name="encryption">Encriptação</string>
     <!-- Encryption key -->
     <string name="encryption_key">Chave</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">Iniciar com <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Iniciar com…</string>
     <string name="uri_action_how_to_delete_account_title">Como excluir uma conta?</string>
+    <string name="uri_action_autofix_unsecure_title">Correção automática de ligação URL insegura</string>
+    <string name="uri_action_autofix_unsecure_text">Altera um protocolo para variante segura, se estiver disponível</string>
     <string name="uri_unsecure">Inseguro</string>
     <string name="uri_match_app_title">Corresponder ao aplicativo</string>
     <string name="uri_match_detection_title">Deteção de correspondência</string>
@@ -308,23 +316,23 @@
     <string name="copy_cvv_code">Copiar código CVV</string>
     <string name="copy_otp_code">Copiar código OTP</string>
     <string name="copy_otp_secret_code">Copiar chave secreta</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">Valor copiado</string>
+    <string name="copied_url">URL copiado</string>
+    <string name="copied_uri">URI copiado</string>
+    <string name="copied_package_name">Nome do pacote copiado</string>
+    <string name="copied_password">Palavra-passe copiada</string>
+    <string name="copied_username">Nome de utilizador copiado</string>
+    <string name="copied_email">E-mail copiado</string>
+    <string name="copied_phone_number">Número de telefone copiado</string>
+    <string name="copied_passport_number">Número de passaporte copiado</string>
+    <string name="copied_license_number">Número da carta de condução copiado</string>
+    <string name="copied_card_number">Número de cartão copiado</string>
+    <string name="copied_cardholder_name">Nome de titular do cartão copiado</string>
+    <string name="copied_expiration_year">Ano de expiração copiado</string>
+    <string name="copied_expiration_month">Mês de expiração copiado</string>
+    <string name="copied_cvv_code">Código de segurança copiado</string>
+    <string name="copied_otp_code">Senha única copiada</string>
+    <string name="copied_otp_secret_code">Chave secreta copiada</string>
     <string name="autofill_unlock_keyguard">Desbloquear Keyguard</string>
     <string name="autofill_open_keyguard">Abrir Keyguard</string>
     <string name="january">Janeiro</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Apagar encaminhamentos de e-mail?</string>
     <string name="emailrelay_integration_title">Integração de encaminhamento de e-mail</string>
     <string name="emailrelay_empty_label">Sem encaminhamentos de e-mail</string>
+    <string name="urloverride_header_title">Substituir ligação URL</string>
+    <string name="urloverride_list_header_title">Substituir ligações URL</string>
+    <string name="urloverride_list_section_title">Substituir ligações URL</string>
+    <string name="urloverride_regex_note">A substituição será aplicada às ligações URLs que correspondam à expressão regular.</string>
+    <string name="urloverride_delete_one_confirmation_title">Apagar substituição de ligação URL?</string>
+    <string name="urloverride_delete_many_confirmation_title">Apagar substituições de ligação URL?</string>
+    <string name="urloverride_empty_label">Nenhuma substituição de ligação URL</string>
     <string name="setup_header_text">Criar um cofre criptografado onde os dados locais serão armazenados.</string>
     <string name="setup_field_app_password_label">Palavra-passe da aplicação</string>
     <string name="setup_checkbox_biometric_auth">Autenticação biométrica</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">Armazenar uma chave de cofre no disco é um risco de segurança. Se o armazenamento interno do dispositivo for comprometido, o invasor terá acesso aos dados do cofre local.</string>
     <string name="pref_item_permissions_title">Permissões</string>
     <string name="pref_item_features_overview_title">Resumo de funcionalidades</string>
+    <string name="pref_item_url_override_title">Substituição de ligações URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

@@ -21,7 +21,7 @@
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">조회수</string>
     <string name="learn_more">자세히 알아보기</string>
-    <string name="phone_number">전화 번호</string>
+    <string name="phone_number">전화번호</string>
     <string name="passport_number">여권 번호</string>
     <string name="license_number">운전면허 번호</string>
     <string name="card_number">카드 번호</string>
@@ -30,8 +30,8 @@
     <string name="card_cvv">보안 코드(CVV)</string>
     <string name="card_valid_from">유효 시작 날짜</string>
     <string name="card_valid_to">만료 날짜</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
+    <string name="card_expiry_month">카드 만료 월</string>
+    <string name="card_expiry_year">카드 만료 연도</string>
     <string name="cardholder_name">카드 소유자 이름</string>
     <string name="valid_from">유효 시작 날짜</string>
     <string name="expiry_date">만료 날짜</string>
@@ -83,6 +83,10 @@
     <string name="organizations">조직</string>
     <string name="organizations_empty_label">조직 없음</string>
     <string name="misc">기타</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">통합 기능 추가</string>
     <string name="account">계정</string>
     <string name="accounts">계정</string>
@@ -99,12 +103,12 @@
     <string name="identity_first_name">이름</string>
     <string name="identity_middle_name">가운데 이름</string>
     <string name="identity_last_name">성</string>
-    <string name="identity_full_name">Full name</string>
+    <string name="identity_full_name">전체 이름</string>
     <string name="address1">주소 1</string>
     <string name="address2">주소 2</string>
     <string name="address3">주소 3</string>
     <string name="rename">이름 바꾸기</string>
-    <string name="select_linked_type">Select type</string>
+    <string name="select_linked_type">유형 선택</string>
     <string name="autofill">자동 완성</string>
     <string name="passkey">패스키</string>
     <string name="passkey_create_header">패스키 만들기</string>
@@ -126,8 +130,8 @@
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
     <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
-    <string name="passkey_user_display_name">Display name</string>
+    <string name="passkey_user_username">사용자 이름</string>
+    <string name="passkey_user_display_name">표시할 이름</string>
     <string name="api_key">API 키</string>
     <string name="domain">도메인</string>
     <string name="edit">편집</string>
@@ -161,6 +165,8 @@
     <string name="downloads">다운로드</string>
     <string name="downloads_empty_label">다운로드 없음</string>
     <string name="duplicates_empty_label">중복 항목 없음</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">암호화</string>
     <!-- Encryption key -->
     <string name="encryption_key">키</string>
@@ -203,7 +209,7 @@
     <string name="ciphers_recently_opened">최근에 연 항목</string>
     <string name="ciphers_often_opened">자주 연 항목</string>
     <string name="ciphers_view_details">자세히 보기</string>
-    <string name="ciphers_save_to">Save to</string>
+    <string name="ciphers_save_to">저장 위치</string>
     <string name="ciphers_action_add_to_favorites_title">즐겨찾기에 추가</string>
     <string name="ciphers_action_remove_from_favorites_title">즐겨찾기에서 제거</string>
     <string name="ciphers_action_enable_auth_reprompt_title">인증 재요청 켜기</string>
@@ -223,11 +229,11 @@
     <string name="ciphers_action_restore_title">복원</string>
     <string name="ciphers_action_delete_title">완전히 삭제</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">연관 항목을 휴지통으로 이동</string>
-    <string name="file_action_open_with_title">Open with…</string>
-    <string name="file_action_send_with_title">Send with…</string>
-    <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
-    <string name="file_action_delete_local_title">Delete local file</string>
-    <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="file_action_open_with_title">다른 앱으로 열기…</string>
+    <string name="file_action_send_with_title">다른 앱으로 전송…</string>
+    <string name="file_action_open_in_file_manager_title">파일 관리자에서 열기</string>
+    <string name="file_action_delete_local_title">로컬 파일 삭제</string>
+    <string name="file_action_view_cipher_title">상위 항목 보기</string>
     <string name="vault_action_always_show_keyboard_title">키보드 항상 보이기</string>
     <string name="vault_action_sync_vault_title">보관함 동기화</string>
     <string name="vault_action_lock_vault_title">보관함 잠그기</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> 앱으로 열기</string>
     <string name="uri_action_launch_in_smth_title">다른 앱으로 열기</string>
     <string name="uri_action_how_to_delete_account_title">회원 탈퇴는 어떻게 하지?</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">안전하지 않음</string>
     <string name="uri_match_app_title">앱 일치</string>
     <string name="uri_match_detection_title">일치 인식</string>
@@ -298,33 +306,33 @@
     <string name="copy_password">비밀번호 복사</string>
     <string name="copy_username">사용자 이름 복사</string>
     <string name="copy_email">이메일 복사</string>
-    <string name="copy_phone_number">전화 번호 복사</string>
+    <string name="copy_phone_number">전화번호 복사</string>
     <string name="copy_passport_number">여권 번호 복사</string>
     <string name="copy_license_number">운전면허 번호 복사</string>
     <string name="copy_card_number">카드 번호 복사</string>
     <string name="copy_cardholder_name">카드 소유자 이름 복사</string>
-    <string name="copy_expiration_year">만료 날짜 복사</string>
+    <string name="copy_expiration_year">만료 연도 복사</string>
     <string name="copy_expiration_month">만료 월 복사</string>
     <string name="copy_cvv_code">보안 코드(CVV) 복사</string>
     <string name="copy_otp_code">OTP 코드 복사</string>
     <string name="copy_otp_secret_code">비밀 키 복사</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">값을 복사했습니다.</string>
+    <string name="copied_url">URL을 복사했습니다.</string>
+    <string name="copied_uri">URI를 복사했습니다.</string>
+    <string name="copied_package_name">패키지 이름을 복사했습니다.</string>
+    <string name="copied_password">비밀번호를 복사했습니다.</string>
+    <string name="copied_username">사용자 이름을 복사했습니다.</string>
+    <string name="copied_email">이메일을 복사했습니다.</string>
+    <string name="copied_phone_number">전화번호를 복사했습니다.</string>
+    <string name="copied_passport_number">여권 번호를 복사했습니다.</string>
+    <string name="copied_license_number">운전면허 번호를 복사했습니다.</string>
+    <string name="copied_card_number">카드 번호를 복사했습니다.</string>
+    <string name="copied_cardholder_name">카드 소유자 이름을 복사했습니다.</string>
+    <string name="copied_expiration_year">만료 연도를 복사했습니다.</string>
+    <string name="copied_expiration_month">만료 월을 복사했습니다.</string>
+    <string name="copied_cvv_code">보안 코드(CVV)를 복사했습니다.</string>
+    <string name="copied_otp_code">OTP를 복사했습니다.</string>
+    <string name="copied_otp_secret_code">비밀 키를 복사했습니다.</string>
     <string name="autofill_unlock_keyguard">Keyguard 잠금 해제</string>
     <string name="autofill_open_keyguard">Keyguard 열기</string>
     <string name="january">1월</string>
@@ -367,8 +375,8 @@
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
+    <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>
@@ -433,7 +441,14 @@
     <string name="emailrelay_delete_one_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
     <string name="emailrelay_delete_many_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
     <string name="emailrelay_integration_title">이메일 포워딩 서비스 통합</string>
-    <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="emailrelay_empty_label">이메일 포워딩 서비스 없음</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>
     <string name="setup_checkbox_biometric_auth">생체 정보 인증</string>
@@ -573,7 +588,7 @@
     <string name="sortby_password_strength_reverse_mode">강한 순</string>
     <string name="vault_main_search_placeholder">보관함 검색</string>
     <string name="vault_main_new_item_button">새 항목</string>
-    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <string name="vault_main_no_suggested_items">이 콘텍스트에 대해 추천할 수 있는 항목이 없습니다.</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">보안 코드(CVV)</string>
     <string name="vault_view_saved_to_label"><xliff:g id="email" example="username@example.com">%1$s</xliff:g>에 저장됨 (<xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g>)</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">보관함 키를 기기에 저장하면 보안에 취약합니다. 기기의 내부 저장소가 손상되면 공격자가 로컬 보관함 데이터에 접근할 수 있습니다.</string>
     <string name="pref_item_permissions_title">권한</string>
     <string name="pref_item_features_overview_title">기능 살펴보기</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
@@ -841,7 +857,7 @@
     <string name="feat_item_offline_editing_text">인터넷 연결 없이 항목을 추가하거나 편집합니다.</string>
     <string name="feat_section_search_title">검색</string>
     <string name="feat_item_search_by_anything_title">아무거나 검색</string>
-    <string name="feat_item_search_by_anything_text">이름, 이메일, 비밀번호, 전화 번호 등</string>
+    <string name="feat_item_search_by_anything_text">이름, 이메일, 비밀번호, 전화번호 등</string>
     <string name="feat_item_filter_title">필터</string>
     <string name="feat_item_filter_text">폴더, 조직, 유형 등으로 항목을 필터링합니다.</string>
     <string name="feat_item_multiple_keywords_title">다중 키워드</string>
@@ -876,7 +892,7 @@
     <string name="datasafety_local_downloads_section">다운로드</string>
     <string name="datasafety_local_settings_section">사용자 설정</string>
     <string name="datasafety_local_settings_note">사용자 설정은 기기별 키를 사용하여 암호화됩니다.</string>
-    <string name="datasafety_local_vault_section">사용자 설정</string>
+    <string name="datasafety_local_vault_section">보관함</string>
     <string name="datasafety_local_encryption_algorithm_intro">보관함은 아래와 같은 단계를 통해 앱 비밀번호로부터 생성된 키를 사용하여 암호화됩니다:</string>
     <string name="datasafety_local_encryption_algorithm_outro">그 후 솔트와 해시는 기기에 오프라인으로 저장되며, 나중에 보관함 잠금을 해제하기 위한 마스터 키를 생성합니다.</string>
     <string name="datasafety_local_unlocking_vault">보관함을 잠금 해제한다는 것은 기기의 RAM에 올바른 키를 저장하여 암호화된 보관함을 읽고 편집할 수 있게 하는 것입니다.</string>

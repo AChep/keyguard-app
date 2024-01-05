@@ -83,6 +83,10 @@
     <string name="organizations">组织</string>
     <string name="organizations_empty_label">No organizations</string>
     <string name="misc">杂项</string>
+    <string name="command">Command</string>
+    <string name="execute_command">Execute</string>
+    <!-- Add (something) -->
+    <string name="add">Add</string>
     <string name="add_integration">Add integration</string>
     <string name="account">账号</string>
     <string name="accounts">帐户</string>
@@ -161,6 +165,8 @@
     <string name="downloads">下载</string>
     <string name="downloads_empty_label">No downloads</string>
     <string name="duplicates_empty_label">No duplicates</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="regex">Regular expression</string>
     <string name="encryption">加密</string>
     <!-- Encryption key -->
     <string name="encryption_key">密钥</string>
@@ -245,6 +251,8 @@
     <string name="uri_action_launch_in_app_title">启动 <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">使用第三方应用操作</string>
     <string name="uri_action_how_to_delete_account_title">如何删除账户？</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">不安全</string>
     <string name="uri_match_app_title">匹配应用</string>
     <string name="uri_match_detection_title">匹配检测</string>
@@ -323,7 +331,7 @@
     <string name="copied_expiration_year">Copied an expiration year</string>
     <string name="copied_expiration_month">Copied an expiration month</string>
     <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied an one-time password</string>
+    <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
     <string name="autofill_unlock_keyguard">解锁 Keyguard</string>
     <string name="autofill_open_keyguard">打开 Keyguard</string>
@@ -434,6 +442,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Delete email forwarders?</string>
     <string name="emailrelay_integration_title">Email forwarder integration</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="urloverride_header_title">URL override</string>
+    <string name="urloverride_list_header_title">URL overrides</string>
+    <string name="urloverride_list_section_title">URL overrides</string>
+    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">创建加密保险库以存储本地数据。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
     <string name="setup_checkbox_biometric_auth">生物识别认证</string>
@@ -784,6 +799,7 @@
     <string name="pref_item_persist_vault_key_note">在磁盘上存储保险库密钥存在安全风险。如果设备的内部存储被入侵，攻击者就能访问本地保险库数据。</string>
     <string name="pref_item_permissions_title">权限</string>
     <string name="pref_item_features_overview_title">功能概述</string>
+    <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">生物识别解锁</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

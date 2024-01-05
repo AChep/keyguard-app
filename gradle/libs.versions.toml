@@ -108,7 +108,7 @@ playReviewKtx = "2.0.1"
 # https://developers.google.com/android/guides/setup
 playServicesBase = "18.2.0"
 # https://github.com/halilozercan/compose-richtext/releases
-richtext = "0.17.0"
+richtext = "0.20.0"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
 signalr = "8.0.0"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api

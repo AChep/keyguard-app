@@ -1900,6 +1900,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         title = AnnotatedString(androidMarker.label),
                         matchTypeTitle = matchTypeTitle,
                         dropdown = dropdown,
+                        overrides = overrides,
                     )
                 }
 
@@ -1915,6 +1916,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         title = AnnotatedString(platformMarker.packageName),
                         matchTypeTitle = matchTypeTitle,
                         dropdown = dropdown,
+                        overrides = overrides,
                     )
                 }
             }
@@ -1932,6 +1934,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                 title = AnnotatedString(platformMarker.packageName),
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
+                overrides = overrides,
             )
         }
 
@@ -2070,6 +2073,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                 },
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
+                overrides = overrides,
             )
         }
     }

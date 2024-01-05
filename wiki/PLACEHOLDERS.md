@@ -88,6 +88,16 @@ _Example_:
 https://example.com?user=joe&password=Password1%21
 ```
 
+#### Environmental variables
+
+System environment variables are supported. 
+The name of the variable must be enclosed in `%` characters.
+
+_Example_:
+```
+> {%HOME%}
+/home/username
+```
 
 #### Date-time
 ##### Local

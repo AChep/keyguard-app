@@ -72,6 +72,7 @@ import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.CommentPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.CustomPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.DateTimePlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.EnvironmentPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.TextTransformPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.UrlPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
@@ -474,6 +475,7 @@ fun vaultViewScreenState(
                     CustomPlaceholder(secretOrNull),
                     DateTimePlaceholder(),
                     TextTransformPlaceholder(),
+                    EnvironmentPlaceholder(),
                 )
                 val extractors = LinkInfoRegistry(linkInfoExtractors)
                 val cipherUris = secretOrNull

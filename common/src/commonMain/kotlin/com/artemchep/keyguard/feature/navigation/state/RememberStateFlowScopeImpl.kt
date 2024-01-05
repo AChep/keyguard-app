@@ -269,7 +269,7 @@ class RememberStateFlowScopeImpl(
             .onEach { text ->
                 sink.value = text
             }
-            .launchIn(screenScope)
+            .launchIn(appScope)
         return state
     }
 

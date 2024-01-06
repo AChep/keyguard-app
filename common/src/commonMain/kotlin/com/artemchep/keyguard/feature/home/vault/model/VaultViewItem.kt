@@ -221,6 +221,7 @@ sealed interface VaultViewItem {
         data class Override(
             val title: String,
             val text: String,
+            val error: Boolean,
             /**
              * List of the callable actions appended
              * to the item.

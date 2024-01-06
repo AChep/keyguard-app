@@ -1,8 +1,13 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Android
@@ -11,6 +16,8 @@ import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Launch
 import androidx.compose.material.icons.outlined.Link
@@ -20,7 +27,10 @@ import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.Textsms
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,9 +40,11 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import arrow.core.Either
 import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.exception.Readable
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
@@ -148,6 +160,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
+import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
@@ -164,6 +177,7 @@ import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -174,6 +188,8 @@ import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.SelectionHandle
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import com.artemchep.keyguard.ui.text.annotate
+import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.totp.formatCode2
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
@@ -266,9 +282,13 @@ private class Holder(
 ) {
     data class Override(
         val override: DGlobalUrlOverride,
-        val uri: String,
-        val info: List<LinkInfo>,
-    )
+        val contentOrException: Either<Throwable, Content>,
+    ) {
+        data class Content(
+            val uri: String,
+            val info: List<LinkInfo>,
+        )
+    }
 }
 
 @Composable
@@ -494,8 +514,11 @@ fun vaultViewScreenState(
                                     info = extra,
                                 )
                             }
+
                             else -> {
-                                val newUriString = uri.uri.placeholderFormat(placeholders)
+                                val newUriString = kotlin.runCatching {
+                                    uri.uri.placeholderFormat(placeholders)
+                                }.getOrElse { uri.uri }
                                 val newUri = uri.copy(uri = newUriString)
 
                                 // Process URL overrides
@@ -510,20 +533,25 @@ fun vaultViewScreenState(
                                             .matches(newUriString)
                                     }
                                     .map { override ->
-                                        val command = override.command
-                                            .placeholderFormat(
-                                                placeholders = urlOverridePlaceholders,
+                                        val contentOrException = Either.catch {
+                                            val command = override.command
+                                                .placeholderFormat(
+                                                    placeholders = urlOverridePlaceholders,
+                                                )
+                                            val extra = extractors.process(
+                                                DSecret.Uri(
+                                                    uri = command,
+                                                    match = DSecret.Uri.MatchType.Exact,
+                                                ),
                                             )
-                                        val extra = extractors.process(
-                                            DSecret.Uri(
+                                            Holder.Override.Content(
                                                 uri = command,
-                                                match = DSecret.Uri.MatchType.Exact,
-                                            ),
-                                        )
+                                                info = extra,
+                                            )
+                                        }
                                         Holder.Override(
                                             override = override,
-                                            uri = command,
-                                            info = extra,
+                                            contentOrException = contentOrException,
                                         )
                                     }
 
@@ -1841,23 +1869,72 @@ private suspend fun RememberStateFlowScope.createUriItem(
 ): VaultViewItem.Uri {
     val overrides = holder
         .overrides
-        .map {
-            val command = it.uri
-            val dropdown = createUriItemContextItems(
-                canEdit = false,
-                cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
-                cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
-                getJustDeleteMeByUrl = getJustDeleteMeByUrl,
-                executeCommand = executeCommand,
-                uri = command,
-                info = it.info,
-                cipherId = cipherId,
-                copy = copy,
-            )
-            VaultViewItem.Uri.Override(
-                title = it.override.name,
-                text = command,
-                dropdown = dropdown,
+        .map { data ->
+            val title = data.override.name
+            data.contentOrException.fold(
+                ifLeft = { e ->
+                    val text = getErrorReadableMessage(
+                        e,
+                        translator = this,
+                    )
+                    val dropdown = buildContextItems {
+                        this += ContextItem.Custom {
+                            Column(
+                                modifier = Modifier
+                                    .padding(
+                                        horizontal = Dimens.horizontalPadding,
+                                        vertical = 8.dp,
+                                    ),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ErrorOutline,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                                Spacer(
+                                    modifier = Modifier
+                                        .height(12.dp),
+                                )
+                                Text(
+                                    text = translate(Res.strings.error_failed_format_placeholder),
+                                    style = MaterialTheme.typography.labelLarge,
+                                )
+                                Text(
+                                    text = text,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = LocalContentColor.current
+                                        .combineAlpha(MediumEmphasisAlpha),
+                                )
+                            }
+                        }
+                    }
+                    VaultViewItem.Uri.Override(
+                        title = title,
+                        text = text,
+                        error = true,
+                        dropdown = dropdown,
+                    )
+                },
+                ifRight = { content ->
+                    val text = content.uri
+                    val dropdown = createUriItemContextItems(
+                        canEdit = false,
+                        cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+                        cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
+                        getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                        executeCommand = executeCommand,
+                        uri = content.uri,
+                        info = content.info,
+                        cipherId = cipherId,
+                        copy = copy,
+                    )
+                    VaultViewItem.Uri.Override(
+                        title = title,
+                        text = text,
+                        error = false,
+                        dropdown = dropdown,
+                    )
+                },
             )
         }
 

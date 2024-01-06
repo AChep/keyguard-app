@@ -170,6 +170,7 @@ fun VaultViewUriItem(
                     UrlOverrideItem(
                         title = override.title,
                         text = override.text,
+                        error = override.error,
                         onClick = {
                             selectedDropdown = updatedDropdownState.value
                         },
@@ -205,6 +206,7 @@ private fun UrlOverrideItem(
     modifier: Modifier = Modifier,
     title: String,
     text: String,
+    error: Boolean = false,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -224,6 +226,11 @@ private fun UrlOverrideItem(
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val contentColor = if (error) {
+                MaterialTheme.colorScheme.error
+            } else {
+                LocalContentColor.current
+            }
             Box(
                 modifier = Modifier
                     .size(16.dp),
@@ -254,7 +261,7 @@ private fun UrlOverrideItem(
                     .widthIn(max = 128.dp)
                     .alignByBaseline(),
                 text = text,
-                color = LocalContentColor.current
+                color = contentColor
                     .combineAlpha(MediumEmphasisAlpha),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

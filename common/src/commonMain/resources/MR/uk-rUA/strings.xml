@@ -61,6 +61,7 @@
     <string name="notes">Нотатки</string>
     <string name="attachments">Файли</string>
     <string name="attachments_empty_label">Немає вкладень</string>
+    <string name="expired">Термін дії закінчився</string>
     <string name="expiring_soon">Незабаром закінчується термін дії</string>
     <string name="item_incomplete_title">Неповні дані</string>
     <string name="item_incomplete_text">Цей запис не має певної важливої інформації.</string>
@@ -355,6 +356,11 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Авторизація WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Повернутися до застосунку</string>
+    <string name="expiry_tips_item_line1">Термін дії запису закінчується <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Термін дії картки закінчується <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Є кілька речей, які ви можете зробити, щоб забезпечити плавний перехід:</string>
+    <string name="expiry_tips_card_line2">1. Отримайте нову картку: банк міг вже надіслати вам замінну картку з новим терміном дії. Якщо ні, то зверніться до емітента вашої картки, щоб спланувати отримання нової картки.</string>
+    <string name="expiry_tips_card_line3">2. Оновіть автоматичні платежі: якщо ви маєте будь-які автоматичні платежі, такі як місячне членство в спортзалі або підписка Netflix, не забудьте оновити інформацію з новими даними картки.</string>
+    <string name="expiry_tips_card_line4">3. Знищить стару картку: як тільки ваша нова карта приїде і ви оновите всю необхідну інформацію, переконайтеся в тому, щоб надійно утилізувати прострочену картку, щоб запобігти крадіжці ідентичності.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -377,6 +383,7 @@
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>
+    <string name="error_failed_format_placeholder">Не вдалося відформатувати поле</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Штрих-код</string>

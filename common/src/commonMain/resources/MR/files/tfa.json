@@ -2760,6 +2760,15 @@
     "name": "Cinemark"
   },
   {
+    "domain": "cineplex.com",
+    "tfa": [
+      "call",
+      "sms"
+    ],
+    "documentation": "https://cineplex.service-now.com/gsc?id=kb_article&sysparm_article=KB0011023",
+    "name": "Cineplex"
+  },
+  {
     "domain": "circle.com",
     "tfa": [
       "sms",
@@ -3775,7 +3784,8 @@
   {
     "domain": "crowdin.com",
     "tfa": [
-      "totp"
+      "totp",
+      "u2f"
     ],
     "documentation": "https://support.crowdin.com/account-settings/#two-factor-authentication",
     "name": "Crowdin"
@@ -8262,6 +8272,17 @@
     "name": "L'Identit\u00e9 Num\u00e9rique (IDN)"
   },
   {
+    "domain": "lidl.de",
+    "additional-domains": [
+      "accounts.lidl.com"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "LIDL [DE]"
+  },
+  {
     "domain": "lieferando.de",
     "tfa": [
       "email"
@@ -8521,6 +8542,13 @@
     ],
     "documentation": "https://www.lowes.com/l/help/contact-us#Multi-FactorAuthentication",
     "name": "Lowes"
+  },
+  {
+    "domain": "lunchmoney.app",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Lunch Money"
   },
   {
     "domain": "luno.com",
@@ -9424,7 +9452,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://it.muni.cz/en/services/jednotne-prihlaseni-na-muni/navody/how-to-set-up-multi-factor-authentication",
+    "documentation": "https://it.muni.cz/en/services/muni-unified-login/multi-factor-authentication",
     "name": "Masaryk University"
   },
   {
@@ -10585,14 +10613,6 @@
     "name": "onvista bank"
   },
   {
-    "domain": "openai.com",
-    "tfa": [
-      "totp"
-    ],
-    "notes": "Enabling 2FA is only available from the ChatGPT interface at the moment.",
-    "name": "OpenAI"
-  },
-  {
     "domain": "openbank.es",
     "url": "https://www.openbank.es",
     "tfa": [
@@ -11631,6 +11651,14 @@
     "name": "Postmarkapp"
   },
   {
+    "domain": "postype.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.postype.com/hc/ko/articles/21876052282009",
+    "name": "Postype"
+  },
+  {
     "domain": "powerreviews.com",
     "url": "https://www.powerreviews.com",
     "tfa": [
@@ -12330,14 +12358,6 @@
     ],
     "documentation": "https://republic.com/help/how-do-i-add-a-digital-asset-wallet-on-republic-1",
     "name": "Republic"
-  },
-  {
-    "domain": "republicwireless.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://help.republicwireless.com/hc/en-us/articles/360008807234",
-    "name": "Republic Wireless"
   },
   {
     "domain": "rest.com.au",
@@ -14271,6 +14291,7 @@
       "totp"
     ],
     "notes": "SMS 2FA is always required",
+    "documentation": "https://www.telekom.de/hilfe/vertrag-rechnung/login-daten-passwoerter/mehr-faktor-authentifizierung",
     "name": "T-Online"
   },
   {

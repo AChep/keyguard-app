@@ -6,6 +6,17 @@ If you want to extend the default URL functionality, you can add URL overrides. 
 - **command**: the new URL that will replace the old one, usually should contain [placeholders](PLACEHOLDERS.md).
 
 ### Example
+#### HTTPS-ify
+Add the following URL override to add a button that allows a user to open the same website replacing HTTP with HTTPS protocol.
+
+| Field | Content                |
+| :- |:-----------------------|
+| Regex | `^http://.*`           |
+| Command | `https://{url:rmvscm}` |
+
+when done correctly, all URLs that use HTTP will have a button to open the same website using the HTTPS protocol.
+Note that you should consider just replacing all URLs that use HTTP with their safer alternative when possible.
+
 #### FileZilla FTP Client
 Add a URL to the entry that we be overriden later: 
 ```

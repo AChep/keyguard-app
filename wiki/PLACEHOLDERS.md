@@ -68,7 +68,24 @@ Note: `{base}` supports exactly the same parts as `{url}` and is identical to it
 
 #### Text transformation
 
-Convert text to the other representation.
+##### Replace text using regular expression
+
+```
+t-replace-rx:/text/search/replace/
+```
+the first symbol after `:` defines the separator. It may be any symbol except `{` and `}`. Trailing separator symbol is required.
+
+_Example_:
+
+Let the username field contain the email address 'username@example.com', then:
+```
+> {t-replace-rx:/{username}/.*@(.*)/$1/}
+example.com
+```
+
+for more info how it works, see the [underlying implementation's documentation](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex/replace.html)
+
+##### Convert text to the other representation
 
 ```
 t-conv:/value/type/

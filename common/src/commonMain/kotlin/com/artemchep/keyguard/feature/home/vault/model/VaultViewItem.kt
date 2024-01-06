@@ -122,7 +122,6 @@ sealed interface VaultViewItem {
         override val id: String,
         val name: String,
         val message: String? = null,
-        val long: Boolean,
     ) : VaultViewItem {
         companion object;
     }

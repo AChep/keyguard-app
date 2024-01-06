@@ -347,7 +347,6 @@ private fun RememberStateFlowScope.oh(
             id = "disabled",
             name = "Deactivated",
             message = "This share is deactivated, no one can access it.",
-            long = false,
         )
         emit(model)
     }

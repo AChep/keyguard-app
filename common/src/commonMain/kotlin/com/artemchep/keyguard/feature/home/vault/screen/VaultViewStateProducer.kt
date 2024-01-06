@@ -812,28 +812,35 @@ private fun RememberStateFlowScope.oh(
             id = "info.incomplete",
             name = translate(Res.strings.item_incomplete_title),
             message = translate(Res.strings.item_incomplete_text),
-            long = false,
         )
         emit(model)
     }
 
-    val expiring = cipherExpiringCheck.invoke(cipher, Clock.System.now())
+    val now = Clock.System.now()
+    val expiring = cipherExpiringCheck.invoke(cipher, now)
     if (expiring != null) {
+        val expired = expiring <= now
+        val expiringTitle = if (expired) {
+            translate(Res.strings.expired)
+        } else {
+            translate(Res.strings.expiring_soon)
+        }
+
         val expiringDate = dateFormatter.formatDate(expiring)
         val expiringMessage = when (cipher.type) {
-            DSecret.Type.Card ->
-                "This card expires on $expiringDate. There are a few things you can do to ensure a smooth transition:\n" +
-                        "1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.\n" +
-                        "2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.\n" +
-                        "3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft."
+            DSecret.Type.Card -> listOf(
+                translate(Res.strings.expiry_tips_card_line1, expiringDate),
+                translate(Res.strings.expiry_tips_card_line2, expiringDate),
+                translate(Res.strings.expiry_tips_card_line3, expiringDate),
+                translate(Res.strings.expiry_tips_card_line4, expiringDate),
+            ).joinToString(separator = "\n")
 
-            else -> "This item expires on $expiringDate."
+            else -> translate(Res.strings.expiry_tips_item_line1, expiringDate)
         }
         val model = VaultViewItem.Info(
             id = "info.expiring",
-            name = translate(Res.strings.expiring_soon),
+            name = expiringTitle,
             message = expiringMessage,
-            long = true,
         )
         emit(model)
     }

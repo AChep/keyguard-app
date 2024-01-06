@@ -59,7 +59,7 @@ fun VaultViewInfoItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Info,
 ) {
-    val expandable = item.long
+    val expandable = item.message.orEmpty().length >= 200
     val expandedState = remember(expandable) {
         mutableStateOf(!expandable)
     }

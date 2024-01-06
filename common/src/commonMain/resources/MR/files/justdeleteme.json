@@ -1076,7 +1076,7 @@
     ],
     "url": "https://support.apple.com/en-us/HT208504",
     "difficulty": "easy",
-    "notes": "Follow the steps to request account deletion. It is possible to undo for a few days. If you have bought a developer license, it's impossible to delete your account."
+    "notes": "Follow the steps to request account deletion. It is possible to undo for a few days. If you have bought a developer license, it's impossible to delete your account. Once deleted, you will no longer be able to open a new one with the same email address."
   },
   {
     "name": "AppShopper",
@@ -1820,9 +1820,9 @@
     "domains": [
       "binance.com"
     ],
-    "url": "https://www.binance.com/fr/my/risk/delete-account-appeal",
-    "difficulty": "medium",
-    "notes": "First you have to empty your account from all cryptocurrencies, then click the link and enter your email."
+    "url": "https://www.binance.com/en/my/security",
+    "difficulty": "easy",
+    "notes": "First you have to empty your account from all cryptocurrencies, then go to the website linked, scroll down and click on \"delete account\", then follow the steps."
   },
   {
     "name": "Bitdefender Central",
@@ -3412,9 +3412,8 @@
       "crunchyroll.com",
       "help.crunchyroll.com"
     ],
-    "url": "https://github.com/jdm-contrib/jdm/issues/1895",
-    "difficulty": "limited",
-    "notes": "If you live in California, use the [CCPA Request Form](https://privacyportal.onetrust.com/webform/d19e506f-1a64-463d-94e4-914dd635817d/fc46fc0c-407c-4735-9a43-14dfa283d17c). Otherwise, use the [All Other Requests Form](https://sites.sonypictures.com/corp/privacypolicies/b2c/contact-us.html).\n\nSelect \"Crunchyroll/Crunchyroll Games\" as your service."
+    "url": "https://www.crunchyroll.com/nuke",
+    "difficulty": "easy"
   },
   {
     "name": "CryEngine",
@@ -4859,6 +4858,15 @@
     "notes": "Log in to your account. On the \"General Info\" page, scroll to the \"Delete Account\" section, request deletion and follow the steps."
   },
   {
+    "name": "Epidemic Sound",
+    "domains": [
+      "epidemicsound.com"
+    ],
+    "url": "https://support.epidemicsound.com/s/article/how-do-i-delete-my-account-2020-05-27-050641?language=en_US",
+    "difficulty": "hard",
+    "notes": "Follow the link to the contact form by follwing the link in \"If you still want to delete your account please contact us by clicking here.\". In the contact form choose \"My account\" from the dropdown."
+  },
+  {
     "name": "Epik",
     "domains": [
       "epik.com",
@@ -5165,6 +5173,16 @@
     "url": "https://www.fastweb.com/login",
     "difficulty": "easy",
     "notes": "Go to the URL and log in with your credentials. Go to 'My Account' \u2b95 'Account' and select 'Delete My Account'. Answer 'Yes' to the prompt. FastWeb will immediately log you out, and your credentials will no longer work."
+  },
+  {
+    "name": "FaucetPay",
+    "domains": [
+      "faucetpay.io",
+      "faq.faucetpay.io"
+    ],
+    "url": "https://faq.faucetpay.io/knowledge-base/i-want-to-delete-my-account-how-can-i-do-it/",
+    "difficulty": "impossible",
+    "notes": "Accounts cannot be deleted by the users, they can only be suspended by writing at Customer Support"
   },
   {
     "name": "Fauna",
@@ -5800,6 +5818,17 @@
     "notes": "You will find option to remove your account under Profile - My Account tab, after log in. Removed GG account number is going back to available numbers for new users."
   },
   {
+    "name": "Gaijin Entertainment",
+    "domains": [
+      "gaijin.net",
+      "store.gaijin.net",
+      "support.gaijin.net"
+    ],
+    "url": "https://support.gaijin.net/hc/en-us/articles/200071071-Account-Deletion-Suspension-",
+    "difficulty": "easy",
+    "notes": "If you want to suspend your account on the Gaijin website, please press the \"Delete account\" link in your account's settings, or proceed directly through the \"Confirm account deletion\" link. After following the instructions from the letter, your account will be suspended."
+  },
+  {
     "name": "GAINSFIRE",
     "domains": [
       "gainsfire.com"
@@ -6077,6 +6106,15 @@
     "url": "https://www.geoguessr.com/me/settings",
     "difficulty": "easy",
     "notes": "Just click delete account at the bottom of the page and confirm account deletion."
+  },
+  {
+    "name": "GermanTechJobs",
+    "domains": [
+      "germantechjobs.de"
+    ],
+    "url": "https://germantechjobs.de/contact",
+    "difficulty": "hard",
+    "notes": "Click on the 'Log in' button. Then, go to 'Account' and 'Delete Account'. You will be redirected to write to the support email. Account gets deleted within 48 hours."
   },
   {
     "name": "get.tech",
@@ -7660,6 +7698,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "ImmiAccount (Australian Home Affairs)",
+    "domains": [
+      "online.immi.gov.au"
+    ],
+    "url": "https://online.immi.gov.au/usm/summary",
+    "difficulty": "medium",
+    "notes": "Click the 'Delete my ImmiAccount' link and follow the instructions sent to your email."
+  },
+  {
     "name": "Immomio",
     "domains": [
       "immomio.com",
@@ -8113,6 +8160,15 @@
     "url": "https://www.jdate.com",
     "difficulty": "easy",
     "notes": "Under 'Membership Management' click 'Remove my Profile'. Fill out the survey and submit to delete your profile."
+  },
+  {
+    "name": "JEDEC",
+    "domains": [
+      "jedec.org"
+    ],
+    "url": "https://www.jedec.org/user",
+    "difficulty": "easy",
+    "notes": "Edit \u2b95 Cancel account, then click the link sent to your email."
   },
   {
     "name": "JetBrains",
@@ -8810,6 +8866,160 @@
     "difficulty": "easy"
   },
   {
+    "name": "LG Account",
+    "domains": [
+      "lgaccount.com",
+      "ca.lgaccount.com",
+      "mx.lgaccount.com",
+      "us.lgaccount.com",
+      "ar.lgaccount.com",
+      "bo.lgaccount.com",
+      "br.lgaccount.com",
+      "cl.lgaccount.com",
+      "co.lgaccount.com",
+      "cr.lgaccount.com",
+      "dm.lgaccount.com",
+      "do.lgaccount.com",
+      "ec.lgaccount.com",
+      "sv.lgaccount.com",
+      "gt.lgaccount.com",
+      "hn.lgaccount.com",
+      "jm.lgaccount.com",
+      "ni.lgaccount.com",
+      "pa.lgaccount.com",
+      "py.lgaccount.com",
+      "pe.lgaccount.com",
+      "pr.lgaccount.com",
+      "uy.lgaccount.com",
+      "ve.lgaccount.com",
+      "al.lgaccount.com",
+      "at.lgaccount.com",
+      "be.lgaccount.com",
+      "ba.lgaccount.com",
+      "bg.lgaccount.com",
+      "hr.lgaccount.com",
+      "cz.lgaccount.com",
+      "dk.lgaccount.com",
+      "ee.lgaccount.com",
+      "fi.lgaccount.com",
+      "fr.lgaccount.com",
+      "de.lgaccount.com",
+      "gr.lgaccount.com",
+      "hu.lgaccount.com",
+      "ie.lgaccount.com",
+      "it.lgaccount.com",
+      "xk.lgaccount.com",
+      "lv.lgaccount.com",
+      "lt.lgaccount.com",
+      "lu.lgaccount.com",
+      "mt.lgaccount.com",
+      "nl.lgaccount.com",
+      "no.lgaccount.com",
+      "pl.lgaccount.com",
+      "pt.lgaccount.com",
+      "mk.lgaccount.com",
+      "ro.lgaccount.com",
+      "rs.lgaccount.com",
+      "sk.lgaccount.com",
+      "si.lgaccount.com",
+      "es.lgaccount.com",
+      "se.lgaccount.com",
+      "ch.lgaccount.com",
+      "gb.lgaccount.com",
+      "dz.lgaccount.com",
+      "ao.lgaccount.com",
+      "am.lgaccount.com",
+      "az.lgaccount.com",
+      "bh.lgaccount.com",
+      "bj.lgaccount.com",
+      "bf.lgaccount.com",
+      "bi.lgaccount.com",
+      "cm.lgaccount.com",
+      "cv.lgaccount.com",
+      "cf.lgaccount.com",
+      "td.lgaccount.com",
+      "cg.lgaccount.com",
+      "ci.lgaccount.com",
+      "dj.lgaccount.com",
+      "cd.lgaccount.com",
+      "eg.lgaccount.com",
+      "gq.lgaccount.com",
+      "er.lgaccount.com",
+      "et.lgaccount.com",
+      "ga.lgaccount.com",
+      "gm.lgaccount.com",
+      "ge.lgaccount.com",
+      "gh.lgaccount.com",
+      "gn.lgaccount.com",
+      "gw.lgaccount.com",
+      "ir.lgaccount.com",
+      "iq.lgaccount.com",
+      "il.lgaccount.com",
+      "jo.lgaccount.com",
+      "ke.lgaccount.com",
+      "kw.lgaccount.com",
+      "lb.lgaccount.com",
+      "lr.lgaccount.com",
+      "mw.lgaccount.com",
+      "ml.lgaccount.com",
+      "mr.lgaccount.com",
+      "yt.lgaccount.com",
+      "ma.lgaccount.com",
+      "ne.lgaccount.com",
+      "ng.lgaccount.com",
+      "om.lgaccount.com",
+      "pk.lgaccount.com",
+      "ps.lgaccount.com",
+      "qa.lgaccount.com",
+      "rw.lgaccount.com",
+      "st.lgaccount.com",
+      "sa.lgaccount.com",
+      "sn.lgaccount.com",
+      "sc.lgaccount.com",
+      "sl.lgaccount.com",
+      "so.lgaccount.com",
+      "za.lgaccount.com",
+      "sd.lgaccount.com",
+      "sy.lgaccount.com",
+      "tz.lgaccount.com",
+      "tg.lgaccount.com",
+      "tn.lgaccount.com",
+      "tr.lgaccount.com",
+      "ug.lgaccount.com",
+      "ae.lgaccount.com",
+      "zm.lgaccount.com",
+      "by.lgaccount.com",
+      "kz.lgaccount.com",
+      "kg.lgaccount.com",
+      "mn.lgaccount.com",
+      "ru.lgaccount.com",
+      "ua.lgaccount.com",
+      "uz.lgaccount.com",
+      "au.lgaccount.com",
+      "bd.lgaccount.com",
+      "kh.lgaccount.com",
+      "cn.lgaccount.com",
+      "hk.lgaccount.com",
+      "in.lgaccount.com",
+      "id.lgaccount.com",
+      "jp.lgaccount.com",
+      "kr.lgaccount.com",
+      "my.lgaccount.com",
+      "mm.lgaccount.com",
+      "np.lgaccount.com",
+      "nz.lgaccount.com",
+      "ph.lgaccount.com",
+      "sg.lgaccount.com",
+      "lk.lgaccount.com",
+      "tw.lgaccount.com",
+      "th.lgaccount.com",
+      "vn.lgaccount.com"
+    ],
+    "url": "https://www.lgaccount.com",
+    "difficulty": "easy",
+    "notes": "Log in, open the account administration tab, and press 'Delete Account'. Note that you might need to repeat going to the administration tab and pressing delete a couple times depending on the services you've got connected to LG Account. Once there's no more to delete, you should be logged out automatically (for good measure, verify you cannot login again)."
+  },
+  {
     "name": "Liberland",
     "domains": [
       "liberland.org",
@@ -8986,6 +9196,15 @@
     ],
     "url": "https://help.listia.com/hc/en-us/articles/203895428-How-do-I-delete-close-my-account-",
     "difficulty": "hard"
+  },
+  {
+    "name": "Litmus",
+    "domains": [
+      "litmus.com"
+    ],
+    "url": "https://help.litmus.com/article/420-delete-your-account",
+    "difficulty": "limited",
+    "notes": "They offer a \"simple deletion\" where your account will be dissociated with your email address, and a [\"full data deletion\"](https://trust.litmus.com/?itemUid=af8eb7bc-d4b7-4e13-a4b7-6f05e2744c22) for complete data deletion."
   },
   {
     "name": "Live Nation",
@@ -10550,8 +10769,8 @@
       "forum.nationstates.net"
     ],
     "url": "https://www.nationstates.net/page=faq",
-    "difficulty": "medium",
-    "notes": "Stay logged out of your nation for 28 or 60 days, depending on your settings."
+    "difficulty": "hard",
+    "notes": "Stay logged out of your nation for 28 or 60 days, depending on your settings. However, your nation will be merely deactivated. The only way to have your nation truly deleted is to not have the nation long enough to reach a population of over 1 billion, and for someone else to create a nation with the same name at least 5 years after it was deactivated."
   },
   {
     "name": "Native",
@@ -12968,6 +13187,15 @@
     "notes": "After logging in, click the \"Delete Your Account\" link at the bottom of the Account Settings page."
   },
   {
+    "name": "Redirect.ing",
+    "domains": [
+      "redirect.ing"
+    ],
+    "url": "https://redirect.ing/account/settings/edit",
+    "difficulty": "easy",
+    "notes": "On the settings page, click the \"Delete my account & data\" button at the bottom of the page."
+  },
+  {
     "name": "redirect.pizza",
     "domains": [
       "redirect.pizza"
@@ -13506,6 +13734,16 @@
     "notes": "Scroll down to the bottom of the page and click 'Deactivate Account'."
   },
   {
+    "name": "SchoolFinder",
+    "domains": [
+      "schoolfinder.com"
+    ],
+    "url": "https://www.schoolfinder.com/About/SchoolFinder-Privacy-Policy.pdf",
+    "difficulty": "hard",
+    "notes": "Email customer service to request account deletion.",
+    "email": "info@SchoolFinder.com"
+  },
+  {
     "name": "Schoology",
     "domains": [
       "schoology.com"
@@ -13925,6 +14163,15 @@
     "url": "https://www.simpleplanes.com/Account/DeleteAccount",
     "difficulty": "easy",
     "notes": "Login to your account, open your profile page and follow these steps: click 'Manage Account' \u2b95 click 'Close Account' \u2b95 click 'OK' \u2b95 type 'CLOSE' \u2b95 click 'CLOSE' \u2b95 click 'OK'. Using the link from here also skips every step before \"type 'CLOSE'\"."
+  },
+  {
+    "name": "SitePoint",
+    "domains": [
+      "sitepoint.com",
+      "support.sitepoint.com"
+    ],
+    "url": "https://www.sitepoint.com/community/faq/#leaving",
+    "difficulty": "impossible"
   },
   {
     "name": "Sketchfab",
@@ -14637,6 +14884,198 @@
     "notes": "Click on 'Delete My Account' and confirm you'd like to delete it."
   },
   {
+    "name": "Studios New York",
+    "domains": [
+      "apartment-chicago.com",
+      "apartment-melbourne.com",
+      "apartment-philadelphia.com",
+      "apartment-phoenix.com",
+      "apartment-sydney.com",
+      "apartmentbrisbane.com",
+      "apartments-london.com",
+      "apartments-losangeles.com",
+      "apartments-newyork.com",
+      "apartments-newyork.com",
+      "appartement-denhaag.nl",
+      "appartement-haarlem.nl",
+      "appartementalkmaar.nl",
+      "appartementalmelo.nl",
+      "appartementalmere.nl",
+      "appartementamersfoort.com",
+      "appartementamsterdam.nl",
+      "appartementantwerpen.com",
+      "appartementapeldoorn.nl",
+      "appartementarnhem.nl",
+      "appartementbreda.com",
+      "appartementbussum.nl",
+      "appartementdelft.nl",
+      "appartementdenbosch.nl",
+      "appartementdeventer.nl",
+      "appartementdiemen.nl",
+      "appartementede.nl",
+      "appartementeindhoven.com",
+      "appartementen-amstelveen.nl",
+      "appartementenalphenaandenrijn.nl",
+      "appartementenarnhem.nl",
+      "appartementenbrugge.com",
+      "appartementenemmen.nl",
+      "appartementenhelmond.nl",
+      "appartementenhilversum.nl",
+      "appartementenschede.nl",
+      "appartemententilburg.nl",
+      "appartementenvlissingen.nl",
+      "appartementgent.com",
+      "appartementgouda.nl",
+      "appartementgroningen.nl",
+      "appartementhoofddorp.nl",
+      "appartementleeuwarden.nl",
+      "appartementleiden.com",
+      "appartementlelystad.nl",
+      "appartementleuven.be",
+      "appartementmaastricht.nl",
+      "appartementmeppel.nl",
+      "appartementmiddelburg.nl",
+      "appartementnijmegen.nl",
+      "appartementoss.nl",
+      "appartementroermond.nl",
+      "appartementrotterdam.nl",
+      "appartementutrecht.nl",
+      "appartementwageningen.nl",
+      "appartementzwolle.nl",
+      "gooischemakelaar.nl",
+      "huurwoningamersfoort.nl",
+      "huurwoningamsterdam.nl",
+      "huurwoningarnhem.com",
+      "huurwoningbreda.com",
+      "huurwoningdelft.nl",
+      "huurwoningen-denhaag.com",
+      "huurwoningen-lelystad.nl",
+      "huurwoningen-maastricht.nl",
+      "huurwoningenalkmaar.nl",
+      "huurwoningenalmere.nl",
+      "huurwoningenamstelveen.com",
+      "huurwoningenapeldoorn.nl",
+      "huurwoningenbelgie.be",
+      "huurwoningendiemen.nl",
+      "huurwoningeneindhoven.nl",
+      "huurwoningenhaarlem.nl",
+      "huurwoningenleeuwarden.nl",
+      "huurwoningenmiddelburg.nl",
+      "huurwoningennederland.nl",
+      "huurwoningenschede.nl",
+      "huurwoningentilburg.nl",
+      "huurwoningenutrecht.nl",
+      "huurwoninggroningen.nl",
+      "huurwoninghengelo.nl",
+      "huurwoningleiden.nl",
+      "huurwoningpurmerend.nl",
+      "huurwoningrotterdam.com",
+      "huurwoningvlissingen.nl",
+      "huurwoningzwolle.nl",
+      "kamer-delft.nl",
+      "kameralkmaar.nl",
+      "kameralmelo.nl",
+      "kameralmere.nl",
+      "kameramersfoort.nl",
+      "kameramsterdam.nl",
+      "kamerapeldoorn.nl",
+      "kamerdenbosch.nl",
+      "kamerdenhaag.nl",
+      "kamergouda.nl",
+      "kamergroningen.nl",
+      "kamerhaarlem.nl",
+      "kamerhilversum.nl",
+      "kamerleuven.be",
+      "kamermiddelburg.nl",
+      "kamernijmegen.nl",
+      "kamerroermond.nl",
+      "kamerrotterdam.nl",
+      "kamers-amstelveen.nl",
+      "kamers-leeuwarden.nl",
+      "kamersarnhem.nl",
+      "kamersbreda.nl",
+      "kamersdordrecht.nl",
+      "kamerseindhoven.nl",
+      "kamersenschede.nl",
+      "kamershelmond.nl",
+      "kamersleiden.nl",
+      "kamersmaastricht.nl",
+      "kamerstilburg.nl",
+      "kamersutrecht.nl",
+      "kamerswageningen.nl",
+      "kamerszwolle.nl",
+      "kamervlissingen.nl",
+      "kot-brugge.be",
+      "kot-gent.com",
+      "kotantwerpen.be",
+      "makelaarlaren.nl",
+      "rentalproperties-houston.com",
+      "rentalpropertiesengland.com",
+      "rentalpropertiesusa.com",
+      "rentalpropertyaustralia.com",
+      "rentalpropertyaustralia.comdelete2",
+      "rentalpropertyaustralia.comdeleted",
+      "rentalpropertybrisbane.com",
+      "rentalpropertychicago.com",
+      "rentalpropertylondon.co.uk",
+      "rentalpropertylosangeles.com",
+      "rentalpropertymelbourne.com",
+      "rentalpropertynewyork.com",
+      "rentalpropertyphiladelphia.com",
+      "rentalpropertyphoenix.com",
+      "rentalpropertysydney.com",
+      "room-houston.com",
+      "room-london.co.uk",
+      "roommelbourne.com",
+      "roomnewyork.com",
+      "roomphiladelphia.com",
+      "roomphoenix.com",
+      "roomsbrisbane.com",
+      "roomschicago.com",
+      "roomslosangeles.com",
+      "roomssydney.com",
+      "studiobrisbane.com",
+      "studiobrugge.com",
+      "studiodelft.nl",
+      "studiodenbosch.nl",
+      "studiodenhaag.nl",
+      "studioenschede.nl",
+      "studiogent.com",
+      "studiogroningen.nl",
+      "studiohaarlem.nl",
+      "studioleeuwarden.nl",
+      "studioleuven.com",
+      "studiomaastricht.nl",
+      "studiomiddelburg.nl",
+      "studios-london.co.uk",
+      "studiosamstelveen.nl",
+      "studiosamsterdam.nl",
+      "studiosantwerpen.be",
+      "studioschicago.com",
+      "studioshouston.com",
+      "studiosleiden.nl",
+      "studioslosangeles.com",
+      "studiosmelbourne.com",
+      "studiosnewyork.com",
+      "studiosnijmegen.nl",
+      "studiosphiladelphia.com",
+      "studiosphoenix.com",
+      "studiosrotterdam.nl",
+      "studiossydney.com",
+      "studiotilburg.nl",
+      "studioutrecht.nl",
+      "studiowageningen.nl",
+      "studiozwolle.nl",
+      "woonbootgroningen.nl",
+      "woonbootrotterdam.nl",
+      "woonbootutrecht.nl",
+      "woonbotenamsterdam.com"
+    ],
+    "url": "https://www.studiosnewyork.com",
+    "difficulty": "easy",
+    "notes": "Login and navigate to Your Profile by clicking on your name in the header. Scroll down to the bottom of the page and click 'Remove My Profile'."
+  },
+  {
     "name": "StudyMode",
     "domains": [
       "studymode.com"
@@ -15324,6 +15763,15 @@
     "notes": "At the bottom of the profile page is a delete account buttom, after clicking on it, you can either hide it or delete your account entirely."
   },
   {
+    "name": "TinyLetter",
+    "domains": [
+      "tinyletter.com",
+      "app.tinyletter.com"
+    ],
+    "url": "https://app.tinyletter.com/#!/account/delete",
+    "difficulty": "easy"
+  },
+  {
     "name": "TKirch.dev",
     "domains": [
       "tkirch.dev",
@@ -15762,6 +16210,17 @@
     "notes": "Go to \"Delete account\", type your password and confirm your action by clicking \"Delete\"."
   },
   {
+    "name": "TV 2",
+    "domains": [
+      "tv2.dk",
+      "mit.tv2.dk",
+      "play.tv2.dk"
+    ],
+    "url": "https://mit.tv2.dk/konto/luk",
+    "difficulty": "easy",
+    "notes": "Go to your account page and press 'Slet konto'."
+  },
+  {
     "name": "TV Tropes",
     "domains": [
       "https://tvtropes.org/"
@@ -15803,7 +16262,14 @@
   {
     "name": "Twitch",
     "domains": [
-      "twitch.tv"
+      "twitch.tv",
+      "appeals.twitch.tv",
+      "blog.twitch.tv",
+      "clips.twitch.tv",
+      "dashboard.twitch.tv",
+      "help.twitch.tv",
+      "link.twitch.tv",
+      "safety.twitch.tv"
     ],
     "url": "https://www.twitch.tv/user/delete-account",
     "difficulty": "easy"
@@ -16103,6 +16569,19 @@
     "email": "learn@uxcel.com"
   },
   {
+    "name": "UXPin",
+    "domains": [
+      "uxpin.com",
+      "app.uxpin.com",
+      "files.uxpin.com",
+      "get.uxpin.com",
+      "showcase.uxpin.com"
+    ],
+    "url": "https://www.uxpin.com/docs/account/closing-your-account/",
+    "difficulty": "hard",
+    "notes": "You must call them to close your account."
+  },
+  {
     "name": "Valorant",
     "domains": [
       "playvalorant.com",
@@ -16319,6 +16798,15 @@
     "notes": "Accounts are deleted after 18 months of inactivity, although it is possible to request deletion earlier via email.",
     "email": "ciq@digital.go.jp",
     "email_body": "Please delete my Visit Japan Web account."
+  },
+  {
+    "name": "Visualping",
+    "domains": [
+      "visualping.io"
+    ],
+    "url": "https://visualping.io/account/profile/",
+    "difficulty": "hard",
+    "notes": "You can go to your profile and press 'Close Account', however, this will merely deactivate your account. To delete your account, you must contact them."
   },
   {
     "name": "Viva o Linux (VOL)",

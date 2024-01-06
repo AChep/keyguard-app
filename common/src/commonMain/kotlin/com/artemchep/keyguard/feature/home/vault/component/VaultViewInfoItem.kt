@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.ColorScheme
@@ -45,6 +46,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
@@ -179,7 +181,6 @@ private fun LearnOverlay(
             contentAlignment = Alignment.BottomStart,
         ) {
             LearnButton(
-                backgroundColor = backgroundColor,
                 elevation = 1.dp,
                 onClick = onClick,
             )
@@ -207,27 +208,27 @@ private fun LearnButton(
             .background(finalBackgroundColor)
             .clickable(onClick = onClick)
             .padding(
-                horizontal = 12.dp,
-                vertical = 8.dp,
+                horizontal = 16.dp,
+                vertical = 12.dp,
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
     ) {
-        Text(
-            text = stringResource(Res.strings.learn_more),
-            style = MaterialTheme.typography.labelLarge,
-            color = color,
-        )
-        Spacer(
-            modifier = Modifier
-                .width(4.dp),
-        )
         Icon(
             modifier = Modifier
                 .size(18.dp),
             tint = color,
-            imageVector = Icons.Outlined.ArrowDropDown,
+            imageVector = Icons.Outlined.ArrowDownward,
             contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(Dimens.buttonIconPadding),
+        )
+        Text(
+            text = stringResource(Res.strings.learn_more),
+            style = MaterialTheme.typography.labelLarge,
+            color = color,
         )
     }
 }

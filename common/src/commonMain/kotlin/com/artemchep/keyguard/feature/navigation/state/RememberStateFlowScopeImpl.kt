@@ -23,6 +23,7 @@ import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
 import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -63,7 +64,7 @@ class RememberStateFlowScopeImpl(
             sink: MutableStateFlow<T>,
         ) {
             private val collectScope by lazy {
-                scope + Job()
+                scope + Dispatchers.Main + Job()
             }
 
             val mutableState by lazy {

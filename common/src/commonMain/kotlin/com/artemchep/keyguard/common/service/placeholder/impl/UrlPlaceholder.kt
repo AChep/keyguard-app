@@ -24,8 +24,8 @@ class UrlPlaceholder(
             url.replace(regex, "").let(::io)
         }
 
-        key.equals("url:scm", ignoreCase = true)  ||
-                key.equals("base:scm", ignoreCase = true)-> {
+        key.equals("url:scm", ignoreCase = true) ||
+                key.equals("base:scm", ignoreCase = true) -> {
             uuu.protocol.name
                 .let(::io)
         }
@@ -57,7 +57,9 @@ class UrlPlaceholder(
 
         key.equals("url:userinfo", ignoreCase = true) ||
                 key.equals("base:userinfo", ignoreCase = true) -> {
-            "todo"
+            val user = uuu.user.orEmpty()
+            val password = uuu.password.orEmpty()
+            "$user:$password"
                 .let(::io)
         }
 

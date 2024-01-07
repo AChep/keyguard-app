@@ -87,7 +87,7 @@
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Lägg till</string>
     <string name="add_integration">Add integration</string>
     <string name="account">Konto</string>
     <string name="accounts">Konton</string>

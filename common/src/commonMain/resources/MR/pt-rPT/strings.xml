@@ -61,7 +61,7 @@
     <string name="notes">Notas</string>
     <string name="attachments">Anexos</string>
     <string name="attachments_empty_label">Sem anexos</string>
-    <string name="expired">Expired</string>
+    <string name="expired">Fim de validade</string>
     <string name="expiring_soon">Expira em breve</string>
     <string name="item_incomplete_title">Dados incompletos</string>
     <string name="item_incomplete_text">Nesta entrada está em falta informação importante.</string>
@@ -234,7 +234,7 @@
     <string name="file_action_send_with_title">Enviar com…</string>
     <string name="file_action_open_in_file_manager_title">Abrir com gestor de arquivos…</string>
     <string name="file_action_delete_local_title">Apagar arquivo local</string>
-    <string name="file_action_view_cipher_title">Ver entrada de cifra</string>
+    <string name="file_action_view_cipher_title">Ver entrada principal</string>
     <string name="vault_action_always_show_keyboard_title">Mostrar sempre teclado</string>
     <string name="vault_action_sync_vault_title">Sincronizar cofre</string>
     <string name="vault_action_lock_vault_title">Bloquear cofre</string>
@@ -268,7 +268,7 @@
     <string name="uri_match_detection_regex_title">Expressão regular</string>
     <string name="uri_match_detection_regex_note">Corresponder recursos por expressão regular. Opção avançada.</string>
     <string name="uri_match_detection_never_title">Nunca</string>
-    <string name="uri_match_detection_never_note">Ignorar URI durante pesquisa de item de preenchimento automático.</string>
+    <string name="uri_match_detection_never_note">Ignorar URI durante pesquisa de elemento de preenchimento automático.</string>
     <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> vinculado à palavras-passe</string>
     <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome de utilizador</string>
     <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome do titular do cartão</string>
@@ -356,11 +356,11 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Autenticar WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Voltar à aplicação</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_item_line1">Este item termina a validade em <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Este cartão termina a validade em <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Existem algumas coisas que podem ser feitas para assegurar uma transição suave:</string>
+    <string name="expiry_tips_card_line2">1. Obter um novo cartão: o emissor do seu cartão pode já ter lhe enviado um cartão de substituição com uma nova data de validade. Se não, entre em contacto com o emissor do cartão para verificar se ele vai enviar um novo cartão e quando chega.</string>
+    <string name="expiry_tips_card_line3">2. Atualizar pagamentos automáticos: Se tiver algum pagamento automático configurado com o seu cartão, como uma assinatura mensal ou uma assinatura da Netflix, certifique-se de atualizar as informações com o novo número do cartão e a data de validade.</string>
+    <string name="expiry_tips_card_line4">3. Destruir o cartão antigo: Assim que o cartão novo chegar e você atualizar as informações necessárias, certifique-se de descartar com segurança o cartão antigo e vencido para evitar o roubo de identidade.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -383,7 +383,7 @@
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostrar como código de barras</string>
@@ -594,7 +594,7 @@
     <string name="sortby_password_strength_normal_mode">Mais fraco primeiro</string>
     <string name="sortby_password_strength_reverse_mode">Mais forte primeiro</string>
     <string name="vault_main_search_placeholder">Pesquisar no cofre</string>
-    <string name="vault_main_new_item_button">Novo item</string>
+    <string name="vault_main_new_item_button">Nova entrada</string>
     <string name="vault_main_no_suggested_items">Não existem sugestões disponíveis para este contexto</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Código de segurança</string>
@@ -604,7 +604,7 @@
     <string name="vault_view_revision_label">Modificado pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Criado em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Excluído em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expired_at_label">Expirado em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Fim da data de validade em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expiração agendada a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deletion_scheduled_at_label">Excluir agendado a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
@@ -683,17 +683,17 @@
     <string name="watchtower_item_inactive_2fa_text">Sites com autenticação de dois fatores disponíveis, mas ainda não foram configurados.</string>
     <string name="watchtower_item_inactive_passkey_title">Chaves de acesso disponíveis</string>
     <string name="watchtower_item_inactive_passkey_text">Sites que têm chaves de acesso disponíveis, mas ainda não foram configuradas. É mais simples e mais seguro que uma palavra-passe.</string>
-    <string name="watchtower_item_incomplete_items_title">Entradas incompletas</string>
+    <string name="watchtower_item_incomplete_items_title">Dados incompletos</string>
     <string name="watchtower_item_incomplete_items_text">Ajuda a identificar dados ausentes ou incompletos no seu cofre. Isso pode se referir a identidades com nomes ou credenciais ausentes sem nomes de utilizador.</string>
-    <string name="watchtower_item_expiring_items_title">Entradas expiradas</string>
-    <string name="watchtower_item_expiring_items_text">Dados que expiraram ou estão para expirar em breve.</string>
+    <string name="watchtower_item_expiring_items_title">Dados com validade terminada</string>
+    <string name="watchtower_item_expiring_items_text">Dados que terminaram a validade ou estão para terminar em breve.</string>
     <string name="watchtower_item_duplicate_websites_title">URIs duplicados</string>
     <string name="watchtower_item_duplicate_websites_text">Entradas que têm um ou mais URIs que cobrem os mesmos sites após a aplicação da detecção de correspondência.</string>
     <string name="watchtower_item_trashed_items_title">Entradas apagadas</string>
-    <string name="watchtower_item_trashed_items_text">Dados que foram movidos para a reciclagem. Ter muitos dados na lixeira pode diminuir as operações com o seu cofre.</string>
+    <string name="watchtower_item_trashed_items_text">Dados que foram movidos para a reciclagem. Ter muitos dados na reciclagem pode reduzir a velocidade nas operações com o seu cofre.</string>
     <string name="watchtower_item_empty_folders_title">Pastas vazias</string>
-    <string name="watchtower_item_empty_folders_text">Pastas que não possuem nenhum item nelas.</string>
-    <string name="watchtower_item_duplicate_items_title">Entradas duplicadas</string>
+    <string name="watchtower_item_empty_folders_text">Pastas que não possuem nenhuma entrada.</string>
+    <string name="watchtower_item_duplicate_items_title">Informação duplicada</string>
     <string name="watchtower_item_duplicate_items_text">Ajuda a identificar e eliminar dados duplicados no seu cofre.</string>
     <string name="watchtower_item_compromised_accounts_title">Contas comprometidas</string>
     <string name="watchtower_item_compromised_accounts_text">Verificar violações de dados utilizando nome de utilizador ou endereço de e-mail.</string>
@@ -831,7 +831,7 @@
     <string name="pref_item_clipboard_auto_clear_immediately_text">Imediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nunca</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Duração da notificação de código 2FA</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Quando faz preenchimento automático de um item de login que tenha um código 2FA, a notificação com o código de verificação em janela flutuante aparece de acordo com a duração definida</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Quando faz o preenchimento automático de uma entrada de início de sessão que tenha um código 2FA, a notificação com o código de verificação em janela flutuante aparece de acordo com a duração definida</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Nunca</string>
     <string name="pref_item_premium_membership_title">Sobre a adesão Keyguard Premium</string>
     <string name="pref_item_premium_membership_text">O Premium desbloqueia recursos extras e financia o desenvolvimento do aplicativo. Obrigado por nos apoiar! ❤️</string>
@@ -868,7 +868,7 @@
     <string name="feat_item_filter_title">Filtro</string>
     <string name="feat_item_filter_text">Filtrar por pasta, organização, tipo etc.</string>
     <string name="feat_item_multiple_keywords_title">Múltiplas palavras</string>
-    <string name="feat_item_multiple_keywords_text">Pesquisar por \'bitw teste\' para encontrar o item \'Conta de teste Bitwarden.</string>
+    <string name="feat_item_multiple_keywords_text">Pesquisar por \'bitw teste\' para encontrar a entrada \'Conta de teste Bitwarden.</string>
     <string name="feat_section_watchtower_title">Guardião</string>
     <string name="feat_item_pwned_passwords_title">Palavras-passe comprometidas</string>
     <string name="feat_item_pwned_passwords_text">Encontrar palavras-passe comprometidas em violações de dados.</string>
@@ -880,11 +880,11 @@
     <string name="feat_item_inactive_totp_text">Encontrar inícios de sessão com TOTP, autenticação de dois fatores disponível.</string>
     <string name="feat_item_unsecure_websites_title">Sites inseguros</string>
     <string name="feat_item_unsecure_websites_text">Encontrar sites que usam protocolo HTTP, corrigir automaticamente para HTTPS.</string>
-    <string name="feat_item_incomplete_items_title">Entradas incompletas</string>
-    <string name="feat_item_incomplete_items_text">Encontrar entradas vazias que podem precisar de atualizações.</string>
-    <string name="feat_item_expiring_items_title">Entradas expirando</string>
-    <string name="feat_item_expiring_items_text">Encontrar dados expirados ou que vão expirar em breve.</string>
-    <string name="feat_item_duplicate_items_title">Entradas duplicadas</string>
+    <string name="feat_item_incomplete_items_title">Dados incompletos</string>
+    <string name="feat_item_incomplete_items_text">Encontrar entradas vazias que podem precisar de atualização.</string>
+    <string name="feat_item_expiring_items_title">Entradas com validade terminada</string>
+    <string name="feat_item_expiring_items_text">Encontrar dados com data de validade terminada ou que vão terminar em breve.</string>
+    <string name="feat_item_duplicate_items_title">Dados duplicados</string>
     <string name="feat_item_duplicate_items_text">Procurar e unir dados duplicados.</string>
     <string name="feat_section_misc_title">Outros</string>
     <string name="feat_item_multi_selection_title">Seleção múltipla</string>

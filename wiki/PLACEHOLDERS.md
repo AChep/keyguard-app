@@ -65,6 +65,7 @@ Note: `{base}` supports exactly the same parts as `{url}` and is identical to it
 | `url:userinfo` | User information: `user:pw` |
 | `url:username` | Username: `user` |
 | `url:password` | Password: `pw` |
+| `url:parameter:q` | Query parameter with a name `q`: `e` |
 
 #### Text transformation
 

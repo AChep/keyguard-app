@@ -55,6 +55,18 @@ class UrlPlaceholder(
                 .let(::io)
         }
 
+        key.startsWith("url:parameter:", ignoreCase = true) -> {
+            val name = key.substringAfter("url:parameter:")
+            uuu.parameters[name]
+                .let(::io)
+        }
+
+        key.startsWith("base:parameter:", ignoreCase = true) -> {
+            val name = key.substringAfter("base:parameter:")
+            uuu.parameters[name]
+                .let(::io)
+        }
+
         key.equals("url:userinfo", ignoreCase = true) ||
                 key.equals("base:userinfo", ignoreCase = true) -> {
             val user = uuu.user.orEmpty()

@@ -3,6 +3,8 @@ package com.artemchep.keyguard.common.service.placeholder.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
+import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
+import org.kodein.di.DirectDI
 
 class EnvironmentPlaceholder(
 ) : Placeholder {
@@ -21,5 +23,17 @@ class EnvironmentPlaceholder(
             // unknown
             null
         }
+    }
+
+    class Factory(
+    ) : Placeholder.Factory {
+        constructor(
+            directDI: DirectDI,
+        ) : this(
+        )
+
+        override fun createOrNull(
+            scope: PlaceholderScope,
+        ) = EnvironmentPlaceholder()
     }
 }

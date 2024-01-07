@@ -28,6 +28,14 @@ import com.artemchep.keyguard.common.service.license.impl.LicenseServiceImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.impl.PassKeyServiceImpl
+import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.CommentPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.CustomPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.DateTimePlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.EnvironmentPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.TextReplaceRegexPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.TextTransformPlaceholder
+import com.artemchep.keyguard.common.service.placeholder.impl.UrlPlaceholder
 import com.artemchep.keyguard.common.service.relays.di.emailRelayDiModule
 import com.artemchep.keyguard.common.service.review.ReviewLog
 import com.artemchep.keyguard.common.service.review.impl.ReviewLogImpl
@@ -952,6 +960,46 @@ fun globalModuleJvm() = DI.Module(
         )
     }
     import(emailRelayDiModule())
+    bindSingleton<CipherPlaceholder.Factory> {
+        CipherPlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<CommentPlaceholder.Factory> {
+        CommentPlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<CustomPlaceholder.Factory> {
+        CustomPlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<DateTimePlaceholder.Factory> {
+        DateTimePlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<EnvironmentPlaceholder.Factory> {
+        EnvironmentPlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<TextReplaceRegexPlaceholder.Factory> {
+        TextReplaceRegexPlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<TextTransformPlaceholder.Factory> {
+        TextTransformPlaceholder.Factory(
+            directDI = this,
+        )
+    }
+    bindSingleton<UrlPlaceholder.Factory> {
+        UrlPlaceholder.Factory(
+            directDI = this,
+        )
+    }
     bindSingleton<DeeplinkService> {
         DeeplinkServiceImpl(
             directDI = this,

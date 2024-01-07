@@ -1,21 +1,19 @@
 package com.artemchep.keyguard.common.service.placeholder.impl
 
-import arrow.core.None
-import arrow.core.Option
-import arrow.core.some
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
-import kotlinx.datetime.Clock
+import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
+import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
+import org.kodein.di.DirectDI
 import java.time.format.DateTimeFormatter
 
 class DateTimePlaceholder(
+    private val now: Instant,
 ) : Placeholder {
-    private val now = Clock.System.now()
-
     private val localDateTime by lazy {
         val tz = TimeZone.currentSystemDefault()
         now.toLocalDateTime(tz)
@@ -104,5 +102,19 @@ class DateTimePlaceholder(
 
         // unknown
         else -> null
+    }
+
+    class Factory(
+    ) : Placeholder.Factory {
+        constructor(
+            directDI: DirectDI,
+        ) : this(
+        )
+
+        override fun createOrNull(
+            scope: PlaceholderScope,
+        ) = DateTimePlaceholder(
+            now = scope.now,
+        )
     }
 }

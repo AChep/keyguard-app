@@ -80,6 +80,9 @@ import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
+import com.artemchep.keyguard.common.service.placeholder.Placeholder
+import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
+import com.artemchep.keyguard.common.service.placeholder.create
 import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.CommentPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.CustomPlaceholder
@@ -266,6 +269,7 @@ fun vaultViewScreenState(
         addCipherOpenedHistory = instance(),
         getJustDeleteMeByUrl = instance(),
         windowCoroutineScope = instance(),
+        placeholderFactories = allInstances(),
         linkInfoExtractors = allInstances(),
         mode = mode,
         contentColor = contentColor,
@@ -340,6 +344,7 @@ fun vaultViewScreenState(
     addCipherOpenedHistory: AddCipherOpenedHistory,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     windowCoroutineScope: WindowCoroutineScope,
+    placeholderFactories: List<Placeholder.Factory>,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
     itemId: String,
     accountId: String,
@@ -490,15 +495,8 @@ fun vaultViewScreenState(
                 val canEdit = canAddSecret && secretOrNull.canEdit() && !hasCanNotWriteCiphers
                 val canDelete = canAddSecret && secretOrNull.canDelete() && !hasCanNotWriteCiphers
 
-                val placeholders = listOf(
-                    CipherPlaceholder(secretOrNull),
-                    CommentPlaceholder(),
-                    CustomPlaceholder(secretOrNull),
-                    DateTimePlaceholder(),
-                    TextReplaceRegexPlaceholder(),
-                    TextTransformPlaceholder(),
-                    EnvironmentPlaceholder(),
-                )
+                val now = Clock.System.now()
+
                 val extractors = LinkInfoRegistry(linkInfoExtractors)
                 val cipherUris = secretOrNull
                     .uris
@@ -516,16 +514,28 @@ fun vaultViewScreenState(
                             }
 
                             else -> {
+                                val newUriPlaceholders = placeholderFactories
+                                    .create(
+                                        scope = PlaceholderScope(
+                                            now = now,
+                                            cipher = secretOrNull,
+                                        ),
+                                    )
                                 val newUriString = kotlin.runCatching {
-                                    uri.uri.placeholderFormat(placeholders)
+                                    uri.uri.placeholderFormat(newUriPlaceholders)
                                 }.getOrElse { uri.uri }
                                 val newUri = uri.copy(uri = newUriString)
 
                                 // Process URL overrides
                                 val urlOverridePlaceholders by lazy {
-                                    placeholders + listOf(
-                                        UrlPlaceholder(newUriString),
-                                    )
+                                    placeholderFactories
+                                        .create(
+                                            scope = PlaceholderScope(
+                                                now = now,
+                                                cipher = secretOrNull,
+                                                url = newUriString,
+                                            ),
+                                        )
                                 }
                                 val urlOverrideList = urlOverrides
                                     .filter { override ->

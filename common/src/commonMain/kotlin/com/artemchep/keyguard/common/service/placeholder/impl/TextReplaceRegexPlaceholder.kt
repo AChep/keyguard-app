@@ -3,7 +3,11 @@ package com.artemchep.keyguard.common.service.placeholder.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
+import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.util.Parser
+import com.artemchep.keyguard.common.usecase.GetTotpCode
+import org.kodein.di.DirectDI
+import org.kodein.di.instance
 
 class TextReplaceRegexPlaceholder(
 ) : Placeholder {
@@ -30,5 +34,17 @@ class TextReplaceRegexPlaceholder(
             val rg = regex.toRegex()
             rg.replace(params.value, replacement)
         }
+    }
+
+    class Factory(
+    ) : Placeholder.Factory {
+        constructor(
+            directDI: DirectDI,
+        ) : this(
+        )
+
+        override fun createOrNull(
+            scope: PlaceholderScope,
+        ) = TextReplaceRegexPlaceholder()
     }
 }

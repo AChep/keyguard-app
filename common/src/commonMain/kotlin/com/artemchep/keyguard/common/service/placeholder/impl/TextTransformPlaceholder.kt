@@ -3,8 +3,10 @@ package com.artemchep.keyguard.common.service.placeholder.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
+import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.util.Parser
 import io.ktor.util.*
+import org.kodein.di.DirectDI
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
@@ -84,5 +86,17 @@ class TextTransformPlaceholder(
         value: String,
     ): String {
         return URLDecoder.decode(value, "UTF-8")
+    }
+
+    class Factory(
+    ) : Placeholder.Factory {
+        constructor(
+            directDI: DirectDI,
+        ) : this(
+        )
+
+        override fun createOrNull(
+            scope: PlaceholderScope,
+        ) = TextTransformPlaceholder()
     }
 }

@@ -84,10 +84,10 @@
     <string name="organizations">Organitzacions</string>
     <string name="organizations_empty_label">Cap organització</string>
     <string name="misc">Miscel·lània</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">Comandament</string>
+    <string name="execute_command">Executa</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Afegeix</string>
     <string name="add_integration">Afegir integració</string>
     <string name="account">Compte</string>
     <string name="accounts">Comptes</string>
@@ -166,8 +166,8 @@
     <string name="downloads">Descàrregues</string>
     <string name="downloads_empty_label">Cap descàrrega</string>
     <string name="duplicates_empty_label">Cap duplicat</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
+    <string name="duplicate">Duplica</string>
+    <string name="regex">Expressió regular</string>
     <string name="encryption">Xifratge</string>
     <!-- Encryption key -->
     <string name="encryption_key">Clau</string>
@@ -252,8 +252,8 @@
     <string name="uri_action_launch_in_app_title">Inicia amb <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Inicia amb…</string>
     <string name="uri_action_how_to_delete_account_title">Com eliminar un compte?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
+    <string name="uri_action_autofix_unsecure_title">Soluciona automàticament els URL insegurs</string>
+    <string name="uri_action_autofix_unsecure_text">Canvia el protocol a la seva variant segura si està disponible</string>
     <string name="uri_unsecure">No segura</string>
     <string name="uri_match_app_title">Coincideix amb l\'app</string>
     <string name="uri_match_detection_title">Detecció de coincidències</string>
@@ -449,13 +449,13 @@
     <string name="emailrelay_delete_many_confirmation_title">Eliminar els redireccionadors d\'email?</string>
     <string name="emailrelay_integration_title">Integració amb redireccionador d\'email</string>
     <string name="emailrelay_empty_label">Cap redireccionador d\'email</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
+    <string name="urloverride_header_title">Sobreescriptura d\'URL</string>
+    <string name="urloverride_list_header_title">Sobreescriptures d\'URL</string>
+    <string name="urloverride_list_section_title">Sobreescriptures d\'URL</string>
+    <string name="urloverride_regex_note">Aquesta sobreescriptura serà aplicada a tots els URL que encaixin amb l\'expressió regular.</string>
+    <string name="urloverride_delete_one_confirmation_title">Eliminar la sobreescriptura d\'URL?</string>
+    <string name="urloverride_delete_many_confirmation_title">Eliminar les sobreescriptures d\'URL?</string>
+    <string name="urloverride_empty_label">Cap sobreescriptura d\'URL</string>
     <string name="setup_header_text">Crea una caixa forta encriptada on es desaran totes les dades locals.</string>
     <string name="setup_field_app_password_label">Contrasenya d\'aplicació</string>
     <string name="setup_checkbox_biometric_auth">Autenticació biomètrica</string>
@@ -806,7 +806,7 @@
     <string name="pref_item_persist_vault_key_note">Desar la clau de la caixa forta a un disc és un risc de seguretat. Si l\'emmagatzematge del dispositiu es compromet, l\'atacant tindrà accés a les dades.</string>
     <string name="pref_item_permissions_title">Permisos</string>
     <string name="pref_item_features_overview_title">Visió general de funcions</string>
-    <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_url_override_title">Sobreescriptures d\'URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueig biomètric</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

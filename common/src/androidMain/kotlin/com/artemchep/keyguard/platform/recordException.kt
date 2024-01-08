@@ -7,11 +7,13 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.crashlytics.setEnabled
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
+import java.net.SocketException
 import java.net.UnknownHostException
 
 actual fun recordException(e: Throwable) {
     if (
-        e is UnknownHostException
+        e is UnknownHostException ||
+        e is SocketException
     ) {
         return
     }

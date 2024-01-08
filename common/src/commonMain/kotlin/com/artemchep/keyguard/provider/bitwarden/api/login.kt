@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api
 
+import com.artemchep.keyguard.common.exception.OutOfMemoryKdfException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -234,11 +235,23 @@ private fun generateSecrets(
         .lowercase(Locale.ENGLISH)
         .toByteArray()
 
-    val masterKey = cryptoGenerator.masterKeyHash(
-        seed = passwordBytes,
-        salt = emailBytes,
-        config = hashConfig,
-    )
+    val masterKey = runCatching {
+        cryptoGenerator.masterKeyHash(
+            seed = passwordBytes,
+            salt = emailBytes,
+            config = hashConfig,
+        )
+    }.getOrElse { e ->
+        if (e is OutOfMemoryError) {
+            val newError = OutOfMemoryKdfException(
+                m = e.localizedMessage ?: e.message,
+                e = e,
+            )
+            throw newError
+        }
+
+        throw e
+    }
     val passwordKey = cryptoGenerator.pbkdf2(
         seed = masterKey,
         salt = passwordBytes,

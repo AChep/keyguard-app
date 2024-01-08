@@ -399,6 +399,7 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, out of memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>

@@ -61,7 +61,7 @@
     <string name="notes">Заметки</string>
     <string name="attachments">Вложения</string>
     <string name="attachments_empty_label">Без вложений</string>
-    <string name="expired">Expired</string>
+    <string name="expired">Срок действия закончился</string>
     <string name="expiring_soon">Срок действия истекает</string>
     <string name="item_incomplete_title">Неполные данные</string>
     <string name="item_incomplete_text">В элементе отсутствует некоторая важная информация.</string>
@@ -84,10 +84,10 @@
     <string name="organizations">Организации</string>
     <string name="organizations_empty_label">Нет организаций</string>
     <string name="misc">Разное</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">Команда</string>
+    <string name="execute_command">Выполнить</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Добавить</string>
     <string name="add_integration">Добавить интеграцию</string>
     <string name="account">Учётная запись</string>
     <string name="accounts">Учетные записи</string>
@@ -166,8 +166,8 @@
     <string name="downloads">Загрузки</string>
     <string name="downloads_empty_label">Нет загрузок</string>
     <string name="duplicates_empty_label">Дубликатов нет</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
+    <string name="duplicate">Дублировать</string>
+    <string name="regex">Регулярное выражение</string>
     <string name="encryption">Шифрование</string>
     <!-- Encryption key -->
     <string name="encryption_key">Ключ</string>
@@ -252,8 +252,8 @@
     <string name="uri_action_launch_in_app_title">Запустить в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Запустить в…</string>
     <string name="uri_action_how_to_delete_account_title">Как удалить мою учетную запись?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
+    <string name="uri_action_autofix_unsecure_title">Автоисправление незащищенного URL-адреса</string>
+    <string name="uri_action_autofix_unsecure_text">Если возможно, изменяет протокол на безопасный</string>
     <string name="uri_unsecure">Незащищенный</string>
     <string name="uri_match_app_title">Выбрать приложение</string>
     <string name="uri_match_detection_title">Обнаружение совпадений</string>
@@ -356,11 +356,11 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Авторизация WebAutn</string>
     <string name="fido2webauthn_action_return_title">Вернуться в приложение</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_item_line1">Срок действия записи истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Срок действия карты истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Для плавного перехода можно выполнить несколько действий:</string>
+    <string name="expiry_tips_card_line2">1. Получите новую карту: эмитент Вашей карты уже мог отправить Вам на смену карточку с новым сроком действия. Если нет, свяжитесь с эмитентом карты, чтобы узнать, планируют ли они отправить вам новую карту и когда ее ожидать.</string>
+    <string name="expiry_tips_card_line3">2. Обновите автоматические платежи: если у вас есть автоматические платежи, настроенные с вашей карты, такие как ежемесячное членство в тренажерном зале или подписка Netflix, обязательно обновите информацию с новым номером карты и датой истечения.</string>
+    <string name="expiry_tips_card_line4">3. Уничтожьте старую карту. Как только вы получите новую карту и обновите всю необходимую информацию, обязательно утилизируйте старую карту с истекшим сроком действия, чтобы предотвратить кражу личных данных.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -380,10 +380,11 @@
     <string name="error_invalid_uri">Неверный URI</string>
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>

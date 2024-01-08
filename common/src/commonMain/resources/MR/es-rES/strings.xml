@@ -380,6 +380,7 @@
     <string name="error_invalid_uri">URI no válida</string>
     <string name="error_invalid_card_number">Número de tarjeta inválido</string>
     <string name="error_incorrect_password">Contraseña incorrecta</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Error al generar el código OTP</string>
     <string name="error_failed_create_passkey">Error al crear una llave de acceso</string>
     <string name="error_failed_use_passkey">Error al autorizar una solicitud</string>

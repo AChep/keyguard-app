@@ -380,6 +380,7 @@
     <string name="error_invalid_uri">URI invàlida</string>
     <string name="error_invalid_card_number">Número de targeta no vàlid</string>
     <string name="error_incorrect_password">Contrasenya incorrecta</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">No s\'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s\'ha pogut crear la passkey</string>
     <string name="error_failed_use_passkey">No s\'ha pogut autoritzar la petició</string>

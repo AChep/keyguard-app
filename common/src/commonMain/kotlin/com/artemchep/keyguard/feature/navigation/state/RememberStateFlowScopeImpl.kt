@@ -263,7 +263,9 @@ class RememberStateFlowScopeImpl(
     }
 
     override fun <T> mutableComposeState(sink: MutableStateFlow<T>): MutableState<T> {
-        val entry = registry.values.firstOrNull { it.sink === sink }
+        val entry = synchronized(this) {
+            registry.values.firstOrNull { it.sink === sink }
+        }
         requireNotNull(entry) {
             "Provided sink must be created using mutablePersistedFlow(...)!"
         }

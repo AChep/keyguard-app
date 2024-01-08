@@ -263,15 +263,11 @@ class RememberStateFlowScopeImpl(
     }
 
     override fun <T> mutableComposeState(sink: MutableStateFlow<T>): MutableState<T> {
-        val state = mutableStateOf(sink.value)
-        // Send back the data from a source of truth to the
-        // screen's storage.
-        snapshotFlow { state.value }
-            .onEach { text ->
-                sink.value = text
-            }
-            .launchIn(screenScope)
-        return state
+        val entry = registry.values.firstOrNull { it.sink === sink }
+        requireNotNull(entry) {
+            "Provided sink must be created using mutablePersistedFlow(...)!"
+        }
+        return entry.composeState.mutableState as MutableState<T>
     }
 
     override fun persistedState(): LeBundle {

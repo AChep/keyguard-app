@@ -380,6 +380,7 @@
     <string name="error_invalid_uri">Некоректний URI</string>
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, out of memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>

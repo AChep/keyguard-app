@@ -287,7 +287,7 @@ fun sendListScreenState(
                             onCheckedChange = showKeyboardSink::value::set,
                         )
                     },
-                    title = "Always show keyboard",
+                    title = translate(Res.strings.vault_action_always_show_keyboard_title),
                     onClick = showKeyboardSink::value::set.partially1(!showKeyboard),
                 )
             }
@@ -299,7 +299,7 @@ fun sendListScreenState(
                             rotating = syncing,
                         )
                     },
-                    title = "Sync vault",
+                    title = translate(Res.strings.vault_action_sync_vault_title),
                     onClick = if (!syncing) {
                         // lambda
                         {
@@ -315,7 +315,7 @@ fun sendListScreenState(
             leading = {
                 Icon(Icons.Outlined.Lock, null)
             },
-            title = "Lock vault",
+            title = translate(Res.strings.vault_action_lock_vault_title),
             onClick = {
                 clearVaultSession()
                     .launchIn(appScope)

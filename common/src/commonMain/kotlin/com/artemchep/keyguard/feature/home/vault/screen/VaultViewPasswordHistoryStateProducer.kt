@@ -9,16 +9,14 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistory
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
-import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -28,10 +26,12 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -79,9 +79,9 @@ fun vaultViewPasswordHistoryScreenState(
         itemId,
     ),
 ) {
-    val copy = copy(
-        clipboardService = clipboardService,
-    )
+    val selectionHandle = selectionHandle("selection")
+    val copyFactory = copy(clipboardService)
+
     val secretFlow = getCiphers()
         .map { secrets ->
             secrets
@@ -89,88 +89,7 @@ fun vaultViewPasswordHistoryScreenState(
         }
         .distinctUntilChanged()
 
-    val selectionSink = mutablePersistedFlow("selection") {
-        listOf<String>()
-    }
-    // Automatically remove selection from items
-    // that do not exist anymore.
-    secretFlow
-        .onEach { secretOrNull ->
-            val f = secretOrNull?.login?.passwordHistory.orEmpty()
-            val selectedAccountIds = selectionSink.value
-            val filteredSelectedAccountIds = selectedAccountIds
-                .filter { id ->
-                    f.any { it.id == id }
-                }
-            if (filteredSelectedAccountIds.size < selectedAccountIds.size) {
-                selectionSink.value = filteredSelectedAccountIds
-            }
-        }
-        .launchIn(this)
-
-    fun clearSelection() {
-        selectionSink.value = emptyList()
-    }
-
-    fun toggleSelection(entry: DSecret.Login.PasswordHistory) {
-        val entryId = entry.id
-
-        val oldAccountIds = selectionSink.value
-        val newAccountIds =
-            if (entryId in oldAccountIds) {
-                oldAccountIds - entryId
-            } else {
-                oldAccountIds + entryId
-            }
-        selectionSink.value = newAccountIds
-    }
-
-    val selectionFlow = combine(
-        selectionSink,
-        getCanWrite(),
-    ) { ids, canWrite ->
-        if (ids.isEmpty()) {
-            return@combine null
-        }
-
-        val actions = if (canWrite) {
-            val removeAction = FlatItemAction(
-                icon = Icons.Outlined.Delete,
-                title = translate(Res.strings.remove_from_history),
-                onClick = {
-                    val route = registerRouteResultReceiver(
-                        route = ConfirmationRoute(
-                            args = ConfirmationRoute.Args(
-                                icon = icon(Icons.Outlined.Delete),
-                                title = "Remove ${ids.size} passwords from the history?",
-                            ),
-                        ),
-                    ) {
-                        if (it is ConfirmationResult.Confirm) {
-                            cipherRemovePasswordHistoryById(
-                                itemId,
-                                ids,
-                            ).launchIn(appScope)
-                        }
-                    }
-                    val intent = NavigationIntent.NavigateToRoute(route)
-                    navigate(intent)
-                },
-            )
-            persistentListOf(
-                removeAction,
-            )
-        } else {
-            persistentListOf()
-        }
-        Selection(
-            count = ids.size,
-            actions = actions,
-            onClear = ::clearSelection,
-        )
-    }
-
-    val itemsFlow = secretFlow
+    val itemsRawFlow = secretFlow
         .map { secretOrNull ->
             secretOrNull
                 ?.login
@@ -178,6 +97,104 @@ fun vaultViewPasswordHistoryScreenState(
                 .orEmpty()
         }
         .distinctUntilChanged()
+        .shareInScreenScope()
+    // Automatically de-select items
+    // that do not exist.
+    combine(
+        itemsRawFlow,
+        selectionHandle.idsFlow,
+    ) { items, selectedItemIds ->
+        val newSelectedItemIds = selectedItemIds
+            .asSequence()
+            .filter { itemId ->
+                items.any { it.id == itemId }
+            }
+            .toSet()
+        newSelectedItemIds.takeIf { it.size < selectedItemIds.size }
+    }
+        .filterNotNull()
+        .onEach { ids -> selectionHandle.setSelection(ids) }
+        .launchIn(screenScope)
+
+    fun onDeleteByItems(
+        items: List<DSecret.Login.PasswordHistory>,
+    ) {
+        val title = if (items.size > 1) {
+            translate(Res.strings.passwordhistory_delete_many_confirmation_title)
+        } else {
+            translate(Res.strings.passwordhistory_delete_one_confirmation_title)
+        }
+        val message = items
+            .joinToString(separator = "\n") { it.password }
+        val intent = createConfirmationDialogIntent(
+            icon = icon(Icons.Outlined.Delete),
+            title = title,
+            message = message,
+        ) {
+            val ids = items
+                .map { it.id }
+            cipherRemovePasswordHistoryById(
+                itemId,
+                ids,
+            ).launchIn(appScope)
+        }
+        navigate(intent)
+    }
+
+    fun onDeleteAll() {
+        val intent = createConfirmationDialogIntent(
+            icon = icon(Icons.Outlined.Delete),
+            title = translate(Res.strings.passwordhistory_clear_history_confirmation_title),
+            message = translate(Res.strings.passwordhistory_clear_history_confirmation_text),
+        ) {
+            cipherRemovePasswordHistory(
+                itemId,
+            ).launchIn(appScope)
+        }
+        navigate(intent)
+    }
+
+    val selectionFlow = combine(
+        itemsRawFlow,
+        selectionHandle.idsFlow,
+    ) { items, selectedItemIds ->
+        val selectedItems = items
+            .filter { it.id in selectedItemIds }
+        items to selectedItems
+    }
+        .combine(getCanWrite()) { (allItems, selectedItems), canWrite ->
+            if (selectedItems.isEmpty()) {
+                return@combine null
+            }
+
+            val actions = buildContextItems {
+                section {
+                    this += FlatItemAction(
+                        leading = icon(Icons.Outlined.Delete),
+                        title = translate(Res.strings.remove_from_history),
+                        onClick = ::onDeleteByItems
+                            .partially1(selectedItems),
+                    )
+                }
+            }
+            Selection(
+                count = selectedItems.size,
+                actions = actions,
+                onSelectAll = if (selectedItems.size < allItems.size) {
+                    val allIds = allItems
+                        .asSequence()
+                        .mapNotNull { it.id }
+                        .toSet()
+                    selectionHandle::setSelection
+                        .partially1(allIds)
+                } else {
+                    null
+                },
+                onClear = selectionHandle::clearSelection,
+            )
+        }
+
+    val itemsFlow = itemsRawFlow
         .map { passwordHistory ->
             passwordHistory
                 .sortedByDescending { it.lastUsedDate }
@@ -187,9 +204,19 @@ fun vaultViewPasswordHistoryScreenState(
                         date = dateFormatter.formatDateTime(password.lastUsedDate),
                         actions = buildContextItems {
                             section {
-                                this += copy.FlatItemAction(
+                                this += copyFactory.FlatItemAction(
                                     title = translate(Res.strings.copy_password),
                                     value = password.password,
+                                    type = CopyText.Type.PASSWORD,
+                                )
+                                val items = listOf(
+                                    password,
+                                )
+                                this += FlatItemAction(
+                                    leading = icon(Icons.Outlined.Delete),
+                                    title = translate(Res.strings.remove_from_history),
+                                    onClick = ::onDeleteByItems
+                                        .partially1(items),
                                 )
                             }
                             section {
@@ -217,14 +244,15 @@ fun vaultViewPasswordHistoryScreenState(
                     )
                 }
         }
-        .combine(selectionSink) { passwords, ids ->
+        .combine(selectionHandle.idsFlow) { passwords, ids ->
             val selectionMode = ids.isNotEmpty()
             passwords
                 .asSequence()
                 .map { passwordWrapper ->
                     val password = passwordWrapper.src
                     val selected = password.id in ids
-                    val onToggle = ::toggleSelection.partially1(password)
+                    val onToggle = selectionHandle::toggleSelection
+                        .partially1(password.id)
                     VaultPasswordHistoryItem.Value(
                         id = password.id,
                         title = passwordWrapper.date,
@@ -245,25 +273,7 @@ fun vaultViewPasswordHistoryScreenState(
             FlatItemAction(
                 icon = Icons.Outlined.Delete,
                 title = translate(Res.strings.passwordhistory_clear_history_title),
-                onClick = {
-                    val route = registerRouteResultReceiver(
-                        route = ConfirmationRoute(
-                            args = ConfirmationRoute.Args(
-                                icon = icon(Icons.Outlined.Delete),
-                                title = translate(Res.strings.passwordhistory_clear_history_confirmation_title),
-                                message = translate(Res.strings.passwordhistory_clear_history_confirmation_text),
-                            ),
-                        ),
-                    ) {
-                        if (it is ConfirmationResult.Confirm) {
-                            cipherRemovePasswordHistory(
-                                itemId,
-                            ).launchIn(appScope)
-                        }
-                    }
-                    val intent = NavigationIntent.NavigateToRoute(route)
-                    navigate(intent)
-                },
+                onClick = ::onDeleteAll,
             ),
         ),
     )

@@ -222,7 +222,10 @@ private fun GeneratorHistoryItem(
         trailing = {
             val onCopyAction = remember(item.dropdown) {
                 item.dropdown
-                    .firstOrNull { it.type == FlatItemAction.Type.COPY }
+                    .firstNotNullOfOrNull {
+                        val action = it as? FlatItemAction
+                        action?.takeIf { it.type == FlatItemAction.Type.COPY }
+                    }
             }
             if (onCopyAction != null) {
                 val onCopy = onCopyAction.onClick

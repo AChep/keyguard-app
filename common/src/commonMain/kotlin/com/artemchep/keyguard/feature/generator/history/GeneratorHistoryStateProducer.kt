@@ -5,8 +5,10 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.DGeneratorHistory
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
@@ -15,17 +17,16 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
-import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
+import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
@@ -79,62 +80,63 @@ fun produceGeneratorHistoryState(
     ),
 ) {
     val selectionHandle = selectionHandle("selection")
-
     val copyFactory = copy(clipboardService)
 
     val itemsRawFlow = getGeneratorHistory()
         .shareInScreenScope()
-    val optionsFlow = itemsRawFlow
-        .map { items ->
-            items.isEmpty()
-        }
-        .distinctUntilChanged()
-        .map { isEmpty ->
-            if (isEmpty) {
-                persistentListOf()
-            } else {
-                val action = FlatItemAction(
-                    leading = icon(Icons.Outlined.Delete),
-                    title = translate(Res.strings.generatorhistory_clear_history_title),
-                    onClick = {
-                        val route = registerRouteResultReceiver(
-                            route = ConfirmationRoute(
-                                args = ConfirmationRoute.Args(
-                                    icon = icon(Icons.Outlined.Delete),
-                                    title = translate(Res.strings.generatorhistory_clear_history_confirmation_title),
-                                    message = translate(Res.strings.generatorhistory_clear_history_confirmation_text),
-                                ),
-                            ),
-                        ) {
-                            if (it is ConfirmationResult.Confirm) {
-                                removeGeneratorHistory()
-                                    .launchIn(appScope)
-                            }
-                        }
-                        val intent = NavigationIntent.NavigateToRoute(route)
-                        navigate(intent)
-                    },
-                )
-                persistentListOf(action)
-            }
-        }
     // Automatically de-select items
     // that do not exist.
     combine(
         itemsRawFlow,
         selectionHandle.idsFlow,
     ) { items, selectedItemIds ->
-        val newSelectedAttachmentIds = selectedItemIds
+        val newSelectedItemIds = selectedItemIds
             .asSequence()
-            .filter { attachmentId ->
-                items.any { it.id == attachmentId }
+            .filter { itemId ->
+                items.any { it.id == itemId }
             }
             .toSet()
-        newSelectedAttachmentIds.takeIf { it.size < selectedItemIds.size }
+        newSelectedItemIds.takeIf { it.size < selectedItemIds.size }
     }
         .filterNotNull()
         .onEach { ids -> selectionHandle.setSelection(ids) }
         .launchIn(screenScope)
+
+    fun onDeleteByItems(
+        items: List<DGeneratorHistory>,
+    ) {
+        val title = if (items.size > 1) {
+            translate(Res.strings.generatorhistory_delete_many_confirmation_title)
+        } else {
+            translate(Res.strings.generatorhistory_delete_one_confirmation_title)
+        }
+        val message = items
+            .joinToString(separator = "\n") { it.value }
+        val intent = createConfirmationDialogIntent(
+            icon = icon(Icons.Outlined.Delete),
+            title = title,
+            message = message,
+        ) {
+            val ids = items
+                .mapNotNull { it.id }
+                .toSet()
+            removeGeneratorHistoryById(ids)
+                .launchIn(appScope)
+        }
+        navigate(intent)
+    }
+
+    fun onDeleteAll() {
+        val intent = createConfirmationDialogIntent(
+            icon = icon(Icons.Outlined.Delete),
+            title = translate(Res.strings.generatorhistory_clear_history_confirmation_title),
+            message = translate(Res.strings.generatorhistory_clear_history_confirmation_text),
+        ) {
+            removeGeneratorHistory()
+                .launchIn(appScope)
+        }
+        navigate(intent)
+    }
 
     val selectionFlow = combine(
         itemsRawFlow,
@@ -149,19 +151,19 @@ fun produceGeneratorHistoryState(
                 return@map null
             }
 
-            val actions = mutableListOf<FlatItemAction>()
-            actions += FlatItemAction(
-                leading = icon(Icons.Outlined.Delete),
-                title = translate(Res.strings.remove_from_history),
-                onClick = {
-                    val ids = selectedItems.mapNotNull { it.id }.toSet()
-                    removeGeneratorHistoryById(ids)
-                        .launchIn(appScope)
-                },
-            )
+            val actions = buildContextItems {
+                section {
+                    this += FlatItemAction(
+                        leading = icon(Icons.Outlined.Delete),
+                        title = translate(Res.strings.remove_from_history),
+                        onClick = ::onDeleteByItems
+                            .partially1(selectedItems),
+                    )
+                }
+            }
             Selection(
                 count = selectedItems.size,
-                actions = actions.toPersistentList(),
+                actions = actions,
                 onSelectAll = if (selectedItems.size < allItems.size) {
                     val allIds = allItems
                         .asSequence()
@@ -197,25 +199,60 @@ fun produceGeneratorHistoryState(
 
                     else -> null
                 }
-                val actions = listOfNotNull(
-                    copyFactory.FlatItemAction(
-                        title = translate(Res.strings.copy_value),
-                        value = item.value,
-                        hidden = item.isPassword,
-                    ),
-                    LargeTypeRoute.showInLargeTypeActionOrNull(
-                        translator = this@produceScreenState,
-                        text = item.value,
-                        colorize = item.isPassword,
-                        navigate = ::navigate,
-                    ),
-                    LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                        translator = this@produceScreenState,
-                        text = item.value,
-                        colorize = item.isPassword,
-                        navigate = ::navigate,
-                    ),
-                ).toPersistentList()
+                val actions = buildContextItems {
+                    section {
+                        val (copyTitle, copyType) = when (type) {
+                            GeneratorHistoryItem.Value.Type.PASSWORD ->
+                                translate(Res.strings.copy_password) to CopyText.Type.PASSWORD
+                            GeneratorHistoryItem.Value.Type.EMAIL,
+                            GeneratorHistoryItem.Value.Type.EMAIL_RELAY ->
+                                translate(Res.strings.copy_email) to CopyText.Type.EMAIL
+                            GeneratorHistoryItem.Value.Type.USERNAME ->
+                                translate(Res.strings.copy_username) to CopyText.Type.USERNAME
+                            null -> translate(Res.strings.copy_value) to CopyText.Type.VALUE
+                        }
+                        this += copyFactory.FlatItemAction(
+                            title = copyTitle,
+                            value = item.value,
+                            hidden = item.isPassword,
+                            type = copyType,
+                        )
+                        val items = listOfNotNull(
+                            item,
+                        )
+                        this += FlatItemAction(
+                            leading = icon(Icons.Outlined.Delete),
+                            title = translate(Res.strings.remove_from_history),
+                            onClick = ::onDeleteByItems
+                                .partially1(items),
+                        )
+                    }
+                    section {
+                        this += LargeTypeRoute.showInLargeTypeActionOrNull(
+                            translator = this@produceScreenState,
+                            text = item.value,
+                            colorize = item.isPassword,
+                            navigate = ::navigate,
+                        )
+                        this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
+                            translator = this@produceScreenState,
+                            text = item.value,
+                            colorize = item.isPassword,
+                            navigate = ::navigate,
+                        )
+                    }
+                    section {
+                        // If the value type is a password, then offer to
+                        // check it in the breaches.
+                        if (type == GeneratorHistoryItem.Value.Type.PASSWORD) {
+                            this += PasswordLeakRoute.checkBreachesPasswordAction(
+                                translator = this@produceScreenState,
+                                password = item.value,
+                                navigate = ::navigate,
+                            )
+                        }
+                    }
+                }
                 val selectableFlow = selectionHandle
                     .idsFlow
                     .map { selectedIds ->
@@ -284,6 +321,23 @@ fun produceGeneratorHistoryState(
                     yield(item)
                 }
             }.toPersistentList()
+        }
+    val optionsFlow = itemsRawFlow
+        .map { items ->
+            items.isEmpty()
+        }
+        .distinctUntilChanged()
+        .map { isEmpty ->
+            if (isEmpty) {
+                persistentListOf()
+            } else {
+                val action = FlatItemAction(
+                    leading = icon(Icons.Outlined.Delete),
+                    title = translate(Res.strings.generatorhistory_clear_history_title),
+                    onClick = ::onDeleteAll,
+                )
+                persistentListOf(action)
+            }
         }
     combine(
         optionsFlow,

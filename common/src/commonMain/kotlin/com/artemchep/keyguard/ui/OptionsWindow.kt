@@ -29,6 +29,8 @@ fun DropdownScope.DropdownMenuItemFlat(
     when (action) {
         is ContextItem.Section -> {
             Section(
+                modifier = Modifier
+                    .widthIn(max = DropdownMinWidth),
                 text = action.title,
             )
         }

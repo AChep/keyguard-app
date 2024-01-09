@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.generator.history
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,7 @@ sealed interface GeneratorHistoryItem {
          * List of the callable actions appended
          * to the item.
          */
-        val dropdown: PersistentList<FlatItemAction>,
+        val dropdown: PersistentList<ContextItem>,
         val selectableState: StateFlow<SelectableItemState>,
     ) : GeneratorHistoryItem {
         companion object;

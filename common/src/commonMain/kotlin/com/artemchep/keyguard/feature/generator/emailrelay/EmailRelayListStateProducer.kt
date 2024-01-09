@@ -165,19 +165,25 @@ fun produceEmailRelayListState(
             .launchIn(appScope)
     }
 
-    fun onDelete(
-        emailRelayIds: Set<String>,
+    fun onDeleteByItems(
+        items: List<DGeneratorEmailRelay>,
     ) {
-        val title = if (emailRelayIds.size > 1) {
+        val title = if (items.size > 1) {
             translate(Res.strings.emailrelay_delete_many_confirmation_title)
         } else {
             translate(Res.strings.emailrelay_delete_one_confirmation_title)
         }
+        val message = items
+            .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Delete),
             title = title,
+            message = message,
         ) {
-            removeEmailRelayById(emailRelayIds)
+            val ids = items
+                .mapNotNull { it.id }
+                .toSet()
+            removeEmailRelayById(ids)
                 .launchIn(appScope)
         }
         navigate(intent)
@@ -227,15 +233,16 @@ fun produceEmailRelayListState(
                 return@map null
             }
 
-            val actions = mutableListOf<FlatItemAction>()
-            actions += FlatItemAction(
-                leading = icon(Icons.Outlined.Delete),
-                title = translate(Res.strings.delete),
-                onClick = {
-                    val ids = selectedItems.mapNotNull { it.id }.toSet()
-                    onDelete(ids)
-                },
-            )
+            val actions = buildContextItems {
+                section {
+                    this += FlatItemAction(
+                        leading = icon(Icons.Outlined.Delete),
+                        title = translate(Res.strings.delete),
+                        onClick = ::onDeleteByItems
+                            .partially1(selectedItems),
+                    )
+                }
+            }
             Selection(
                 count = selectedItems.size,
                 actions = actions.toPersistentList(),
@@ -278,8 +285,8 @@ fun produceEmailRelayListState(
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Delete,
                                 title = translate(Res.strings.delete),
-                                onClick = ::onDelete
-                                    .partially1(setOfNotNull(it.id)),
+                                onClick = ::onDeleteByItems
+                                    .partially1(listOf(it)),
                             )
                         }
                     }

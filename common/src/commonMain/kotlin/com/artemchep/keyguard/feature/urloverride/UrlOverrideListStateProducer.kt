@@ -27,8 +27,6 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
@@ -169,19 +167,25 @@ fun produceUrlOverrideListState(
             .launchIn(appScope)
     }
 
-    fun onDelete(
-        emailRelayIds: Set<String>,
+    fun onDeleteByItems(
+        items: List<DGlobalUrlOverride>,
     ) {
-        val title = if (emailRelayIds.size > 1) {
+        val title = if (items.size > 1) {
             translate(Res.strings.urloverride_delete_many_confirmation_title)
         } else {
             translate(Res.strings.urloverride_delete_one_confirmation_title)
         }
+        val message = items
+            .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Delete),
             title = title,
+            message = message,
         ) {
-            removeUrlOverrideById(emailRelayIds)
+            val ids = items
+                .mapNotNull { it.id }
+                .toSet()
+            removeUrlOverrideById(ids)
                 .launchIn(appScope)
         }
         navigate(intent)
@@ -218,18 +222,19 @@ fun produceUrlOverrideListState(
                 return@map null
             }
 
-            val actions = mutableListOf<FlatItemAction>()
-            actions += FlatItemAction(
-                leading = icon(Icons.Outlined.Delete),
-                title = translate(Res.strings.delete),
-                onClick = {
-                    val ids = selectedItems.mapNotNull { it.id }.toSet()
-                    onDelete(ids)
-                },
-            )
+            val actions = buildContextItems {
+                section {
+                    this += FlatItemAction(
+                        leading = icon(Icons.Outlined.Delete),
+                        title = translate(Res.strings.delete),
+                        onClick = ::onDeleteByItems
+                            .partially1(selectedItems),
+                    )
+                }
+            }
             Selection(
                 count = selectedItems.size,
-                actions = actions.toPersistentList(),
+                actions = actions,
                 onSelectAll = if (selectedItems.size < allItems.size) {
                     val allIds = allItems
                         .asSequence()
@@ -264,8 +269,8 @@ fun produceUrlOverrideListState(
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Delete,
                                 title = translate(Res.strings.delete),
-                                onClick = ::onDelete
-                                    .partially1(setOfNotNull(it.id)),
+                                onClick = ::onDeleteByItems
+                                    .partially1(listOf(it)),
                             )
                         }
                     }

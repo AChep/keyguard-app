@@ -22,7 +22,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!
 
-🌠 - requires Premium one-time or subscription license.
+🌠 _-- requires Premium one-time or subscription license_.
 
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
@@ -36,10 +36,15 @@ you can find artifacts for your platform on the [releases](https://github.com/AC
 
 
 #### Looks
+
 |        |        |        |
 | :----: | :----: | :----: |
 | ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233006.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233040.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233118.png) | 
 | ![4](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233159.png) | ![5](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233236.png) | ![6](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233342.png) |
+
+|        |
+| :----: |
+| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20230103_121606.png) |
 
 ## License
 

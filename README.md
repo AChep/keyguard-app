@@ -2,7 +2,7 @@
 
 [![Crowdin](https://badges.crowdin.net/keyguard/localized.svg)](https://crowdin.com/project/keyguard)
 
-Keyguard is an alternative client for the Bitwarden® platform, created to provide the best user experience possible.
+Keyguard is an alternative client for the [Bitwarden® platform](https://bitwarden.com/), created to provide the best user experience possible.
 
 _Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc._
 

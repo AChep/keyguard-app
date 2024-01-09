@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
@@ -15,16 +14,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,12 +36,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.feature.navigation.navigationNodeStack
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.okContainer
 import com.artemchep.keyguard.ui.theme.onOkContainer
+import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -228,12 +231,13 @@ private fun ToastMessage(model: ToastMessage) {
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.extraLarge)
                 .background(containerColor)
-                .padding(
-                    horizontal = 8.dp,
-                    vertical = 8.dp,
-                ),
+                .heightIn(min = 48.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Spacer(
+                modifier = Modifier
+                    .width(8.dp),
+            )
             Icon(
                 modifier = Modifier
                     .size(32.dp)
@@ -248,12 +252,14 @@ private fun ToastMessage(model: ToastMessage) {
             )
             Column(
                 modifier = Modifier
-                    .weight(1f),
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
             ) {
                 Text(
                     style = MaterialTheme.typography.titleSmall,
                     text = model.title,
                     maxLines = 8,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (model.text != null) {
                     Text(
@@ -270,6 +276,34 @@ private fun ToastMessage(model: ToastMessage) {
                 modifier = Modifier
                     .width(8.dp),
             )
+            // Error messages are often wanted to be shared. To save
+            // people from the misery of retyping or screenshotting the
+            // error message we add a button to copy the content.
+            if (model.type == ToastMessage.Type.ERROR) {
+                val clipboardService by rememberInstance<ClipboardService>()
+                IconButton(
+                    onClick = {
+                        val value = listOfNotNull(
+                            model.title,
+                            model.text,
+                        ).joinToString(separator = "\n")
+                        clipboardService.setPrimaryClip(
+                            value = value,
+                            concealed = false,
+                        )
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = stringResource(Res.strings.copy),
+                    )
+                }
+            } else {
+                Spacer(
+                    modifier = Modifier
+                        .width(8.dp),
+                )
+            }
         }
     }
 }

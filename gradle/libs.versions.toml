@@ -113,7 +113,7 @@ richtext = "0.20.0"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
 signalr = "8.0.0"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.10"
+slf4j = "2.0.11"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.77"
 # https://github.com/sqlcipher/sqlcipher-android

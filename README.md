@@ -22,7 +22,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!
 
-🌠 _-- requires Premium one-time or subscription license_.
+🌠 _- on Android requires the Premium one-time or subscription license_. 
 
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.

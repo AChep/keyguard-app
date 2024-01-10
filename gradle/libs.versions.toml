@@ -86,7 +86,7 @@ kspPlugin = "1.9.22-1.0.16"
 # @keep
 ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
-ktlintPlugin = "12.0.3"
+ktlintPlugin = "12.1.0"
 # https://github.com/ktorio/ktor
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
 ktor = "2.3.7"

@@ -913,6 +913,16 @@
     "email_subject": "Account Deletion Request"
   },
   {
+    "name": "AniDB",
+    "domains": [
+      "anidb.net"
+    ],
+    "url": "https://anidb.net/perl-bin/animedb.pl?show=policies",
+    "difficulty": "hard",
+    "notes": "Needs to contact customer support.",
+    "email": "info@anidb.net"
+  },
+  {
     "name": "AniList",
     "domains": [
       "anilist.co"
@@ -14748,6 +14758,15 @@
     "url": "https://help.steampowered.com/en/wizard/HelpDeleteAccount",
     "difficulty": "hard",
     "notes": "First you must verify ownership of the account, then Steam Support will respond to confirm your identification. After it is confirmed your account will be locked and then deleted in 30 days. You can cancel the deletion by contacting Steam Support during the 30 days. You can't reuse your account name."
+  },
+  {
+    "name": "STEP (Smart Traveler Enrollment Program)",
+    "domains": [
+      "step.state.gov"
+    ],
+    "url": "https://step.state.gov",
+    "difficulty": "impossible",
+    "notes": "No self-serve options are available, and they will not delete accounts because \"Profile deletion requires an enormous amount of data about yourself, and your trips, which places users at risk for potential fraud issues\""
   },
   {
     "name": "StepMap",

@@ -37,6 +37,22 @@
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
+    "name": "Amazon Canada",
+    "domain": "amazon.ca",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.ca/your-account"
+  },
+  {
+    "name": "Amazon Japan",
+    "domain": "amazon.co.jp",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.co.jp/-/en/gp/css/homepage.html"
+  },
+  {
     "name": "Amazon UK",
     "domain": "amazon.co.uk",
     "features": [
@@ -53,6 +69,101 @@
     ],
     "setup": "https://www.amazon.com/your-account",
     "notes": "Amazon is actively rolling out sign in with passkey support. Setting up a passkey on Amazon needs to meet one of the minimum software requirements of iOS 16, macOS Big Sur, or Android 9 (if applicable).\n\n#### To set up a passkey on your Amazon account:\n\n1. In Your Account, select Login & Security.\n2. Select Set up next to Passkey.\n3. Select Set up.\n4. Follow the instructions provided to complete setting up a passkey.\n\nSigning in to different Amazon marketplaces (Amazon.co.uk compared to Amazon.com for example) requires either a new passkey for that specific marketplace or using your Amazon password."
+  },
+  {
+    "name": "Amazon AU",
+    "domain": "amazon.com.au",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.com.au/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon.com.be",
+    "domain": "amazon.com.be",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.com.be/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon Brazil",
+    "domain": "amazon.com.br",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.com.br/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon T\u00fcrkiye",
+    "domain": "amazon.com.tr",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.com.tr/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon Germany",
+    "domain": "amazon.de",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.de/-/en/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon Spain",
+    "domain": "amazon.es",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.es/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon France",
+    "domain": "amazon.fr",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.fr/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon India",
+    "domain": "amazon.in",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.in/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon.it",
+    "domain": "amazon.it",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.it/gp/css/homepage"
+  },
+  {
+    "name": "Amazon Netherlands",
+    "domain": "amazon.nl",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.nl/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon Sweden",
+    "domain": "amazon.se",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.amazon.se/gp/css/homepage.html"
+  },
+  {
+    "name": "Amazon SG",
+    "domain": "amazon.sg",
+    "features": [
+      "signin"
+    ]
   },
   {
     "name": "Apple",
@@ -130,6 +241,13 @@
     ],
     "documentation": "https://www.binance.com/en/support/faq/how-to-create-a-passkey-for-my-binance-account-2aec8fe0437242f2a5fbef9cdb71d4c2",
     "setup": "https://accounts.binance.com/en/manage-yubikey-authenticator"
+  },
+  {
+    "name": "Bitwarden",
+    "domain": "bitwarden.com",
+    "features": [
+      "mfa"
+    ]
   },
   {
     "name": "Boursorama",
@@ -260,6 +378,22 @@
     "notes": "### How to setup passkey\n\nGoto settings > My Account\n\n### Available on:\nWeb, desktop app and on iOS."
   },
   {
+    "name": "Discord",
+    "domain": "discord.gg",
+    "features": [
+      "mfa"
+    ]
+  },
+  {
+    "name": "Discourse",
+    "domain": "discourse.org",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "notes": "Passkeys can be setup within members account preferences > security"
+  },
+  {
     "name": "DocuSign",
     "domain": "docusign.com",
     "features": [
@@ -388,6 +522,15 @@
     "setup": "https://accountsettings.connect.visma.com"
   },
   {
+    "name": "Home Depot",
+    "domain": "homedepot.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://www.homedepot.com/myaccount/security"
+  },
+  {
     "name": "Horizon Pics",
     "domain": "horizon.pics",
     "features": [
@@ -414,6 +557,15 @@
     ],
     "documentation": "https://www.au.com/support/faq/detail/26/a00000000826/",
     "setup": "https://connect.auone.jp/net/vw/cca_eu_net/cca?ID=ENET0570"
+  },
+  {
+    "name": "ID.me",
+    "domain": "id.me",
+    "features": [
+      "mfa"
+    ],
+    "documentation": "https://help.id.me/hc/en-us/articles/10295798300951-Setting-up-Passkey-multi-factor-authentication-MFA-",
+    "setup": "https://account.id.me/signin/security"
   },
   {
     "name": "Money Forward ID",
@@ -570,7 +722,7 @@
     "setup": "https://milogin.michigan.gov/uisecure/selfservice/enrollFIDO"
   },
   {
-    "name": "Microsoft",
+    "name": "Microsoft (Personal)",
     "domain": "microsoft.com",
     "features": [
       "mfa",
@@ -578,7 +730,7 @@
     ],
     "documentation": "https://support.microsoft.com/en-us/windows/sign-in-to-your-microsoft-account-with-windows-hello-or-a-security-key-800a8c01-6b61-49f5-0660-c2159bea4d84",
     "setup": "https://account.live.com/proofs/manage/additional",
-    "notes": "Not available using Safari right now.\n\nClick the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey."
+    "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nNot available using Safari right now and passkeys cannot be added to Microsoft 365 Business or Education accounts at this time."
   },
   {
     "name": "minter.io",

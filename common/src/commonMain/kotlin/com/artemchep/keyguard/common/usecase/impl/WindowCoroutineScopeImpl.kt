@@ -43,6 +43,7 @@ class WindowCoroutineScopeImpl(
             ?: exception.javaClass.simpleName
         val msg = ToastMessage(
             title = title,
+            type = ToastMessage.Type.ERROR,
         )
         showMessage.copy(msg)
     }

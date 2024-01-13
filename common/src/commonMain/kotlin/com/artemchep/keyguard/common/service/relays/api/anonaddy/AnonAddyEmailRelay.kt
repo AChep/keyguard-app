@@ -45,7 +45,7 @@ class AnonAddyEmailRelay(
 
     override val type = "AnonAddy"
 
-    override val name = "AnonAddy"
+    override val name = "addy.io"
 
     override val docUrl = "https://bitwarden.com/help/generator/#tab-addy.io-3Uj911RtQsJD9OAhUuoKrz"
 

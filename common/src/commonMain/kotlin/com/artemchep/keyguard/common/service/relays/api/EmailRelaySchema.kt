@@ -11,6 +11,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 data class EmailRelaySchema(
     val title: TextHolder,
     val hint: TextHolder? = null,
+    val description: TextHolder? = null,
     val type: ConfirmationRoute.Args.Item.StringItem.Type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
     /**
      * `true` if the empty value is a valid

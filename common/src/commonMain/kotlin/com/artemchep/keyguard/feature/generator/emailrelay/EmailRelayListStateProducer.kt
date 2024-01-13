@@ -92,6 +92,7 @@ fun produceEmailRelayListState(
                     value = itemValue,
                     title = translate(emailRelay.value.title),
                     hint = emailRelay.value.hint?.let { translate(it) },
+                    description = emailRelay.value.description?.let { translate(it) },
                     type = emailRelay.value.type,
                     canBeEmpty = emailRelay.value.canBeEmpty,
                 )

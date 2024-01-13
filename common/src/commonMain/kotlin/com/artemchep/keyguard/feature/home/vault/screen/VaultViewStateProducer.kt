@@ -1019,8 +1019,6 @@ private fun RememberStateFlowScope.oh(
                                 single = true,
                                 navigate = ::navigate,
                             )
-                        }
-                        section {
                             this += createShareAction(
                                 translator = this@oh,
                                 text = it.code,
@@ -2238,6 +2236,12 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             )
                         }
                         section {
+                            this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+                                translator = this@createUriItemContextItems,
+                                data = platformMarker.playStoreUrl,
+                                single = true,
+                                navigate = ::navigate,
+                            )
                             this += createShareAction(
                                 translator = this@createUriItemContextItems,
                                 text = platformMarker.playStoreUrl,
@@ -2271,6 +2275,12 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             )
                         }
                         section {
+                            this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+                                translator = this@createUriItemContextItems,
+                                data = platformMarker.playStoreUrl,
+                                single = true,
+                                navigate = ::navigate,
+                            )
                             this += createShareAction(
                                 translator = this@createUriItemContextItems,
                                 text = platformMarker.playStoreUrl,
@@ -2360,6 +2370,12 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     }
                 }
                 section {
+                    this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+                        translator = this@createUriItemContextItems,
+                        data = uri,
+                        single = true,
+                        navigate = ::navigate,
+                    )
                     this += createShareAction(
                         translator = this@createUriItemContextItems,
                         text = uri,
@@ -2467,8 +2483,12 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         colorize = true,
                         navigate = ::navigate,
                     )
-                }
-                section {
+                    this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+                        translator = this@createUriItemContextItems,
+                        data = uri,
+                        single = true,
+                        navigate = ::navigate,
+                    )
                     this += createShareAction(
                         translator = this@createUriItemContextItems,
                         text = uri,
@@ -2527,8 +2547,6 @@ fun RememberStateFlowScope.create(
                     format = BarcodeImageFormat.QR_CODE,
                     navigate = ::navigate,
                 )
-            }
-            section {
                 this += createShareAction(
                     translator = this@create,
                     text = value,

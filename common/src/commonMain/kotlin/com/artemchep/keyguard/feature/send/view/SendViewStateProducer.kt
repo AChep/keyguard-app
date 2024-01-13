@@ -578,8 +578,6 @@ fun RememberStateFlowScope.create(
                     format = BarcodeImageFormat.QR_CODE,
                     navigate = ::navigate,
                 )
-            }
-            section {
                 this += createShareAction(
                     translator = this@create,
                     text = value,
@@ -645,6 +643,12 @@ private suspend fun RememberStateFlowScope.aaaa(
             )
         }
         section {
+            this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+                translator = this@aaaa,
+                data = url,
+                single = true,
+                navigate = ::navigate,
+            )
             this += createShareAction(
                 translator = this@aaaa,
                 text = url,

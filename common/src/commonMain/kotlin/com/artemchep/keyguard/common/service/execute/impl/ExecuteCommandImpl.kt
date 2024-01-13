@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import kotlinx.coroutines.coroutineScope
 import org.kodein.di.DirectDI
 
 class ExecuteCommandImpl(
@@ -48,7 +49,7 @@ private class ExecuteCommandCmd : ExecuteCommand {
             "/c",
             command,
         )
-        Runtime.getRuntime().exec(arr)
+        executeCommand(arr)
     }
 }
 
@@ -61,7 +62,7 @@ private class ExecuteCommandBash : ExecuteCommand {
             "-c",
             command,
         )
-        Runtime.getRuntime().exec(arr)
+        executeCommand(arr)
     }
 }
 
@@ -74,6 +75,25 @@ private class ExecuteCommandSh : ExecuteCommand {
             "-c",
             command,
         )
-        Runtime.getRuntime().exec(arr)
+        executeCommand(arr)
+    }
+}
+
+/**
+ * Executes the given command, handling the exit
+ * code and throwing an exception if the program
+ * had failed.
+ */
+private suspend fun executeCommand(array: Array<String>) {
+    val process = run {
+        Runtime.getRuntime().exec(array)
+    }
+    coroutineScope {
+        val errorText = process.errorReader().readText()
+
+        val exitCode = process.waitFor()
+        if (exitCode != 0) {
+            throw RuntimeException(errorText)
+        }
     }
 }

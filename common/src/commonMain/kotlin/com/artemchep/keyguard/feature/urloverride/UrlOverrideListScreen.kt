@@ -248,7 +248,7 @@ private fun UrlOverrideItem(
             AvatarBuilder(
                 icon = item.icon,
                 accent = accent,
-                active = true,
+                active = item.active,
                 badge = {
                     // Do nothing.
                 },

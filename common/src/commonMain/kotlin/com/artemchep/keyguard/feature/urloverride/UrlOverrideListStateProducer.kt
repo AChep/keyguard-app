@@ -86,6 +86,13 @@ fun produceUrlOverrideListState(
             canBeEmpty = false,
         )
 
+        val enabledKey = "enabled"
+        val enabledItem = ConfirmationRoute.Args.Item.BooleanItem(
+            key = enabledKey,
+            value = entity?.enabled ?: true,
+            title = translate(Res.strings.enabled),
+        )
+
         val regexKey = "regex"
         val regexItem = ConfirmationRoute.Args.Item.StringItem(
             key = regexKey,
@@ -115,6 +122,7 @@ fun produceUrlOverrideListState(
             nameItem,
             regexItem,
             commandItem,
+            enabledItem,
         )
         val route = registerRouteResultReceiver(
             route = ConfirmationRoute(
@@ -135,6 +143,8 @@ fun produceUrlOverrideListState(
             if (result is ConfirmationResult.Confirm) {
                 val name = result.data[nameKey] as? String
                     ?: return@registerRouteResultReceiver
+                val enabled = result.data[enabledKey] as? Boolean
+                    ?: return@registerRouteResultReceiver
                 val regex = result.data[regexKey] as? String
                     ?: return@registerRouteResultReceiver
                 val placeholder = result.data[commandKey] as? String
@@ -146,6 +156,7 @@ fun produceUrlOverrideListState(
                     regex = regex.toRegex(),
                     command = placeholder,
                     createdDate = createdAt,
+                    enabled = enabled,
                 )
                 addUrlOverride(model)
                     .launchIn(appScope)
@@ -333,6 +344,7 @@ fun produceUrlOverrideListState(
                         icon = icon,
                         accentLight = it.accentColor.light,
                         accentDark = it.accentColor.dark,
+                        active = it.enabled,
                         dropdown = dropdown,
                         selectableState = selectableStateFlow,
                     )

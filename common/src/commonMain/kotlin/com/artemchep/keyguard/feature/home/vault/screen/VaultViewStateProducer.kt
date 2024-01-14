@@ -539,8 +539,8 @@ fun vaultViewScreenState(
                                 }
                                 val urlOverrideList = urlOverrides
                                     .filter { override ->
-                                        override.regex
-                                            .matches(newUriString)
+                                        override.enabled &&
+                                            override.regex.matches(newUriString)
                                     }
                                     .map { override ->
                                         val contentOrException = Either.catch {

@@ -7,6 +7,8 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
     <string name="account_name">Account name</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
     <string name="wordlist">Wordlist</string>
     <string name="username">Username</string>
     <string name="password">Password</string>

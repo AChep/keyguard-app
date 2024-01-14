@@ -9,6 +9,7 @@ data class DGlobalUrlOverride(
     val regex: Regex,
     val command: String,
     val createdDate: Instant,
+    val enabled: Boolean,
 ) : Comparable<DGlobalUrlOverride> {
     val accentColor = run {
         val colors = generateAccentColors(name)

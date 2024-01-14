@@ -36,6 +36,7 @@ data class UrlOverrideListState(
         val icon: VaultItemIcon,
         val accentLight: Color,
         val accentDark: Color,
+        val active: Boolean,
         val dropdown: ImmutableList<ContextItem>,
         val selectableState: StateFlow<SelectableItemState>,
     )

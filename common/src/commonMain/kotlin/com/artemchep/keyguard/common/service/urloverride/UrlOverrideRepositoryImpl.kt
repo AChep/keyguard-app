@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.urloverride
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
+import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.core.store.DatabaseDispatcher
 import com.artemchep.keyguard.core.store.DatabaseManager
@@ -39,6 +40,7 @@ class UrlOverrideRepositoryImpl(
                             regex = regex,
                             command = entity.command,
                             createdDate = entity.createdAt,
+                            enabled = entity.enabled != 0L,
                         )
                     }
             }
@@ -55,6 +57,7 @@ class UrlOverrideRepositoryImpl(
                     regex = regex,
                     command = model.command,
                     createdAt = model.createdDate,
+                    enabled = model.enabled.int.toLong(),
                 )
             } else {
                 dao.insert(
@@ -62,6 +65,7 @@ class UrlOverrideRepositoryImpl(
                     regex = regex,
                     command = model.command,
                     createdAt = model.createdDate,
+                    enabled = model.enabled.int.toLong(),
                 )
             }
         }

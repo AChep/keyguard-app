@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="account_name">Nome account</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Nome utente</string>
     <string name="password">Password</string>
     <string name="app_password">Password app</string>
@@ -110,6 +113,7 @@
     <string name="address3">Indirizzo riga 3</string>
     <string name="rename">Rinomina</string>
     <string name="select_linked_type">Select type</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">Riempimento automatico</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una password</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">URI non valido</string>
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_incorrect_password">Password errata</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Impossibile generare il codice OTP</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
@@ -445,16 +450,25 @@
     <string name="destinationpicker_organization_ownership_note">Questa organizzazione avrà la proprietà della copia. Non sarai il proprietario diretto.</string>
     <string name="emailrelay_list_header_title">Email forwarders</string>
     <string name="emailrelay_list_section_title">Email forwarders</string>
-    <string name="emailrelay_delete_one_confirmation_title">Delete email forwarder?</string>
-    <string name="emailrelay_delete_many_confirmation_title">Delete email forwarders?</string>
+    <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
     <string name="emailrelay_integration_title">Email forwarder integration</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Crea una cassaforte criptata dove verranno salvati i dati locali.</string>
     <string name="setup_field_app_password_label">Password app</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Separatore</string>
     <string name="generator_passphrase_capitalize_title">Maiuscole</string>
     <string name="generator_passphrase_number_title">Numeri</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Nome utente</string>
     <string name="generator_username_delimiter_title">Separatore</string>
     <string name="generator_username_custom_word_title">Parola personalizzata</string>
     <string name="generator_username_capitalize_title">Capitalize</string>
     <string name="generator_username_number_title">Number</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Simboli casuali</string>
     <string name="generator_password_note">Una password sicura ha almeno <xliff:g id="length" example="15">%1$d</xliff:g> caratteri, lettere maiuscole e minuscole, cifre e simboli.</string>
     <string name="generator_password_numbers_title">Numeri</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Pulisci cronologia</string>
     <string name="generatorhistory_clear_history_confirmation_title">Clear generator history?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Questo rimuoverà tutti gli elementi dalla cronologia.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
     <string name="passwordhistory_header_title">Cronologia della password</string>
     <string name="passwordhistory_clear_history_title">Pulisci cronologia</string>
     <string name="passwordhistory_clear_history_confirmation_title">Pulire cronologia password?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Questo rimuoverà tutte le password dalla cronologia.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Sicurezza password</string>
     <string name="watchtower_section_security_label">Sicurezza</string>

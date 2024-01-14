@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nom</string>
     <string name="account_name">Nom del compte</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Nom d’usuari</string>
     <string name="password">Contrasenya</string>
     <string name="app_password">Contrasenya d\'aplicació</string>
@@ -110,6 +113,7 @@
     <string name="address3">Línia 3 de l\'adreça</string>
     <string name="rename">Reanomenar</string>
     <string name="select_linked_type">Seleccioneu tipus</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">Emplenament automàtic</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una passkey</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">URI invàlida</string>
     <string name="error_invalid_card_number">Número de targeta no vàlid</string>
     <string name="error_incorrect_password">Contrasenya incorrecta</string>
+    <string name="error_failed_generate_kdf_hash_oom">No s\'ha pogut crear la clau, no hi ha prou memòria. Per favor, configura la configuració del teu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">No s\'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s\'ha pogut crear la passkey</string>
     <string name="error_failed_use_passkey">No s\'ha pogut autoritzar la petició</string>
@@ -449,6 +454,15 @@
     <string name="emailrelay_delete_many_confirmation_title">Eliminar els redireccionadors d\'email?</string>
     <string name="emailrelay_integration_title">Integració amb redireccionador d\'email</string>
     <string name="emailrelay_empty_label">Cap redireccionador d\'email</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">Sobreescriptura d\'URL</string>
     <string name="urloverride_list_header_title">Sobreescriptures d\'URL</string>
     <string name="urloverride_list_section_title">Sobreescriptures d\'URL</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Delimitador</string>
     <string name="generator_passphrase_capitalize_title">Majúscules</string>
     <string name="generator_passphrase_number_title">Número</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Nom d’usuari</string>
     <string name="generator_username_delimiter_title">Delimitador</string>
     <string name="generator_username_custom_word_title">Paraula personalitzada</string>
     <string name="generator_username_capitalize_title">Majúscules inicials</string>
     <string name="generator_username_number_title">Número</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Símbols aleatoris</string>
     <string name="generator_password_note">Una contrasenya forta té almenys <xliff:g id="length" example="15">%1$d</xliff:g> caràcters, lletres majúscules &amp; minúscules, dígits i símbols.</string>
     <string name="generator_password_numbers_title">Dígits</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Neteja l\'historial</string>
     <string name="generatorhistory_clear_history_confirmation_title">Netejar l\'historial del generador?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Açò eliminarà tots els elements de l\'historial.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Eliminar l\'element de l\'historial?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Eliminar els elements de l\'historial?</string>
     <string name="passwordhistory_header_title">Historial de contrasenyes</string>
     <string name="passwordhistory_clear_history_title">Buida l\'historial</string>
     <string name="passwordhistory_clear_history_confirmation_title">Buidar l\'historial de contrasenyes?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Açò eliminarà totes les contrasenyes de l\'historial.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Eliminar la contrasenya de l\'historial?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Eliminar les contrasenyes de l\'historial?</string>
     <string name="watchtower_header_title">Torre de Vigilància</string>
     <string name="watchtower_section_password_strength_label">Seguretat de la contrasenya</string>
     <string name="watchtower_section_security_label">Seguretat</string>

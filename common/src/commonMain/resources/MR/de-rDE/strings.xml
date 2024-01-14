@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
     <string name="account_name">Kontoname</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Benutzername</string>
     <string name="password">Passwort</string>
     <string name="app_password">App-Passwort</string>
@@ -110,6 +113,7 @@
     <string name="address3">Adresszeile 3</string>
     <string name="rename">Umbenennen</string>
     <string name="select_linked_type">Select type</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">Automatisches Ausfüllen</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">Ungültige URI</string>
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des OTP-Codes</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
@@ -449,12 +454,21 @@
     <string name="emailrelay_delete_many_confirmation_title">E-Mail-Weiterleitungen löschen?</string>
     <string name="emailrelay_integration_title">E-Mail-Weiterleitung Integration</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in dem lokale Daten gespeichert werden.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Trennzeichen</string>
     <string name="generator_passphrase_capitalize_title">Großbuchstaben</string>
     <string name="generator_passphrase_number_title">Zahlen</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Benutzername</string>
     <string name="generator_username_delimiter_title">Trennzeichen</string>
     <string name="generator_username_custom_word_title">Benutzerdefiniertes Wort</string>
     <string name="generator_username_capitalize_title">Großschreibung</string>
     <string name="generator_username_number_title">Zahlen</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Zufällige Symbole</string>
     <string name="generator_password_note">Ein starkes Passwort hat eine Mindestlänge von <xliff:g id="length" example="15">%1$d</xliff:g>, Groß- &amp; Kleinbuchstaben, Zahlen und Symbole.</string>
     <string name="generator_password_numbers_title">Stellen</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Verlauf leeren</string>
     <string name="generatorhistory_clear_history_confirmation_title">Generatorverlauf löschen?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Dadurch werden alle Elemente aus dem Verlauf entfernt.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
     <string name="passwordhistory_header_title">Passwortverlauf</string>
     <string name="passwordhistory_clear_history_title">Verlauf leeren</string>
     <string name="passwordhistory_clear_history_confirmation_title">Passwortverlauf löschen?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Dadurch werden alle Passwörter aus dem Verlauf entfernt.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
     <string name="watchtower_header_title">Wachturm</string>
     <string name="watchtower_section_password_strength_label">Passwortstärke</string>
     <string name="watchtower_section_security_label">Sicherheit</string>

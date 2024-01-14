@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">이름</string>
     <string name="account_name">계정 이름</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">사용자 이름</string>
     <string name="password">비밀번호</string>
     <string name="app_password">앱 비밀번호</string>
@@ -61,7 +64,7 @@
     <string name="notes">메모</string>
     <string name="attachments">첨부 파일</string>
     <string name="attachments_empty_label">첨부 파일 없음</string>
-    <string name="expired">Expired</string>
+    <string name="expired">만료됨</string>
     <string name="expiring_soon">곧 만료</string>
     <string name="item_incomplete_title">불완전 데이터</string>
     <string name="item_incomplete_text">중요한 정보가 비어 있는 항목입니다.</string>
@@ -84,10 +87,10 @@
     <string name="organizations">조직</string>
     <string name="organizations_empty_label">조직 없음</string>
     <string name="misc">기타</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">명령어</string>
+    <string name="execute_command">실행</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">추가</string>
     <string name="add_integration">통합 기능 추가</string>
     <string name="account">계정</string>
     <string name="accounts">계정</string>
@@ -110,6 +113,7 @@
     <string name="address3">주소 3</string>
     <string name="rename">이름 바꾸기</string>
     <string name="select_linked_type">유형 선택</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">자동 완성</string>
     <string name="passkey">패스키</string>
     <string name="passkey_create_header">패스키 만들기</string>
@@ -166,8 +170,8 @@
     <string name="downloads">다운로드</string>
     <string name="downloads_empty_label">다운로드 없음</string>
     <string name="duplicates_empty_label">중복 항목 없음</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
+    <string name="duplicate">복제</string>
+    <string name="regex">정규 표현식</string>
     <string name="encryption">암호화</string>
     <!-- Encryption key -->
     <string name="encryption_key">키</string>
@@ -252,8 +256,8 @@
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> 앱으로 열기</string>
     <string name="uri_action_launch_in_smth_title">다른 앱으로 열기</string>
     <string name="uri_action_how_to_delete_account_title">회원 탈퇴는 어떻게 하지?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
+    <string name="uri_action_autofix_unsecure_title">안전하지 않은 URL 자동 수정</string>
+    <string name="uri_action_autofix_unsecure_text">보안 프로토콜로 변경 가능할 경우 자동으로 변경</string>
     <string name="uri_unsecure">안전하지 않음</string>
     <string name="uri_match_app_title">앱 일치</string>
     <string name="uri_match_detection_title">일치 인식</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">잘못된 URI입니다.</string>
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
@@ -449,12 +454,21 @@
     <string name="emailrelay_delete_many_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
     <string name="emailrelay_integration_title">이메일 포워딩 서비스 통합</string>
     <string name="emailrelay_empty_label">이메일 포워딩 서비스 없음</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">구분 기호</string>
     <string name="generator_passphrase_capitalize_title">첫 글자를 대문자로</string>
     <string name="generator_passphrase_number_title">숫자 포함</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">사용자 이름</string>
     <string name="generator_username_delimiter_title">구분 기호</string>
     <string name="generator_username_custom_word_title">사용자 지정 단어</string>
     <string name="generator_username_capitalize_title">첫 글자를 대문자로</string>
     <string name="generator_username_number_title">숫자 포함</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">무작위 비밀번호</string>
     <string name="generator_password_note">강한 비밀번호는 최소 <xliff:g id="length" example="15">%d</xliff:g>자에 대문자 및 소문자, 숫자와 기호를 모두 포함해야 합니다.</string>
     <string name="generator_password_numbers_title">숫자</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">기록 삭제</string>
     <string name="generatorhistory_clear_history_confirmation_title">생성기 기록을 삭제하시겠습니까?</string>
     <string name="generatorhistory_clear_history_confirmation_text">모든 생성기 기록을 삭제합니다.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">항목을 기록에서 삭제하시겠습니까?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">항목을 기록에서 삭제하시겠습니까?</string>
     <string name="passwordhistory_header_title">비밀번호 생성 기록</string>
     <string name="passwordhistory_clear_history_title">기록 삭제</string>
     <string name="passwordhistory_clear_history_confirmation_title">비밀번호 기록을 삭제하시겠습니까?</string>
     <string name="passwordhistory_clear_history_confirmation_text">모든 비밀번호 기록을 삭제합니다.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">비밀번호 보안 강도</string>
     <string name="watchtower_section_security_label">보안</string>

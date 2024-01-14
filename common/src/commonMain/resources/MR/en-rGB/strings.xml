@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
     <string name="account_name">Account name</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="app_password">App password</string>
@@ -82,7 +85,7 @@
     <string name="organization_none">My vault</string>
     <string name="organization">Organisation</string>
     <string name="organizations">Organisations</string>
-    <string name="organizations_empty_label">No organizations</string>
+    <string name="organizations_empty_label">No organisations</string>
     <string name="misc">Miscellaneous</string>
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
@@ -110,6 +113,7 @@
     <string name="address3">Address line 3</string>
     <string name="rename">Rename</string>
     <string name="select_linked_type">Select type</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">Autofill</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -204,8 +208,8 @@
     <string name="account_log_out_confirmation_text">All the non synchronised changes will be lost!</string>
     <string name="folder_action_change_name_title">Change name</string>
     <string name="folder_action_change_names_title">Change names</string>
-    <string name="folder_delete_one_confirmation_title">Delete folder?</string>
-    <string name="folder_delete_many_confirmation_title">Delete folders?</string>
+    <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
+    <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
     <string name="ciphers_recently_opened">Recently opened</string>
     <string name="ciphers_often_opened">Often opened</string>
@@ -292,7 +296,7 @@
     <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
     <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
     <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the licence number</string>
     <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
     <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
@@ -380,9 +384,10 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <string name="error_failed_use_passkey">Failed to authorise a request</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
@@ -445,16 +450,25 @@
     <string name="destinationpicker_organization_ownership_note">This organisation will have an ownership of the copy. You will not be the direct owner.</string>
     <string name="emailrelay_list_header_title">Email forwarders</string>
     <string name="emailrelay_list_section_title">Email forwarders</string>
-    <string name="emailrelay_delete_one_confirmation_title">Delete email forwarder?</string>
-    <string name="emailrelay_delete_many_confirmation_title">Delete email forwarders?</string>
+    <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
     <string name="emailrelay_integration_title">Email forwarder integration</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
     <string name="setup_field_app_password_label">App password</string>
@@ -484,9 +498,9 @@
     <string name="additem_markdown_note_bold">bold</string>
     <string name="additem_markdown_render_preview">Render preview</string>
     <string name="additem_auth_reprompt_title">Auth re-prompt</string>
-    <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
+    <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cypher</string>
     <string name="addaccount_header_title">Add Bitwarden account</string>
-    <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
+    <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorised, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
@@ -627,13 +641,15 @@
     <string name="generator_passphrase_type">Passphrase</string>
     <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
     <string name="generator_passphrase_delimiter_title">Delimiter</string>
-    <string name="generator_passphrase_capitalize_title">Capitalize</string>
+    <string name="generator_passphrase_capitalize_title">Capitalise</string>
     <string name="generator_passphrase_number_title">Number</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Username</string>
     <string name="generator_username_delimiter_title">Delimiter</string>
     <string name="generator_username_custom_word_title">Custom word</string>
-    <string name="generator_username_capitalize_title">Capitalize</string>
+    <string name="generator_username_capitalize_title">Capitalise</string>
     <string name="generator_username_number_title">Number</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Random symbols</string>
     <string name="generator_password_note">A strong password has at least <xliff:g id="length" example="15">%1$d</xliff:g> characters, uppercase &amp; lowercase letters, digits and symbols.</string>
     <string name="generator_password_numbers_title">Digits</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Clear history</string>
     <string name="generatorhistory_clear_history_confirmation_title">Clear generator history?</string>
     <string name="generatorhistory_clear_history_confirmation_text">This will remove all items from the history.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
     <string name="passwordhistory_header_title">Password history</string>
     <string name="passwordhistory_clear_history_title">Clear history</string>
     <string name="passwordhistory_clear_history_confirmation_title">Clear password history?</string>
     <string name="passwordhistory_clear_history_confirmation_text">This will remove all passwords from the history.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Password strength</string>
     <string name="watchtower_section_security_label">Security</string>
@@ -678,7 +698,7 @@
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
     <string name="watchtower_item_unsecure_websites_title">Unsecure Websites</string>
-    <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
+    <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilises the most advanced encryption available.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven\'t set it up yet.</string>
     <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
@@ -703,7 +723,7 @@
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
-    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorised access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn\'t get misunderstood.</string>
@@ -711,7 +731,7 @@
     <string name="account_main_header_title">Accounts</string>
     <string name="account_main_add_account_title">Add account</string>
     <string name="team_header_title">Team behind the app</string>
-    <string name="team_artem_whoami_text">I\'m a Software engineer from Ukraine. I specialize on app design and development.</string>
+    <string name="team_artem_whoami_text">I\'m a Software engineer from Ukraine. I specialise on app design and development.</string>
     <string name="team_follow_me_section">Follow me</string>
     <string name="settingssearch_header_title">Search</string>
     <string name="settingssearch_header_subtitle">Settings</string>
@@ -888,7 +908,7 @@
     <string name="feat_item_duplicate_items_text">Find and merge duplicate items.</string>
     <string name="feat_section_misc_title">Misc</string>
     <string name="feat_item_multi_selection_title">Multi-selection</string>
-    <string name="feat_item_multi_selection_text">Merge ciphers, fasten the refactoring with batch operations.</string>
+    <string name="feat_item_multi_selection_text">Merge cyphers, fasten the refactoring with batch operations.</string>
     <string name="feat_item_show_barcode_title">Show as Barcode</string>
     <string name="feat_item_show_barcode_text">Encode a text as different barcodes.</string>
     <string name="feat_item_generator_title">Generator</string>

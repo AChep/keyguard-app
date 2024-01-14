@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名前</string>
     <string name="account_name">アカウント名</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">ユーザー名</string>
     <string name="password">パスワード</string>
     <string name="app_password">アプリのパスワード</string>
@@ -110,6 +113,7 @@
     <string name="address3">住所3</string>
     <string name="rename">名前の変更</string>
     <string name="select_linked_type">Select type</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">自動入力</string>
     <string name="passkey">パスキー</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">無効な URI</string>
     <string name="error_invalid_card_number">無効なカード番号</string>
     <string name="error_incorrect_password">パスワードが間違っています</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">OTP コードの生成に失敗しました</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
@@ -449,12 +454,21 @@
     <string name="emailrelay_delete_many_confirmation_title">メール転送を削除しますか？</string>
     <string name="emailrelay_integration_title">メール転送統合</string>
     <string name="emailrelay_empty_label">メール転送なし</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">ローカルデータを保存するための暗号化された保管庫を作成します。</string>
     <string name="setup_field_app_password_label">アプリのパスワード</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">区切り文字</string>
     <string name="generator_passphrase_capitalize_title">英単語の先頭を大文字にする</string>
     <string name="generator_passphrase_number_title">数字を含める</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">ユーザー名</string>
     <string name="generator_username_delimiter_title">区切り文字</string>
     <string name="generator_username_custom_word_title">カスタムワード</string>
     <string name="generator_username_capitalize_title">英単語の先頭を大文字にする</string>
     <string name="generator_username_number_title">数字を含める</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">ランダムな文字</string>
     <string name="generator_password_note">強力なパスワードは、少なくとも<xliff:g id="length" example="15">%1$d</xliff:g>文字、大文字、小文字、数字、記号を含んでいます。</string>
     <string name="generator_password_numbers_title">数字</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">履歴を消去</string>
     <string name="generatorhistory_clear_history_confirmation_title">生成履歴を消去しますか？</string>
     <string name="generatorhistory_clear_history_confirmation_text">すべてのアイテムが履歴から削除されます</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
     <string name="passwordhistory_header_title">パスワードの履歴</string>
     <string name="passwordhistory_clear_history_title">履歴を消去</string>
     <string name="passwordhistory_clear_history_confirmation_title">パスワードの履歴を消去しますか？</string>
     <string name="passwordhistory_clear_history_confirmation_text">すべてのパスワードが履歴から削除されます</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
     <string name="watchtower_header_title">監視</string>
     <string name="watchtower_section_password_strength_label">パスワード強度</string>
     <string name="watchtower_section_security_label">セキュリティ</string>

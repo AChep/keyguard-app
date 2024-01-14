@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Название</string>
     <string name="account_name">Название учетной записи</string>
+    <string name="enabled">Включено</string>
+    <string name="disabled">Отключено</string>
+    <string name="wordlist">Список слов</string>
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string name="app_password">Пароль приложения</string>
@@ -61,7 +64,7 @@
     <string name="notes">Заметки</string>
     <string name="attachments">Вложения</string>
     <string name="attachments_empty_label">Без вложений</string>
-    <string name="expired">Expired</string>
+    <string name="expired">Срок действия закончился</string>
     <string name="expiring_soon">Срок действия истекает</string>
     <string name="item_incomplete_title">Неполные данные</string>
     <string name="item_incomplete_text">В элементе отсутствует некоторая важная информация.</string>
@@ -84,10 +87,10 @@
     <string name="organizations">Организации</string>
     <string name="organizations_empty_label">Нет организаций</string>
     <string name="misc">Разное</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">Команда</string>
+    <string name="execute_command">Выполнить</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Добавить</string>
     <string name="add_integration">Добавить интеграцию</string>
     <string name="account">Учётная запись</string>
     <string name="accounts">Учетные записи</string>
@@ -110,6 +113,7 @@
     <string name="address3">Адрес, строка 3</string>
     <string name="rename">Переименовать</string>
     <string name="select_linked_type">Выберите тип</string>
+    <string name="select_file">Выбрать файл</string>
     <string name="autofill">Автозаполнение</string>
     <string name="passkey">Ключ доступа</string>
     <string name="passkey_create_header">Создать passkey</string>
@@ -166,8 +170,8 @@
     <string name="downloads">Загрузки</string>
     <string name="downloads_empty_label">Нет загрузок</string>
     <string name="duplicates_empty_label">Дубликатов нет</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
+    <string name="duplicate">Дублировать</string>
+    <string name="regex">Регулярное выражение</string>
     <string name="encryption">Шифрование</string>
     <!-- Encryption key -->
     <string name="encryption_key">Ключ</string>
@@ -252,8 +256,8 @@
     <string name="uri_action_launch_in_app_title">Запустить в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Запустить в…</string>
     <string name="uri_action_how_to_delete_account_title">Как удалить мою учетную запись?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
+    <string name="uri_action_autofix_unsecure_title">Автоисправление незащищенного URL-адреса</string>
+    <string name="uri_action_autofix_unsecure_text">Если возможно, изменяет протокол на безопасный</string>
     <string name="uri_unsecure">Незащищенный</string>
     <string name="uri_match_app_title">Выбрать приложение</string>
     <string name="uri_match_detection_title">Обнаружение совпадений</string>
@@ -356,11 +360,11 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Авторизация WebAutn</string>
     <string name="fido2webauthn_action_return_title">Вернуться в приложение</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_item_line1">Срок действия записи истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Срок действия карты истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Для плавного перехода можно выполнить несколько действий:</string>
+    <string name="expiry_tips_card_line2">1. Получите новую карту: эмитент Вашей карты уже мог отправить Вам на смену карточку с новым сроком действия. Если нет, свяжитесь с эмитентом карты, чтобы узнать, планируют ли они отправить вам новую карту и когда ее ожидать.</string>
+    <string name="expiry_tips_card_line3">2. Обновите автоматические платежи: если у вас есть автоматические платежи, настроенные с вашей карты, такие как ежемесячное членство в тренажерном зале или подписка Netflix, обязательно обновите информацию с новым номером карты и датой истечения.</string>
+    <string name="expiry_tips_card_line4">3. Уничтожьте старую карту. Как только вы получите новую карту и обновите всю необходимую информацию, обязательно утилизируйте старую карту с истекшим сроком действия, чтобы предотвратить кражу личных данных.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -380,10 +384,11 @@
     <string name="error_invalid_uri">Неверный URI</string>
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_failed_generate_kdf_hash_oom">Не удалось создать ключ, недостаточно памяти. Проверьте настройки KDF сервера.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>
@@ -449,13 +454,22 @@
     <string name="emailrelay_delete_many_confirmation_title">Удалить пересыльщиков сообщений?</string>
     <string name="emailrelay_integration_title">Интеграция с пересыльщиком сообщений</string>
     <string name="emailrelay_empty_label">Нет пересыльщиков сообщений</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
+    <string name="emailrelay_base_env_server_url_label">URL сервера</string>
+    <string name="emailrelay_base_env_note">Укажите URL-адрес сервера вашей установки.</string>
+    <string name="wordlist_list_header_title">Список слов</string>
+    <string name="wordlist_list_section_title">Списки слова</string>
+    <string name="wordlist_delete_one_confirmation_title">Удалить список?</string>
+    <string name="wordlist_delete_many_confirmation_title">Удалить списки?</string>
+    <string name="wordlist_edit_wordlist_title">Редактировать список слов</string>
+    <string name="wordlist_add_wordlist_title">Добавить список слов</string>
+    <string name="wordlist_empty_label">Нет списков слов</string>
+    <string name="urloverride_header_title">Переопределение URL-адреса</string>
+    <string name="urloverride_list_header_title">Переопределение URL-адреса</string>
+    <string name="urloverride_list_section_title">Переопределение URL-адреса</string>
+    <string name="urloverride_regex_note">Переопределение будет применено к URL-адресам, соответствующим регулярному выражению.</string>
+    <string name="urloverride_delete_one_confirmation_title">Удалить переопределение URL-адреса?</string>
+    <string name="urloverride_delete_many_confirmation_title">Удалить переопределение URL-адреса?</string>
+    <string name="urloverride_empty_label">Нет переопределеных URL-адресов</string>
     <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
     <string name="setup_field_app_password_label">Пароль приложения</string>
     <string name="setup_checkbox_biometric_auth">Вход по биометрии</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Разделитель</string>
     <string name="generator_passphrase_capitalize_title">Прописные</string>
     <string name="generator_passphrase_number_title">Цифры</string>
+    <string name="generator_passphrase_wordlist_title">Список слов</string>
     <string name="generator_username_type">Имя пользователя</string>
     <string name="generator_username_delimiter_title">Разделитель</string>
     <string name="generator_username_custom_word_title">Пользовательское слово</string>
     <string name="generator_username_capitalize_title">Прописные</string>
     <string name="generator_username_number_title">Число</string>
+    <string name="generator_username_wordlist_title">Список слов</string>
     <string name="generator_password_type">Случайные символы</string>
     <string name="generator_password_note">Надежный пароль содержит как минимум <xliff:g id="length" example="15">%1$d</xliff:g> символов, заглавные и строчные буквы, цифры и специальные символы.</string>
     <string name="generator_password_numbers_title">Цифры</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Очистить историю</string>
     <string name="generatorhistory_clear_history_confirmation_title">Очистить историю генератора?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Все записи из истории будут удалены.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Удалить запись из истории?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Удалить записи из истории?</string>
     <string name="passwordhistory_header_title">История паролей</string>
     <string name="passwordhistory_clear_history_title">Очистить историю</string>
     <string name="passwordhistory_clear_history_confirmation_title">Очистить историю паролей?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Все пароли из истории будут удалены.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Удалить пароль из истории?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Удалить пароли из истории?</string>
     <string name="watchtower_header_title">Дозорная башня</string>
     <string name="watchtower_section_password_strength_label">Надёжность пароля</string>
     <string name="watchtower_section_security_label">Безопасность</string>
@@ -806,7 +826,7 @@
     <string name="pref_item_persist_vault_key_note">Хранение ключа хранилища на диске представляет собой угрозу безопасности. Если внутреннее хранилище устройства скомпрометировано, злоумышленник получит доступ к локальным данным хранилища.</string>
     <string name="pref_item_permissions_title">Разрешения</string>
     <string name="pref_item_features_overview_title">Обзор возможностей</string>
-    <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_url_override_title">Переопределение URL-адреса</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

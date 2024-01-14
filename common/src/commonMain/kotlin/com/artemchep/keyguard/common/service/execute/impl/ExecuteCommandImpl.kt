@@ -89,7 +89,11 @@ private suspend fun executeCommand(array: Array<String>) {
         Runtime.getRuntime().exec(array)
     }
     coroutineScope {
-        val errorText = process.errorReader().readText()
+        val errorText = runCatching {
+            process.errorStream.reader().use {
+                it.readText()
+            }.trim()
+        }.getOrNull()
 
         val exitCode = process.waitFor()
         if (exitCode != 0) {

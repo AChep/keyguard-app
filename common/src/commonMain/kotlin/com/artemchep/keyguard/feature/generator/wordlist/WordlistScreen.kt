@@ -12,9 +12,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Book
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +40,9 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
+import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
@@ -110,6 +114,22 @@ fun WordlistScreen(
                     NavigationIcon()
                 },
                 scrollBehavior = scrollBehavior,
+                actions = {
+                    val navigationController by rememberUpdatedState(LocalNavigationController.current)
+                    IconButton(
+                        onClick = {
+                            val intent = NavigationIntent.NavigateToBrowser(
+                                url = "https://github.com/AChep/keyguard-app/blob/master/wiki/WORDLISTS.md",
+                            )
+                            navigationController.queue(intent)
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.HelpOutline,
+                            contentDescription = null,
+                        )
+                    }
+                },
             )
         },
         bottomBar = {

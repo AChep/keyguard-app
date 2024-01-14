@@ -5,8 +5,10 @@ import androidx.compose.material.icons.materialIcon
 import androidx.compose.material.icons.materialPath
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Attachment
+import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.CollectionsBookmark
 import androidx.compose.material.icons.outlined.Lens
+import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Star
@@ -52,6 +54,9 @@ val Icons.Outlined.KeyguardLargeType
 
 val Icons.Outlined.KeyguardPremium
     get() = Star
+
+val Icons.Outlined.KeyguardWordlist
+    get() = LibraryBooks
 
 val Icons.Stub: ImageVector
     get() {

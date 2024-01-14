@@ -64,6 +64,19 @@ data class GeneratorState(
             ) : Item
 
             @Immutable
+            data class Enum(
+                override val key: String,
+                val title: String,
+                val model: Model,
+            ) : Item {
+                @Immutable
+                data class Model(
+                    val value: String,
+                    val dropdown: ImmutableList<ContextItem>,
+                )
+            }
+
+            @Immutable
             data class Section(
                 override val key: String,
                 val text: String? = null,

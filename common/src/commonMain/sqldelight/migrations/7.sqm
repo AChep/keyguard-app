@@ -1,0 +1,12 @@
+CREATE TABLE generatorWordlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  createdAt INTEGER NOT NULL
+);
+
+CREATE TABLE generatorWordlistWord (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wordlistId INTEGER NOT NULL,
+  word TEXT NOT NULL,
+  FOREIGN KEY (wordlistId) REFERENCES generatorWordlist(id) ON DELETE CASCADE
+);

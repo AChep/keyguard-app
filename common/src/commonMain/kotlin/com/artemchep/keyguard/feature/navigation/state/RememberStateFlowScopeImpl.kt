@@ -21,6 +21,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.contains
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
+import dev.icerock.moko.resources.PluralsResource
 import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -127,6 +128,12 @@ class RememberStateFlowScopeImpl(
 
     override fun translate(res: StringResource, vararg args: Any): String =
         textResource(res, context, *args)
+
+    override fun translate(
+        res: PluralsResource,
+        quantity: Int,
+        vararg args: Any,
+    ): String = textResource(res, context, quantity, *args)
 
     override fun screenExecutor(): LoadingTask {
         val executor = LoadingTask(this, appScope)

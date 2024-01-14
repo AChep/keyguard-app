@@ -6,6 +6,7 @@ import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
+import dev.icerock.moko.resources.PluralsResource
 import dev.icerock.moko.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,12 @@ interface TranslatorScope {
 
     fun translate(
         res: StringResource,
+        vararg args: Any,
+    ): String
+
+    fun translate(
+        res: PluralsResource,
+        quantity: Int,
         vararg args: Any,
     ): String
 }

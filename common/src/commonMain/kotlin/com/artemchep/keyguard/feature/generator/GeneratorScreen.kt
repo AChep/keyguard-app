@@ -577,6 +577,7 @@ fun FilterItem(
 ) = when (item) {
     is GeneratorState.Filter.Item.Switch -> FilterSwitchItem(item)
     is GeneratorState.Filter.Item.Text -> FilterTextItem(item)
+    is GeneratorState.Filter.Item.Enum -> FilterEnumItem(item)
     is GeneratorState.Filter.Item.Section -> FilterSectionItem(item)
 }
 
@@ -819,6 +820,25 @@ private fun FilterTextItem(
         textStyle = LocalTextStyle.current.copy(
             fontFamily = monoFontFamily,
         ),
+    )
+}
+
+@Composable
+private fun FilterEnumItem(
+    item: GeneratorState.Filter.Item.Enum,
+) {
+    FlatDropdown(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(item.title)
+                },
+                text = {
+                    Text(item.model.value)
+                },
+            )
+        },
+        dropdown = item.model.dropdown,
     )
 }
 

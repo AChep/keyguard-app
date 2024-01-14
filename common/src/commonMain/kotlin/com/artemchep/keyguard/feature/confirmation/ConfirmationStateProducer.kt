@@ -2,9 +2,15 @@ package com.artemchep.keyguard.feature.confirmation
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.vault.add.AddState
+import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -15,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import java.util.*
 
 @Composable
 fun confirmationState(
@@ -36,13 +43,22 @@ fun confirmationState(
 ): ConfirmationState = produceScreenState(
     key = "confirmation",
     initial = ConfirmationState(
-        items = if (args.items.isEmpty()) Loadable.Ok(emptyList()) else Loadable.Loading,
+        sideEffects = ConfirmationState.SideEffects(),
+        items = if (args.items.isEmpty()) {
+            Loadable.Ok(emptyList())
+        } else Loadable.Loading,
     ),
     args = arrayOf(
         windowCoroutineScope,
     ),
 ) {
     fun createItemKey(key: String) = "item.$key"
+
+    val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
+
+    val sideEffects = ConfirmationState.SideEffects(
+        filePickerIntentFlow = filePickerIntentSink,
+    )
 
     val itemsFlow = args.items
         .map { item ->
@@ -55,6 +71,7 @@ fun confirmationState(
                     mutableComposeState<String>(sink as MutableStateFlow<String>)
 
                 is ConfirmationRoute.Args.Item.EnumItem -> null
+                is ConfirmationRoute.Args.Item.FileItem -> null
             }
             sink
                 .map { value ->
@@ -148,6 +165,43 @@ fun confirmationState(
                                     },
                             )
                         }
+
+                        is ConfirmationRoute.Args.Item.FileItem -> {
+                            val fixed = value as ConfirmationRoute.Args.Item.FileItem.File?
+                            val error = if (fixed != null) null else "Must pick a file"
+                            ConfirmationState.Item.FileItem(
+                                key = item.key,
+                                title = item.title,
+                                value = fixed,
+                                error = error,
+                                onSelect = {
+                                    val intent = FilePickerIntent.OpenDocument(
+                                        mimeTypes = arrayOf(
+                                            "text/plain",
+                                            "text/wordlist",
+                                        )
+                                    ) { info ->
+                                        if (info != null) {
+                                            val file = ConfirmationRoute.Args.Item.FileItem.File(
+                                                uri = info.uri.toString(),
+                                                name = info.name,
+                                                size = info.size,
+                                            )
+                                            sink.value = file
+                                        }
+                                    }
+                                    filePickerIntentSink.emit(intent)
+                                },
+                                onClear = if (fixed != null) {
+                                    // lambda
+                                    {
+                                        sink.value = null
+                                    }
+                                } else {
+                                    null
+                                }
+                            )
+                        }
                     }
                 }
         }
@@ -156,6 +210,7 @@ fun confirmationState(
         .map { items ->
             val valid = items.all { it.valid }
             ConfirmationState(
+                sideEffects = sideEffects,
                 items = Loadable.Ok(items),
                 onDeny = {
                     transmitter(ConfirmationResult.Deny)

@@ -1,19 +1,25 @@
 package com.artemchep.keyguard.feature.confirmation
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateSizeAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +41,9 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -47,6 +56,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
+import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -62,6 +72,11 @@ fun ConfirmationScreen(
         args = args,
         transmitter = transmitter,
     )
+
+    FilePickerEffect(
+        flow = state.sideEffects.filePickerIntentFlow,
+    )
+
     val showContent = args.message != null || args.items.isNotEmpty()
     Dialog(
         icon = args.icon,
@@ -181,6 +196,11 @@ private fun ConfirmationItem(
     )
 
     is ConfirmationState.Item.EnumItem -> ConfirmationEnumItem(
+        modifier = modifier,
+        item = item,
+    )
+
+    is ConfirmationState.Item.FileItem -> ConfirmationFileItem(
         modifier = modifier,
         item = item,
     )
@@ -409,5 +429,81 @@ private fun ConfirmationEnumItemItem(
         title = item.title,
         text = item.text,
         onClick = item.onClick,
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ConfirmationFileItem(
+    modifier: Modifier = Modifier,
+    item: ConfirmationState.Item.FileItem,
+) {
+    FlatItemLayout(
+        modifier = modifier,
+        leading = {
+            val colorTarget = if (item.valid) {
+                LocalContentColor.current
+            } else {
+                MaterialTheme.colorScheme.error
+            }
+            val colorState = animateColorAsState(colorTarget)
+            Icon(
+                imageVector = Icons.Outlined.AttachFile,
+                contentDescription = null,
+                tint = colorState.value,
+            )
+        },
+        content = {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+
+            val file = item.value
+            if (file != null) {
+                val name = file.name ?: file.uri.substringAfterLast('/')
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .weight(1f, fill = false),
+                        text = name,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    val size = remember() {
+                        file.size?.let(::humanReadableByteCountSI)
+                    }
+                    if (size != null) {
+                        Text(
+                            text = size,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = LocalContentColor.current
+                                .combineAlpha(MediumEmphasisAlpha),
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = stringResource(Res.strings.select_file),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
+                )
+            }
+        },
+        trailing = {
+            ExpandedIfNotEmptyForRow(item.onClear) { onClear ->
+                IconButton(
+                    onClick = onClear,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Clear,
+                        contentDescription = null,
+                    )
+                }
+            }
+        },
+        onClick = item.onSelect,
     )
 }

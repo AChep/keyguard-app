@@ -1,0 +1,45 @@
+import kotlinx.datetime.Instant;
+
+CREATE TABLE generatorWordlist (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  createdAt INTEGER AS Instant NOT NULL
+);
+
+update {
+  UPDATE generatorWordlist
+  SET
+    name = :name
+  WHERE
+    id = :id;
+}
+
+insert:
+INSERT OR IGNORE INTO generatorWordlist(name, createdAt)
+VALUES (:name, :createdAt);
+
+getLastInsertRowId:
+SELECT last_insert_rowid();
+
+get:
+SELECT
+  generatorWordlist.*,
+  IFNULL(w.wordCount, 0) AS wordCount
+FROM
+  generatorWordlist
+  LEFT JOIN (
+    SELECT
+      wordlistId,
+      COUNT(wordlistId) AS wordCount
+    FROM
+      generatorWordlistWord
+  ) AS w ON generatorWordlist.id = w.wordlistId
+ORDER BY
+  generatorWordlist.createdAt DESC;
+
+deleteAll:
+DELETE FROM generatorWordlist;
+
+deleteByIds:
+DELETE FROM generatorWordlist
+WHERE id IN (:ids);

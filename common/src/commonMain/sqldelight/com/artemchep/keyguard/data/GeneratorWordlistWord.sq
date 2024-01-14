@@ -1,0 +1,28 @@
+CREATE TABLE generatorWordlistWord (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wordlistId INTEGER NOT NULL,
+  word TEXT NOT NULL,
+  FOREIGN KEY (wordlistId) REFERENCES generatorWordlist(id) ON DELETE CASCADE
+);
+
+insert {
+  INSERT OR IGNORE INTO generatorWordlistWord(wordlistId, word)
+  VALUES (:wordlistId, :word);
+}
+
+get:
+SELECT *
+FROM generatorWordlistWord
+ORDER BY word DESC;
+
+getPrimitiveByWordlistId:
+SELECT
+  word
+FROM
+  generatorWordlistWord
+WHERE
+  wordlistId = :wordlistId
+ORDER BY word DESC;
+
+deleteAll:
+DELETE FROM generatorWordlistWord;

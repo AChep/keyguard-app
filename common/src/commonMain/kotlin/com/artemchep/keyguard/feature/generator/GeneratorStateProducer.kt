@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import arrow.core.compose
+import arrow.core.getOrElse
 import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.AppMode
@@ -28,7 +29,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.io.toIO
-import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
+import com.artemchep.keyguard.common.model.DGeneratorWordlist
 import com.artemchep.keyguard.common.model.DGeneratorHistory
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
@@ -40,10 +41,13 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetCanWrite
+import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
+import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
@@ -51,6 +55,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.feature.generator.wordlist.WordlistRoute
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListRoute
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
@@ -71,6 +76,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -114,6 +120,7 @@ private const val PASSPHRASE_LENGTH_MAX = 10
 private const val PASSPHRASE_DELIMITER_DEFAULT = "-"
 private const val PASSPHRASE_CAPITALIZE_DEFAULT = false
 private const val PASSPHRASE_NUMBER_DEFAULT = false
+private const val PASSPHRASE_WORDLIST_ID_DEFAULT = -1L
 
 private const val USERNAME_LENGTH_DEFAULT = 2L
 private const val USERNAME_LENGTH_MIN = 1
@@ -121,7 +128,8 @@ private const val USERNAME_LENGTH_MAX = 10
 private const val USERNAME_DELIMITER_DEFAULT = ""
 private const val USERNAME_CAPITALIZE_DEFAULT = true
 private const val USERNAME_NUMBER_DEFAULT = true
-private const val USERNAME_CUSTOM_WORD = ""
+private const val USERNAME_CUSTOM_WORD_DEFAULT = ""
+private const val USERNAME_WORDLIST_ID_DEFAULT = -1L
 
 private const val EMAIL_CATCH_ALL_LENGTH_DEFAULT = 5L
 private const val EMAIL_CATCH_ALL_LENGTH_MIN = 3
@@ -253,6 +261,9 @@ fun produceGeneratorState(
         getPasswordStrength = instance(),
         getProfiles = instanceOrNull(),
         getEmailRelays = instanceOrNull(),
+        getWordlists = instanceOrNull(),
+        getWordlistPrimitive = instanceOrNull(),
+        numberFormatter = instance(),
         getCanWrite = instance(),
         clipboardService = instance(),
         emailRelays = allInstances(),
@@ -265,11 +276,10 @@ private const val PREFIX_USERNAME = "username"
 private const val PREFIX_EMAIL_CATCH_ALL = "email_catch_all"
 private const val PREFIX_EMAIL_PLUS_ADDRESSING = "email_plus_addressing"
 private const val PREFIX_EMAIL_SUBDOMAIN_ADDRESSING = "email_subdomain_addressing"
-private const val PREFIX_EMAIL_ALIAS = "email_alias"
 
-private data class EmailRelayWithConfig(
-    val emailRelay: EmailRelay,
-    val config: DGeneratorEmailRelay,
+private data class WordlistResult(
+    val id: Long,
+    val words: List<String>,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
@@ -283,6 +293,9 @@ fun produceGeneratorState(
     getPasswordStrength: GetPasswordStrength,
     getProfiles: GetProfiles?,
     getEmailRelays: GetEmailRelays?,
+    getWordlists: GetWordlists?,
+    getWordlistPrimitive: GetWordlistPrimitive?,
+    numberFormatter: NumberFormatter,
     getCanWrite: GetCanWrite,
     clipboardService: ClipboardService,
     emailRelays: List<EmailRelay>,
@@ -409,6 +422,106 @@ fun produceGeneratorState(
         tipVisibleSink.value = false
     }
 
+    // Wordlists
+    val customWordlistsFlow = kotlin
+        .run {
+            val customWordlistsFlow = getWordlists
+                ?.let { useCase ->
+                    useCase()
+                        .attempt()
+                        .map {
+                            // If some thing goes wrong, then
+                            // just ignore invalid values.
+                            it.getOrElse { emptyList() }
+                        }
+                }
+                ?: flowOf(emptyList())
+            customWordlistsFlow
+        }
+        .shareInScreenScope()
+
+    fun wordlistFilterItem(
+        wordlistId: Long?,
+        wordlists: List<DGeneratorWordlist>,
+        onSelect: (Long) -> Unit,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val defaultWordlistName = "EFF long wordlist"
+
+        val wordlist = wordlists
+            .firstOrNull { it.idRaw == wordlistId }
+        val dropdown = buildContextItems {
+            section {
+                val quantity = 7776
+                val text = translate(
+                    Res.plurals.word_count_plural,
+                    quantity,
+                    numberFormatter.formatNumber(quantity),
+                )
+                this += FlatItemAction(
+                    title = defaultWordlistName,
+                    text = text,
+                    onClick = onSelect
+                        .partially1(0),
+                )
+            }
+            section {
+                wordlists.forEach { wordlist ->
+                    val quantity = wordlist.wordCount.toInt()
+                    val text = translate(
+                        Res.plurals.word_count_plural,
+                        quantity,
+                        numberFormatter.formatNumber(quantity),
+                    )
+                    this += FlatItemAction(
+                        title = wordlist.name,
+                        leading = {
+                            val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
+                                wordlist.accentColor.dark
+                            } else {
+                                wordlist.accentColor.light
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .background(backgroundColor, shape = CircleShape),
+                            )
+                        },
+                        text = text,
+                        onClick = onSelect
+                            .partially1(wordlist.idRaw)
+                            .takeIf { quantity > 0 },
+                    )
+                }
+            }
+        }
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = wordlist?.name
+                ?: defaultWordlistName,
+            dropdown = dropdown,
+        )
+    }
+
+    fun wordlist(
+        wordlistIdFlow: Flow<Long>,
+    ): Flow<WordlistResult?> = wordlistIdFlow
+        .flatMapLatest { id ->
+            getWordlistPrimitive
+                ?.let { useCase ->
+                    useCase(id)
+                        .attempt()
+                        .map { wordsResult ->
+                            val words = wordsResult.getOrNull()
+                                ?: return@map null
+                            WordlistResult(
+                                id = id,
+                                words = words,
+                            )
+                        }
+                }
+            // use default wordlist
+                ?: flowOf(null)
+        }
+
     // password
     val passwordLengthSink = mutablePersistedFlow(
         key = "$PREFIX_PASSWORD.length",
@@ -472,6 +585,11 @@ fun produceGeneratorState(
         key = "$PREFIX_PASSPHRASE.include_number",
         storage = storage,
     ) { PASSPHRASE_NUMBER_DEFAULT }
+    val passphraseWordlistIdSink = mutablePersistedFlow(
+        key = "$PREFIX_PASSPHRASE.wordlist_id",
+        storage = storage,
+    ) { PASSPHRASE_WORDLIST_ID_DEFAULT }
+    val passphraseWordlistFlow = wordlist(passphraseWordlistIdSink)
     // username
     val usernameLengthSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.length",
@@ -493,8 +611,13 @@ fun produceGeneratorState(
     val usernameCustomWordSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.custom_word",
         storage = storage,
-    ) { USERNAME_CUSTOM_WORD }
+    ) { USERNAME_CUSTOM_WORD_DEFAULT }
     val usernameCustomWordState = mutableComposeState(usernameCustomWordSink)
+    val usernameWordlistIdSink = mutablePersistedFlow(
+        key = "$PREFIX_USERNAME.wordlist_id",
+        storage = storage,
+    ) { USERNAME_WORDLIST_ID_DEFAULT }
+    val usernameWordlistFlow = wordlist(usernameWordlistIdSink)
     // email catch all
     val emailCatchAllLengthSink = mutablePersistedFlow(
         key = "$PREFIX_EMAIL_CATCH_ALL.length",
@@ -581,6 +704,15 @@ fun produceGeneratorState(
                     onChange = passphraseIncludeNumberSink::value::set,
                 ),
             ),
+            GeneratorState.Filter.Item.Enum(
+                key = "$PREFIX_PASSPHRASE.wordlist",
+                title = translate(Res.strings.generator_passphrase_wordlist_title),
+                model = wordlistFilterItem(
+                    wordlistId = config.wordlistId,
+                    wordlists = config.wordlists,
+                    onSelect = passphraseWordlistIdSink::value::set,
+                ),
+            ),
         )
         return GeneratorState.Filter(
             tip = passphraseFilterTip,
@@ -631,6 +763,15 @@ fun produceGeneratorState(
                 model = SwitchFieldModel(
                     checked = config.includeNumber,
                     onChange = usernameIncludeNumberSink::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Enum(
+                key = "$PREFIX_USERNAME.wordlist",
+                title = translate(Res.strings.generator_username_wordlist_title),
+                model = wordlistFilterItem(
+                    wordlistId = config.wordlistId,
+                    wordlists = config.wordlists,
+                    onSelect = usernameWordlistIdSink::value::set,
                 ),
             ),
         )
@@ -998,13 +1139,24 @@ fun produceGeneratorState(
                     passphraseDelimiterSink,
                     passphraseCapitalizeSink,
                     passphraseIncludeNumberSink,
-                ) { length, delimiter, capitalize, includeNumber ->
+                    passphraseWordlistFlow,
+                    customWordlistsFlow,
+                ) { array ->
+                    val length = array[0] as Long
+                    val delimiter = array[1] as String
+                    val capitalize = array[2] as Boolean
+                    val includeNumber = array[3] as Boolean
+                    val wordlist = array[4] as WordlistResult?
+                    val wordlists = array[5] as List<DGeneratorWordlist>
                     PasswordGeneratorConfigBuilder2.Passphrase(
                         length = length.toInt(),
                         delimiter = delimiter,
                         capitalize = capitalize,
                         includeNumber = includeNumber,
                         customWord = "",
+                        wordlistId = wordlist?.id,
+                        wordlists = wordlists,
+                        wordlist = wordlist?.words,
                     )
                 }
 
@@ -1014,13 +1166,25 @@ fun produceGeneratorState(
                     usernameCapitalizeSink,
                     usernameIncludeNumberSink,
                     usernameCustomWordSink,
-                ) { length, delimiter, capitalize, includeNumber, customWord ->
+                    usernameWordlistFlow,
+                    customWordlistsFlow,
+                ) { array ->
+                    val length = array[0] as Long
+                    val delimiter = array[1] as String
+                    val capitalize = array[2] as Boolean
+                    val includeNumber = array[3] as Boolean
+                    val customWord = array[4] as String
+                    val wordlist = array[5] as WordlistResult?
+                    val wordlists = array[6] as List<DGeneratorWordlist>
                     PasswordGeneratorConfigBuilder2.Username(
                         length = length.toInt(),
                         delimiter = delimiter,
                         capitalize = capitalize,
                         includeNumber = includeNumber,
                         customWord = customWord,
+                        wordlistId = wordlist?.id,
+                        wordlists = wordlists,
+                        wordlist = wordlist?.words,
                     )
                 }
 
@@ -1276,6 +1440,10 @@ fun produceGeneratorState(
     }.stateIn(screenScope)
     val optionsStatic = buildContextItems {
         this += EmailRelayListRoute.actionOrNull(
+            translator = this@produceScreenState,
+            navigate = ::navigate,
+        )
+        this += WordlistRoute.actionOrNull(
             translator = this@produceScreenState,
             navigate = ::navigate,
         )

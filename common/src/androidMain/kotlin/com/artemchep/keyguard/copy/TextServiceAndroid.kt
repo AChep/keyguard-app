@@ -2,6 +2,7 @@ package com.artemchep.keyguard.copy
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import com.artemchep.keyguard.common.service.text.TextService
 import dev.icerock.moko.resources.FileResource
 import org.kodein.di.DirectDI
@@ -23,4 +24,9 @@ class TextServiceAndroid(
 
     private fun FileResource.inputStream() = context.resources
         .openRawResource(rawResId)
+
+    override fun readFromFile(uri: String): InputStream {
+        val parsedUri = Uri.parse(uri)
+        return context.contentResolver.openInputStream(parsedUri)!!
+    }
 }

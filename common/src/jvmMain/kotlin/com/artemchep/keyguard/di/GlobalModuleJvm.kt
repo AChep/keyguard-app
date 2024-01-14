@@ -183,6 +183,7 @@ import com.artemchep.keyguard.common.usecase.PutVaultPersist
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutWriteAccess
+import com.artemchep.keyguard.common.usecase.ReadWordlistFromFile
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RequestAppReview
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -295,6 +296,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutVaultPersistImpl
 import com.artemchep.keyguard.common.usecase.impl.PutVaultSessionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWebsiteIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWriteAccessImpl
+import com.artemchep.keyguard.common.usecase.impl.ReadWordlistFromFileImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.RequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
@@ -823,6 +825,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetJustDeleteMeByUrl> {
         GetJustDeleteMeByUrlImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ReadWordlistFromFile> {
+        ReadWordlistFromFileImpl(
             directDI = this,
         )
     }

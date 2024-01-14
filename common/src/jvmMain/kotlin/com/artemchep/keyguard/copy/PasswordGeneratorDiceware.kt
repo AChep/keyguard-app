@@ -3,6 +3,7 @@ package com.artemchep.keyguard.copy
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.io
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
@@ -39,7 +40,19 @@ class PasswordGeneratorDiceware(
                     val customWord = config.customWord
                         .orEmpty()
                     io(customWord)
-                } else generatePhraseIo()
+                } else {
+                    val wordlist = config.wordlist
+                        ?.takeIf { it.isNotEmpty() }
+                    if (wordlist != null) {
+                        ioEffect {
+                            wordlist
+                                .random()
+                        }
+                    } else
+                    // Otherwise load from
+                    // the default wordlist.
+                        getWordIo()
+                }
             }
             generateWordIo
                 // capitalize
@@ -79,10 +92,13 @@ class PasswordGeneratorDiceware(
             }
     }
 
-    private fun generatePhraseIo() = wordlistService
+    private fun getWordIo() = wordlistService
         .get()
-        .effectMap(Dispatchers.Default) { wordList ->
-            val index = cryptoGenerator.random(wordList.indices)
-            wordList[index]
+        .effectMap(Dispatchers.Default) { wordlist ->
+            wordlist.random()
         }
+
+    private fun <T> List<T>.random() = cryptoGenerator
+        .random(this.indices)
+        .let(this::get)
 }

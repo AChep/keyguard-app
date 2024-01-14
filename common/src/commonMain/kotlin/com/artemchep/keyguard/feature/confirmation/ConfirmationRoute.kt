@@ -2,11 +2,16 @@ package com.artemchep.keyguard.feature.confirmation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.navigation.DialogRouteForResult
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.platform.LeUri
+import com.artemchep.keyguard.platform.parcelize.LeParcelable
+import com.artemchep.keyguard.platform.parcelize.LeParcelize
+import kotlinx.serialization.Serializable
 
 class ConfirmationRoute(
     val args: Args,
@@ -69,6 +74,20 @@ class ConfirmationRoute(
                     val text: String,
                     val url: String? = null,
                 )
+            }
+
+            data class FileItem(
+                override val key: String,
+                override val value: File? = null,
+                val title: String,
+            ) : Item<FileItem.File?> {
+                @LeParcelize
+                @Serializable
+                data class File(
+                    val uri: String,
+                    val name: String?,
+                    val size: Long?,
+                ) : LeParcelable
             }
         }
     }

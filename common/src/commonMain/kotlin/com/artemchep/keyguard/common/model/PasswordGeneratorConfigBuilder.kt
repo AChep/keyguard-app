@@ -10,6 +10,9 @@ sealed interface PasswordGeneratorConfigBuilder2 {
         val capitalize: Boolean,
         val includeNumber: Boolean,
         val customWord: String,
+        val wordlistId: Long?,
+        val wordlists: List<DGeneratorWordlist>,
+        val wordlist: List<String>?,
     ) : PasswordGeneratorConfigBuilder2
 
     data class Username(
@@ -18,6 +21,9 @@ sealed interface PasswordGeneratorConfigBuilder2 {
         val capitalize: Boolean,
         val includeNumber: Boolean,
         val customWord: String,
+        val wordlistId: Long?,
+        val wordlists: List<DGeneratorWordlist>,
+        val wordlist: List<String>?,
     ) : PasswordGeneratorConfigBuilder2
 
     data class Password(
@@ -124,6 +130,7 @@ fun PasswordGeneratorConfigBuilder2.Passphrase.build() =
         capitalize = capitalize,
         includeNumber = includeNumber,
         customWord = customWord.trim().takeUnless { it.isEmpty() },
+        wordlist = wordlist,
     )
 
 fun PasswordGeneratorConfigBuilder2.Username.build() =
@@ -133,6 +140,7 @@ fun PasswordGeneratorConfigBuilder2.Username.build() =
         capitalize = capitalize,
         includeNumber = includeNumber,
         customWord = customWord.trim().takeUnless { it.isEmpty() },
+        wordlist = wordlist,
     )
 
 fun PasswordGeneratorConfigBuilder2.EmailCatchAll.build(): PasswordGeneratorConfig {

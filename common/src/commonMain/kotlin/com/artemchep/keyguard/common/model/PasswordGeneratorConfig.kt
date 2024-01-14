@@ -7,6 +7,7 @@ sealed interface PasswordGeneratorConfig {
         val capitalize: Boolean,
         val includeNumber: Boolean,
         val customWord: String? = null,
+        val wordlist: List<String>? = null,
     ) : PasswordGeneratorConfig
 
     data class Password(

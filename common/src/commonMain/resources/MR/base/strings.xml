@@ -7,6 +7,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
     <string name="account_name">Account name</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="app_password">App password</string>
@@ -110,6 +111,7 @@
     <string name="address3">Address line 3</string>
     <string name="rename">Rename</string>
     <string name="select_linked_type">Select type</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">Autofill</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -477,6 +479,14 @@
     <string name="emailrelay_base_env_server_url_label">Server URL</string>
     <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
 
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
+
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
@@ -687,11 +697,13 @@
     <string name="generator_passphrase_delimiter_title">Delimiter</string>
     <string name="generator_passphrase_capitalize_title">Capitalize</string>
     <string name="generator_passphrase_number_title">Number</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Username</string>
     <string name="generator_username_delimiter_title">Delimiter</string>
     <string name="generator_username_custom_word_title">Custom word</string>
     <string name="generator_username_capitalize_title">Capitalize</string>
     <string name="generator_username_number_title">Number</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Random symbols</string>
     <string name="generator_password_note">A strong password has at least <xliff:g id="length" example="15">%1$d</xliff:g> characters, uppercase &amp; lowercase letters, digits and symbols.</string>
     <string name="generator_password_numbers_title">Digits</string>

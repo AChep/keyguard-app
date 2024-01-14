@@ -2,11 +2,14 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">Ok</string>
     <string name="close">Sluiten</string>
-    <string name="yes">Yes</string>
+    <string name="yes">Ja</string>
     <string name="no">No</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Naam</string>
     <string name="account_name">Accountnaam</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Gebruikersnaam</string>
     <string name="password">Wachtwoord</string>
     <string name="app_password">App wachtwoord</string>
@@ -25,13 +28,13 @@
     <string name="passport_number">Paspoortnummer</string>
     <string name="license_number">Licentienummer</string>
     <string name="card_number">Kaart nummer</string>
-    <string name="card_number_empty_label">No card number</string>
+    <string name="card_number_empty_label">Geen kaartnummer</string>
     <string name="card_type">Merk</string>
     <string name="card_cvv">CVV</string>
-    <string name="card_valid_from">Valid from</string>
-    <string name="card_valid_to">Valid to</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
+    <string name="card_valid_from">Geldig vanaf</string>
+    <string name="card_valid_to">Geldig tot</string>
+    <string name="card_expiry_month">Kaart verval datum</string>
+    <string name="card_expiry_year">Kaart verval jaar</string>
     <string name="cardholder_name">Naam kaarthouder</string>
     <string name="valid_from">Geldig vanaf</string>
     <string name="expiry_date">Vervaldatum</string>
@@ -60,38 +63,38 @@
     <string name="note">Notitie</string>
     <string name="notes">Notities</string>
     <string name="attachments">Bijlagen</string>
-    <string name="attachments_empty_label">No attachments</string>
-    <string name="expired">Expired</string>
-    <string name="expiring_soon">Expiring soon</string>
-    <string name="item_incomplete_title">Incomplete data</string>
-    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="attachments_empty_label">Geen bijlagen</string>
+    <string name="expired">Verlopen</string>
+    <string name="expiring_soon">Verloopt binnenkort</string>
+    <string name="item_incomplete_title">Onvolledige gegevens</string>
+    <string name="item_incomplete_text">Dit item ontbreekt belangrijke informatie.</string>
     <string name="item">Item</string>
     <string name="items">Items</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
-    <string name="items_all">All items</string>
-    <string name="items_empty_label">No items</string>
+    <string name="items_all">Alle items</string>
+    <string name="items_empty_label">Geen items</string>
     <string name="folder_none">Geen map</string>
     <string name="folder_new">Nieuwe map</string>
     <string name="folder">Map</string>
     <string name="folders">Mappen</string>
-    <string name="folders_empty_label">No folders</string>
+    <string name="folders_empty_label">Geen mappen</string>
     <string name="collection_none">Geen collectie</string>
     <string name="collection">Collectie</string>
     <string name="collections">Collecties</string>
-    <string name="collections_empty_label">No collections</string>
+    <string name="collections_empty_label">Geen collecties</string>
     <string name="organization_none">Mijn kluis</string>
     <string name="organization">Organisatie</string>
     <string name="organizations">Organisaties</string>
-    <string name="organizations_empty_label">No organizations</string>
+    <string name="organizations_empty_label">Geen organisaties</string>
     <string name="misc">Overige</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">Opdracht</string>
+    <string name="execute_command">Uitvoeren</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Toevoegen</string>
     <string name="add_integration">Integratie toevoegen</string>
     <string name="account">Account</string>
     <string name="accounts">Accounts</string>
-    <string name="accounts_empty_label">No accounts</string>
+    <string name="accounts_empty_label">Geen accounts</string>
     <string name="account_none">Geen account</string>
     <string name="type">Type</string>
     <string name="options">Opties</string>
@@ -99,22 +102,23 @@
     <string name="reset">Reset</string>
     <string name="length">Lengte</string>
     <string name="security">Beveiliging</string>
-    <string name="contact_info">Contact info</string>
+    <string name="contact_info">Contactgegevens</string>
     <string name="identity_title">Titel</string>
     <string name="identity_first_name">Voornaam</string>
     <string name="identity_middle_name">Tussenvoegsels</string>
     <string name="identity_last_name">Achternaam</string>
-    <string name="identity_full_name">Full name</string>
+    <string name="identity_full_name">Volledige naam</string>
     <string name="address1">Adresregel 1</string>
     <string name="address2">Adresregel 2</string>
     <string name="address3">Adresregel 3</string>
     <string name="rename">Hernoemen</string>
-    <string name="select_linked_type">Select type</string>
-    <string name="autofill">Autofill</string>
+    <string name="select_linked_type">Selecteer type</string>
+    <string name="select_file">Select file</string>
+    <string name="autofill">Automatisch aanvullen</string>
     <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkey_create_header">Maak een passkey</string>
+    <string name="passkey_unlock_header">Keyguard ontgrendelen</string>
+    <string name="passkey_auth_via_header">Bevestig autorisatieverzoek…</string>
     <string name="passkeys">Passkeys</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
@@ -131,8 +135,8 @@
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
     <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
-    <string name="passkey_user_display_name">Display name</string>
+    <string name="passkey_user_username">Gebruikersnaam</string>
+    <string name="passkey_user_display_name">Weergavenaam</string>
     <string name="api_key">API sleutel</string>
     <string name="domain">Domein</string>
     <string name="edit">Bewerken</string>
@@ -143,8 +147,8 @@
     <string name="reused_passwords">Hergebruikte wachtwoorden</string>
     <string name="one_time_password">Verificatie code</string>
     <string name="one_time_password_authenticator_key">Verificatie sleutel</string>
-    <string name="passkey_use_short">Use</string>
-    <string name="passkey_save">Save passkey</string>
+    <string name="passkey_use_short">Gebruik</string>
+    <string name="passkey_save">Passkey opslaan</string>
     <string name="passkey_available">Passkey beschikbaar</string>
     <string name="twofa_available">Tweestapsverificatie beschikbaar</string>
     <string name="custom">Aangepast</string>
@@ -164,10 +168,10 @@
     <!-- To download something -->
     <string name="download">Download</string>
     <string name="downloads">Downloads</string>
-    <string name="downloads_empty_label">No downloads</string>
-    <string name="duplicates_empty_label">No duplicates</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
+    <string name="downloads_empty_label">Geen downloads</string>
+    <string name="duplicates_empty_label">Geen duplicaten</string>
+    <string name="duplicate">Dupliceer</string>
+    <string name="regex">Reguliere expressie</string>
     <string name="encryption">Encryptie</string>
     <!-- Encryption key -->
     <string name="encryption_key">Sleutel</string>
@@ -209,8 +213,8 @@
     <string name="folder_delete_confirmation_text">Deze items worden onmiddellijk verwijderd. U kunt deze actie niet ongedaan maken.</string>
     <string name="ciphers_recently_opened">Onlangs geopend</string>
     <string name="ciphers_often_opened">Vaak geopend</string>
-    <string name="ciphers_view_details">View details</string>
-    <string name="ciphers_save_to">Save to</string>
+    <string name="ciphers_view_details">Details weergeven</string>
+    <string name="ciphers_save_to">Opslaan naar</string>
     <string name="ciphers_action_add_to_favorites_title">Toevoegen aan favorieten</string>
     <string name="ciphers_action_remove_from_favorites_title">Verwijder uit favorieten</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Opnieuw om authenticatie vragen</string>
@@ -230,11 +234,11 @@
     <string name="ciphers_action_restore_title">Herstel</string>
     <string name="ciphers_action_delete_title">Definitief verwijderen</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Verwante items verplaatsen naar prullenbak</string>
-    <string name="file_action_open_with_title">Open with…</string>
-    <string name="file_action_send_with_title">Send with…</string>
-    <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
-    <string name="file_action_delete_local_title">Delete local file</string>
-    <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="file_action_open_with_title">Open met…</string>
+    <string name="file_action_send_with_title">Verzenden met…</string>
+    <string name="file_action_open_in_file_manager_title">Open in een bestandsbeheerder</string>
+    <string name="file_action_delete_local_title">Lokaal bestand verwijderen</string>
+    <string name="file_action_view_cipher_title">Bekijk het bovenliggende item</string>
     <string name="vault_action_always_show_keyboard_title">Toetsenbord altijd weergeven</string>
     <string name="vault_action_sync_vault_title">Kluis synchroniseren</string>
     <string name="vault_action_lock_vault_title">Kluis vergrendelen</string>
@@ -252,8 +256,8 @@
     <string name="uri_action_launch_in_app_title">Openen met <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Openen met…</string>
     <string name="uri_action_how_to_delete_account_title">Hoe verwijder ik mijn account?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix onveilige URL</string>
+    <string name="uri_action_autofix_unsecure_text">Wijzigt een protocol naar een beveiligde variant als deze beschikbaar is</string>
     <string name="uri_unsecure">Onveilig</string>
     <string name="uri_match_app_title">App koppelen</string>
     <string name="uri_match_detection_title">Overeenkomst detectie</string>
@@ -269,34 +273,34 @@
     <string name="uri_match_detection_regex_note">Controleer de gedetecteerde URI met een reguliere expressie. Dit is een geavanceerde optie.</string>
     <string name="uri_match_detection_never_title">Nooit</string>
     <string name="uri_match_detection_never_note">Negeer URI tijdens het zoeken van items in het automatisch aanvullen scherm.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> gelinkt aan het wachtwoord</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de gebruikersnaam</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gekoppeld aan de naam van de kaarthouder</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de vervalmaand</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het vervaljaar</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de kaartcode</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gekoppeld aan het kaartmerk</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het kaartnummer</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de titel</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de tweede naam</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de adresregel (1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gekoppeld aan de adresregel (2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gekoppeld aan de adresregel (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de stad</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de staat</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de postcode</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het land</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gekoppeld aan het bedrijf</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het e-mailadres</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het telefoonnummer</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het BSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de gebruikersnaam</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan het paspoortnummer</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gekoppeld aan het licentienummer</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de voornaam</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de achternaam</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de volledige naam</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan een onbekend veld</string>
     <string name="text_action_share_with_title">Delen met…</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> geselecteerd</string>
     <string name="copy">Kopiëren</string>
@@ -317,23 +321,23 @@
     <string name="copy_cvv_code">Veiligheidscode kopiëren</string>
     <string name="copy_otp_code">Verificatie code kopiëren</string>
     <string name="copy_otp_secret_code">Geheime sleutel kopiëren</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied a one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">Waarde gekopieerd</string>
+    <string name="copied_url">URL gekopieerd</string>
+    <string name="copied_uri">URI gekopieerd</string>
+    <string name="copied_package_name">Een pakketnaam gekopieerd</string>
+    <string name="copied_password">Wachtwoord gekopieerd</string>
+    <string name="copied_username">Gebruikersnaam gekopieerd</string>
+    <string name="copied_email">E-mail gekopieerd</string>
+    <string name="copied_phone_number">Telefoonnummer gekopieerd</string>
+    <string name="copied_passport_number">Paspoortnummer gekopieerd</string>
+    <string name="copied_license_number">Licentienummer gekopieerd</string>
+    <string name="copied_card_number">Kaartnummer gekopieerd</string>
+    <string name="copied_cardholder_name">Naam kaarthouder gekopieerd</string>
+    <string name="copied_expiration_year">Vervaljaar gekopieerd</string>
+    <string name="copied_expiration_month">Vervaldatum gekopieerd</string>
+    <string name="copied_cvv_code">Beveiligingscode gekopieerd</string>
+    <string name="copied_otp_code">Eenmalig wachtwoord gekopieerd</string>
+    <string name="copied_otp_secret_code">Een geheime sleutel gekopieerd</string>
     <string name="autofill_unlock_keyguard">Keyguard ontgrendelen</string>
     <string name="autofill_open_keyguard">Open Keyguard</string>
     <string name="january">Januari</string>
@@ -356,8 +360,8 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Authenticeer WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Terug naar app</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
+    <string name="expiry_tips_item_line1">Dit item verloopt op <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Deze kaart verloopt op <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Er zijn een paar dingen die u kunt doen om een soepele overgang te garanderen:</string>
     <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
     <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
     <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
@@ -380,9 +384,10 @@
     <string name="error_invalid_uri">Ongeldige URI</string>
     <string name="error_invalid_card_number">Ongeldige kaartnummer</string>
     <string name="error_incorrect_password">Onjuist wachtwoord</string>
+    <string name="error_failed_generate_kdf_hash_oom">Het maken van een sleutel is mislukt, er is niet genoeg geheugen. Controleer uw KDF server instellingen.</string>
     <string name="error_failed_generate_otp_code">Genereren van verificatie code mislukt</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <string name="error_failed_create_passkey">Het maken van een passkey is mislukt</string>
+    <string name="error_failed_use_passkey">Autoriseren van een aanvraag mislukt</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
@@ -448,13 +453,22 @@
     <string name="emailrelay_delete_one_confirmation_title">Verwijder e-mail forwarder?</string>
     <string name="emailrelay_delete_many_confirmation_title">Verwijder e-mail forwarders?</string>
     <string name="emailrelay_integration_title">E-mail forwarder integratie</string>
-    <string name="emailrelay_empty_label">No email forwarders</string>
-    <string name="urloverride_header_title">URL override</string>
+    <string name="emailrelay_empty_label">Geen e-mail forwarders</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
+    <string name="urloverride_header_title">URL overrides</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_regex_note">De override wordt toegepast op URL\'s die overeenkomen met de reguliere expressie.</string>
+    <string name="urloverride_delete_one_confirmation_title">Verwijder URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Verwijder URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Maak een versleutelde kluis aan waar de lokale gegevens worden opgeslagen.</string>
     <string name="setup_field_app_password_label">App-wachtwoord</string>
@@ -470,8 +484,8 @@
     <string name="unlock_biometric_auth_confirm_title">Kluis ontgrendelen</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Gebruik biometrische authenticatie om de kluis te ontgrendelen.</string>
-    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
-    <string name="userverification_button_go">Verify</string>
+    <string name="userverification_header_text">Gebruikersverificatie is vereist. Voer uw app-wachtwoord in om door te gaan.</string>
+    <string name="userverification_button_go">Verifiëren</string>
     <string name="syncstatus_header_title">Synchronisatie status</string>
     <string name="syncstatus_status_up_to_date">Bijgewerkt</string>
     <string name="syncstatus_status_pending">In behandeling</string>
@@ -595,7 +609,7 @@
     <string name="sortby_password_strength_reverse_mode">Sterkste eerst</string>
     <string name="vault_main_search_placeholder">Kluis doorzoeken</string>
     <string name="vault_main_new_item_button">Nieuw item</string>
-    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <string name="vault_main_no_suggested_items">Er zijn geen voorgestelde artikelen beschikbaar voor deze context</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Veiligheidscode</string>
     <string name="vault_view_saved_to_label">Opgeslagen in <xliff:g id="email" example="username@example.com">%1$s</xliff:g> bij <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Scheidingsteken</string>
     <string name="generator_passphrase_capitalize_title">Hoofdletters</string>
     <string name="generator_passphrase_number_title">Nummers</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Gebruikersnaam</string>
     <string name="generator_username_delimiter_title">Scheidingsteken</string>
     <string name="generator_username_custom_word_title">Aangepast woord</string>
     <string name="generator_username_capitalize_title">Hoofdletters</string>
     <string name="generator_username_number_title">Nummers</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Willekeurige symbolen</string>
     <string name="generator_password_note">Een sterk wachtwoord heeft ten minste <xliff:g id="length" example="15">%1$d</xliff:g> tekens, hoofdletters &amp; kleine letters, cijfers en symbolen.</string>
     <string name="generator_password_numbers_title">Cijfers</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Wis geschiedenis</string>
     <string name="generatorhistory_clear_history_confirmation_title">Generator geschiedenis wissen?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Dit zal alle items uit de geschiedenis verwijderen.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
     <string name="passwordhistory_header_title">Wachtwoord geschiedenis</string>
     <string name="passwordhistory_clear_history_title">Geschiedenis wissen</string>
     <string name="passwordhistory_clear_history_confirmation_title">Wachtwoord geschiedenis wissen?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Dit verwijdert alle wachtwoorden uit de geschiedenis.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Wachtwoordsterkte</string>
     <string name="watchtower_section_security_label">Beveiliging</string>
@@ -775,8 +795,8 @@
         regular users. -->
     <string name="pref_item_crash_title">Crash</string>
     <string name="pref_item_credential_provider_title">Credential provider</string>
-    <string name="pref_item_credential_provider_text">Passkeys, passwords and data services</string>
-    <string name="pref_item_privacy_policy_title">Privacy policy</string>
+    <string name="pref_item_credential_provider_text">Passkeys, wachtwoorden en datadiensten</string>
+    <string name="pref_item_privacy_policy_title">Privacybeleid</string>
     <string name="pref_item_contact_us_title">Contacteer ons</string>
     <string name="pref_item_experimental_title">Experimenteel</string>
     <string name="pref_item_change_app_password_title">App-wachtwoord wijzigen</string>
@@ -786,8 +806,8 @@
     <string name="pref_item_require_app_password_never_text">Nooit</string>
     <string name="pref_item_send_crash_reports_title">Verstuur crashrapporten</string>
     <string name="pref_item_nav_animation_title">Overgang animatie</string>
-    <string name="pref_item_erase_data_title">Erase app data</string>
-    <string name="pref_item_erase_data_text">Close the app and erase all local app data</string>
+    <string name="pref_item_erase_data_title">Verwijder app gegevens</string>
+    <string name="pref_item_erase_data_text">Sluit de app en wis alle lokale app gegevens</string>
     <string name="pref_item_allow_screenshots_title">Schermafbeeldingen toestaan</string>
     <string name="pref_item_allow_screenshots_text_on">Laat de inhoud van de app zien wanneer u schakelt tussen recente apps en laat het maken van een schermopnames toe</string>
     <string name="pref_item_allow_screenshots_text_off">Verberg de inhoud van de app wanneer u schakelt tussen recente apps en verbied het maken van schermopnames</string>

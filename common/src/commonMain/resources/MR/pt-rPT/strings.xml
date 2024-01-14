@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="account_name">Nome da conta</string>
+    <string name="enabled">Ativado</string>
+    <string name="disabled">Desativado</string>
+    <string name="wordlist">Lista de palavras</string>
     <string name="username">Nome de utilizador</string>
     <string name="password">Palavra-passe</string>
     <string name="app_password">Palavra-passe da aplicação</string>
@@ -31,7 +34,7 @@
     <string name="card_valid_from">Válido de</string>
     <string name="card_valid_to">Válido até</string>
     <string name="card_expiry_month">Mês de expiração do cartão</string>
-    <string name="card_expiry_year">Ano de expiração do cartão</string>
+    <string name="card_expiry_year">Ano de fim de validade do cartão</string>
     <string name="cardholder_name">Titular do cartão</string>
     <string name="valid_from">Válido de</string>
     <string name="expiry_date">Data de validade</string>
@@ -97,7 +100,7 @@
     <string name="options">Opções</string>
     <string name="send">Partilhar</string>
     <string name="reset">Repor</string>
-    <string name="length">Comprimento</string>
+    <string name="length">Nº de caracteres</string>
     <string name="security">Segurança</string>
     <string name="contact_info">Informação do contacto</string>
     <string name="identity_title">Título</string>
@@ -110,6 +113,7 @@
     <string name="address3">Endereço linha 3</string>
     <string name="rename">Renomear</string>
     <string name="select_linked_type">Selecionar tipo</string>
+    <string name="select_file">Selecionar ficheiro</string>
     <string name="autofill">Preenchimento automático</string>
     <string name="passkey">Chave de acesso</string>
     <string name="passkey_create_header">Criar uma chave de acesso</string>
@@ -142,7 +146,7 @@
     <string name="reused_password">Palavra-passe reutilizada</string>
     <string name="reused_passwords">Palavras-passe reutilizadas</string>
     <string name="one_time_password">Código 2FA</string>
-    <string name="one_time_password_authenticator_key">Chave de autenticação</string>
+    <string name="one_time_password_authenticator_key">Chave de autenticação 2FA</string>
     <string name="passkey_use_short">Utilizar</string>
     <string name="passkey_save">Guardar a chave de acesso</string>
     <string name="passkey_available">Chave de acesso disponível</string>
@@ -177,7 +181,7 @@
     <string name="encryption_random_bits_data"><xliff:g id="length" example="64">%1$d</xliff:g>- bits de dados aleatórios</string>
     <string name="none">Nenhuma</string>
     <string name="text">Texto</string>
-    <string name="linked_apps">Aplicativos vinculados</string>
+    <string name="linked_apps">Aplicações vinculadas</string>
     <string name="linked_uris">URIs vinculados</string>
     <string name="custom_fields">Campos personalizados</string>
     <string name="reveal_secure_note">Revelar nota segura</string>
@@ -207,8 +211,8 @@
     <string name="folder_delete_one_confirmation_title">Eliminar pasta?</string>
     <string name="folder_delete_many_confirmation_title">Eliminar pastas?</string>
     <string name="folder_delete_confirmation_text">Esta entrada(s) vai ser excluída imediatamente. Não pode reverter esta ação.</string>
-    <string name="ciphers_recently_opened">Aberto recentemente</string>
-    <string name="ciphers_often_opened">Frequentemente aberto</string>
+    <string name="ciphers_recently_opened">Recentemente acedido</string>
+    <string name="ciphers_often_opened">Acedido com frequência</string>
     <string name="ciphers_view_details">Ver detalhes</string>
     <string name="ciphers_save_to">Guardar em</string>
     <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
@@ -255,7 +259,7 @@
     <string name="uri_action_autofix_unsecure_title">Correção automática de ligação URL insegura</string>
     <string name="uri_action_autofix_unsecure_text">Altera um protocolo para variante segura, se estiver disponível</string>
     <string name="uri_unsecure">Inseguro</string>
-    <string name="uri_match_app_title">Corresponder ao aplicativo</string>
+    <string name="uri_match_app_title">Corresponder à aplicação</string>
     <string name="uri_match_detection_title">Deteção de correspondência</string>
     <string name="uri_match_detection_domain_title">Domínio base</string>
     <string name="uri_match_detection_domain_note">Corresponder recursos por domínio de nível superior e secundário.</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">URI inválido</string>
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
+    <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
@@ -434,9 +439,9 @@
     <string name="largetype_action_show_in_large_type_title">Mostrar em tamanho grande</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Mostrar em tamanho grande e bloquear cofre</string>
     <string name="apppicker_header_title">Seletor de aplicação</string>
-    <string name="apppicker_search_placeholder">Pesquisar aplicativos instalados</string>
-    <string name="apppicker_system_app_label">Aplicativos do sistema</string>
-    <string name="apppicker_empty_label">Sem aplicativos</string>
+    <string name="apppicker_search_placeholder">Pesquisar aplicações instaladas</string>
+    <string name="apppicker_system_app_label">Aplicações do sistema</string>
+    <string name="apppicker_empty_label">Sem aplicações</string>
     <string name="folderpicker_header_title">Escolher uma pasta</string>
     <string name="folderpicker_create_new_folder">Criar uma nova pasta:</string>
     <!--
@@ -449,6 +454,15 @@
     <string name="emailrelay_delete_many_confirmation_title">Apagar encaminhamentos de e-mail?</string>
     <string name="emailrelay_integration_title">Integração de encaminhamento de e-mail</string>
     <string name="emailrelay_empty_label">Sem encaminhamentos de e-mail</string>
+    <string name="emailrelay_base_env_server_url_label">Endereço do servidor</string>
+    <string name="emailrelay_base_env_note">Indique o endereço de base da sua instalação do Bitwarden.</string>
+    <string name="wordlist_list_header_title">Listas de palavras</string>
+    <string name="wordlist_list_section_title">Listas de palavras</string>
+    <string name="wordlist_delete_one_confirmation_title">Apagar lista de palavras?</string>
+    <string name="wordlist_delete_many_confirmation_title">Apagar listas de palavras?</string>
+    <string name="wordlist_edit_wordlist_title">Editar lista de palavras</string>
+    <string name="wordlist_add_wordlist_title">Adicionar lista de palavras</string>
+    <string name="wordlist_empty_label">Nenhuma lista de palavras</string>
     <string name="urloverride_header_title">Substituir ligação URL</string>
     <string name="urloverride_list_header_title">Substituir ligações URL</string>
     <string name="urloverride_list_section_title">Substituir ligações URL</string>
@@ -463,14 +477,14 @@
     <string name="setup_button_send_crash_reports">Enviar relatórios de erros</string>
     <string name="setup_button_create_vault">Criar um cofre</string>
     <string name="setup_action_erase_data_title">Apagar dados do aplicativo</string>
-    <string name="setup_action_erase_data_text">Fechar a app e apagar todos os dados locais do aplicativo</string>
-    <string name="unlock_header_text">Cofre bloqueado. Introduzir palavra-passe do aplicativo para continuar.</string>
+    <string name="setup_action_erase_data_text">Fechar a aplicação e apagar todos os dados locais</string>
+    <string name="unlock_header_text">Cofre bloqueado. Introduzir palavra-passe para continuar.</string>
     <string name="unlock_button_unlock">Desbloquear</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">Desbloqueie um cofre</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Usar autenticação biométrica para desbloquear o cofre.</string>
-    <string name="userverification_header_text">É necessária a verificação do utilizador. Digite a palavra-passe da app para continuar.</string>
+    <string name="userverification_header_text">É necessária a verificação do utilizador. Digite a palavra-passe da aplicação para continuar.</string>
     <string name="userverification_button_go">Verificar</string>
     <string name="syncstatus_header_title">Estado da sincronização</string>
     <string name="syncstatus_status_up_to_date">Atualizado</string>
@@ -543,7 +557,7 @@
     <string name="lock_reason_inactivity">Bloqueado devido a inatividade</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Ficheiro</string>
-    <string name="cipher_type_login">Palavra-passe</string>
+    <string name="cipher_type_login">Início de sessão</string>
     <string name="cipher_type_card">Cartão</string>
     <string name="cipher_type_identity">Identidade</string>
     <string name="cipher_type_note">Nota</string>
@@ -569,7 +583,7 @@
     <string name="filter_empty_label">Nenhum filtro disponível</string>
     <string name="sort_header_title">Ordenar por</string>
     <string name="sort_empty_label">Não há ordenação disponível</string>
-    <string name="sortby_title_title">Título</string>
+    <string name="sortby_title_title">Nome</string>
     <string name="sortby_title_normal_mode">Ordem alfabética</string>
     <string name="sortby_title_reverse_mode">Ordem alfabética reversa</string>
     <string name="sortby_access_count_title">Contagem de acessos</string>
@@ -587,13 +601,13 @@
     <string name="sortby_password_title">Palavra-passe</string>
     <string name="sortby_password_normal_mode">Ordem alfabética</string>
     <string name="sortby_password_reverse_mode">Ordem alfabética reversa</string>
-    <string name="sortby_password_modification_date_title">Data de alteração da palavra-passe</string>
+    <string name="sortby_password_modification_date_title">Data de alteração</string>
     <string name="sortby_password_modification_date_normal_mode">Novos primeiro</string>
     <string name="sortby_password_modification_date_reverse_mode">Antigos primeiro</string>
     <string name="sortby_password_strength_title">Segurança da palavra-passe</string>
     <string name="sortby_password_strength_normal_mode">Mais fraco primeiro</string>
     <string name="sortby_password_strength_reverse_mode">Mais forte primeiro</string>
-    <string name="vault_main_search_placeholder">Pesquisar no cofre</string>
+    <string name="vault_main_search_placeholder">Pesquisar</string>
     <string name="vault_main_new_item_button">Nova entrada</string>
     <string name="vault_main_no_suggested_items">Não existem sugestões disponíveis para este contexto</string>
     <!-- A label for the CVV code of the card -->
@@ -619,7 +633,7 @@
     <string name="send_main_search_placeholder">Pesquisar partilhas</string>
     <string name="send_main_new_item_button">Novo item</string>
     <string name="send_password_is_required_to_access_label">É necessário uma palavra-passe para aceder esta partilha</string>
-    <string name="generator_header_title">Gerador</string>
+    <string name="generator_header_title">Gerador automático</string>
     <string name="generator_header_username_title">Gerador de nome de utilizador</string>
     <string name="generator_header_password_title">Gerador de palavra-passe</string>
     <string name="generator_generate_button">Gerar</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Limite de caracteres</string>
     <string name="generator_passphrase_capitalize_title">Maiúsculas</string>
     <string name="generator_passphrase_number_title">Números</string>
+    <string name="generator_passphrase_wordlist_title">Lista de palavras</string>
     <string name="generator_username_type">Nome de utilizador</string>
     <string name="generator_username_delimiter_title">Limite de caracteres</string>
     <string name="generator_username_custom_word_title">Palavra personalizada</string>
     <string name="generator_username_capitalize_title">Maiúsculas</string>
     <string name="generator_username_number_title">Número</string>
+    <string name="generator_username_wordlist_title">Lista de palavras</string>
     <string name="generator_password_type">Caracteres aleatórios</string>
     <string name="generator_password_note">Uma palavra-passe forte tem pelo menos <xliff:g id="length" example="15">%1$d</xliff:g> caracteres &amp; deve ser composta por letras maiúsculas, minúsculas, números e símbolos.</string>
     <string name="generator_password_numbers_title">Números</string>
@@ -656,17 +672,21 @@
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Alias de e-mail reencaminhado</string>
     <string name="generator_create_item_with_password_title">Criar novo acesso com palavra-passe</string>
-    <string name="generator_create_item_with_username_title">Criar novo acesso com o nome de utilizador</string>
+    <string name="generator_create_item_with_username_title">Criar novo acesso com nome de utilizador</string>
     <string name="generator_password_history_title">Histórico de palavras-passe</string>
     <string name="generator_show_tips_title">Mostrar ajudas</string>
     <string name="generatorhistory_header_title">Histórico do gerador</string>
     <string name="generatorhistory_clear_history_title">Limpar histórico</string>
     <string name="generatorhistory_clear_history_confirmation_title">Limpar histórico do gerador?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Isto vai remover todos os dados do histórico.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Apagar a entrada do histórico?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Apagar as entradas do histórico?</string>
     <string name="passwordhistory_header_title">Histórico de palavras-passe</string>
     <string name="passwordhistory_clear_history_title">Limpar histórico</string>
     <string name="passwordhistory_clear_history_confirmation_title">Limpar histórico de palavras-passe?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Isto vai remover todas as palavras-passe do histórico.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Apagar a palavra-passe do histórico?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Apagar as palavras-passe do histórico?</string>
     <string name="watchtower_header_title">Guardião</string>
     <string name="watchtower_section_password_strength_label">Segurança das palavras-passe</string>
     <string name="watchtower_section_security_label">Segurança</string>
@@ -701,8 +721,8 @@
     <string name="changepassword_change_password_button">Alterar palavra-passe</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticação biométrica</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
-    <string name="changepassword_biometric_auth_confirm_title">Alterar palavra-passe do aplicativo</string>
-    <string name="changepassword_disclaimer_local_note">A senha da app nunca é armazenada no dispositivo nem enviada pela rede. É usado para gerar uma chave secreta que é usada para criptografar os dados locais.</string>
+    <string name="changepassword_biometric_auth_confirm_title">Alterar palavra-passe da aplicação</string>
+    <string name="changepassword_disclaimer_local_note">A palavra-passe da aplicação nunca é armazenada no dispositivo nem enviada pela rede. É usada para gerar uma chave secreta que é usada para encriptar os dados locais.</string>
     <string name="changepassword_disclaimer_abuse_note">A menos que você suspeite de acesso não autorizado ou descubra um malware no dispositivo, não há necessidade de alterar a senha se ela for uma senha forte e única.</string>
     <string name="contactus_header_title">Contacte-nos</string>
     <string name="contactus_message_label">A sua mensagem</string>
@@ -748,14 +768,14 @@
     <string name="pref_item_other_text">Sites da comunidade, informações do aplicativo</string>
     <string name="pref_item_nav_label_title">Mostrar rótulos nos botões de navegação</string>
     <string name="pref_item_app_version_title">Versão da aplicação</string>
-    <string name="pref_item_app_build_date_title">Data de instalação do aplicativo</string>
+    <string name="pref_item_app_build_date_title">Data de instalação da aplicação</string>
     <string name="pref_item_app_team_title">Equipa da aplicação</string>
     <string name="pref_item_reddit_community_title">Comunidade Reddit</string>
     <string name="pref_item_github_title">Projeto no GitHub</string>
     <string name="pref_item_crowdin_title">Projeto no Crowdin</string>
     <string name="pref_item_open_source_licenses_title">Licenças de código aberto</string>
     <string name="pref_item_download_apk_title">Baixar arquivo APK</string>
-    <string name="pref_item_load_app_icons_title">Carregar ícones dos aplicativos</string>
+    <string name="pref_item_load_app_icons_title">Carregar ícones das aplicações</string>
     <string name="pref_item_load_website_icons_title">Carregar ícones de sites</string>
     <string name="pref_item_load_website_icons_text">A pesquisa pelos ícones dos sites pode levar à exposição do endereço dos sites ao provedor do serviço de internet</string>
     <string name="pref_item_markdown_title">Formatação de texto rico</string>
@@ -779,9 +799,9 @@
     <string name="pref_item_privacy_policy_title">Política de Privacidade</string>
     <string name="pref_item_contact_us_title">Contacte-nos</string>
     <string name="pref_item_experimental_title">Experimental</string>
-    <string name="pref_item_change_app_password_title">Alterar palavra-passe do aplicativo</string>
-    <string name="pref_item_require_app_password_title">Exigir palavra-passe do aplicativo</string>
-    <string name="pref_item_require_app_password_note">Além das configurações de segurança normais, a senha do aplicativo será exigida após este tempo ou quando as configurações de biometria forem alteradas</string>
+    <string name="pref_item_change_app_password_title">Alterar palavra-passe da aplicação</string>
+    <string name="pref_item_require_app_password_title">Exigir palavra-passe da aplicação</string>
+    <string name="pref_item_require_app_password_note">Além das configurações de segurança normais, a palavra-passe da aplicação será exigida após este tempo ou quando as configurações de biometria forem alteradas</string>
     <string name="pref_item_require_app_password_immediately_text">Imediatamente</string>
     <string name="pref_item_require_app_password_never_text">Nunca</string>
     <string name="pref_item_send_crash_reports_title">Enviar relatórios de erros</string>
@@ -802,7 +822,7 @@
     <string name="pref_item_lock_vault_after_delay_never_text">Nunca</string>
     <string name="pref_item_persist_vault_key_title">Manter a chave do cofre</string>
     <string name="pref_item_persist_vault_key_text_on">A chave do cofre persiste num armazenamento interno</string>
-    <string name="pref_item_persist_vault_key_text_off">O Cofre fica bloqueado após o aplicativo ser removido da memória</string>
+    <string name="pref_item_persist_vault_key_text_off">O Cofre fica bloqueado após a aplicação ser removida da memória</string>
     <string name="pref_item_persist_vault_key_note">Armazenar uma chave de cofre no disco é um risco de segurança. Se o armazenamento interno do dispositivo for comprometido, o invasor terá acesso aos dados do cofre local.</string>
     <string name="pref_item_permissions_title">Permissões</string>
     <string name="pref_item_features_overview_title">Resumo de funcionalidades</string>

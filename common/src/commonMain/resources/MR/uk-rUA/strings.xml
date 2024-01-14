@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Назва</string>
     <string name="account_name">Назва облікового запису</string>
+    <string name="enabled">Увімкнено</string>
+    <string name="disabled">Вимкнено</string>
+    <string name="wordlist">Список слів</string>
     <string name="username">Ім\'я користувача</string>
     <string name="password">Пароль</string>
     <string name="app_password">Пароль застосунку</string>
@@ -110,6 +113,7 @@
     <string name="address3">Адресний рядок 3</string>
     <string name="rename">Перейменувати</string>
     <string name="select_linked_type">Оберіть тип</string>
+    <string name="select_file">Виберіть файл</string>
     <string name="autofill">Автозаповнити</string>
     <string name="passkey">Ключ доступу</string>
     <string name="passkey_create_header">Створити ключ доступу</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">Некоректний URI</string>
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
+    <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам\'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>
@@ -449,6 +454,15 @@
     <string name="emailrelay_delete_many_confirmation_title">Видалити сервіси пересилання електронної пошти?</string>
     <string name="emailrelay_integration_title">Інтеграція сервісу пересилання ел. пошти</string>
     <string name="emailrelay_empty_label">Сервіси пересилання електронної пошти відсутні</string>
+    <string name="emailrelay_base_env_server_url_label">URL-адреса сервера</string>
+    <string name="emailrelay_base_env_note">Вкажіть основну URL-адресу вашого власного встановлення сервісу.</string>
+    <string name="wordlist_list_header_title">Списки слів</string>
+    <string name="wordlist_list_section_title">Списки слів</string>
+    <string name="wordlist_delete_one_confirmation_title">Видалити список слів?</string>
+    <string name="wordlist_delete_many_confirmation_title">Видалити списки слів?</string>
+    <string name="wordlist_edit_wordlist_title">Редагувати список слів</string>
+    <string name="wordlist_add_wordlist_title">Додати список слів</string>
+    <string name="wordlist_empty_label">Немає списків слів</string>
     <string name="urloverride_header_title">Перевизначення URL-адреси</string>
     <string name="urloverride_list_header_title">Перевизначення URL-адреси</string>
     <string name="urloverride_list_section_title">Перевизначення URL-адреси</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Роздільник</string>
     <string name="generator_passphrase_capitalize_title">З великої літери</string>
     <string name="generator_passphrase_number_title">Число</string>
+    <string name="generator_passphrase_wordlist_title">Список слів</string>
     <string name="generator_username_type">Ім\'я користувача</string>
     <string name="generator_username_delimiter_title">Роздільник</string>
     <string name="generator_username_custom_word_title">Довільне слово</string>
     <string name="generator_username_capitalize_title">З великої літери</string>
     <string name="generator_username_number_title">Число</string>
+    <string name="generator_username_wordlist_title">Список слів</string>
     <string name="generator_password_type">Випадкові символи</string>
     <string name="generator_password_note">Надійний пароль має якнайменше <xliff:g id="length" example="15">%1$d</xliff:g> символів, великі та малі літери, цифри та спеціальні символи.</string>
     <string name="generator_password_numbers_title">Цифри</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Очистити історію</string>
     <string name="generatorhistory_clear_history_confirmation_title">Очистити історію генератора?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Всі записи з історії будуть видалені.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Видалити цей запис з історії?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Видалити ці записи з історії?</string>
     <string name="passwordhistory_header_title">Історія паролів</string>
     <string name="passwordhistory_clear_history_title">Очистити історію</string>
     <string name="passwordhistory_clear_history_confirmation_title">Очистити історію паролів?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Всі паролі з історії будуть видалені.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Видалити цей пароль з історії?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Видалити ці паролі з історії?</string>
     <string name="watchtower_header_title">Вартова вежа</string>
     <string name="watchtower_section_password_strength_label">Надійність пароля</string>
     <string name="watchtower_section_security_label">Безпека</string>

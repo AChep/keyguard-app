@@ -7,6 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nombre</string>
     <string name="account_name">Nombre de cuenta</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+    <string name="wordlist">Wordlist</string>
     <string name="username">Nombre de usuario</string>
     <string name="password">Contraseña</string>
     <string name="app_password">Contraseña de aplicación</string>
@@ -110,6 +113,7 @@
     <string name="address3">Dirección (línea 3)</string>
     <string name="rename">Renombrar</string>
     <string name="select_linked_type">Seleccionar tipo</string>
+    <string name="select_file">Select file</string>
     <string name="autofill">Autocompletar</string>
     <string name="passkey">Llave de acceso</string>
     <string name="passkey_create_header">Crear una llave de acceso</string>
@@ -380,6 +384,7 @@
     <string name="error_invalid_uri">URI no válida</string>
     <string name="error_invalid_card_number">Número de tarjeta inválido</string>
     <string name="error_incorrect_password">Contraseña incorrecta</string>
+    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Error al generar el código OTP</string>
     <string name="error_failed_create_passkey">Error al crear una llave de acceso</string>
     <string name="error_failed_use_passkey">Error al autorizar una solicitud</string>
@@ -449,12 +454,21 @@
     <string name="emailrelay_delete_many_confirmation_title">¿Deseas eliminar los reenviadores de correo?</string>
     <string name="emailrelay_integration_title">Integración de reenvío de correo</string>
     <string name="emailrelay_empty_label">Sin reenviadores de correo</string>
+    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
+    <string name="wordlist_list_header_title">Wordlists</string>
+    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
+    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
+    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_empty_label">No wordlists</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
     <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete URL overrides?</string>
+    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
+    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Crear una bóveda cifrada donde se almacenarán los datos locales.</string>
     <string name="setup_field_app_password_label">Contraseña de la app</string>
@@ -629,11 +643,13 @@
     <string name="generator_passphrase_delimiter_title">Delimitador</string>
     <string name="generator_passphrase_capitalize_title">Mayúsculas</string>
     <string name="generator_passphrase_number_title">Número</string>
+    <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_username_type">Nombre de usuario</string>
     <string name="generator_username_delimiter_title">Delimitador</string>
     <string name="generator_username_custom_word_title">Palabra personalizada</string>
     <string name="generator_username_capitalize_title">Mayúsculas</string>
     <string name="generator_username_number_title">Número</string>
+    <string name="generator_username_wordlist_title">Wordlist</string>
     <string name="generator_password_type">Símbolos aleatorios</string>
     <string name="generator_password_note">Una contraseña segura tiene al menos <xliff:g id="length" example="15">%1$d</xliff:g> caracteres, mayúsculas &amp; letras minúsculas, dígitos y símbolos.</string>
     <string name="generator_password_numbers_title">Dígitos</string>
@@ -663,10 +679,14 @@
     <string name="generatorhistory_clear_history_title">Limpiar el historial</string>
     <string name="generatorhistory_clear_history_confirmation_title">¿Deseas limpiar el historial del generador?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Esto eliminará todos los elementos del historial.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
     <string name="passwordhistory_header_title">Historial de contraseñas</string>
     <string name="passwordhistory_clear_history_title">Limpiar el historial</string>
     <string name="passwordhistory_clear_history_confirmation_title">¿Limpiar el historial de contraseñas?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Esto eliminará todas las contraseñas del historial.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
     <string name="watchtower_header_title">Vigilancia</string>
     <string name="watchtower_section_password_strength_label">Seguridad de la contraseña</string>
     <string name="watchtower_section_security_label">Seguridad</string>

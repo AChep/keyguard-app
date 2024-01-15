@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
@@ -287,7 +288,7 @@ fun accountListScreenState(
         .foldAsList()
         .map { items ->
             items
-                .sortedBy { it.text }
+                .sortedWith(StringComparatorIgnoreCase { it.text })
         }
 
     combine(

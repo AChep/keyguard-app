@@ -133,6 +133,7 @@ import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.core.store.bitwarden.canRetry
 import com.artemchep.keyguard.core.store.bitwarden.expired
@@ -421,7 +422,7 @@ fun vaultViewScreenState(
                     collections
                         .firstOrNull { it.id == collectionId && it.accountId == accountId }
                 }
-                .sortedByDescending { it.name }
+                .sortedWith(StringComparatorIgnoreCase(descending = true) { it.name })
         }
         .distinctUntilChanged()
     val organizationFlow = getOrganizations()

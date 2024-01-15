@@ -36,6 +36,7 @@ import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationResult
@@ -371,7 +372,7 @@ fun RememberStateFlowScope.cipherChangeNameAction(
             before?.invoke()
 
             val items = ciphers
-                .sortedBy { it.name }
+                .sortedWith(StringComparatorIgnoreCase { it.name })
                 .map { cipher ->
                     ConfirmationRoute.Args.Item.StringItem(
                         key = cipher.id,
@@ -444,7 +445,7 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
 
             val items = ciphers
                 .filter { it.type == DSecret.Type.Login }
-                .sortedBy { it.name }
+                .sortedWith(StringComparatorIgnoreCase { it.name })
                 .map { cipher ->
                     ConfirmationRoute.Args.Item.StringItem(
                         key = cipher.id,

@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -189,7 +190,7 @@ fun foldersScreenState(
                         translate(Res.strings.folder_action_change_name_title)
                     },
                     items = folders
-                        .sortedBy { it.name }
+                        .sortedWith(StringComparatorIgnoreCase { it.name })
                         .map { folder ->
                             ConfirmationRoute.Args.Item.StringItem(
                                 key = folder.id,

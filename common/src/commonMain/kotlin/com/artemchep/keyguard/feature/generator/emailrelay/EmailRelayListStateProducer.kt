@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
 import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
@@ -200,7 +201,7 @@ fun produceEmailRelayListState(
                     .partially1(emailRelay),
             )
         }
-        .sortedBy { it.title }
+        .sortedWith(StringComparatorIgnoreCase { it.title })
         .toImmutableList()
 
     val itemsRawFlow = getEmailRelays()

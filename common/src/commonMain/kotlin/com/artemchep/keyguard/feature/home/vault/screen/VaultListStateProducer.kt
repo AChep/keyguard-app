@@ -60,6 +60,7 @@ import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
@@ -284,7 +285,7 @@ fun vaultListScreenState(
                     icon = icon(Icons.Outlined.Edit),
                     title = "Change folder name",
                     items = folders
-                        .sortedBy { it.name }
+                        .sortedWith(StringComparatorIgnoreCase { it.name })
                         .map { folder ->
                             ConfirmationRoute.Args.Item.StringItem(
                                 key = folder.id,

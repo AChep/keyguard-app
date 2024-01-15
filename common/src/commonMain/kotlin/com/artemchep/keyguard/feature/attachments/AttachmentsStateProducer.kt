@@ -30,6 +30,7 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
@@ -239,7 +240,7 @@ fun produceAttachmentsScreenState(
                 .map { list ->
                     list
                         .filterNotNull()
-                        .sortedBy { it.item.name }
+                        .sortedWith(StringComparatorIgnoreCase { it.item.name })
                 }
         }
         .shareInScreenScope()

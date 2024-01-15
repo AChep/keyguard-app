@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.contains
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
@@ -230,7 +231,7 @@ fun organizationConfirmationState(
         accountsFlow,
     ) { organizations, accounts ->
         organizations
-            .sortedBy { it.name }
+            .sortedWith(StringComparatorIgnoreCase { it.name })
             .map { organization ->
                 val enabled = organization.id !in args.blacklistedOrganizationIds
                 OrganizationVariant(
@@ -274,7 +275,7 @@ fun organizationConfirmationState(
         accountsFlow,
     ) { folders, accounts ->
         folders
-            .sortedBy { it.name }
+            .sortedWith(StringComparatorIgnoreCase { it.name })
             .map { folder ->
                 val enabled = folder.id !in args.blacklistedFolderIds
                 FolderVariant(

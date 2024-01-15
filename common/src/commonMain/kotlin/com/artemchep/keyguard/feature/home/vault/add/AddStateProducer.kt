@@ -88,6 +88,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.foldAsList
@@ -1965,7 +1966,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         }
 
         val selectedCollections = collections
-            .sortedBy { it.name }
+            .sortedWith(StringComparatorIgnoreCase { it.name })
             .filter { it.id in collectionIds }
         val el = AddState.SaveToElement(
             readOnly = ro,

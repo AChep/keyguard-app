@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.usecase.GetFolderTree
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
@@ -560,7 +561,7 @@ suspend fun <
                         title = name,
                     )
                 }
-                .sortedBy { it.title }
+                .sortedWith(StringComparatorIgnoreCase { it.title })
                 .toList() +
                     createCollectionFilterAction(
                         collectionIds = setOfNull,
@@ -602,7 +603,7 @@ suspend fun <
                         title = name,
                     )
                 }
-                .sortedBy { it.title }
+                .sortedWith(StringComparatorIgnoreCase { it.title })
                 .toList() +
                     createOrganizationFilterAction(
                         organizationIds = setOfNull,

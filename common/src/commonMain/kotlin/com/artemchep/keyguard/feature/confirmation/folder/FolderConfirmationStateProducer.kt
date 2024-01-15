@@ -9,6 +9,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
@@ -130,7 +131,7 @@ fun folderConfirmationState(
         .map { folders ->
             val items = folders
                 .filter { it.accountId == args.accountId.id }
-                .sortedBy { it.name }
+                .sortedWith(StringComparatorIgnoreCase { it.name })
                 .map { folder ->
                     val folderEnabled = folder.id !in args.blacklistedFolderIds
                     val folderInfo = FolderVariant.FolderInfo.Id(

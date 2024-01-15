@@ -438,7 +438,7 @@ fun HomeScreenContent(
                                             {
                                                 Text(
                                                     text = textResource(r.label),
-                                                    maxLines = 2,
+                                                    maxLines = 1,
                                                     textAlign = TextAlign.Center,
                                                     // Default style does not fit on devices with small
                                                     // screens.

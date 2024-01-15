@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.relays.api.EmailRelaySchema
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.provider.bitwarden.api.builder.ensureSuffix
 import com.artemchep.keyguard.res.Res
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -26,12 +27,15 @@ class SimpleLoginEmailRelay(
     private val httpClient: HttpClient,
 ) : EmailRelay {
     companion object {
-        private const val ENDPOINT = "https://app.simplelogin.io/api/alias/random/new"
+        private const val ENDPOINT_BASE_URL = "https://app.simplelogin.io/"
+        private const val ENDPOINT_PATH = "api/alias/random/new"
 
         private const val KEY_API_KEY = "apiKey"
         private const val HINT_API_KEY =
             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         private const val KEY_MODE = "mode"
+        private const val KEY_BASE_URL = "base_url"
+        private const val HINT_BASE_URL = ENDPOINT_BASE_URL
     }
 
     override val type = "SimpleLogin"
@@ -48,6 +52,12 @@ class SimpleLoginEmailRelay(
             type = ConfirmationRoute.Args.Item.StringItem.Type.Token,
             canBeEmpty = false,
         ),
+        KEY_BASE_URL to EmailRelaySchema(
+            title = TextHolder.Res(Res.strings.emailrelay_base_env_server_url_label),
+            hint = TextHolder.Value(HINT_BASE_URL),
+            description = TextHolder.Res(Res.strings.emailrelay_base_env_note),
+            canBeEmpty = true,
+        ),
     )
 
     constructor(directDI: DirectDI) : this(
@@ -61,6 +71,13 @@ class SimpleLoginEmailRelay(
         val apiKey = requireNotNull(config[KEY_API_KEY]) {
             "API key is required for creating an email alias."
         }
+        val apiUrl = kotlin.run {
+            val baseUrl = config[KEY_BASE_URL]
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?: ENDPOINT_BASE_URL
+            baseUrl.ensureSuffix("/") + ENDPOINT_PATH
+        }
         // Create a new random alias.
         //
         // - Authentication header that contains the api key
@@ -72,7 +89,7 @@ class SimpleLoginEmailRelay(
         //
         // https://github.com/simple-login/app/blob/master/docs/api.md#post-apialiasrandomnew
         val response = httpClient
-            .post(ENDPOINT) {
+            .post(apiUrl) {
                 header("Authentication", apiKey)
 
                 // Optional parameters.

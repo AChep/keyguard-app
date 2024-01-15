@@ -283,7 +283,11 @@ fun vaultListScreenState(
             route = ConfirmationRoute(
                 args = ConfirmationRoute.Args(
                     icon = icon(Icons.Outlined.Edit),
-                    title = "Change folder name",
+                    title = if (folders.size > 1) {
+                        translate(Res.strings.folder_action_change_names_title)
+                    } else {
+                        translate(Res.strings.folder_action_change_name_title)
+                    },
                     items = folders
                         .sortedWith(StringComparatorIgnoreCase { it.name })
                         .map { folder ->

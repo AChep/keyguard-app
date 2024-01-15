@@ -53,6 +53,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.badgeContainer
 
@@ -513,6 +514,9 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
             }
         },
         title = title,
+        trailing = {
+            ChevronIcon()
+        },
         onClick = {
             val intent = NavigationIntent.NavigateToRoute(
                 VaultViewPasswordHistoryRoute(

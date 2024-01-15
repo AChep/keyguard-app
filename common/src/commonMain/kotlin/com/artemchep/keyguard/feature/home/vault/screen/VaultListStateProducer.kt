@@ -384,6 +384,9 @@ fun vaultListScreenState(
                 Icon(Icons.Outlined.Delete, null)
             },
             title = translate(Res.strings.trash),
+            trailing = {
+                ChevronIcon()
+            },
             onClick = {
                 val newArgs = args.copy(
                     appBar = VaultRoute.Args.AppBar(
@@ -406,6 +409,9 @@ fun vaultListScreenState(
                 Icon(Icons.Outlined.Download, null)
             },
             title = translate(Res.strings.downloads),
+            trailing = {
+                ChevronIcon()
+            },
             onClick = {
                 val route = AttachmentsRoute()
                 val intent = NavigationIntent.NavigateToRoute(route)

@@ -17,7 +17,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a support for creating & using **passkeys** - a modern alternative to passwords.
 - a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
-- add items 🌠, modify 🌠, and view your vault **offline** _(requires Premium ).
+- add items 🌠, modify 🌠, and view your vault **offline**.
 - beautiful **Light**/**Dark theme**;
 - a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!

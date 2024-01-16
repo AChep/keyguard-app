@@ -14,6 +14,7 @@ import org.bouncycastle.crypto.AsymmetricBlockCipher
 import org.bouncycastle.crypto.BufferedBlockCipher
 import org.bouncycastle.crypto.CipherParameters
 import org.bouncycastle.crypto.digests.SHA1Digest
+import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.encodings.OAEPEncoding
 import org.bouncycastle.crypto.engines.AESEngine
 import org.bouncycastle.crypto.engines.RSAEngine
@@ -57,10 +58,10 @@ class CipherEncryptorImpl(
         )
     }.getOrElse { e ->
         val msg = kotlin.run {
-            val cipherSeq = cipher
-                .splitToSequence(".", limit = 1)
-                .firstOrNull()
-            "Failed to decode a cipher-text '${cipherSeq.orEmpty()}.???'!"
+            val type = cipher
+                .substringBefore('.')
+            val cause = e.localizedMessage ?: e.message
+            "Failed to decode a cipher-text '${type}.???'! Cause: $cause"
         }
         throw DecodeException(msg, e)
     }
@@ -166,7 +167,7 @@ class CipherEncryptorImpl(
                 }
 
                 decodeRsa2048_OaepSha256_B64(
-                    cipherContent,
+                    cipherArgs,
                     privateKey = asymmetricCryptoKey.privateKey,
                 )
             }
@@ -178,17 +179,33 @@ class CipherEncryptorImpl(
                 }
 
                 decodeRsa2048_OaepSha1_B64(
-                    cipherContent,
+                    cipherArgs,
                     privateKey = asymmetricCryptoKey.privateKey,
                 )
             }
 
             CipherEncryptor.Type.Rsa2048_OaepSha256_HmacSha256_B64 -> {
-                TODO("Decoding cipher type $cipherType is not supported yet.")
+                requireNotNull(asymmetricCryptoKey) {
+                    "Asymmetric Crypto Key must not be null, " +
+                            "for decoding $cipherType."
+                }
+
+                decodeRsa2048_OaepSha256_HmacSha256_B64(
+                    cipherArgs,
+                    privateKey = asymmetricCryptoKey.privateKey,
+                )
             }
 
             CipherEncryptor.Type.Rsa2048_OaepSha1_HmacSha256_B64 -> {
-                TODO("Decoding cipher type $cipherType is not supported yet.")
+                requireNotNull(asymmetricCryptoKey) {
+                    "Asymmetric Crypto Key must not be null, " +
+                            "for decoding $cipherType."
+                }
+
+                decodeRsa2048_OaepSha1_HmacSha256_B64(
+                    cipherArgs,
+                    privateKey = asymmetricCryptoKey.privateKey,
+                )
             }
         }
         return DecodeResult(
@@ -292,83 +309,43 @@ class CipherEncryptorImpl(
     }
 
     private fun decodeRsa2048_OaepSha256_B64(
-        cipher: String,
+        args: List<ByteArray>,
         privateKey: ByteArray,
     ): ByteArray = kotlin.run {
-        val (rsaCt) = cipher
-            .split(CIPHER_DIVIDER)
-            .apply {
-                check(size == 1) {
-                    "The cipher must consist of exactly 1 part: rsaCt. The current cipher " +
-                            "contains $size parts which may cause unknown behaviour!"
-                }
-            }
-            .map { base64 ->
-                base64Service.decode(base64)
-            }
-        TODO()
-    }
-
-    private fun decodeRsa2048_OaepSha1_B64(
-        cipher: String,
-        privateKey: ByteArray,
-    ): ByteArray = kotlin.run {
-        val (rsaCt) = cipher
-            .split(CIPHER_DIVIDER)
-            .apply {
-                check(size == 1) {
-                    "The cipher must consist of exactly 1 part: rsaCt. The current cipher " +
-                            "contains $size parts which may cause unknown behaviour!"
-                }
-            }
-            .map { base64 ->
-                base64Service.decode(base64)
-            }
+        check(args.size == 1) {
+            "The cipher must consist of exactly 1 part: rsaCt. The current cipher " +
+                    "contains ${args.size} parts which may cause unknown behaviour!"
+        }
+        val (ct) = args
 
         val a = ASN1Sequence.fromByteArray(privateKey)
         val b = PrivateKeyInfo.getInstance(a)
         val d = PrivateKeyFactory.createKey(b) as RSAPrivateCrtKeyParameters
-        val pub = RSAKeyParameters(false, d.modulus, d.publicExponent)
-//        public Task<byte[]> RsaExtractPublicKeyAsync(byte[] privateKey)
-//        {
-//            // Have to specify some algorithm
-//            var provider = AsymmetricKeyAlgorithmProvider.OpenAlgorithm(AsymmetricAlgorithm.RsaOaepSha1);
-//            var cryptoKey = provider.ImportKeyPair(privateKey, CryptographicPrivateKeyBlobType.Pkcs8RawPrivateKeyInfo);
-//            return Task.FromResult(cryptoKey.ExportPublicKey(CryptographicPublicKeyBlobType.X509SubjectPublicKeyInfo));
-//        }
 
-        val q1 = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(pub)
-
-        val pubKey = RSAPublicKey.getInstance(q1.parsePublicKey())
-        val p = PublicKeyFactory.createKey(q1)
-        val fm = ubyteArrayOf(
-            48u,
-            130u,
-            1u,
-            34u,
-            48u,
-            13u,
-            6u,
-            9u,
-            42u,
-            134u,
-            72u,
-            134u,
-            247u,
-            13u,
-            1u,
-            1u,
-            1u,
-            5u,
-            0u,
-            3u,
-            130u,
-            1u,
-            15u,
-            0u,
+        val oaep = OAEPEncoding(
+            RSAEngine(),
+            SHA256Digest(),
+            SHA256Digest(),
+            null,
         )
-        // "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5CsnpH25EPMguTAvnlW807PSM3o3RBjsCCzdNm3VNgK1Z4JSMyGnFOZq9ZZRHArV3kIYYGDZiP5kn5jw6g2XyBUbpLXw87N8jtzTENOuoUr+zQfKQX/H9w006bvENlm7LhTzL0SQbhcdzs1amqxajtzAS92YtOXizAGsYl8SieGl8OVYZNP3mbpsUpAtD/XtiDGxVo23yQ39w/6X3VYo6wYO2QY9aNCYDcLYYJ2D0y/2ocdD/QvibIVz7+4eA15p8HDWm++o9BlwZL9xZbk4x3DwWWz5Gy7hZk/tNpUgnqWFToxCRBgcMlBaI2VH6jX1ZxhUBXpEkK++n4Yz4BjRcQIDAQAB"
-        // "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5CsnpH25EPMguTAvnlW807PSM3o3RBjsCCzdNm3VNgK1Z4JSMyGnFOZq9ZZRHArV3kIYYGDZiP5kn5jw6g2XyBUbpLXw87N8jtzTENOuoUr+zQfKQX/H9w006bvENlm7LhTzL0SQbhcdzs1amqxajtzAS92YtOXizAGsYl8SieGl8OVYZNP3mbpsUpAtD/XtiDGxVo23yQ39w/6X3VYo6wYO2QY9aNCYDcLYYJ2D0y/2ocdD/QvibIVz7+4eA15p8HDWm++o9BlwZL9xZbk4x3DwWWz5Gy7hZk/tNpUgnqWFToxCRBgcMlBaI2VH6jX1ZxhUBXpEkK++n4Yz4BjRcQIDAQAB"
+        oaep.init(false, d)
+        val f = cipherData(oaep, ct)
+        f
+    }
+
+    private fun decodeRsa2048_OaepSha1_B64(
+        args: List<ByteArray>,
+        privateKey: ByteArray,
+    ): ByteArray = kotlin.run {
+        check(args.size == 1) {
+            "The cipher must consist of exactly 1 part: rsaCt. The current cipher " +
+                    "contains ${args.size} parts which may cause unknown behaviour!"
+        }
+        val (ct) = args
+
+        val a = ASN1Sequence.fromByteArray(privateKey)
+        val b = PrivateKeyInfo.getInstance(a)
+        val d = PrivateKeyFactory.createKey(b) as RSAPrivateCrtKeyParameters
 
         val oaep = OAEPEncoding(
             RSAEngine(),
@@ -377,7 +354,57 @@ class CipherEncryptorImpl(
             null,
         )
         oaep.init(false, d)
-        val f = cipherData(oaep, rsaCt)
+        val f = cipherData(oaep, ct)
+        f
+    }
+
+    private fun decodeRsa2048_OaepSha256_HmacSha256_B64(
+        args: List<ByteArray>,
+        privateKey: ByteArray,
+    ): ByteArray = kotlin.run {
+        check(args.size == 2) {
+            "The cipher must consist of exactly 2 parts: rsaCt, mac. The current cipher " +
+                    "contains ${args.size} parts which may cause unknown behaviour!"
+        }
+        val (ct, mac) = args
+
+        val a = ASN1Sequence.fromByteArray(privateKey)
+        val b = PrivateKeyInfo.getInstance(a)
+        val d = PrivateKeyFactory.createKey(b) as RSAPrivateCrtKeyParameters
+
+        val oaep = OAEPEncoding(
+            RSAEngine(),
+            SHA256Digest(),
+            SHA256Digest(),
+            null,
+        )
+        oaep.init(false, d)
+        val f = cipherData(oaep, ct)
+        f
+    }
+
+    private fun decodeRsa2048_OaepSha1_HmacSha256_B64(
+        args: List<ByteArray>,
+        privateKey: ByteArray,
+    ): ByteArray = kotlin.run {
+        check(args.size == 2) {
+            "The cipher must consist of exactly 2 parts: rsaCt, mac. The current cipher " +
+                    "contains ${args.size} parts which may cause unknown behaviour!"
+        }
+        val (ct, mac) = args
+
+        val a = ASN1Sequence.fromByteArray(privateKey)
+        val b = PrivateKeyInfo.getInstance(a)
+        val d = PrivateKeyFactory.createKey(b) as RSAPrivateCrtKeyParameters
+
+        val oaep = OAEPEncoding(
+            RSAEngine(),
+            SHA1Digest(),
+            SHA1Digest(),
+            null,
+        )
+        oaep.init(false, d)
+        val f = cipherData(oaep, ct)
         f
     }
 
@@ -386,20 +413,6 @@ class CipherEncryptorImpl(
         val result = cipher.processBlock(data, 0, data.size)
         return result
     }
-
-    private fun decodeRsa2048_OaepSha256_HmacSha256_B64(
-        cipher: String,
-        encKey: ByteArray,
-        macKey: ByteArray,
-        privateKey: ByteArray,
-    ): ByteArray = TODO()
-
-    private fun decodeRsa2048_OaepSha1_HmacSha256_B64(
-        cipher: String,
-        encKey: ByteArray,
-        macKey: ByteArray,
-        privateKey: ByteArray,
-    ): ByteArray = TODO()
 
     override fun encode2(
         cipherType: CipherEncryptor.Type,

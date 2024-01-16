@@ -69,7 +69,7 @@ sealed interface GeneratorType2 {
         val emailRelay: com.artemchep.keyguard.common.service.relays.api.EmailRelay,
         val config: DGeneratorEmailRelay,
     ) : GeneratorType2 {
-        override val key: String = "EMAIL_RELAY:${emailRelay.type}"
+        override val key: String = "EMAIL_RELAY:${emailRelay.type}:${config.id}"
         override val group: String = GENERATOR_TYPE_GROUP_INTEGRATION
         override val title: TextHolder = TextHolder.Value(config.name)
         override val username: Boolean = true

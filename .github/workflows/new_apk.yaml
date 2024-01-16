@@ -1,0 +1,49 @@
+name: "New APK"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android-app:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Set up JDK 17"
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - name: "Prepare env"
+        run: |
+          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
+          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo "" >> gradle.properties
+          echo buildkonfig.flavor=release >> gradle.properties
+      - name: "Check and Build licenses"
+        uses: eskatos/gradle-command-action@v2
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+        with:
+          arguments: :androidApp:licenseeAndroidNoneRelease
+      - name: "Move licenses"
+        run: |
+          mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/resources/MR/files/licenses.json
+      - name: "./gradlew :androidApp:assembleNoneRelease"
+        uses: eskatos/gradle-command-action@v2
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+        with:
+          arguments: :androidApp:assembleNoneRelease
+      - name: 'Upload .apk'
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-android
+          path: |
+            androidApp/build/outputs/apk/**/*.apk
+            androidApp/build/outputs/mapping/**/mapping.txt
+          retention-days: 7

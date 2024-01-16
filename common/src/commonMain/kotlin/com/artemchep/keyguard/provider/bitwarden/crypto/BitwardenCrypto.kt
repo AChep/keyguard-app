@@ -182,11 +182,19 @@ private fun Decoder.withExceptionHandling(
         val result = kotlin.runCatching {
             this(cipherText)
         }.getOrElse { e ->
+            val type = cipherText.substringBefore('.')
+                // If the cipher text for some reason doesn't have a
+                // dot separated type, then take only first N symbols
+                // to avoid showing the whole cipher text in the error
+                // message.
+                .take(8)
             val info = listOfNotNull(
                 symmetricCryptoKey?.let { "symmetric key is ${it.data.size}b long" },
                 asymmetricCryptoKey?.let { "asymmetric key is ${it.privateKey.size}b long" },
             ).joinToString()
-            val msg = "Failed to decode a cipher-text: $key, $info"
+            val cause = e.localizedMessage ?: e.message
+            val msg = "Failed to decode a cipher-text with the type '$type': $key, $info. " +
+                    "$cause"
             throw DecodeException(msg, e)
         }
         result

@@ -455,7 +455,7 @@
     <string name="emailrelay_integration_title">Integração de encaminhamento de e-mail</string>
     <string name="emailrelay_empty_label">Sem encaminhamentos de e-mail</string>
     <string name="emailrelay_base_env_server_url_label">Endereço do servidor</string>
-    <string name="emailrelay_base_env_note">Indique o endereço de base da sua instalação do Bitwarden.</string>
+    <string name="emailrelay_base_env_note">Especifique o URL de raíz da sua instalação auto-hospedada.</string>
     <string name="wordlist_list_header_title">Listas de palavras</string>
     <string name="wordlist_list_section_title">Listas de palavras</string>
     <string name="wordlist_delete_one_confirmation_title">Apagar lista de palavras?</string>

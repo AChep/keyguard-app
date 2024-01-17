@@ -3,8 +3,9 @@ package com.artemchep.keyguard.copy
 import com.artemchep.keyguard.common.service.text.TextService
 import dev.icerock.moko.resources.FileResource
 import org.kodein.di.DirectDI
+import java.io.File
 import java.io.InputStream
-import kotlin.io.path.Path
+import java.net.URI
 
 class TextServiceJvm() : TextService {
     constructor(
@@ -19,14 +20,14 @@ class TextServiceJvm() : TextService {
         .getResourceAsStream(filePath)!!
 
     override fun readFromFile(uri: String): InputStream {
-        when {
-            uri.startsWith("file://") -> {
-                return Path(uri)
-                    .toFile()
-                    .inputStream()
+        val parsedUri = URI.create(uri)
+        return when (parsedUri.scheme) {
+            "file" -> {
+                val file = parsedUri.path.let(::File)
+                file.inputStream()
             }
             else -> {
-                throw IllegalStateException("Unsupported URI protocol.")
+                throw IllegalStateException("Unsupported URI protocol, could not read '$uri'.")
             }
         }
     }

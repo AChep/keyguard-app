@@ -12,4 +12,4 @@ data class LeUriImpl(
 
 actual fun leParseUri(uri: String): LeUri = LeUriImpl(uri)
 
-actual fun leParseUri(file: File): LeUri = LeUriImpl(file.toPath().toString())
+actual fun leParseUri(file: File): LeUri = LeUriImpl(file.toURI().toString())

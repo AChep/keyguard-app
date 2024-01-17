@@ -154,8 +154,6 @@ fun VaultViewValueItem(
                     },
                 )
             }
-            val sharedFLow = MutableSharedFlow<Unit>()
-            sharedFLow.tryEmit(Unit)
             val onCopyAction = remember(item.dropdown) {
                 item.dropdown
                     .firstNotNullOfOrNull {

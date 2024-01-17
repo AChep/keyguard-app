@@ -22,6 +22,7 @@ data class LargeTypeRoute(
             translator: TranslatorScope,
             text: String,
             colorize: Boolean = false,
+            split: Boolean = false,
             navigate: (NavigationIntent) -> Unit,
         ) = if (text.length > 128) {
             null
@@ -30,6 +31,7 @@ data class LargeTypeRoute(
                 translator = translator,
                 text = text,
                 colorize = colorize,
+                split = split,
                 navigate = navigate,
             )
         }
@@ -38,6 +40,7 @@ data class LargeTypeRoute(
             translator: TranslatorScope,
             text: String,
             colorize: Boolean = false,
+            split: Boolean = false,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
             leading = icon(Icons.Outlined.KeyguardLargeType),
@@ -45,7 +48,7 @@ data class LargeTypeRoute(
             onClick = {
                 val route = LargeTypeRoute(
                     args = Args(
-                        text = text,
+                        phrases = if (split) text.split(" ") else listOf(text),
                         colorize = colorize,
                     ),
                 )
@@ -58,6 +61,7 @@ data class LargeTypeRoute(
             translator: TranslatorScope,
             text: String,
             colorize: Boolean = false,
+            split: Boolean = false,
             navigate: (NavigationIntent) -> Unit,
         ) = if (text.length > 128 || CurrentPlatform !is Platform.Mobile) {
             null
@@ -66,6 +70,7 @@ data class LargeTypeRoute(
                 translator = translator,
                 text = text,
                 colorize = colorize,
+                split = split,
                 navigate = navigate,
             )
         }
@@ -74,13 +79,14 @@ data class LargeTypeRoute(
             translator: TranslatorScope,
             text: String,
             colorize: Boolean = false,
+            split: Boolean = false,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
             leading = iconSmall(Icons.Outlined.KeyguardLargeType, Icons.Filled.Lock),
             title = translator.translate(Res.strings.largetype_action_show_in_large_type_and_lock_title),
             onClick = {
                 val intent = NavigationIntent.NavigateToLargeType(
-                    text = text,
+                    phrases = if (split) text.split(" ") else listOf(text),
                     colorize = colorize,
                 )
                 navigate(intent)
@@ -89,7 +95,7 @@ data class LargeTypeRoute(
     }
 
     data class Args(
-        val text: String,
+        val phrases: List<String>,
         val colorize: Boolean,
     )
 

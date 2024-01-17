@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.common.util.asCodePointsSequence
+import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.map
 
 @Composable
@@ -30,28 +31,41 @@ fun produceLargeTypeScreenState(
         selectedPositionSink.value = index
     }
 
-    val text = if (args.text.any { it.isSurrogate() }) {
-        "Text contains composite Unicode symbols!"
+    val hasUnicodeSurrogates = args.phrases
+        .any { phrase ->
+            phrase.any { it.isSurrogate() }
+        }
+    val text = if (hasUnicodeSurrogates) {
+        translate(Res.strings.largetype_unicode_surrogate_note)
     } else {
         null
     }
 
-    val items = args.text
-        .asCodePointsSequence()
-        .mapIndexed { index, codePoint ->
-            LargeTypeState.Item(
-                text = codePoint,
-                colorize = args.colorize,
-                onClick = ::onClickCodePoint.partially1(index),
-            )
+    val groups = args.phrases
+        .mapIndexed { phraseIndex, phrase ->
+            val offset = args.phrases
+                .take(phraseIndex)
+                .sumOf { it.length }
+            phrase
+                .asCodePointsSequence()
+                .mapIndexed { index, codePoint ->
+                    val finalIndex = offset + index
+                    LargeTypeState.Item(
+                        text = codePoint,
+                        index = finalIndex,
+                        colorize = args.colorize,
+                        onClick = ::onClickCodePoint
+                            .partially1(finalIndex),
+                    )
+                }
+                .toList()
         }
-        .toList()
     selectedPositionSink
         .map { index ->
             val state = LargeTypeState(
                 text = text,
                 index = index,
-                items = items,
+                groups = groups,
                 onClose = ::onClose,
             )
             Loadable.Ok(state)

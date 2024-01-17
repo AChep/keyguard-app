@@ -49,7 +49,7 @@ class LargeTypeActivity : BaseActivity() {
 
     @Parcelize
     data class Args(
-        val text: String,
+        val phrases: List<String>,
         val colorize: Boolean,
     ) : Parcelable
 
@@ -64,7 +64,7 @@ class LargeTypeActivity : BaseActivity() {
 
     private val route by lazy {
         LargeTypeRoute(
-            text = args.text,
+            phrases = args.phrases,
             colorize = args.colorize,
         )
     }
@@ -84,13 +84,13 @@ class LargeTypeActivity : BaseActivity() {
 }
 
 private class LargeTypeRoute(
-    val text: String,
+    val phrases: List<String>,
     val colorize: Boolean,
 ) : Route {
     @Composable
     override fun Content() {
         LargeTypeScreen(
-            text = text,
+            phrases = phrases,
             colorize = colorize,
         )
     }
@@ -98,12 +98,12 @@ private class LargeTypeRoute(
 
 @Composable
 private fun LargeTypeScreen(
-    text: String,
+    phrases: List<String>,
     colorize: Boolean,
 ) {
     val loadableState = produceLargeTypeScreenState(
         com.artemchep.keyguard.feature.largetype.LargeTypeRoute.Args(
-            text = text,
+            phrases = phrases,
             colorize = colorize,
         ),
     )

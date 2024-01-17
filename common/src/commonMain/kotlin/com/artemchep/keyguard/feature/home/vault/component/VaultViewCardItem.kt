@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.CreditCardOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,10 +25,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
+import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
@@ -102,12 +106,12 @@ fun VaultViewCardItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Card,
 ) {
-    val passwordVisibility = remember {
-        mutableStateOf(!item.concealFields)
-    }
+    val cardNumber = item.data.number
 
     val updatedVerify by rememberUpdatedState(item.verify)
-    val cardNumber = item.data.number
+    val visibilityState = remember(
+        item.concealFields,
+    ) { mutableStateOf(!item.concealFields) }
     FlatDropdown(
         modifier = modifier,
         elevation = item.elevation,
@@ -129,7 +133,7 @@ fun VaultViewCardItem(
             Row {
                 if (cardNumber != null) {
                     val progress by animateFloatAsState(
-                        targetValue = if (passwordVisibility.value) {
+                        targetValue = if (visibilityState.value) {
                             1f
                         } else {
                             0f
@@ -182,6 +186,7 @@ fun VaultViewCardItem(
                     Text(
                         text = finalCardNumber,
                         style = MaterialTheme.typography.titleLarge,
+                        fontSize = 18.sp,
                         fontFamily = monoFontFamily,
                     )
                 } else {
@@ -191,8 +196,6 @@ fun VaultViewCardItem(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            modifier = Modifier
-                                .size(18.dp),
                             imageVector = Icons.Outlined.CreditCardOff,
                             tint = contentColor,
                             contentDescription = null,
@@ -204,27 +207,42 @@ fun VaultViewCardItem(
                         Text(
                             text = stringResource(Res.strings.card_number_empty_label),
                             color = contentColor,
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontSize = 18.sp,
+                            fontFamily = monoFontFamily,
                         )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row {
-                DateLabel(
-                    label = stringResource(Res.strings.card_valid_from),
-                    month = item.data.fromMonth,
-                    year = item.data.fromYear,
+            if (
+                item.data.fromMonth != null ||
+                item.data.fromYear != null ||
+                item.data.expMonth != null ||
+                item.data.expYear != null
+            ) {
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp),
                 )
-                DateLabel(
-                    label = stringResource(Res.strings.card_valid_to),
-                    month = item.data.expMonth,
-                    year = item.data.expYear,
-                )
+                Row {
+                    DateLabel(
+                        label = stringResource(Res.strings.card_valid_from),
+                        month = item.data.fromMonth,
+                        year = item.data.fromYear,
+                    )
+                    DateLabel(
+                        label = stringResource(Res.strings.card_valid_to),
+                        month = item.data.expMonth,
+                        year = item.data.expYear,
+                    )
+                }
             }
             val cardholderName = item.data.cardholderName
             if (cardholderName != null) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier = Modifier
+                        .height(8.dp),
+                )
                 Text(
                     text = cardholderName,
                     style = MaterialTheme.typography.bodyMedium,
@@ -232,11 +250,10 @@ fun VaultViewCardItem(
                 )
             }
         },
-        trailing = if (cardNumber != null) {
-            // composable
-            {
+        trailing = {
+            if (item.concealFields && cardNumber != null) {
                 VisibilityToggle(
-                    visible = passwordVisibility.value,
+                    visible = visibilityState.value,
                     onVisibleChange = { shouldBeConcealed ->
                         val verify = updatedVerify
                         if (
@@ -244,20 +261,38 @@ fun VaultViewCardItem(
                             shouldBeConcealed
                         ) {
                             verify.invoke {
-                                passwordVisibility.value = true
+                                visibilityState.value = true
                             }
                             return@VisibilityToggle
                         }
 
-                        passwordVisibility.value = shouldBeConcealed
+                        visibilityState.value = shouldBeConcealed
                     },
                 )
             }
-        } else {
-            null
+            val onCopyAction = remember(item.dropdown) {
+                item.dropdown
+                    .firstNotNullOfOrNull {
+                        val action = it as? FlatItemAction
+                        action?.takeIf { it.type == FlatItemAction.Type.COPY }
+                    }
+            }
+            if (onCopyAction != null) {
+                val onCopy = onCopyAction.onClick
+                IconButton(
+                    enabled = onCopy != null,
+                    onClick = {
+                        onCopy?.invoke()
+                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentCopy,
+                        contentDescription = null,
+                    )
+                }
+            }
         },
         dropdown = item.dropdown,
-        actions = item.actions,
     )
 }
 

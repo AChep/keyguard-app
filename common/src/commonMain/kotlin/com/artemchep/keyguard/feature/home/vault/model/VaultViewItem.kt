@@ -16,7 +16,9 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.StateFlow
 
 @optics
@@ -31,12 +33,7 @@ sealed interface VaultViewItem {
         val data: DSecret.Card,
         val concealFields: Boolean,
         val verify: ((() -> Unit) -> Unit)? = null,
-        /**
-         * List of the callable actions appended
-         * to the item.
-         */
-        val actions: List<FlatItemAction> = emptyList(),
-        val dropdown: List<FlatItemAction> = emptyList(),
+        val dropdown: ImmutableList<ContextItem> = persistentListOf(),
     ) : VaultViewItem {
         companion object
     }

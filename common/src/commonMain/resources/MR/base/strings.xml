@@ -458,6 +458,7 @@
     <string name="largetype_title">Large Type</string>
     <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
 
     <string name="apppicker_header_title">App Picker</string>
     <string name="apppicker_search_placeholder">Search installed apps</string>

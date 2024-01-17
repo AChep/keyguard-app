@@ -177,11 +177,13 @@ fun CopyText.FlatItemAction(
     title: String,
     value: String?,
     hidden: Boolean = false,
+    type: CopyText.Type = CopyText.Type.VALUE,
 ) = value?.let {
     FlatItemAction(
         title = title,
         value = it,
         hidden = hidden,
+        type = type,
     )
 }
 

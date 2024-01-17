@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Android
@@ -16,7 +15,6 @@ import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Launch
@@ -44,7 +42,6 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
-import com.artemchep.keyguard.common.exception.Readable
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
@@ -83,14 +80,6 @@ import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
-import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.CommentPlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.CustomPlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.DateTimePlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.EnvironmentPlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.TextReplaceRegexPlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.TextTransformPlaceholder
-import com.artemchep.keyguard.common.service.placeholder.impl.UrlPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
@@ -150,6 +139,7 @@ import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
@@ -167,7 +157,6 @@ import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
@@ -541,7 +530,7 @@ fun vaultViewScreenState(
                                 val urlOverrideList = urlOverrides
                                     .filter { override ->
                                         override.enabled &&
-                                            override.regex.matches(newUriString)
+                                                override.regex.matches(newUriString)
                                     }
                                     .map { override ->
                                         val contentOrException = Either.catch {
@@ -859,7 +848,6 @@ private fun RememberStateFlowScope.oh(
     val cipherCard = cipher.card
     if (cipherCard != null) {
         val model = create(
-            translatorScope = this@oh,
             copy = copy,
             id = "card",
             verify = verify.takeIf { concealFields },
@@ -2603,40 +2591,75 @@ fun RememberStateFlowScope.create(
     )
 }
 
-private fun create(
-    translatorScope: TranslatorScope,
+private fun RememberStateFlowScope.create(
     copy: CopyText,
     id: String,
     verify: ((() -> Unit) -> Unit)? = null,
     concealFields: Boolean,
     data: DSecret.Card,
 ): VaultViewItem {
-    val actions = listOfNotNull(
-        copy.FlatItemAction(
-            title = translatorScope.translate(Res.strings.copy_card_number),
-            value = data.number,
-            hidden = concealFields,
-        )?.verify(verify),
-    )
-    val dropdown = listOfNotNull(
-        copy.FlatItemAction(
-            title = translatorScope.translate(Res.strings.copy_cardholder_name),
-            value = data.cardholderName,
-        ),
-        copy.FlatItemAction(
-            title = translatorScope.translate(Res.strings.copy_expiration_month),
-            value = data.expMonth,
-        ),
-        copy.FlatItemAction(
-            title = translatorScope.translate(Res.strings.copy_expiration_year),
-            value = data.expYear,
-        ),
-    )
+    val dropdown = buildContextItems {
+        section {
+            this += copy.FlatItemAction(
+                title = translate(Res.strings.copy_card_number),
+                value = data.number,
+                hidden = concealFields,
+                type = CopyText.Type.CARD_NUMBER,
+            )?.verify(verify)
+            this += copy.FlatItemAction(
+                title = translate(Res.strings.copy_cardholder_name),
+                value = data.cardholderName,
+                type = CopyText.Type.CARD_CARDHOLDER_NAME,
+            )
+            this += copy.FlatItemAction(
+                title = translate(Res.strings.copy_expiration_month),
+                value = data.expMonth,
+                type = CopyText.Type.CARD_EXP_MONTH,
+            )
+            this += copy.FlatItemAction(
+                title = translate(Res.strings.copy_expiration_year),
+                value = data.expYear,
+                type = CopyText.Type.CARD_EXP_YEAR,
+            )
+        }
+        section {
+            val cardNumber = data.number
+            if (cardNumber != null) {
+                val formattedCardNumber = formatCardNumber(cardNumber)
+                this += LargeTypeRoute.showInLargeTypeActionOrNull(
+                    translator = this@create,
+                    text = formattedCardNumber,
+                    split = true,
+                    navigate = ::navigate,
+                )?.verify(verify)
+                this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
+                    translator = this@create,
+                    text = formattedCardNumber,
+                    split = true,
+                    navigate = ::navigate,
+                )?.verify(verify)
+                this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+                    translator = this@create,
+                    data = cardNumber,
+                    format = BarcodeImageFormat.QR_CODE,
+                    navigate = ::navigate,
+                )?.verify(verify)
+                this += createShareAction(
+                    translator = this@create,
+                    text = cardNumber,
+                    navigate = ::navigate,
+                )?.verify(verify)
+                this += createSendActionOrNull(
+                    text = cardNumber,
+                    navigate = ::navigate,
+                )?.verify(verify)
+            }
+        }
+    }
     return VaultViewItem.Card(
         id = id,
         data = data,
         verify = verify,
-        actions = actions,
         dropdown = dropdown,
         concealFields = concealFields,
         elevation = 1.dp,

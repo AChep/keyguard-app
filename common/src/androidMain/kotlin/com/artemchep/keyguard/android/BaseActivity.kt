@@ -254,7 +254,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         val launchIntent = LargeTypeActivity.getIntent(
             context = this,
             args = LargeTypeActivity.Args(
-                text = intent.text,
+                phrases = intent.phrases,
                 colorize = intent.colorize,
             ),
         )

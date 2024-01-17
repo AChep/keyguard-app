@@ -29,7 +29,7 @@ sealed interface NavigationIntent {
     ) : NavigationIntent
 
     data class NavigateToLargeType(
-        val text: String,
+        val phrases: List<String>,
         val colorize: Boolean,
     ) : NavigationIntent
 

@@ -11,6 +11,9 @@ finish-args:
   - --device=dri
   - --talk-name=org.gtk.vfs.*
   - --filesystem=xdg-run/gvfsd
+  - --filesystem=xdg-download
+  - --filesystem=xdg-document:ro
+  - --filesystem=xdg-desktop:ro
 modules:
   - name: keyguard
     buildsystem: simple

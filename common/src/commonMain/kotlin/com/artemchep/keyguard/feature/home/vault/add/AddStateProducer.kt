@@ -2801,7 +2801,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
             code,
             codeSuggestions,
             expDate,
-            fromDate,
+            //fromDate,
             cardholderName,
             cardholderNameSuggestions,
         ),

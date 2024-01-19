@@ -165,7 +165,11 @@ data class BitwardenCipher(
             val password: String,
             val lastUsedDate: Instant? = null,
         ) {
-            val id = "$password|timestamp=$lastUsedDate"
+            val id = kotlin.run {
+                val timestamp = lastUsedDate
+                    ?.takeUnless { it.epochSeconds == 0L }
+                "$password|timestamp=$timestamp"
+            }
         }
 
         @Serializable

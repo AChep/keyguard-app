@@ -300,7 +300,7 @@ data class DSecret(
         @optics
         data class PasswordHistory(
             val password: String,
-            val lastUsedDate: Instant,
+            val lastUsedDate: Instant?,
         ) {
             companion object;
 

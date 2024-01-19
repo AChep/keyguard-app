@@ -163,7 +163,7 @@ data class BitwardenCipher(
         @Serializable
         data class PasswordHistory(
             val password: String,
-            val lastUsedDate: Instant,
+            val lastUsedDate: Instant? = null,
         ) {
             val id = "$password|timestamp=$lastUsedDate"
         }

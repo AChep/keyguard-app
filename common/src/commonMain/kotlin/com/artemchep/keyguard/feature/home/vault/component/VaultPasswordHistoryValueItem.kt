@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Password
@@ -43,10 +42,10 @@ fun VaultPasswordHistoryValueItem(
                         fontFamily = if (item.monospace) monoFontFamily else null,
                     )
                 },
-                text = if (item.title.isNotBlank()) {
+                text = if (!item.date.isNullOrBlank()) {
                     // composable
                     {
-                        Text(item.title)
+                        Text(item.date)
                     }
                 } else {
                     null

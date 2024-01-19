@@ -11,7 +11,7 @@ sealed interface VaultPasswordHistoryItem {
 
     data class Value(
         override val id: String,
-        val title: String,
+        val date: String?,
         val value: String,
         val monospace: Boolean,
         val selected: Boolean,

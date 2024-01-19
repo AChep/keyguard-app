@@ -12,5 +12,5 @@ data class PasswordHistoryEntity(
     val password: String,
     @JsonNames("lastUsedDate")
     @SerialName("LastUsedDate")
-    val lastUsedDate: Instant,
+    val lastUsedDate: Instant? = null,
 )

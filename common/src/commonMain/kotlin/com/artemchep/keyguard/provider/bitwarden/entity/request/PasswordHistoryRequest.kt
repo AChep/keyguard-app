@@ -10,7 +10,7 @@ data class PasswordHistoryRequest(
     @SerialName("password")
     val password: String,
     @SerialName("lastUsedDate")
-    val lastUsedDate: Instant,
+    val lastUsedDate: Instant?,
 )
 
 fun PasswordHistoryRequest.Companion.of(

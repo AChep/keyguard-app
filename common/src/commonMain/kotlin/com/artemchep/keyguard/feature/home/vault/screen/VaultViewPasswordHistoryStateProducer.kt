@@ -199,9 +199,11 @@ fun vaultViewPasswordHistoryScreenState(
             passwordHistory
                 .sortedByDescending { it.lastUsedDate }
                 .map { password ->
+                    val date = password.lastUsedDate
+                        ?.let(dateFormatter::formatDateTime)
                     TempPasswordHistory(
                         src = password,
-                        date = dateFormatter.formatDateTime(password.lastUsedDate),
+                        date = date,
                         actions = buildContextItems {
                             section {
                                 this += copyFactory.FlatItemAction(
@@ -255,7 +257,7 @@ fun vaultViewPasswordHistoryScreenState(
                         .partially1(password.id)
                     VaultPasswordHistoryItem.Value(
                         id = password.id,
-                        title = passwordWrapper.date,
+                        date = passwordWrapper.date,
                         value = password.password,
                         dropdown = passwordWrapper.actions,
                         monospace = true,
@@ -302,5 +304,5 @@ fun vaultViewPasswordHistoryScreenState(
 private data class TempPasswordHistory(
     val src: DSecret.Login.PasswordHistory,
     val actions: List<ContextItem>,
-    val date: String,
+    val date: String?,
 )

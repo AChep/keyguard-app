@@ -361,7 +361,7 @@
     ],
     "url": "https://ac.activehosted.com/f/2175",
     "difficulty": "hard",
-    "notes": "For account deletion requests or requests to remove all account information, submit the [Data Subject Rights Request form](https://ac.activehosted.com/f/2175). When asked \"What would you like to initiate with us?\" choose the option <b>I want to be forgotten, and want my personal data erased</b> in ."
+    "notes": "For account deletion requests or requests to remove all account information, submit the [Data Subject Rights Request form](https://ac.activehosted.com/f/2175). When asked \"What would you like to initiate with us?\" choose the option <b>\"I want to be forgotten, and want my personal data erased\"</b>."
   },
   {
     "name": "Activision",
@@ -857,6 +857,15 @@
     "notes": "Account deletion requires contacting Customer Support."
   },
   {
+    "name": "Amigo Secreto",
+    "domains": [
+      "amigosecreto.com.br"
+    ],
+    "url": "https://www.amigosecreto.com.br/",
+    "difficulty": "hard",
+    "notes": "You need to send them a message through [Whatsapp](https://wa.me/+5511912074002) requesting deletion. It takes roughly 20 days."
+  },
+  {
     "name": "Anaconda Nucleus",
     "domains": [
       "anaconda.cloud"
@@ -919,7 +928,7 @@
     ],
     "url": "https://anidb.net/perl-bin/animedb.pl?show=policies",
     "difficulty": "hard",
-    "notes": "Needs to contact customer support.",
+    "notes": "Account deletion requires contacting Customer Support.",
     "email": "info@anidb.net"
   },
   {
@@ -1223,7 +1232,7 @@
     ],
     "url": "https://www.ashampoo.com/en/usd/ppy",
     "difficulty": "hard",
-    "notes": "Request deletion by emailing privacy team. Ask them to close your account and send them your name and email address. You\u2019ll receive a mail back from them with a personal removal link in it",
+    "notes": "Request deletion by emailing privacy team. Ask them to close your account and send them your name and email address. You\u2019ll receive a mail back from them with a personal removal link in it.",
     "email": "privacy@ashampoo.com"
   },
   {
@@ -1709,6 +1718,20 @@
     "url": "https://help.bereal.com/hc/articles/7531255012381",
     "difficulty": "easy",
     "notes": "The exact steps vary by device. Account will be deleted after 15 days."
+  },
+  {
+    "name": "BerryByte",
+    "domains": [
+      "berrybyte.net",
+      "billing.berrybyte.net",
+      "blog.berrybyte.net",
+      "docs.berrybyte.net",
+      "game.berrybyte.net",
+      "status.berrybyte.net"
+    ],
+    "url": "https://billing.berrybyte.net/submitticket.php",
+    "difficulty": "hard",
+    "notes": "Log into your BerryByte client area and send a ticket asking for account deletion. If you only have a game control panel account, you can submit a ticket without having to login."
   },
   {
     "name": "Best Buy",
@@ -4259,7 +4282,7 @@
     ],
     "url": "https://www.drmartens.com/us/en/faq",
     "difficulty": "hard",
-    "notes": "Send an email stating that you want them to close your account. Include: full name on account, full billing address and registered email address. Once they confirm deletion it may take 7-10 days to take effect. "
+    "notes": "Send an email stating that you want them to close your account. Include: full name on account, full billing address and registered email address. Once they confirm deletion it may take 7-10 days to take effect."
   },
   {
     "name": "Draft",
@@ -5886,7 +5909,7 @@
     ],
     "url": "https://gameforge.com/support",
     "difficulty": "hard",
-    "notes": "You have to contact support in order to delete your account.",
+    "notes": "Account deletion requires contacting Customer Support.",
     "email": "support@gameforge.com"
   },
   {
@@ -7058,7 +7081,7 @@
     ],
     "url": "https://www.hackerrank.com/settings/account",
     "difficulty": "easy",
-    "notes": "According to the site you must go to the profile settings url and there will be a button called 'delete account' which will delete the account if it is wished to. "
+    "notes": "According to the site you must go to the profile settings url and there will be a button called 'delete account' which will delete the account if it is wished to."
   },
   {
     "name": "Happy Scribe",
@@ -8317,6 +8340,15 @@
     "email": "support@jsfiddle.net"
   },
   {
+    "name": "Jstris",
+    "domains": [
+      "jezevec10.com",
+      "jstris.jezevec10.com"
+    ],
+    "url": "https://jstris.jezevec10.com/settings/delete-account",
+    "difficulty": "easy"
+  },
+  {
     "name": "Kaggle",
     "domains": [
       "kaggle.com"
@@ -8344,7 +8376,7 @@
     ],
     "url": "https://accounts.kakao.com/weblogin/deactivate",
     "difficulty": "medium",
-    "notes": "Click the 'Settings' button on the KakaoTalk app, enter 'General Settings', 'Privacy', and 'Manage My Personal Info' in the drop-down menu, and click the 'Unregister Form KakaoTalk' menu to delete account. Note: If you don't use other Kakao linked services, you will immediately switch to delete your Kakao account. If you were using some services, delete all of them, and then click the provided link to delete your Kakao account. "
+    "notes": "Click the 'Settings' button on the KakaoTalk app, enter 'General Settings', 'Privacy', and 'Manage My Personal Info' in the drop-down menu, and click the 'Unregister Form KakaoTalk' menu to delete account. Note: If you don't use other Kakao linked services, you will immediately switch to delete your Kakao account. If you were using some services, delete all of them, and then click the provided link to delete your Kakao account."
   },
   {
     "name": "Kaleido (remove.bg, unscreen, designify)",
@@ -9303,6 +9335,16 @@
     "url": "https://support.logmeininc.com/hamachi/help/how-do-i-contact-hamachi-customer-support",
     "difficulty": "hard",
     "notes": "Scroll to the bottom of the given URL, open a new ticket and ask for account deletion"
+  },
+  {
+    "name": "Logo Maker",
+    "domains": [
+      "logomaker.com"
+    ],
+    "url": "https://www.logomaker.com/contact-us/",
+    "difficulty": "hard",
+    "notes": "According to their privacy policy, you need to directly contact them.",
+    "email": "help@logomaker.com"
   },
   {
     "name": "LogRocket",
@@ -10809,7 +10851,7 @@
     ],
     "url": "https://nid.naver.com/user2/help/leaveId?menu=nid",
     "difficulty": "medium",
-    "notes": "Re-registration is not possible with a deleted ID, and posts written on the bulletin board are not automatically deleted. So, make delete or make them private before you terminate your account. "
+    "notes": "Re-registration is not possible with a deleted ID, and posts written on the bulletin board are not automatically deleted. So, make delete or make them private before you terminate your account."
   },
   {
     "name": "NCBI",
@@ -11137,8 +11179,9 @@
       "nomadglobal.com",
       "benomad.zendesk.com"
     ],
-    "url": "https://benomad.zendesk.com/hc/pt-br/articles/360042473234-Como-solicito-o-fechamento-da-minha-conta-corrente-Nomad",
-    "difficulty": "easy"
+    "url": "https://benomad.zendesk.com/hc/en-us/articles/360042473234-How-do-I-request-the-closing-of-my-Nomad-global-account-",
+    "difficulty": "medium",
+    "notes": "You have to clear the account before requesting the account deletion on the app. And after 15 or 20 days of email confirmation, the account is finally deleted."
   },
   {
     "name": "NordPass",
@@ -11857,9 +11900,9 @@
       "paramountplus.com",
       "help.paramountplus.com"
     ],
-    "url": "https://help.paramountplus.com/s/article/PD-How-do-I-delete-my-Paramount-account",
+    "url": "https://privacyportal.onetrust.com/webform/869be997-c257-4071-b658-a5427317b5c6/bda9b2b4-9be6-4f30-9d55-94b308f9af4d",
     "difficulty": "hard",
-    "notes": "You may also use the privacy form linked if you reside in California, but be warned, it is much slower."
+    "notes": "You may also use the [contact us](https://help.paramountplus.com/s/article/PD-How-do-I-delete-my-Paramount-account) link, but it doesn't work on every country."
   },
   {
     "name": "Parcello",
@@ -12042,7 +12085,7 @@
     ],
     "url": "https://privacyportal.onetrust.com/webform/18f92a28-d2ae-4a6a-8f99-85b4455e22c0/cfbaf35a-5e06-4010-a6b6-1ad61ba414f1",
     "difficulty": "hard",
-    "notes": "To permanently delete your Peloton Account, please fill out the Privacy Request Form. Once the form is completed, the Peloton Privacy Team will begin processing your request. "
+    "notes": "To permanently delete your Peloton Account, please fill out the Privacy Request Form. Once the form is completed, the Peloton Privacy Team will begin processing your request."
   },
   {
     "name": "Pennsylvania Turnpike (Toll By Plate)",

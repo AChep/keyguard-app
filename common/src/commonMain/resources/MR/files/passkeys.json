@@ -246,7 +246,8 @@
     "name": "Bitwarden",
     "domain": "bitwarden.com",
     "features": [
-      "mfa"
+      "mfa",
+      "signin"
     ]
   },
   {
@@ -289,6 +290,16 @@
       "signin"
     ],
     "setup": "https://www.caremark.com/digital-fast/caremark-login-web/#/login"
+  },
+  {
+    "name": "Chek",
+    "domain": "chekspend.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.chekspend.com/hc/en-us/articles/22351702437780-Get-Started-Guide-Setting-up-a-Chek-Passkey",
+    "setup": "https://secure.chekspend.com/#/login",
+    "notes": "Powered by Passage by 1Password."
   },
   {
     "name": "Cloudflare",
@@ -437,6 +448,15 @@
       "signin"
     ],
     "notes": "Uses AuthGear. Setup on register or at https://auth.formextractorai.com/settings"
+  },
+  {
+    "name": "FreePrints",
+    "domain": "freeprints.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.freeprints.com/apps",
+    "notes": "Only available within app. \n\nPasskey is offered when signing up instead of password prompt. Also available in settings > Personal Information, tap \"Save a passkey\"."
   },
   {
     "name": "FusionAuth",
@@ -652,6 +672,16 @@
     "notes": "Link by Stripe offers a quick checkout solution, ensuring the secure storage of credit card information. By default, it sends 2FA codes to the customer's phone number.  However, users also have the option to create passkeys, either after signing in or from the user account menu when they are logged in."
   },
   {
+    "name": "LinkedIn",
+    "domain": "linkedin.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.linkedin.com/help/linkedin/answer/a1621596",
+    "setup": "https://www.linkedin.com/mypreferences/d/passkey",
+    "notes": "Linkedin is actively rolling out support for saving and signing in with passkeys on Linkedin accounts. Not all accounts have access to saving and signing in with passkeys yet whilst Linkedin rolls this out."
+  },
+  {
     "name": "lnk.bio",
     "domain": "lnk.bio",
     "features": [
@@ -710,6 +740,14 @@
     ],
     "documentation": "https://diverdown.wraptas.site/3ec9bbfd244d41149909d1cd5f8003ec",
     "setup": "https://marshmallow-qa.com/setting"
+  },
+  {
+    "name": "Mastodon",
+    "domain": "mastodon.social",
+    "features": [
+      "mfa"
+    ],
+    "setup": "https://mastodon.social/settings/two_factor_authentication_methods"
   },
   {
     "name": "State of Michigan",
@@ -994,6 +1032,15 @@
     "setup": "https://id.so-net.ne.jp/auth_device/authenticator-manager"
   },
   {
+    "name": "Spaceship (by NameCheap)",
+    "domain": "spaceship.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://twitter.com/NamecheapCEO/status/1746970583944818722",
+    "setup": "https://www.spaceship.com/application/security-center/"
+  },
+  {
     "name": "Stall-Frei.de",
     "domain": "stall-frei.de",
     "features": [
@@ -1107,6 +1154,15 @@
     ],
     "documentation": "https://docs.vaultvision.com/index.html",
     "setup": "https://auth.vaultvision.com/signup"
+  },
+  {
+    "name": "Vercel",
+    "domain": "vercel.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://vercel.com/docs/accounts/create-an-account#login-methods-and-connections",
+    "setup": "https://vercel.com/account/authentication"
   },
   {
     "name": "Virgin Media",

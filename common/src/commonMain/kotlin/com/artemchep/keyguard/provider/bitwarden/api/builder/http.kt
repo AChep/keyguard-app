@@ -6,8 +6,9 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.provider.bitwarden.entity.ErrorEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.toException
 import io.ktor.client.call.body
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -18,7 +19,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.longOrNull
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.firstOrNull
@@ -86,15 +86,28 @@ suspend inline fun <reified T : Any> HttpResponse.bodyOrApiException(): T = kotl
                 // refresh the access token, no need to log it.
                 newStatus != HttpStatusCode.Unauthorized
             ) {
-                val loggedException =
-                    RuntimeException("Failed request! Body: $responseBodySanitizedJson")
-                recordLog(responseBodySanitizedJson)
-                recordException(loggedException)
+                // Submit the exception as is, it doesn't contain any sensitive info in it:
+                //
+                // kotlinx.serialization.MissingFieldException: Field 'HaHa' is required for type
+                // with serial name 'com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity',
+                // but it was missing at path: $.Ciphers[0]
+                if (e is SerializationException) {
+                    recordException(e)
+                } else {
+                    // hostname and query might be sensitive, ignore that
+                    val path = this.request.url.encodedPath
+                    val method = this.request.method.value
+                    val loggedException =
+                        RuntimeException("Failed ${method}:${path} request! Body: $responseBodySanitizedJson")
+                    recordException(loggedException)
+                }
             }
             HttpException(
                 statusCode = newStatus,
                 m = message
-                    ?: newStatus.description,
+                    ?: newStatus.takeUnless { it.isSuccess() }?.description
+                    ?: e.localizedMessage
+                    ?: e.message,
                 e = e,
             )
         }

@@ -182,7 +182,11 @@ suspend fun BitwardenCipher.Login.toDomain(
 
 fun BitwardenCipher.Login.PasswordHistory.toDomain() = DSecret.Login.PasswordHistory(
     password = password,
-    lastUsedDate = lastUsedDate,
+    // Bitwarden forces us to have a last used date for
+    // the password history item. The ones that had it as
+    // null will end up converted to the zero Unix timestamp.
+    lastUsedDate = lastUsedDate
+        ?.takeUnless { it.epochSeconds == 0L },
 )
 
 fun BitwardenCipher.Login.PasswordStrength.toDomain() = PasswordStrength(

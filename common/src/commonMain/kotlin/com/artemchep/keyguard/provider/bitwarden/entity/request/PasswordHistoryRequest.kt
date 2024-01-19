@@ -10,14 +10,19 @@ data class PasswordHistoryRequest(
     @SerialName("password")
     val password: String,
     @SerialName("lastUsedDate")
-    val lastUsedDate: Instant?,
+    val lastUsedDate: Instant,
 )
 
 fun PasswordHistoryRequest.Companion.of(
     model: BitwardenCipher.Login.PasswordHistory,
 ) = kotlin.run {
+    val lastUsedDate = model.lastUsedDate
+        // Bitwarden forces us to have a last used date for
+        // the password history item. It still allows for existing
+        // items to have it as null tho.
+        ?: Instant.fromEpochMilliseconds(0)
     PasswordHistoryRequest(
         password = model.password,
-        lastUsedDate = model.lastUsedDate,
+        lastUsedDate = lastUsedDate,
     )
 }

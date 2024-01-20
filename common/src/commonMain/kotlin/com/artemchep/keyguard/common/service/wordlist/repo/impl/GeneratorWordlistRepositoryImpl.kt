@@ -55,7 +55,7 @@ class GeneratorWordlistRepositoryImpl(
                     name = name,
                     createdAt = now,
                 )
-                val wordlistId = db.generatorWordlistQueries
+                val wordlistId = db.utilQueries
                     .getLastInsertRowId()
                     .executeAsOne()
                 wordlist.forEach { word ->

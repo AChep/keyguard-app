@@ -47,6 +47,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -531,6 +532,11 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
             ciphers = selectedAccount.value,
         )
     }
+
+    actions += cipherWatchtowerAlerts(
+        patchWatchtowerAlertCipher = toolbox.patchWatchtowerAlertCipher,
+        ciphers = selectedCiphers,
+    )
 
     if (canDelete && selectedCiphers.any { it.deletedDate != null }) {
         actions += cipherRestoreAction(

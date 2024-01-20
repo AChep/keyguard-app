@@ -57,6 +57,7 @@ import com.artemchep.keyguard.common.model.DFolderTree
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.LinkInfo
 import com.artemchep.keyguard.common.model.LinkInfoAndroid
@@ -70,6 +71,7 @@ import com.artemchep.keyguard.common.model.alertScore
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.formatH
+import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.download.DownloadManager
@@ -115,6 +117,7 @@ import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
+import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
@@ -152,6 +155,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
@@ -234,6 +238,7 @@ fun vaultViewScreenState(
         cipherUnsecureUrlAutoFix = instance(),
         cipherFieldSwitchToggle = instance(),
         moveCipherToFolderById = instance(),
+        patchWatchtowerAlertCipher = instance(),
         rePromptCipherById = instance(),
         changeCipherNameById = instance(),
         changeCipherPasswordById = instance(),
@@ -309,6 +314,7 @@ fun vaultViewScreenState(
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
     moveCipherToFolderById: MoveCipherToFolderById,
+    patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher,
     rePromptCipherById: RePromptCipherById,
     changeCipherNameById: ChangeCipherNameById,
     changeCipherPasswordById: ChangeCipherPasswordById,
@@ -677,6 +683,10 @@ fun vaultViewScreenState(
                             accountId = AccountId(accountId),
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit },
+                        cipherWatchtowerAlerts(
+                            patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
+                            ciphers = listOf(secretOrNull),
+                        ),
                         cipherTrashAction(
                             trashCipherById = trashCipherById,
                             ciphers = listOf(secretOrNull),
@@ -806,8 +816,13 @@ private fun RememberStateFlowScope.oh(
         emit(model)
     }
 
-    val incomplete = cipherIncompleteCheck.invoke(cipher)
-    if (incomplete) {
+    val incomplete by lazy {
+        cipherIncompleteCheck.invoke(cipher)
+    }
+    if (
+        !cipher.ignores(DWatchtowerAlert.INCOMPLETE) &&
+        incomplete
+    ) {
         val model = VaultViewItem.Info(
             id = "info.incomplete",
             name = translate(Res.strings.item_incomplete_title),
@@ -818,7 +833,10 @@ private fun RememberStateFlowScope.oh(
 
     val now = Clock.System.now()
     val expiring = cipherExpiringCheck.invoke(cipher, now)
-    if (expiring != null) {
+    if (
+        !cipher.ignores(DWatchtowerAlert.EXPIRING) &&
+        expiring != null
+    ) {
         val expired = expiring <= now
         val expiringTitle = if (expired) {
             translate(Res.strings.expired)
@@ -903,7 +921,10 @@ private fun RememberStateFlowScope.oh(
                 .asFlow()
                 .map {
                     val occurrences = it.getOrElse { 0 }
-                    if (occurrences > 0)
+                    if (
+                        occurrences > 0 &&
+                        !cipher.ignores(DWatchtowerAlert.PWNED_PASSWORD)
+                    )
                         VaultViewItem.Value.Badge(
                             text = translate(Res.strings.password_pwned_label),
                             score = 0f,
@@ -941,11 +962,16 @@ private fun RememberStateFlowScope.oh(
             )
             emit(model)
 
-            val reusedPasswords = ciphers
-                .count {
-                    it.login?.password == cipherLoginPassword
-                }
-            if (reusedPasswords > 1) {
+            val reusedPasswords by lazy {
+                ciphers
+                    .count {
+                        it.login?.password == cipherLoginPassword
+                    }
+            }
+            if (
+                !cipher.ignores(DWatchtowerAlert.REUSED_PASSWORD) &&
+                reusedPasswords > 1
+            ) {
                 val reusedPasswordsModel = VaultViewItem.ReusedPassword(
                     id = "login.password.reused",
                     count = reusedPasswords,
@@ -1046,7 +1072,8 @@ private fun RememberStateFlowScope.oh(
             kotlin.run {
                 if (
                     cipherLogin.fido2Credentials.isNotEmpty() &&
-                    cipherLogin.password.isNullOrEmpty()
+                    cipherLogin.password.isNullOrEmpty() ||
+                    cipher.ignores(DWatchtowerAlert.TWO_FA_WEBSITE)
                 ) {
                     return@run
                 }
@@ -1077,7 +1104,10 @@ private fun RememberStateFlowScope.oh(
                 }
             }
         }
-        if (cipher.login.fido2Credentials.isNullOrEmpty()) {
+        if (
+            cipher.login.fido2Credentials.isEmpty() &&
+            !cipher.ignores(DWatchtowerAlert.PASSKEY_WEBSITE)
+        ) {
             val tfa = passKeyService.get()
                 .crashlyticsTap()
                 .attempt()
@@ -1420,7 +1450,7 @@ private fun RememberStateFlowScope.oh(
                     holder = holder,
                     id = id,
                     accountId = account.accountId(),
-                    cipherId = cipher.id,
+                    cipher = cipher,
                     copy = copy,
                 )
                 item
@@ -1461,7 +1491,7 @@ private fun RememberStateFlowScope.oh(
                     holder = holder,
                     id = id,
                     accountId = account.accountId(),
-                    cipherId = cipher.id,
+                    cipher = cipher,
                     copy = copy,
                 )
                 item
@@ -1868,9 +1898,10 @@ private suspend fun RememberStateFlowScope.createUriItem(
     holder: Holder,
     id: String,
     accountId: String,
-    cipherId: String,
+    cipher: DSecret,
     copy: CopyText,
 ): VaultViewItem.Uri {
+    val cipherId = cipher.id
     val overrides = holder
         .overrides
         .map { data ->
@@ -2026,7 +2057,8 @@ private suspend fun RememberStateFlowScope.createUriItem(
         is LinkInfoPlatform.Web -> {
             val url = platformMarker.url.toString()
 
-            val isUnsecure = cipherUnsecureUrlCheck(holder.uri.uri)
+            val isUnsecure = cipherUnsecureUrlCheck(holder.uri.uri) &&
+                    !cipher.ignores(DWatchtowerAlert.UNSECURE_WEBSITE)
             val faviconUrl = FaviconUrl(
                 serverId = accountId,
                 url = url,

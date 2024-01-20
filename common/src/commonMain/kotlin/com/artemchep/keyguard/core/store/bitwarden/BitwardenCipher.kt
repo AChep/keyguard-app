@@ -29,6 +29,7 @@ data class BitwardenCipher(
     val name: String?,
     val notes: String?,
     val favorite: Boolean,
+    val ignoredAlerts: Map<IgnoreAlertType, IgnoreAlertData> = emptyMap(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
     val reprompt: RepromptType,
@@ -141,6 +142,33 @@ data class BitwardenCipher(
         None,
         Password,
     }
+
+    @Serializable
+    enum class IgnoreAlertType {
+        @SerialName("reusedPassword")
+        REUSED_PASSWORD,
+        @SerialName("pwnedPassword")
+        PWNED_PASSWORD,
+        @SerialName("pwnedWebsite")
+        PWNED_WEBSITE,
+        @SerialName("unsecureWebsite")
+        UNSECURE_WEBSITE,
+        @SerialName("twoFaWebsite")
+        TWO_FA_WEBSITE,
+        @SerialName("passkeyWebsite")
+        PASSKEY_WEBSITE,
+        @SerialName("duplicate")
+        DUPLICATE,
+        @SerialName("incomplete")
+        INCOMPLETE,
+        @SerialName("expiring")
+        EXPIRING,
+    }
+
+    @Serializable
+    data class IgnoreAlertData(
+        val createdAt: Instant,
+    )
 
     //
     // Types

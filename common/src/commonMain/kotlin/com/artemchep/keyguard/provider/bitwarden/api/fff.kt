@@ -57,7 +57,11 @@ fun merge(
         }
     }
 
-    return remote.copy(attachments = attachments)
+    val ignoredAlerts = local.ignoredAlerts
+    return remote.copy(
+        attachments = attachments,
+        ignoredAlerts = ignoredAlerts,
+    )
 }
 
 interface RemotePutScope<Remote> {

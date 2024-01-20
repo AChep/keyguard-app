@@ -44,6 +44,7 @@ data class DSecret(
     val favorite: Boolean,
     val reprompt: Boolean,
     val synced: Boolean,
+    val ignoredAlerts: Map<DWatchtowerAlert, Instant> = emptyMap(),
     val uris: List<Uri> = emptyList(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
@@ -373,6 +374,8 @@ data class DSecret(
         companion object
     }
 }
+
+fun DSecret.ignores(alertType: DWatchtowerAlert) = alertType in ignoredAlerts
 
 fun DSecret.canDelete() = service.canDelete()
 

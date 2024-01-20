@@ -83,6 +83,7 @@ import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
+import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
@@ -182,6 +183,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlOverridesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistPrimitiveImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MergeFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MoveCipherToFolderByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PatchWatchtowerAlertCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountColorByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountNameByIdImpl
@@ -497,6 +499,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<AddPasskeyCipher> {
         AddPasskeyCipherImpl(this)
+    }
+    bindSingleton<PatchWatchtowerAlertCipher> {
+        PatchWatchtowerAlertCipherImpl(this)
     }
     bindSingleton<FavouriteCipherById> {
         FavouriteCipherByIdImpl(this)

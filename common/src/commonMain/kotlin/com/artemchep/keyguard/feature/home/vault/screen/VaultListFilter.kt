@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -681,6 +682,15 @@ suspend fun <
             filterSectionId = "$miscSectionId.error",
             title = "Failed",
             icon = Icons.Outlined.ErrorOutline,
+        ),
+        createFilterAction(
+            sectionId = miscSectionId,
+            filter = setOf(
+                DFilter.ByIgnoredAlerts,
+            ),
+            filterSectionId = "$miscSectionId.watchtower_alerts",
+            title = translate(Res.strings.ignored_alerts),
+            icon = Icons.Outlined.NotificationsOff,
         ),
     )
 

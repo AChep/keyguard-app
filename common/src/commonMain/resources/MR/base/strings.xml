@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Discoverable</string>
     <string name="passkey_user_username">Username</string>
     <string name="passkey_user_display_name">Display name</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API key</string>
     <string name="domain">Domain</string>
     <string name="edit">Edit</string>
@@ -236,6 +237,7 @@
     <string name="ciphers_action_trash_title">Trash</string>
     <string name="ciphers_action_restore_title">Restore</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Move associated items to trash</string>
 
     <string name="file_action_open_with_title">Open with…</string>

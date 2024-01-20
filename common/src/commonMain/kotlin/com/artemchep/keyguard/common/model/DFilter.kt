@@ -44,7 +44,6 @@ import kotlin.collections.filter
 import kotlin.collections.first
 import kotlin.collections.firstOrNull
 import kotlin.collections.forEach
-import kotlin.collections.getOrElse
 import kotlin.collections.indices
 import kotlin.collections.isNotEmpty
 import kotlin.collections.isNullOrEmpty
@@ -53,7 +52,6 @@ import kotlin.collections.mapNotNull
 import kotlin.collections.mapValues
 import kotlin.collections.mutableMapOf
 import kotlin.collections.orEmpty
-import kotlin.collections.set
 import kotlin.collections.toSet
 
 @Serializable
@@ -388,6 +386,11 @@ sealed interface DFilter {
     data object ByPasswordDuplicates : Primitive {
         override val key: String = "pwd_duplicates"
 
+        private data class DuplicatesState(
+            var duplicate: Int,
+            var ignored: Int,
+        )
+
         override suspend fun prepare(
             directDI: DirectDI,
             ciphers: List<DSecret>,
@@ -395,7 +398,7 @@ sealed interface DFilter {
             val set = buildDuplicatesState(ciphers = ciphers)
                 .asSequence()
                 .mapNotNull { entry ->
-                    entry.key.takeIf { entry.value > 1 }
+                    entry.key.takeIf { entry.value.duplicate > 1 }
                 }
                 .toSet()
             ::predicate.partially1(set)
@@ -408,20 +411,34 @@ sealed interface DFilter {
         ) = buildDuplicatesState(ciphers = ciphers)
             .asSequence()
             .sumOf { entry ->
-                entry.value
-                    .takeIf { it > 1 }
-                    ?: 0
+                val state = entry.value
+                if (state.duplicate > 1) {
+                    // This is indeed a duplicate.
+                    state.duplicate - state.ignored
+                } else {
+                    0
+                }
             }
 
         private fun buildDuplicatesState(
             ciphers: List<DSecret>,
-        ): Map<String, Int> {
-            val map = mutableMapOf<String, Int>()
+        ): Map<String, DuplicatesState> {
+            val map = mutableMapOf<String, DuplicatesState>()
             ciphers.forEach { cipher ->
                 val password = cipher.login?.password
                 if (password != null) {
-                    val oldValue = map.getOrElse(password) { 0 }
-                    map[password] = oldValue + 1
+                    val holder = map.getOrPut(password) {
+                        DuplicatesState(
+                            duplicate = 0,
+                            ignored = 0,
+                        )
+                    }
+                    holder.duplicate += 1
+
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        holder.ignored += 1
+                    }
                 }
             }
             return map
@@ -430,7 +447,12 @@ sealed interface DFilter {
         private fun predicate(
             passwords: Set<String>,
             cipher: DSecret,
-        ) = cipher.login?.password in passwords
+        ) = cipher.login?.password in passwords &&
+                !shouldIgnore(cipher)
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.REUSED_PASSWORD)
     }
 
     @Serializable
@@ -469,6 +491,11 @@ sealed interface DFilter {
             val passwords = ciphers
                 .asSequence()
                 .mapNotNull { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@mapNotNull null
+                    }
+
                     cipher.login?.password
                 }
                 .toSet()
@@ -488,7 +515,12 @@ sealed interface DFilter {
         private fun predicate(
             passwords: Set<String>,
             cipher: DSecret,
-        ) = cipher.login?.password in passwords
+        ) = cipher.login?.password in passwords &&
+                !shouldIgnore(cipher)
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.PWNED_PASSWORD)
     }
 
     @Serializable
@@ -525,14 +557,17 @@ sealed interface DFilter {
                 .bind()
 
             ciphers
-                .filter {
-                    check(it, breaches)
+                .filter { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@filter false
+                    }
+
+                    check(cipher, breaches)
                         .handleError { false }
                         .bind()
                 }
-                .map {
-                    it.id
-                }
+                .map { cipher -> cipher.id }
                 .toSet()
         }
             .measure { duration, mutableMap ->
@@ -544,6 +579,10 @@ sealed interface DFilter {
             cipherIds: Set<String>,
             cipher: DSecret,
         ) = cipher.id in cipherIds
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.PWNED_WEBSITE)
     }
 
     @Serializable
@@ -580,10 +619,19 @@ sealed interface DFilter {
             ciphers
                 .asSequence()
                 .filter { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@filter false
+                    }
+
                     val isIncomplete = cipherIncompleteCheck(cipher)
                     isIncomplete
                 }
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.INCOMPLETE)
     }
 
     @Serializable
@@ -621,10 +669,19 @@ sealed interface DFilter {
             ciphers
                 .asSequence()
                 .filter { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@filter false
+                    }
+
                     val isExpiring = cipherExpiringCheck(cipher, now) != null
                     isExpiring
                 }
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.EXPIRING)
     }
 
     @Serializable
@@ -661,12 +718,21 @@ sealed interface DFilter {
             ciphers
                 .asSequence()
                 .filter { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@filter false
+                    }
+
                     val isUnsecure = cipher
                         .uris
                         .any { uri -> cipherUnsecureUrlCheck(uri.uri) }
                     isUnsecure
                 }
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.UNSECURE_WEBSITE)
     }
 
     @Serializable
@@ -712,6 +778,10 @@ sealed interface DFilter {
             ciphers
                 .asSequence()
                 .filter { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@filter false
+                    }
                     if (
                         cipher.login?.totp != null ||
                         !cipher.login?.fido2Credentials.isNullOrEmpty() &&
@@ -756,6 +826,10 @@ sealed interface DFilter {
             // can not get the domain
             null
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.TWO_FA_WEBSITE)
     }
 
     @Serializable
@@ -801,6 +875,10 @@ sealed interface DFilter {
             ciphers
                 .asSequence()
                 .filter { cipher ->
+                    val shouldIgnore = shouldIgnore(cipher)
+                    if (shouldIgnore) {
+                        return@filter false
+                    }
                     if (!cipher.login?.fido2Credentials.isNullOrEmpty()) {
                         return@filter false
                     }
@@ -857,6 +935,10 @@ sealed interface DFilter {
             // can not get the domain
             null
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlert.PASSKEY_WEBSITE)
     }
 
     @Serializable
@@ -990,5 +1072,20 @@ sealed interface DFilter {
         private fun predicateFolder(
             folder: DFolder,
         ) = folder.service.error.exists(folder.revisionDate) == error
+    }
+
+    @Serializable
+    @SerialName("by_ignored_alerts")
+    data object ByIgnoredAlerts : Primitive {
+        override val key: String = "ignored_alerts"
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = ::predicate
+
+        private fun predicate(
+            cipher: DSecret,
+        ) = cipher.ignoredAlerts.isNotEmpty()
     }
 }

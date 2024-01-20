@@ -1,9 +1,12 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.model.DGeneratorWord
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretDuplicateGroup
+import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
+import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -92,6 +95,9 @@ class CipherDuplicatesCheckImpl(
     ): List<DSecretDuplicateGroup> = measureTimedValue {
         val existingGroupIds = mutableSetOf<String>()
         val pCiphers = ciphers
+            .filter { cipher ->
+                !cipher.ignores(DWatchtowerAlert.DUPLICATE)
+            }
             .map { cipher ->
                 processCipher(cipher)
             }

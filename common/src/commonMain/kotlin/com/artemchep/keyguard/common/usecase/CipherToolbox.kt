@@ -10,6 +10,7 @@ interface CipherToolbox {
     val changeCipherPasswordById: ChangeCipherPasswordById
     val copyCipherById: CopyCipherById
     val moveCipherToFolderById: MoveCipherToFolderById
+    val patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher
     val restoreCipherById: RestoreCipherById
     val trashCipherById: TrashCipherById
     val removeCipherById: RemoveCipherById
@@ -23,6 +24,7 @@ class CipherToolboxImpl(
     override val changeCipherPasswordById: ChangeCipherPasswordById,
     override val copyCipherById: CopyCipherById,
     override val moveCipherToFolderById: MoveCipherToFolderById,
+    override val patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher,
     override val restoreCipherById: RestoreCipherById,
     override val trashCipherById: TrashCipherById,
     override val removeCipherById: RemoveCipherById,
@@ -35,6 +37,7 @@ class CipherToolboxImpl(
         changeCipherPasswordById = directDI.instance(),
         copyCipherById = directDI.instance(),
         moveCipherToFolderById = directDI.instance(),
+        patchWatchtowerAlertCipher = directDI.instance(),
         restoreCipherById = directDI.instance(),
         trashCipherById = directDI.instance(),
         removeCipherById = directDI.instance(),

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.mapper
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -17,6 +18,13 @@ suspend fun BitwardenCipher.toDomain(
         BitwardenCipher.Type.Card -> DSecret.Type.Card
         BitwardenCipher.Type.Identity -> DSecret.Type.Identity
     }
+    val ignoredAlerts = ignoredAlerts
+        .map { (key, value) ->
+            val k = key.toDomain()
+            val v = value.createdAt
+            k to v
+        }
+        .toMap()
     return DSecret(
         id = cipherId,
         accountId = accountId,
@@ -34,6 +42,7 @@ suspend fun BitwardenCipher.toDomain(
         reprompt = reprompt == BitwardenCipher.RepromptType.Password,
         synced = !service.deleted &&
                 revisionDate == service.remote?.revisionDate,
+        ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
         fields = fields.map(BitwardenCipher.Field::toDomain),
         attachments = attachments
@@ -60,6 +69,18 @@ fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
     uri = uri.orEmpty(),
     match = match?.toDomain(),
 )
+
+fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
+    BitwardenCipher.IgnoreAlertType.REUSED_PASSWORD -> DWatchtowerAlert.REUSED_PASSWORD
+    BitwardenCipher.IgnoreAlertType.PWNED_PASSWORD -> DWatchtowerAlert.PWNED_PASSWORD
+    BitwardenCipher.IgnoreAlertType.PWNED_WEBSITE -> DWatchtowerAlert.PWNED_WEBSITE
+    BitwardenCipher.IgnoreAlertType.UNSECURE_WEBSITE -> DWatchtowerAlert.UNSECURE_WEBSITE
+    BitwardenCipher.IgnoreAlertType.TWO_FA_WEBSITE -> DWatchtowerAlert.TWO_FA_WEBSITE
+    BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE -> DWatchtowerAlert.PASSKEY_WEBSITE
+    BitwardenCipher.IgnoreAlertType.DUPLICATE -> DWatchtowerAlert.DUPLICATE
+    BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlert.INCOMPLETE
+    BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlert.EXPIRING
+}
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {
     BitwardenCipher.Login.Uri.MatchType.Domain -> DSecret.Uri.MatchType.Domain

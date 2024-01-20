@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.EditNotifications
 import androidx.compose.material.icons.outlined.FileCopy
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.History
@@ -24,7 +25,9 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.FolderOwnership2
+import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
@@ -32,6 +35,7 @@ import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
+import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
@@ -652,6 +656,90 @@ fun RememberStateFlowScope.cipherDeleteAction(
                             )
                             message(message)
                         }
+                        .launchIn(appScope)
+                }
+
+                val success = result is ConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherWatchtowerAlerts(
+    patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher,
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val totalUniqueIgnoredAlerts = ciphers
+        .asSequence()
+        .flatMap { cipher -> cipher.ignoredAlerts.keys }
+        .toSet()
+        .count()
+    val title = translate(Res.strings.ciphers_action_configure_watchtower_alerts_title)
+    FlatItemAction(
+        leading = {
+            BadgedBox(
+                badge = {
+                    if (totalUniqueIgnoredAlerts > 0) {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.badgeContainer,
+                        ) {
+                            Text(text = totalUniqueIgnoredAlerts.toString())
+                        }
+                    }
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.EditNotifications,
+                    contentDescription = null,
+                )
+            }
+        },
+        title = title,
+        onClick = {
+            before?.invoke()
+
+            val items = DWatchtowerAlert.entries
+                .map { watchtowerAlert ->
+                    val checked = ciphers
+                        .any { cipher ->
+                            watchtowerAlert !in cipher.ignoredAlerts
+                        }
+                    ConfirmationRoute.Args.Item.BooleanItem(
+                        key = watchtowerAlert.name,
+                        title = translate(watchtowerAlert.title),
+                        value = checked,
+                    )
+                }
+
+            val route = registerRouteResultReceiver(
+                route = ConfirmationRoute(
+                    args = ConfirmationRoute.Args(
+                        icon = icon(Icons.Outlined.EditNotifications),
+                        title = title,
+                        items = items,
+                    ),
+                ),
+            ) { result ->
+                if (result is ConfirmationResult.Confirm) {
+                    val patch = DWatchtowerAlert.entries
+                        .mapNotNull {
+                            val checked = result.data[it.name] as? Boolean
+                                ?: return@mapNotNull null
+                            it to !checked
+                        }
+                        .toMap()
+                    val request = PatchWatchtowerAlertCipherRequest(
+                        patch = ciphers
+                            .associate { cipher ->
+                                cipher.id to patch
+                            },
+                    )
+                    patchWatchtowerAlertCipher(request)
                         .launchIn(appScope)
                 }
 

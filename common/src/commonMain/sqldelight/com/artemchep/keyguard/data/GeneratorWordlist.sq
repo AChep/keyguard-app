@@ -33,6 +33,7 @@ FROM
       COUNT(wordlistId) AS wordCount
     FROM
       generatorWordlistWord
+    GROUP BY wordlistId
   ) AS w ON generatorWordlist.id = w.wordlistId
 ORDER BY
   generatorWordlist.createdAt DESC;

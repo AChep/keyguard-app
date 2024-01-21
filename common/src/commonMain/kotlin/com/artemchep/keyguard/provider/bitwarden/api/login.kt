@@ -122,8 +122,13 @@ private suspend fun internalLogin(
                     val providerId = json
                         .encodeToString(providerEntity)
                         .removeSurrounding("\"")
+                    // None of the 2FA methods should use the leading / trailing
+                    // whitespaces, so it's safe to trim them.
+                    //
+                    // https://github.com/AChep/keyguard-app/issues/99
+                    val token = twoFactorToken.token.trim()
                     append("twoFactorProvider", providerId)
-                    append("twoFactorToken", twoFactorToken.token)
+                    append("twoFactorToken", token)
                     append("twoFactorRemember", twoFactorToken.remember.int.toString())
                 }
             },

@@ -8,18 +8,17 @@ import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.navigation.NavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.leBundleOf
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.plus
 import kotlinx.serialization.json.Json
 
 class FlowHolderViewModel(
-    private val source: String,
-    private val scope: CoroutineScope,
+    private val navigationEntry: NavigationEntry,
 ) {
     var bundle: LeBundle = leBundleOf()
 
@@ -30,6 +29,8 @@ class FlowHolderViewModel(
         val job: Job,
         val value: Any?,
     )
+
+    private val scope get() = navigationEntry.scope
 
     fun <T> getOrPut(
         key: String,
@@ -51,6 +52,7 @@ class FlowHolderViewModel(
                 key = key,
                 scope = scope + job + Dispatchers.Default,
                 navigationController = c,
+                backPressInterceptorHost = navigationEntry,
                 showMessage = showMessage,
                 getScreenState = getScreenState,
                 putScreenState = putScreenState,

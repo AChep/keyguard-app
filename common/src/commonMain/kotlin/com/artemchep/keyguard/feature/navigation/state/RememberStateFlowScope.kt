@@ -79,14 +79,12 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
     )
 
     /**
-     * Register a listener to back press. Once registered, you must
-     * call the callback with `true` if you can go back, `false` if that
-     * should be ignored.
+     * Register a back press interceptor. Once registered, the view model subscribes to
+     * the flow and if the given lambda is not empty -> invokes it on back press event.
      */
     fun interceptBackPress(
-        isEnabledFlow: Flow<Boolean>,
-        callback: ((Boolean) -> Unit) -> Unit,
-    )
+        interceptorFlow: Flow<(() -> Unit)?>,
+    ): () -> Unit
 
     //
     // Helpers

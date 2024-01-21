@@ -21,20 +21,24 @@ fun RememberStateFlowScope.selectionHandle(
         setOf<String>()
     }
 
+    // Intercept the back button while the
+    // selection set is not empty.
     interceptBackPress(
-        // Intercept the back button while the
-        // selection set is not empty.
-        isEnabledFlow = itemIdsSink
-            .map { it.isNotEmpty() },
-    ) { callback ->
-        val wereEmpty = itemIdsSink.value.isEmpty()
-        // Reset the selection on back
-        // button press.
-        itemIdsSink.value = emptySet()
-
-        // Eat the callback if it weren't empty.
-        callback(wereEmpty)
-    }
+        interceptorFlow = itemIdsSink
+            .map { it.isNotEmpty() }
+            .map { enabled ->
+                 if (enabled) {
+                     // lambda
+                     {
+                         // Reset the selection on back
+                         // button press.
+                         itemIdsSink.value = emptySet()
+                     }
+                 } else {
+                     null
+                 }
+            },
+    )
 
     return object : SelectionHandle {
         override val idsFlow: StateFlow<Set<String>> get() = itemIdsSink

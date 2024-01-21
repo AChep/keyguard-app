@@ -11,6 +11,8 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
@@ -36,12 +38,40 @@ fun NavigationRouter(
     }
     val canPop = remember(navStack) {
         snapshotFlow { navStack.value }
-            .map { it.size > 1 }
+            .flatMapLatest { stack ->
+                val navEntry = stack.lastOrNull()
+                if (navEntry != null) {
+                    navEntry
+                        .activeBackPressInterceptorsStateFlow
+                        .map { interceptors ->
+                            interceptors.isNotEmpty() || stack.size > 1
+                        }
+                } else {
+                    flowOf(false)
+                }
+            }
     }
     NavigationController(
         canPop = canPop,
         handle = { intent ->
             val backStack = navStack.value
+
+            // If the navigation intent is a simple pop, then give it to
+            // the back press interceptors first and only then adjust the
+            // navigation stack.
+            if (intent is NavigationIntent.Pop) {
+                val backPressInterceptorRegistration = backStack
+                    .asReversed()
+                    .firstNotNullOfOrNull { navEntry ->
+                        val backPressInterceptors = navEntry.activeBackPressInterceptorsStateFlow.value
+                        backPressInterceptors.values.firstOrNull()
+                    }
+                if (backPressInterceptorRegistration != null) {
+                    backPressInterceptorRegistration.block()
+                    return@NavigationController null
+                }
+            }
+
             val newBackStack = backStack
                 .exec(
                     intent = intent,

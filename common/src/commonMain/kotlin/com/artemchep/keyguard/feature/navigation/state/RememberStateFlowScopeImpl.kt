@@ -16,6 +16,8 @@ import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.backpress.BackPressInterceptorHost
+import com.artemchep.keyguard.feature.navigation.backpress.interceptBackPress
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.contains
@@ -43,6 +45,7 @@ class RememberStateFlowScopeImpl(
     private val putScreenState: PutScreenState,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val navigationController: NavigationController,
+    private val backPressInterceptorHost: BackPressInterceptorHost,
     private val json: Json,
     private val scope: CoroutineScope,
     private val screen: String,
@@ -157,10 +160,11 @@ class RememberStateFlowScopeImpl(
     }
 
     override fun interceptBackPress(
-        isEnabledFlow: Flow<Boolean>,
-        callback: ((Boolean) -> Unit) -> Unit,
-    ) {
-    }
+        interceptorFlow: Flow<(() -> Unit)?>,
+    ) = backPressInterceptorHost.interceptBackPress(
+        scope = scope,
+        interceptorFlow = interceptorFlow,
+    )
 
     override suspend fun loadDiskHandle(
         key: String,

@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.usecase.impl.WindowCoroutineScopeImpl
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
@@ -14,6 +15,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.leBundleOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.plus
 import kotlinx.serialization.json.Json
 
@@ -47,10 +49,14 @@ class FlowHolderViewModel(
         init: RememberStateFlowScope.() -> T,
     ): T = synchronized(this) {
         store.getOrPut(key) {
-            val job = Job()
-            val scope = RememberStateFlowScopeImpl(
+            val vmCoroutineScopeJob = SupervisorJob()
+            val vmCoroutineScope = WindowCoroutineScopeImpl(
+                scope = scope + vmCoroutineScopeJob + Dispatchers.Default,
+                showMessage = showMessage,
+            )
+            val vmScope = RememberStateFlowScopeImpl(
                 key = key,
-                scope = scope + job + Dispatchers.Default,
+                scope = vmCoroutineScope,
                 navigationController = c,
                 backPressInterceptorHost = navigationEntry,
                 showMessage = showMessage,
@@ -64,11 +70,11 @@ class FlowHolderViewModel(
                 colorSchemeState = colorSchemeState,
                 context = context,
             )
-            val value = init(scope)
+            val value = init(vmScope)
             Some(
                 Entry(
-                    scope = scope,
-                    job = job,
+                    scope = vmScope,
+                    job = vmCoroutineScopeJob,
                     value = value,
                 ),
             )

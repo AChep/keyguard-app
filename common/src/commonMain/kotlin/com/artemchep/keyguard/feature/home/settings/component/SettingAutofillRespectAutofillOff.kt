@@ -3,10 +3,12 @@ package com.artemchep.keyguard.feature.home.settings.component
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
@@ -66,11 +68,15 @@ private fun SettingAutofillRespectAutofillOff(
 ) {
     FlatItemLayout(
         trailing = {
-            Switch(
-                checked = checked,
-                enabled = onCheckedChange != null,
-                onCheckedChange = onCheckedChange,
-            )
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentEnforcement provides false,
+            ) {
+                Switch(
+                    checked = checked,
+                    enabled = onCheckedChange != null,
+                    onCheckedChange = onCheckedChange,
+                )
+            }
         },
         content = {
             FlatItemTextContent(

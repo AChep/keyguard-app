@@ -7,9 +7,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
@@ -76,11 +78,15 @@ private fun SettingVaultPersist(
     FlatItemLayout(
         leading = icon<RowScope>(Icons.Outlined.Key, secondaryIcon),
         trailing = {
-            Switch(
-                checked = checked,
-                enabled = onCheckedChange != null,
-                onCheckedChange = onCheckedChange,
-            )
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentEnforcement provides false,
+            ) {
+                Switch(
+                    checked = checked,
+                    enabled = onCheckedChange != null,
+                    onCheckedChange = onCheckedChange,
+                )
+            }
         },
         content = {
             FlatItemTextContent(

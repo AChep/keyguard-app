@@ -4,9 +4,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetConcealFields
@@ -68,11 +70,15 @@ private fun SettingScreenshotsFields(
             }
         },
         trailing = {
-            Switch(
-                checked = checked,
-                enabled = onCheckedChange != null,
-                onCheckedChange = onCheckedChange,
-            )
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentEnforcement provides false,
+            ) {
+                Switch(
+                    checked = checked,
+                    enabled = onCheckedChange != null,
+                    onCheckedChange = onCheckedChange,
+                )
+            }
         },
         title = {
             Text(

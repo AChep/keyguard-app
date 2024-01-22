@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TextFormat
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -82,11 +84,15 @@ private fun SettingMarkdown(
         FlatItemLayout(
             leading = icon<RowScope>(Icons.Outlined.TextFormat),
             trailing = {
-                Switch(
-                    checked = checked,
-                    enabled = onCheckedChange != null,
-                    onCheckedChange = onCheckedChange,
-                )
+                CompositionLocalProvider(
+                    LocalMinimumInteractiveComponentEnforcement provides false,
+                ) {
+                    Switch(
+                        checked = checked,
+                        enabled = onCheckedChange != null,
+                        onCheckedChange = onCheckedChange,
+                    )
+                }
             },
             content = {
                 FlatItemTextContent(

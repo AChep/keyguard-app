@@ -2,15 +2,18 @@ package com.artemchep.keyguard.feature.navigation.backpress
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.plus
 
 fun BackPressInterceptorHost.interceptBackPress(
     scope: CoroutineScope,
     interceptorFlow: Flow<(() -> Unit)?>,
 ): () -> Unit {
-    lateinit var job: Job
+    val subScope = scope + Job()
 
     var callback: (() -> Unit)? = null
     // A registration to remove the back press interceptor
@@ -41,14 +44,14 @@ fun BackPressInterceptorHost.interceptBackPress(
         }
     }
 
-    job = interceptorFlow
+    interceptorFlow
         .map { c ->
-            val newCallback = c.takeIf { !job.isCancelled }
+            val newCallback = c.takeIf { subScope.isActive }
             setCallback(newCallback)
         }
-        .launchIn(scope)
+        .launchIn(subScope)
     return {
-        job.cancel()
+        subScope.cancel()
         // Unregister the existing interceptor,
         // if there's any.
         unregister?.invoke()

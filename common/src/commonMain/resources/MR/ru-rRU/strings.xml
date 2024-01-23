@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Источник данных авторизации</string>
     <string name="passkey_user_username">Имя пользователя</string>
     <string name="passkey_user_display_name">Отображаемое имя</string>
+    <string name="ignored_alerts">Игнорированные оповещения</string>
     <string name="api_key">Ключ API</string>
     <string name="domain">Домен</string>
     <string name="edit">Редактировать</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Корзина</string>
     <string name="ciphers_action_restore_title">Восстановить</string>
     <string name="ciphers_action_delete_title">Удалить навсегда</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Переместить связанные записи в корзину</string>
     <string name="file_action_open_with_title">Открыть с помощью…</string>
     <string name="file_action_send_with_title">Отправить с помощью…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Крупно</string>
     <string name="largetype_action_show_in_large_type_title">Показать крупным шрифтом</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Показать крупным шрифтом и заблокировать хранилище</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">Выбор приложения</string>
     <string name="apppicker_search_placeholder">Поиск установленных приложений</string>
     <string name="apppicker_system_app_label">Системное приложение</string>

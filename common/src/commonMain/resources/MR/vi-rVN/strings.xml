@@ -2,14 +2,14 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Đóng</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="yes">OK</string>
+    <string name="no">Không</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Tên</string>
     <string name="account_name">Tên tài khoản</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
+    <string name="enabled">Đã bật</string>
+    <string name="disabled">Đã tắt</string>
+    <string name="wordlist">Danh mục từ</string>
     <string name="username">Tên người dùng</string>
     <string name="password">Mật khẩu</string>
     <string name="app_password">Mật khẩu ứng dụng</string>
@@ -18,32 +18,32 @@
     <string name="email">Email</string>
     <string name="email_verified">Đã xác thực</string>
     <string name="email_not_verified">Chưa xác thực</string>
-    <string name="email_visibility">Email visibility</string>
-    <string name="public_url">Public URL</string>
+    <string name="email_visibility">Mức độ hiển thị của email</string>
+    <string name="public_url">URL công khai</string>
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
-    <string name="access_count">Access count</string>
+    <string name="access_count">Số lượt truy cập</string>
     <string name="learn_more">Tìm hiểu thêm</string>
     <string name="phone_number">Số điện thoại</string>
     <string name="passport_number">Số hộ chiếu</string>
     <string name="license_number">Số bằng lái xe</string>
-    <string name="card_number">Card number</string>
-    <string name="card_number_empty_label">No card number</string>
-    <string name="card_type">Brand</string>
-    <string name="card_cvv">Security code</string>
-    <string name="card_valid_from">Valid from</string>
-    <string name="card_valid_to">Valid to</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
-    <string name="cardholder_name">Cardholder name</string>
-    <string name="valid_from">Valid from</string>
-    <string name="expiry_date">Expiry date</string>
+    <string name="card_number">Số thẻ</string>
+    <string name="card_number_empty_label">Không có số thẻ</string>
+    <string name="card_type">Thương hiệu</string>
+    <string name="card_cvv">Số CVV</string>
+    <string name="card_valid_from">Hiệu lực từ</string>
+    <string name="card_valid_to">Có hiệu lực đến</string>
+    <string name="card_expiry_month">Tháng hết hạn thẻ</string>
+    <string name="card_expiry_year">Năm hết hạn thẻ</string>
+    <string name="cardholder_name">Tên chủ thẻ</string>
+    <string name="valid_from">Hiệu lực từ</string>
+    <string name="expiry_date">Ngày hết hạn</string>
     <string name="company">Công ty</string>
     <string name="sync">Cập nhật</string>
     <!-- Opposite of 'visible' -->
-    <string name="hidden">Hidden</string>
+    <string name="hidden">Bị ẩn</string>
     <!-- Opposite of 'hidden' -->
-    <string name="visible">Visible</string>
+    <string name="visible">Được hiển thị</string>
     <!-- Shows up instead of a value if a value is an empty text -->
     <string name="empty_value">Rỗng</string>
     <!-- Social Security Number -->
@@ -51,7 +51,7 @@
     <string name="city">Thành phố</string>
     <string name="state">Bang</string>
     <string name="info">Thông tin</string>
-    <string name="cancel">Cancel</string>
+    <string name="cancel">Hủy</string>
     <string name="continue_">Tiếp tục</string>
     <string name="country">Quốc gia</string>
     <string name="address">Địa chỉ</string>
@@ -59,61 +59,61 @@
     <string name="pull_to_search">Kéo xuống để tìm kiếm</string>
     <string name="save">Lưu</string>
     <string name="uri">URI</string>
-    <string name="uris">URIs</string>
+    <string name="uris">Đường dẫn</string>
     <string name="note">Ghi chú</string>
     <string name="notes">Ghi chú</string>
     <string name="attachments">Tệp đính kèm</string>
-    <string name="attachments_empty_label">No attachments</string>
-    <string name="expired">Expired</string>
-    <string name="expiring_soon">Expiring soon</string>
-    <string name="item_incomplete_title">Incomplete data</string>
-    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="attachments_empty_label">Không có tệp đính kèm</string>
+    <string name="expired">Đã hết hạn</string>
+    <string name="expiring_soon">Sắp hết hạn</string>
+    <string name="item_incomplete_title">Dữ liệu không đủ</string>
+    <string name="item_incomplete_text">Mục này đang thiếu một vài thông tin quan trọng.</string>
     <string name="item">Mục</string>
     <string name="items">Các mục</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> mục</string>
-    <string name="items_all">All items</string>
-    <string name="items_empty_label">No items</string>
+    <string name="items_all">Tất cả mục</string>
+    <string name="items_empty_label">Không có mục</string>
     <string name="folder_none">Chưa có thư mục</string>
     <string name="folder_new">Tạo thư mục</string>
     <string name="folder">Thư mục</string>
     <string name="folders">Thư mục</string>
-    <string name="folders_empty_label">No folders</string>
+    <string name="folders_empty_label">Không có thư mục</string>
     <string name="collection_none">Chưa có danh mục</string>
     <string name="collection">Danh mục</string>
     <string name="collections">Danh mục</string>
-    <string name="collections_empty_label">No collections</string>
+    <string name="collections_empty_label">Không có bộ sưu tập</string>
     <string name="organization_none">Kho của tôi</string>
     <string name="organization">Tổ chức</string>
     <string name="organizations">Tổ chức</string>
-    <string name="organizations_empty_label">No organizations</string>
+    <string name="organizations_empty_label">Không có tổ chức</string>
     <string name="misc">Khác</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">Lệnh</string>
+    <string name="execute_command">Thực hiện</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
-    <string name="add_integration">Add integration</string>
+    <string name="add">Thêm</string>
+    <string name="add_integration">Thêm phần bổ trợ</string>
     <string name="account">Tài khoản</string>
     <string name="accounts">Tài khoản</string>
-    <string name="accounts_empty_label">No accounts</string>
-    <string name="account_none">No account</string>
+    <string name="accounts_empty_label">Không có các mục tài khoản</string>
+    <string name="account_none">Không có tài khoản</string>
     <string name="type">Loại</string>
     <string name="options">Tuỳ chọn</string>
     <string name="send">Gửi</string>
     <string name="reset">Bỏ chọn</string>
     <string name="length">Độ dài</string>
     <string name="security">Bảo mật</string>
-    <string name="contact_info">Contact info</string>
-    <string name="identity_title">Title</string>
-    <string name="identity_first_name">First name</string>
-    <string name="identity_middle_name">Middle name</string>
-    <string name="identity_last_name">Last name</string>
-    <string name="identity_full_name">Full name</string>
-    <string name="address1">Address line 1</string>
-    <string name="address2">Address line 2</string>
-    <string name="address3">Address line 3</string>
-    <string name="rename">Rename</string>
-    <string name="select_linked_type">Select type</string>
-    <string name="select_file">Select file</string>
+    <string name="contact_info">Thông tin liên hệ</string>
+    <string name="identity_title">Tiêu đề</string>
+    <string name="identity_first_name">Tên</string>
+    <string name="identity_middle_name">Tên đệm</string>
+    <string name="identity_last_name">Họ</string>
+    <string name="identity_full_name">Họ và tên</string>
+    <string name="address1">Địa chỉ 1</string>
+    <string name="address2">Địa chỉ 2</string>
+    <string name="address3">Địa chỉ 3</string>
+    <string name="rename">Đổi tên</string>
+    <string name="select_linked_type">Chọn loại liên kết</string>
+    <string name="select_file">Select a file</string>
     <string name="autofill">Autofill</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Discoverable</string>
     <string name="passkey_user_username">Username</string>
     <string name="passkey_user_display_name">Display name</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API key</string>
     <string name="domain">Domain</string>
     <string name="edit">Edit</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Chuyển vào Thùng rác</string>
     <string name="ciphers_action_restore_title">Khôi phục</string>
     <string name="ciphers_action_delete_title">Xóa vĩnh viễn</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Move associated items to trash</string>
     <string name="file_action_open_with_title">Open with…</string>
     <string name="file_action_send_with_title">Send with…</string>
@@ -241,65 +243,65 @@
     <string name="file_action_view_cipher_title">View parent item</string>
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
     <string name="vault_action_sync_vault_title">Sync vault</string>
-    <string name="vault_action_lock_vault_title">Lock vault</string>
-    <string name="vault_action_rename_folder_title">Rename folder</string>
+    <string name="vault_action_lock_vault_title">Khóa kho</string>
+    <string name="vault_action_rename_folder_title">Đổi tên thư mục</string>
     <string name="email_action_check_data_breach_title">Kiểm tra email trong các thông tin bị rò rỉ</string>
     <string name="username_action_check_data_breach_title">Kiểm tra tên người dùng trong các thông tin bị rò rỉ</string>
     <string name="password_action_check_data_breach_title">Kiểm tra mật khẩu trong các thông tin bị rò rỉ</string>
-    <string name="website_action_check_data_breach_title">Check the website in known data breaches</string>
+    <string name="website_action_check_data_breach_title">Kiểm tra trang web trong các sự kiện rò rỉ thông tin</string>
     <string name="uri_action_launch_app_title">Mở ứng dụng</string>
-    <string name="uri_action_launch_website_title">Launch website</string>
-    <string name="uri_action_launch_docs_title">Launch docs</string>
+    <string name="uri_action_launch_website_title">Mở trang web</string>
+    <string name="uri_action_launch_docs_title">Mở tài liệu</string>
     <string name="uri_action_launch_browser_title">Mở trình duyệt</string>
     <string name="uri_action_launch_browser_main_page_title">Mở trang chủ</string>
     <string name="uri_action_launch_play_store_title">Mở cửa hàng Play</string>
     <string name="uri_action_launch_in_app_title">Mở bằng <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Mở bằng…</string>
-    <string name="uri_action_how_to_delete_account_title">How to delete an account?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
-    <string name="uri_unsecure">Unsecure</string>
-    <string name="uri_match_app_title">Match app</string>
-    <string name="uri_match_detection_title">Match detection</string>
-    <string name="uri_match_detection_domain_title">Base domain</string>
-    <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
-    <string name="uri_match_detection_host_title">Host</string>
-    <string name="uri_match_detection_host_note">Match resources by hostname and (if specified) port.</string>
-    <string name="uri_match_detection_startswith_title">Starts with</string>
-    <string name="uri_match_detection_startswith_note">Match resources when the detected resource starts with the URI.</string>
-    <string name="uri_match_detection_exact_title">Exact</string>
-    <string name="uri_match_detection_exact_note">Match resources when the detected resource exactly matches the URI.</string>
-    <string name="uri_match_detection_regex_title">Regular expression</string>
-    <string name="uri_match_detection_regex_note">Match resources by regular expression. Advanced option.</string>
-    <string name="uri_match_detection_never_title">Never</string>
-    <string name="uri_match_detection_never_note">Ignore URI during auto-fill item search.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
+    <string name="uri_action_how_to_delete_account_title">Làm sao để xoá một tài khoản?</string>
+    <string name="uri_action_autofix_unsecure_title">Tự động sửa liên kết không an toàn</string>
+    <string name="uri_action_autofix_unsecure_text">Thay thế bằng giao thức an toàn hơn nếu có</string>
+    <string name="uri_unsecure">Không an toàn</string>
+    <string name="uri_match_app_title">Ứng dụng phù hợp</string>
+    <string name="uri_match_detection_title">Tiêu chí khớp</string>
+    <string name="uri_match_detection_domain_title">Tên miền cơ sở</string>
+    <string name="uri_match_detection_domain_note">Khớp theo tên miền cấp cao nhất và tên miền cấp hai của trang.</string>
+    <string name="uri_match_detection_host_title">Tên máy chủ</string>
+    <string name="uri_match_detection_host_note">Khớp theo tên máy chủ và số port (nếu có).</string>
+    <string name="uri_match_detection_startswith_title">Bắt đầu với</string>
+    <string name="uri_match_detection_startswith_note">Khớp khi phần đầu tiên của đường dẫn bằng với đường dẫn mong muốn.</string>
+    <string name="uri_match_detection_exact_title">Chính xác</string>
+    <string name="uri_match_detection_exact_note">Khớp khi đường dẫn trùng với đường dẫn mong muốn.</string>
+    <string name="uri_match_detection_regex_title">Biểu thức chính quy</string>
+    <string name="uri_match_detection_regex_note">Khớp theo biểu thức chính quy. Tùy chọn nâng cao.</string>
+    <string name="uri_match_detection_never_title">Không bao giờ</string>
+    <string name="uri_match_detection_never_note">Bỏ qua đường dẫn trong lúc tìm mục để điền tự động.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> được liên kết với mật khẩu</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tên người dùng</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tên chủ thẻ</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tháng hết hạn</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với năm hết hạn</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với số CVV</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với thương hiệu thẻ</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với số thẻ</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tiêu đề</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tên đệm</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với địa chỉ (1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với địa chỉ (2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với địa chỉ (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với thành phố</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tiểu bang</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với mã bưu chính</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với quốc gia</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với công ty</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với email</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với số điện thoại</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với số CCCD</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tên người dùng</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với số hộ chiếu</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với số GPLX</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với tên</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với họ</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với họ và tên</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
     <string name="text_action_share_with_title">Share with…</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> mục đã chọn</string>
@@ -362,82 +364,83 @@
     <string name="fido2webauthn_action_return_title">Return to app</string>
     <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
     <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_card_line2">1. Nhận thẻ mới: Bên phát hành thẻ của bạn có thể đã gửi thẻ thay thế kèm theo ngày hết hạn mới đến cho bạn. Nếu không, liên hệ với bên phát hành thẻ để xác nhận việc nhận thẻ mới và thời điểm nhận thẻ.</string>
+    <string name="expiry_tips_card_line3">2. Cập nhật các khoản thanh toán tự động: Nếu bạn có bất kỳ khoản thanh toán tự động được gắn với thẻ của bạn, ví dụ như gói thành viên tập thể hình hàng tháng hoặc gói Netflix, hãy cập nhật thông tin thanh toán bằng số thẻ và ngày hết hạn mới.</string>
+    <string name="expiry_tips_card_line4">3. Hủy thẻ cũ: Một khi thẻ mới của bạn đã đến và bạn đã cập nhật bất kỳ thông tin cần thiết khác, hãy đảm bảo việc tiêu hủy thẻ cũ đã hết hạn để tránh việc bị đánh cắp thông tin.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
-    <string name="error_must_not_be_empty">Must not be empty</string>
+    <string name="error_must_not_be_empty">Không được để trống</string>
     <!--
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
-    <string name="error_must_not_be_blank">Must not be blank</string>
-    <string name="error_must_be_custom_domain">Must be custom domain</string>
-    <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
-    <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_invalid_domain">Invalid domain</string>
-    <string name="error_invalid_email">Invalid email</string>
-    <string name="error_invalid_url">Invalid URL</string>
-    <string name="error_invalid_uri">Invalid URI</string>
-    <string name="error_invalid_card_number">Invalid card number</string>
-    <string name="error_incorrect_password">Incorrect password</string>
-    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
-    <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_must_not_be_blank">Không được để trống</string>
+    <string name="error_must_be_custom_domain">Phải là tên miền tùy chỉnh</string>
+    <string name="error_must_contain_only_us_ascii_chars">Chỉ được bao gồm các ký tự US-ASCII</string>
+    <string name="error_must_have_at_least_n_symbols">Phải dài ít nhất <xliff:g id="length" example="15">%1$d</xliff:g> ký tự</string>
+    <string name="error_must_have_exactly_n_symbols">Phải dài <xliff:g id="length" example="15">%1$d</xliff:g> ký tự</string>
+    <string name="error_invalid_domain">Tên miền không hợp lệ</string>
+    <string name="error_invalid_email">Email không hợp lệ</string>
+    <string name="error_invalid_url">Đường dẫn không hợp lệ</string>
+    <string name="error_invalid_uri">URI không hợp lệ</string>
+    <string name="error_invalid_card_number">Số thẻ không hợp lệ</string>
+    <string name="error_incorrect_password">Mật khẩu không đúng</string>
+    <string name="error_failed_generate_kdf_hash_oom">Không thể tạo khóa, không đủ bộ nhớ. Vui lòng kiểm tra cài đặt KDF trên máy chủ của bạn.</string>
+    <string name="error_failed_generate_otp_code">Không thể tạo mã OTP</string>
+    <string name="error_failed_create_passkey">Không thể tạo được khóa truy cập</string>
+    <string name="error_failed_use_passkey">Không thể cấp phép cho yêu cầu</string>
+    <string name="error_failed_format_placeholder">Không thể định dạng phần thay thế</string>
     <!-- Title of the 'Show as Barcode' dialog -->
-    <string name="barcodetype_title">Barcode</string>
-    <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Copy this authenticator to another device by scanning the QR code.</string>
+    <string name="barcodetype_title">Mã vạch</string>
+    <string name="barcodetype_action_show_in_barcode_title">Hiển thị bằng Mã vạch</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Sao chép trình xác thực này sang thiết bị hoặc ứng dụng khác bằng cách quét mã QR.</string>
     <!-- Title of the 'Date picker' dialog -->
-    <string name="datepicker_title">Date picker</string>
+    <string name="datepicker_title">Chọn ngày</string>
     <!-- Title of the 'Color picker' dialog -->
-    <string name="colorpicker_title">Color picker</string>
+    <string name="colorpicker_title">Chọn màu</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justdeleteme_title">How to delete an account?</string>
-    <string name="justdeleteme_subtitle">A collection of info of how to delete your account from web services</string>
+    <string name="justdeleteme_title">Làm sao để xoá một tài khoản?</string>
+    <string name="justdeleteme_subtitle">Tổng hợp các thông tin giúp bạn xoá tài khoản của bạn trên các trang web</string>
     <!-- Simple process -->
-    <string name="justdeleteme_difficulty_easy_label">Easy</string>
+    <string name="justdeleteme_difficulty_easy_label">Dễ</string>
     <!-- Some extra steps involved -->
-    <string name="justdeleteme_difficulty_medium_label">Medium</string>
+    <string name="justdeleteme_difficulty_medium_label">Trung bình</string>
     <!-- Cannot be fully deleted without contacting customer services -->
-    <string name="justdeleteme_difficulty_hard_label">Hard</string>
+    <string name="justdeleteme_difficulty_hard_label">Khó</string>
     <!-- Account can only be deleted if you live in a location with privacy rights -->
-    <string name="justdeleteme_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justdeleteme_difficulty_limited_availability_label">Bị hạn chế</string>
     <!-- Cannot be deleted -->
-    <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
-    <string name="justdeleteme_send_email_title">Send email</string>
-    <string name="justdeleteme_search_placeholder">Search websites</string>
-    <string name="justdeleteme_empty_label">No instructions</string>
-    <string name="tfa_directory_title">Two-factor authentication</string>
-    <string name="tfa_directory_text">List of websites with two-factor authentication support</string>
-    <string name="tfa_directory_search_placeholder">Search websites</string>
-    <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">List of websites with passkeys support</string>
-    <string name="passkeys_directory_search_placeholder">Search websites</string>
+    <string name="justdeleteme_difficulty_impossible_label">Không thể</string>
+    <string name="justdeleteme_send_email_title">Gửi email</string>
+    <string name="justdeleteme_search_placeholder">Tìm kiếm các trang web</string>
+    <string name="justdeleteme_empty_label">Không có chỉ dẫn</string>
+    <string name="tfa_directory_title">Xác thực hai bước</string>
+    <string name="tfa_directory_text">Danh sách các trang web hỗ trợ xác thực hai bước</string>
+    <string name="tfa_directory_search_placeholder">Tìm kiếm các trang web</string>
+    <string name="passkeys_directory_title">Khóa truy cập</string>
+    <string name="passkeys_directory_text">Danh sách các trang web hỗ trợ khóa truy cập</string>
+    <string name="passkeys_directory_search_placeholder">Tìm kiếm các trang web</string>
     <!-- Title of the 'Email data breach' dialog -->
-    <string name="emailleak_title">Data breach</string>
-    <string name="emailleak_note">Breached account data can provide malicious actors with access to sensitive personal and financial information, potentially leading to identity theft, financial fraud, and other forms of cybercrime.</string>
-    <string name="emailleak_breach_not_found_title">No breaches found</string>
-    <string name="emailleak_breach_found_title">Breached accounts found</string>
-    <string name="emailleak_breach_section">Breaches</string>
-    <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
-    <string name="passwordleak_title">Data breach</string>
-    <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
-    <string name="passwordleak_occurrences_found_title">Password is compromised</string>
-    <string name="passwordleak_occurrences_found_text">The password has been identified in known data breaches. Please change it immediately to protect your online security</string>
-    <string name="passwordleak_occurrences_not_found_title">No breaches found</string>
-    <string name="passwordleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
+    <string name="emailleak_title">Dữ liệu bị rò rĩ</string>
+    <string name="emailleak_note">Dữ liệu từ tài khoản bị rò rỉ có thể cấp quyền cho kẻ xấu truy cập thông tin cá nhân và thông tin tài chính nhạy cảm, từ đó có thể dẫn đến việc thông tin bị đánh cắp, giả mạo tài chính, và các loại hình tội phạm mạng khác.</string>
+    <string name="emailleak_breach_not_found_title">Không có dữ liệu bị rò rỉ</string>
+    <string name="emailleak_breach_found_title">Đã tìm thấy các tài khoản bị rò rỉ thông tin</string>
+    <string name="emailleak_breach_section">Rò rỉ thông tin</string>
+    <string name="emailleak_breach_occurred_at">Xảy ra vào <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Công khai vào <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Không thể kiểm tra các dữ liệu bị rò rỉ. Bạn có thể đang ngoại tuyến</string>
+    <string name="passwordleak_title">Rò rỉ thông tin</string>
+    <string name="passwordleak_note">Mật khẩu đã bị rò rỉ tốn ít thời gian hơn để giải mã và ta không nên dùng nó cho bất kỳ việc gì.</string>
+    <string name="passwordleak_occurrences_found_title">Mật khẩu bị rò rỉ</string>
+    <string name="passwordleak_occurrences_found_text">Mật khẩu này đã được tìm thấy trong các dữ liệu bị rò rỉ. Vui lòng đổi mật khẩu ngay lập tức để bảo vệ an toàn trực tuyến của bạn</string>
+    <string name="passwordleak_occurrences_not_found_title">Không có dữ liệu bị rò rỉ</string>
+    <string name="passwordleak_failed_to_load_status_text">Không thể kiểm tra các dữ liệu bị rò rỉ. Bạn có thể đang ngoại tuyến</string>
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Large Type</string>
     <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">App Picker</string>
     <string name="apppicker_search_placeholder">Search installed apps</string>
     <string name="apppicker_system_app_label">System app</string>

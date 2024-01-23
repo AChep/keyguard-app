@@ -113,7 +113,7 @@
     <string name="address3">Adresregel 3</string>
     <string name="rename">Hernoemen</string>
     <string name="select_linked_type">Selecteer type</string>
-    <string name="select_file">Select file</string>
+    <string name="select_file">Select a file</string>
     <string name="autofill">Automatisch aanvullen</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Maak een passkey</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Discoverable</string>
     <string name="passkey_user_username">Gebruikersnaam</string>
     <string name="passkey_user_display_name">Weergavenaam</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API sleutel</string>
     <string name="domain">Domein</string>
     <string name="edit">Bewerken</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Prullenbak</string>
     <string name="ciphers_action_restore_title">Herstel</string>
     <string name="ciphers_action_delete_title">Definitief verwijderen</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Verwante items verplaatsen naar prullenbak</string>
     <string name="file_action_open_with_title">Open met…</string>
     <string name="file_action_send_with_title">Verzenden met…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Groot type</string>
     <string name="largetype_action_show_in_large_type_title">Weergeven in groot type</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Toon in Groot Type en vergrendel de kluis</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">App kiezer</string>
     <string name="apppicker_search_placeholder">Geïnstalleerde apps zoeken</string>
     <string name="apppicker_system_app_label">Systeem app</string>

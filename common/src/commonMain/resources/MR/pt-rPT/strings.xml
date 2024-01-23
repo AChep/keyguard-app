@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Detectável</string>
     <string name="passkey_user_username">Nome de utilizador</string>
     <string name="passkey_user_display_name">Nome a exibir</string>
+    <string name="ignored_alerts">Alertas ignorados</string>
     <string name="api_key">Chave API</string>
     <string name="domain">Domínio</string>
     <string name="edit">Editar</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Reciclagem</string>
     <string name="ciphers_action_restore_title">Restaurar</string>
     <string name="ciphers_action_delete_title">Eliminar definitivamente</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configurar alertas do guardião</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Mover entradas associados para a reciclagem</string>
     <string name="file_action_open_with_title">Abrir com…</string>
     <string name="file_action_send_with_title">Enviar com…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Tipo Grande</string>
     <string name="largetype_action_show_in_large_type_title">Mostrar em tamanho grande</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Mostrar em tamanho grande e bloquear cofre</string>
+    <string name="largetype_unicode_surrogate_note">O texto contém símbolos Unicode compostos!</string>
     <string name="apppicker_header_title">Seletor de aplicação</string>
     <string name="apppicker_search_placeholder">Pesquisar aplicações instaladas</string>
     <string name="apppicker_system_app_label">Aplicações do sistema</string>

@@ -197,12 +197,12 @@ fun ErrorEntity.toException(
     // Auto-format the validation error
     // messages to something user-friendly.
     val validationError = validationErrors?.toMap()?.format()
-    val generalError = errorModel?.message ?: errorDescription ?: error
-    val message = if (validationError != null) {
-        "$generalError\n\n$validationError"
-    } else {
-        generalError
-    }
+    val message = listOfNotNull(
+        errorModel?.message,
+        errorDescription,
+        error,
+        validationError
+    ).joinToString(separator = "\n")
     ApiException(
         exception = exception,
         code = code,

@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
@@ -38,6 +39,7 @@ class SyncByTokenImpl(
     private val cipherEncryptor: CipherEncryptor,
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
+    private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
     private val httpClient: HttpClient,
     private val db: DatabaseManager,
@@ -55,6 +57,7 @@ class SyncByTokenImpl(
         cipherEncryptor = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         base64Service = directDI.instance(),
+        getPasswordStrength = directDI.instance(),
         json = directDI.instance(),
         httpClient = directDI.instance(),
         db = directDI.instance(),
@@ -83,6 +86,7 @@ class SyncByTokenImpl(
                     cryptoGenerator = cryptoGenerator,
                     cipherEncryptor = cipherEncryptor,
                     logRepository = logRepository,
+                    getPasswordStrength = getPasswordStrength,
                     user = latestUser,
                     syncer = dbSyncer,
                 )

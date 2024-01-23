@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -71,6 +72,7 @@ class SyncEngine(
     private val cryptoGenerator: CryptoGenerator,
     private val cipherEncryptor: CipherEncryptor,
     private val logRepository: LogRepository,
+    private val getPasswordStrength: GetPasswordStrength,
     private val user: BitwardenToken,
     private val syncer: DatabaseSyncer,
 ) {
@@ -500,7 +502,7 @@ class SyncEngine(
                     )
                     .let { remoteDecoded ->
                         // inject the local model into newly decoded remote one
-                        local?.let { merge(remoteDecoded, it) } ?: remoteDecoded
+                        merge(remoteDecoded, local, getPasswordStrength)
                     }
             },
             remoteDeleteById = { id ->
@@ -554,7 +556,7 @@ class SyncEngine(
                     // types
                     type = BitwardenCipher.Type.Card,
                 )
-                localOrNull?.let { merge(model, it) } ?: model
+                merge(model, localOrNull, getPasswordStrength)
             },
             remotePut = { (r, local) ->
                 val ciphersApi = user.env.back().api.ciphers
@@ -661,7 +663,7 @@ class SyncEngine(
                     )
                     .let { remoteDecoded ->
                         // inject the local model into newly decoded remote one
-                        merge(remoteDecoded, r.source)
+                        merge(remoteDecoded, r.source, getPasswordStrength)
                     }
             },
             onLog = { msg, logLevel ->

@@ -144,60 +144,10 @@ private const val ROUTE_NAME = "home"
 private val vaultRoute = VaultRoute()
 
 @Composable
-fun HomeEffect() {
-    val db by rememberInstance<DatabaseManager>()
-    val ps by rememberInstance<GetPasswordStrength>()
-    LaunchedEffect(Unit) {
-        db.mutate {
-            val ciphers = it.cipherQueries.get().executeAsList()
-            val www = ciphers
-                .filter { it.data_.login?.password != null && it.data_.login.passwordStrength == null }
-                .mapNotNull {
-                    val password = it.data_.login?.password!!
-                    val s = ps(password)
-                        .attempt()
-                        .bind()
-                        .getOrNull()
-                    if (s != null) {
-                        val login = it.data_.login.copy(
-                            passwordStrength = BitwardenCipher.Login.PasswordStrength(
-                                password = password,
-                                crackTimeSeconds = s.crackTimeSeconds,
-                                version = 1,
-                            ),
-                        )
-                        it.copy(
-                            data_ = it.data_.copy(
-                                login = login,
-                            ),
-                        )
-                    } else {
-                        null
-                    }
-                }
-                .toTypedArray()
-            recordLog("Replaced ${www.size} entities")
-            it.transaction {
-                www.forEach { cipher ->
-                    it.cipherQueries.insert(
-                        cipherId = cipher.cipherId,
-                        accountId = cipher.accountId,
-                        folderId = cipher.folderId,
-                        data = cipher.data_,
-                    )
-                }
-            }
-        }.attempt().bind()
-    }
-}
-
-@Composable
 fun HomeScreen(
     defaultRoute: Route = vaultRoute,
     navBarVisible: Boolean = true,
 ) {
-    HomeEffect()
-
     val navRoutes = remember {
         listOf(
             Rail(

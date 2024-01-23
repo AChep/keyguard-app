@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
@@ -24,12 +25,13 @@ import kotlin.Throwable
 import kotlin.Unit
 import kotlin.let
 
-fun merge(
+suspend fun merge(
     remote: BitwardenCipher,
-    local: BitwardenCipher,
+    local: BitwardenCipher?,
+    getPasswordStrength: GetPasswordStrength,
 ): BitwardenCipher {
     val attachments = remote.attachments.toMutableList()
-    local.attachments.forEachIndexed { localIndex, attachment ->
+    local?.attachments?.forEachIndexed { localIndex, attachment ->
         val localAttachment = attachment as? BitwardenCipher.Attachment.Local
             ?: return@forEachIndexed
 
@@ -57,8 +59,34 @@ fun merge(
         }
     }
 
-    val ignoredAlerts = local.ignoredAlerts
+    var login = remote.login
+    // Calculate or copy over the password strength of
+    // the password.
+    if (remote.login != null) run {
+        val password = remote.login.password
+            ?: return@run
+        val strength = local?.login?.passwordStrength
+            .takeIf { local?.login?.password == remote.login.password }
+        // Generate a password strength badge.
+            ?: getPasswordStrength(password)
+                .attempt()
+                .bind()
+                .getOrNull()
+                ?.let { ps ->
+                    BitwardenCipher.Login.PasswordStrength(
+                        password = password,
+                        crackTimeSeconds = ps.crackTimeSeconds,
+                        version = ps.version,
+                    )
+                }
+        login = login?.copy(
+            passwordStrength = strength,
+        )
+    }
+
+    val ignoredAlerts = local?.ignoredAlerts.orEmpty()
     return remote.copy(
+        login = login,
         attachments = attachments,
         ignoredAlerts = ignoredAlerts,
     )
@@ -86,9 +114,9 @@ suspend fun <
     shouldOverwrite: (Local, Remote) -> Boolean = { _, _ -> false },
     remoteItems: Collection<Remote>,
     remoteLens: SyncManager.Lens<Remote>,
-    remoteDecoder: (Remote, Local?) -> RemoteDecoded,
+    remoteDecoder: suspend (Remote, Local?) -> RemoteDecoded,
     remoteDecodedToString: (RemoteDecoded) -> String = { it.toString() },
-    remoteDecodedFallback: (Remote, Local?, Throwable) -> RemoteDecoded,
+    remoteDecodedFallback: suspend (Remote, Local?, Throwable) -> RemoteDecoded,
     remoteDeleteById: suspend (String) -> Unit,
     remotePut: suspend RemotePutScope<Remote>.(LocalDecoded) -> RemoteDecoded,
     onLog: (String, LogLevel) -> Unit,

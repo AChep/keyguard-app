@@ -80,7 +80,7 @@ inline fun <T> IO<T>.handleErrorWith(
 
 inline fun <T> IO<T>.handleError(
     crossinline predicate: (Throwable) -> Boolean = { true },
-    crossinline block: (Throwable) -> T,
+    crossinline block: suspend (Throwable) -> T,
 ): IO<T> = ioEffect {
     try {
         invoke()

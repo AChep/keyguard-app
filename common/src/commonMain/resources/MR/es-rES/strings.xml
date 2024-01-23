@@ -113,7 +113,7 @@
     <string name="address3">Dirección (línea 3)</string>
     <string name="rename">Renombrar</string>
     <string name="select_linked_type">Seleccionar tipo</string>
-    <string name="select_file">Select file</string>
+    <string name="select_file">Select a file</string>
     <string name="autofill">Autocompletar</string>
     <string name="passkey">Llave de acceso</string>
     <string name="passkey_create_header">Crear una llave de acceso</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Detección</string>
     <string name="passkey_user_username">Nombre de usuario</string>
     <string name="passkey_user_display_name">Nombre a mostrar</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">Clave API</string>
     <string name="domain">Dominio</string>
     <string name="edit">Editar</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Papelera</string>
     <string name="ciphers_action_restore_title">Restaurar</string>
     <string name="ciphers_action_delete_title">Eliminar para siempre</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Mover elementos asociados a la papelera</string>
     <string name="file_action_open_with_title">Abrir con…</string>
     <string name="file_action_send_with_title">Enviar con…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Tipo grande</string>
     <string name="largetype_action_show_in_large_type_title">Mostrar en tipo grande</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Mostrar en bóveda de tipo grande y bloqueo</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">Selector de Apps</string>
     <string name="apppicker_search_placeholder">Buscar apps instaladas</string>
     <string name="apppicker_system_app_label">App de sistema</string>

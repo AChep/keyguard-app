@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Видимий</string>
     <string name="passkey_user_username">Ім\'я користувача</string>
     <string name="passkey_user_display_name">Видиме ім\'я</string>
+    <string name="ignored_alerts">Вимкнені оповіщення</string>
     <string name="api_key">Ключ API</string>
     <string name="domain">Домен</string>
     <string name="edit">Редагувати</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Відправити у кошик</string>
     <string name="ciphers_action_restore_title">Відновити з кошика</string>
     <string name="ciphers_action_delete_title">Видалити назавжди</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Налаштувати сповіщення ст. вежі</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Перемістити зв\'язані записи до кошика</string>
     <string name="file_action_open_with_title">Відкрити за допомогою…</string>
     <string name="file_action_send_with_title">Надіслати за допомогою…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Великий шрифт</string>
     <string name="largetype_action_show_in_large_type_title">Показати великим шрифтом</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Показати великим шрифтом та заблокувати сховище</string>
+    <string name="largetype_unicode_surrogate_note">Текст містить композитні символи Unicode!</string>
     <string name="apppicker_header_title">Вибір застосунку</string>
     <string name="apppicker_search_placeholder">Пошук встановлених застосунків</string>
     <string name="apppicker_system_app_label">Системний застосунок</string>

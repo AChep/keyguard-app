@@ -7,9 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nom</string>
     <string name="account_name">Nom del compte</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
+    <string name="enabled">Habilitat</string>
+    <string name="disabled">Deshabilitat</string>
+    <string name="wordlist">Llista de paraules</string>
     <string name="username">Nom d’usuari</string>
     <string name="password">Contrasenya</string>
     <string name="app_password">Contrasenya d\'aplicació</string>
@@ -64,7 +64,7 @@
     <string name="notes">Notes</string>
     <string name="attachments">Adjunts</string>
     <string name="attachments_empty_label">Sense adjunts</string>
-    <string name="expired">Expired</string>
+    <string name="expired">Expirat</string>
     <string name="expiring_soon">Expira prompte</string>
     <string name="item_incomplete_title">Dades incompletes</string>
     <string name="item_incomplete_text">A aquest element li falta informació important.</string>
@@ -113,7 +113,7 @@
     <string name="address3">Línia 3 de l\'adreça</string>
     <string name="rename">Reanomenar</string>
     <string name="select_linked_type">Seleccioneu tipus</string>
-    <string name="select_file">Select file</string>
+    <string name="select_file">Seleccionar fitxer</string>
     <string name="autofill">Emplenament automàtic</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una passkey</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Detectable</string>
     <string name="passkey_user_username">Nom d’Usuari</string>
     <string name="passkey_user_display_name">Nom visible</string>
+    <string name="ignored_alerts">Alertes ignorades</string>
     <string name="api_key">Clau d\'API</string>
     <string name="domain">Domini</string>
     <string name="edit">Edita</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Paperera</string>
     <string name="ciphers_action_restore_title">Restaura</string>
     <string name="ciphers_action_delete_title">Elimina per sempre</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configurar alertes de la Watchtower</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Mou els elements associats a la paperera</string>
     <string name="file_action_open_with_title">Obre amb…</string>
     <string name="file_action_send_with_title">Envia amb…</string>
@@ -360,11 +362,11 @@
     <string name="fido2webauthn_web_title">WebAuthn FIDO2</string>
     <string name="fido2webauthn_action_go_title">Autenticar WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Torna a l\'app</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_item_line1">Aquest element expira el <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Aquesta targeta expira el <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Hi ha algunes coses que pots fer per a assegurar una transició sense problemes:</string>
+    <string name="expiry_tips_card_line2">1. Obté una nova targeta: És possible que el proveïdor de la teva targeta ja t\'hagi enviat un recanvi amb una nova data d\'expiració. Si no és el cas, contacta amb el proveïdor, i consulta si tenen planejat enviar-te\'n una nova, i quan serà.</string>
+    <string name="expiry_tips_card_line3">2. Actualitza els pagaments automàtics: Si has configurat algun pagament automàtic amb la targeta, com una subscripció mensual al gimnàs o Netflix, assegura\'t d\'actualitzar la informació amb el nou número de targeta i la data d\'expiració.</string>
+    <string name="expiry_tips_card_line4">3. Destrueix la targeta antiga: Una vegada t\'arribi la nova targeta i hagis actualitzat la informació necessària, assegura\'t de desfer-te adequadament de la targeta antiga, caducada, per a prevenir suplantacions d\'identitat.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -388,7 +390,7 @@
     <string name="error_failed_generate_otp_code">No s\'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s\'ha pogut crear la passkey</string>
     <string name="error_failed_use_passkey">No s\'ha pogut autoritzar la petició</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_format_placeholder">No s\'ha pogut formatar el marcador</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Codi de barres</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostra com a codi de barres</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Lletra Gran</string>
     <string name="largetype_action_show_in_large_type_title">Mostra en Lletra Gran</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Mostra en Lletra Gran i bloqueja la caixa forta</string>
+    <string name="largetype_unicode_surrogate_note">El text conté símbols Unicode compostos!</string>
     <string name="apppicker_header_title">Selector d\'apps</string>
     <string name="apppicker_search_placeholder">Cerca aplicacions instal·lades</string>
     <string name="apppicker_system_app_label">Aplicació del sistema</string>
@@ -456,13 +459,13 @@
     <string name="emailrelay_empty_label">Cap redireccionador d\'email</string>
     <string name="emailrelay_base_env_server_url_label">URL del servidor</string>
     <string name="emailrelay_base_env_note">Especifiqueu l\'URL base de la vostra instal·lació allotjada a un entorn propi.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_empty_label">No wordlists</string>
+    <string name="wordlist_list_header_title">Llistes de paraules</string>
+    <string name="wordlist_list_section_title">Llistes de paraules</string>
+    <string name="wordlist_delete_one_confirmation_title">Eliminar la llista de paraules?</string>
+    <string name="wordlist_delete_many_confirmation_title">Eliminar les llistes de paraules?</string>
+    <string name="wordlist_edit_wordlist_title">Edita una llista de paraules</string>
+    <string name="wordlist_add_wordlist_title">Afegeix una llista de paraules</string>
+    <string name="wordlist_empty_label">Cap llista de paraules</string>
     <string name="urloverride_header_title">Sobreescriptura d\'URL</string>
     <string name="urloverride_list_header_title">Sobreescriptures d\'URL</string>
     <string name="urloverride_list_section_title">Sobreescriptures d\'URL</string>
@@ -643,13 +646,13 @@
     <string name="generator_passphrase_delimiter_title">Delimitador</string>
     <string name="generator_passphrase_capitalize_title">Majúscules</string>
     <string name="generator_passphrase_number_title">Número</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
+    <string name="generator_passphrase_wordlist_title">Llista de paraules</string>
     <string name="generator_username_type">Nom d’usuari</string>
     <string name="generator_username_delimiter_title">Delimitador</string>
     <string name="generator_username_custom_word_title">Paraula personalitzada</string>
     <string name="generator_username_capitalize_title">Majúscules inicials</string>
     <string name="generator_username_number_title">Número</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
+    <string name="generator_username_wordlist_title">Llista de paraules</string>
     <string name="generator_password_type">Símbols aleatoris</string>
     <string name="generator_password_note">Una contrasenya forta té almenys <xliff:g id="length" example="15">%1$d</xliff:g> caràcters, lletres majúscules &amp; minúscules, dígits i símbols.</string>
     <string name="generator_password_numbers_title">Dígits</string>

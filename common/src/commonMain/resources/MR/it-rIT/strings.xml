@@ -112,8 +112,8 @@
     <string name="address2">Indirizzo riga 2</string>
     <string name="address3">Indirizzo riga 3</string>
     <string name="rename">Rinomina</string>
-    <string name="select_linked_type">Select type</string>
-    <string name="select_file">Select file</string>
+    <string name="select_linked_type">Select a type</string>
+    <string name="select_file">Select a file</string>
     <string name="autofill">Riempimento automatico</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una password</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Visibile</string>
     <string name="passkey_user_username">Username</string>
     <string name="passkey_user_display_name">Nome visualizzato</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">Chiave API</string>
     <string name="domain">Dominio</string>
     <string name="edit">Modifica</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Elimina</string>
     <string name="ciphers_action_restore_title">Ripristina</string>
     <string name="ciphers_action_delete_title">Elimina definitivamente</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Sposta gli elementi associati nel cestino</string>
     <string name="file_action_open_with_title">Apri con…</string>
     <string name="file_action_send_with_title">Invia con…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Large Type</string>
     <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">Selettore App</string>
     <string name="apppicker_search_placeholder">Cerca app installate</string>
     <string name="apppicker_system_app_label">App di sistema</string>

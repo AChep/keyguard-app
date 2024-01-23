@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">可见</string>
     <string name="passkey_user_username">用户名</string>
     <string name="passkey_user_display_name">显示名称</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API 密钥</string>
     <string name="domain">域名</string>
     <string name="edit">编辑</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">回收站</string>
     <string name="ciphers_action_restore_title">恢复</string>
     <string name="ciphers_action_delete_title">永久删除</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">将关联项目移动到回收站</string>
     <string name="file_action_open_with_title">打开方式…</string>
     <string name="file_action_send_with_title">通过...发送</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">大号字体</string>
     <string name="largetype_action_show_in_large_type_title">以大号字体显示</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">以大号字体显示并锁定密码库</string>
+    <string name="largetype_unicode_surrogate_note">文本包含复合的 Unicode 符号！</string>
     <string name="apppicker_header_title">应用选择器</string>
     <string name="apppicker_search_placeholder">搜索已安装的应用…</string>
     <string name="apppicker_system_app_label">系统应用</string>

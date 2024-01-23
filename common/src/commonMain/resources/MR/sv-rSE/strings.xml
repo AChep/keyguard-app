@@ -7,9 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Namn</string>
     <string name="account_name">Kontonamn</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
+    <string name="enabled">Aktiverad</string>
+    <string name="disabled">Inaktiverad</string>
+    <string name="wordlist">Ordlista</string>
     <string name="username">Användarnamn</string>
     <string name="password">Lösenord</string>
     <string name="app_password">App password</string>
@@ -113,7 +113,7 @@
     <string name="address3">Address line 3</string>
     <string name="rename">Rename</string>
     <string name="select_linked_type">Välj typ</string>
-    <string name="select_file">Select file</string>
+    <string name="select_file">Välj fil</string>
     <string name="autofill">Autofyll</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Upptäckbar</string>
     <string name="passkey_user_username">Användarnamn</string>
     <string name="passkey_user_display_name">Visningsnamn</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API-nyckel</string>
     <string name="domain">Domän</string>
     <string name="edit">Redigera</string>
@@ -186,7 +187,7 @@
     <string name="custom_fields">Anpassade fält</string>
     <string name="reveal_secure_note">Reveal a secure note</string>
     <string name="hide_secure_note">Hide a secure note</string>
-    <string name="master_password_hint">Master password hint</string>
+    <string name="master_password_hint">Huvudlösenordsledtråd</string>
     <string name="fingerprint_phrase">Fingeravtrycksfras</string>
     <string name="fingerprint_phrase_help_title">Vad är ett fingeravtryck?</string>
     <string name="bitwarden_premium">Bitwarden Premium</string>
@@ -194,7 +195,7 @@
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Ändra namn</string>
     <string name="account_action_change_color_title">Ändra färg</string>
-    <string name="account_action_change_master_password_hint_title">Change master password hint</string>
+    <string name="account_action_change_master_password_hint_title">Ändra huvudlösenordsledtråd</string>
     <string name="account_action_sign_out_title">Logga ut</string>
     <string name="account_action_sign_in_title">Logga in</string>
     <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Papperskorg</string>
     <string name="ciphers_action_restore_title">Återställ</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Flytta associerade objekt till papperskorgen</string>
     <string name="file_action_open_with_title">Öppna med…</string>
     <string name="file_action_send_with_title">Skicka med…</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Large Type</string>
     <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">App Picker</string>
     <string name="apppicker_search_placeholder">Sök efter installerade appar</string>
     <string name="apppicker_system_app_label">System app</string>
@@ -456,13 +459,13 @@
     <string name="emailrelay_empty_label">No email forwarders</string>
     <string name="emailrelay_base_env_server_url_label">Server URL</string>
     <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
+    <string name="wordlist_list_header_title">Ordlistor</string>
+    <string name="wordlist_list_section_title">Ordlistor</string>
     <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
     <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_empty_label">No wordlists</string>
+    <string name="wordlist_empty_label">Inga ordlistor</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
@@ -643,13 +646,13 @@
     <string name="generator_passphrase_delimiter_title">Delimiter</string>
     <string name="generator_passphrase_capitalize_title">Capitalize</string>
     <string name="generator_passphrase_number_title">Nummer</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
+    <string name="generator_passphrase_wordlist_title">Ordlista</string>
     <string name="generator_username_type">Användarnamn</string>
     <string name="generator_username_delimiter_title">Delimiter</string>
     <string name="generator_username_custom_word_title">Anpassat ord</string>
     <string name="generator_username_capitalize_title">Capitalize</string>
     <string name="generator_username_number_title">Number</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
+    <string name="generator_username_wordlist_title">Ordlista</string>
     <string name="generator_password_type">Random symbols</string>
     <string name="generator_password_note">Ett starkt lösenord består av minst <xliff:g id="length" example="15">%1$d</xliff:g> tecken, stora och små bokstäver, siffror och symboler.</string>
     <string name="generator_password_numbers_title">Digits</string>
@@ -693,7 +696,7 @@
     <string name="watchtower_section_maintenance_label">Maintenance</string>
     <string name="watchtower_item_pwned_passwords_title">Pwned Passwords</string>
     <string name="watchtower_item_pwned_passwords_text">Passwords that have been exposed in data breaches. Such passwords should be changed immediately.</string>
-    <string name="watchtower_item_reused_passwords_title">Reused Passwords</string>
+    <string name="watchtower_item_reused_passwords_title">Återanvända lösenord</string>
     <string name="watchtower_item_reused_passwords_text">Don\'t use the same password on multiple websites. Generate unique passwords to improve security.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Webbplatser som drabbats av dataintrång sedan du senast ändrade ditt lösenord. Ändra ditt lösenord för att hålla ditt konto säkert.</string>
@@ -776,7 +779,7 @@
     <string name="pref_item_open_source_licenses_title">Open-source licenses</string>
     <string name="pref_item_download_apk_title">Ladda ner APK-fil</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
-    <string name="pref_item_load_website_icons_title">Load Website icons</string>
+    <string name="pref_item_load_website_icons_title">Ladda webbplatsikoner</string>
     <string name="pref_item_load_website_icons_text">Queuing website icon might leak the website address to internet provider</string>
     <string name="pref_item_markdown_title">Rich text formatting</string>
     <string name="pref_item_markdown_text">Använd Markdown för att formatera anteckningar</string>
@@ -827,7 +830,7 @@
     <string name="pref_item_permissions_title">Permissions</string>
     <string name="pref_item_features_overview_title">Features overview</string>
     <string name="pref_item_url_override_title">URL overrides</string>
-    <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
+    <string name="pref_item_biometric_unlock_title">Biometrisk upplåsning</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

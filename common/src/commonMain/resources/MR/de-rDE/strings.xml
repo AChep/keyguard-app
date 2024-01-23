@@ -112,8 +112,8 @@
     <string name="address2">Adresszeile 2</string>
     <string name="address3">Adresszeile 3</string>
     <string name="rename">Umbenennen</string>
-    <string name="select_linked_type">Select type</string>
-    <string name="select_file">Select file</string>
+    <string name="select_linked_type">Select a type</string>
+    <string name="select_file">Select a file</string>
     <string name="autofill">Automatisches Ausfüllen</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
@@ -137,6 +137,7 @@
     <string name="passkey_discoverable">Auffindbar</string>
     <string name="passkey_user_username">Benutzername</string>
     <string name="passkey_user_display_name">Anzeigename</string>
+    <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API-Schlüssel</string>
     <string name="domain">Domäne</string>
     <string name="edit">Bearbeiten</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">Papierkorb</string>
     <string name="ciphers_action_restore_title">Wiederherstellen</string>
     <string name="ciphers_action_delete_title">Für immer löschen</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Zugehörige Elemente in den Papierkorb verschieben</string>
     <string name="file_action_open_with_title">Öffnen mit…</string>
     <string name="file_action_send_with_title">Mit… senden</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">Großer Typ</string>
     <string name="largetype_action_show_in_large_type_title">Im großen Typ anzeigen</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Im großen Typ anzeigen und Tresor verschließen</string>
+    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">App Auswahl</string>
     <string name="apppicker_search_placeholder">Installierte Apps durchsuchen</string>
     <string name="apppicker_system_app_label">System App</string>

@@ -7,9 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">이름</string>
     <string name="account_name">계정 이름</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
+    <string name="enabled">켜짐</string>
+    <string name="disabled">꺼짐</string>
+    <string name="wordlist">단어 목록</string>
     <string name="username">사용자 이름</string>
     <string name="password">비밀번호</string>
     <string name="app_password">앱 비밀번호</string>
@@ -113,12 +113,12 @@
     <string name="address3">주소 3</string>
     <string name="rename">이름 바꾸기</string>
     <string name="select_linked_type">유형 선택</string>
-    <string name="select_file">Select file</string>
+    <string name="select_file">파일 선택</string>
     <string name="autofill">자동 완성</string>
     <string name="passkey">패스키</string>
     <string name="passkey_create_header">패스키 만들기</string>
     <string name="passkey_unlock_header">Keyguard 잠금 해제</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkey_auth_via_header">인증 요청 확인 중…</string>
     <string name="passkeys">패스키</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
@@ -130,13 +130,14 @@
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Relying party</string>
+    <string name="passkey_relying_party">신뢰 당사자</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Discoverable</string>
+    <string name="passkey_discoverable">검색 가능</string>
     <string name="passkey_user_username">사용자 이름</string>
     <string name="passkey_user_display_name">표시할 이름</string>
+    <string name="ignored_alerts">무시한 경고</string>
     <string name="api_key">API 키</string>
     <string name="domain">도메인</string>
     <string name="edit">편집</string>
@@ -233,6 +234,7 @@
     <string name="ciphers_action_trash_title">휴지통</string>
     <string name="ciphers_action_restore_title">복원</string>
     <string name="ciphers_action_delete_title">완전히 삭제</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Watchtower 경고 설정</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">연관 항목을 휴지통으로 이동</string>
     <string name="file_action_open_with_title">다른 앱으로 열기…</string>
     <string name="file_action_send_with_title">다른 앱으로 전송…</string>
@@ -273,34 +275,34 @@
     <string name="uri_match_detection_regex_note">정규 표현식으로 리소스를 감지합니다. 고급 옵션입니다.</string>
     <string name="uri_match_detection_never_title">인식 안 함</string>
     <string name="uri_match_detection_never_note">자동 완성 항목을 검색할 때 URI를 무시합니다.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> 항목은 비밀번호에 연결되어 있습니다.</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 사용자 이름에 연결되어 있습니다.</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 카드 소유자 이름에 연결되어 있습니다.</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 카드 만료 월에 연결되어 있습니다.</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 카드 만료 연도에 연결되어 있습니다.</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 카드 보안 코드(CVV)에 연결되어 있습니다.</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 카드 브랜드에 연결되어 있습니다.</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 카드 번호에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 제목에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 가운데 이름에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 주소 1에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 주소 2에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 주소 3에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 시에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 주/도에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 우편 번호에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 국가에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 회사에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 이메일에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 전화번호에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 SSN에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 사용자 이름에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 여권 번호에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 운전면허 번호에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 이름에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 성에 연결되어 있습니다.</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 전체 이름이 연결되어 있습니다.</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 알 수 없는 필드에 연결되어 있습니다.</string>
     <string name="text_action_share_with_title">공유…</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g>개 항목 선택됨</string>
     <string name="copy">복사</string>
@@ -360,11 +362,11 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">WebAuthn 인증</string>
     <string name="fido2webauthn_action_return_title">앱으로 돌아가기</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_item_line1">이 항목은 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>에 만료됩니다.</string>
+    <string name="expiry_tips_card_line1">이 카드는 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>에 만료됩니다. 원활한 카드 사용을 위해 할 수 있는 일은 다음과 같습니다:</string>
+    <string name="expiry_tips_card_line2">1. 새 카드 발급: 카드 회사가 이미 새 카드를 보냈을 수 있습니다. 그렇지 않다면 카드 회사에 문의하여 새 카드를 보낼 예정인지, 언제 받을 수 있는지 확인해 보세요.</string>
+    <string name="expiry_tips_card_line3">2. 자동 결제 업데이트: 헬스장이나 넷플릭스 구독 등 카드에 자동 결제가 설정되어 있다면, 자동 결제 정보를 새 카드 번호와 만료 날짜로 업데이트하세요.</string>
+    <string name="expiry_tips_card_line4">3. 기존 카드 폐기: 새 카드를 받아서 자동 결제 정보를 업데이트한 뒤에는 신원 도용을 방지하기 위해 기존 카드를 안전하게 폐기하세요.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -384,11 +386,11 @@
     <string name="error_invalid_uri">잘못된 URI입니다.</string>
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
-    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
+    <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>
@@ -438,6 +440,7 @@
     <string name="largetype_title">큰 글자</string>
     <string name="largetype_action_show_in_large_type_title">큰 글자로 표시</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">큰 글자로 표시하고 보관함 잠그기</string>
+    <string name="largetype_unicode_surrogate_note">텍스트가 조합형 유니코드 기호를 포함하고 있습니다!</string>
     <string name="apppicker_header_title">앱 선택</string>
     <string name="apppicker_search_placeholder">설치된 앱 검색</string>
     <string name="apppicker_system_app_label">시스템 앱</string>
@@ -454,22 +457,22 @@
     <string name="emailrelay_delete_many_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
     <string name="emailrelay_integration_title">이메일 포워딩 서비스 통합</string>
     <string name="emailrelay_empty_label">이메일 포워딩 서비스 없음</string>
-    <string name="emailrelay_base_env_server_url_label">Server URL</string>
-    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_empty_label">No wordlists</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
+    <string name="emailrelay_base_env_server_url_label">서버 URL</string>
+    <string name="emailrelay_base_env_note">직접 호스팅 중인 서버의 기본 URL을 입력하세요.</string>
+    <string name="wordlist_list_header_title">단어 목록</string>
+    <string name="wordlist_list_section_title">단어 목록</string>
+    <string name="wordlist_delete_one_confirmation_title">단어 목록을 삭제하시겠습니까?</string>
+    <string name="wordlist_delete_many_confirmation_title">단어 목록을 삭제하시겠습니까?</string>
+    <string name="wordlist_edit_wordlist_title">단어 목록 편집</string>
+    <string name="wordlist_add_wordlist_title">단어 목록 추가</string>
+    <string name="wordlist_empty_label">단어 목록 없음</string>
+    <string name="urloverride_header_title">URL 덮어쓰기</string>
+    <string name="urloverride_list_header_title">URL 덮어쓰기</string>
+    <string name="urloverride_list_section_title">URL 덮어쓰기</string>
+    <string name="urloverride_regex_note">정규 표현식과 일치하는 URL을 덮어씁니다.</string>
+    <string name="urloverride_delete_one_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
+    <string name="urloverride_delete_many_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
+    <string name="urloverride_empty_label">URL 덮어쓰기 없음</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>
     <string name="setup_checkbox_biometric_auth">생체 정보 인증</string>
@@ -519,7 +522,7 @@
     <string name="addaccount_http_header_value_label">값</string>
     <string name="addaccount_http_header_add_more_button">더 추가</string>
     <string name="addaccount_base_env_server_url_label">서버 URL</string>
-    <string name="addaccount_base_env_note">Bitwarden이 호스팅되고 있는 서버의 기본 URL을 입력하세요.</string>
+    <string name="addaccount_base_env_note">Bitwarden을 호스팅 중인 서버의 기본 URL을 입력하세요.</string>
     <string name="addaccount_custom_env_section">사용자 지정 환경</string>
     <string name="addaccount_custom_env_note">각 서비스에 대한 기본 URL을 따로 입력할 수 있습니다.</string>
     <string name="addaccount_custom_env_web_vault_url_label">웹 보관함 서버 URL</string>
@@ -613,7 +616,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">보안 코드(CVV)</string>
     <string name="vault_view_saved_to_label"><xliff:g id="email" example="username@example.com">%1$s</xliff:g>에 저장됨 (<xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g>)</string>
-    <string name="vault_view_password_revision_label">비밀번호를 <xliff:g id="date" example="1 January 1970 12:30">%s</xliff:g>에 마지막으로 변경함</string>
+    <string name="vault_view_password_revision_label">비밀번호를 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 변경함</string>
     <string name="vault_view_passkey_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만든 패스키</string>
     <string name="vault_view_revision_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 변경함</string>
     <string name="vault_view_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만듦</string>
@@ -643,15 +646,15 @@
     <string name="generator_passphrase_delimiter_title">구분 기호</string>
     <string name="generator_passphrase_capitalize_title">첫 글자를 대문자로</string>
     <string name="generator_passphrase_number_title">숫자 포함</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
+    <string name="generator_passphrase_wordlist_title">단어 목록</string>
     <string name="generator_username_type">사용자 이름</string>
     <string name="generator_username_delimiter_title">구분 기호</string>
     <string name="generator_username_custom_word_title">사용자 지정 단어</string>
     <string name="generator_username_capitalize_title">첫 글자를 대문자로</string>
     <string name="generator_username_number_title">숫자 포함</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
+    <string name="generator_username_wordlist_title">단어 목록</string>
     <string name="generator_password_type">무작위 비밀번호</string>
-    <string name="generator_password_note">강한 비밀번호는 최소 <xliff:g id="length" example="15">%d</xliff:g>자에 대문자 및 소문자, 숫자와 기호를 모두 포함해야 합니다.</string>
+    <string name="generator_password_note">강한 비밀번호는 최소 <xliff:g id="length" example="15">%1$d</xliff:g>자에 대문자 및 소문자, 숫자와 기호를 모두 포함해야 합니다.</string>
     <string name="generator_password_numbers_title">숫자</string>
     <string name="generator_password_symbols_title">기호</string>
     <string name="generator_password_uppercase_letters_title">대문자</string>
@@ -661,14 +664,14 @@
     <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">알아보기 힘든 문자 제외</string>
     <string name="generator_email_catch_all_type">Catch-all 이메일</string>
-    <string name="generator_email_catch_all_note">Catch-all 이메일 주소를 사용하면 이메일 설정에 관계없이 도메인으로 오는 모든 이메일을 받을 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인하세요.</string>
+    <string name="generator_email_catch_all_note">Catch-all 이메일 주소를 사용하면 이메일 설정에 관계없이 도메인으로 오는 모든 이메일을 받을 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인해 보세요.</string>
     <!-- Referring to a website domain -->
     <string name="generator_email_catch_all_domain_title">도메인</string>
     <string name="generator_email_plus_addressing_type">플러스 주소 이메일</string>
-    <string name="generator_email_plus_addressing_note">플러스 주소를 사용하면 <xliff:g id="email" example="username+abc@example.com">%s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인하세요.</string>
+    <string name="generator_email_plus_addressing_note">플러스 주소를 사용하면 <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인해 보세요.</string>
     <string name="generator_email_plus_addressing_email_title">이메일</string>
     <string name="generator_email_subdomain_addressing_type">서브도메인 주소 이메일</string>
-    <string name="generator_email_subdomain_addressing_note">서브도메인 주소를 사용하면 <xliff:g id="email" example="username@abc.example.com">%s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인하세요.</string>
+    <string name="generator_email_subdomain_addressing_note">서브도메인 주소를 사용하면 <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인해 보세요.</string>
     <string name="generator_email_subdomain_addressing_email_title">이메일</string>
     <string name="generator_email_forward_alias_type">포워딩된 이메일 별칭</string>
     <string name="generator_create_item_with_password_title">생성한 비밀번호로 새 로그인 만들기</string>
@@ -759,7 +762,7 @@
     <string name="pref_item_watchtower_title">Watchtower</string>
     <string name="pref_item_watchtower_text">유출된 서비스, 취약한 비밀번호</string>
     <string name="pref_item_notifications_title">알림</string>
-    <string name="pref_item_notifications_text">알림 관리</string>
+    <string name="pref_item_notifications_text">경고</string>
     <string name="pref_item_appearance_title">외관</string>
     <string name="pref_item_appearance_text">언어, 테마 및 애니메이션</string>
     <string name="pref_item_dev_title">개발</string>
@@ -794,7 +797,7 @@
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
     <string name="pref_item_crash_title">충돌</string>
-    <string name="pref_item_credential_provider_title">Credential provider</string>
+    <string name="pref_item_credential_provider_title">자격 증명 공급자</string>
     <string name="pref_item_credential_provider_text">패스키, 비밀번호 및 데이터 서비스</string>
     <string name="pref_item_privacy_policy_title">개인 정보 보호 정책</string>
     <string name="pref_item_contact_us_title">고객 지원</string>
@@ -826,7 +829,7 @@
     <string name="pref_item_persist_vault_key_note">보관함 키를 기기에 저장하면 보안에 취약합니다. 기기의 내부 저장소가 손상되면 공격자가 로컬 보관함 데이터에 접근할 수 있습니다.</string>
     <string name="pref_item_permissions_title">권한</string>
     <string name="pref_item_features_overview_title">기능 살펴보기</string>
-    <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_url_override_title">URL 덮어쓰기</string>
     <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.settings.component.SettingComponent
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppBuildDateProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppBuildRefProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
@@ -142,6 +143,7 @@ object Setting {
     const val OPEN_SOURCE_LICENSES = "open_source_licenses"
     const val ABOUT_APP = "about_app"
     const val ABOUT_APP_BUILD_DATE = "about_app_build_date"
+    const val ABOUT_APP_BUILD_REF = "about_app_build_ref"
     const val ABOUT_TEAM = "about_team"
     const val EXPERIMENTAL = "experimental"
     const val LAUNCH_APP_PICKER = "launch_app_picker"
@@ -212,6 +214,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.FEEDBACK_APP to ::settingFeedbackAppProvider,
     Setting.ABOUT_APP to ::settingAboutAppProvider,
     Setting.ABOUT_APP_BUILD_DATE to ::settingAboutAppBuildDateProvider,
+    Setting.ABOUT_APP_BUILD_REF to ::settingAboutAppBuildRefProvider,
     Setting.ABOUT_TEAM to ::settingAboutTeamProvider,
     Setting.REDDIT to ::settingAboutTelegramProvider,
     Setting.CROWDIN to ::settingLocalizationProvider,

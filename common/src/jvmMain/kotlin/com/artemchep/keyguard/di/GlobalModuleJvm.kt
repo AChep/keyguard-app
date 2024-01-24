@@ -85,6 +85,7 @@ import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
+import com.artemchep.keyguard.common.usecase.GetAppBuildRef
 import com.artemchep.keyguard.common.usecase.GetAppBuildType
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetAppVersion
@@ -305,6 +306,7 @@ import com.artemchep.keyguard.copy.Base32ServiceJvm
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.copy.DateFormatterAndroid
 import com.artemchep.keyguard.copy.GetAppBuildDateImpl
+import com.artemchep.keyguard.copy.GetAppBuildRefImpl
 import com.artemchep.keyguard.copy.GetPasswordStrengthJvm
 import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.copy.PasswordGeneratorDiceware
@@ -900,6 +902,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetAppBuildDate> {
         GetAppBuildDateImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetAppBuildRef> {
+        GetAppBuildRefImpl(
             directDI = this,
         )
     }

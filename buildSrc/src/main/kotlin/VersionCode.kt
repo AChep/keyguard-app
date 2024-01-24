@@ -8,12 +8,16 @@ data class VersionInfo(
     val marketingVersion: String,
     val logicalVersion: Int,
     val buildDate: String,
+    val buildRef: String,
 )
 
 fun Project.createVersionInfo(
     marketingVersion: String,
     logicalVersion: Int, // max 9999
 ): VersionInfo {
+    val buildRef = project.properties["versionRef"]
+        ?.let { it as? String }
+        .orEmpty()
     val dateFormat = SimpleDateFormat("yyyyMMdd")
     val calendar = Calendar.getInstance().apply {
         timeZone = TimeZone.getTimeZone("UTC")
@@ -34,5 +38,6 @@ fun Project.createVersionInfo(
         marketingVersion = marketingVersion,
         logicalVersion = codeVersion,
         buildDate = buildDate,
+        buildRef = buildRef,
     )
 }

@@ -260,6 +260,7 @@ buildkonfig {
     defaultConfigs {
         buildConfigField(STRING, "buildType", BuildType.DEV.name)
         buildConfigField(STRING, "buildDate", versionInfo.buildDate)
+        buildConfigField(STRING, "buildRef", versionInfo.buildRef)
         buildConfigField(STRING, "versionName", versionInfo.marketingVersion.toString())
         buildConfigField(INT, "versionCode", versionInfo.logicalVersion.toString())
     }

@@ -53,6 +53,7 @@ fun OtherSettingsScreen() {
             ),
             SettingPaneItem.Item(Setting.ABOUT_APP),
             SettingPaneItem.Item(Setting.ABOUT_APP_BUILD_DATE),
+            SettingPaneItem.Item(Setting.ABOUT_APP_BUILD_REF),
         ),
     )
 }

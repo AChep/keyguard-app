@@ -838,6 +838,11 @@
     <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
     <string name="pref_item_app_version_title">App version</string>
     <string name="pref_item_app_build_date_title">App build date</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">App build ref</string>
     <string name="pref_item_app_team_title">Team behind the app</string>
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>

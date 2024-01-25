@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.MutableWindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -19,9 +20,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.onConsumedWindowInsetsChanged
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -101,6 +104,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.poweredby.PoweredByPasskeys
+import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
@@ -188,8 +192,13 @@ fun WatchtowerScreen2(
     showFilter: Boolean,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val contentWindowInsets = scaffoldContentWindowInsets
+    val remainingInsets = remember { MutableWindowInsets() }
     Scaffold(
         modifier = modifier
+            .onConsumedWindowInsetsChanged { consumedWindowInsets ->
+                remainingInsets.insets = contentWindowInsets.exclude(consumedWindowInsets)
+            }
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeToolbar(
@@ -214,8 +223,10 @@ fun WatchtowerScreen2(
                 scrollBehavior = scrollBehavior,
             )
         },
+        contentWindowInsets = remainingInsets,
     ) { contentPadding ->
         ContentLayout(
+            contentInsets = contentWindowInsets,
             contentPadding = contentPadding,
             dashboardContent = {
                 val passwordStrength by remember(state.content) {
@@ -805,21 +816,18 @@ private fun RowScope.ContentCardsContentTitle(
 
 @Composable
 private fun ContentLayout(
+    contentInsets: WindowInsets,
     contentPadding: PaddingValues,
-    dashboardContent: @Composable ColumnScope.() -> Unit,
+    dashboardContent: @Composable() (ColumnScope.() -> Unit),
     cardsContent: @Composable () -> Unit,
     cardsContent2: @Composable () -> Unit,
     loaded: State<Boolean>,
 ) {
     val scrollState = rememberScrollState()
     BoxWithConstraints {
-        val navBarWithImeInsets = WindowInsets.leNavigationBars
-            .union(WindowInsets.leIme)
-            .only(WindowInsetsSides.Bottom)
         Box(
             modifier = Modifier
-                .windowInsetsPadding(navBarWithImeInsets)
-                .consumeWindowInsets(navBarWithImeInsets),
+                .consumeWindowInsets(contentInsets),
         ) {
             Column(
                 modifier = Modifier

@@ -470,7 +470,7 @@ data class Selection(
     val onClear: (() -> Unit)? = null,
 )
 
-private val scaffoldContentWindowInsets
+val scaffoldContentWindowInsets
     @Composable
     get() = WindowInsets.leSystemBars
         .union(WindowInsets.leIme)

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.common.exception.ApiException
 import com.artemchep.keyguard.common.service.state.impl.toMap
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderArgument
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
 import com.artemchep.keyguard.provider.bitwarden.model.toObj
@@ -196,14 +197,31 @@ fun ErrorEntity.toException(
     }
     // Auto-format the validation error
     // messages to something user-friendly.
-    val validationError = validationErrors?.toMap()?.format()
+    val errorTitle = kotlin.run {
+        errorModel?.message?.takeIf { it.isNotBlank() }
+            ?: error.takeIf { it.isNotBlank() }
+            // We usually should get an error message, but
+            // just in case resort to the basic message.
+            ?: code.description
+    }.trim()
+    val errorText = kotlin.run {
+        val validation = validationErrors?.toMap()?.format()?.takeIf { it.isNotBlank() }
+        val message = listOfNotNull(
+            errorDescription?.takeIf { it.isNotBlank() },
+            validation,
+        )
+            .joinToString(separator = "\n")
+            .takeIf { it.isNotBlank() }
+            ?.trim()
+        message?.takeIf { it != errorTitle  }
+    }
     val message = listOfNotNull(
-        errorModel?.message,
-        errorDescription,
-        error,
-        validationError
+        errorTitle,
+        errorText,
     ).joinToString(separator = "\n")
     ApiException(
+        title = errorTitle.let(TextHolder::Value),
+        text = errorText?.let(TextHolder::Value),
         exception = exception,
         code = code,
         error = error,
@@ -222,10 +240,18 @@ private fun Any?.format(): String {
             .joinToString(
                 separator = "\n\n",
             ) { entry ->
-                "${entry.key}:\n${entry.value.format()}"
+                val formattedValue = entry.value
+                    .format()
+                if (entry.key.isBlank()) {
+                    formattedValue
+                } else {
+                    "${entry.key}:\n$formattedValue"
+                }
             }
 
-        is Collection<*> -> this
+        is Collection<*> -> if (this.size == 1) {
+            this.first().format()
+        } else this
             .joinToString(separator = "\n") { value ->
                 "- " + value.format()
             }

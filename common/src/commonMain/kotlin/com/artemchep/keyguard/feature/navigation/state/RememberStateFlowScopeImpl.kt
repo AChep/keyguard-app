@@ -118,10 +118,11 @@ class RememberStateFlowScopeImpl(
     override fun message(
         exception: Throwable,
     ) {
-        val title = getErrorReadableMessage(exception, this)
+        val parsedMessage = getErrorReadableMessage(exception, this)
         val message = ToastMessage(
             type = ToastMessage.Type.ERROR,
-            title = title,
+            title = parsedMessage.title,
+            text = parsedMessage.text,
         )
         message(message)
     }
@@ -144,7 +145,8 @@ class RememberStateFlowScopeImpl(
             .errorFlow
             .onEach { message ->
                 val model = ToastMessage(
-                    title = message,
+                    title = message.title,
+                    text = message.text,
                     type = ToastMessage.Type.ERROR,
                 )
                 message(model)

@@ -1908,7 +1908,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
             val title = data.override.name
             data.contentOrException.fold(
                 ifLeft = { e ->
-                    val text = getErrorReadableMessage(
+                    val parsedMessage = getErrorReadableMessage(
                         e,
                         translator = this,
                     )
@@ -1935,7 +1935,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                                     style = MaterialTheme.typography.labelLarge,
                                 )
                                 Text(
-                                    text = text,
+                                    text = parsedMessage.title,
                                     style = MaterialTheme.typography.labelMedium,
                                     color = LocalContentColor.current
                                         .combineAlpha(MediumEmphasisAlpha),
@@ -1945,7 +1945,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     }
                     VaultViewItem.Uri.Override(
                         title = title,
-                        text = text,
+                        text = parsedMessage.title,
                         error = true,
                         dropdown = dropdown,
                     )

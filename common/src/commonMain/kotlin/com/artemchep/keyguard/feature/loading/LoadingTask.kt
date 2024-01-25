@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.feature.navigation.state.translate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +22,7 @@ class LoadingTask(
      * Exception handler that's responsible for parsing the
      * error messages as user-readable messages.
      */
-    private val exceptionHandler: (Throwable) -> String = { e ->
+    private val exceptionHandler: (Throwable) -> ReadableExceptionMessage = { e ->
         getErrorReadableMessage(e, translator)
     },
 ) {
@@ -31,11 +32,12 @@ class LoadingTask(
 
     val isExecutingFlow get() = isWorkingSink
 
-    val errorFlow: Flow<String> = errorSink.map { it.text }
+    val errorFlow: Flow<Failure> = errorSink
 
     data class Failure(
         val tag: String?,
-        val text: String,
+        val title: String,
+        val text: String?,
     )
 
     /**
@@ -54,9 +56,11 @@ class LoadingTask(
             try {
                 val result = io.attempt().bind()
                 if (result is Either.Left<Throwable>) {
+                    val parsedMessage = exceptionHandler(result.value)
                     val message = Failure(
                         tag = tag,
-                        text = exceptionHandler(result.value),
+                        title = parsedMessage.title,
+                        text = parsedMessage.text,
                     )
                     result.value.printStackTrace()
                     errorSink.emit(message)
@@ -73,8 +77,26 @@ class LoadingTask(
     }
 }
 
+data class ReadableExceptionMessage(
+    val title: String,
+    val text: String? = null,
+)
+
 fun getErrorReadableMessage(e: Throwable, translator: TranslatorScope) =
     when (e) {
-        is Readable -> translator.translate(e.title)
-        else -> e.message.orEmpty()
+        is Readable -> {
+            val title = e.title.let(translator::translate)
+            val text = e.text?.let(translator::translate)
+            ReadableExceptionMessage(
+                title = title,
+                text = text,
+            )
+        }
+
+        else -> {
+            val title = e.message.orEmpty()
+            ReadableExceptionMessage(
+                title = title,
+            )
+        }
     }

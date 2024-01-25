@@ -1,7 +1,8 @@
 package com.artemchep.keyguard.common.exception
 
-import dev.icerock.moko.resources.StringResource
+import com.artemchep.keyguard.feature.localization.TextHolder
 
 interface Readable {
-    val title: StringResource
+    val title: TextHolder
+    val text: TextHolder? get() = null
 }

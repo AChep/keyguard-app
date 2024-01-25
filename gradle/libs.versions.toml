@@ -12,7 +12,7 @@ appVersionName = "1.0.0"
 # @keep
 appVersionCode = "2"
 # https://github.com/google/accompanist
-accompanist = "0.32.0"
+accompanist = "0.34.0"
 androidBillingClient = "6.1.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.0.4"

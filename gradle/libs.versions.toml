@@ -36,7 +36,7 @@ androidxRoom = "2.6.1"
 androidxSecurityCryptoKtx = "1.1.0-alpha06"
 androidxTestEspresso = "3.6.0-alpha01"
 androidxTestExtJUnit = "1.2.0-alpha01"
-androidxTestUiAutomator = "2.3.0-alpha05"
+androidxTestUiAutomator = "2.3.0-beta01"
 androidxWork = "2.9.0"
 # https://github.com/harawata/appdirs
 appDirs = "1.2.2"

@@ -28,7 +28,7 @@ jobs:
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat >> service-account-google.json
           echo "" >> gradle.properties
           echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
-          echo "versionRef=${{ env.GITHUB_REF_NAME }}" >> gradle.properties
+          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Check and Build licenses"
         uses: eskatos/gradle-command-action@v2

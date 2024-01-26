@@ -35,7 +35,7 @@ jobs:
         run: |
           echo "" >> gradle.properties
           echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
-          echo "versionRef=${{ env.GITHUB_REF_NAME }}" >> gradle.properties
+          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Setup signing config"
         run: |
@@ -90,7 +90,7 @@ jobs:
         run: |
           echo "" >> gradle.properties
           echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
-          echo "versionRef=${{ env.GITHUB_REF_NAME }}" >> gradle.properties
+          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "./gradlew :desktopApp:bundleFlatpak"
         uses: eskatos/gradle-command-action@v2
@@ -127,7 +127,7 @@ jobs:
         run: |
           echo "" >> gradle.properties
           echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
-          echo "versionRef=${{ env.GITHUB_REF_NAME }}" >> gradle.properties
+          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "./gradlew :desktopApp:packageMsi"
         uses: eskatos/gradle-command-action@v2
@@ -164,7 +164,7 @@ jobs:
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
           echo "" >> gradle.properties
           echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
-          echo "versionRef=${{ env.GITHUB_REF_NAME }}" >> gradle.properties
+          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Check and Build licenses"
         uses: eskatos/gradle-command-action@v2

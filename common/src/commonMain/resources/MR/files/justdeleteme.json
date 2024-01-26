@@ -15726,6 +15726,15 @@
     "notes": "In the Things app go to Preferences \u2b95 Things Cloud and select Edit Account. Then select 'Delete Account'."
   },
   {
+    "name": "Threads",
+    "domains": [
+      "threads.net"
+    ],
+    "url": "https://www.instagram.com/accounts/remove/request/permanent/",
+    "difficulty": "impossible",
+    "notes": "You must submit a request to close your INSTAGRAM account via form."
+  },
+  {
     "name": "Threema",
     "domains": [
       "threema.ch",

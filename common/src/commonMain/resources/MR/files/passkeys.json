@@ -373,6 +373,14 @@
     "setup": "https://www.cvsspeciality.com/digital-fastproxy/specialty/#/login"
   },
   {
+    "name": "DataPacket",
+    "domain": "datapacket.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.datapacket.com/settings/security"
+  },
+  {
     "name": "Dinero",
     "domain": "dinero.dk",
     "features": [
@@ -1129,6 +1137,15 @@
     "setup": "ttps://app.turnkey.com/dashboard/users/detail"
   },
   {
+    "name": "Twitter",
+    "domain": "twitter.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.twitter.com/en/managing-your-account/how-to-use-passkey",
+    "setup": "https://twitter.com/settings/security"
+  },
+  {
     "name": "Uber",
     "domain": "uber.com",
     "features": [
@@ -1208,6 +1225,16 @@
     "notes": "Available only to WhatsApp (beta) for Android\n\nhttps://www.androidpolice.com/passkey-support-whatsapp-goes-live-beta-channel"
   },
   {
+    "name": "X (formerly Twitter)",
+    "domain": "x.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.twitter.com/en/managing-your-account/how-to-use-passkey",
+    "setup": "https://x.com/settings/security",
+    "notes": "X (formerly Twitter) is rolling out signing in with passkeys support to existing US-based accounts on iOS. No other platforms or locations are able to save a passkey to their accounts at this time.\n\n**To set up a passkey on your X account:**\n1. Log in to the X app with the account you wish to enable passkey for.\n2. Select Your account in the navigation bar.\n3. Select Settings and privacy, select Security and account access, then Security.\n4. Under Additional password protection, select Passkey.\n5. Enter your password when prompted.\n6. Select Add a passkey and follow the on-screen prompts."
+  },
+  {
     "name": "Yahoo! JAPAN",
     "domain": "yahoo.co.jp",
     "features": [
@@ -1227,6 +1254,15 @@
     "documentation": "https://in.help.yahoo.com/kb/SLN35635.html",
     "setup": "https://login.yahoo.com/myaccount/security",
     "notes": "Passkeys can be setup after signing in from a mobile device. "
+  },
+  {
+    "name": "YouTube",
+    "domain": "youtube.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.google.com/accounts/answer/13548313",
+    "setup": "https://g.co/passkeys"
   },
   {
     "name": "Zoho",

@@ -2268,6 +2268,15 @@
     "name": "Trustpilot Business"
   },
   {
+    "domain": "buymeacoffee.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.buymeacoffee.com/en/articles/8693915",
+    "name": "Buy Me a Coffee"
+  },
+  {
     "domain": "bw-bank.de",
     "tfa": [
       "custom-software",

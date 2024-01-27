@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,9 +42,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PlainTextField
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import dev.icerock.moko.resources.compose.stringResource
 
 @Composable
 fun SearchTextField(
@@ -51,6 +56,7 @@ fun SearchTextField(
     text: String,
     placeholder: String,
     searchIcon: Boolean = true,
+    count: Int? = null,
     leading: @Composable () -> Unit,
     trailing: @Composable () -> Unit,
     onTextChange: ((String) -> Unit)?,
@@ -145,6 +151,22 @@ fun SearchTextField(
                 ),
                 singleLine = true,
             )
+            if (count != null) {
+                val resultsCount = stringResource(
+                    Res.plurals.result_count_plural,
+                    count,
+                    count.toString(),
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp),
+                    text = resultsCount,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LocalContentColor.current
+                        .combineAlpha(DisabledEmphasisAlpha),
+                    maxLines = 2,
+                )
+            }
             Spacer(
                 modifier = Modifier
                     .size(8.dp),

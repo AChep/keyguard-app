@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -108,12 +109,14 @@ fun SearchSettingsScreenContent(
                         Spacer(Modifier.width(4.dp))
                     }
 
+                    val count = state.items.size
                     SearchTextField(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = state.query.state.value,
                         placeholder = stringResource(Res.strings.settingssearch_search_placeholder),
                         searchIcon = false,
+                        count = count,
                         leading = {},
                         trailing = {},
                         onTextChange = state.query.onChange,

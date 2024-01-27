@@ -182,12 +182,20 @@ fun WordlistViewScreen(
                     val backVisible = visualStack.size > 1
                     val searchIcon = !backVisible // otherwise it's too much icons in my opinion
 
+                    val count = loadableState
+                        .getOrNull()
+                        ?.content
+                        ?.getOrNull()
+                        ?.getOrNull()
+                        ?.items
+                        ?.size
                     SearchTextField(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = queryText,
                         placeholder = stringResource(Res.strings.wordlist_word_search_placeholder),
                         searchIcon = searchIcon,
+                        count = count,
                         leading = {},
                         trailing = {},
                         onTextChange = query?.onChange,

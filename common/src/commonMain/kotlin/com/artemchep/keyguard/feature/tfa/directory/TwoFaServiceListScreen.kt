@@ -147,12 +147,21 @@ fun TwoFaServiceListScreen(
 
                     val query = filterState.value?.query
                     val queryText = query?.state?.value.orEmpty()
+
+                    val count = loadableState
+                        .getOrNull()
+                        ?.content
+                        ?.getOrNull()
+                        ?.getOrNull()
+                        ?.items
+                        ?.size
                     SearchTextField(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = queryText,
                         placeholder = stringResource(Res.strings.tfa_directory_search_placeholder),
                         searchIcon = false,
+                        count = count,
                         leading = {},
                         trailing = {},
                         onTextChange = query?.onChange,

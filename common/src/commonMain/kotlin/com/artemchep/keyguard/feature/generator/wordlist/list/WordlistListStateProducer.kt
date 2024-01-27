@@ -1,9 +1,10 @@
-package com.artemchep.keyguard.feature.generator.wordlist
+package com.artemchep.keyguard.feature.generator.wordlist.list
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ViewList
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
@@ -23,6 +24,9 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
+import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
+import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
@@ -47,15 +51,15 @@ import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 
-private class WordlistUiException(
+private class WordlistListUiException(
     msg: String,
     cause: Throwable,
 ) : RuntimeException(msg, cause)
 
 @Composable
-fun produceWordlistState(
+fun produceWordlistListState(
 ) = with(localDI().direct) {
-    produceWordlistState(
+    produceWordlistListState(
         addWordlist = instance(),
         editWordlist = instance(),
         removeWordlistById = instance(),
@@ -65,137 +69,31 @@ fun produceWordlistState(
 }
 
 @Composable
-fun produceWordlistState(
+fun produceWordlistListState(
     addWordlist: AddWordlist,
     editWordlist: EditWordlist,
     removeWordlistById: RemoveWordlistById,
     getWordlists: GetWordlists,
     numberFormatter: NumberFormatter,
-): Loadable<WordlistState> = produceScreenState(
-    key = "wordlist",
+): Loadable<WordlistListState> = produceScreenState(
+    key = "wordlist_list",
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
     val selectionHandle = selectionHandle("selection")
 
-    fun onEdit(entity: DGeneratorWordlist) {
-        val nameKey = "name"
-        val nameItem = ConfirmationRoute.Args.Item.StringItem(
-            key = nameKey,
-            value = entity.name,
-            title = translate(Res.strings.generic_name),
-            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
-            canBeEmpty = false,
-        )
-
-        val items = listOfNotNull(
-            nameItem,
-        )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.KeyguardWordlist,
-                        secondary = Icons.Outlined.Edit,
-                    ),
-                    title = translate(Res.strings.wordlist_edit_wordlist_title),
-                    items = items,
-                    docUrl = null,
-                ),
+    fun onView(entity: DGeneratorWordlist) {
+        val route = WordlistViewRoute(
+            args = WordlistViewRoute.Args(
+                wordlistId = entity.idRaw,
             ),
-        ) { result ->
-            if (result is ConfirmationResult.Confirm) {
-                val name = result.data[nameKey] as? String
-                    ?: return@registerRouteResultReceiver
-
-                val request = EditWordlistRequest(
-                    id = entity.idRaw,
-                    name = name,
-                )
-                editWordlist(request)
-                    .launchIn(appScope)
-            }
-        }
-        val intent = NavigationIntent.NavigateToRoute(route)
-        navigate(intent)
-    }
-
-    fun onNew() {
-        val nameKey = "name"
-        val nameItem = ConfirmationRoute.Args.Item.StringItem(
-            key = nameKey,
-            value = "",
-            title = translate(Res.strings.generic_name),
-            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
-            canBeEmpty = false,
         )
-
-        val fileKey = "file"
-        val fileItem = ConfirmationRoute.Args.Item.FileItem(
-            key = fileKey,
-            value = null,
-            title = translate(Res.strings.wordlist),
-        )
-
-        val items = listOfNotNull(
-            nameItem,
-            fileItem,
-        )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.KeyguardWordlist,
-                        secondary = Icons.Outlined.Add,
-                    ),
-                    title = translate(Res.strings.wordlist_add_wordlist_title),
-                    items = items,
-                    docUrl = null,
-                ),
+        val intent = NavigationIntent.Composite(
+            listOf(
+                NavigationIntent.PopById(WordlistsRoute.ROUTER_NAME),
+                NavigationIntent.NavigateToRoute(route),
             ),
-        ) { result ->
-            if (result is ConfirmationResult.Confirm) {
-                val name = result.data[nameKey] as? String
-                    ?: return@registerRouteResultReceiver
-                val file = result.data[fileKey] as? ConfirmationRoute.Args.Item.FileItem.File
-                    ?: return@registerRouteResultReceiver
-
-                val wordlist = AddWordlistRequest.Wordlist.FromFile(
-                    uri = file.uri,
-                )
-                val request = AddWordlistRequest(
-                    name = name,
-                    wordlist = wordlist,
-                )
-                addWordlist(request)
-                    .launchIn(appScope)
-            }
-        }
-        val intent = NavigationIntent.NavigateToRoute(route)
-        navigate(intent)
-    }
-
-    fun onDeleteByItems(
-        items: List<DGeneratorWordlist>,
-    ) {
-        val title = if (items.size > 1) {
-            translate(Res.strings.wordlist_delete_many_confirmation_title)
-        } else {
-            translate(Res.strings.wordlist_delete_one_confirmation_title)
-        }
-        val message = items
-            .joinToString(separator = "\n") { it.name }
-        val intent = createConfirmationDialogIntent(
-            icon = icon(Icons.Outlined.Delete),
-            title = title,
-            message = message,
-        ) {
-            val ids = items
-                .map { it.idRaw }
-                .toSet()
-            removeWordlistById(ids)
-                .launchIn(appScope)
-        }
+        )
         navigate(intent)
     }
 
@@ -231,11 +129,26 @@ fun produceWordlistState(
             }
 
             val actions = buildContextItems {
+                if (selectedItems.size == 1) {
+                    section {
+                        val selectedItem = selectedItems.first()
+                        this += FlatItemAction(
+                            icon = Icons.Outlined.Edit,
+                            title = translate(Res.strings.edit),
+                            onClick = WordlistUtil::onEdit
+                                .partially1(this@produceScreenState)
+                                .partially1(editWordlist)
+                                .partially1(selectedItem),
+                        )
+                    }
+                }
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
                         title = translate(Res.strings.delete),
-                        onClick = ::onDeleteByItems
+                        onClick = WordlistUtil::onDeleteByItems
+                            .partially1(this@produceScreenState)
+                            .partially1(removeWordlistById)
                             .partially1(selectedItems),
                     )
                 }
@@ -260,22 +173,6 @@ fun produceWordlistState(
         .map { list ->
             list
                 .map {
-                    val dropdown = buildContextItems {
-                        section {
-                            this += FlatItemAction(
-                                icon = Icons.Outlined.Edit,
-                                title = translate(Res.strings.edit),
-                                onClick = ::onEdit
-                                    .partially1(it),
-                            )
-                            this += FlatItemAction(
-                                icon = Icons.Outlined.Delete,
-                                title = translate(Res.strings.delete),
-                                onClick = ::onDeleteByItems
-                                    .partially1(listOf(it)),
-                            )
-                        }
-                    }
                     val icon = VaultItemIcon.TextIcon(
                         run {
                             val words = it.name.split(" ")
@@ -331,22 +228,24 @@ fun produceWordlistState(
                         quantity,
                         numberFormatter.formatNumber(quantity),
                     )
-                    WordlistState.Item(
+                    WordlistListState.Item(
                         key = it.id,
                         title = it.name,
                         counter = counter,
                         icon = icon,
+                        wordlistId = it.idRaw,
                         accentLight = it.accentColor.light,
                         accentDark = it.accentColor.dark,
-                        dropdown = dropdown,
                         selectableState = selectableStateFlow,
+                        onClick = ::onView
+                            .partially1(it),
                     )
                 }
                 .toPersistentList()
         }
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the wordlist list!"
-            WordlistUiException(
+            WordlistListUiException(
                 msg = msg,
                 cause = e,
             )
@@ -357,18 +256,20 @@ fun produceWordlistState(
     ) { selection, itemsResult ->
         val contentOrException = itemsResult
             .map { items ->
-                WordlistState.Content(
+                WordlistListState.Content(
                     revision = 0,
                     items = items,
                     selection = selection,
-                    primaryAction = ::onNew,
+                    primaryAction = WordlistUtil::onNew
+                        .partially1(this@produceScreenState)
+                        .partially1(addWordlist),
                 )
             }
         Loadable.Ok(contentOrException)
     }
     contentFlow
         .map { content ->
-            val state = WordlistState(
+            val state = WordlistListState(
                 content = content,
             )
             Loadable.Ok(state)

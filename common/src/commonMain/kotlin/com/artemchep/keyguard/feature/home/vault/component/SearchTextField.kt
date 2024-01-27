@@ -108,6 +108,7 @@ fun SearchTextField(
                     modifier = Modifier
                         .size(16.dp),
                 )
+
             }
             val textStyle = TextStyle(
                 fontSize = 20.sp,

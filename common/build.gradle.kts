@@ -221,6 +221,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
         dependsOn("kspCommonMainKotlinMetadata")
     }
 }
+kotlin.compilerOptions {
+    freeCompilerArgs.add("-Xcontext-receivers")
+}
 kotlin.sourceSets.commonMain {
     kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 }

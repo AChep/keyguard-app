@@ -13,7 +13,7 @@ insert {
 get:
 SELECT *
 FROM generatorWordlistWord
-ORDER BY word DESC;
+ORDER BY word ASC;
 
 getPrimitiveByWordlistId:
 SELECT
@@ -22,7 +22,7 @@ FROM
   generatorWordlistWord
 WHERE
   wordlistId = :wordlistId
-ORDER BY word DESC;
+ORDER BY word ASC;
 
 deleteAll:
 DELETE FROM generatorWordlistWord;

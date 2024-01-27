@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.feature.generator.wordlist
+package com.artemchep.keyguard.feature.generator.wordlist.list
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -13,7 +13,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
 
 @Immutable
-data class WordlistState(
+data class WordlistListState(
     val content: Loadable<Either<Throwable, Content>>,
 ) {
     @Immutable
@@ -32,9 +32,10 @@ data class WordlistState(
         val title: String,
         val counter: String,
         val icon: VaultItemIcon,
+        val wordlistId: Long,
         val accentLight: Color,
         val accentDark: Color,
-        val dropdown: ImmutableList<ContextItem>,
         val selectableState: StateFlow<SelectableItemState>,
+        val onClick: () -> Unit,
     )
 }

@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.feature.generator.wordlist
+package com.artemchep.keyguard.feature.generator.wordlist.view
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
@@ -13,6 +13,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.OpenInBrowser
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,48 +37,70 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.URL_2FA
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
+import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
+import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeVisualStack
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceListState
+import com.artemchep.keyguard.feature.tfa.directory.produceTwoFaServiceListState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
+import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatDropdown
+import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.focus.FocusRequester2
+import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
 import dev.icerock.moko.resources.compose.stringResource
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.withIndex
 
 @Composable
-fun WordlistScreen(
+fun WordlistViewScreen(
+    args: WordlistViewRoute.Args,
 ) {
-    val loadableState = produceWordlistState(
-    )
-    WordlistScreen(
+    val loadableState = produceWordlistViewState(args)
+    WordlistViewScreen(
         loadableState = loadableState,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun WordlistScreen(
-    loadableState: Loadable<WordlistState>,
+fun WordlistViewScreen(
+    loadableState: Loadable<WordlistViewState>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val filterState = run {
+        val filterFlow = loadableState.getOrNull()?.filter
+        remember(filterFlow) {
+            filterFlow ?: MutableStateFlow(null)
+        }.collectAsState()
+    }
 
     val listRevision =
         loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.revision
@@ -101,63 +126,88 @@ fun WordlistScreen(
         listState.scrollToItem(0, 0)
     }
 
+    val focusRequester = remember { FocusRequester2() }
+    // Auto focus the text field
+    // on launch.
+    LaunchedEffect(
+        focusRequester,
+        filterState,
+    ) {
+        snapshotFlow { filterState.value }
+            .first { it?.query?.onChange != null }
+        delay(100L)
+        focusRequester.requestFocus()
+    }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = false,
+        onRefresh = {
+            focusRequester.requestFocus()
+        },
+    )
     ScaffoldLazyColumn(
         modifier = Modifier
+            .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
-            LargeToolbar(
-                title = {
-                    Text(stringResource(Res.strings.wordlist_list_header_title))
-                },
-                navigationIcon = {
-                    NavigationIcon()
-                },
+            CustomToolbar(
                 scrollBehavior = scrollBehavior,
-                actions = {
-                    val navigationController by rememberUpdatedState(LocalNavigationController.current)
-                    IconButton(
-                        onClick = {
-                            val intent = NavigationIntent.NavigateToBrowser(
-                                url = "https://github.com/AChep/keyguard-app/blob/master/wiki/WORDLISTS.md",
-                            )
-                            navigationController.queue(intent)
+            ) {
+                val wordlistState = run {
+                    val wordlistFlow = loadableState.getOrNull()?.wordlist
+                    remember(wordlistFlow) {
+                        wordlistFlow ?: MutableStateFlow(null)
+                    }.collectAsState()
+                }
+                Column {
+                    val name = wordlistState.value?.wordlist?.name
+                    CustomToolbarContent(
+                        title = name,
+                        icon = {
+                            NavigationIcon()
                         },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.HelpOutline,
-                            contentDescription = null,
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            val selectionOrNull =
-                loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.selection
-            DefaultSelection(
-                state = selectionOrNull,
-            )
-        },
-        floatingActionState = run {
-            val onClick =
-                loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryAction
-            val state = FabState(
-                onClick = onClick,
-                model = null,
-            )
-            rememberUpdatedState(newValue = state)
-        },
-        floatingActionButton = {
-            DefaultFab(
-                icon = {
-                    IconBox(main = Icons.Outlined.Add)
-                },
-                text = {
-                    Text(
-                        text = stringResource(Res.strings.add),
+                        actions = {
+                            val actions = wordlistState.value?.actions.orEmpty()
+                            OptionsButton(actions = actions)
+                        },
                     )
-                },
+
+                    val query = filterState.value?.query
+                    val queryText = query?.state?.value.orEmpty()
+
+                    // TODO: I should somehow sync it with the toolbar instead
+                    //  of assuming the placement of the composable.
+                    val visualStack = LocalNavigationNodeVisualStack.current
+                    val backVisible = visualStack.size > 1
+                    val searchIcon = !backVisible // otherwise it's too much icons in my opinion
+
+                    SearchTextField(
+                        modifier = Modifier
+                            .focusRequester2(focusRequester),
+                        text = queryText,
+                        placeholder = stringResource(Res.strings.wordlist_word_search_placeholder),
+                        searchIcon = searchIcon,
+                        leading = {},
+                        trailing = {},
+                        onTextChange = query?.onChange,
+                        onGoClick = null,
+                    )
+                }
+            }
+        },
+        pullRefreshState = pullRefreshState,
+        overlay = {
+            val filterRevision = filterState.value?.revision
+            DefaultProgressBar(
+                visible = listRevision != null && filterRevision != null &&
+                        listRevision != filterRevision,
+            )
+
+            PullToSearch(
+                modifier = Modifier
+                    .padding(contentPadding.value),
+                pullRefreshState = pullRefreshState,
             )
         },
         listState = listState,
@@ -179,7 +229,7 @@ fun WordlistScreen(
                         item("error") {
                             ErrorView(
                                 text = {
-                                    Text(text = "Failed to load wordlist list!")
+                                    Text(text = "Failed to load wordlist!")
                                 },
                                 exception = e,
                             )
@@ -197,7 +247,7 @@ fun WordlistScreen(
                             items = items,
                             key = { it.key },
                         ) { item ->
-                            WordlistItem(
+                            AppItem(
                                 modifier = Modifier
                                     .animateItemPlacement(),
                                 item = item,
@@ -214,95 +264,21 @@ fun WordlistScreen(
 private fun NoItemsPlaceholder(
     modifier: Modifier = Modifier,
 ) {
-    EmptyView(
+    EmptySearchView(
         modifier = modifier,
-        text = {
-            Text(
-                text = stringResource(Res.strings.wordlist_empty_label),
-            )
-        },
     )
 }
 
 @Composable
-private fun WordlistItem(
+private fun AppItem(
     modifier: Modifier,
-    item: WordlistState.Item,
+    item: WordlistViewState.Item,
 ) {
-    val selectableState by item.selectableState.collectAsState()
-    val backgroundColor = when {
-        selectableState.selected -> MaterialTheme.colorScheme.primaryContainer
-        else -> Color.Unspecified
-    }
-    FlatDropdown(
+    FlatItem(
         modifier = modifier,
-        backgroundColor = backgroundColor,
-        leading = {
-            val accent = rememberSecretAccentColor(
-                accentLight = item.accentLight,
-                accentDark = item.accentDark,
-            )
-            AvatarBuilder(
-                icon = item.icon,
-                accent = accent,
-                active = true,
-                badge = {
-                    // Do nothing.
-                },
-            )
+        title = {
+            Text(item.name)
         },
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(item.title)
-                },
-                text = {
-                    Column {
-                        Spacer(
-                            modifier = Modifier
-                                .height(4.dp),
-                        )
-                        val codeModifier = Modifier
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .width(14.dp),
-                                imageVector = Icons.Outlined.Book,
-                                contentDescription = null,
-                                tint = LocalTextStyle.current.color,
-                            )
-                            Spacer(
-                                modifier = Modifier
-                                    .width(8.dp),
-                            )
-                            Text(
-                                modifier = codeModifier,
-                                text = item.counter,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 2,
-                            )
-                        }
-                    }
-                },
-            )
-        },
-        trailing = {
-            ExpandedIfNotEmptyForRow(
-                selectableState.selected.takeIf { selectableState.selecting },
-            ) { selected ->
-                Checkbox(
-                    modifier = Modifier
-                        .padding(start = 16.dp),
-                    checked = selected,
-                    onCheckedChange = null,
-                )
-            }
-        },
-        dropdown = item.dropdown,
-        onClick = selectableState.onClick,
-        onLongClick = selectableState.onLongClick,
-        enabled = true,
+        onClick = item.onClick,
     )
 }

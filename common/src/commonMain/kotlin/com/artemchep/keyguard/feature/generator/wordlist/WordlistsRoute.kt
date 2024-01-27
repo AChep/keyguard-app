@@ -11,7 +11,9 @@ import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.iconSmall
 
-object WordlistRoute : Route {
+object WordlistsRoute : Route {
+    const val ROUTER_NAME = "wordlists"
+
     fun actionOrNull(
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
@@ -30,7 +32,7 @@ object WordlistRoute : Route {
             ChevronIcon()
         },
         onClick = {
-            val route = WordlistRoute
+            val route = WordlistsRoute
             val intent = NavigationIntent.NavigateToRoute(route)
             navigate(intent)
         },
@@ -38,6 +40,6 @@ object WordlistRoute : Route {
 
     @Composable
     override fun Content() {
-        WordlistScreen()
+        WordlistsScreen()
     }
 }

@@ -491,6 +491,7 @@
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
     <string name="wordlist_empty_label">No wordlists</string>
+    <string name="wordlist_word_search_placeholder">Search words</string>
 
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>

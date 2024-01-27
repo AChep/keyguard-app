@@ -55,9 +55,10 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
-import com.artemchep.keyguard.feature.generator.wordlist.WordlistRoute
+import com.artemchep.keyguard.feature.generator.wordlist.list.WordlistListRoute
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListRoute
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
+import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -1443,7 +1444,7 @@ fun produceGeneratorState(
             translator = this@produceScreenState,
             navigate = ::navigate,
         )
-        this += WordlistRoute.actionOrNull(
+        this += WordlistsRoute.actionOrNull(
             translator = this@produceScreenState,
             navigate = ::navigate,
         )

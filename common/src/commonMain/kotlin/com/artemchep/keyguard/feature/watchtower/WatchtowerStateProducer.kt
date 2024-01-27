@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsMap
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
+import com.artemchep.keyguard.feature.duplicates.list.DuplicatesListRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams

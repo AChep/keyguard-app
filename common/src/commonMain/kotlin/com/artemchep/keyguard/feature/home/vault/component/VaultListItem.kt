@@ -76,6 +76,7 @@ import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScopeImpl
+import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -149,12 +150,31 @@ fun VaultListItemButton(
     modifier: Modifier = Modifier,
     item: VaultItem2.Button,
 ) {
-    VaultViewButtonItem(
+    val contentColor = MaterialTheme.colorScheme.primary
+    FlatItem(
         modifier = modifier,
         leading = {
-            item.leading?.invoke()
+            CompositionLocalProvider(
+                LocalContentColor provides contentColor,
+            ) {
+                val leading = item.leading
+                if (leading != null) {
+                    Row(
+                        modifier = Modifier
+                            .widthIn(min = 36.dp),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        leading.invoke()
+                    }
+                }
+            }
         },
-        text = item.title,
+        title = {
+            Text(
+                text = item.title,
+                color = contentColor,
+            )
+        },
         onClick = item.onClick,
     )
 }

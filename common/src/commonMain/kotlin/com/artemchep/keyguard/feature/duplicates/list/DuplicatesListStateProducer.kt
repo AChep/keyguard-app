@@ -1,6 +1,7 @@
-package com.artemchep.keyguard.feature.duplicates
+package com.artemchep.keyguard.feature.duplicates.list
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
@@ -29,8 +30,12 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
+import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
+import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.screen.verify
@@ -84,10 +89,10 @@ private data class SelectionData(
 )
 
 @Composable
-fun produceDuplicatesState(
+fun produceDuplicatesListState(
     args: DuplicatesRoute.Args,
 ) = with(localDI().direct) {
-    produceDuplicatesState(
+    produceDuplicatesListState(
         directDI = this,
         args = args,
         clipboardService = instance(),
@@ -105,7 +110,7 @@ fun produceDuplicatesState(
 }
 
 @Composable
-fun produceDuplicatesState(
+fun produceDuplicatesListState(
     directDI: DirectDI,
     args: DuplicatesRoute.Args,
     clipboardService: ClipboardService,
@@ -119,8 +124,8 @@ fun produceDuplicatesState(
     getCanWrite: GetCanWrite,
     cipherToolbox: CipherToolbox,
     cipherDuplicatesCheck: CipherDuplicatesCheck,
-): Loadable<DuplicatesState> = produceScreenState(
-    key = "duplicates",
+): Loadable<DuplicatesListState> = produceScreenState(
+    key = "duplicates_list",
     initial = Loadable.Loading,
     args = arrayOf(
         getOrganizations,
@@ -132,6 +137,7 @@ fun produceDuplicatesState(
     val sensitivitySink = mutablePersistedFlow("sensitivity") {
         CipherDuplicatesCheck.Sensitivity.NORMAL
     }
+    val itemSink = mutablePersistedFlow("item") { "" }
     val selectionHandle = selectionHandle("selection")
     val selectionGroupSink = mutablePersistedFlow("selection_group_id") {
         ""
@@ -149,10 +155,14 @@ fun produceDuplicatesState(
     fun onClickCipher(
         cipher: DSecret,
     ) {
-        val intent = NavigationIntent.NavigateToRoute(
-            VaultViewRoute(
-                itemId = cipher.id,
-                accountId = cipher.accountId,
+        val route = VaultViewRoute(
+            itemId = cipher.id,
+            accountId = cipher.accountId,
+        )
+        val intent = NavigationIntent.Composite(
+            listOf(
+                NavigationIntent.PopById(DuplicatesRoute.ROUTER_NAME),
+                NavigationIntent.NavigateToRoute(route),
             ),
         )
         navigate(intent)
@@ -257,7 +267,7 @@ fun produceDuplicatesState(
                                         onLongClick = onLongClick,
                                     )
                                 }
-                            val openedStateFlow = flowOf("")
+                            val openedStateFlow = itemSink
                                 .map {
                                     val isOpened = it == cipher.id
                                     VaultItem2.Item.OpenedState(isOpened)
@@ -304,7 +314,7 @@ fun produceDuplicatesState(
                     allItems += VaultItem2.Button(
                         id = "merge." + group.id,
                         title = translate(Res.strings.ciphers_action_merge_title),
-                        leading = icon(Icons.Outlined.Merge),
+                        leading = icon(Icons.Outlined.Merge, Icons.Outlined.Add),
                         onClick = {
                             val ciphers = groupedItems
                                 .map { it.source }
@@ -329,7 +339,10 @@ fun produceDuplicatesState(
 
     itemsFlow
         .combine(sensitivitySink) { items, sensitivity ->
-            val state = DuplicatesState(
+            val state = DuplicatesListState(
+                onSelected = { key ->
+                    itemSink.value = key.orEmpty()
+                },
                 items = items,
                 sensitivity = sensitivity,
                 sensitivities = CipherDuplicatesCheck.Sensitivity

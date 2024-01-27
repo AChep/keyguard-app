@@ -5,8 +5,12 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.feature.navigation.Route
 
 data class DuplicatesRoute(
-    val args: Args = Args(),
+    val args: Args,
 ) : Route {
+    companion object {
+        const val ROUTER_NAME = "duplicates"
+    }
+
     data class Args(
         val filter: DFilter? = null,
     )

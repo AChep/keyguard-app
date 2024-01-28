@@ -9,6 +9,15 @@ CREATE TABLE urlOverride (
   enabled INTEGER NOT NULL
 );
 
+INSERT INTO urlOverride(name, regex, command, createdAt, enabled)
+VALUES (
+  'HTTPS-ify',
+  '^http:.*',
+  'https://{url:rmvscm}',
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  1
+);
+
 update {
   UPDATE urlOverride
   SET

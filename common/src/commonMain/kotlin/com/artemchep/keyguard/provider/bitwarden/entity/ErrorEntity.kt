@@ -199,15 +199,14 @@ fun ErrorEntity.toException(
     // messages to something user-friendly.
     val errorTitle = kotlin.run {
         errorModel?.message?.takeIf { it.isNotBlank() }
-            ?: error.takeIf { it.isNotBlank() }
+            ?: errorDescription?.takeIf { it.isNotBlank() }
             // We usually should get an error message, but
             // just in case resort to the basic message.
-            ?: code.description
+            ?: "${code.description}: $error"
     }.trim()
     val errorText = kotlin.run {
         val validation = validationErrors?.toMap()?.format()?.takeIf { it.isNotBlank() }
         val message = listOfNotNull(
-            errorDescription?.takeIf { it.isNotBlank() },
             validation,
         )
             .joinToString(separator = "\n")

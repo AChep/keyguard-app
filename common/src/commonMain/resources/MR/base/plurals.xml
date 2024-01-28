@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <plural name="emailleak_breach_accounts_count_plural">
+    <plurals name="emailleak_breach_accounts_count_plural">
         <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> accounts</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
         <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> accounts</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> accounts</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-    </plural>
-    <plural name="passwordleak_occurrences_count_plural">
+    </plurals>
+    <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> occurrences</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
         <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> occurrences</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-    </plural>
-    <plural name="word_count_plural">
+    </plurals>
+    <plurals name="word_count_plural">
         <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> words</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
         <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> words</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> words</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
-    </plural>
-    <plural name="result_count_plural">
+    </plurals>
+    <plurals name="result_count_plural">
         <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> results</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
         <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> results</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> results</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
-    </plural>
+    </plurals>
 </resources>

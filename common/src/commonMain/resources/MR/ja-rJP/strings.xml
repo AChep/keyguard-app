@@ -354,6 +354,12 @@
     <string name="october">10月</string>
     <string name="november">11月</string>
     <string name="december">12月</string>
+    <string name="tolerance">Tolerance</string>
+    <string name="tolerance_min">Min</string>
+    <string name="tolerance_low">Low</string>
+    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_high">High</string>
+    <string name="tolerance_max">Max</string>
     <string name="list_move_up">上に移動</string>
     <string name="list_move_down">下に移動</string>
     <string name="list_remove">削除</string>
@@ -466,6 +472,7 @@
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
     <string name="wordlist_empty_label">No wordlists</string>
+    <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">ナビゲーションのラベル表示</string>
     <string name="pref_item_app_version_title">アプリのバージョン</string>
     <string name="pref_item_app_build_date_title">アプリのビルド日</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">App build ref</string>
     <string name="pref_item_app_team_title">アプリの開発チーム</string>
     <string name="pref_item_reddit_community_title">Reddit コミュニティ</string>
     <string name="pref_item_github_title">GitHub プロジェクト</string>

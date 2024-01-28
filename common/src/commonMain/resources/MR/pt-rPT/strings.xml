@@ -354,6 +354,12 @@
     <string name="october">Outubro</string>
     <string name="november">Novembro</string>
     <string name="december">Dezembro</string>
+    <string name="tolerance">Tolerância</string>
+    <string name="tolerance_min">Miníma</string>
+    <string name="tolerance_low">Baixa</string>
+    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_high">Alta</string>
+    <string name="tolerance_max">Máxima</string>
     <string name="list_move_up">Mover para cima</string>
     <string name="list_move_down">Mover para baixo</string>
     <string name="list_remove">Apagar</string>
@@ -466,6 +472,7 @@
     <string name="wordlist_edit_wordlist_title">Editar lista de palavras</string>
     <string name="wordlist_add_wordlist_title">Adicionar lista de palavras</string>
     <string name="wordlist_empty_label">Nenhuma lista de palavras</string>
+    <string name="wordlist_word_search_placeholder">Pesquisar palavras</string>
     <string name="urloverride_header_title">Substituir ligação URL</string>
     <string name="urloverride_list_header_title">Substituir ligações URL</string>
     <string name="urloverride_list_section_title">Substituir ligações URL</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">Mostrar rótulos nos botões de navegação</string>
     <string name="pref_item_app_version_title">Versão da aplicação</string>
     <string name="pref_item_app_build_date_title">Data de instalação da aplicação</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">Ref criação da app</string>
     <string name="pref_item_app_team_title">Equipa da aplicação</string>
     <string name="pref_item_reddit_community_title">Comunidade Reddit</string>
     <string name="pref_item_github_title">Projeto no GitHub</string>

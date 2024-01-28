@@ -137,7 +137,7 @@
     <string name="passkey_discoverable">可见</string>
     <string name="passkey_user_username">用户名</string>
     <string name="passkey_user_display_name">显示名称</string>
-    <string name="ignored_alerts">Ignored alerts</string>
+    <string name="ignored_alerts">忽略提醒</string>
     <string name="api_key">API 密钥</string>
     <string name="domain">域名</string>
     <string name="edit">编辑</string>
@@ -234,7 +234,7 @@
     <string name="ciphers_action_trash_title">回收站</string>
     <string name="ciphers_action_restore_title">恢复</string>
     <string name="ciphers_action_delete_title">永久删除</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">配置 Watchtower 提醒</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">将关联项目移动到回收站</string>
     <string name="file_action_open_with_title">打开方式…</string>
     <string name="file_action_send_with_title">通过...发送</string>
@@ -354,6 +354,12 @@
     <string name="october">十月</string>
     <string name="november">十一月</string>
     <string name="december">十二月</string>
+    <string name="tolerance">Tolerance</string>
+    <string name="tolerance_min">Min</string>
+    <string name="tolerance_low">Low</string>
+    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_high">High</string>
+    <string name="tolerance_max">Max</string>
     <string name="list_move_up">上移</string>
     <string name="list_move_down">下移</string>
     <string name="list_remove">移除</string>
@@ -466,6 +472,7 @@
     <string name="wordlist_edit_wordlist_title">编辑单词列表</string>
     <string name="wordlist_add_wordlist_title">添加单词列表</string>
     <string name="wordlist_empty_label">暂无单词列表</string>
+    <string name="wordlist_word_search_placeholder">搜索单词</string>
     <string name="urloverride_header_title">URL 覆写</string>
     <string name="urloverride_list_header_title">URL 覆写</string>
     <string name="urloverride_list_section_title">URL 覆写</string>
@@ -710,7 +717,7 @@
     <string name="watchtower_item_incomplete_items_text">帮助您识别密码库中丢失或不完整的数据，可能是没有名字或没有用户名的项目。</string>
     <string name="watchtower_item_expiring_items_title">过期项目</string>
     <string name="watchtower_item_expiring_items_text">已过期或即将过期的项目。</string>
-    <string name="watchtower_item_duplicate_websites_title">重复 URIs</string>
+    <string name="watchtower_item_duplicate_websites_title">重复的 URI</string>
     <string name="watchtower_item_duplicate_websites_text">在应用匹配检测后，具有一个或多个覆写相同网站的 URI 的项目</string>
     <string name="watchtower_item_trashed_items_title">回收站中的项目</string>
     <string name="watchtower_item_trashed_items_text">已移入回收站的项目，回收站中的物品过多可能会减慢密码库的运行速度。</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">在导航按钮上显示标签</string>
     <string name="pref_item_app_version_title">应用版本</string>
     <string name="pref_item_app_build_date_title">应用构建日期</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">应用构建日期</string>
     <string name="pref_item_app_team_title">开发团队</string>
     <string name="pref_item_reddit_community_title">Reddit 社区</string>
     <string name="pref_item_github_title">GitHub 项目</string>

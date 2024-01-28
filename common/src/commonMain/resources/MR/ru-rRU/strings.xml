@@ -354,6 +354,12 @@
     <string name="october">Октябрь</string>
     <string name="november">Ноябрь</string>
     <string name="december">Декабрь</string>
+    <string name="tolerance">Tolerance</string>
+    <string name="tolerance_min">Min</string>
+    <string name="tolerance_low">Low</string>
+    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_high">High</string>
+    <string name="tolerance_max">Max</string>
     <string name="list_move_up">Переместить вверх</string>
     <string name="list_move_down">Переместить вниз</string>
     <string name="list_remove">Удалить</string>
@@ -466,6 +472,7 @@
     <string name="wordlist_edit_wordlist_title">Редактировать список слов</string>
     <string name="wordlist_add_wordlist_title">Добавить список слов</string>
     <string name="wordlist_empty_label">Нет списков слов</string>
+    <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="urloverride_header_title">Переопределение URL-адреса</string>
     <string name="urloverride_list_header_title">Переопределение URL-адреса</string>
     <string name="urloverride_list_section_title">Переопределение URL-адреса</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">Показывать надписи на кнопках навигации</string>
     <string name="pref_item_app_version_title">Версия приложения</string>
     <string name="pref_item_app_build_date_title">Дата сборки приложения</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">App build ref</string>
     <string name="pref_item_app_team_title">Команда Keyguard</string>
     <string name="pref_item_reddit_community_title">Сообщество Reddit</string>
     <string name="pref_item_github_title">Проект на GitHub</string>

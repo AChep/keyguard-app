@@ -354,6 +354,12 @@
     <string name="october">Жовтень</string>
     <string name="november">Листопад</string>
     <string name="december">Грудень</string>
+    <string name="tolerance">Допустиме відхилення</string>
+    <string name="tolerance_min">Мінімальне</string>
+    <string name="tolerance_low">Низьке</string>
+    <string name="tolerance_normal">Нормальне</string>
+    <string name="tolerance_high">Високе</string>
+    <string name="tolerance_max">Максимальне</string>
     <string name="list_move_up">Перемістити вгору</string>
     <string name="list_move_down">Перемістити нижче</string>
     <string name="list_remove">Видалити</string>
@@ -466,6 +472,7 @@
     <string name="wordlist_edit_wordlist_title">Редагувати список слів</string>
     <string name="wordlist_add_wordlist_title">Додати список слів</string>
     <string name="wordlist_empty_label">Немає списків слів</string>
+    <string name="wordlist_word_search_placeholder">Пошук слів</string>
     <string name="urloverride_header_title">Перевизначення URL-адреси</string>
     <string name="urloverride_list_header_title">Перевизначення URL-адреси</string>
     <string name="urloverride_list_section_title">Перевизначення URL-адреси</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">Показувати підписи на кнопках навігації</string>
     <string name="pref_item_app_version_title">Версія застосунку</string>
     <string name="pref_item_app_build_date_title">Дата збірки застосунку</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">Посилання на коміт збірки застосунку</string>
     <string name="pref_item_app_team_title">Команда Keyguard</string>
     <string name="pref_item_reddit_community_title">Reddit спільнота</string>
     <string name="pref_item_github_title">Проєкт на GitHub</string>

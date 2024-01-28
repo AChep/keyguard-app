@@ -7,8 +7,8 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="account_name">Nome account</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
+    <string name="enabled">Attivato</string>
+    <string name="disabled">Disattivato</string>
     <string name="wordlist">Wordlist</string>
     <string name="username">Nome utente</string>
     <string name="password">Password</string>
@@ -33,8 +33,8 @@
     <string name="card_cvv">CVV</string>
     <string name="card_valid_from">Valida dal</string>
     <string name="card_valid_to">Valida dal</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
+    <string name="card_expiry_month">Mese di scadenza carta</string>
+    <string name="card_expiry_year">Anno di scadenza carta</string>
     <string name="cardholder_name">Titolare della carta</string>
     <string name="valid_from">Valida dal</string>
     <string name="expiry_date">Data di scadenza</string>
@@ -64,7 +64,7 @@
     <string name="notes">Note</string>
     <string name="attachments">Allegati</string>
     <string name="attachments_empty_label">Nessun allegato</string>
-    <string name="expired">Expired</string>
+    <string name="expired">Scaduta</string>
     <string name="expiring_soon">In scadenza</string>
     <string name="item_incomplete_title">Dati incompleti</string>
     <string name="item_incomplete_text">Questo elemento manca di alcune delle informazioni importanti.</string>
@@ -87,10 +87,10 @@
     <string name="organizations">Organizzazioni</string>
     <string name="organizations_empty_label">Nessuna organizzazione</string>
     <string name="misc">Varie</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">Comando</string>
+    <string name="execute_command">Esegui</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Aggiungi</string>
     <string name="add_integration">Aggiungi integrazione</string>
     <string name="account">Account</string>
     <string name="accounts">Account</string>
@@ -107,13 +107,13 @@
     <string name="identity_first_name">Nome</string>
     <string name="identity_middle_name">Secondo nome</string>
     <string name="identity_last_name">Cognome</string>
-    <string name="identity_full_name">Full name</string>
+    <string name="identity_full_name">Nome e cognome</string>
     <string name="address1">Indirizzo riga 1</string>
     <string name="address2">Indirizzo riga 2</string>
     <string name="address3">Indirizzo riga 3</string>
     <string name="rename">Rinomina</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
+    <string name="select_linked_type">Seleziona un tipo</string>
+    <string name="select_file">Seleziona un file</string>
     <string name="autofill">Riempimento automatico</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una password</string>
@@ -137,7 +137,7 @@
     <string name="passkey_discoverable">Visibile</string>
     <string name="passkey_user_username">Username</string>
     <string name="passkey_user_display_name">Nome visualizzato</string>
-    <string name="ignored_alerts">Ignored alerts</string>
+    <string name="ignored_alerts">Avvisi ignorati</string>
     <string name="api_key">Chiave API</string>
     <string name="domain">Dominio</string>
     <string name="edit">Modifica</string>
@@ -171,8 +171,8 @@
     <string name="downloads">Scaricati</string>
     <string name="downloads_empty_label">Nessun download</string>
     <string name="duplicates_empty_label">Nessun duplicato</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
+    <string name="duplicate">Duplica</string>
+    <string name="regex">Espressione regolare</string>
     <string name="encryption">Crittografia</string>
     <!-- Encryption key -->
     <string name="encryption_key">Chiave</string>
@@ -234,7 +234,7 @@
     <string name="ciphers_action_trash_title">Elimina</string>
     <string name="ciphers_action_restore_title">Ripristina</string>
     <string name="ciphers_action_delete_title">Elimina definitivamente</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configura avvisi Torre di Guardia</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Sposta gli elementi associati nel cestino</string>
     <string name="file_action_open_with_title">Apri con…</string>
     <string name="file_action_send_with_title">Invia con…</string>
@@ -258,8 +258,8 @@
     <string name="uri_action_launch_in_app_title">Apri con <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Apri con…</string>
     <string name="uri_action_how_to_delete_account_title">Come eliminare il mio account?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
+    <string name="uri_action_autofix_unsecure_title">Sistema automaticamente URL non sicuro</string>
+    <string name="uri_action_autofix_unsecure_text">Cambia un protocollo in una variante sicura se disponibile</string>
     <string name="uri_unsecure">Non sicuro</string>
     <string name="uri_match_app_title">Corrispondenza app</string>
     <string name="uri_match_detection_title">Rilevamento corrispondenza</string>
@@ -295,14 +295,14 @@
     <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato alla società</string>
     <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato all\'email</string>
     <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato al numero di telefono</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato all\'SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato al nome utente</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato al numero di passaporto</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato al numero di licenza</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato al nome</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato al cognome</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato a nome e cognome</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato a un campo sconosciuto</string>
     <string name="text_action_share_with_title">Condividi con…</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selezionati</string>
     <string name="copy">Copia</string>
@@ -323,23 +323,23 @@
     <string name="copy_cvv_code">Copia codice CVV</string>
     <string name="copy_otp_code">Copia OTP</string>
     <string name="copy_otp_secret_code">Copia chiave segreta</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied a one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_value">Valore copiato</string>
+    <string name="copied_url">URL copiato</string>
+    <string name="copied_uri">URI copiato</string>
+    <string name="copied_package_name">Nome pacchetto copiato</string>
+    <string name="copied_password">Password copiata</string>
+    <string name="copied_username">Nome utente copiato</string>
+    <string name="copied_email">Email copiata</string>
+    <string name="copied_phone_number">Numero di telefono copiato</string>
+    <string name="copied_passport_number">Numero di passaporto copiato</string>
+    <string name="copied_license_number">Numero di licenza copiato</string>
+    <string name="copied_card_number">Numero di carta copiato</string>
+    <string name="copied_cardholder_name">Nome del titolare della carta copiato</string>
+    <string name="copied_expiration_year">Anno di scadenza copiato</string>
+    <string name="copied_expiration_month">Mese di scadenza copiato</string>
+    <string name="copied_cvv_code">Numero di sicurezza copiato</string>
+    <string name="copied_otp_code">Password monouso copiata</string>
+    <string name="copied_otp_secret_code">Chiave segreta copiata</string>
     <string name="autofill_unlock_keyguard">Sblocca Keyguard</string>
     <string name="autofill_open_keyguard">Apri Keyguard</string>
     <string name="january">Gennaio</string>
@@ -354,6 +354,12 @@
     <string name="october">Ottobre</string>
     <string name="november">Novembre</string>
     <string name="december">Dicembre</string>
+    <string name="tolerance">Tolerance</string>
+    <string name="tolerance_min">Min</string>
+    <string name="tolerance_low">Low</string>
+    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_high">High</string>
+    <string name="tolerance_max">Max</string>
     <string name="list_move_up">Sposta in su</string>
     <string name="list_move_down">Sposta in giù</string>
     <string name="list_remove">Rimuovi</string>
@@ -362,11 +368,11 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Autenticazione WebAutn</string>
     <string name="fido2webauthn_action_return_title">Ritorna all\'app</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="expiry_tips_item_line1">Questo elemento scade il giorno <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Questa carta scade il giorno <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Ci sono alcune cose che puoi fare per garantire una transizione fluida:</string>
+    <string name="expiry_tips_card_line2">1. Ottieni una nuova carta: l\'emittente della tua carta potrebbe avere già inviato una carta sostitutiva con una nuova data di scadenza. In caso contrario, contatta l\'emittente della carta per vedere se intende inviarti una nuova carta e quando aspettarsela.</string>
+    <string name="expiry_tips_card_line3">2. Aggiornare i pagamenti automatici: Se i pagamenti automatici sono impostati con la carta, ad esempio una palestra mensile o un abbonamento Netflix, assicurati di aggiornare le informazioni con il nuovo numero di carta e la data di scadenza.</string>
+    <string name="expiry_tips_card_line4">3. Distruggere la vecchia carta: Una volta che la nuova carta arriva e avete aggiornato tutte le informazioni necessarie, assicuratevi di smaltire in modo sicuro della vecchia carta scaduta per evitare furti d\'identità.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -386,15 +392,15 @@
     <string name="error_invalid_uri">URI non valido</string>
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_incorrect_password">Password errata</string>
-    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
+    <string name="error_failed_generate_kdf_hash_oom">Creazione di una chiave non riuscita, memoria insufficiente. Controlla le impostazioni del server KDF.</string>
     <string name="error_failed_generate_otp_code">Impossibile generare il codice OTP</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_create_passkey">Impossibile creare passkey</string>
+    <string name="error_failed_use_passkey">Impossibile autorizzare la richiesta</string>
+    <string name="error_failed_format_placeholder">Impossibile formattare il segnaposto</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Codice a barre</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostra come codice a barre</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Copy this authenticator to another device by scanning the QR code.</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Copia questo autenticatore su un altro dispositivo scansionando il codice QR.</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">Seleziona data</string>
     <!-- Title of the 'Color picker' dialog -->
@@ -437,10 +443,10 @@
     <string name="passwordleak_occurrences_not_found_title">Nessuna violazione trovata</string>
     <string name="passwordleak_failed_to_load_status_text">Impossibile controllare le violazioni dei dati. Al momento potresti essere offline</string>
     <!-- Title of the 'Show in Large Type' dialog -->
-    <string name="largetype_title">Large Type</string>
-    <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
-    <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
-    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
+    <string name="largetype_title">Tipo Grande</string>
+    <string name="largetype_action_show_in_large_type_title">Mostra in Tipo Grande</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Mostra in Tipo Grande e Blocca vault</string>
+    <string name="largetype_unicode_surrogate_note">Il testo contiene simboli di Unicode compositi!</string>
     <string name="apppicker_header_title">Selettore App</string>
     <string name="apppicker_search_placeholder">Cerca app installate</string>
     <string name="apppicker_system_app_label">App di sistema</string>
@@ -451,21 +457,22 @@
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
     <string name="destinationpicker_organization_ownership_note">Questa organizzazione avrà la proprietà della copia. Non sarai il proprietario diretto.</string>
-    <string name="emailrelay_list_header_title">Email forwarders</string>
-    <string name="emailrelay_list_section_title">Email forwarders</string>
-    <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
-    <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
-    <string name="emailrelay_integration_title">Email forwarder integration</string>
-    <string name="emailrelay_empty_label">No email forwarders</string>
-    <string name="emailrelay_base_env_server_url_label">Server URL</string>
-    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_empty_label">No wordlists</string>
+    <string name="emailrelay_list_header_title">Inoltranti email</string>
+    <string name="emailrelay_list_section_title">Inoltranti email</string>
+    <string name="emailrelay_delete_one_confirmation_title">Eliminare l\'inoltrante email?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Eliminare gli inoltranti email?</string>
+    <string name="emailrelay_integration_title">Integrazione inoltrante email</string>
+    <string name="emailrelay_empty_label">Nessun inoltrante email</string>
+    <string name="emailrelay_base_env_server_url_label">URL del server</string>
+    <string name="emailrelay_base_env_note">Specifica l\'URL di base della tua installazione self-hosted.</string>
+    <string name="wordlist_list_header_title">Wordlist</string>
+    <string name="wordlist_list_section_title">Wordlist</string>
+    <string name="wordlist_delete_one_confirmation_title">Eliminare la wordlist?</string>
+    <string name="wordlist_delete_many_confirmation_title">Eliminare le wordlist?</string>
+    <string name="wordlist_edit_wordlist_title">Modifica una wordlist</string>
+    <string name="wordlist_add_wordlist_title">Aggiungi una wordlist</string>
+    <string name="wordlist_empty_label">Nessuna wordlist</string>
+    <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">Mostra etichette sui pulsanti di navigazione</string>
     <string name="pref_item_app_version_title">Versione app</string>
     <string name="pref_item_app_build_date_title">Data di compilazione app</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">App build ref</string>
     <string name="pref_item_app_team_title">Team dietro l\'applicazione</string>
     <string name="pref_item_reddit_community_title">Community su Reddit</string>
     <string name="pref_item_github_title">Progetto GitHub</string>

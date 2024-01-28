@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"></resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <plurals name="emailleak_breach_accounts_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+    </plurals>
+    <plurals name="passwordleak_occurrences_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+    </plurals>
+    <plurals name="word_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+    </plurals>
+    <plurals name="result_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+    </plurals>
+</resources>

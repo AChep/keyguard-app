@@ -354,6 +354,12 @@
     <string name="october">10월</string>
     <string name="november">11월</string>
     <string name="december">12월</string>
+    <string name="tolerance">Tolerance</string>
+    <string name="tolerance_min">Min</string>
+    <string name="tolerance_low">Low</string>
+    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_high">High</string>
+    <string name="tolerance_max">Max</string>
     <string name="list_move_up">위로 이동</string>
     <string name="list_move_down">아래로 이동</string>
     <string name="list_remove">제거</string>
@@ -466,6 +472,7 @@
     <string name="wordlist_edit_wordlist_title">단어 목록 편집</string>
     <string name="wordlist_add_wordlist_title">단어 목록 추가</string>
     <string name="wordlist_empty_label">단어 목록 없음</string>
+    <string name="wordlist_word_search_placeholder">단어 검색</string>
     <string name="urloverride_header_title">URL 덮어쓰기</string>
     <string name="urloverride_list_header_title">URL 덮어쓰기</string>
     <string name="urloverride_list_section_title">URL 덮어쓰기</string>
@@ -772,6 +779,11 @@
     <string name="pref_item_nav_label_title">내비게이션 버튼에 라벨 보이기</string>
     <string name="pref_item_app_version_title">앱 버전</string>
     <string name="pref_item_app_build_date_title">앱 빌드 날짜</string>
+    <!--
+        The short ref name of the branch or tag that triggered the workflow run.
+        This value matches the branch or tag name shown on GitHub.
+        -->
+    <string name="pref_item_app_build_ref_title">앱 빌드 레퍼런스</string>
     <string name="pref_item_app_team_title">앱 개발 팀</string>
     <string name="pref_item_reddit_community_title">Reddit 커뮤니티</string>
     <string name="pref_item_github_title">GitHub 프로젝트</string>

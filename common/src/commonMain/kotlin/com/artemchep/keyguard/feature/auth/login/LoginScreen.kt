@@ -455,8 +455,9 @@ private fun LoginItemDropdown(
                             ExpandedIfNotEmpty(field.text) { text ->
                                 Text(
                                     text = text,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                        .combineAlpha(LocalContentColor.current.alpha),
                                 )
                             }
                         }

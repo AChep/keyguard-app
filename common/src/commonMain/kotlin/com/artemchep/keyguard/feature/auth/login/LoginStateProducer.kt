@@ -36,6 +36,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineScope
@@ -173,7 +174,19 @@ fun produceLoginScreenState(
 
     // region
 
-    val regionDefault = LoginRegion.default
+    val regionDefault = if (
+        args.env.baseUrl.isNotBlank() ||
+        args.env.webVaultUrl.isNotBlank() ||
+        args.env.apiUrl.isNotBlank() ||
+        args.env.identityUrl.isNotBlank() ||
+        args.env.iconsUrl.isNotBlank() ||
+        args.env.notificationsUrl.isNotBlank() ||
+        args.env.headers.isNotEmpty()
+    ) {
+        LoginRegion.Custom
+    } else {
+        LoginRegion.Predefined(args.env.region)
+    }
     val regionSink = mutablePersistedFlow(KEY_REGION) { regionDefault.key }
     val regionFlow = regionSink
         .map { regionName ->
@@ -181,18 +194,22 @@ fun produceLoginScreenState(
                 ?: regionDefault
         }
 
-    val regionItems = LoginRegion.values
-        .asSequence()
-        .map { region ->
-            FlatItemAction(
-                id = region.key,
-                title = translate(region.title),
-                onClick = {
-                    regionSink.value = region.key
-                },
-            )
-        }
-        .toPersistentList()
+    val regionItems = if (args.envEditable) {
+        LoginRegion.values
+            .asSequence()
+            .map { region ->
+                FlatItemAction(
+                    id = region.key,
+                    title = translate(region.title),
+                    onClick = {
+                        regionSink.value = region.key
+                    },
+                )
+            }
+            .toPersistentList()
+    } else {
+        persistentListOf()
+    }
 
     //
     //

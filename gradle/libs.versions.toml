@@ -17,7 +17,7 @@ androidBillingClient = "6.1.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.0.4"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "8.2.2"
+androidPlugin = "8.1.4"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.7.0-alpha03"
 androidxAutofill = "1.3.0-alpha01"

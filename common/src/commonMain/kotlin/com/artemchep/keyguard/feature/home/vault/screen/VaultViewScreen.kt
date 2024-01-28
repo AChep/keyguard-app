@@ -54,6 +54,7 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.OptionallyKeepScreenOnEffect
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.button.FavouriteToggleButton
@@ -68,6 +69,8 @@ fun VaultViewScreen(
     itemId: String,
     accountId: String,
 ) {
+    OptionallyKeepScreenOnEffect()
+
     val state = vaultViewScreenState(
         mode = LocalAppMode.current,
         contentColor = LocalContentColor.current,

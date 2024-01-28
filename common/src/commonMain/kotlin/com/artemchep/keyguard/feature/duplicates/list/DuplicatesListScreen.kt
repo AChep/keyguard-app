@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.EdgesensorHigh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
@@ -127,25 +130,24 @@ fun DuplicatesListScreen(
                         mutableStateOf(false)
                     }
 
-                    val normalContentColor = LocalContentColor.current
                     TextButton(
                         onClick = {
                             isAutofillWindowShowing = true
                         },
                     ) {
                         Column {
-                            Text(text = "Sensitivity")
-                            val textOrNull =
-                                loadableState.getOrNull()?.sensitivity?.name
-                                    ?.lowercase()
-                                    ?.capitalize()
+                            Text(
+                                text = stringResource(Res.strings.tolerance),
+                            )
+                            val textResOrNull =
+                                loadableState.getOrNull()?.sensitivity?.title
                             ExpandedIfNotEmpty(
-                                valueOrNull = textOrNull,
-                            ) { text ->
+                                valueOrNull = textResOrNull,
+                            ) { textRes ->
                                 Text(
-                                    text = text,
+                                    text = stringResource(textRes),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = normalContentColor
+                                    color = LocalContentColor.current
                                         .combineAlpha(MediumEmphasisAlpha),
                                 )
                             }

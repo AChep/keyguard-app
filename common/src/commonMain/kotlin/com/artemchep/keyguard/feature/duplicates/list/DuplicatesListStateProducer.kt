@@ -349,9 +349,7 @@ fun produceDuplicatesListState(
                     .entries
                     .map { s ->
                         FlatItemAction(
-                            title = s.name
-                                .lowercase()
-                                .capitalize(),
+                            title = translate(s.title),
                             onClick = {
                                 sensitivitySink.value = s
                             },

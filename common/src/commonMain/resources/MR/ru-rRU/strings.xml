@@ -784,6 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
+    <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">Команда Keyguard</string>
     <string name="pref_item_reddit_community_title">Сообщество Reddit</string>
     <string name="pref_item_github_title">Проект на GitHub</string>
@@ -850,6 +851,7 @@
     <string name="pref_item_keep_screen_on_title">Держать экран включенным во время просмотра записей</string>
     <string name="pref_item_autofill_service_title">Служба автозаполнения</string>
     <string name="pref_item_autofill_service_text">Использовать фреймворк автозаполнения Android для заполнения информации о входе в другие приложения на устройстве</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автокопирование одноразовых паролей</string>
     <string name="pref_item_autofill_auto_copy_otp_text">При заполнении регистрационной информации автоматически копировать одноразовые пароли</string>
     <string name="pref_item_autofill_inline_suggestions_title">Встроенные предложения</string>

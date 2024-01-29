@@ -784,6 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
+    <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">Equipo detrás de la app</string>
     <string name="pref_item_reddit_community_title">Comunidad de Reddit</string>
     <string name="pref_item_github_title">Proyecto en GitHub</string>
@@ -850,6 +851,7 @@
     <string name="pref_item_keep_screen_on_title">Mantener la pantalla encendida mientras se visualizan los elementos</string>
     <string name="pref_item_autofill_service_title">Servicio de Autocompletar</string>
     <string name="pref_item_autofill_service_text">Utiliza el Framework de Autorrellenado de Android para ayudar a rellenar información de inicio de sesión en otras aplicaciones del dispositivo</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copiar contraseñas de un solo uso</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Cuando se rellena información del inicio de sesión, se copia automáticamente las contraseñas de un solo uso</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugerencias automáticas</string>

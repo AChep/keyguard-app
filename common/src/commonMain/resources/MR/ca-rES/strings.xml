@@ -472,7 +472,7 @@
     <string name="wordlist_edit_wordlist_title">Edita una llista de paraules</string>
     <string name="wordlist_add_wordlist_title">Afegeix una llista de paraules</string>
     <string name="wordlist_empty_label">Cap llista de paraules</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
+    <string name="wordlist_word_search_placeholder">Cerca paraules</string>
     <string name="urloverride_header_title">Sobreescriptura d\'URL</string>
     <string name="urloverride_list_header_title">Sobreescriptures d\'URL</string>
     <string name="urloverride_list_section_title">Sobreescriptures d\'URL</string>
@@ -784,6 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">Ref. de comp. de l\'app</string>
+    <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">L\'equip darrere de l\'aplicació</string>
     <string name="pref_item_reddit_community_title">Comunitat de Reddit</string>
     <string name="pref_item_github_title">Projecte de GitHub</string>
@@ -850,6 +851,7 @@
     <string name="pref_item_keep_screen_on_title">Mantè encesa la pantalla mentre es visualitzen els elements</string>
     <string name="pref_item_autofill_service_title">Servei d\'emplenament automàtic</string>
     <string name="pref_item_autofill_service_text">Fes servir el servei d\'emplenament automàtic d\'Android per ajudar-te emplenant informació d\'inici de sessió a altres apps del dispositiu</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copia contrasenyes d\'un sol ús automàticament</string>
     <string name="pref_item_autofill_auto_copy_otp_text">En emplenar informació d\'inici de sessió, còpia automàticament les contrasenyes d\'un sol ús</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggeriments en línia</string>

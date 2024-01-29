@@ -1,20 +1,29 @@
 package com.artemchep.keyguard.common.service.settings.impl
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.flatMap
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
+import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.asDuration
 import com.artemchep.keyguard.common.service.keyvalue.getEnumNullable
 import com.artemchep.keyguard.common.service.keyvalue.getObject
+import com.artemchep.keyguard.common.service.keyvalue.getSerializable
 import com.artemchep.keyguard.common.service.keyvalue.setAndCommit
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
+import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
+import com.artemchep.keyguard.common.service.settings.entity.of
+import com.artemchep.keyguard.common.service.settings.entity.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Duration
@@ -24,6 +33,7 @@ import kotlin.time.Duration
  */
 class SettingsRepositoryImpl(
     private val store: KeyValueStore,
+    private val json: Json,
 ) : SettingsReadWriteRepository {
     companion object {
         private const val KEY_AUTOFILL_INLINE_SUGGESTIONS = "autofill.inline_suggestions"
@@ -51,6 +61,7 @@ class SettingsRepositoryImpl(
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
+        private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
@@ -185,8 +196,16 @@ class SettingsRepositoryImpl(
             },
         )
 
+    private val versionLogPref =
+        store.getSerializable<VersionLogEntity?>(
+            json,
+            KEY_VERSION_LOG,
+            defaultValue = null,
+        )
+
     constructor(directDI: DirectDI) : this(
         store = directDI.instance<Files, KeyValueStore>(arg = Files.SETTINGS),
+        json = directDI.instance(),
     )
 
     override fun setAutofillInlineSuggestions(inlineSuggestions: Boolean) =
@@ -325,6 +344,26 @@ class SettingsRepositoryImpl(
         .setAndCommit(markdown)
 
     override fun getMarkdown() = markdownPref
+
+    override fun setAppVersionLog(log: List<AppVersionLog>) =
+        ioEffect {
+            val entity = log
+                .takeIf { it.isNotEmpty() }
+                // convert to an entity
+                ?.let {
+                    VersionLogEntity.of(it)
+                }
+            entity
+        }.flatMap { entity ->
+            versionLogPref
+                .setAndCommit(entity)
+        }
+
+    override fun getAppVersionLog() = versionLogPref
+        .map { entity ->
+            entity?.toDomain()
+                .orEmpty()
+        }
 
     override fun setNavAnimation(navAnimation: NavAnimation?) = navAnimationPref
         .setAndCommit(navAnimation)

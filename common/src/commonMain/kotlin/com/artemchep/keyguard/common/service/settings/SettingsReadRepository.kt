@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.settings
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
+import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
@@ -63,6 +64,8 @@ interface SettingsReadRepository {
     fun getWebsiteIcons(): Flow<Boolean>
 
     fun getMarkdown(): Flow<Boolean>
+
+    fun getAppVersionLog(): Flow<List<AppVersionLog>>
 
     fun getNavAnimation(): Flow<NavAnimation?>
 

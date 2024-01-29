@@ -141,6 +141,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeoutVariants
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.GetVersionLog
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.MessageHub
@@ -189,6 +190,7 @@ import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RequestAppReview
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.AuthConfirmMasterKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.AuthGenerateMasterKeyUseCaseImpl
@@ -255,6 +257,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterTimeoutVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultPersistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionImpl
+import com.artemchep.keyguard.common.usecase.impl.GetVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWebsiteIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWriteAccessImpl
 import com.artemchep.keyguard.common.usecase.impl.MessageHubImpl
@@ -301,6 +304,7 @@ import com.artemchep.keyguard.common.usecase.impl.ReadWordlistFromFileImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.RequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
+import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.WindowCoroutineScopeImpl
 import com.artemchep.keyguard.copy.Base32ServiceJvm
 import com.artemchep.keyguard.copy.Base64ServiceJvm
@@ -865,6 +869,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<UpdateVersionLog> {
+        UpdateVersionLogImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutOnboardingLastVisitInstant> {
         PutOnboardingLastVisitInstantImpl(
             directDI = this,
@@ -907,6 +916,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetAppBuildRef> {
         GetAppBuildRefImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetVersionLog> {
+        GetVersionLogImpl(
             directDI = this,
         )
     }

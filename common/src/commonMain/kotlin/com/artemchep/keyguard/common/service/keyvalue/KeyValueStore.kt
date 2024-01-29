@@ -8,6 +8,9 @@ import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 interface KeyValueStore {
     companion object {
@@ -58,6 +61,30 @@ fun <T> KeyValueStore.getObject(
             .collect(collector)
     }
 }
+
+inline fun <reified T> KeyValueStore.getSerializable(
+    json: Json,
+    key: String,
+    defaultValue: T,
+): KeyValuePreference<T> = getObject<T>(
+    key = key,
+    defaultValue = defaultValue,
+    serialize = { entity ->
+        if (entity == null) {
+            return@getObject ""
+        }
+
+        json.encodeToString(entity)
+    },
+    deserialize = {
+        runCatching {
+            json.decodeFromString<T>(it)
+        }.getOrElse {
+            // Fallback to the default value
+            defaultValue
+        }
+    },
+)
 
 inline fun <reified T : Enum<*>> KeyValueStore.getEnumNullable(
     key: String,

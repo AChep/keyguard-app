@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
+import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
@@ -110,6 +111,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setMarkdown(
         markdown: Boolean,
+    ): IO<Unit>
+
+    fun setAppVersionLog(
+        log: List<AppVersionLog>,
     ): IO<Unit>
 
     fun setOnboardingLastVisitInstant(

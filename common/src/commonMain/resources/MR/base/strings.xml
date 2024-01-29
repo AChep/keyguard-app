@@ -851,6 +851,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
+    <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">Team behind the app</string>
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>

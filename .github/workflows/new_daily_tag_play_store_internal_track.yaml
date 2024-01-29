@@ -31,7 +31,7 @@ jobs:
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Check and Build licenses"
-        uses: eskatos/gradle-command-action@v2
+        uses: eskatos/gradle-command-action@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:
@@ -40,7 +40,7 @@ jobs:
         run: |
           mv -f androidApp/build/reports/licensee/androidPlayStoreRelease/artifacts.json common/src/commonMain/resources/MR/files/licenses.json
       - name: "Build release bundle"
-        uses: eskatos/gradle-command-action@v2
+        uses: eskatos/gradle-command-action@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:

@@ -26,7 +26,7 @@ jobs:
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Check and Build licenses"
-        uses: eskatos/gradle-command-action@v2
+        uses: eskatos/gradle-command-action@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:
@@ -35,7 +35,7 @@ jobs:
         run: |
           mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/resources/MR/files/licenses.json
       - name: "./gradlew :androidApp:assembleNoneRelease"
-        uses: eskatos/gradle-command-action@v2
+        uses: eskatos/gradle-command-action@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:

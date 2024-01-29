@@ -784,6 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
+    <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">アプリの開発チーム</string>
     <string name="pref_item_reddit_community_title">Reddit コミュニティ</string>
     <string name="pref_item_github_title">GitHub プロジェクト</string>
@@ -850,6 +851,7 @@
     <string name="pref_item_keep_screen_on_title">アイテムの表示中は画面をオンのままにする</string>
     <string name="pref_item_autofill_service_title">自動入力サービス</string>
     <string name="pref_item_autofill_service_text">Android 自動入力フレームワークを使用して、デバイス上の他のアプリにログイン情報を入力します。</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">ワンタイムパスワードの自動コピー</string>
     <string name="pref_item_autofill_auto_copy_otp_text">ログイン情報を入力するときに、ワンタイムパスワードを自動的にコピーします。</string>
     <string name="pref_item_autofill_inline_suggestions_title">インライン自動入力の候補</string>

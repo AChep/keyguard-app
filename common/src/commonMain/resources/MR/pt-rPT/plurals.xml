@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> conta</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> contas</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ocorrência</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ocorrências</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> palavra</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> palavras</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> resultado</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> resultados</item>
     </plurals>
 </resources>

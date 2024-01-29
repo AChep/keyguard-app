@@ -784,6 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">Ref criação da app</string>
+    <string name="pref_item_app_changelog_title">App changelog</string>
     <string name="pref_item_app_team_title">Equipa da aplicação</string>
     <string name="pref_item_reddit_community_title">Comunidade Reddit</string>
     <string name="pref_item_github_title">Projeto no GitHub</string>
@@ -850,6 +851,7 @@
     <string name="pref_item_keep_screen_on_title">Manter o ecrã ligado durante a visualização</string>
     <string name="pref_item_autofill_service_title">Preenchimento automático</string>
     <string name="pref_item_autofill_service_text">Usar a estrutura de preenchimento automático do Android para ajudar a preencher informações de login em outros aplicativos do dispositivo</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copiar automaticamente códigos de verificação 2FA</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Ao preencher informações de login, copiar automaticamente códigos de uso único 2FA</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugestões automáticas</string>

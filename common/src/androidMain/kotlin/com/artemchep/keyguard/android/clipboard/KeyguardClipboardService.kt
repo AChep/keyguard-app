@@ -421,6 +421,7 @@ class KeyguardClipboardService : Service(), DIAware {
             .addAction(cancelAction)
             .setSmallIcon(icon)
             .setSound(audioUri)
+            .setSilent(true)
             .setOnlyAlertOnce(alertOnlyOnce)
             .setOngoing(ongoing)
             .build()

@@ -21,6 +21,7 @@ fun SecuritySettingsScreen() {
                 key = "clipboard",
                 list = listOf(
                     SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_REFRESH),
+                    SettingPaneItem.Item(Setting.CLIPBOARD_NOTIFICATION_SETTINGS),
                 ),
             ),
             SettingPaneItem.Group(

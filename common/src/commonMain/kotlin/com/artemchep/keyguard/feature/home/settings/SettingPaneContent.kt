@@ -40,6 +40,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingCheckTwoFAP
 import com.artemchep.keyguard.feature.home.settings.component.settingClearCache
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardAutoClearProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardAutoRefreshProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingClipboardNotificationSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorAccentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorSchemeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingConcealFieldsProvider
@@ -133,6 +134,7 @@ object Setting {
     const val ROTATE_DEVICE_ID = "rotate_device_id"
     const val CLIPBOARD_AUTO_CLEAR = "clipboard_auto_clear"
     const val CLIPBOARD_AUTO_REFRESH = "clipboard_auto_refresh"
+    const val CLIPBOARD_NOTIFICATION_SETTINGS = "clipboard_notification_settings"
     const val CRASH = "test_crash_reports"
     const val CRASHLYTICS = "automatic_crash_reports"
     const val REQUIRE_MASTER_PASSWORD = "require_master_password"
@@ -211,6 +213,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.ROTATE_DEVICE_ID to ::settingRotateDeviceId,
     Setting.CLIPBOARD_AUTO_CLEAR to ::settingClipboardAutoClearProvider,
     Setting.CLIPBOARD_AUTO_REFRESH to ::settingClipboardAutoRefreshProvider,
+    Setting.CLIPBOARD_NOTIFICATION_SETTINGS to ::settingClipboardNotificationSettingsProvider,
     Setting.CRASH to ::settingCrashProvider,
     Setting.CRASHLYTICS to ::settingCrashlyticsProvider,
     Setting.REQUIRE_MASTER_PASSWORD to ::settingRequireMasterPasswordProvider,

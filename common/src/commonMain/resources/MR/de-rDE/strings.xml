@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Einmalpasswort Benachrichtigungsdauer</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Wenn Sie ein Login-Element automatisch eingeben, das ein einmaliges Passwort besitzt, erscheint die Benachrichtigung mit Bestätigungscode für mindestens die definierte Dauer</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Nie</string>
+    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
     <string name="pref_item_premium_membership_title">Über Keyguard Mitgliedschaft</string>
     <string name="pref_item_premium_membership_text">Das Premium entsperrt zusätzliche Funktionen und finanziert eine Entwicklung der App. Vielen Dank für Ihre Unterstützung! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonnements</string>

@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Duración de contraseña de un solo uso</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Cuando autorrellenas un elemento de inicio de sesión que tiene una contraseña única, la notificación con código de verificación aparecerá durante al menos la duración definida</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Nunca</string>
+    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
     <string name="pref_item_premium_membership_title">Acerca de la suscripción de Keyguard</string>
     <string name="pref_item_premium_membership_text">El Premium desbloquea características adicionales y financia el desarrollo de la aplicación. ¡Gracias por apoyarnos! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Suscripciones</string>

@@ -784,7 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">Посилання на коміт збірки застосунку</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_changelog_title">Список змін у програмі</string>
     <string name="pref_item_app_team_title">Команда Keyguard</string>
     <string name="pref_item_reddit_community_title">Reddit спільнота</string>
     <string name="pref_item_github_title">Проєкт на GitHub</string>
@@ -851,7 +851,7 @@
     <string name="pref_item_keep_screen_on_title">Залишати екран включеним під час перегляду записів</string>
     <string name="pref_item_autofill_service_title">Автозаповнення</string>
     <string name="pref_item_autofill_service_text">Заповнювати інформацію в інших програмах за допомогою Android Autofill Framework</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Деякі пристрої Xiaomi вимагають ручного надання дозволу \"Показувати вікна під час роботи на задньому плані\". Будь ласка, відкрийте налаштування та переконайтеся, що дозвіл надано.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автоматично копіювати одноразові паролі</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Автоматично копіювати одноразові паролі при заповненні логіну</string>
     <string name="pref_item_autofill_inline_suggestions_title">Вбудовані підказки</string>
@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Тривалість сповіщення з OTP</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">При заповнюванні логіну з одноразовим паролем, сповіщення з кодом підтвердження зринає принаймні на задану тривалість</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Ніколи</string>
+    <string name="pref_item_clipboard_notification_settings_title">Налаштування сповіщення з OTP</string>
     <string name="pref_item_premium_membership_title">Про членство в Keyguard</string>
     <string name="pref_item_premium_membership_text">Преміум відкриває нові функції та фінансує розробку застосунку. Дякуємо, що підтримуєте нас! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Підписки</string>

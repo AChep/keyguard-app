@@ -17,6 +17,7 @@ fun DebugSettingsScreen() {
                 title = "UI",
                 list = listOf(
                     SettingPaneItem.Item(Setting.EMIT_MESSAGE),
+                    SettingPaneItem.Item(Setting.EMIT_TOTP),
                     SettingPaneItem.Item(Setting.CLEAR_CACHE),
                     SettingPaneItem.Item(Setting.LAUNCH_APP_PICKER),
                     SettingPaneItem.Item(Setting.LAUNCH_YUBIKEY),

@@ -1864,25 +1864,6 @@ private fun RememberStateFlowScope.oh(
                 .orEmpty(),
         )
         emit(remoteRevDate)
-
-        // TOTP
-        // TODO: Fix meeeee!!!
-//        val totp = cipher.login?.totp
-//        if (totp != null) {
-//            val intent = KeyguardClipboardService.Companion.getIntent(
-//                context = context,
-//                cipherName = cipher.name,
-//                totpToken = totp.token,
-//            )
-//            val remoteRevDate2 = VaultViewItem.Button(
-//                id = "adasdadasdasdads",
-//                text = "Launch TOTP",
-//                onClick = {
-//                    context.startForegroundService(intent)
-//                },
-//            )
-//            emit(remoteRevDate2)
-//        }
     }
 }
 

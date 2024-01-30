@@ -48,6 +48,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingCrashlytics
 import com.artemchep.keyguard.feature.home.settings.component.settingCredentialProviderProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingDataSafetyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEmitMessageProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEmitTotpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingExperimentalProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingFeaturesOverviewProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackAppProvider
@@ -136,6 +137,7 @@ object Setting {
     const val CRASHLYTICS = "automatic_crash_reports"
     const val REQUIRE_MASTER_PASSWORD = "require_master_password"
     const val EMIT_MESSAGE = "emit_message"
+    const val EMIT_TOTP = "emit_totp"
     const val FEEDBACK_APP = "feedback_app"
     const val REDDIT = "reddit"
     const val CROWDIN = "crowdin"
@@ -213,6 +215,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.CRASHLYTICS to ::settingCrashlyticsProvider,
     Setting.REQUIRE_MASTER_PASSWORD to ::settingRequireMasterPasswordProvider,
     Setting.EMIT_MESSAGE to ::settingEmitMessageProvider,
+    Setting.EMIT_TOTP to ::settingEmitTotpProvider,
     Setting.FEEDBACK_APP to ::settingFeedbackAppProvider,
     Setting.ABOUT_APP to ::settingAboutAppProvider,
     Setting.ABOUT_APP_BUILD_DATE to ::settingAboutAppBuildDateProvider,

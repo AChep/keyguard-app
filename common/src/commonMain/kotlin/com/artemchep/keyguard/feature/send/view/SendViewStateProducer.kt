@@ -63,10 +63,12 @@ import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -223,7 +225,6 @@ fun sendViewScreenState(
         clipboardService = clipboardService,
     )
 
-    val selectionHandle = selectionHandle("selection")
     val markdown = getMarkdown().first()
 
     val accountFlow = getAccounts()
@@ -296,8 +297,6 @@ fun sendViewScreenState(
                         null
                     },
                     items = oh(
-                        sharingScope = screenScope,
-                        selectionHandle = selectionHandle,
                         canEdit = canAddSecret,
                         contentColor = contentColor,
                         disabledContentColor = disabledContentColor,
@@ -324,8 +323,6 @@ fun sendViewScreenState(
 }
 
 private fun RememberStateFlowScope.oh(
-    sharingScope: CoroutineScope,
-    selectionHandle: SelectionHandle,
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,
@@ -365,26 +362,8 @@ private fun RememberStateFlowScope.oh(
 
     val file = send.file
     if (file != null) {
-        val downloadIo = kotlin.run {
-            ioRaise<Unit>(RuntimeException("Downloading sends is not implemented yet."))
-        }
-        val removeIo = kotlin.run {
-            ioUnit()
-        }
-
         val actualItem = createAttachmentItem(
-            tag = DownloadInfoEntity2.AttachmentDownloadTag(
-                localCipherId = "cipher.id",
-                remoteCipherId = "cipher.service.remote?.id",
-                attachmentId = file.id,
-            ),
-            selectionHandle = selectionHandle,
-            sharingScope = sharingScope,
             attachment = file,
-            launchViewCipherData = null,
-            downloadManager = downloadManager,
-            downloadIo = downloadIo,
-            removeIo = removeIo,
         )
         val model = VaultViewItem.Attachment(
             id = "file.file",

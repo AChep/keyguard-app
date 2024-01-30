@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Длительность уведомления о разовых паролях</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">При заполнении логина с одноразовым паролем уведомление с кодом подтверждения появляется по крайней мере на заданную длительность</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Никогда</string>
+    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
     <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
     <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>

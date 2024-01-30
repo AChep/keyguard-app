@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Durata notifica password monouso</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Quando si compila automaticamente un elemento di accesso che ha una password monouso, la notifica con codice di verifica verrà visualizzata per almeno la durata definita</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Mai</string>
+    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
     <string name="pref_item_premium_membership_title">Informazioni sull\'iscrizione a Keyguard</string>
     <string name="pref_item_premium_membership_text">Il Premium sblocca funzionalità extra e finanzia lo sviluppo dell\'app. Grazie per il supporto! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abbonamenti</string>

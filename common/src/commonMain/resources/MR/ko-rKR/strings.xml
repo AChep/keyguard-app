@@ -784,7 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">앱 빌드 레퍼런스</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_changelog_title">앱 변경 내역</string>
     <string name="pref_item_app_team_title">앱 개발 팀</string>
     <string name="pref_item_reddit_community_title">Reddit 커뮤니티</string>
     <string name="pref_item_github_title">GitHub 프로젝트</string>
@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">OTP 알림 길이</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">OTP가 있는 로그인 아이템을 자동 완성했을 때, 지정한 시간만큼 OTP 인증 코드를 알림으로 띄웁니다.</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">알림을 띄우지 않음</string>
+    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
     <string name="pref_item_premium_membership_title">Keyguard 멤버십 정보</string>
     <string name="pref_item_premium_membership_text">프리미엄을 구매하시면 추가 기능을 사용할 수 있으며 앱 개발에 도움이 됩니다. 구매해 주셔서 감사합니다! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">구독</string>

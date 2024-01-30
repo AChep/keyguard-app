@@ -784,7 +784,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">应用构建日期</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_changelog_title">应用更新日志</string>
     <string name="pref_item_app_team_title">开发团队</string>
     <string name="pref_item_reddit_community_title">Reddit 社区</string>
     <string name="pref_item_github_title">GitHub 项目</string>
@@ -851,7 +851,7 @@
     <string name="pref_item_keep_screen_on_title">查看项目时保持屏幕开启</string>
     <string name="pref_item_autofill_service_title">自动填充服务</string>
     <string name="pref_item_autofill_service_text">使用 Android 自动填充框架帮助将登录信息填写到设备上的其他应用</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 设备要求您手动允许“在后台运行时显示弹出窗口”权限。 请打开设置并确认它已被授予。</string>
     <string name="pref_item_autofill_auto_copy_otp_title">自动复制一次性密码</string>
     <string name="pref_item_autofill_auto_copy_otp_text">填充登录信息时，自动复制一次性密码</string>
     <string name="pref_item_autofill_inline_suggestions_title">填充建议</string>
@@ -870,6 +870,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">一次性密码通知持续时间</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">自动填充具有一次性密码的登录项目时，会弹出带有验证码的通知，持续时间至少为所定义的持续时间</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">从不</string>
+    <string name="pref_item_clipboard_notification_settings_title">一次性密码通知设置</string>
     <string name="pref_item_premium_membership_title">关于 Keyguard 大会员权益</string>
     <string name="pref_item_premium_membership_text">大会员可解锁额外功能，并提供更多的钱钱以支持开发。感谢您对我们的支持！❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">订阅</string>

@@ -138,7 +138,7 @@ yubiKit = "2.4.0"
 # We use it to calculate password strength.
 zxcvbn4j = "1.8.2"
 # https://github.com/zxing/zxing
-zxing = "3.5.2"
+zxing = "3.5.3"
 
 [libraries]
 achep-bindin = { module = "com.github.AChep:bindin", version.ref = "bindIn" }

@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterScreenOff
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterScreenOff
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
@@ -47,6 +48,7 @@ fun settingVaultLockAfterScreenOffProvider(
     }
 
     SettingIi(
+        platformClass = Platform.Mobile::class,
         search = SettingIi.Search(
             group = "lock",
             tokens = listOf(

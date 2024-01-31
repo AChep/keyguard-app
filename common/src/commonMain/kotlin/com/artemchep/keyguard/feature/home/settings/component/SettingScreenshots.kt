@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
@@ -41,6 +42,7 @@ fun settingScreenshotsProvider(
     }
 
     SettingIi(
+        platformClass = Platform.Mobile::class,
         search = SettingIi.Search(
             group = "conceal",
             tokens = listOf(

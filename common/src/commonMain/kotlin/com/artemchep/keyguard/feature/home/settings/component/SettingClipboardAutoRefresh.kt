@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -65,7 +66,9 @@ fun settingClipboardAutoRefreshProvider(
             )
         }
 
-    SettingIi {
+    SettingIi(
+        platformClass = Platform.Mobile::class,
+    ) {
         SettingClipboardAutoRefresh(
             text = text,
             dropdown = dropdown,

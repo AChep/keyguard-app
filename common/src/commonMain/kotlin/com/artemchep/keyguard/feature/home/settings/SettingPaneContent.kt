@@ -92,6 +92,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingVaultPersis
 import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -266,6 +267,8 @@ fun SettingPaneContent(
 ) {
     val di = localDI()
     val state by remember(items, di, hub) {
+        val platform = CurrentPlatform
+
         fun create(
             item: SettingPaneItem.Item,
             group: String = "",
@@ -279,7 +282,18 @@ fun SettingPaneContent(
                     itemKey = item.key,
                     groupKey = group,
                     args = args,
-                    content = content?.content,
+                    content = content
+                        ?.takeIf {
+                            if (
+                                it.platformClass != null &&
+                                !it.platformClass.isInstance(platform)
+                            ) {
+                                return@takeIf false
+                            }
+
+                            true
+                        }
+                        ?.content,
                 )
             }
 

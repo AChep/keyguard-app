@@ -5,11 +5,12 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.ui.FlatItem
 import kotlinx.coroutines.flow.Flow
+import kotlin.reflect.KClass
 
 typealias SettingComponent = Flow<SettingIi?>
 
 data class SettingIi(
-    val platform: Platform? = null,
+    val platformClass: KClass<out Platform>? = null,
     val search: Search? = null,
     val content: @Composable () -> Unit,
 ) {

@@ -258,6 +258,7 @@
     <string name="uri_action_launch_in_app_title">Openen met <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Openen met…</string>
     <string name="uri_action_how_to_delete_account_title">Hoe verwijder ik mijn account?</string>
+    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
     <string name="uri_action_autofix_unsecure_title">Auto-fix onveilige URL</string>
     <string name="uri_action_autofix_unsecure_text">Wijzigt een protocol naar een beveiligde variant als deze beschikbaar is</string>
     <string name="uri_unsecure">Onveilig</string>
@@ -421,6 +422,22 @@
     <string name="justdeleteme_send_email_title">Verstuur e-mail</string>
     <string name="justdeleteme_search_placeholder">Zoek websites</string>
     <string name="justdeleteme_empty_label">Geen instructies gevonden</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justgetmydata_title">How to get my data?</string>
+    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <!-- Simple process -->
+    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <!-- Some extra steps involved -->
+    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <!-- Cannot be fully obtained without contacting customer services -->
+    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
+    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <!-- Cannot be obtained -->
+    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
+    <string name="justgetmydata_send_email_title">Send an email</string>
+    <string name="justgetmydata_search_placeholder">Search websites</string>
+    <string name="justgetmydata_empty_label">No instructions</string>
     <string name="tfa_directory_title">Tweestapsverificatie</string>
     <string name="tfa_directory_text">Lijst van websites met ondersteuning voor tweestapsverificatie</string>
     <string name="tfa_directory_search_placeholder">Zoek websites</string>

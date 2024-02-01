@@ -258,6 +258,7 @@
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> で開く</string>
     <string name="uri_action_launch_in_smth_title">開く…</string>
     <string name="uri_action_how_to_delete_account_title">アカウントの削除方法</string>
+    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
     <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
     <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">非セキュア</string>
@@ -421,6 +422,22 @@
     <string name="justdeleteme_send_email_title">メール送信</string>
     <string name="justdeleteme_search_placeholder">ウェブサイトを検索</string>
     <string name="justdeleteme_empty_label">手順なし</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justgetmydata_title">How to get my data?</string>
+    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <!-- Simple process -->
+    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <!-- Some extra steps involved -->
+    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <!-- Cannot be fully obtained without contacting customer services -->
+    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
+    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <!-- Cannot be obtained -->
+    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
+    <string name="justgetmydata_send_email_title">Send an email</string>
+    <string name="justgetmydata_search_placeholder">Search websites</string>
+    <string name="justgetmydata_empty_label">No instructions</string>
     <string name="tfa_directory_title">2段階認証</string>
     <string name="tfa_directory_text">2段階認証対応ウェブサイト一覧</string>
     <string name="tfa_directory_search_placeholder">ウェブサイトを検索</string>

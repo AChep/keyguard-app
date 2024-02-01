@@ -2131,7 +2131,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://bubble.io/support-article/what-is-2fa",
+    "documentation": "https://bubble.io/support/en/articles/8520687",
     "name": "Bubble"
   },
   {
@@ -2904,7 +2904,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://support.clio.com/hc/en-us/articles/4415874710171",
+    "documentation": "https://help.clio.com/hc/en-us/articles/9284706542619",
     "name": "Clio"
   },
   {
@@ -13333,6 +13333,15 @@
     ],
     "documentation": "https://community.sinch.com/t5/Account-Management/How-do-I-enable-2FA-in-the-Sinch-Customer-Dashboard/ta-p/7191",
     "name": "Sinch"
+  },
+  {
+    "domain": "singlekey-id.com",
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://singlekey-id.com/auth/en-us/frequently-asked-questions#two-step-authentication",
+    "name": "SingleKey ID"
   },
   {
     "domain": "singpass.gov.sg",

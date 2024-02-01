@@ -19,7 +19,6 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsMap
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
-import com.artemchep.keyguard.feature.duplicates.list.DuplicatesListRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
@@ -29,6 +28,7 @@ import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceListRoute
+import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -924,6 +924,10 @@ fun produceWatchtowerState(
                 navigate = ::navigate,
             )
             this += PasskeysServiceListRoute.passkeysActionOrNull(
+                translator = this@produceScreenState,
+                navigate = ::navigate,
+            )
+            this += JustGetMyDataListRoute.justGetMyDataActionOrNull(
                 translator = this@produceScreenState,
                 navigate = ::navigate,
             )

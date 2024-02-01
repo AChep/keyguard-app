@@ -1,12 +1,15 @@
 package com.artemchep.keyguard.common.service.justgetmydata.impl
 
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
+import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.res.Res
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -29,10 +32,17 @@ data class JustGetMyDataEntity(
     val emailBody: String? = null,
 )
 
-fun JustGetMyDataEntity.toDomain() = kotlin.run {
+fun JustGetMyDataEntity.toDomain(
+    additionalDomain: String?,
+) = kotlin.run {
+    val newDomains = if (additionalDomain != null) {
+        domains + additionalDomain
+    } else {
+        domains
+    }
     JustGetMyDataServiceInfo(
         name = name,
-        domains = domains,
+        domains = newDomains,
         url = url,
         difficulty = difficulty,
         notes = notes,
@@ -44,13 +54,32 @@ fun JustGetMyDataEntity.toDomain() = kotlin.run {
 
 class JustGetMyDataServiceImpl(
     private val textService: TextService,
+    private val tldService: TldService,
     private val json: Json,
 ) : JustGetMyDataService {
+    private val hostRegex = "://(.*@)?([^/]+)".toRegex()
+
     private val listIo = ::loadJustGetMyDataRawData
         .partially1(textService)
         .effectMap { jsonString ->
             val entities = json.decodeFromString<List<JustGetMyDataEntity>>(jsonString)
-            val models = entities.map(JustGetMyDataEntity::toDomain)
+            val models = entities
+                .map { entity ->
+                    val host = entity.url
+                        ?.let { url ->
+                            val result = hostRegex.find(url)
+                            result?.groupValues?.getOrNull(2) // get the host
+                        }
+                    val domain = host?.let {
+                        tldService.getDomainName(host)
+                            .attempt()
+                            .bind()
+                            .getOrNull()
+                    }
+                    entity.toDomain(
+                        additionalDomain = domain,
+                    )
+                }
             models
         }
         .shared()
@@ -59,6 +88,7 @@ class JustGetMyDataServiceImpl(
         directDI: DirectDI,
     ) : this(
         textService = directDI.instance(),
+        tldService = directDI.instance(),
         json = directDI.instance(),
     )
 

@@ -109,6 +109,7 @@ import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
+import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
 import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -157,6 +158,8 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewRoute
+import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListRoute
+import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -263,6 +266,7 @@ fun vaultViewScreenState(
         dateFormatter = instance(),
         addCipherOpenedHistory = instance(),
         getJustDeleteMeByUrl = instance(),
+        getJustGetMyDataByUrl = instance(),
         windowCoroutineScope = instance(),
         placeholderFactories = allInstances(),
         linkInfoExtractors = allInstances(),
@@ -339,6 +343,7 @@ fun vaultViewScreenState(
     dateFormatter: DateFormatter,
     addCipherOpenedHistory: AddCipherOpenedHistory,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
     windowCoroutineScope: WindowCoroutineScope,
     placeholderFactories: List<Placeholder.Factory>,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
@@ -741,6 +746,7 @@ fun vaultViewScreenState(
                         cipherIncompleteCheck = cipherIncompleteCheck,
                         cipherUrlCheck = cipherUrlCheck,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                        getJustGetMyDataByUrl = getJustGetMyDataByUrl,
                         verify = verify,
                     ).toList(),
                 )
@@ -792,6 +798,7 @@ private fun RememberStateFlowScope.oh(
     cipherIncompleteCheck: CipherIncompleteCheck,
     cipherUrlCheck: CipherUrlCheck,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
     verify: ((() -> Unit) -> Unit)?,
 ) = flow<VaultViewItem> {
     val cipherError = cipher.service.error
@@ -1446,6 +1453,7 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                    getJustGetMyDataByUrl = getJustGetMyDataByUrl,
                     executeCommand = executeCommand,
                     holder = holder,
                     id = id,
@@ -1487,6 +1495,7 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                    getJustGetMyDataByUrl = getJustGetMyDataByUrl,
                     executeCommand = executeCommand,
                     holder = holder,
                     id = id,
@@ -1875,6 +1884,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
     executeCommand: ExecuteCommand,
     holder: Holder,
     id: String,
@@ -1938,6 +1948,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+                        getJustGetMyDataByUrl = getJustGetMyDataByUrl,
                         executeCommand = executeCommand,
                         uri = content.uri,
                         info = content.info,
@@ -1968,6 +1979,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+        getJustGetMyDataByUrl = getJustGetMyDataByUrl,
         executeCommand = executeCommand,
         uri = holder.uri.uri,
         info = holder.info,
@@ -2182,6 +2194,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
     executeCommand: ExecuteCommand,
     uri: String,
     info: List<LinkInfo>,
@@ -2314,6 +2327,10 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                 .attempt()
                 .bind()
                 .getOrNull()
+            val isJustGetMyData = getJustGetMyDataByUrl(url)
+                .attempt()
+                .bind()
+                .getOrNull()
 
             val isUnsecure = cipherUnsecureUrlCheck(uri)
             val dropdown = buildContextItems {
@@ -2390,6 +2407,13 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         host = platformMarker.url.host,
                         navigate = ::navigate,
                     )
+                    if (isJustGetMyData != null) {
+                        this += JustGetMyDataViewRoute.justGetMyDataActionOrNull(
+                            translator = this@createUriItemContextItems,
+                            justGetMyData = isJustGetMyData,
+                            navigate = ::navigate,
+                        )
+                    }
                     if (isJustDeleteMe != null) {
                         this += JustDeleteMeServiceViewRoute.justDeleteMeActionOrNull(
                             translator = this@createUriItemContextItems,

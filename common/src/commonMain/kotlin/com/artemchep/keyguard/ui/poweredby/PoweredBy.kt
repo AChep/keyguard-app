@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.URL_2FA
 import com.artemchep.keyguard.URL_HAVE_I_BEEN_PWNED
 import com.artemchep.keyguard.URL_JUST_DELETE_ME
+import com.artemchep.keyguard.URL_JUST_GET_MY_DATA
 import com.artemchep.keyguard.URL_PASSKEYS
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -34,6 +35,19 @@ fun PoweredByJustDeleteMe(
         modifier = modifier,
         domain = "JustDeleteMe",
         url = URL_JUST_DELETE_ME,
+        fill = fill,
+    )
+}
+
+@Composable
+fun PoweredByJustGetMyData(
+    modifier: Modifier = Modifier,
+    fill: Boolean = false,
+) {
+    PoweredByLabel(
+        modifier = modifier,
+        domain = "JustGetMyData",
+        url = URL_JUST_GET_MY_DATA,
         fill = fill,
     )
 }

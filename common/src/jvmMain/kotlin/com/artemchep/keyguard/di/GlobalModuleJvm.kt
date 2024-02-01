@@ -117,6 +117,7 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
+import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
 import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.GetMarkdown
@@ -235,6 +236,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetFontImpl
 import com.artemchep.keyguard.common.usecase.impl.GetFontVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGravatarUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetJustDeleteMeByUrlImpl
+import com.artemchep.keyguard.common.usecase.impl.GetJustGetMyDataByUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetKeepScreenOnImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetMarkdownImpl
@@ -831,6 +833,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetJustDeleteMeByUrl> {
         GetJustDeleteMeByUrlImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetJustGetMyDataByUrl> {
+        GetJustGetMyDataByUrlImpl(
             directDI = this,
         )
     }

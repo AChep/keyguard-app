@@ -435,6 +435,14 @@
     "notes": "Click the link above and fill the form to confirm the request."
   },
   {
+    "name": "Notion",
+    "domains": [],
+    "url": "https://www.notion.so/Privacy-Policy-3468d120cf614d4c9014c09f6adc9091",
+    "difficulty": "hard",
+    "notes": "Contact the customer support via email and request a copy of your data.",
+    "email": "team@makenotion.com"
+  },
+  {
     "name": "OpenAI",
     "domains": [],
     "url": "https://openai.com/policies/privacy-policy",

@@ -556,7 +556,8 @@
       "mfa",
       "signin"
     ],
-    "setup": "https://www.homedepot.com/myaccount/security"
+    "setup": "https://www.homedepot.com/myaccount/security",
+    "notes": "Home Depot may ask you to set up a new passkey on each new device or browser when signing in to your Home Depot account."
   },
   {
     "name": "Horizon Pics",

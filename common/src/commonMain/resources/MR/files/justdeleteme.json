@@ -11230,6 +11230,16 @@
     "notes": "Log in to your account via the app or website, go to the settings, click on \"Profile\" and then \"Delete account\"."
   },
   {
+    "name": "Notion",
+    "domains": [
+      "notion.so",
+      "status.notion.so"
+    ],
+    "url": "https://www.notion.so",
+    "difficulty": "easy",
+    "notes": "Go to \"Settings & members\", then \"My account\", and click \"Delete my account\", type your email address and confirm."
+  },
+  {
     "name": "The Noun Project",
     "domains": [
       "thenounproject.com"
@@ -16782,6 +16792,15 @@
     ],
     "url": "https://support.vidio.com/support/solutions/articles/43000060322--delete-account",
     "difficulty": "impossible"
+  },
+  {
+    "name": "VidIQ",
+    "domains": [
+      "app.vidiq.com"
+    ],
+    "url": "https://app.vidiq.com/account/settings/my-account",
+    "difficulty": "hard",
+    "notes": "You have to cancel your Subscription before writing the Support (Bot)"
   },
   {
     "name": "Vidyard",

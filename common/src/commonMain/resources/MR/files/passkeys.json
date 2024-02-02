@@ -540,6 +540,14 @@
     ]
   },
   {
+    "name": "Hard Wax",
+    "domain": "hardwax.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://hardwax.com/my-details/#login-settings"
+  },
+  {
     "name": "Visma",
     "domain": "home.visma.com",
     "features": [

@@ -14528,6 +14528,17 @@
     "name": "Telstra"
   },
   {
+    "domain": "telus.com",
+    "tfa": [
+      "custom-software"
+    ],
+    "custom-software": [
+      "My TELUS App"
+    ],
+    "documentation": "https://www.telus.com/en/support/article/my-telus-2-step-verification",
+    "name": "Telus"
+  },
+  {
     "domain": "telzio.com",
     "url": "https://www.telzio.com/",
     "tfa": [

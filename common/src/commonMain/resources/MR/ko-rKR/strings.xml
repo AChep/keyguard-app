@@ -258,6 +258,7 @@
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> 앱으로 열기</string>
     <string name="uri_action_launch_in_smth_title">다른 앱으로 열기</string>
     <string name="uri_action_how_to_delete_account_title">회원 탈퇴는 어떻게 하지?</string>
+    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
     <string name="uri_action_autofix_unsecure_title">안전하지 않은 URL 자동 수정</string>
     <string name="uri_action_autofix_unsecure_text">보안 프로토콜로 변경 가능할 경우 자동으로 변경</string>
     <string name="uri_unsecure">안전하지 않음</string>
@@ -421,6 +422,22 @@
     <string name="justdeleteme_send_email_title">이메일 보내기</string>
     <string name="justdeleteme_search_placeholder">웹사이트 검색</string>
     <string name="justdeleteme_empty_label">설명 없음</string>
+    <!-- Title of the 'How to delete an account?' dialog -->
+    <string name="justgetmydata_title">How to get my data?</string>
+    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <!-- Simple process -->
+    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <!-- Some extra steps involved -->
+    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <!-- Cannot be fully obtained without contacting customer services -->
+    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
+    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <!-- Cannot be obtained -->
+    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
+    <string name="justgetmydata_send_email_title">Send an email</string>
+    <string name="justgetmydata_search_placeholder">Search websites</string>
+    <string name="justgetmydata_empty_label">No instructions</string>
     <string name="tfa_directory_title">2단계 인증</string>
     <string name="tfa_directory_text">2단계 인증을 지원하는 웹사이트 목록</string>
     <string name="tfa_directory_search_placeholder">웹사이트 검색</string>
@@ -851,7 +868,7 @@
     <string name="pref_item_keep_screen_on_title">항목을 보고 있을 때 화면 켜짐 유지</string>
     <string name="pref_item_autofill_service_title">자동 완성 서비스</string>
     <string name="pref_item_autofill_service_text">Android 자동 완성 프레임워크를 사용하여 기기의 다른 앱에서 로그인 정보를 채울 수 있도록 합니다.</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">일부 샤오미 기기는 \"백그라운드에서 실행되는 동안 팝업창 표시\" 권한을 직접 허용해야 할 수 있습니다. 시스템 설정에서 권한이 허용되어 있는지 확인해 보세요.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">OTP 자동 복사</string>
     <string name="pref_item_autofill_auto_copy_otp_text">로그인 정보를 입력할 때 OTP를 자동으로 복사합니다.</string>
     <string name="pref_item_autofill_inline_suggestions_title">인라인 제안</string>
@@ -870,7 +887,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">OTP 알림 길이</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">OTP가 있는 로그인 아이템을 자동 완성했을 때, 지정한 시간만큼 OTP 인증 코드를 알림으로 띄웁니다.</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">알림을 띄우지 않음</string>
-    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
+    <string name="pref_item_clipboard_notification_settings_title">OTP 알림 설정</string>
     <string name="pref_item_premium_membership_title">Keyguard 멤버십 정보</string>
     <string name="pref_item_premium_membership_text">프리미엄을 구매하시면 추가 기능을 사용할 수 있으며 앱 개발에 도움이 됩니다. 구매해 주셔서 감사합니다! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">구독</string>

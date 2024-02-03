@@ -77,8 +77,7 @@ class UnlockUseCaseImpl(
 ) : UnlockUseCase {
     private val generateMasterKey = authGenerateMasterKeyUseCase()
         .compose { password: String ->
-            val data = password.toByteArray()
-            MasterPassword(data)
+            MasterPassword.of(password)
         }
 
     private val sharedFlow = combine(
@@ -246,8 +245,7 @@ class UnlockUseCaseImpl(
     ): VaultState {
         val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
             .compose { password: String ->
-                val data = password.toByteArray()
-                MasterPassword(data)
+                MasterPassword.of(password)
             }
         return VaultState.Unlock(
             unlockWithMasterPassword = VaultState.Unlock.WithPassword(
@@ -315,8 +313,7 @@ class UnlockUseCaseImpl(
         val databaseManager by di.instance<DatabaseManager>()
         val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
             .compose { password: String ->
-                val data = password.toByteArray()
-                MasterPassword(data)
+                MasterPassword.of(password)
             }
         val getCreateIo: (String, String) -> IO<Unit> = { currentPassword, newPassword ->
             unlockMasterKey(currentPassword) // verify current password is valid

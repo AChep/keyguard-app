@@ -33,8 +33,7 @@ class ConfirmAccessByPasswordUseCaseImpl(
             val hash = fingerprint.master.hash
             authConfirmMasterKeyUseCase(salt, hash)
                 .compose { password: String ->
-                    val data = password.toByteArray()
-                    MasterPassword(data)
+                    MasterPassword.of(password)
                 }
                 .invoke(password)
                 .fold(

@@ -16,6 +16,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.combine
@@ -165,6 +166,8 @@ private fun RememberStateFlowScope.ah(
                     type = ToastMessage.Type.SUCCESS,
                 )
                 message(msg)
+                // Pop the screen
+                navigatePopSelf()
             }
         io.launchIn(windowCoroutineScope)
     },
@@ -196,6 +199,8 @@ private fun RememberStateFlowScope.ah(
                                         type = ToastMessage.Type.SUCCESS,
                                     )
                                     message(msg)
+                                    // Pop the screen
+                                    navigatePopSelf()
                                 }
                             io.launchIn(windowCoroutineScope)
                         },

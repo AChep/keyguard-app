@@ -515,6 +515,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 this,
                 dataset = dataset,
                 cipher = secret,
+                forceAddUri = false,
                 structure = struct,
             )
             val pi = PendingIntent.getActivity(

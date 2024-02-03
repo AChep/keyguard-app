@@ -594,7 +594,8 @@ fun vaultViewScreenState(
                             leading = icon(Icons.Outlined.AutoAwesome),
                             onClick = {
                                 val cipher = secretOrNull
-                                mode.onAutofill(cipher)
+                                val extra = AppMode.Pick.Extra()
+                                mode.onAutofill(cipher, extra)
                             },
                         )
                     }

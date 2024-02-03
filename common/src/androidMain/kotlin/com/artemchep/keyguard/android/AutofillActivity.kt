@@ -85,6 +85,7 @@ class AutofillActivity : BaseActivity(), DIAware {
         index: Int,
         context: Context,
         secret: DSecret,
+        forceAddUri: Boolean,
         struct: AutofillStructure2,
         onComplete: (Dataset.Builder.() -> Unit)? = null,
     ): Dataset? {
@@ -135,6 +136,7 @@ class AutofillActivity : BaseActivity(), DIAware {
                 this,
                 dataset = dataset,
                 cipher = secret,
+                forceAddUri = forceAddUri,
                 structure = struct,
             )
             val pi = PendingIntent.getActivity(
@@ -167,13 +169,17 @@ class AutofillActivity : BaseActivity(), DIAware {
         }
     }
 
-    private fun autofill(secret: DSecret) {
+    private fun autofill(
+        secret: DSecret,
+        forceAddUri: Boolean,
+    ) {
         val struct = args.autofillStructure2
             ?: return
         val dataset = tryBuildDataset(
             index = 555,
             context = this,
             secret = secret,
+            forceAddUri = forceAddUri,
             struct = struct,
         )
         if (dataset != null) {
@@ -222,7 +228,12 @@ class AutofillActivity : BaseActivity(), DIAware {
                     }
                 },
                 args = args,
-                onAutofill = ::autofill,
+                onAutofill = { cipher, extra ->
+                    autofill(
+                        secret = cipher,
+                        forceAddUri = extra.forceAddUri,
+                    )
+                },
             ),
         ) {
             AutofillScaffold(

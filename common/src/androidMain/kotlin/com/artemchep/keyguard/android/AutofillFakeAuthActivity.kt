@@ -24,10 +24,12 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 import com.artemchep.keyguard.common.usecase.AddUriCipher
+import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.platform.recordLog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.parcelize.Parcelize
 import org.kodein.di.DI
 import org.kodein.di.DIAware
@@ -42,6 +44,7 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
             context: Context,
             dataset: Dataset,
             cipher: DSecret,
+            forceAddUri: Boolean,
             structure: AutofillStructure2? = null,
         ): Intent = Intent(context, AutofillFakeAuthActivity::class.java).apply {
             val args = Args(
@@ -50,6 +53,7 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                 cipherId = cipher.id,
                 cipherName = cipher.name,
                 cipherTotpRaw = cipher.login?.totp?.token?.raw,
+                forceAddUri = forceAddUri,
                 structure = structure,
             )
             putExtra(KEY_ARGS, args)
@@ -64,6 +68,11 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
         val cipherId: String,
         val cipherName: String,
         val cipherTotpRaw: String?,
+        /**
+         * `true` if the uri should be added to a cipher even if the
+         * option to do so is disabled in the settings, `false` otherwise.
+         */
+        val forceAddUri: Boolean,
         val structure: AutofillStructure2? = null,
     ) : Parcelable
 
@@ -127,6 +136,15 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
             .effectMap { session ->
                 val a = session as? MasterSession.Key
                     ?: return@effectMap ioUnit()
+
+                val getAutofillSaveUri: GetAutofillSaveUri by a.di.instance()
+                // Check if the option to save uris is actually
+                // enabled.
+                val shouldSaveUri = args!!.forceAddUri ||
+                        getAutofillSaveUri().first()
+                if (!shouldSaveUri) {
+                    return@effectMap ioUnit()
+                }
 
                 val addUriCipher: AddUriCipher by a.di.instance()
                 val request = AddUriCipherRequest(

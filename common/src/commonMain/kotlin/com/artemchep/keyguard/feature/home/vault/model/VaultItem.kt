@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.collections.immutable.ImmutableList
@@ -122,7 +123,7 @@ sealed interface VaultItem2 {
         sealed interface Action {
             @Immutable
             data class Dropdown(
-                val actions: List<FlatItemAction>,
+                val actions: List<ContextItem>,
             ) : Action
 
             @Immutable

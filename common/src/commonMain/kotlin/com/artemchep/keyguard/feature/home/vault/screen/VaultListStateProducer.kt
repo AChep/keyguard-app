@@ -111,6 +111,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import dev.icerock.moko.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
@@ -575,17 +576,20 @@ fun vaultListScreenState(
         val concealFields: Boolean,
         val appIcons: Boolean,
         val websiteIcons: Boolean,
+        val canWrite: Boolean,
     )
 
     val configFlow = combine(
         getConcealFields(),
         getAppIcons(),
         getWebsiteIcons(),
-    ) { concealFields, appIcons, websiteIcons ->
+        getCanWrite(),
+    ) { concealFields, appIcons, websiteIcons, canWrite ->
         ConfigMapper(
             concealFields = concealFields,
             appIcons = appIcons,
             websiteIcons = websiteIcons,
+            canWrite = canWrite,
         )
     }.distinctUntilChanged()
     val organizationsByIdFlow = getOrganizations()
@@ -682,75 +686,111 @@ fun vaultListScreenState(
                         localStateFlow = localStateFlow,
                         onClick = { actions ->
                             val dropdown = when (mode) {
-                                is AppMode.Pick -> listOf(
-                                    FlatItemAction(
-                                        icon = Icons.Outlined.AutoAwesome,
-                                        title = translate(Res.strings.autofill),
-                                        onClick = {
-                                            mode.onAutofill(secret)
-                                        },
-                                    ),
-                                ) + actions + FlatItemAction(
-                                    icon = Icons.Outlined.Info,
-                                    title = translate(Res.strings.ciphers_view_details),
-                                    trailing = {
-                                        ChevronIcon()
-                                    },
-                                    onClick = {
-                                        cipherSink.emit(secret)
-                                    },
-                                )
-
-                                is AppMode.Save -> listOf(
-                                    FlatItemAction(
-                                        icon = Icons.Outlined.Save,
-                                        title = translate(Res.strings.ciphers_save_to),
-                                        onClick = {
-                                            val route = LeAddRoute(
-                                                args = AddRoute.Args(
-                                                    behavior = AddRoute.Args.Behavior(
-                                                        // User wants to quickly check the updated
-                                                        // cipher data, not to fill the data :P
-                                                        autoShowKeyboard = false,
-                                                        launchEditedCipher = false,
-                                                    ),
-                                                    initialValue = secret,
-                                                    autofill = AddRoute.Args.Autofill.leof(mode.args),
+                                is AppMode.Pick -> buildContextItems {
+                                    section {
+                                        this += FlatItemAction(
+                                            icon = Icons.Outlined.AutoAwesome,
+                                            title = translate(Res.strings.autofill),
+                                            onClick = {
+                                                val extra = AppMode.Pick.Extra()
+                                                mode.onAutofill(secret, extra)
+                                            },
+                                        )
+                                        if (cfg.canWrite) {
+                                            this += FlatItemAction(
+                                                leading = iconSmall(
+                                                    Icons.Outlined.AutoAwesome,
+                                                    Icons.Outlined.Save,
                                                 ),
+                                                title = translate(Res.strings.autofill_and_save_uri),
+                                                onClick = {
+                                                    val extra = AppMode.Pick.Extra(
+                                                        forceAddUri = true,
+                                                    )
+                                                    mode.onAutofill(secret, extra)
+                                                },
                                             )
-                                            val intent = NavigationIntent.NavigateToRoute(route)
-                                            navigate(intent)
-                                        },
-                                    ),
-                                ) + FlatItemAction(
-                                    icon = Icons.Outlined.Info,
-                                    title = translate(Res.strings.ciphers_view_details),
-                                    trailing = {
-                                        ChevronIcon()
-                                    },
-                                    onClick = {
-                                        cipherSink.emit(secret)
-                                    },
-                                )
+                                        }
+                                    }
+                                    section {
+                                        actions.forEach { action ->
+                                            this += action
+                                        }
+                                    }
+                                    section {
+                                        FlatItemAction(
+                                            icon = Icons.Outlined.Info,
+                                            title = translate(Res.strings.ciphers_view_details),
+                                            trailing = {
+                                                ChevronIcon()
+                                            },
+                                            onClick = {
+                                                cipherSink.emit(secret)
+                                            },
+                                        )
+                                    }
+                                }
 
-                                is AppMode.SavePasskey -> listOf(
-                                    FlatItemAction(
-                                        icon = Icons.Outlined.Save,
-                                        title = translate(Res.strings.ciphers_save_to),
-                                        onClick = {
-                                            mode.onComplete(secret)
-                                        },
-                                    ),
-                                ) + FlatItemAction(
-                                    icon = Icons.Outlined.Info,
-                                    title = translate(Res.strings.ciphers_view_details),
-                                    trailing = {
-                                        ChevronIcon()
-                                    },
-                                    onClick = {
-                                        cipherSink.emit(secret)
-                                    },
-                                )
+                                is AppMode.Save -> buildContextItems {
+                                    section {
+                                        this += FlatItemAction(
+                                            icon = Icons.Outlined.Save,
+                                            title = translate(Res.strings.ciphers_save_to),
+                                            onClick = {
+                                                val route = LeAddRoute(
+                                                    args = AddRoute.Args(
+                                                        behavior = AddRoute.Args.Behavior(
+                                                            // User wants to quickly check the updated
+                                                            // cipher data, not to fill the data :P
+                                                            autoShowKeyboard = false,
+                                                            launchEditedCipher = false,
+                                                        ),
+                                                        initialValue = secret,
+                                                        autofill = AddRoute.Args.Autofill.leof(mode.args),
+                                                    ),
+                                                )
+                                                val intent = NavigationIntent.NavigateToRoute(route)
+                                                navigate(intent)
+                                            },
+                                        )
+                                    }
+                                    section {
+                                        FlatItemAction(
+                                            icon = Icons.Outlined.Info,
+                                            title = translate(Res.strings.ciphers_view_details),
+                                            trailing = {
+                                                ChevronIcon()
+                                            },
+                                            onClick = {
+                                                cipherSink.emit(secret)
+                                            },
+                                        )
+                                    }
+                                }
+
+                                is AppMode.SavePasskey -> buildContextItems {
+                                    section {
+                                        this += FlatItemAction(
+                                            icon = Icons.Outlined.Save,
+                                            title = translate(Res.strings.ciphers_save_to),
+                                            onClick = {
+                                                mode.onComplete(secret)
+                                            },
+                                        )
+                                    }
+                                    section {
+                                        FlatItemAction(
+                                            icon = Icons.Outlined.Info,
+                                            title = translate(Res.strings.ciphers_view_details),
+                                            trailing = {
+                                                ChevronIcon()
+                                            },
+                                            onClick = {
+                                                cipherSink.emit(secret)
+                                            },
+                                        )
+                                    }
+                                }
 
                                 is AppMode.PickPasskey ->
                                     return@toVaultListItem VaultItem2.Item.Action.Go(

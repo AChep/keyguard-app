@@ -12,13 +12,11 @@ import com.artemchep.keyguard.common.model.AddUriCipherRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
-import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.isEmpty
 import com.artemchep.keyguard.common.util.Browsers
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import kotlinx.coroutines.flow.first
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -28,7 +26,6 @@ import org.kodein.di.instance
 class AddUriCipherImpl(
     private val modifyCipherById: ModifyCipherById,
     private val cipherUrlDuplicateCheck: CipherUrlDuplicateCheck,
-    private val getAutofillSaveUri: GetAutofillSaveUri,
 ) : AddUriCipher {
     companion object {
         private const val TAG = "AddUriCipher.bitwarden"
@@ -37,19 +34,12 @@ class AddUriCipherImpl(
     constructor(directDI: DirectDI) : this(
         modifyCipherById = directDI.instance(),
         cipherUrlDuplicateCheck = directDI.instance(),
-        getAutofillSaveUri = directDI.instance(),
     )
 
     override fun invoke(
         request: AddUriCipherRequest,
     ): IO<Boolean> = ioEffect {
         if (request.isEmpty()) {
-            return@ioEffect io(false)
-        }
-        // Check if the option to save uris is actually
-        // enabled.
-        val shouldSave = getAutofillSaveUri().first()
-        if (!shouldSave) {
             return@ioEffect io(false)
         }
 

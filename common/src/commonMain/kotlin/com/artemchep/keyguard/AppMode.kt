@@ -21,9 +21,13 @@ sealed interface AppMode {
     data class Pick(
         override val type: DSecret.Type? = null,
         val args: AutofillActArgs,
-        val onAutofill: (DSecret) -> Unit,
+        val onAutofill: (DSecret, Extra) -> Unit,
     ) : AppMode, HasType {
-        companion object
+        companion object;
+
+        data class Extra(
+            val forceAddUri: Boolean = false,
+        )
     }
 
     @optics

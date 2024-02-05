@@ -51,7 +51,7 @@ commonsCodec = "1.16.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.14.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.6.0-dev1357"
+composeMultiplatform = "1.6.0-dev1405"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.0"
 crashlyticsPlugin = "2.9.9"

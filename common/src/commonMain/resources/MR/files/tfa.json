@@ -1751,6 +1751,14 @@
     "name": "Bitski"
   },
   {
+    "domain": "bitskins.com",
+    "tfa": [
+      "totp"
+    ],
+    "notes": "You need to verify your email address before enabling 2FA.",
+    "name": "BitSkins"
+  },
+  {
     "domain": "bitso.com",
     "tfa": [
       "totp"
@@ -3994,7 +4002,7 @@
     "custom-software": [
       "Duo"
     ],
-    "documentation": "https://businessmanagement.datto.com/help/Content/kb/partner-portal/KB360032979352.html",
+    "documentation": "https://help.workplace.datto.com/managerhelp/Content/3_ONLINE/Settings/2Factor_Authentication.htm",
     "name": "Datto"
   },
   {
@@ -5569,7 +5577,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.finary.com/en/article/18z52w/",
+    "documentation": "https://help.finary.com/en/articles/6518627",
     "name": "Finary"
   },
   {
@@ -7026,6 +7034,16 @@
     "name": "HUK24"
   },
   {
+    "domain": "humana.com",
+    "url": "https://www.humana.com/",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.humana.com/2-step-verification",
+    "name": "Humana"
+  },
+  {
     "domain": "humblebundle.com",
     "url": "https://www.humblebundle.com/",
     "tfa": [
@@ -7064,7 +7082,7 @@
       "email",
       "totp"
     ],
-    "documentation": "https://help.hushmail.com/hc/en-us/articles/213268943",
+    "documentation": "https://help.hushmail.com/article/740--",
     "name": "Hushmail"
   },
   {
@@ -9671,7 +9689,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://www.name.com/support/categories/200296798",
+    "documentation": "https://www.name.com/support/articles/205934297-setting-up-two-step-verification-with-google-authenticator",
     "name": "Name.com"
   },
   {
@@ -10161,7 +10179,7 @@
       "totp",
       "sms"
     ],
-    "documentation": "https://help.nordlayer.com/docs/mfa-sso",
+    "documentation": "https://help.nordlayer.com/docs/set-up-2fa",
     "name": "NordLayer"
   },
   {
@@ -10207,7 +10225,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordvpn.com/1755768802/",
+    "documentation": "https://support.nordvpn.com/hc/en-us/articles/19442299167889",
     "name": "NordVPN"
   },
   {
@@ -10445,7 +10463,7 @@
       "totp",
       "sms"
     ],
-    "documentation": "https://www.okx.com/support/hc/en-us/articles/360000350271",
+    "documentation": "https://www.okx.com/help/how-do-i-link-an-authenticator-app",
     "name": "OKX"
   },
   {

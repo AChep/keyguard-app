@@ -561,8 +561,7 @@
     "name": "Home Depot",
     "domain": "homedepot.com",
     "features": [
-      "mfa",
-      "signin"
+      "mfa"
     ],
     "setup": "https://www.homedepot.com/myaccount/security",
     "notes": "Home Depot may ask you to set up a new passkey on each new device or browser when signing in to your Home Depot account."
@@ -877,14 +876,6 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
-    "name": "OneLog",
-    "domain": "onelog.ch",
-    "features": [
-      "signin"
-    ],
-    "setup": "https://profile.onelog.ch/global.security"
-  },
-  {
     "name": "OneLogin",
     "domain": "onelogin.com",
     "features": [
@@ -1012,6 +1003,16 @@
       "signin"
     ],
     "setup": "https://scrooge.games/login/"
+  },
+  {
+    "name": "Shakepay",
+    "domain": "shakepay.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.shakepay.com/en/articles/8569018-how-to-enable-passkeys",
+    "setup": "https://shakepay.com/dashboard/profile",
+    "notes": "#### To set up a passkey on your Shakepay account:\n\n1. In the Shakepay app, enter the settings page by clicking the gear icon or selecting the setup link above.\n2. Select \u2018Security & privacy\u2019\n3. Select \u2018Passkeys\u2019\n4. Select \u2018Add new passkey\u2019 and follow the on-screen instructions."
   },
   {
     "name": "Shop Pay",

@@ -7075,6 +7075,18 @@
     "email": "hn@ycombinator.com"
   },
   {
+    "name": "Hacker One",
+    "domains": [
+      "hackerone.com",
+      "docs.hacerkone.com",
+      "hacker101.com",
+      "ctf.hacker101.com"
+    ],
+    "url": "https://hackerone.com/settings/deactivate/edit",
+    "difficulty": "hard",
+    "notes": "Deleting your account requires you to first create an account on their support platform, you can then request account deletion by creating a ticket."
+  },
+  {
     "name": "Hackerrank",
     "domains": [
       "www.hackerrank.com"
@@ -7992,6 +8004,23 @@
     "notes": "Send an email to the email linked below and ask to delete your Interrail account. You will get an automatic reply as a confirmation that they're processing your request to remove your personal data. If there are legal grounds preventing them from (immediately) processing your request they will send you an email.",
     "email": "privacy@eurail.com",
     "email_body": "Please delete my Interrail account."
+  },
+  {
+    "name": "Intigriti",
+    "domains": [
+      "intigriti.com",
+      "app.intigriti.com",
+      "kb.intigriti.com",
+      "blog.intigriti.com",
+      "newsletter.intigriti.com",
+      "status.intigriti.com",
+      "trust.intigriti.com",
+      "swag.intigriti.com"
+    ],
+    "url": "https://kb.intigriti.com/en/articles/6839008-privacy-statement-intigriti-researcher",
+    "difficulty": "hard",
+    "notes": "You must send an email requesting account deletion and confirm it in a second email.",
+    "email": "privacy@intigriti.com"
   },
   {
     "name": "Invajo",
@@ -11450,6 +11479,15 @@
     "notes": "Visit your settings page, and select 'Delete Account'"
   },
   {
+    "name": "Olo",
+    "domains": [
+      "app.oloauth.com"
+    ],
+    "url": "https://app.oloauth.com/Manage/delete",
+    "difficulty": "medium",
+    "notes": "Click the link in the email sent to you"
+  },
+  {
     "name": "OLX",
     "domains": [
       "olx.com",
@@ -14449,6 +14487,15 @@
     "notes": "Your user account will be deleted after 7 days if you do not cancel the process beforehand. Created content, such as forum posts, will not be deleted, but your username will be anonymized and protected from re-registration for 363 days."
   },
   {
+    "name": "solo.to",
+    "domains": [
+      "solo.to"
+    ],
+    "url": "https://solo.to/account",
+    "difficulty": "easy",
+    "notes": "Scroll to the bottom of the Account page linked and click the 'Delete Account' button."
+  },
+  {
     "name": "SoloLearn",
     "domains": [
       "sololearn.com"
@@ -16235,6 +16282,15 @@
     "url": "https://www.tunnelbear.com/account/remove",
     "difficulty": "easy",
     "notes": "Visit the linked page and enter your password to deleted your account."
+  },
+  {
+    "name": "TurboScribe",
+    "domains": [
+      "turboscribe.ai"
+    ],
+    "url": "https://turboscribe.ai/account",
+    "difficulty": "easy",
+    "notes": "Visit \"Account Settings\" then click \"Delete Account\"."
   },
   {
     "name": "TurboSquid",
@@ -18215,7 +18271,7 @@
     "domains": [
       "zapier.com"
     ],
-    "url": "https://zapier.com/app/settings/delete",
+    "url": "https://zapier.com/app/settings/advanced/delete",
     "difficulty": "easy",
     "notes": "Go to the URL, confirm your email. You'll be redirected to the login page. Confirm your email again and enter \"DELETE\" (all caps) In the \"Confirm you want to delete your account\" field."
   },

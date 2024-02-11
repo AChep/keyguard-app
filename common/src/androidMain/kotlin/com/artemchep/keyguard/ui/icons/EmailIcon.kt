@@ -19,6 +19,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.glide.GlideImage
+import com.skydoves.landscapist.placeholder.shimmer.Shimmer
 import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
 @Composable
@@ -39,8 +40,10 @@ actual fun EmailIcon(
         component = rememberImageComponent {
             // Shows a shimmering effect when loading an image
             +ShimmerPlugin(
-                baseColor = surfaceColor,
-                highlightColor = highlightColor,
+                shimmer = Shimmer.Flash(
+                    baseColor = surfaceColor,
+                    highlightColor = highlightColor,
+                ),
             )
         },
         failure = {

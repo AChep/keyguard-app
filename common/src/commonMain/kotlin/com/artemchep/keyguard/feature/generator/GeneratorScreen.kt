@@ -46,7 +46,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -60,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -69,6 +72,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -128,46 +132,22 @@ fun GeneratorScreen(
         args = args,
     )
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val sliderInteractionSource = remember {
         MutableInteractionSource()
     }
     TwoPaneScreen(
-        detail = { modifier ->
-            GeneratorPaneDetail(
-                modifier = modifier,
-                loadableState = loadableState,
-                sliderInteractionSource = sliderInteractionSource,
-            )
-        },
-    ) { modifier, detailIsVisible ->
-        GeneratorPaneMaster(
-            modifier = modifier,
-            loadableState = loadableState,
-            showFilter = !detailIsVisible,
-            sliderInteractionSource = sliderInteractionSource,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun GeneratorPaneDetail(
-    modifier: Modifier = Modifier,
-    loadableState: Loadable<GeneratorState>,
-    sliderInteractionSource: MutableInteractionSource,
-) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    ScaffoldColumn(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topAppBarScrollBehavior = scrollBehavior,
-        topBar = {
+        header = { modifier ->
             SmallToolbar(
+                modifier = modifier,
+                containerColor = Color.Transparent,
                 title = {
                     Text(
-                        text = stringResource(Res.strings.filter_header_title),
-                        style = MaterialTheme.typography.titleMedium,
+                        text = stringResource(Res.strings.generator_header_title),
                     )
+                },
+                navigationIcon = {
+                    NavigationIcon()
                 },
                 actions = {
                     loadableState.fold(
@@ -190,9 +170,44 @@ private fun GeneratorPaneDetail(
                         },
                     )
                 },
-                scrollBehavior = scrollBehavior,
+            )
+
+            SideEffect {
+                if (scrollBehavior.state.heightOffsetLimit != 0f) {
+                    scrollBehavior.state.heightOffsetLimit = 0f
+                }
+            }
+        },
+        detail = { modifier ->
+            GeneratorPaneDetail(
+                modifier = modifier,
+                loadableState = loadableState,
+                sliderInteractionSource = sliderInteractionSource,
             )
         },
+    ) { modifier, tabletUi ->
+        GeneratorPaneMaster(
+            modifier = modifier,
+            loadableState = loadableState,
+            tabletUi = tabletUi,
+            scrollBehavior = scrollBehavior,
+            sliderInteractionSource = sliderInteractionSource,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GeneratorPaneDetail(
+    modifier: Modifier = Modifier,
+    loadableState: Loadable<GeneratorState>,
+    sliderInteractionSource: MutableInteractionSource,
+) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    ScaffoldColumn(
+        modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topAppBarScrollBehavior = scrollBehavior,
     ) {
         loadableState.fold(
             ifLoading = {
@@ -234,15 +249,19 @@ private fun ColumnScope.GeneratorPaneDetailContent(
 private fun GeneratorPaneMaster(
     modifier: Modifier,
     loadableState: Loadable<GeneratorState>,
-    showFilter: Boolean,
+    tabletUi: Boolean,
+    scrollBehavior: TopAppBarScrollBehavior,
     sliderInteractionSource: MutableInteractionSource,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     ScaffoldColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
+            if (tabletUi) {
+                return@ScaffoldColumn
+            }
+
             LargeToolbar(
                 title = {
                     Text(stringResource(Res.strings.generator_header_title))
@@ -251,27 +270,25 @@ private fun GeneratorPaneMaster(
                     NavigationIcon()
                 },
                 actions = {
-                    if (showFilter) {
-                        loadableState.fold(
-                            ifLoading = {
-                            },
-                            ifOk = { state ->
-                                val updatedOnOpenHistory by rememberUpdatedState(state.onOpenHistory)
-                                IconButton(
-                                    onClick = {
-                                        updatedOnOpenHistory()
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.History,
-                                        contentDescription = null,
-                                    )
-                                }
-                                val actions = state.options
-                                OptionsButton(actions)
-                            },
-                        )
-                    }
+                    loadableState.fold(
+                        ifLoading = {
+                        },
+                        ifOk = { state ->
+                            val updatedOnOpenHistory by rememberUpdatedState(state.onOpenHistory)
+                            IconButton(
+                                onClick = {
+                                    updatedOnOpenHistory()
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.History,
+                                    contentDescription = null,
+                                )
+                            }
+                            val actions = state.options
+                            OptionsButton(actions)
+                        },
+                    )
                 },
                 scrollBehavior = scrollBehavior,
             )
@@ -326,7 +343,7 @@ private fun GeneratorPaneMaster(
             ifOk = { state ->
                 GeneratorPaneMasterContent(
                     state = state,
-                    showFilter = showFilter,
+                    tabletUi = tabletUi,
                     sliderInteractionSource = sliderInteractionSource,
                 )
             },
@@ -337,10 +354,10 @@ private fun GeneratorPaneMaster(
 @Composable
 private fun ColumnScope.GeneratorPaneMasterContent(
     state: GeneratorState,
-    showFilter: Boolean,
+    tabletUi: Boolean,
     sliderInteractionSource: MutableInteractionSource,
 ) {
-    if (showFilter) {
+    if (!tabletUi) {
         GeneratorType(
             state = state,
         )
@@ -355,7 +372,7 @@ private fun ColumnScope.GeneratorPaneMasterContent(
         filterFlow = state.filterState,
     )
 
-    if (showFilter) {
+    if (!tabletUi) {
         GeneratorFilterItems(
             filterFlow = state.filterState,
             sliderInteractionSource = sliderInteractionSource,

@@ -18,14 +18,18 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.MutableWindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.onConsumedWindowInsetsChanged
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -64,12 +68,16 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.platform.leDisplayCutout
 import com.artemchep.keyguard.platform.leIme
+import com.artemchep.keyguard.platform.leNavigationBars
+import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
 import com.artemchep.keyguard.ui.scrollbar.LazyColumnScrollbar
 import com.artemchep.keyguard.ui.selection.SelectionBar
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.collections.immutable.ImmutableList
@@ -95,7 +103,7 @@ fun ScaffoldLazyColumn(
     floatingActionButton: @Composable FabScope.() -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
     pullRefreshState: PullRefreshState? = null,
-    containerColor: Color = MaterialTheme.colorScheme.background,
+    containerColor: Color = LocalSurfaceColor.current,
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
@@ -186,7 +194,7 @@ fun ScaffoldColumn(
     floatingActionState: State<FabState?> = rememberUpdatedState(newValue = null),
     floatingActionButton: @Composable FabScope.() -> Unit = {},
     floatingActionButtonPosition: FabPosition = FabPosition.End,
-    containerColor: Color = MaterialTheme.colorScheme.background,
+    containerColor: Color = LocalSurfaceColor.current,
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
@@ -394,7 +402,10 @@ fun DefaultSelection(
         SelectionBar(
             title = {
                 val text = stringResource(Res.strings.selection_n_selected, selection.count)
-                Text(text)
+                Text(
+                    text = text,
+                    maxLines = 2,
+                )
             },
             trailing = {
                 val updatedOnSelectAll by rememberUpdatedState(selection.onSelectAll)
@@ -473,4 +484,5 @@ data class Selection(
 val scaffoldContentWindowInsets
     @Composable
     get() = WindowInsets.leSystemBars
+        .union(WindowInsets.leDisplayCutout)
         .union(WindowInsets.leIme)

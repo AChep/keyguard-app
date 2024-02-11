@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.Hyphens
@@ -261,74 +262,69 @@ fun OnboardingCard(
     premium: Boolean = false,
     imageVector: ImageVector? = null,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 0.dp,
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium),
+        contentAlignment = Alignment.TopEnd,
     ) {
-        Box(
-            modifier = Modifier,
-            contentAlignment = Alignment.TopEnd,
-        ) {
-            if (imageVector != null) {
-                Icon(
-                    imageVector,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(72.dp)
-                        .alpha(0.035f)
-                        .align(Alignment.TopEnd),
-                    contentDescription = null,
-                )
-            }
-            Column(
+        if (imageVector != null) {
+            Icon(
+                imageVector,
                 modifier = Modifier
                     .padding(8.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+                    .size(72.dp)
+                    .alpha(0.035f)
+                    .align(Alignment.TopEnd),
+                contentDescription = null,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium
+                    .copy(
+                        hyphens = Hyphens.Auto,
+                        lineBreak = LineBreak.Heading,
+                    ),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+            ExpandedIfNotEmpty(valueOrNull = text) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium
                         .copy(
                             hyphens = Hyphens.Auto,
-                            lineBreak = LineBreak.Heading,
+                            lineBreak = LineBreak.Paragraph,
                         ),
-                    maxLines = 3,
+                    maxLines = 6,
                     overflow = TextOverflow.Ellipsis,
                 )
-                ExpandedIfNotEmpty(valueOrNull = text) {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium
-                            .copy(
-                                hyphens = Hyphens.Auto,
-                                lineBreak = LineBreak.Paragraph,
-                            ),
-                        maxLines = 6,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                ExpandedIfNotEmpty(
-                    valueOrNull = Unit.takeIf { premium },
+            }
+            ExpandedIfNotEmpty(
+                valueOrNull = Unit.takeIf { premium },
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .size(12.dp),
-                            imageVector = Icons.Outlined.KeyguardPremium,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                        Text(
-                            text = stringResource(Res.strings.feat_keyguard_premium_label),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    }
+                    Icon(
+                        modifier = Modifier
+                            .size(12.dp),
+                        imageVector = Icons.Outlined.KeyguardPremium,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = stringResource(Res.strings.feat_keyguard_premium_label),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
                 }
             }
         }
@@ -342,57 +338,51 @@ fun SmallOnboardingCard(
     text: String? = null,
     imageVector: ImageVector? = null,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 0.dp,
-        border = BorderStroke(Dp.Hairline, DividerColor),
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium),
+        contentAlignment = Alignment.TopEnd,
     ) {
-        Box(
-            modifier = Modifier,
-            contentAlignment = Alignment.TopEnd,
-        ) {
-            if (imageVector != null) {
-                Icon(
-                    imageVector,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(72.dp)
-                        .alpha(0.035f)
-                        .align(Alignment.TopEnd),
-                    contentDescription = null,
-                )
-            }
-            Column(
+        if (imageVector != null) {
+            Icon(
+                imageVector,
                 modifier = Modifier
                     .padding(8.dp)
-                    .widthIn(max = 128.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+                    .size(72.dp)
+                    .alpha(0.035f)
+                    .align(Alignment.TopEnd),
+                contentDescription = null,
+            )
+        }
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .widthIn(max = 128.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall
+                    .copy(
+                        hyphens = Hyphens.Auto,
+                        lineBreak = LineBreak.Heading,
+                    ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            ExpandedIfNotEmpty(valueOrNull = text) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall
                         .copy(
                             hyphens = Hyphens.Auto,
-                            lineBreak = LineBreak.Heading,
+                            lineBreak = LineBreak.Paragraph,
                         ),
-                    maxLines = 2,
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
+                    maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                 )
-                ExpandedIfNotEmpty(valueOrNull = text) {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall
-                            .copy(
-                                hyphens = Hyphens.Auto,
-                                lineBreak = LineBreak.Paragraph,
-                            ),
-                        color = LocalContentColor.current
-                            .combineAlpha(MediumEmphasisAlpha),
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
             }
         }
     }

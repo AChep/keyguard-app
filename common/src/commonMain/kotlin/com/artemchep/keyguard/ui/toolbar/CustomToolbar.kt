@@ -15,12 +15,10 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -30,6 +28,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarColors
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,10 +38,8 @@ fun CustomToolbar(
     scrollBehavior: TopAppBarScrollBehavior?,
     content: @Composable () -> Unit,
 ) {
-    val containerColor = MaterialTheme.colorScheme.surface
-    val scrolledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(
-        elevation = 3.0.dp,
-    )
+    val containerColor = ToolbarColors.containerColor()
+    val scrolledContainerColor = ToolbarColors.scrolledContainerColor(containerColor)
     val windowInsets = TopAppBarDefaults.windowInsets
 
     // Obtain the container color from the TopAppBarColors using the `overlapFraction`. This

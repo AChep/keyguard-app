@@ -12,7 +12,7 @@ appVersionName = "1.0.0"
 # @keep
 appVersionCode = "2"
 # https://github.com/google/accompanist
-accompanist = "0.32.0"
+accompanist = "0.34.0"
 androidBillingClient = "6.1.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.0.4"
@@ -51,7 +51,7 @@ commonsCodec = "1.16.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.14.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.6.0-dev1357"
+composeMultiplatform = "1.6.0-beta02"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.0"
 crashlyticsPlugin = "2.9.9"

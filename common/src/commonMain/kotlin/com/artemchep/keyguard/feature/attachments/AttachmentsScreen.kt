@@ -6,7 +6,9 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.common.model.Loadable
@@ -23,13 +25,33 @@ import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import dev.icerock.moko.resources.compose.stringResource
 
 @Composable
 fun AttachmentsScreen() {
     val loadableState = produceAttachmentsScreenState()
-
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     TwoPaneScreen(
+        header = { modifier ->
+            SmallToolbar(
+                modifier = modifier,
+                title = {
+                    Text(
+                        text = stringResource(Res.strings.downloads),
+                    )
+                },
+                navigationIcon = {
+                    NavigationIcon()
+                },
+            )
+
+            SideEffect {
+                if (scrollBehavior.state.heightOffsetLimit != 0f) {
+                    scrollBehavior.state.heightOffsetLimit = 0f
+                }
+            }
+        },
         detail = { modifier ->
             VaultHomeScreenFilterPaneCard2(
                 modifier = modifier,
@@ -37,11 +59,12 @@ fun AttachmentsScreen() {
                 onClear = loadableState.getOrNull()?.filter?.onClear,
             )
         },
-    ) { modifier, detailIsVisible ->
+    ) { modifier, tabletUi ->
         AttachmentsScreen(
             modifier = modifier,
             state = loadableState,
-            showFilter = !detailIsVisible,
+            tabletUi = tabletUi,
+            scrollBehavior = scrollBehavior,
         )
     }
 }
@@ -55,14 +78,18 @@ fun AttachmentsScreen() {
 fun AttachmentsScreen(
     modifier: Modifier,
     state: Loadable<AttachmentsState>,
-    showFilter: Boolean,
+    tabletUi: Boolean,
+    scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     ScaffoldLazyColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
+            if (tabletUi) {
+                return@ScaffoldLazyColumn
+            }
+
             LargeToolbar(
                 title = {
                     Text(
@@ -73,13 +100,11 @@ fun AttachmentsScreen(
                     NavigationIcon()
                 },
                 actions = {
-                    if (showFilter) {
-                        VaultHomeScreenFilterButton2(
-                            modifier = modifier,
-                            items = state.getOrNull()?.filter?.items.orEmpty(),
-                            onClear = state.getOrNull()?.filter?.onClear,
-                        )
-                    }
+                    VaultHomeScreenFilterButton2(
+                        modifier = modifier,
+                        items = state.getOrNull()?.filter?.items.orEmpty(),
+                        onClear = state.getOrNull()?.filter?.onClear,
+                    )
                 },
                 scrollBehavior = scrollBehavior,
             )

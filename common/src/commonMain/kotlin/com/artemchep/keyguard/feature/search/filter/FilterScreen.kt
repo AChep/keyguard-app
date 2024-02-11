@@ -33,18 +33,18 @@ fun FilterScreen(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
-        topBar = {
-            SmallToolbar(
-                title = {
-                    Text(
-                        text = stringResource(Res.strings.filter_header_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                },
-                actions = actions,
-                scrollBehavior = scrollBehavior,
-            )
-        },
+//        topBar = {
+//            SmallToolbar(
+//                title = {
+//                    Text(
+//                        text = stringResource(Res.strings.filter_header_title),
+//                        style = MaterialTheme.typography.titleMedium,
+//                    )
+//                },
+//                actions = actions,
+//                scrollBehavior = scrollBehavior,
+//            )
+//        },
         floatingActionState = run {
             val fabState = if (onClear != null) {
                 FabState(

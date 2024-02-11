@@ -2,7 +2,6 @@ package com.artemchep.keyguard.feature.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -55,19 +53,20 @@ import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Surface
+import androidx.compose.material3.NavigationRailItemColors
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -82,14 +81,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetNavLabel
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
-import com.artemchep.keyguard.core.store.DatabaseManager
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
@@ -113,20 +107,20 @@ import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
-import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.ok
-import com.artemchep.keyguard.ui.util.VerticalDivider
 import dev.icerock.moko.resources.compose.stringResource
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -149,7 +143,7 @@ fun HomeScreen(
     navBarVisible: Boolean = true,
 ) {
     val navRoutes = remember {
-        listOf(
+        persistentListOf(
             Rail(
                 route = vaultRoute,
                 icon = Icons.Outlined.Home,
@@ -179,12 +173,6 @@ fun HomeScreen(
                 iconSelected = Icons.Filled.Security,
                 label = TextHolder.Res(Res.strings.home_watchtower_label),
             ),
-//            Rail(
-//                route = AccountsRoute,
-//                icon = Icons.Outlined.AccountCircle,
-//                iconSelected = Icons.Filled.AccountCircle,
-//                label = "Accounts",
-//            ),
             Rail(
                 route = SettingsRoute,
                 icon = Icons.Outlined.Settings,
@@ -208,18 +196,17 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     backStack: PersistentList<NavigationEntry>,
-    routes: List<Rail>,
+    routes: ImmutableList<Rail>,
     navBarVisible: Boolean = true,
 ) {
     ResponsiveLayout {
         val horizontalInsets = WindowInsets.leStatusBars
             .union(WindowInsets.leNavigationBars)
             .union(WindowInsets.leDisplayCutout)
-            .only(WindowInsetsSides.Horizontal)
+            .only(WindowInsetsSides.Start)
         Row(
             modifier = Modifier
-                .windowInsetsPadding(horizontalInsets)
-                .consumeWindowInsets(horizontalInsets),
+                .windowInsetsPadding(horizontalInsets),
         ) {
             val getNavLabel by rememberInstance<GetNavLabel>()
             val navLabelState = remember(getNavLabel) {
@@ -248,6 +235,7 @@ fun HomeScreenContent(
                             // When the keyboard is opened, there might be not
                             // enough space for all the items.
                             .verticalScroll(scrollState),
+                        containerColor = Color.Transparent,
                         windowInsets = verticalInsets,
                     ) {
                         routes.forEach { r ->
@@ -284,7 +272,6 @@ fun HomeScreenContent(
                             )
                         }
                     }
-                    VerticalDivider()
                 }
             }
             val bottomInsets = WindowInsets.leStatusBars
@@ -307,18 +294,18 @@ fun HomeScreenContent(
                         },
                     ),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                val defaultContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                CompositionLocalProvider(
+                    LocalSurfaceColor provides defaultContainerColor,
+                    LocalNavigationNodeVisualStack provides persistentListOf(),
                 ) {
-                    CompositionLocalProvider(
-                        LocalNavigationNodeVisualStack provides persistentListOf(),
-                    ) {
-                        NavigationNode(
-                            entries = backStack,
-                        )
-                    }
+                    NavigationNode(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .background(defaultContainerColor),
+                        entries = backStack,
+                    )
                 }
 
                 // TODO:
@@ -360,46 +347,44 @@ fun HomeScreenContent(
                 AnimatedVisibility(
                     visible = bottomNavBarVisible,
                 ) {
-                    Surface(
-                        tonalElevation = 3.dp,
+                    Column(
+                        modifier = Modifier,
                     ) {
-                        Column {
-                            BannerStatusBadge(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                statusState = accountStatusState,
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottomInsets.asPaddingValues())
-                                    .height(80.dp)
-                                    .selectableGroup(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                routes.forEach { r ->
-                                    BottomNavigationControllerItem(
-                                        backStack = backStack,
-                                        route = r.route,
-                                        icon = r.icon,
-                                        iconSelected = r.iconSelected,
-                                        label = if (navLabelState.value) {
-                                            // composable
-                                            {
-                                                Text(
-                                                    text = textResource(r.label),
-                                                    maxLines = 1,
-                                                    textAlign = TextAlign.Center,
-                                                    // Default style does not fit on devices with small
-                                                    // screens.
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                )
-                                            }
-                                        } else {
-                                            null
-                                        },
-                                    )
-                                }
+                        BannerStatusBadge(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            statusState = accountStatusState,
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottomInsets.asPaddingValues())
+                                .height(80.dp)
+                                .selectableGroup(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            routes.forEach { r ->
+                                BottomNavigationControllerItem(
+                                    backStack = backStack,
+                                    route = r.route,
+                                    icon = r.icon,
+                                    iconSelected = r.iconSelected,
+                                    label = if (navLabelState.value) {
+                                        // composable
+                                        {
+                                            Text(
+                                                text = textResource(r.label),
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Center,
+                                                // Default style does not fit on devices with small
+                                                // screens.
+                                                style = MaterialTheme.typography.labelSmall,
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                )
                             }
                         }
 
@@ -731,7 +716,7 @@ private fun RailStatusBadgeContent(
 
 @Composable
 private fun ColumnScope.RailNavigationControllerItem(
-    backStack: List<NavigationEntry>,
+    backStack: ImmutableList<NavigationEntry>,
     route: Route,
     icon: ImageVector,
     iconSelected: ImageVector,
@@ -753,6 +738,7 @@ private fun ColumnScope.RailNavigationControllerItem(
         },
         label = label,
         selected = selected,
+        colors = navigationRailItemColors(),
         onClick = {
             navigateOnClick(controller, backStack, route)
         },
@@ -761,7 +747,7 @@ private fun ColumnScope.RailNavigationControllerItem(
 
 @Composable
 private fun RowScope.BottomNavigationControllerItem(
-    backStack: List<NavigationEntry>,
+    backStack: ImmutableList<NavigationEntry>,
     route: Route,
     icon: ImageVector,
     iconSelected: ImageVector,
@@ -783,10 +769,21 @@ private fun RowScope.BottomNavigationControllerItem(
         },
         label = label,
         selected = selected,
+        colors = navigationBarItemColors(),
         onClick = {
             navigateOnClick(controller, backStack, route)
         },
     )
+}
+
+@Composable
+private fun navigationRailItemColors(): NavigationRailItemColors {
+    return NavigationRailItemDefaults.colors()
+}
+
+@Composable
+private fun navigationBarItemColors(): NavigationBarItemColors {
+    return NavigationBarItemDefaults.colors()
 }
 
 private fun isSelected(

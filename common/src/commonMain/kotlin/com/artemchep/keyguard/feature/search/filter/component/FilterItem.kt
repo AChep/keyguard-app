@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -83,7 +84,7 @@ fun FilterItemLayout(
     val backgroundColor =
         if (checked) {
             MaterialTheme.colorScheme.selectedContainer
-        } else MaterialTheme.colorScheme.surface
+        } else Color.Transparent
     Surface(
         modifier = modifier
             .semantics { role = Role.Checkbox },

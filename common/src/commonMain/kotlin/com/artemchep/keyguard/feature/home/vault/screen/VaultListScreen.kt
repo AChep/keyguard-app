@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -35,12 +37,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -161,13 +165,85 @@ fun VaultListScreen(
 
     val focusRequester = remember { FocusRequester2() }
     TwoPaneScreen(
+        header = { modifier ->
+            val title = args.appBar?.title
+            val subtitle = args.appBar?.subtitle
+            val hasTitle = title != null || subtitle != null
+            if (hasTitle) {
+                Row(
+                    modifier = Modifier
+                        .heightIn(min = 64.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Spacer(Modifier.width(4.dp))
+                    NavigationIcon()
+                    Spacer(Modifier.width(4.dp))
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically),
+                    ) {
+                        if (subtitle != null) {
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = LocalContentColor.current
+                                    .combineAlpha(MediumEmphasisAlpha),
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 2,
+                            )
+                        }
+                        if (title != null) {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleMedium,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    VaultListSortButton(
+                        state = state,
+                    )
+                    OptionsButton(
+                        actions = state.actions,
+                    )
+                    Spacer(Modifier.width(4.dp))
+                }
+            } else {
+            }
+            SearchTextField(
+                modifier = Modifier
+                    .focusRequester2(focusRequester),
+                text = state.query.state.value,
+                placeholder = stringResource(Res.strings.vault_main_search_placeholder),
+                searchIcon = !hasTitle,
+                leading = {
+                    // Do nothing
+                },
+                trailing = {
+                    if (!hasTitle) {
+                        VaultListSortButton(
+                            state = state,
+                        )
+                        OptionsButton(
+                            actions = state.actions,
+                        )
+                    }
+                },
+                onTextChange = state.query.onChange,
+                onGoClick = null,
+            )
+            //Spacer(Modifier.height(16.dp))
+        },
         detail = { modifier ->
             VaultListFilterScreen(
                 modifier = modifier,
                 state = state,
             )
         },
-    ) { modifier, detailIsVisible ->
+    ) { modifier, tabletUi ->
         VaultHomeScreenListPane(
             modifier = modifier,
             state = state,
@@ -175,7 +251,7 @@ fun VaultListScreen(
             title = args.appBar?.title,
             subtitle = args.appBar?.subtitle,
             fab = args.canAddSecrets,
-            showFilter = !detailIsVisible,
+            tabletUi = tabletUi,
             preselect = args.preselect,
         )
     }
@@ -257,7 +333,7 @@ fun VaultHomeScreenListPane(
     title: String?,
     subtitle: String?,
     fab: Boolean,
-    showFilter: Boolean,
+    tabletUi: Boolean,
     preselect: Boolean,
 ) {
     val itemsState = (state.content as? VaultListState.Content.Items)
@@ -338,6 +414,10 @@ fun VaultHomeScreenListPane(
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
+            if (tabletUi) {
+                return@ScaffoldLazyColumn
+            }
+
             CustomToolbar(
                 scrollBehavior = scrollBehavior,
             ) {
@@ -376,22 +456,21 @@ fun VaultHomeScreenListPane(
                                     )
                                 }
                             }
-                            if (showFilter) {
-                                Spacer(Modifier.width(4.dp))
-                                VaultListFilterButton(
-                                    state = state,
-                                )
-                                VaultListSortButton(
-                                    state = state,
-                                )
-                                OptionsButton(
-                                    actions = state.actions,
-                                )
-                            }
+                            Spacer(Modifier.width(4.dp))
+                            VaultListFilterButton(
+                                state = state,
+                            )
+                            VaultListSortButton(
+                                state = state,
+                            )
+                            OptionsButton(
+                                actions = state.actions,
+                            )
                             Spacer(Modifier.width(4.dp))
                         }
                     } else {
                     }
+
                     SearchTextField(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
@@ -407,7 +486,7 @@ fun VaultHomeScreenListPane(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                if (!hasTitle && showFilter) {
+                                if (!hasTitle) {
                                     VaultListFilterButton(
                                         state = state,
                                     )
@@ -594,7 +673,7 @@ fun VaultHomeScreenListPane(
                     items = list,
                     key = { model -> model.id },
                 ) { model ->
-                    if (model is VaultItem2.QuickFilters && showFilter) {
+                    if (model is VaultItem2.QuickFilters && !tabletUi) {
                         Box(
                             modifier = Modifier
                                 .animateItemPlacement(),

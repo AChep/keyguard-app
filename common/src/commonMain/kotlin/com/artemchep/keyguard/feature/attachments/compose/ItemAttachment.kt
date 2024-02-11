@@ -45,6 +45,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
@@ -247,7 +249,7 @@ private fun ItemAttachmentLayout(
         if (selectable.selected) {
             MaterialTheme.colorScheme.primaryContainer
         } else {
-            MaterialTheme.colorScheme.surface
+            Color.Unspecified
         }
     FlatDropdown(
         modifier = modifier,
@@ -255,12 +257,20 @@ private fun ItemAttachmentLayout(
         content = {
             FlatItemTextContent(
                 title = {
-                    Text(name)
+                    Text(
+                        text = name,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 },
                 text = if (size != null) {
                     // composable
                     {
-                        Text(size)
+                        Text(
+                            text = size,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 } else {
                     null

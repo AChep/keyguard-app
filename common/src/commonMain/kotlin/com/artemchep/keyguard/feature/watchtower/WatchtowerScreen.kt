@@ -8,10 +8,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.MutableWindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,6 +26,7 @@ import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.onConsumedWindowInsetsChanged
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -43,6 +46,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Timer
@@ -57,22 +61,34 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
@@ -81,6 +97,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.formatLocalized
 import com.artemchep.keyguard.feature.appreview.RequestAppReviewEffect
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.search.filter.FilterButton
@@ -95,10 +112,12 @@ import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.GridLayout
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
@@ -108,11 +127,16 @@ import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
+import com.artemchep.keyguard.ui.skeleton.SkeletonText
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -132,24 +156,50 @@ fun WatchtowerScreen() {
 fun WatchtowerScreen(
     state: WatchtowerState,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     TwoPaneScreen(
+        header = { modifier ->
+            SmallToolbar(
+                modifier = modifier,
+                containerColor = Color.Transparent,
+                title = {
+                    Text(
+                        text = stringResource(Res.strings.watchtower_header_title),
+                    )
+                },
+                navigationIcon = {
+                    NavigationIcon()
+                },
+                actions = {
+                    OptionsButton(
+                        actions = state.actions,
+                    )
+                },
+            )
+
+            SideEffect {
+                if (scrollBehavior.state.heightOffsetLimit != 0f) {
+                    scrollBehavior.state.heightOffsetLimit = 0f
+                }
+            }
+        },
         detail = { modifier ->
             VaultHomeScreenFilterPaneCard(
                 modifier = modifier,
                 state = state,
             )
         },
-    ) { modifier, detailIsVisible ->
+    ) { modifier, tabletUi ->
         WatchtowerScreen2(
             modifier = modifier,
             state = state,
-            showFilter = !detailIsVisible,
+            tabletUi = tabletUi,
+            scrollBehavior = scrollBehavior,
         )
     }
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
     androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
 )
 @Composable
@@ -165,7 +215,6 @@ private fun VaultHomeScreenFilterPaneCard(
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
     androidx.compose.foundation.layout.ExperimentalLayoutApi::class,
 )
 @Composable
@@ -189,18 +238,22 @@ fun VaultHomeScreenFilterPaneCard2(
 fun WatchtowerScreen2(
     modifier: Modifier,
     state: WatchtowerState,
-    showFilter: Boolean,
+    tabletUi: Boolean,
+    scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val contentWindowInsets = scaffoldContentWindowInsets
     val remainingInsets = remember { MutableWindowInsets() }
     Scaffold(
         modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
             .onConsumedWindowInsetsChanged { consumedWindowInsets ->
                 remainingInsets.insets = contentWindowInsets.exclude(consumedWindowInsets)
-            }
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+            },
         topBar = {
+            if (tabletUi) {
+                return@Scaffold
+            }
+
             LargeToolbar(
                 title = {
                     Text(
@@ -211,11 +264,9 @@ fun WatchtowerScreen2(
                     NavigationIcon()
                 },
                 actions = {
-                    if (showFilter) {
-                        VaultHomeScreenFilterButton(
-                            state = state,
-                        )
-                    }
+                    VaultHomeScreenFilterButton(
+                        state = state,
+                    )
                     OptionsButton(
                         actions = state.actions,
                     )
@@ -223,6 +274,7 @@ fun WatchtowerScreen2(
                 scrollBehavior = scrollBehavior,
             )
         },
+        containerColor = LocalSurfaceColor.current,
         contentWindowInsets = remainingInsets,
     ) { contentPadding ->
         ContentLayout(
@@ -407,44 +459,240 @@ private fun ColumnScope.DashboardContent(
 private fun ColumnScope.DashboardContentData(
     content: WatchtowerState.Content.PasswordStrength,
 ) {
-    Section(
-        text = stringResource(Res.strings.watchtower_section_password_strength_label),
+    val total = content.items
+        .sumOf { it.count }
+    if (total == 0) {
+        return
+    }
+
+    Spacer(
+        modifier = Modifier
+            .height(8.dp),
     )
-    content.items.forEach { (t, u, onClick) ->
-        key(t) {
-            val score = when (t) {
-                PasswordStrength.Score.Weak -> 0f
-                PasswordStrength.Score.Fair -> 0.2f
-                PasswordStrength.Score.Good -> 0.5f
-                PasswordStrength.Score.Strong -> 0.9f
-                PasswordStrength.Score.VeryStrong -> 1f
-            }
-            FlatItem(
-                title = {
-                    val text = t.formatLocalized()
-                    Text(text)
-                },
-                leading = {
-                    val numberStr = animatedNumberText(u)
-                    Ah(
-                        score = score,
-                        text = numberStr,
-                    )
-                },
-                trailing = {
-                    ChevronIcon()
-                },
-                onClick = onClick,
+    Column(
+        modifier = Modifier
+            .padding(
+                horizontal = Dimens.horizontalPaddingHalf,
             )
+            .clip(MaterialTheme.shapes.medium),
+    ) {
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+        CompositionLocalProvider(
+            LocalTextStyle provides MaterialTheme.typography.titleMedium,
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.horizontalPaddingHalf),
+                text = stringResource(Res.strings.watchtower_section_password_strength_label),
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+
+        val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
+        val errorContainer = MaterialTheme.colorScheme.errorContainer
+        Box(
+            modifier = Modifier
+                .height(24.dp)
+                .padding(horizontal = Dimens.horizontalPaddingHalf)
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.small)
+                .drawBehind {
+                    if (total == 0) {
+                        return@drawBehind
+                    }
+
+                    var x = 0f
+
+                    content.items.forEach { item ->
+                        val score = when (item.score) {
+                            PasswordStrength.Score.Weak -> 0f
+                            PasswordStrength.Score.Fair -> 0.2f
+                            PasswordStrength.Score.Good -> 0.5f
+                            PasswordStrength.Score.Strong -> 0.9f
+                            PasswordStrength.Score.VeryStrong -> 1f
+                        }
+                        val color = secondaryContainer
+                            .copy(alpha = score)
+                            .compositeOver(errorContainer)
+                        val width = size.width * item.count / total.toFloat()
+                        drawRect(
+                            color = color,
+                            topLeft = Offset(
+                                x = x,
+                                y = 0f,
+                            ),
+                            size = Size(
+                                width = width.plus(1f)
+                                    .coerceAtMost(size.width),
+                                height = size.height,
+                            ),
+                        )
+                        x += width
+                    }
+                },
+        ) {
+        }
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+    }
+    Spacer(
+        modifier = Modifier
+            .height(8.dp),
+    )
+    FlowRow(
+        modifier = Modifier
+            .padding(horizontal = Dimens.horizontalPaddingHalf),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        content.items.forEach { item ->
+            if (item.count == 0) {
+                return@forEach
+            }
+
+            val updatedOnClick by rememberUpdatedState(item.onClick)
+            val tintColor = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(1.dp)
+            Row(
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .background(tintColor)
+                    .clickable(enabled = item.onClick != null) {
+                        updatedOnClick?.invoke()
+                    }
+                    .padding(
+                        start = 8.dp,
+                        end = 8.dp,
+                        top = 8.dp,
+                        bottom = 8.dp,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val score = when (item.score) {
+                    PasswordStrength.Score.Weak -> 0f
+                    PasswordStrength.Score.Fair -> 0.2f
+                    PasswordStrength.Score.Good -> 0.5f
+                    PasswordStrength.Score.Strong -> 0.9f
+                    PasswordStrength.Score.VeryStrong -> 1f
+                }
+                val numberStr = animatedNumberText(item.count)
+                Ah(
+                    score = score,
+                    text = numberStr,
+                )
+                Spacer(
+                    modifier = Modifier
+                        .width(8.dp),
+                )
+                val text = item.score.formatLocalized()
+                Text(
+                    modifier = Modifier
+                        .widthIn(max = 128.dp),
+                    text = text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun ColumnScope.DashboardContentSkeleton() {
-    SkeletonSection()
-    for (i in 0..4)
-        SkeletonItemPilled()
+    Spacer(
+        modifier = Modifier
+            .height(8.dp),
+    )
+    Column(
+        modifier = Modifier
+            .padding(
+                horizontal = Dimens.horizontalPaddingHalf,
+            )
+            .clip(MaterialTheme.shapes.medium),
+    ) {
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+        SkeletonText(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPaddingHalf)
+                .fillMaxWidth(0.3f),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+
+        val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
+        Box(
+            modifier = Modifier
+                .height(24.dp)
+                .padding(horizontal = Dimens.horizontalPaddingHalf)
+                .fillMaxWidth()
+                .shimmer()
+                .clip(MaterialTheme.shapes.small)
+                .background(secondaryContainer),
+        )
+        Spacer(
+            modifier = Modifier
+                .height(8.dp),
+        )
+    }
+    Spacer(
+        modifier = Modifier
+            .height(8.dp),
+    )
+    FlowRow(
+        modifier = Modifier
+            .padding(horizontal = Dimens.horizontalPaddingHalf),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        for (i in 0..4) {
+            val tintColor = MaterialTheme.colorScheme
+                .surfaceColorAtElevationSemi(1.dp)
+            Row(
+                modifier = Modifier
+                    .clip(MaterialTheme.shapes.small)
+                    .background(tintColor)
+                    .padding(
+                        start = 8.dp,
+                        end = 8.dp,
+                        top = 8.dp,
+                        bottom = 8.dp,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .shimmer()
+                        .height(18.dp)
+                        .width(44.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(LocalContentColor.current.copy(alpha = 0.2f)),
+                )
+                Spacer(
+                    modifier = Modifier
+                        .width(8.dp),
+                )
+                SkeletonText(
+                    modifier = Modifier
+                        .width(56.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+    }
 }
 
 // Cards
@@ -843,7 +1091,7 @@ private fun ContentLayout(
 
                 Column(
                     modifier = Modifier
-                        .widthIn(max = dashboardWidth)
+                        //   .widthIn(max = dashboardWidth)
                         .fillMaxWidth(),
                 ) {
                     dashboardContent()
@@ -907,10 +1155,18 @@ fun Card(
     content: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = if (number > 0) 1.dp else 0.dp,
+    val backgroundModifier = if (number > 0) {
+        val tintColor = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(1.dp)
+        Modifier
+            .background(tintColor)
+    } else {
+        Modifier
+    }
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium)
+            .then(backgroundModifier),
+        propagateMinConstraints = true,
     ) {
         if (imageVector != null) {
             Box(
@@ -980,12 +1236,17 @@ fun Card(
 fun CardSkeleton(
     modifier: Modifier = Modifier,
 ) {
+    val backgroundModifier = run {
+        val tintColor = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(1.dp)
+        Modifier
+            .background(tintColor)
+    }
     val contentColor =
         LocalContentColor.current.copy(alpha = DisabledEmphasisAlpha)
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 1.dp,
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium)
+            .then(backgroundModifier),
     ) {
         Column(
             modifier = Modifier

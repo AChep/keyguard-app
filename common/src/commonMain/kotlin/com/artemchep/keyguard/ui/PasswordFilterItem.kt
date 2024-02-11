@@ -50,7 +50,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -61,8 +63,10 @@ import androidx.compose.ui.unit.sp
 import arrow.core.andThen
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.home.vault.component.VaultItemIcon2
+import com.artemchep.keyguard.feature.home.vault.component.localSurfaceColorAtElevation
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -424,11 +428,22 @@ fun FlatItemLayout(
             .fillMaxWidth()
             .padding(paddingValues),
     ) {
-        val finalBackgroundColor = backgroundColor
-            .takeIf { it.isSpecified }
-        // default surface color
-            ?: MaterialTheme.colorScheme.surface
-        val animatedElevation by animateDpAsState(targetValue = elevation)
+        val backgroundModifier = kotlin.run {
+            // Check if there's actually a background color
+            // to render.
+            if (
+                backgroundColor.isUnspecified &&
+                elevation == 0.dp
+            ) {
+                return@run Modifier
+            }
+
+            val bg = backgroundColor.takeIf { it.isSpecified }
+                ?: Color.Transparent
+            val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
+            Modifier
+                .background(fg.compositeOver(bg))
+        }
 
         val shape = MaterialTheme.shapes.medium
         val shapeBottomCornerDp by kotlin.run {
@@ -439,119 +454,112 @@ fun FlatItemLayout(
             }
             animateDpAsState(targetValue = target)
         }
-        Surface(
-            shape = shape.copy(
-                bottomStart = CornerSize(shapeBottomCornerDp),
-                bottomEnd = CornerSize(shapeBottomCornerDp),
-            ),
-            color = finalBackgroundColor,
-            tonalElevation = animatedElevation,
-        ) {
-            val haptic by rememberUpdatedState(LocalHapticFeedback.current)
-            val updatedOnClick by rememberUpdatedState(onClick)
-            val updatedOnLongClick by rememberUpdatedState(onLongClick)
-            Column(
-                modifier = Modifier
-                    .then(
-                        if ((onClick != null || onLongClick != null) && enabled) {
-                            Modifier
-                                .combinedClickable(
-                                    onLongClick = if (onLongClick != null) {
-                                        // lambda
-                                        {
-                                            updatedOnLongClick?.invoke()
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
-                                    } else {
-                                        null
-                                    },
-                                ) {
-                                    updatedOnClick?.invoke()
-                                }
-                                .rightClickable {
-                                    updatedOnLongClick?.invoke()
-                                }
-                        } else {
-                            Modifier
-                        },
+
+        val haptic by rememberUpdatedState(LocalHapticFeedback.current)
+        val updatedOnClick by rememberUpdatedState(onClick)
+        val updatedOnLongClick by rememberUpdatedState(onLongClick)
+
+        Row(
+            modifier = Modifier
+                .clip(
+                    shape.copy(
+                        bottomStart = CornerSize(shapeBottomCornerDp),
+                        bottomEnd = CornerSize(shapeBottomCornerDp),
                     ),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .minimumInteractiveComponentSize()
-                        .padding(contentPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CompositionLocalProvider(
-                        LocalContentColor provides LocalContentColor.current
-                            .let { color ->
-                                if (enabled) {
-                                    color
+                )
+                .then(backgroundModifier)
+                .then(
+                    if ((onClick != null || onLongClick != null) && enabled) {
+                        Modifier
+                            .combinedClickable(
+                                onLongClick = if (onLongClick != null) {
+                                    // lambda
+                                    {
+                                        updatedOnLongClick?.invoke()
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
                                 } else {
-                                    color.combineAlpha(alpha = DisabledEmphasisAlpha)
-                                }
-                            },
-                    ) {
-                        if (leading != null) {
-                            CompositionLocalProvider(
-                                LocalMinimumInteractiveComponentEnforcement provides false,
+                                    null
+                                },
                             ) {
-                                leading()
+                                updatedOnClick?.invoke()
                             }
-                            Spacer(Modifier.width(16.dp))
+                            .rightClickable {
+                                updatedOnLongClick?.invoke()
+                            }
+                    } else {
+                        Modifier
+                    },
+                )
+                .minimumInteractiveComponentSize()
+                .padding(contentPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides LocalContentColor.current
+                    .let { color ->
+                        if (enabled) {
+                            color
+                        } else {
+                            color.combineAlpha(alpha = DisabledEmphasisAlpha)
                         }
-                        Column(
-                            modifier = Modifier
-                                .weight(1f),
-                        ) {
-                            content()
-                        }
-                        if (trailing != null) {
-                            Spacer(Modifier.width(16.dp))
-                            trailing()
-                        }
+                    },
+            ) {
+                if (leading != null) {
+                    CompositionLocalProvider(
+                        LocalMinimumInteractiveComponentEnforcement provides false,
+                    ) {
+                        leading()
                     }
+                    Spacer(Modifier.width(16.dp))
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f),
+                ) {
+                    content()
+                }
+                if (trailing != null) {
+                    Spacer(Modifier.width(16.dp))
+                    trailing()
                 }
             }
         }
         actions.forEachIndexed { actionIndex, action ->
+            val actionShape = if (actions.size - 1 == actionIndex) {
+                shape.copy(
+                    topStart = flatItemSmallCornerSize,
+                    topEnd = flatItemSmallCornerSize,
+                )
+            } else {
+                flatItemSmallShape
+            }
+
             Spacer(modifier = Modifier.height(2.dp))
-            Surface(
-                modifier = modifier
-                    .fillMaxWidth(),
-                shape = if (actions.size - 1 == actionIndex) {
-                    shape.copy(
-                        topStart = flatItemSmallCornerSize,
-                        topEnd = flatItemSmallCornerSize,
+            val updatedOnClick by rememberUpdatedState(action.onClick)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(actionShape)
+                    .then(backgroundModifier)
+                    .then(
+                        if (action.onClick != null) {
+                            Modifier
+                                .clickable {
+                                    updatedOnClick?.invoke()
+                                }
+                        } else {
+                            Modifier
+                        },
                     )
-                } else {
-                    flatItemSmallShape
-                },
-                color = finalBackgroundColor,
-                tonalElevation = animatedElevation,
+                    .minimumInteractiveComponentSize()
+                    .padding(contentPadding),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                val updatedOnClick by rememberUpdatedState(action.onClick)
-                Row(
-                    modifier = Modifier
-                        .then(
-                            if (action.onClick != null) {
-                                Modifier
-                                    .clickable {
-                                        updatedOnClick?.invoke()
-                                    }
-                            } else {
-                                Modifier
-                            },
-                        )
-                        .minimumInteractiveComponentSize()
-                        .padding(contentPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    FlatItemActionContent(
-                        action = action,
-                        compact = true,
-                    )
-                }
+                FlatItemActionContent(
+                    action = action,
+                    compact = true,
+                )
             }
         }
     }

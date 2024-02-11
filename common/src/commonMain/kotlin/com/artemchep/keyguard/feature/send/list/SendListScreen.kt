@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +27,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -154,30 +156,6 @@ fun SendListScreen() {
         controller.queue(intent)
     }
 
-    TwoPaneScreen(
-        detail = { modifier ->
-            SendListFilterScreen(
-                modifier = modifier,
-                state = state,
-            )
-        },
-    ) { modifier, detailIsVisible ->
-        SendScreenContent(
-            modifier = modifier,
-            state = state,
-            showFilter = !detailIsVisible,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SendScreenContent(
-    modifier: Modifier = Modifier,
-    state: SendListState,
-    showFilter: Boolean,
-) {
-
     val focusRequester = remember {
         FocusRequester2()
     }
@@ -188,12 +166,90 @@ private fun SendScreenContent(
         },
     )
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    TwoPaneScreen(
+        header = {
+            Row(
+                modifier = Modifier
+                    .heightIn(min = 64.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Spacer(Modifier.width(4.dp))
+                NavigationIcon()
+                Spacer(Modifier.width(4.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .align(Alignment.CenterVertically),
+                ) {
+                    Text(
+                        text = stringResource(Res.strings.send_main_header_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
+                SendListSortButton(
+                    state = state,
+                )
+                OptionsButton(
+                    actions = state.actions,
+                )
+                Spacer(Modifier.width(4.dp))
+            }
+
+            SearchTextField(
+                modifier = Modifier
+                    .focusRequester2(focusRequester),
+                text = state.query.state.value,
+                placeholder = stringResource(Res.strings.send_main_search_placeholder),
+                searchIcon = false,
+                leading = {
+                },
+                trailing = {
+                },
+                onTextChange = state.query.onChange,
+                onGoClick = null,
+            )
+        },
+        detail = { modifier ->
+            SendListFilterScreen(
+                modifier = modifier,
+                state = state,
+            )
+        },
+    ) { modifier, tabletUi ->
+        SendScreenContent(
+            modifier = modifier,
+            state = state,
+            tabletUi = tabletUi,
+            focusRequester = focusRequester,
+            pullRefreshState = pullRefreshState,
+            scrollBehavior = scrollBehavior,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SendScreenContent(
+    modifier: Modifier = Modifier,
+    state: SendListState,
+    tabletUi: Boolean,
+    focusRequester: FocusRequester2,
+    pullRefreshState: PullRefreshState,
+    scrollBehavior: TopAppBarScrollBehavior,
+) {
     ScaffoldLazyColumn(
         modifier = modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
+            if (tabletUi) {
+                return@ScaffoldLazyColumn
+            }
+
             CustomToolbar(
                 scrollBehavior = scrollBehavior,
             ) {
@@ -218,18 +274,16 @@ private fun SendScreenContent(
                                 maxLines = 1,
                             )
                         }
-                        if (showFilter) {
-                            Spacer(Modifier.width(4.dp))
-                            SendListFilterButton(
-                                state = state,
-                            )
-                            SendListSortButton(
-                                state = state,
-                            )
-                            OptionsButton(
-                                actions = state.actions,
-                            )
-                        }
+                        Spacer(Modifier.width(4.dp))
+                        SendListFilterButton(
+                            state = state,
+                        )
+                        SendListSortButton(
+                            state = state,
+                        )
+                        OptionsButton(
+                            actions = state.actions,
+                        )
                         Spacer(Modifier.width(4.dp))
                     }
 

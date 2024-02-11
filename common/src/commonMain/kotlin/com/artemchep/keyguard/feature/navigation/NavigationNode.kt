@@ -62,6 +62,7 @@ private data class Foo(
 fun NavigationNode(
     entries: PersistentList<NavigationEntry>,
     offset: Int = 0,
+    modifier: Modifier = Modifier,
 ) {
     val getNavAnimation by rememberInstance<GetNavAnimation>()
 
@@ -79,7 +80,9 @@ fun NavigationNode(
     val logicalStack = LocalNavigationNodeLogicalStack.current
     val visualStack = LocalNavigationNodeVisualStack.current
 
-    Box {
+    Box(
+        modifier = modifier,
+    ) {
         //
         // Draw screen stack
         //

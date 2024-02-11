@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -194,7 +195,7 @@ private fun FoldersScreenFolderItem(
     item: FoldersState.Content.Item.Folder,
 ) {
     val backgroundColor =
-        if (item.selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+        if (item.selected) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified
     FlatDropdown(
         modifier = modifier,
         backgroundColor = backgroundColor,

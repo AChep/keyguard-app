@@ -718,7 +718,7 @@ fun vaultListScreenState(
                                         }
                                     }
                                     section {
-                                        FlatItemAction(
+                                        this += FlatItemAction(
                                             icon = Icons.Outlined.Info,
                                             title = translate(Res.strings.ciphers_view_details),
                                             trailing = {
@@ -755,7 +755,7 @@ fun vaultListScreenState(
                                         )
                                     }
                                     section {
-                                        FlatItemAction(
+                                        this += FlatItemAction(
                                             icon = Icons.Outlined.Info,
                                             title = translate(Res.strings.ciphers_view_details),
                                             trailing = {
@@ -779,7 +779,7 @@ fun vaultListScreenState(
                                         )
                                     }
                                     section {
-                                        FlatItemAction(
+                                        this += FlatItemAction(
                                             icon = Icons.Outlined.Info,
                                             title = translate(Res.strings.ciphers_view_details),
                                             trailing = {

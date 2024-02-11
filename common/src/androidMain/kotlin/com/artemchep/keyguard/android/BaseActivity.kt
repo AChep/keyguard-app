@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -45,6 +46,7 @@ import com.artemchep.keyguard.feature.navigation.N
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
@@ -98,7 +100,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             KeyguardTheme {
-                val containerColor = MaterialTheme.colorScheme.background
+                val containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 val contentColor = contentColorFor(containerColor)
                 Surface(
                     modifier = Modifier.semantics {
@@ -110,8 +112,12 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                     color = containerColor,
                     contentColor = contentColor,
                 ) {
-                    Navigation {
-                        Content()
+                    CompositionLocalProvider(
+                        LocalSurfaceColor provides containerColor,
+                    ) {
+                        Navigation {
+                            Content()
+                        }
                     }
                 }
             }
@@ -157,7 +163,11 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     ) = kotlin.run {
         when (intent) {
             is NavigationIntent.NavigateToPreview -> handleNavigationIntent(intent, showMessage)
-            is NavigationIntent.NavigateToPreviewInFileManager -> handleNavigationIntent(intent, showMessage)
+            is NavigationIntent.NavigateToPreviewInFileManager -> handleNavigationIntent(
+                intent,
+                showMessage,
+            )
+
             is NavigationIntent.NavigateToSend -> handleNavigationIntent(intent, showMessage)
             is NavigationIntent.NavigateToLargeType -> handleNavigationIntent(intent, showMessage)
             is NavigationIntent.NavigateToShare -> handleNavigationIntent(intent, showMessage)

@@ -84,6 +84,7 @@ import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
 import com.artemchep.keyguard.ui.rightClickable
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
@@ -630,6 +631,19 @@ fun surfaceColorAtElevation(color: Color, elevation: Dp): Color {
         MaterialTheme.colorScheme.surfaceColorAtElevation(elevation)
     } else {
         color
+    }
+}
+
+@Composable
+fun ColorScheme.localSurfaceColorAtElevation(
+    surface: Color,
+    elevation: Dp,
+): Color {
+    val tint = surfaceColorAtElevationSemi(elevation = elevation)
+    return if (tint.isSpecified) {
+        tint.compositeOver(surface)
+    } else {
+        surface
     }
 }
 

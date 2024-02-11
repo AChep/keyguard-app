@@ -167,7 +167,7 @@ private fun OrganizationsScreenItem(
     item: OrganizationsState.Content.Item,
 ) {
     val backgroundColor =
-        if (item.selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+        if (item.selected) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified
     FlatDropdown(
         modifier = modifier,
         backgroundColor = backgroundColor,

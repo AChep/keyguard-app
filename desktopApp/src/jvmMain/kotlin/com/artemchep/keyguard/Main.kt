@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.ui.LocalComposeWindow
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.mayakapps.compose.windowstyler.WindowBackdrop
 import com.mayakapps.compose.windowstyler.WindowStyle
@@ -194,7 +195,7 @@ fun main() {
 //                    println("event $it")
 //                }
                 KeyguardTheme {
-                    val containerColor = MaterialTheme.colorScheme.background
+                    val containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     val contentColor = contentColorFor(containerColor)
 
                     WindowStyle(
@@ -213,6 +214,7 @@ fun main() {
                         contentColor = contentColor,
                     ) {
                         CompositionLocalProvider(
+                            LocalSurfaceColor provides containerColor,
                             LocalComposeWindow provides this.window,
                             LocalKamelConfig provides kamelConfig,
                         ) {

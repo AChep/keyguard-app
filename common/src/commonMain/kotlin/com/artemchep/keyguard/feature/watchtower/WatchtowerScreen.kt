@@ -79,6 +79,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -501,7 +502,6 @@ private fun ColumnScope.DashboardContentData(
                 .height(24.dp)
                 .padding(horizontal = Dimens.horizontalPaddingHalf)
                 .fillMaxWidth()
-                .clip(MaterialTheme.shapes.small)
                 .drawBehind {
                     if (total == 0) {
                         return@drawBehind
@@ -509,7 +509,18 @@ private fun ColumnScope.DashboardContentData(
 
                     var x = 0f
 
+                    val corner = CornerRadius(
+                        x = 8.dp.toPx(),
+                        y = 8.dp.toPx(),
+                    )
+                    val spacer = 4.dp.toPx()
+                    val delta = (content.items.count { it.count > 0 } - 1) * spacer
+
                     content.items.forEach { item ->
+                        if (item.count == 0) {
+                            return@forEach
+                        }
+
                         val score = when (item.score) {
                             PasswordStrength.Score.Weak -> 0f
                             PasswordStrength.Score.Fair -> 0.2f
@@ -520,8 +531,8 @@ private fun ColumnScope.DashboardContentData(
                         val color = secondaryContainer
                             .copy(alpha = score)
                             .compositeOver(errorContainer)
-                        val width = size.width * item.count / total.toFloat()
-                        drawRect(
+                        val width = (size.width - delta) * item.count / total.toFloat()
+                        drawRoundRect(
                             color = color,
                             topLeft = Offset(
                                 x = x,
@@ -532,8 +543,9 @@ private fun ColumnScope.DashboardContentData(
                                     .coerceAtMost(size.width),
                                 height = size.height,
                             ),
+                            cornerRadius = corner,
                         )
-                        x += width
+                        x += width + spacer
                     }
                 },
         ) {

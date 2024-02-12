@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.util.hash.FNV
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import java.util.Locale
 
 @Composable
 fun AttachmentIcon(
@@ -43,6 +44,7 @@ fun AttachmentIcon(
         val b = name.indexOfLast { it == '.' }
         if (b != -1 && b > a && b < name.length - 1) {
             return@remember name.substring(b + 1)
+                .lowercase(Locale.ENGLISH)
         }
 
         null

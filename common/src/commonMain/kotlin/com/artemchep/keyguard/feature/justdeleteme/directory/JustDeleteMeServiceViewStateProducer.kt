@@ -15,7 +15,7 @@ import org.kodein.di.instance
 
 @Composable
 fun produceJustDeleteMeServiceViewState(
-    args: JustDeleteMeServiceViewRoute.Args,
+    args: JustDeleteMeServiceViewDialogRoute.Args,
 ) = with(localDI().direct) {
     produceJustDeleteMeServiceViewState(
         args = args,
@@ -26,7 +26,7 @@ fun produceJustDeleteMeServiceViewState(
 
 @Composable
 fun produceJustDeleteMeServiceViewState(
-    args: JustDeleteMeServiceViewRoute.Args,
+    args: JustDeleteMeServiceViewDialogRoute.Args,
     checkUsernameLeak: CheckUsernameLeak,
     dateFormatter: DateFormatter,
 ): Loadable<JustDeleteMeServiceViewState> = produceScreenState(

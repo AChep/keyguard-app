@@ -1,19 +1,19 @@
-package com.artemchep.keyguard.feature.passkeys.directory
+package com.artemchep.keyguard.feature.tfa.directory
 
 import androidx.compose.runtime.Composable
-import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
+import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.feature.navigation.DialogRoute
 
-data class PasskeysServiceViewRoute(
+data class TwoFaServiceViewDialogRoute(
     val args: Args,
 ) : DialogRoute {
     data class Args(
-        val model: PassKeyServiceInfo,
+        val model: TwoFaServiceInfo,
     )
 
     @Composable
     override fun Content() {
-        PasskeysViewScreen(
+        TwoFaServiceViewDialogScreen(
             args = args,
         )
     }

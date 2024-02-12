@@ -13,7 +13,7 @@ import org.kodein.di.instance
 
 @Composable
 fun produceTwoFaServiceViewState(
-    args: TwoFaServiceViewRoute.Args,
+    args: TwoFaServiceViewDialogRoute.Args,
 ) = with(localDI().direct) {
     produceTwoFaServiceViewState(
         args = args,
@@ -23,7 +23,7 @@ fun produceTwoFaServiceViewState(
 
 @Composable
 fun produceTwoFaServiceViewState(
-    args: TwoFaServiceViewRoute.Args,
+    args: TwoFaServiceViewDialogRoute.Args,
     twoFaService: TwoFaService,
 ): Loadable<TwoFaServiceViewState> = produceScreenState(
     key = "tfa_service_view",

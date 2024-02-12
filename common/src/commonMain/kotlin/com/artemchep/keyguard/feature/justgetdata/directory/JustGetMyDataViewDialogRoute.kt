@@ -12,21 +12,21 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.iconSmall
 
-data class JustGetMyDataViewRoute(
+data class JustGetMyDataViewDialogRoute(
     val args: Args,
 ) : DialogRoute {
     companion object {
-        fun justGetMyDataActionOrNull(
+        fun actionOrNull(
             translator: TranslatorScope,
             justGetMyData: JustGetMyDataServiceInfo,
             navigate: (NavigationIntent) -> Unit,
-        ) = justGetMyDataAction(
+        ) = action(
             translator = translator,
             justGetMyData = justGetMyData,
             navigate = navigate,
         )
 
-        fun justGetMyDataAction(
+        fun action(
             translator: TranslatorScope,
             justGetMyData: JustGetMyDataServiceInfo,
             navigate: (NavigationIntent) -> Unit,
@@ -34,7 +34,7 @@ data class JustGetMyDataViewRoute(
             leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Dataset),
             title = translator.translate(Res.strings.uri_action_get_my_data_account_title),
             onClick = {
-                val route = JustGetMyDataViewRoute(
+                val route = JustGetMyDataViewDialogRoute(
                     args = Args(
                         model = justGetMyData,
                     ),
@@ -51,7 +51,7 @@ data class JustGetMyDataViewRoute(
 
     @Composable
     override fun Content() {
-        JustGetMyDataViewScreen(
+        JustGetMyDataViewDialogScreen(
             args = args,
         )
     }

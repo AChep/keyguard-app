@@ -61,12 +61,17 @@ fun produceJustDeleteMeServiceListState(
     }
 
     fun onClick(model: JustDeleteMeServiceInfo) {
-        val route = JustDeleteMeServiceViewRoute(
-            args = JustDeleteMeServiceViewRoute.Args(
+        val route = JustDeleteMeServiceViewFullRoute(
+            args = JustDeleteMeServiceViewDialogRoute.Args(
                 justDeleteMe = model,
             ),
         )
-        val intent = NavigationIntent.NavigateToRoute(route)
+        val intent = NavigationIntent.Composite(
+            listOf(
+                NavigationIntent.PopById(JustDeleteMeServicesRoute.ROUTER_NAME),
+                NavigationIntent.NavigateToRoute(route),
+            ),
+        )
         navigate(intent)
     }
 

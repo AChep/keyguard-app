@@ -157,9 +157,8 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
-import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewRoute
-import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListRoute
-import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewRoute
+import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
+import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -167,11 +166,11 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
-import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewRoute
+import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewDialogRoute
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
-import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewRoute
+import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
@@ -1101,8 +1100,8 @@ private fun RememberStateFlowScope.oh(
                         id = "error2",
                         info = isUnsecure,
                         onClick = {
-                            val route = TwoFaServiceViewRoute(
-                                args = TwoFaServiceViewRoute.Args(isUnsecure),
+                            val route = TwoFaServiceViewDialogRoute(
+                                args = TwoFaServiceViewDialogRoute.Args(isUnsecure),
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
                             navigate(intent)
@@ -1131,8 +1130,8 @@ private fun RememberStateFlowScope.oh(
                     id = "error2.passkeys",
                     info = isUnsecure,
                     onClick = {
-                        val route = PasskeysServiceViewRoute(
-                            args = PasskeysServiceViewRoute.Args(isUnsecure),
+                        val route = PasskeysServiceViewDialogRoute(
+                            args = PasskeysServiceViewDialogRoute.Args(isUnsecure),
                         )
                         val intent = NavigationIntent.NavigateToRoute(route)
                         navigate(intent)
@@ -2409,14 +2408,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         navigate = ::navigate,
                     )
                     if (isJustGetMyData != null) {
-                        this += JustGetMyDataViewRoute.justGetMyDataActionOrNull(
+                        this += JustGetMyDataViewDialogRoute.actionOrNull(
                             translator = this@createUriItemContextItems,
                             justGetMyData = isJustGetMyData,
                             navigate = ::navigate,
                         )
                     }
                     if (isJustDeleteMe != null) {
-                        this += JustDeleteMeServiceViewRoute.justDeleteMeActionOrNull(
+                        this += JustDeleteMeServiceViewDialogRoute.actionOrNull(
                             translator = this@createUriItemContextItems,
                             justDeleteMe = isJustDeleteMe,
                             navigate = ::navigate,

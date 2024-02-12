@@ -61,12 +61,17 @@ fun produceJustGetMyDataListState(
     }
 
     fun onClick(model: JustGetMyDataServiceInfo) {
-        val route = JustGetMyDataViewRoute(
-            args = JustGetMyDataViewRoute.Args(
+        val route = JustGetMyDataViewFullRoute(
+            args = JustGetMyDataViewDialogRoute.Args(
                 model = model,
             ),
         )
-        val intent = NavigationIntent.NavigateToRoute(route)
+        val intent = NavigationIntent.Composite(
+            listOf(
+                NavigationIntent.PopById(JustGetMyDataServicesRoute.ROUTER_NAME),
+                NavigationIntent.NavigateToRoute(route),
+            ),
+        )
         navigate(intent)
     }
 

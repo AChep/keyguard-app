@@ -3,9 +3,13 @@ package com.artemchep.keyguard.feature.justgetdata.directory
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.navigation.Route
 
-object JustGetMyDataListRoute : Route {
+data class JustGetMyDataViewFullRoute(
+    val args: JustGetMyDataViewDialogRoute.Args,
+) : Route {
     @Composable
     override fun Content() {
-        JustGetMyDataListScreen()
+        JustGetMyDataViewFullScreen(
+            args = args,
+        )
     }
 }

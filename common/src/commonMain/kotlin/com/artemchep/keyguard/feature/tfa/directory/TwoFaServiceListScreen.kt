@@ -11,6 +11,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.URL_2FA
 import com.artemchep.keyguard.common.model.Loadable
@@ -32,6 +34,8 @@ import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
+import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.FlatItem
@@ -41,6 +45,7 @@ import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
 import dev.icerock.moko.resources.compose.stringResource
@@ -248,8 +253,22 @@ private fun AppItem(
     modifier: Modifier,
     item: TwoFaServiceListState.Item,
 ) {
+    val backgroundColor = run {
+        if (LocalHasDetailPane.current) {
+            val nextEntry = navigationNextEntryOrNull()
+            val nextRoute = nextEntry?.route as? TwoFaServiceViewFullRoute
+
+            val selected = nextRoute?.args?.model?.name == item.name.text
+            if (selected) {
+                return@run MaterialTheme.colorScheme.selectedContainer
+            }
+        }
+
+        Color.Unspecified
+    }
     FlatItem(
         modifier = modifier,
+        backgroundColor = backgroundColor,
         leading = {
             item.icon()
         },

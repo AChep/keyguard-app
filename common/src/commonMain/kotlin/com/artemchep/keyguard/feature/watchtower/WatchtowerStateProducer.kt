@@ -27,13 +27,13 @@ import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
-import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceListRoute
-import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListRoute
+import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServicesRoute
+import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceListRoute
-import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceListRoute
+import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
+import com.artemchep.keyguard.feature.tfa.directory.TwoFaServicesRoute
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.buildContextItems
 import kotlinx.coroutines.flow.Flow
@@ -919,19 +919,19 @@ fun produceWatchtowerState(
     )
     val actions = buildContextItems {
         section {
-            this += TwoFaServiceListRoute.actionOrNull(
+            this += TwoFaServicesRoute.actionOrNull(
                 translator = this@produceScreenState,
                 navigate = ::navigate,
             )
-            this += PasskeysServiceListRoute.passkeysActionOrNull(
+            this += PasskeysServicesRoute.actionOrNull(
                 translator = this@produceScreenState,
                 navigate = ::navigate,
             )
-            this += JustGetMyDataListRoute.justGetMyDataActionOrNull(
+            this += JustGetMyDataServicesRoute.actionOrNull(
                 translator = this@produceScreenState,
                 navigate = ::navigate,
             )
-            this += JustDeleteMeServiceListRoute.justDeleteMeActionOrNull(
+            this += JustDeleteMeServicesRoute.actionOrNull(
                 translator = this@produceScreenState,
                 navigate = ::navigate,
             )

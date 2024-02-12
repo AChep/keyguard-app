@@ -12,21 +12,21 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.iconSmall
 
-data class JustDeleteMeServiceViewRoute(
+data class JustDeleteMeServiceViewDialogRoute(
     val args: Args,
 ) : DialogRoute {
     companion object {
-        fun justDeleteMeActionOrNull(
+        fun actionOrNull(
             translator: TranslatorScope,
             justDeleteMe: JustDeleteMeServiceInfo,
             navigate: (NavigationIntent) -> Unit,
-        ) = justDeleteMeAction(
+        ) = action(
             translator = translator,
             justDeleteMe = justDeleteMe,
             navigate = navigate,
         )
 
-        fun justDeleteMeAction(
+        fun action(
             translator: TranslatorScope,
             justDeleteMe: JustDeleteMeServiceInfo,
             navigate: (NavigationIntent) -> Unit,
@@ -34,7 +34,7 @@ data class JustDeleteMeServiceViewRoute(
             leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Delete),
             title = translator.translate(Res.strings.uri_action_how_to_delete_account_title),
             onClick = {
-                val route = JustDeleteMeServiceViewRoute(
+                val route = JustDeleteMeServiceViewDialogRoute(
                     args = Args(
                         justDeleteMe = justDeleteMe,
                     ),
@@ -51,7 +51,7 @@ data class JustDeleteMeServiceViewRoute(
 
     @Composable
     override fun Content() {
-        JustDeleteMeScreen(
+        JustDeleteMeDialogScreen(
             args = args,
         )
     }

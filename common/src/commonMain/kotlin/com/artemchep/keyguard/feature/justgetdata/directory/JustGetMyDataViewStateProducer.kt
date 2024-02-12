@@ -11,7 +11,7 @@ import org.kodein.di.direct
 
 @Composable
 fun produceJustGetMyDataViewState(
-    args: JustGetMyDataViewRoute.Args,
+    args: JustGetMyDataViewDialogRoute.Args,
 ) = with(localDI().direct) {
     produceJustGetMyDataViewState(
         unit = Unit,
@@ -22,7 +22,7 @@ fun produceJustGetMyDataViewState(
 @Composable
 fun produceJustGetMyDataViewState(
     unit: Unit,
-    args: JustGetMyDataViewRoute.Args,
+    args: JustGetMyDataViewDialogRoute.Args,
 ): Loadable<JustGetMyDataViewState> = produceScreenState(
     key = "justgetmydata_view",
     initial = Loadable.Loading,

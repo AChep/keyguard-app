@@ -61,12 +61,17 @@ fun produceTwoFaServiceListState(
     }
 
     fun onClick(model: TwoFaServiceInfo) {
-        val route = TwoFaServiceViewRoute(
-            args = TwoFaServiceViewRoute.Args(
+        val route = TwoFaServiceViewFullRoute(
+            args = TwoFaServiceViewDialogRoute.Args(
                 model = model,
             ),
         )
-        val intent = NavigationIntent.NavigateToRoute(route)
+        val intent = NavigationIntent.Composite(
+            listOf(
+                NavigationIntent.PopById(TwoFaServicesRoute.ROUTER_NAME),
+                NavigationIntent.NavigateToRoute(route),
+            ),
+        )
         navigate(intent)
     }
 

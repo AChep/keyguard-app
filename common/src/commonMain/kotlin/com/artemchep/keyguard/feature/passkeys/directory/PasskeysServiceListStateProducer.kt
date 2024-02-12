@@ -61,12 +61,17 @@ fun producePasskeysListState(
     }
 
     fun onClick(model: PassKeyServiceInfo) {
-        val route = PasskeysServiceViewRoute(
-            args = PasskeysServiceViewRoute.Args(
+        val route = PasskeysServiceViewFullRoute(
+            args = PasskeysServiceViewDialogRoute.Args(
                 model = model,
             ),
         )
-        val intent = NavigationIntent.NavigateToRoute(route)
+        val intent = NavigationIntent.Composite(
+            listOf(
+                NavigationIntent.PopById(PasskeysServicesRoute.ROUTER_NAME),
+                NavigationIntent.NavigateToRoute(route),
+            ),
+        )
         navigate(intent)
     }
 

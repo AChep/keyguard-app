@@ -13,7 +13,7 @@ import org.kodein.di.instance
 
 @Composable
 fun producePasskeysServiceViewState(
-    args: PasskeysServiceViewRoute.Args,
+    args: PasskeysServiceViewDialogRoute.Args,
 ) = with(localDI().direct) {
     producePasskeysServiceViewState(
         args = args,
@@ -23,7 +23,7 @@ fun producePasskeysServiceViewState(
 
 @Composable
 fun producePasskeysServiceViewState(
-    args: PasskeysServiceViewRoute.Args,
+    args: PasskeysServiceViewDialogRoute.Args,
     passKeyService: PassKeyService,
 ): Loadable<PasskeysServiceViewState> = produceScreenState(
     key = "passkeys_service_view",

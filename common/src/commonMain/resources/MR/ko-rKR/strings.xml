@@ -115,6 +115,7 @@
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
     <string name="autofill">자동 완성</string>
+    <string name="autofill_and_save_uri">자동 완성하고 앱 또는 웹사이트 정보 저장</string>
     <string name="passkey">패스키</string>
     <string name="passkey_create_header">패스키 만들기</string>
     <string name="passkey_unlock_header">Keyguard 잠금 해제</string>
@@ -424,20 +425,20 @@
     <string name="justdeleteme_empty_label">설명 없음</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_subtitle">웹 서비스에서 계정의 데이터를 받는 방법 모음</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">쉬움</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">보통</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">어려움</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">제한적으로 가능</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_difficulty_impossible_label">불가능</string>
+    <string name="justgetmydata_send_email_title">이메일 보내기</string>
+    <string name="justgetmydata_search_placeholder">웹사이트 검색</string>
+    <string name="justgetmydata_empty_label">설명 없음</string>
     <string name="tfa_directory_title">2단계 인증</string>
     <string name="tfa_directory_text">2단계 인증을 지원하는 웹사이트 목록</string>
     <string name="tfa_directory_search_placeholder">웹사이트 검색</string>

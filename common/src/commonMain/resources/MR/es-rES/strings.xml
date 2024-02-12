@@ -115,6 +115,7 @@
     <string name="select_linked_type">Seleccionar tipo</string>
     <string name="select_file">Select a file</string>
     <string name="autofill">Autocompletar</string>
+    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="passkey">Llave de acceso</string>
     <string name="passkey_create_header">Crear una llave de acceso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>

@@ -1,514 +1,515 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="ok">OK</string>
-    <string name="close">Close</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="ok">Ok</string>
+    <string name="close">Fechar</string>
+    <string name="yes">Sim</string>
+    <string name="no">Não</string>
     <!-- A name of a thing, such as an account -->
-    <string name="generic_name">Name</string>
-    <string name="account_name">Account name</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
-    <string name="username">Username</string>
-    <string name="password">Password</string>
-    <string name="app_password">App password</string>
-    <string name="current_password">Current password</string>
-    <string name="new_password">New password</string>
+    <string name="generic_name">Nome</string>
+    <string name="account_name">Nome da conta</string>
+    <string name="enabled">Ativado</string>
+    <string name="disabled">Desativado</string>
+    <string name="wordlist">Lista de Palavras</string>
+    <string name="username">Nome de usuário</string>
+    <string name="password">Senha</string>
+    <string name="app_password">Senha do aplicativo</string>
+    <string name="current_password">Senha atual</string>
+    <string name="new_password">Nova senha</string>
     <string name="email">Email</string>
-    <string name="email_verified">Verified</string>
-    <string name="email_not_verified">Not verified</string>
-    <string name="email_visibility">Email visibility</string>
-    <string name="public_url">Public URL</string>
-    <string name="url">URL</string>
+    <string name="email_verified">Verificado</string>
+    <string name="email_not_verified">Não verificado</string>
+    <string name="email_visibility">Visibilidade do email</string>
+    <string name="public_url">URL Pública</string>
+    <string name="url">Endereço da URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
-    <string name="access_count">Access count</string>
-    <string name="learn_more">Learn more</string>
-    <string name="phone_number">Phone number</string>
-    <string name="passport_number">Passport number</string>
+    <string name="access_count">Quantidade de acessos</string>
+    <string name="learn_more">Saiba mais</string>
+    <string name="phone_number">Telefone</string>
+    <string name="passport_number">Número do passaporte</string>
     <string name="license_number">License number</string>
-    <string name="card_number">Card number</string>
-    <string name="card_number_empty_label">No card number</string>
-    <string name="card_type">Brand</string>
-    <string name="card_cvv">Security code</string>
-    <string name="card_valid_from">Valid from</string>
-    <string name="card_valid_to">Valid to</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
-    <string name="cardholder_name">Cardholder name</string>
-    <string name="valid_from">Valid from</string>
-    <string name="expiry_date">Expiry date</string>
-    <string name="company">Company</string>
-    <string name="sync">Sync</string>
+    <string name="card_number">Número do cartão</string>
+    <string name="card_number_empty_label">Nenhum número de cartão</string>
+    <string name="card_type">Bandeira</string>
+    <string name="card_cvv">Código de segurança</string>
+    <string name="card_valid_from">Válido a partir de</string>
+    <string name="card_valid_to">Valido até</string>
+    <string name="card_expiry_month">Mês de vencimento</string>
+    <string name="card_expiry_year">Ano de vencimento</string>
+    <string name="cardholder_name">Titular do cartão</string>
+    <string name="valid_from">Válido a partir de</string>
+    <string name="expiry_date">Data de vencimento</string>
+    <string name="company">Empresa</string>
+    <string name="sync">Sincronizar</string>
     <!-- Opposite of 'visible' -->
-    <string name="hidden">Hidden</string>
+    <string name="hidden">Oculto</string>
     <!-- Opposite of 'hidden' -->
-    <string name="visible">Visible</string>
+    <string name="visible">Visível</string>
     <!-- Shows up instead of a value if a value is an empty text -->
-    <string name="empty_value">Empty</string>
+    <string name="empty_value">Vazio</string>
     <!-- Social Security Number -->
-    <string name="ssn">SSN</string>
-    <string name="city">City</string>
-    <string name="state">State</string>
-    <string name="info">Info</string>
-    <string name="cancel">Cancel</string>
-    <string name="continue_">Continue</string>
-    <string name="country">Country</string>
-    <string name="address">Address</string>
-    <string name="postal_code">Postal code</string>
-    <string name="pull_to_search">Pull to search</string>
-    <string name="save">Save</string>
+    <string name="ssn">CPF</string>
+    <string name="city">Cidade</string>
+    <string name="state">Estado</string>
+    <string name="info">Informações</string>
+    <string name="cancel">Cancelar</string>
+    <string name="continue_">Continuar</string>
+    <string name="country">País</string>
+    <string name="address">Endereço</string>
+    <string name="postal_code">CEP</string>
+    <string name="pull_to_search">Puxe para pesquisar</string>
+    <string name="save">Salvar</string>
     <string name="uri">URI</string>
     <string name="uris">URIs</string>
-    <string name="note">Note</string>
-    <string name="notes">Notes</string>
-    <string name="attachments">Attachments</string>
-    <string name="attachments_empty_label">No attachments</string>
-    <string name="expired">Expired</string>
-    <string name="expiring_soon">Expiring soon</string>
-    <string name="item_incomplete_title">Incomplete data</string>
-    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="note">Nota</string>
+    <string name="notes">Notas</string>
+    <string name="attachments">Anexos</string>
+    <string name="attachments_empty_label">Sem anexos</string>
+    <string name="expired">Vencido</string>
+    <string name="expiring_soon">Expira em breve</string>
+    <string name="item_incomplete_title">Dados incompletos</string>
+    <string name="item_incomplete_text">Este item está faltando alguma informação importante.</string>
     <string name="item">Item</string>
-    <string name="items">Items</string>
-    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
-    <string name="items_all">All items</string>
-    <string name="items_empty_label">No items</string>
-    <string name="folder_none">No folder</string>
-    <string name="folder_new">New folder</string>
-    <string name="folder">Folder</string>
-    <string name="folders">Folders</string>
-    <string name="folders_empty_label">No folders</string>
-    <string name="collection_none">No collection</string>
-    <string name="collection">Collection</string>
-    <string name="collections">Collections</string>
-    <string name="collections_empty_label">No collections</string>
-    <string name="organization_none">My vault</string>
-    <string name="organization">Organization</string>
-    <string name="organizations">Organizations</string>
-    <string name="organizations_empty_label">No organizations</string>
-    <string name="misc">Miscellaneous</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="items">Itens</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> itens</string>
+    <string name="items_all">Todos os itens</string>
+    <string name="items_empty_label">Nenhum item</string>
+    <string name="folder_none">Nenhuma pasta</string>
+    <string name="folder_new">Nova pasta</string>
+    <string name="folder">Pasta</string>
+    <string name="folders">Pastas</string>
+    <string name="folders_empty_label">Nenhuma pasta</string>
+    <string name="collection_none">Nenhuma coleção</string>
+    <string name="collection">Coleção</string>
+    <string name="collections">Coleções</string>
+    <string name="collections_empty_label">Nenhuma coleção</string>
+    <string name="organization_none">Meu cofre</string>
+    <string name="organization">Empresa</string>
+    <string name="organizations">Empresas</string>
+    <string name="organizations_empty_label">Sem empresas</string>
+    <string name="misc">Diversos</string>
+    <string name="command">Comando</string>
+    <string name="execute_command">Executar</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
-    <string name="add_integration">Add integration</string>
-    <string name="account">Account</string>
-    <string name="accounts">Accounts</string>
-    <string name="accounts_empty_label">No accounts</string>
-    <string name="account_none">No account</string>
-    <string name="type">Type</string>
-    <string name="options">Options</string>
-    <string name="send">Send</string>
-    <string name="reset">Reset</string>
-    <string name="length">Length</string>
-    <string name="security">Security</string>
-    <string name="contact_info">Contact info</string>
-    <string name="identity_title">Title</string>
-    <string name="identity_first_name">First name</string>
-    <string name="identity_middle_name">Middle name</string>
-    <string name="identity_last_name">Last name</string>
-    <string name="identity_full_name">Full name</string>
-    <string name="address1">Address line 1</string>
-    <string name="address2">Address line 2</string>
-    <string name="address3">Address line 3</string>
-    <string name="rename">Rename</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
-    <string name="autofill">Autofill</string>
+    <string name="add">Adicionar</string>
+    <string name="add_integration">Adicionar integração</string>
+    <string name="account">Conta</string>
+    <string name="accounts">Contas</string>
+    <string name="accounts_empty_label">Sem contas</string>
+    <string name="account_none">Nenhuma conta</string>
+    <string name="type">Tipo</string>
+    <string name="options">Opções</string>
+    <string name="send">Enviar</string>
+    <string name="reset">Redefinir</string>
+    <string name="length">Comprimento</string>
+    <string name="security">Segurança</string>
+    <string name="contact_info">Informação de contato</string>
+    <string name="identity_title">Título</string>
+    <string name="identity_first_name">Primeiro nome</string>
+    <string name="identity_middle_name">Nome do Meio</string>
+    <string name="identity_last_name">Último Nome</string>
+    <string name="identity_full_name">Nome completo</string>
+    <string name="address1">Endereço 1</string>
+    <string name="address2">Endereço 2</string>
+    <string name="address3">Endereço 3</string>
+    <string name="rename">Renomear</string>
+    <string name="select_linked_type">Selecione um tipo</string>
+    <string name="select_file">Selecione um arquivo</string>
+    <string name="autofill">Preenchimento Automático</string>
+    <string name="autofill_and_save_uri">Autopreencher e salvar informações do aplicativo ou do site</string>
     <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkey_create_header">Criar uma passkey</string>
+    <string name="passkey_unlock_header">Desbloquear Keyguard</string>
+    <string name="passkey_auth_via_header">Confirmando a solicitação de autenticação…</string>
     <string name="passkeys">Passkeys</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
         -->
-    <string name="passkey_signature_counter">Signature counter</string>
+    <string name="passkey_signature_counter">Contador de assinaturas</string>
     <!--
         The entity whose web application utilizes the Web Authentication API
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Relying party</string>
+    <string name="passkey_relying_party">Parte confiável</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
-    <string name="passkey_user_display_name">Display name</string>
-    <string name="ignored_alerts">Ignored alerts</string>
-    <string name="api_key">API key</string>
-    <string name="domain">Domain</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="remove">Remove</string>
-    <string name="remove_from_history">Remove from the history</string>
-    <string name="reused_password">Reused password</string>
-    <string name="reused_passwords">Reused passwords</string>
-    <string name="one_time_password">One-time password</string>
-    <string name="one_time_password_authenticator_key">Authenticator key</string>
-    <string name="passkey_use_short">Use</string>
-    <string name="passkey_save">Save passkey</string>
-    <string name="passkey_available">Passkey available</string>
-    <string name="twofa_available">Two-factor authentication available</string>
-    <string name="custom">Custom</string>
-    <string name="follow_system_settings">Follow system settings</string>
+    <string name="passkey_discoverable">Detectável</string>
+    <string name="passkey_user_username">Nome de usuário</string>
+    <string name="passkey_user_display_name">Nome de exibição</string>
+    <string name="ignored_alerts">Alertas ignorados</string>
+    <string name="api_key">Chave da API</string>
+    <string name="domain">Domínio</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Deletar</string>
+    <string name="remove">Remover</string>
+    <string name="remove_from_history">Remover do histórico</string>
+    <string name="reused_password">Senha reutilizada</string>
+    <string name="reused_passwords">Senhas reutilizadas</string>
+    <string name="one_time_password">Código 2FA</string>
+    <string name="one_time_password_authenticator_key">Chave de Autenticação</string>
+    <string name="passkey_use_short">Usar</string>
+    <string name="passkey_save">Salvar Passkey</string>
+    <string name="passkey_available">Passkey disponível</string>
+    <string name="twofa_available">Autenticação de dois fatores disponível</string>
+    <string name="custom">Personalizado</string>
+    <string name="follow_system_settings">Usar as configurações do sistema</string>
     <!-- A feature is coming soon! -->
-    <string name="coming_soon">Coming soon</string>
-    <string name="powered_by">Powered by</string>
-    <string name="verification_code">Verification code</string>
-    <string name="resend_verification_code">Re-send verification code</string>
-    <string name="requested_verification_email">Requested a verification email</string>
-    <string name="web_vault">Web vault</string>
-    <string name="launch_web_vault">Launch Web vault</string>
+    <string name="coming_soon">Em breve</string>
+    <string name="powered_by">Desenvolvido por</string>
+    <string name="verification_code">Código de verificação</string>
+    <string name="resend_verification_code">Reenviar código de verificação</string>
+    <string name="requested_verification_email">Solicitou um email de verificação</string>
+    <string name="web_vault">Cofre Web</string>
+    <string name="launch_web_vault">Iniciar Cofre Web</string>
     <!-- Remember me to not have to enter OTP code second time -->
-    <string name="remember_me">Remember me</string>
+    <string name="remember_me">Manter sessão iniciada</string>
     <!-- A Trash screen -->
-    <string name="trash">Trash</string>
+    <string name="trash">Lixeira</string>
     <!-- To download something -->
-    <string name="download">Download</string>
-    <string name="downloads">Downloads</string>
-    <string name="downloads_empty_label">No downloads</string>
-    <string name="duplicates_empty_label">No duplicates</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
-    <string name="encryption">Encryption</string>
+    <string name="download">Baixar</string>
+    <string name="downloads">Baixados</string>
+    <string name="downloads_empty_label">Nenhum download</string>
+    <string name="duplicates_empty_label">Sem duplicados</string>
+    <string name="duplicate">Duplicado</string>
+    <string name="regex">Expressão regular</string>
+    <string name="encryption">Criptografia</string>
     <!-- Encryption key -->
-    <string name="encryption_key">Key</string>
+    <string name="encryption_key">Chave</string>
     <string name="encryption_hash">Hash</string>
     <string name="encryption_salt">Salt</string>
     <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
     <string name="encryption_random_bits_data">Random <xliff:g id="length" example="64">%1$d</xliff:g>-bits of data</string>
-    <string name="none">None</string>
-    <string name="text">Text</string>
-    <string name="linked_apps">Linked apps</string>
-    <string name="linked_uris">Linked URIs</string>
-    <string name="custom_fields">Custom fields</string>
-    <string name="reveal_secure_note">Reveal a secure note</string>
-    <string name="hide_secure_note">Hide a secure note</string>
-    <string name="master_password_hint">Master password hint</string>
-    <string name="fingerprint_phrase">Fingerprint phrase</string>
-    <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
+    <string name="none">Nenhum</string>
+    <string name="text">Texto</string>
+    <string name="linked_apps">Aplicativos vinculados</string>
+    <string name="linked_uris">URIs vinculados</string>
+    <string name="custom_fields">Campos personalizados</string>
+    <string name="reveal_secure_note">Revelar uma nota segura</string>
+    <string name="hide_secure_note">Esconder uma nota segura</string>
+    <string name="master_password_hint">Dica da Senha Mestra</string>
+    <string name="fingerprint_phrase">Frase de impressão digital</string>
+    <string name="fingerprint_phrase_help_title">O que é uma impressão digital?</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
-    <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="account_action_change_name_title">Change name</string>
-    <string name="account_action_change_color_title">Change color</string>
-    <string name="account_action_change_master_password_hint_title">Change master password hint</string>
-    <string name="account_action_sign_out_title">Sign out</string>
-    <string name="account_action_sign_in_title">Sign in</string>
-    <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
-    <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
-    <string name="account_action_tfa_title">Two-factor authentication</string>
-    <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
-    <string name="account_action_tfa_active_status">Active</string>
-    <string name="account_action_items_title">Items</string>
-    <string name="account_action_log_out_title">Log out</string>
-    <string name="account_log_out_confirmation_title">Log out?</string>
-    <string name="account_log_out_confirmation_text">All of the not synchronized changes will be lost!</string>
-    <string name="folder_action_change_name_title">Change name</string>
-    <string name="folder_action_change_names_title">Change names</string>
-    <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
-    <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
-    <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
-    <string name="ciphers_recently_opened">Recently opened</string>
-    <string name="ciphers_often_opened">Often opened</string>
-    <string name="ciphers_view_details">View details</string>
-    <string name="ciphers_save_to">Save to</string>
-    <string name="ciphers_action_add_to_favorites_title">Add to favourites</string>
-    <string name="ciphers_action_remove_from_favorites_title">Remove from favourites</string>
-    <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
-    <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
-    <string name="ciphers_action_edit_title">Edit</string>
-    <string name="ciphers_action_merge_title">Merge into…</string>
-    <string name="ciphers_action_copy_title">Copy to…</string>
-    <string name="ciphers_action_change_folder_title">Move to folder</string>
-    <string name="ciphers_action_change_name_title">Change name</string>
-    <string name="ciphers_action_change_names_title">Change names</string>
-    <string name="ciphers_action_add_password_title">Add password</string>
-    <string name="ciphers_action_add_passwords_title">Add passwords</string>
-    <string name="ciphers_action_change_password_title">Change password</string>
-    <string name="ciphers_action_change_passwords_title">Change passwords</string>
-    <string name="ciphers_action_view_password_history_title">View password history</string>
-    <string name="ciphers_action_trash_title">Trash</string>
-    <string name="ciphers_action_restore_title">Restore</string>
-    <string name="ciphers_action_delete_title">Delete forever</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
-    <string name="ciphers_action_cascade_trash_associated_items_title">Move associated items to trash</string>
-    <string name="file_action_open_with_title">Open with…</string>
-    <string name="file_action_send_with_title">Send with…</string>
-    <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
-    <string name="file_action_delete_local_title">Delete local file</string>
-    <string name="file_action_view_cipher_title">View parent item</string>
-    <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
-    <string name="vault_action_sync_vault_title">Sync vault</string>
-    <string name="vault_action_lock_vault_title">Lock vault</string>
-    <string name="vault_action_rename_folder_title">Rename folder</string>
-    <string name="email_action_check_data_breach_title">Check the email in known data breaches</string>
-    <string name="username_action_check_data_breach_title">Check the username in known data breaches</string>
-    <string name="password_action_check_data_breach_title">Check the password in known data breaches</string>
-    <string name="website_action_check_data_breach_title">Check the website in known data breaches</string>
-    <string name="uri_action_launch_app_title">Launch app</string>
-    <string name="uri_action_launch_website_title">Launch website</string>
-    <string name="uri_action_launch_docs_title">Launch docs</string>
-    <string name="uri_action_launch_browser_title">Launch browser</string>
-    <string name="uri_action_launch_browser_main_page_title">Launch main page</string>
-    <string name="uri_action_launch_play_store_title">Launch Play store</string>
-    <string name="uri_action_launch_in_app_title">Launch with <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
-    <string name="uri_action_launch_in_smth_title">Launch with…</string>
-    <string name="uri_action_how_to_delete_account_title">How to delete an account?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
-    <string name="uri_unsecure">Unsecure</string>
-    <string name="uri_match_app_title">Match app</string>
-    <string name="uri_match_detection_title">Match detection</string>
-    <string name="uri_match_detection_domain_title">Base domain</string>
-    <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
-    <string name="uri_match_detection_host_title">Host</string>
-    <string name="uri_match_detection_host_note">Match resources by hostname and (if specified) port.</string>
-    <string name="uri_match_detection_startswith_title">Starts with</string>
-    <string name="uri_match_detection_startswith_note">Match resources when the detected resource starts with the URI.</string>
-    <string name="uri_match_detection_exact_title">Exact</string>
-    <string name="uri_match_detection_exact_note">Match resources when the detected resource exactly matches the URI.</string>
-    <string name="uri_match_detection_regex_title">Regular expression</string>
-    <string name="uri_match_detection_regex_note">Match resources by regular expression. Advanced option.</string>
-    <string name="uri_match_detection_never_title">Never</string>
-    <string name="uri_match_detection_never_note">Ignore URI during auto-fill item search.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
+    <string name="bitwarden_unofficial_server">Servidor não oficial do Bitwarden</string>
+    <string name="account_last_synced_at">Última sincronização em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_action_change_name_title">Renomear</string>
+    <string name="account_action_change_color_title">Alterar cor</string>
+    <string name="account_action_change_master_password_hint_title">Alterar dica da senha mestra</string>
+    <string name="account_action_sign_out_title">Encerrar Sessão</string>
+    <string name="account_action_sign_in_title">Iniciar sessão</string>
+    <string name="account_action_email_verify_instructions_title">Visite o cofre web para verificar seu endereço de email</string>
+    <string name="account_action_premium_purchase_instructions_title">Atualize a sua conta para uma conta premium e desbloqueie ótimos recursos adicionais</string>
+    <string name="account_action_tfa_title">Autenticação de dois fatores</string>
+    <string name="account_action_tfa_text">Exigir verificação de login com outro dispositivo, como uma chave de segurança, aplicativo de autenticação, SMS ou email</string>
+    <string name="account_action_tfa_active_status">Ativo</string>
+    <string name="account_action_items_title">Itens</string>
+    <string name="account_action_log_out_title">Encerrar Sessão</string>
+    <string name="account_log_out_confirmation_title">Encerrar Sessão?</string>
+    <string name="account_log_out_confirmation_text">Todas as mudanças não sincronizadas serão perdidas!</string>
+    <string name="folder_action_change_name_title">Renomear</string>
+    <string name="folder_action_change_names_title">Renomear</string>
+    <string name="folder_delete_one_confirmation_title">Apagar a pasta?</string>
+    <string name="folder_delete_many_confirmation_title">Apagar as pastas?</string>
+    <string name="folder_delete_confirmation_text">Este item(ns) será excluído imediatamente. Você não pode desfazer esta ação.</string>
+    <string name="ciphers_recently_opened">Abertos recentemente</string>
+    <string name="ciphers_often_opened">Abertos com frequência</string>
+    <string name="ciphers_view_details">Ver detalhes</string>
+    <string name="ciphers_save_to">Salvar em</string>
+    <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
+    <string name="ciphers_action_remove_from_favorites_title">Remover dos favoritos</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Habilitar resolicitação de autenticação</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Desativar resolicitação de autenticação</string>
+    <string name="ciphers_action_edit_title">Editar</string>
+    <string name="ciphers_action_merge_title">Mesclar em…</string>
+    <string name="ciphers_action_copy_title">Copiar para…</string>
+    <string name="ciphers_action_change_folder_title">Mover para a pasta</string>
+    <string name="ciphers_action_change_name_title">Renomear</string>
+    <string name="ciphers_action_change_names_title">Renomear</string>
+    <string name="ciphers_action_add_password_title">Adicionar senha</string>
+    <string name="ciphers_action_add_passwords_title">Adicionar senhas</string>
+    <string name="ciphers_action_change_password_title">Alterar senha</string>
+    <string name="ciphers_action_change_passwords_title">Alterar senhas</string>
+    <string name="ciphers_action_view_password_history_title">Visualizar histórico de senhas</string>
+    <string name="ciphers_action_trash_title">Lixeira</string>
+    <string name="ciphers_action_restore_title">Restaurar</string>
+    <string name="ciphers_action_delete_title">Apagar permanentemente</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configurar alertas do Guardião</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Mover os itens associados para a lixeira</string>
+    <string name="file_action_open_with_title">Abrir com…</string>
+    <string name="file_action_send_with_title">Enviar com…</string>
+    <string name="file_action_open_in_file_manager_title">Abrir em um gerenciador de arquivos</string>
+    <string name="file_action_delete_local_title">Apagar arquivo local</string>
+    <string name="file_action_view_cipher_title">Ver item relacionado</string>
+    <string name="vault_action_always_show_keyboard_title">Sempre mostrar o teclado</string>
+    <string name="vault_action_sync_vault_title">Sincronizar Cofre</string>
+    <string name="vault_action_lock_vault_title">Bloquear Cofre</string>
+    <string name="vault_action_rename_folder_title">Renomear pasta</string>
+    <string name="email_action_check_data_breach_title">Verifique o email em vazamentos de dados conhecidos</string>
+    <string name="username_action_check_data_breach_title">Verifique o nome de usuário em vazamentos de dados conhecidos</string>
+    <string name="password_action_check_data_breach_title">Verifique a senha em vazamentos de dados conhecidos</string>
+    <string name="website_action_check_data_breach_title">Verifique o site em vazamentos de dados conhecidos</string>
+    <string name="uri_action_launch_app_title">Iniciar aplicativo</string>
+    <string name="uri_action_launch_website_title">Abrir site</string>
+    <string name="uri_action_launch_docs_title">Abrir documentos</string>
+    <string name="uri_action_launch_browser_title">Abrir navegador</string>
+    <string name="uri_action_launch_browser_main_page_title">Abrir a página principal</string>
+    <string name="uri_action_launch_play_store_title">Abrir a Play Store</string>
+    <string name="uri_action_launch_in_app_title">Abrir com <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_smth_title">Iniciar com…</string>
+    <string name="uri_action_how_to_delete_account_title">Como excluir uma conta?</string>
+    <string name="uri_action_get_my_data_account_title">Como obter os meus dados?</string>
+    <string name="uri_action_autofix_unsecure_title">Autocorreção de URL inseguro</string>
+    <string name="uri_action_autofix_unsecure_text">Altera um protocolo para uma variante segura se estiver disponível</string>
+    <string name="uri_unsecure">Inseguro</string>
+    <string name="uri_match_app_title">Corresponder ao aplicativo</string>
+    <string name="uri_match_detection_title">Detecção de correspondência</string>
+    <string name="uri_match_detection_domain_title">Domínio base</string>
+    <string name="uri_match_detection_domain_note">Combine recursos por domínio de nível superior e de segundo nível.</string>
+    <string name="uri_match_detection_host_title">Servidor</string>
+    <string name="uri_match_detection_host_note">Corresponder recursos por domínio e (se especificado) porta.</string>
+    <string name="uri_match_detection_startswith_title">Começa com</string>
+    <string name="uri_match_detection_startswith_note">Corresponder recursos quando o recurso detectado iniciar com o URI.</string>
+    <string name="uri_match_detection_exact_title">Correspondência exata</string>
+    <string name="uri_match_detection_exact_note">Corresponder recursos quando o recurso detectado corresponder exatamente ao URI.</string>
+    <string name="uri_match_detection_regex_title">Expressão regular</string>
+    <string name="uri_match_detection_regex_note">Corresponder recursos por expressão regular. Opção avançada.</string>
+    <string name="uri_match_detection_never_title">Nunca</string>
+    <string name="uri_match_detection_never_note">Ignorar URI durante pesquisa de elemento de preenchimento automático.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> vinculado à senha</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome de usuário</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome do titular do cartão</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao mês de expiração</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao ano de expiração</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao código do cartão</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao emissor do cartão</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao número do cartão</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao título</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome do meio</string>
     <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
     <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
     <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado à cidade</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao estado</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao código postal</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao país</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculada à empresa</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao e-mail</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao número de telefone</string>
     <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome de usuário</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao número do passaporte</string>
     <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
-    <string name="text_action_share_with_title">Share with…</string>
-    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
-    <string name="copy">Copy</string>
-    <string name="copy_value">Copy value</string>
-    <string name="copy_url">Copy URL</string>
-    <string name="copy_uri">Copy URI</string>
-    <string name="copy_package_name">Copy package name</string>
-    <string name="copy_password">Copy password</string>
-    <string name="copy_username">Copy username</string>
-    <string name="copy_email">Copy email</string>
-    <string name="copy_phone_number">Copy phone number</string>
-    <string name="copy_passport_number">Copy passport number</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao primeiro nome</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao último nome</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome completo</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a um campo desconhecido</string>
+    <string name="text_action_share_with_title">Compartilhar com…</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
+    <string name="copy">Copiar</string>
+    <string name="copy_value">Copiar valor</string>
+    <string name="copy_url">Copiar URL</string>
+    <string name="copy_uri">Copiar URI</string>
+    <string name="copy_package_name">Copiar nome do pacote</string>
+    <string name="copy_password">Copiar senha</string>
+    <string name="copy_username">Copiar nome de usuário</string>
+    <string name="copy_email">Copiar email</string>
+    <string name="copy_phone_number">Copiar número de telefone</string>
+    <string name="copy_passport_number">Copiar número do passaporte</string>
     <string name="copy_license_number">Copy license number</string>
-    <string name="copy_card_number">Copy card number</string>
-    <string name="copy_cardholder_name">Copy cardholder name</string>
-    <string name="copy_expiration_year">Copy expiration year</string>
+    <string name="copy_card_number">Copiar número do cartão</string>
+    <string name="copy_cardholder_name">Copiar nome do titular do cartão</string>
+    <string name="copy_expiration_year">Copiar ano de vencimento</string>
     <string name="copy_expiration_month">Copy expiration month</string>
-    <string name="copy_cvv_code">Copy security code</string>
-    <string name="copy_otp_code">Copy one-time password</string>
-    <string name="copy_otp_secret_code">Copy secret key</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
+    <string name="copy_cvv_code">Copiar código de segurança</string>
+    <string name="copy_otp_code">Copiar código OTP</string>
+    <string name="copy_otp_secret_code">Copiar chave secreta</string>
+    <string name="copied_value">Valor copiado</string>
+    <string name="copied_url">URL copiada</string>
+    <string name="copied_uri">URI copiada</string>
+    <string name="copied_package_name">Nome do pacote copiado</string>
+    <string name="copied_password">Senha copiada</string>
+    <string name="copied_username">Nome de usuário copiado</string>
+    <string name="copied_email">E-mail copiado</string>
+    <string name="copied_phone_number">Número de telefone copiado</string>
+    <string name="copied_passport_number">Número do passaporte copiado</string>
     <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
+    <string name="copied_card_number">Número do cartão copiado</string>
+    <string name="copied_cardholder_name">Nome de titular do cartão copiado</string>
     <string name="copied_expiration_year">Copied an expiration year</string>
     <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied a one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
-    <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
-    <string name="autofill_open_keyguard">Open Keyguard</string>
-    <string name="january">January</string>
-    <string name="february">February</string>
-    <string name="march">March</string>
-    <string name="april">April</string>
-    <string name="may">May</string>
-    <string name="june">June</string>
-    <string name="july">July</string>
-    <string name="august">August</string>
-    <string name="september">September</string>
-    <string name="october">October</string>
-    <string name="november">November</string>
-    <string name="december">December</string>
-    <string name="tolerance">Tolerance</string>
-    <string name="tolerance_min">Min</string>
-    <string name="tolerance_low">Low</string>
+    <string name="copied_cvv_code">Código de segurança copiado</string>
+    <string name="copied_otp_code">Código OTP copiado</string>
+    <string name="copied_otp_secret_code">Chave secreta copiada</string>
+    <string name="autofill_unlock_keyguard">Desbloquear Keyguard</string>
+    <string name="autofill_open_keyguard">Abrir Keyguard</string>
+    <string name="january">Janeiro</string>
+    <string name="february">Fevereiro</string>
+    <string name="march">Março</string>
+    <string name="april">Abril</string>
+    <string name="may">Maio</string>
+    <string name="june">Junho</string>
+    <string name="july">Julho</string>
+    <string name="august">Agosto</string>
+    <string name="september">Setembro</string>
+    <string name="october">Outubro</string>
+    <string name="november">Novembro</string>
+    <string name="december">Dezembro</string>
+    <string name="tolerance">Tolerância</string>
+    <string name="tolerance_min">Mínimo</string>
+    <string name="tolerance_low">Baixo</string>
     <string name="tolerance_normal">Normal</string>
-    <string name="tolerance_high">High</string>
-    <string name="tolerance_max">Max</string>
-    <string name="list_move_up">Move up</string>
-    <string name="list_move_down">Move down</string>
-    <string name="list_remove">Remove</string>
-    <string name="list_remove_confirmation_title">Remove an item?</string>
-    <string name="list_add">Add more</string>
+    <string name="tolerance_high">Alto</string>
+    <string name="tolerance_max">Máximo</string>
+    <string name="list_move_up">Mover para cima</string>
+    <string name="list_move_down">Mover para baixo</string>
+    <string name="list_remove">Remover</string>
+    <string name="list_remove_confirmation_title">Remover um item?</string>
+    <string name="list_add">Adicionar mais</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">Authenticate WebAuthn</string>
-    <string name="fido2webauthn_action_return_title">Return to app</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="fido2webauthn_action_go_title">Autenticar WebAuthn</string>
+    <string name="fido2webauthn_action_return_title">Voltar ao aplicativo</string>
+    <string name="expiry_tips_item_line1">Este item expira em <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Este cartão expira em <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Existem algumas coisas que você pode fazer para garantir uma transição suave:</string>
+    <string name="expiry_tips_card_line2">1. Obtenha um novo cartão: O emissor do seu cartão pode já ter lhe enviado um cartão substituto com uma nova data de validade. Caso contrário, entre em contato com o emissor do cartão para saber se ele planeja enviar um novo cartão e quando o receberá.</string>
+    <string name="expiry_tips_card_line3">2. Atualize os pagamentos automáticos: Se você tiver algum pagamento automático configurado com o seu cartão, como uma assinatura mensal de academia ou da Netflix, certifique-se de atualizar as informações com o novo número do cartão e a data de vencimento.</string>
+    <string name="expiry_tips_card_line4">3. Destrua o cartão antigo: Quando o novo cartão chegar e você tiver atualizado todas as informações necessárias, certifique-se de descartar com segurança o cartão antigo vencido para evitar roubo de identidade.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
-    <string name="error_must_not_be_empty">Must not be empty</string>
+    <string name="error_must_not_be_empty">Não pode estar vazio</string>
     <!--
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
-    <string name="error_must_not_be_blank">Must not be blank</string>
-    <string name="error_must_be_custom_domain">Must be custom domain</string>
-    <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
-    <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_invalid_domain">Invalid domain</string>
-    <string name="error_invalid_email">Invalid email</string>
-    <string name="error_invalid_url">Invalid URL</string>
-    <string name="error_invalid_uri">Invalid URI</string>
-    <string name="error_invalid_card_number">Invalid card number</string>
-    <string name="error_incorrect_password">Incorrect password</string>
-    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
-    <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_must_not_be_blank">Não pode estar vazio</string>
+    <string name="error_must_be_custom_domain">Deve ser um domínio personalizado</string>
+    <string name="error_must_contain_only_us_ascii_chars">Deve conter apenas caracteres US-ASCII</string>
+    <string name="error_must_have_at_least_n_symbols">Deve ter no mínimo <xliff:g id="length" example="15">%1$d</xliff:g> símbolos</string>
+    <string name="error_must_have_exactly_n_symbols">Deve ter <xliff:g id="length" example="15">%1$d</xliff:g> símbolos</string>
+    <string name="error_invalid_domain">Domínio inválido</string>
+    <string name="error_invalid_email">E-mail inválido</string>
+    <string name="error_invalid_url">URL inválida</string>
+    <string name="error_invalid_uri">URI inválido</string>
+    <string name="error_invalid_card_number">Número de cartão inválido</string>
+    <string name="error_incorrect_password">Senha incorreta</string>
+    <string name="error_failed_generate_kdf_hash_oom">Falha ao criar uma chave, memória insuficiente. Por favor, verifique as configurações do servidor KDF.</string>
+    <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
+    <string name="error_failed_create_passkey">Falha ao criar uma passkey</string>
+    <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
+    <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <!-- Title of the 'Show as Barcode' dialog -->
-    <string name="barcodetype_title">Barcode</string>
-    <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Copy this authenticator to another device by scanning the QR code.</string>
+    <string name="barcodetype_title">Código de barras</string>
+    <string name="barcodetype_action_show_in_barcode_title">Exibir como código de barras</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Copie este autenticador para outro dispositivo escaneando o QR code.</string>
     <!-- Title of the 'Date picker' dialog -->
-    <string name="datepicker_title">Date picker</string>
+    <string name="datepicker_title">Seletor de data</string>
     <!-- Title of the 'Color picker' dialog -->
-    <string name="colorpicker_title">Color picker</string>
+    <string name="colorpicker_title">Seletor de cores</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justdeleteme_title">How to delete an account?</string>
-    <string name="justdeleteme_subtitle">A collection of info of how to delete your account from web services</string>
+    <string name="justdeleteme_title">Como excluir uma conta?</string>
+    <string name="justdeleteme_subtitle">Coleção de informações sobre como excluir a sua conta de serviços web</string>
     <!-- Simple process -->
-    <string name="justdeleteme_difficulty_easy_label">Easy</string>
+    <string name="justdeleteme_difficulty_easy_label">Fácil</string>
     <!-- Some extra steps involved -->
-    <string name="justdeleteme_difficulty_medium_label">Medium</string>
+    <string name="justdeleteme_difficulty_medium_label">Médio</string>
     <!-- Cannot be fully deleted without contacting customer services -->
-    <string name="justdeleteme_difficulty_hard_label">Hard</string>
+    <string name="justdeleteme_difficulty_hard_label">Difícil</string>
     <!-- Account can only be deleted if you live in a location with privacy rights -->
-    <string name="justdeleteme_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justdeleteme_difficulty_limited_availability_label">Disponibilidade limitada</string>
     <!-- Cannot be deleted -->
-    <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
-    <string name="justdeleteme_send_email_title">Send email</string>
-    <string name="justdeleteme_search_placeholder">Search websites</string>
-    <string name="justdeleteme_empty_label">No instructions</string>
+    <string name="justdeleteme_difficulty_impossible_label">Impossível</string>
+    <string name="justdeleteme_send_email_title">Enviar e-mail</string>
+    <string name="justdeleteme_search_placeholder">Pesquisar sites</string>
+    <string name="justdeleteme_empty_label">Sem instruções</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_title">Como obter meus dados?</string>
+    <string name="justgetmydata_subtitle">Uma coleção de informações sobre como obter a informação da sua conta através de serviços web</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Fácil</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Médio</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Difícil</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Disponibilidade limitada</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
-    <string name="tfa_directory_title">Two-factor authentication</string>
-    <string name="tfa_directory_text">List of websites with two-factor authentication support</string>
-    <string name="tfa_directory_search_placeholder">Search websites</string>
+    <string name="justgetmydata_difficulty_impossible_label">Impossível</string>
+    <string name="justgetmydata_send_email_title">Enviar um e-mail</string>
+    <string name="justgetmydata_search_placeholder">Pesquisar sites</string>
+    <string name="justgetmydata_empty_label">Sem instruções</string>
+    <string name="tfa_directory_title">Autenticação de dois fatores</string>
+    <string name="tfa_directory_text">Lista de sites com suporte a autenticação de dois fatores</string>
+    <string name="tfa_directory_search_placeholder">Pesquisar sites</string>
     <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">List of websites with passkeys support</string>
-    <string name="passkeys_directory_search_placeholder">Search websites</string>
+    <string name="passkeys_directory_text">Lista de sites com suporte a passkeys</string>
+    <string name="passkeys_directory_search_placeholder">Pesquisar sites</string>
     <!-- Title of the 'Email data breach' dialog -->
-    <string name="emailleak_title">Data breach</string>
-    <string name="emailleak_note">Breached account data can provide malicious actors with access to sensitive personal and financial information, potentially leading to identity theft, financial fraud, and other forms of cybercrime.</string>
-    <string name="emailleak_breach_not_found_title">No breaches found</string>
-    <string name="emailleak_breach_found_title">Breached accounts found</string>
-    <string name="emailleak_breach_section">Breaches</string>
-    <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
-    <string name="passwordleak_title">Data breach</string>
-    <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
-    <string name="passwordleak_occurrences_found_title">Password is compromised</string>
-    <string name="passwordleak_occurrences_found_text">The password has been identified in known data breaches. Please change it immediately to protect your online security</string>
-    <string name="passwordleak_occurrences_not_found_title">No breaches found</string>
-    <string name="passwordleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
+    <string name="emailleak_title">Vazamento de dados</string>
+    <string name="emailleak_note">Dados de contas que sofreram vazamento podem fornecer a agentes mal-intencionados acesso a informações pessoais e financeiras confidenciais, o que pode levar a roubo de identidade, fraude financeira e outras formas de crime cibernético.</string>
+    <string name="emailleak_breach_not_found_title">Não foram encontrados vazamentos</string>
+    <string name="emailleak_breach_found_title">Contas comprometidas encontradas</string>
+    <string name="emailleak_breach_section">Vazamentos</string>
+    <string name="emailleak_breach_occurred_at">Ocorreu em <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Reportado em <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Falha na verificação de vazamentos de dados. Você pode estar off-line no momento</string>
+    <string name="passwordleak_title">Vazamento de dados</string>
+    <string name="passwordleak_note">Uma senha encontrada em vazamentos de dados leva muito menos tempo para ser quebrada e nunca deve ser usada.</string>
+    <string name="passwordleak_occurrences_found_title">A senha está comprometida</string>
+    <string name="passwordleak_occurrences_found_text">A senha foi identificada em vazamentos de dados conhecidos. Altere-a imediatamente para proteger sua segurança on-line</string>
+    <string name="passwordleak_occurrences_not_found_title">Não foram encontrados vazamentos</string>
+    <string name="passwordleak_failed_to_load_status_text">Falha na verificação de vazamentos de dados. Você pode estar off-line no momento</string>
     <!-- Title of the 'Show in Large Type' dialog -->
-    <string name="largetype_title">Large Type</string>
-    <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
-    <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
-    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
-    <string name="apppicker_header_title">App Picker</string>
-    <string name="apppicker_search_placeholder">Search installed apps</string>
-    <string name="apppicker_system_app_label">System app</string>
-    <string name="apppicker_empty_label">No apps</string>
-    <string name="folderpicker_header_title">Choose a folder</string>
-    <string name="folderpicker_create_new_folder">Create a new folder:</string>
+    <string name="largetype_title">Tipo Grande</string>
+    <string name="largetype_action_show_in_large_type_title">Mostrar em Tipo Grande</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Mostrar em Tipo Grande e Bloquear cofre</string>
+    <string name="largetype_unicode_surrogate_note">O texto contém símbolos Unicode compostos!</string>
+    <string name="apppicker_header_title">Seletor de aplicativos</string>
+    <string name="apppicker_search_placeholder">Pesquisar aplicativos instalados</string>
+    <string name="apppicker_system_app_label">Aplicativo do sistema</string>
+    <string name="apppicker_empty_label">Nenhum aplicativo</string>
+    <string name="folderpicker_header_title">Escolha uma pasta</string>
+    <string name="folderpicker_create_new_folder">Criar uma nova pasta:</string>
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">This organization will have an ownership of the copy. You will not be the direct owner.</string>
-    <string name="emailrelay_list_header_title">Email forwarders</string>
-    <string name="emailrelay_list_section_title">Email forwarders</string>
-    <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
-    <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
-    <string name="emailrelay_integration_title">Email forwarder integration</string>
-    <string name="emailrelay_empty_label">No email forwarders</string>
-    <string name="emailrelay_base_env_server_url_label">Server URL</string>
-    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_empty_label">No wordlists</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
-    <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
-    <string name="setup_field_app_password_label">App password</string>
-    <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
-    <string name="setup_biometric_auth_confirm_title">Create a vault</string>
-    <string name="setup_button_send_crash_reports">Send crash reports</string>
-    <string name="setup_button_create_vault">Create a vault</string>
-    <string name="setup_action_erase_data_title">Erase app data</string>
-    <string name="setup_action_erase_data_text">Close the app and erase all local app data</string>
-    <string name="unlock_header_text">The vault is locked. Enter your app password to continue.</string>
-    <string name="unlock_button_unlock">Unlock</string>
+    <string name="destinationpicker_organization_ownership_note">Essa organização terá a posse dessa cópia. Você não será o proprietário direto.</string>
+    <string name="emailrelay_list_header_title">Encaminhadores de e-mail</string>
+    <string name="emailrelay_list_section_title">Encaminhadores de e-mail</string>
+    <string name="emailrelay_delete_one_confirmation_title">Apagar encaminhamento de e-mail?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Apagar encaminhamentos de e-mail?</string>
+    <string name="emailrelay_integration_title">Integração de encaminhamento de e-mail</string>
+    <string name="emailrelay_empty_label">Sem encaminhamentos de e-mail</string>
+    <string name="emailrelay_base_env_server_url_label">Endereço do servidor</string>
+    <string name="emailrelay_base_env_note">Especifique a URL raiz de sua instalação auto-hospedada.</string>
+    <string name="wordlist_list_header_title">Lista de Palavras</string>
+    <string name="wordlist_list_section_title">Lista de Palavras</string>
+    <string name="wordlist_delete_one_confirmation_title">Excluir a lista de palavras?</string>
+    <string name="wordlist_delete_many_confirmation_title">Excluir as listas de palavras?</string>
+    <string name="wordlist_edit_wordlist_title">Editar uma lista de palavras</string>
+    <string name="wordlist_add_wordlist_title">Adicionar uma lista de palavras</string>
+    <string name="wordlist_empty_label">Sem listas de palavras</string>
+    <string name="wordlist_word_search_placeholder">Pesquisar palavras</string>
+    <string name="urloverride_header_title">Substituição de URL</string>
+    <string name="urloverride_list_header_title">Substituições de URL</string>
+    <string name="urloverride_list_section_title">Substituições de URL</string>
+    <string name="urloverride_regex_note">A substituição será aplicada às URLs que correspondem à expressão regular.</string>
+    <string name="urloverride_delete_one_confirmation_title">Excluir a substituição de URL?</string>
+    <string name="urloverride_delete_many_confirmation_title">Excluir as substituições de URL?</string>
+    <string name="urloverride_empty_label">Nenhuma substituição de URL</string>
+    <string name="setup_header_text">Crie um cofre criptografado onde os dados locais serão armazenados.</string>
+    <string name="setup_field_app_password_label">Senha do aplicativo</string>
+    <string name="setup_checkbox_biometric_auth">Autenticação biométrica</string>
+    <string name="setup_biometric_auth_confirm_title">Criar um cofre</string>
+    <string name="setup_button_send_crash_reports">Enviar relatórios de erros</string>
+    <string name="setup_button_create_vault">Criar um cofre</string>
+    <string name="setup_action_erase_data_title">Apagar dados do aplicativo</string>
+    <string name="setup_action_erase_data_text">Fechar aplicativo e apagar todos os dados locais</string>
+    <string name="unlock_header_text">O cofre está bloqueado. Insira sua senha do aplicativo para continuar.</string>
+    <string name="unlock_button_unlock">Desbloquear</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_title">Unlock a vault</string>
+    <string name="unlock_biometric_auth_confirm_title">Desbloquear um cofre</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Use biometric authentication to unlock the vault.</string>
     <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
@@ -579,7 +580,7 @@
     <string name="home_vault_label">Vault</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generator</string>
-    <string name="home_watchtower_label">Watchtower</string>
+    <string name="home_watchtower_label">Guardião</string>
     <string name="home_settings_label">Settings</string>
     <string name="lock_reason_inactivity">Locked due to inactivity</string>
     <string name="send_type_text">Text</string>

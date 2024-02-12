@@ -7,9 +7,9 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Naam</string>
     <string name="account_name">Accountnaam</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
+    <string name="enabled">Ingeschakeld</string>
+    <string name="disabled">Uitgeschakeld</string>
+    <string name="wordlist">Woordenlijst</string>
     <string name="username">Gebruikersnaam</string>
     <string name="password">Wachtwoord</string>
     <string name="app_password">App wachtwoord</string>
@@ -113,8 +113,9 @@
     <string name="address3">Adresregel 3</string>
     <string name="rename">Hernoemen</string>
     <string name="select_linked_type">Selecteer type</string>
-    <string name="select_file">Select a file</string>
+    <string name="select_file">Bestand selecteren</string>
     <string name="autofill">Automatisch aanvullen</string>
+    <string name="autofill_and_save_uri">Automatisch aanvullen en opslaan van app of website informatie</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Maak een passkey</string>
     <string name="passkey_unlock_header">Keyguard ontgrendelen</string>
@@ -137,7 +138,7 @@
     <string name="passkey_discoverable">Discoverable</string>
     <string name="passkey_user_username">Gebruikersnaam</string>
     <string name="passkey_user_display_name">Weergavenaam</string>
-    <string name="ignored_alerts">Ignored alerts</string>
+    <string name="ignored_alerts">Genegeerde waarschuwingen</string>
     <string name="api_key">API sleutel</string>
     <string name="domain">Domein</string>
     <string name="edit">Bewerken</string>
@@ -234,7 +235,7 @@
     <string name="ciphers_action_trash_title">Prullenbak</string>
     <string name="ciphers_action_restore_title">Herstel</string>
     <string name="ciphers_action_delete_title">Definitief verwijderen</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configureer Watchtower waarschuwingen</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Verwante items verplaatsen naar prullenbak</string>
     <string name="file_action_open_with_title">Open met…</string>
     <string name="file_action_send_with_title">Verzenden met…</string>
@@ -258,7 +259,7 @@
     <string name="uri_action_launch_in_app_title">Openen met <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Openen met…</string>
     <string name="uri_action_how_to_delete_account_title">Hoe verwijder ik mijn account?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
+    <string name="uri_action_get_my_data_account_title">Hoe krijg ik mijn gegevens?</string>
     <string name="uri_action_autofix_unsecure_title">Auto-fix onveilige URL</string>
     <string name="uri_action_autofix_unsecure_text">Wijzigt een protocol naar een beveiligde variant als deze beschikbaar is</string>
     <string name="uri_unsecure">Onveilig</string>
@@ -355,11 +356,11 @@
     <string name="october">Oktober</string>
     <string name="november">November</string>
     <string name="december">December</string>
-    <string name="tolerance">Tolerance</string>
+    <string name="tolerance">Tolerantie</string>
     <string name="tolerance_min">Min</string>
-    <string name="tolerance_low">Low</string>
-    <string name="tolerance_normal">Normal</string>
-    <string name="tolerance_high">High</string>
+    <string name="tolerance_low">Laag</string>
+    <string name="tolerance_normal">Normaal</string>
+    <string name="tolerance_high">Hoog</string>
     <string name="tolerance_max">Max</string>
     <string name="list_move_up">Verplaats omhoog</string>
     <string name="list_move_down">Verplaats omlaag</string>
@@ -426,18 +427,18 @@
     <string name="justgetmydata_title">How to get my data?</string>
     <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Gemakkelijk</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Gemiddeld</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Moeilijk</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Beperkte beschikbaarheid</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_difficulty_impossible_label">Onmogelijk</string>
+    <string name="justgetmydata_send_email_title">E-mail verzenden</string>
+    <string name="justgetmydata_search_placeholder">Zoek websites</string>
+    <string name="justgetmydata_empty_label">Geen instructies gevonden</string>
     <string name="tfa_directory_title">Tweestapsverificatie</string>
     <string name="tfa_directory_text">Lijst van websites met ondersteuning voor tweestapsverificatie</string>
     <string name="tfa_directory_search_placeholder">Zoek websites</string>
@@ -463,7 +464,7 @@
     <string name="largetype_title">Groot type</string>
     <string name="largetype_action_show_in_large_type_title">Weergeven in groot type</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Toon in Groot Type en vergrendel de kluis</string>
-    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
+    <string name="largetype_unicode_surrogate_note">Tekst bevat samengestelde Unicode symbolen!</string>
     <string name="apppicker_header_title">App kiezer</string>
     <string name="apppicker_search_placeholder">Geïnstalleerde apps zoeken</string>
     <string name="apppicker_system_app_label">Systeem app</string>
@@ -482,14 +483,14 @@
     <string name="emailrelay_empty_label">Geen e-mail forwarders</string>
     <string name="emailrelay_base_env_server_url_label">Server URL</string>
     <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_empty_label">No wordlists</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
+    <string name="wordlist_list_header_title">Woordenlijsten</string>
+    <string name="wordlist_list_section_title">Woordenlijsten</string>
+    <string name="wordlist_delete_one_confirmation_title">Woordenlijst verwijderen?</string>
+    <string name="wordlist_delete_many_confirmation_title">Woordenlijst verwijderen?</string>
+    <string name="wordlist_edit_wordlist_title">Woordenlijst bewerken</string>
+    <string name="wordlist_add_wordlist_title">Voeg een woordenlijst toe</string>
+    <string name="wordlist_empty_label">Geen woordenlijsten</string>
+    <string name="wordlist_word_search_placeholder">Zoek woorden</string>
     <string name="urloverride_header_title">URL overrides</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
@@ -670,13 +671,13 @@
     <string name="generator_passphrase_delimiter_title">Scheidingsteken</string>
     <string name="generator_passphrase_capitalize_title">Hoofdletters</string>
     <string name="generator_passphrase_number_title">Nummers</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
+    <string name="generator_passphrase_wordlist_title">Woordenlijst</string>
     <string name="generator_username_type">Gebruikersnaam</string>
     <string name="generator_username_delimiter_title">Scheidingsteken</string>
     <string name="generator_username_custom_word_title">Aangepast woord</string>
     <string name="generator_username_capitalize_title">Hoofdletters</string>
     <string name="generator_username_number_title">Nummers</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
+    <string name="generator_username_wordlist_title">Woordenlijst</string>
     <string name="generator_password_type">Willekeurige symbolen</string>
     <string name="generator_password_note">Een sterk wachtwoord heeft ten minste <xliff:g id="length" example="15">%1$d</xliff:g> tekens, hoofdletters &amp; kleine letters, cijfers en symbolen.</string>
     <string name="generator_password_numbers_title">Cijfers</string>
@@ -706,14 +707,14 @@
     <string name="generatorhistory_clear_history_title">Wis geschiedenis</string>
     <string name="generatorhistory_clear_history_confirmation_title">Generator geschiedenis wissen?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Dit zal alle items uit de geschiedenis verwijderen.</string>
-    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
-    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Verwijder dit item uit de geschiedenis?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Verwijder deze items uit de geschiedenis?</string>
     <string name="passwordhistory_header_title">Wachtwoord geschiedenis</string>
     <string name="passwordhistory_clear_history_title">Geschiedenis wissen</string>
     <string name="passwordhistory_clear_history_confirmation_title">Wachtwoord geschiedenis wissen?</string>
     <string name="passwordhistory_clear_history_confirmation_text">Dit verwijdert alle wachtwoorden uit de geschiedenis.</string>
-    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
-    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Wachtwoord uit de geschiedenis verwijderen?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Wachtwoorden uit de geschiedenis verwijderen?</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Wachtwoordsterkte</string>
     <string name="watchtower_section_security_label">Beveiliging</string>
@@ -801,7 +802,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_changelog_title">App wijzigingslogboek</string>
     <string name="pref_item_app_team_title">Team achter de app</string>
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>
@@ -868,7 +869,7 @@
     <string name="pref_item_keep_screen_on_title">Houd het scherm aan tijdens het bekijken van items</string>
     <string name="pref_item_autofill_service_title">Autofill service</string>
     <string name="pref_item_autofill_service_text">Gebruik het Android Autofill Framework om te helpen bij het automatisch invullen van inloggegevens in andere apps op het apparaat</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Voor sommige Xiaomi apparaten moet je handmatig de toestemming \"Toon pop-upvensters weergeven wanneer ze in de achtergrond draaien\" toestaan. Open de instellingen en controleer of deze verleend zijn.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Automatisch verificatie codes kopiëren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Bij het invullen van een inloggegevens worden eenmalige verificatie codes gekopieerd</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggesties</string>
@@ -887,7 +888,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Eenmalige wachtwoord notificatie duur</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Wanneer u een inlogitem met een eenmalig verificatiecode invult, zal de notificatie met verificatiecode verschijnen voor tenminste de gedefinieerde duur</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Nooit</string>
-    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
+    <string name="pref_item_clipboard_notification_settings_title">Eenmalige wachtwoord notificatie duur</string>
     <string name="pref_item_premium_membership_title">Over het Keyguard lidmaatschap</string>
     <string name="pref_item_premium_membership_text">De premium versie ontgrendelt extra functionaliteiten en financiert de ontwikkeling van de app. Bedankt voor uw steun! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonnementen</string>

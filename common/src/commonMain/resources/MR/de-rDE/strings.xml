@@ -115,6 +115,7 @@
     <string name="select_linked_type">Typ auswählen</string>
     <string name="select_file">Datei wählen</string>
     <string name="autofill">Automatisches Ausfüllen</string>
+    <string name="autofill_and_save_uri">Autofill und App- oder Website-Info speichern</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Passkey erstellen</string>
     <string name="passkey_unlock_header">Keyguard entsperren</string>
@@ -258,7 +259,7 @@
     <string name="uri_action_launch_in_app_title">Mit <xliff:g id="app" example="Keyguard">%1$s</xliff:g> starten</string>
     <string name="uri_action_launch_in_smth_title">Starten mit…</string>
     <string name="uri_action_how_to_delete_account_title">Wie lösche ich ein Konto?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
+    <string name="uri_action_get_my_data_account_title">Wie erhalte ich meine Daten?</string>
     <string name="uri_action_autofix_unsecure_title">Auto-fix unsichere URL</string>
     <string name="uri_action_autofix_unsecure_text">Ändert das Protokoll zu einer sicheren Variante, wenn es verfügbar ist</string>
     <string name="uri_unsecure">Unsicher</string>
@@ -423,21 +424,21 @@
     <string name="justdeleteme_search_placeholder">Webseiten durchsuchen</string>
     <string name="justdeleteme_empty_label">Keine Anweisungen</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_title">Wie erhalte ich meine Daten?</string>
+    <string name="justgetmydata_subtitle">Eine Sammlung von Informationen, wie Sie das von Ihrem Konto von Web-Diensten erhalten</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Einfach</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Mittel</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Schwer</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Begrenzte Verfügbarkeit</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_difficulty_impossible_label">Unmöglich</string>
+    <string name="justgetmydata_send_email_title">Sende eine E-Mail</string>
+    <string name="justgetmydata_search_placeholder">Webseiten durchsuchen</string>
+    <string name="justgetmydata_empty_label">Keine Anweisungen</string>
     <string name="tfa_directory_title">Zwei-Faktor-Authentifizierung</string>
     <string name="tfa_directory_text">Liste an Webseiten mit Unterstützung für Zwei-Faktor-Authentifizierung</string>
     <string name="tfa_directory_search_placeholder">Webseiten durchsuchen</string>

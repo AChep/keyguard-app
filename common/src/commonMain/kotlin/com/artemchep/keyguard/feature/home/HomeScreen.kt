@@ -294,7 +294,7 @@ fun HomeScreenContent(
                         },
                     ),
             ) {
-                val defaultContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                val defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 CompositionLocalProvider(
                     LocalSurfaceColor provides defaultContainerColor,
                     LocalNavigationNodeVisualStack provides persistentListOf(),

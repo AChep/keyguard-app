@@ -112,9 +112,10 @@
     <string name="address2">Address line 2</string>
     <string name="address3">Address line 3</string>
     <string name="rename">Rename</string>
-    <string name="select_linked_type">Välj typ</string>
-    <string name="select_file">Välj fil</string>
+    <string name="select_linked_type">Välj en typ</string>
+    <string name="select_file">Välj en fil</string>
     <string name="autofill">Autofyll</string>
+    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
     <string name="passkey_unlock_header">Unlock Keyguard</string>
@@ -437,7 +438,7 @@
     <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
     <string name="justgetmydata_send_email_title">Send an email</string>
     <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_empty_label">Inga instruktioner</string>
     <string name="tfa_directory_title">Tvåfaktorsautentisering</string>
     <string name="tfa_directory_text">Lista över webbplatser med stöd för tvåfaktorsautentisering</string>
     <string name="tfa_directory_search_placeholder">Search websites</string>

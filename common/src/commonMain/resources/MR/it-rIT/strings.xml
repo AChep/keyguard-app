@@ -115,6 +115,7 @@
     <string name="select_linked_type">Seleziona un tipo</string>
     <string name="select_file">Seleziona un file</string>
     <string name="autofill">Riempimento automatico</string>
+    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una password</string>
     <string name="passkey_unlock_header">Sblocca Keyguard</string>

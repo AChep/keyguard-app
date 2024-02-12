@@ -115,6 +115,7 @@
     <string name="select_linked_type">Select a type</string>
     <string name="select_file">Select a file</string>
     <string name="autofill">自動入力</string>
+    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="passkey">パスキー</string>
     <string name="passkey_create_header">Create a passkey</string>
     <string name="passkey_unlock_header">Unlock Keyguard</string>

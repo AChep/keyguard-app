@@ -93,7 +93,7 @@ ktor = "2.3.8"
 # https://github.com/skydoves/landscapist
 landscapist = "2.3.0"
 # https://github.com/cashapp/licensee
-licenseCheckPlugin = "1.9.0"
+licenseCheckPlugin = "1.9.1"
 # https://github.com/tony19/logback-android
 logback = "3.0.0"
 # https://developers.google.com/android/guides/setup

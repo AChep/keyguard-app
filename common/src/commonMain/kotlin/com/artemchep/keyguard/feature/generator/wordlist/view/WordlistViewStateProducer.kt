@@ -14,7 +14,6 @@ import com.artemchep.keyguard.common.usecase.RemoveWordlistById
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
-import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
@@ -22,12 +21,9 @@ import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -110,17 +106,7 @@ fun produceWordlistViewState(
             }
         }
         .stateIn(screenScope)
-    // Auto-close the screen if a model
-    // disappears
-    wordlistFlow
-        // We drop the first event, because we don't want to never let
-        // the user open the screen if the model doesn't exist, we want to
-        // close it if the model existed before and a user has seen it.
-        .drop(1)
-        .filter { it == null }
-        // Pop the screen.
-        .onEach { navigatePopSelf() }
-        .launchIn(screenScope)
+    launchAutoPopSelfHandler(wordlistFlow)
 
     fun onClick(model: String) {
     }

@@ -77,6 +77,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.EmailIcon
@@ -90,7 +91,6 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.isDark
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.combine
@@ -205,6 +205,7 @@ fun accountState(
 
     val accountFlow = getAccounts()
         .map { it.firstOrNull(accountId) }
+    launchAutoPopSelfHandler(accountFlow)
     val metaFlow = getMetas()
         .map { it.firstOrNull(accountId) }
     val profileFlow = getProfiles()

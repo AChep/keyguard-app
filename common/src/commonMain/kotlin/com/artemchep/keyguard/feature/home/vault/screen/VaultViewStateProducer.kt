@@ -177,6 +177,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -398,6 +399,8 @@ fun vaultViewScreenState(
                 .firstOrNull { it.id == itemId && it.accountId == accountId }
         }
         .distinctUntilChanged()
+    launchAutoPopSelfHandler(secretFlow)
+
     val ciphersFlow = getCiphers()
         .map { secrets ->
             secrets

@@ -212,6 +212,9 @@ fun vaultRecentScreenState(
                                 onClick = cipherSink::emit.partially1(secret),
                             )
                         },
+                        onClickAttachment = {
+                            null
+                        },
                         onClickPasskey = {
                             null
                         },

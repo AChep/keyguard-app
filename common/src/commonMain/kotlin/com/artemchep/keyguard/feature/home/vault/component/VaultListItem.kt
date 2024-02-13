@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -36,7 +37,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -64,8 +64,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.fileName
+import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.textResource
@@ -84,7 +87,6 @@ import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
 import com.artemchep.keyguard.ui.rightClickable
-import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
@@ -92,6 +94,7 @@ import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import dev.icerock.moko.resources.compose.painterResource
 import dev.icerock.moko.resources.compose.stringResource
+import kotlinx.collections.immutable.ImmutableList
 import kotlin.math.ln
 
 @Composable
@@ -319,89 +322,56 @@ fun VaultListItemText(
 
             if (item.token != null) {
                 VaultViewTotpBadge2(
-                    color = badgeColor,
+                    modifier = Modifier
+                        .padding(top = 8.dp),
                     copyText = item.copyText,
                     totpToken = item.token,
                 )
             }
 
-            if (item.passkeys.isNotEmpty()) {
-                FlowRow(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    item.passkeys.forEach {
-                        key(it.source.credentialId) {
-                            Surface(
-                                color = badgeColor.takeIf { it.isSpecified }
-                                    ?: MaterialTheme.colorScheme.surface,
-                                shape = MaterialTheme.shapes.small,
-                                tonalElevation = 1.dp,
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .clickable(onClick = it.onClick)
-                                        .padding(
-                                            start = 8.dp,
-                                            end = 8.dp,
-                                            top = 8.dp,
-                                            bottom = 8.dp,
-                                        ),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(16.dp),
-                                    ) {
-                                        IconSmallBox(
-                                            main = Icons.Outlined.Key,
-                                        )
-                                    }
-                                    Spacer(
-                                        modifier = Modifier
-                                            .width(8.dp),
-                                    )
-                                    val userDisplayName = it.source.userDisplayName
-                                    Text(
-                                        modifier = Modifier
-                                            .widthIn(max = 128.dp)
-                                            .alignByBaseline(),
-                                        text = userDisplayName
-                                            ?: stringResource(Res.strings.empty_value),
-                                        color = if (userDisplayName != null) {
-                                            LocalContentColor.current
-                                        } else {
-                                            LocalContentColor.current
-                                                .combineAlpha(DisabledEmphasisAlpha)
-                                        },
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                    Spacer(
-                                        modifier = Modifier
-                                            .width(8.dp),
-                                    )
-                                    val rpId = it.source.rpId
-                                    Text(
-                                        modifier = Modifier
-                                            .widthIn(max = 128.dp)
-                                            .alignByBaseline(),
-                                        text = rpId,
-                                        color = LocalContentColor.current
-                                            .combineAlpha(MediumEmphasisAlpha),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+            SmartBadgeList(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                items = item.passkeys,
+                key = { it.source.credentialId },
+            ) {
+                SmartBadge(
+                    modifier = Modifier,
+                    icon = {
+                        IconSmallBox(
+                            main = Icons.Outlined.Key,
+                        )
+                    },
+                    title = it.source.userDisplayName,
+                    text = it.source.rpId,
+                    onClick = it.onClick,
+                )
+            }
+
+            SmartBadgeList(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                items = item.attachments2,
+                key = { it.source.id },
+            ) {
+                SmartBadge(
+                    modifier = Modifier,
+                    icon = {
+                        IconSmallBox(
+                            main = Icons.Outlined.KeyguardAttachment,
+                        )
+                    },
+                    title = it.source.fileName(),
+                    text = it.source.fileSize()
+                        ?.let(::humanReadableByteCountSI).orEmpty(),
+                    // TODO: I'm not sure what we can do by clicking
+                    //  on the attachment. Would be nice to support the
+                    //  whole feature set of the attachment item at some
+                    //  point, although that would be pretty complicated.
+                    onClick = null,
+                )
             }
 
             // Inject the dropdown popup to the bottom of the
@@ -518,6 +488,121 @@ fun VaultListItemText(
         onClick = onClick,
         onLongClick = onLongClick,
     )
+}
+
+@Composable
+private inline fun <T : Any> SmartBadgeList(
+    modifier: Modifier = Modifier,
+    items: ImmutableList<T>,
+    crossinline key: (T) -> Any,
+    crossinline item: @Composable (T) -> Unit,
+) {
+    if (items.isEmpty()) {
+        return
+    }
+
+    SmartBadgeListContainer(
+        modifier = modifier,
+    ) {
+        items.forEach {
+            key(key(it)) {
+                item(it)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SmartBadgeListContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable FlowRowScope.() -> Unit,
+) {
+    FlowRow(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun SmartBadge(
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    title: String?,
+    text: String?,
+    onClick: (() -> Unit)? = null,
+) {
+    val updatedOnClick by rememberUpdatedState(onClick)
+
+    val backgroundModifier = if (updatedOnClick != null) {
+        val tintColor = MaterialTheme.colorScheme
+            .surfaceColorAtElevationSemi(1.dp)
+        Modifier
+            .background(tintColor)
+    } else {
+        Modifier
+    }
+    Row(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .then(backgroundModifier)
+            .clickable(enabled = updatedOnClick != null) {
+                updatedOnClick?.invoke()
+            }
+            .padding(
+                start = 8.dp,
+                end = 8.dp,
+                top = 8.dp,
+                bottom = 8.dp,
+            ),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp),
+        ) {
+            icon()
+        }
+        Spacer(
+            modifier = Modifier
+                .width(8.dp),
+        )
+        Text(
+            modifier = Modifier
+                .widthIn(max = 128.dp)
+                .alignByBaseline(),
+            text = title
+                ?: stringResource(Res.strings.empty_value),
+            color = if (title != null) {
+                LocalContentColor.current
+            } else {
+                LocalContentColor.current
+                    .combineAlpha(DisabledEmphasisAlpha)
+            },
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        if (text != null) {
+            Spacer(
+                modifier = Modifier
+                    .width(8.dp),
+            )
+            Text(
+                modifier = Modifier
+                    .widthIn(max = 128.dp)
+                    .alignByBaseline(),
+                text = text,
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
 }
 
 private enum class Try {

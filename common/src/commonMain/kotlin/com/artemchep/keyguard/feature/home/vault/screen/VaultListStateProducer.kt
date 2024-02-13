@@ -806,6 +806,12 @@ fun vaultListScreenState(
                                 actions = dropdown,
                             )
                         },
+                        onClickAttachment = { attachment ->
+                            // lambda
+                            {
+                                // Do nothing
+                            }
+                        },
                         onClickPasskey = { credential ->
                             if (mode is AppMode.PickPasskey) {
                                 val matches = passkeyTargetCheck(credential, mode.target)
@@ -1213,6 +1219,10 @@ fun vaultListScreenState(
                 ?.let {
                     DFilter.findOne(it, DFilter.ByOtp::class.java)
                 } != null
+            val keepAttachment = it.filterConfig?.filter
+                ?.let {
+                    DFilter.findOne(it, DFilter.ByAttachments::class.java)
+                } != null
             val keepPasskey = it.filterConfig?.filter
                 ?.let {
                     DFilter.findOne(it, DFilter.ByPasskeys::class.java)
@@ -1231,6 +1241,8 @@ fun vaultListScreenState(
                                 it.copy(
                                     token = it.token.takeIf { keepOtp },
                                     passkeys = it.passkeys.takeIf { keepPasskey }
+                                        ?: persistentListOf(),
+                                    attachments2 = it.attachments2.takeIf { keepAttachment }
                                         ?: persistentListOf(),
                                 )
                             }

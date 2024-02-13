@@ -760,6 +760,7 @@ private fun TotpTextField(
         Box {
             VaultViewTotpBadge2(
                 modifier = Modifier
+                    .padding(top = 8.dp)
                     .padding(start = 16.dp),
                 copyText = state.copyText,
                 totpToken = totpToken,

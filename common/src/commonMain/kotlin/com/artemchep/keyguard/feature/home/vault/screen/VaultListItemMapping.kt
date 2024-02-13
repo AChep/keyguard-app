@@ -40,6 +40,7 @@ suspend fun DSecret.toVaultListItem(
     groupId: String? = null,
     organizationsById: Map<String, DOrganization>,
     onClick: (List<FlatItemAction>) -> VaultItem2.Item.Action,
+    onClickAttachment: suspend (DSecret.Attachment) -> (() -> Unit)?,
     onClickPasskey: suspend (DSecret.Login.Fido2Credentials) -> (() -> Unit)?,
     localStateFlow: StateFlow<VaultItem2.Item.LocalState>,
 ): VaultItem2.Item {
@@ -117,6 +118,16 @@ suspend fun DSecret.toVaultListItem(
                 val onClick = onClickPasskey(it)
                     ?: return@mapNotNull null
                 VaultItem2.Item.Passkey(
+                    source = it,
+                    onClick = onClick,
+                )
+            }
+            .toImmutableList(),
+        attachments2 = attachments
+            .mapNotNull {
+                val onClick = onClickAttachment(it)
+                    ?: return@mapNotNull null
+                VaultItem2.Item.Attachment(
                     source = it,
                     onClick = onClick,
                 )

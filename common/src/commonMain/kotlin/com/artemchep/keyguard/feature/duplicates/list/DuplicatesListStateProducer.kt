@@ -298,6 +298,9 @@ fun produceDuplicatesListState(
                                             .partially1(cipher),
                                     )
                                 },
+                                onClickAttachment = {
+                                    null
+                                },
                                 onClickPasskey = {
                                     null
                                 },

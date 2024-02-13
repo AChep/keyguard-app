@@ -95,6 +95,7 @@ sealed interface VaultItem2 {
         val copyText: CopyText,
         val token: TotpToken?,
         val passkeys: ImmutableList<Passkey>,
+        val attachments2: ImmutableList<Attachment>,
         /**
          * The name of the item.
          */
@@ -135,6 +136,12 @@ sealed interface VaultItem2 {
         @Immutable
         data class Passkey(
             val source: DSecret.Login.Fido2Credentials,
+            val onClick: () -> Unit,
+        )
+
+        @Immutable
+        data class Attachment(
+            val source: DSecret.Attachment,
             val onClick: () -> Unit,
         )
 

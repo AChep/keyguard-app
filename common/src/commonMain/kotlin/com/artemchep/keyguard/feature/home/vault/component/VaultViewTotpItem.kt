@@ -38,6 +38,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.text.font.FontWeight
@@ -175,7 +176,6 @@ fun RowScope.VaultViewTotpBadge(
 @Composable
 fun VaultViewTotpBadge2(
     modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
     copyText: CopyText,
     totpToken: TotpToken,
 ) {
@@ -183,47 +183,42 @@ fun VaultViewTotpBadge2(
         totpToken = totpToken,
     )
 
-    Surface(
+    val tintColor = MaterialTheme.colorScheme
+        .surfaceColorAtElevationSemi(1.dp)
+    Row(
         modifier = modifier
-            .padding(top = 8.dp),
-        color = color.takeIf { it.isSpecified }
-            ?: MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.small,
-        tonalElevation = 1.dp,
+            .clip(MaterialTheme.shapes.small)
+            .background(tintColor)
+            .clickable(enabled = state is VaultViewTotpItemBadgeState.Success) {
+                val code = (state as? VaultViewTotpItemBadgeState.Success)
+                    ?.codeRaw ?: return@clickable
+                copyText.copy(
+                    text = code,
+                    hidden = false,
+                    type = CopyText.Type.OTP,
+                )
+            }
+            .padding(
+                start = 8.dp,
+                end = 4.dp,
+                top = 4.dp,
+                bottom = 4.dp,
+            ),
     ) {
-        Row(
+        VaultViewTotpCodeContent(
+            totp = totpToken,
+            codes = (state as? VaultViewTotpItemBadgeState.Success?)
+                ?.codes,
+        )
+
+        Spacer(
             modifier = Modifier
-                .clickable(enabled = state is VaultViewTotpItemBadgeState.Success) {
-                    val code = (state as? VaultViewTotpItemBadgeState.Success)
-                        ?.codeRaw ?: return@clickable
-                    copyText.copy(
-                        text = code,
-                        hidden = false,
-                        type = CopyText.Type.OTP,
-                    )
-                }
-                .padding(
-                    start = 8.dp,
-                    end = 4.dp,
-                    top = 4.dp,
-                    bottom = 4.dp,
-                ),
-        ) {
-            VaultViewTotpCodeContent(
-                totp = totpToken,
-                codes = (state as? VaultViewTotpItemBadgeState.Success?)
-                    ?.codes,
-            )
+                .width(16.dp),
+        )
 
-            Spacer(
-                modifier = Modifier
-                    .width(16.dp),
-            )
-
-            VaultViewTotpRemainderBadge(
-                state = state,
-            )
-        }
+        VaultViewTotpRemainderBadge(
+            state = state,
+        )
     }
 }
 

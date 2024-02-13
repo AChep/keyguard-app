@@ -163,7 +163,7 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
             CompositionLocalProvider(
                 LocalSurfaceElevation provides elevation,
                 LocalSurfaceColor provides surfaceElevationColor(elevation.to),
-                LocalHasDetailPane provides true,
+                LocalHasDetailPane provides false,
             ) {
                 PaneLayout(
                     modifier = Modifier

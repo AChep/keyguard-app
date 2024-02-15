@@ -21,6 +21,8 @@ data class BitwardenProfile(
     val email: String,
     val emailVerified: Boolean,
     val premium: Boolean,
+    // Keyguard-specific field
+    val hidden: Boolean = false,
     val securityStamp: String = "",
     val twoFactorEnabled: Boolean,
     val masterPasswordHint: String?,

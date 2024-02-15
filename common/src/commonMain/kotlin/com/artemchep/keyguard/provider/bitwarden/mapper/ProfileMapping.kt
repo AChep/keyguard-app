@@ -47,6 +47,7 @@ fun BitwardenProfile.toDomain(
         accountUrl = accountUrl,
         name = name,
         premium = premium,
+        hidden = hidden,
         securityStamp = securityStamp,
         twoFactorEnabled = twoFactorEnabled,
         masterPasswordHint = masterPasswordHint,

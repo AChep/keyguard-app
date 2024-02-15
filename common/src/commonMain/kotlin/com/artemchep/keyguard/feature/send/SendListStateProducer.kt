@@ -21,7 +21,6 @@ import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.iconImageVector
-import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherToolbox
@@ -30,11 +29,13 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCanWrite
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.SupervisorRead
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
@@ -99,7 +100,6 @@ import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 @LeParcelize
@@ -151,6 +151,7 @@ fun sendListScreenState(
         getAccounts = instance(),
         getCanWrite = instance(),
         getSends = instance(),
+        getProfiles = instance(),
         getAppIcons = instance(),
         getWebsiteIcons = instance(),
         toolbox = instance(),
@@ -173,6 +174,7 @@ fun sendListScreenState(
     getAccounts: GetAccounts,
     getCanWrite: GetCanWrite,
     getSends: GetSends,
+    getProfiles: GetProfiles,
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
     toolbox: CipherToolbox,
@@ -195,15 +197,11 @@ fun sendListScreenState(
     }
 
     val copy = copy(clipboardService)
-    val ciphersRawFlow = getSends()
-//        .map { l ->
-//            Log.e("???","lol ciphers")
-//            (0..100).flatMap { l }.map {
-//                it.copy(id = UUID.randomUUID().toString())
-//            }.also {
-//                Log.d("??? search", "${it.size} items")
-//            }
-//        }
+    val ciphersRawFlow = filterHiddenProfiles(
+        getProfiles = getProfiles,
+        getSends = getSends,
+        filter = null,
+    )
 
     val querySink = mutablePersistedFlow("query") { "" }
     val queryState = mutableComposeState(querySink)
@@ -215,7 +213,7 @@ fun sendListScreenState(
     val selectionHandle = selectionHandle("selection")
     // Automatically remove selection from ciphers
     // that do not exist anymore.
-    getSends()
+    ciphersRawFlow
         .onEach { ciphers ->
             val selectedItemIds = selectionHandle.idsFlow.value
             val filteredSelectedItemIds = selectedItemIds

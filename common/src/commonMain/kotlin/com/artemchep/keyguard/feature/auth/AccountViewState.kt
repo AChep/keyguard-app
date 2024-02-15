@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
-import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.ContextItem
 
 @Immutable
 @optics
@@ -26,7 +26,7 @@ data class AccountViewState(
         data class Data(
             val data: DAccount,
             val items: List<VaultViewItem>,
-            val actions: List<FlatItemAction>,
+            val actions: List<ContextItem>,
             val primaryAction: PrimaryAction? = null,
             val onOpenWebVault: (() -> Unit)? = null,
         ) : Content {

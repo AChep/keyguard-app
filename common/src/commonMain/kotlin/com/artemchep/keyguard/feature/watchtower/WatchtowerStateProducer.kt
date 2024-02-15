@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsMap
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
@@ -101,7 +102,12 @@ fun produceWatchtowerState(
         PersistedStorage.InDisk(disk)
     }
 
-    val ciphersFlow = getCiphers()
+    val ciphersRawFlow = filterHiddenProfiles(
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        filter = null,
+    )
+    val ciphersFlow = ciphersRawFlow
         .map { secrets ->
             secrets
                 .filter { secret -> !secret.deleted }

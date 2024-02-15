@@ -20,11 +20,13 @@ import com.artemchep.keyguard.common.usecase.GetConcealFields
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.SupervisorRead
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
@@ -58,6 +60,7 @@ fun vaultRecentScreenState(
         getAccounts = instance(),
         getCanWrite = instance(),
         getCiphers = instance(),
+        getProfiles = instance(),
         getFolders = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
@@ -84,6 +87,7 @@ fun vaultRecentScreenState(
     getAccounts: GetAccounts,
     getCanWrite: GetCanWrite,
     getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
     getFolders: GetFolders,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
@@ -152,6 +156,11 @@ fun vaultRecentScreenState(
         val websiteIcons: Boolean,
     )
 
+    val ciphersRawFlow = filterHiddenProfiles(
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        filter = null,
+    )
     val configFlow = combine(
         getConcealFields(),
         getAppIcons(),
@@ -182,7 +191,7 @@ fun vaultRecentScreenState(
                 .map { it.cipherId }
                 .toSet()
         }
-        .combine(getCiphers()) { recents, ciphers ->
+        .combine(ciphersRawFlow) { recents, ciphers ->
             recents
                 .mapNotNull { recentId ->
                     ciphers

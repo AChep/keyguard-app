@@ -26,7 +26,9 @@ import androidx.lifecycle.lifecycleScope
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
@@ -179,7 +181,14 @@ class PasskeyGetUnlockActivity : BaseActivity(), DIAware {
         }
         val ciphers = kotlin.run {
             val getCiphers = session.di.direct.instance<GetCiphers>()
-            getCiphers()
+            val getProfiles = session.di.direct.instance<GetProfiles>()
+
+            val ciphersRawFlow = filterHiddenProfiles(
+                getProfiles = getProfiles,
+                getCiphers = getCiphers,
+                filter = null,
+            )
+            ciphersRawFlow
                 .first()
         }
 

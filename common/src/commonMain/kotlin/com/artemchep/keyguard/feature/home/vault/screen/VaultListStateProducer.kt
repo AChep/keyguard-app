@@ -60,6 +60,7 @@ import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
@@ -314,7 +315,12 @@ fun vaultListScreenState(
     }
 
     val copy = copy(clipboardService)
-    val ciphersRawFlow = getCiphers()
+
+    val ciphersRawFlow = filterHiddenProfiles(
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        filter = args.filter,
+    )
 
     val querySink = mutablePersistedFlow("query") { "" }
     val queryState = mutableComposeState(querySink)
@@ -326,7 +332,7 @@ fun vaultListScreenState(
     val selectionHandle = selectionHandle("selection")
     // Automatically remove selection from ciphers
     // that do not exist anymore.
-    getCiphers()
+    ciphersRawFlow
         .onEach { ciphers ->
             val selectedItemIds = selectionHandle.idsFlow.value
             val filteredSelectedItemIds = selectedItemIds

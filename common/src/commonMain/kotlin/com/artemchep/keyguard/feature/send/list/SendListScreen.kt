@@ -70,6 +70,7 @@ import com.artemchep.keyguard.feature.send.view.SendViewRoute
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.Compose
@@ -674,12 +675,8 @@ fun AccountListItemTextIcon(
         active = active,
         badge = {
             if (item.hasPassword) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(1.dp),
+                AvatarBadgeIcon(
                     imageVector = Icons.Outlined.Key,
-                    contentDescription = null,
                 )
             }
         },

@@ -35,7 +35,9 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.recordLog
 import kotlinx.coroutines.CoroutineScope
@@ -156,11 +158,17 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
                     val cipherHistoryOpenedRepository =
                         session.di.direct.instance<CipherHistoryOpenedRepository>()
                     val getCiphers = session.di.direct.instance<GetCiphers>()
+                    val getProfiles = session.di.direct.instance<GetProfiles>()
 
-                    val ciphers = getCiphers()
+                    val ciphersRawFlow = filterHiddenProfiles(
+                        getProfiles = getProfiles,
+                        getCiphers = getCiphers,
+                        filter = null,
+                    )
+                    val ciphers = ciphersRawFlow
                         .map { ciphers ->
                             ciphers
-                                .filter { it.deletedDate == null }
+                                .filter { !it.deleted }
                         }
                         .first()
                     val response = ioEffect {

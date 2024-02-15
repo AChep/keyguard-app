@@ -23,6 +23,7 @@ class ModifyProfileById(
 
     operator fun invoke(
         profileIds: Set<String>,
+        checkIfChanged: Boolean = true,
         transform: suspend (Profile) -> Profile,
     ): IO<Unit> = modifyDatabase { database ->
         val dao = database.profileQueries
@@ -33,12 +34,20 @@ class ModifyProfileById(
             .filter {
                 it.profileId in profileIds
             }
-            .map { model ->
+            .mapNotNull { model ->
                 var new = model
                 new = transform(new)
+                // If the profile was not changed, then we do not need to
+                // update it in the database.
+                if (checkIfChanged && new == model) {
+                    return@mapNotNull null
+                }
+
                 new
             }
-        require(models.isNotEmpty())
+        if (models.isEmpty()) {
+            return@modifyDatabase ModifyDatabase.Result.unit()
+        }
         dao.transaction {
             models.forEach { profile ->
                 dao.insert(

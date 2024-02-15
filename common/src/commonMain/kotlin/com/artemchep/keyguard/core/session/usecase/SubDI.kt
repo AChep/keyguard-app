@@ -87,6 +87,7 @@ import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
+import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.RemoveAccounts
@@ -187,6 +188,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.PatchWatchtowerAlertCip
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountColorByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountNameByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutProfileHiddenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RePromptCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountsImpl
@@ -416,6 +418,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<PutAccountNameById> {
         PutAccountNameByIdImpl(this)
+    }
+    bindSingleton<PutProfileHidden> {
+        PutProfileHiddenImpl(this)
     }
     bindSingleton<GetGeneratorHistory> {
         GetGeneratorHistoryImpl(

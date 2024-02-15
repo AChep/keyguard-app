@@ -254,6 +254,7 @@ fun accountListScreenState(
                     title = AnnotatedString(it.username),
                     text = it.host,
                     error = error,
+                    hidden = profile?.hidden == true,
                     syncing = syncing,
                     selecting = selectionMode,
                     actions = listOf(),

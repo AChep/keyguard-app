@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import kotlinx.coroutines.Dispatchers
@@ -89,6 +90,16 @@ suspend fun merge(
         login = login,
         attachments = attachments,
         ignoredAlerts = ignoredAlerts,
+    )
+}
+
+suspend fun merge(
+    remote: BitwardenProfile,
+    local: BitwardenProfile?,
+): BitwardenProfile {
+    val hidden = local?.hidden == true
+    return remote.copy(
+        hidden = hidden,
     )
 }
 

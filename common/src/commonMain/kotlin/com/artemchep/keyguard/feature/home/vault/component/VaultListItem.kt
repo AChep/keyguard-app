@@ -74,6 +74,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
@@ -840,30 +841,18 @@ fun AccountListItemTextIcon(
         active = item.source.service.remote != null,
         badge = {
             if (item.favourite) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(1.dp),
+                AvatarBadgeIcon(
                     imageVector = Icons.Outlined.KeyguardFavourite,
-                    contentDescription = null,
                 )
             }
             if (item.source.reprompt) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(1.dp),
+                AvatarBadgeIcon(
                     imageVector = Icons.Outlined.Lock,
-                    contentDescription = null,
                 )
             }
             if (item.attachments) {
-                Icon(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .padding(1.dp),
+                AvatarBadgeIcon(
                     imageVector = Icons.Outlined.KeyguardAttachment,
-                    contentDescription = null,
                 )
             }
         },

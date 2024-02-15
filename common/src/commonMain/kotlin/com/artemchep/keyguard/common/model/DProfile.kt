@@ -14,6 +14,11 @@ data class DProfile(
     val accentColor: AccentColors,
     val name: String,
     val premium: Boolean,
+    /**
+     * `true` if the account should be hidden from the main screens and
+     * not used during the autofill process, `false` otherwise.
+     */
+    val hidden: Boolean,
     val securityStamp: String?,
     val twoFactorEnabled: Boolean,
     val masterPasswordHint: String?,

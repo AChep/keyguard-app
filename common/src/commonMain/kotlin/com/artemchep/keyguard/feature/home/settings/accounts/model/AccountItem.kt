@@ -32,6 +32,7 @@ sealed interface AccountItem {
         val title: AnnotatedString,
         val text: String?,
         val error: Boolean = false,
+        val hidden: Boolean,
         val syncing: Boolean = false,
         val selecting: Boolean = false,
         val actionNeeded: Boolean,

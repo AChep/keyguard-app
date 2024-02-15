@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -706,4 +707,18 @@ fun AvatarBuilder(
             badge()
         }
     }
+}
+
+@Composable
+fun AvatarBadgeIcon(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+) {
+    Icon(
+        modifier = modifier
+            .size(16.dp)
+            .padding(1.dp),
+        imageVector = imageVector,
+        contentDescription = null,
+    )
 }

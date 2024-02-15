@@ -24,18 +24,17 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetConcealFields
 import com.artemchep.keyguard.common.usecase.GetOrganizations
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
-import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
-import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
-import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.screen.verify
@@ -70,7 +69,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
@@ -103,6 +101,7 @@ fun produceDuplicatesListState(
         getOrganizations = instance(),
         getCollections = instance(),
         getCiphers = instance(),
+        getProfiles = instance(),
         getCanWrite = instance(),
         cipherToolbox = instance(),
         cipherDuplicatesCheck = instance(),
@@ -121,6 +120,7 @@ fun produceDuplicatesListState(
     getOrganizations: GetOrganizations,
     getCollections: GetCollections,
     getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
     getCanWrite: GetCanWrite,
     cipherToolbox: CipherToolbox,
     cipherDuplicatesCheck: CipherDuplicatesCheck,
@@ -203,7 +203,12 @@ fun produceDuplicatesListState(
         if (r == 0) r = a.id.compareTo(b.id)
         r
     }
-    val ciphersFlow = getCiphers()
+    val ciphersRawFlow = filterHiddenProfiles(
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        filter = args.filter,
+    )
+    val ciphersFlow = ciphersRawFlow
         .map { ciphers ->
             ciphers
                 .filter { it.deletedDate == null }

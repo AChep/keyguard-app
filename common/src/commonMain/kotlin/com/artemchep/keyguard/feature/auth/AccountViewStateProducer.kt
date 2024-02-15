@@ -11,14 +11,18 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.HideSource
+import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -36,6 +40,7 @@ import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DMeta
 import com.artemchep.keyguard.common.model.DProfile
+import com.artemchep.keyguard.common.model.PutProfileHiddenRequest
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CopyText
@@ -52,6 +57,7 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
+import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
@@ -117,6 +123,7 @@ fun accountState(
         putAccountNameById = instance(),
         putAccountColorById = instance(),
         putAccountMasterPasswordHintById = instance(),
+        putProfileHidden = instance(),
         getAccounts = instance(),
         getProfiles = instance(),
         getCiphers = instance(),
@@ -148,6 +155,7 @@ fun accountState(
     putAccountNameById: PutAccountNameById,
     putAccountColorById: PutAccountColorById,
     putAccountMasterPasswordHintById: PutAccountMasterPasswordHintById,
+    putProfileHidden: PutProfileHidden,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
@@ -201,6 +209,16 @@ fun accountState(
                 .launchIn(appScope)
         }
         navigate(intent)
+    }
+
+    fun doHideProfileById(profileId: String, hidden: Boolean) {
+        val request = PutProfileHiddenRequest(
+            patch = mapOf(
+                profileId to hidden,
+            ),
+        )
+        putProfileHidden(request)
+            .launchIn(appScope)
     }
 
     val accountFlow = getAccounts()
@@ -317,48 +335,88 @@ fun accountState(
             getGravatarUrl = getGravatarUrl,
         ).toList()
     }
+    val actionsFlow = combine(
+        accountFlow,
+        profileFlow,
+    ) { accountOrNull, profileOrNull ->
+        val syncing = false
+        val busy = false
+        buildContextItems {
+            section {
+                if (accountOrNull == null) {
+                    return@section
+                }
+
+                this += FlatItemAction(
+                    leading = {
+                        SyncIcon(rotating = syncing)
+                    },
+                    title = translate(Res.strings.sync),
+                    onClick = if (busy) {
+                        null
+                    } else {
+                        // on click listener
+                        ::doSyncAccountById.partially1(accountOrNull.id)
+                    },
+                )
+            }
+            section {
+                if (profileOrNull == null) {
+                    return@section
+                }
+
+                val hidden = profileOrNull.hidden
+
+                val onCheckedChange = ::doHideProfileById
+                    .partially1(profileOrNull.profileId)
+                this += FlatItemAction(
+                    leading = {
+                        Icon(
+                            Icons.Outlined.VisibilityOff,
+                            null,
+                        )
+                    },
+                    trailing = {
+                        Switch(
+                            checked = hidden,
+                            onCheckedChange = onCheckedChange,
+                        )
+                    },
+                    title = translate(Res.strings.account_action_hide_title),
+                    text = translate(Res.strings.account_action_hide_text),
+                    onClick = onCheckedChange.partially1(!hidden),
+                )
+            }
+            section {
+                if (accountOrNull == null) {
+                    return@section
+                }
+
+                this += FlatItemAction(
+                    icon = Icons.Outlined.Logout,
+                    title = translate(Res.strings.account_action_sign_out_title),
+                    onClick = if (busy) {
+                        null
+                    } else {
+                        // on click listener
+                        ::doRemoveAccountById.partially1(accountOrNull.id)
+                    },
+                )
+            }
+        }
+    }
     combine(
         accountFlow,
+        actionsFlow,
         itemsFlow,
         primaryActionFlow,
-    ) { accountOrNull, items, primaryAction ->
+    ) { accountOrNull, actions, items, primaryAction ->
         if (accountOrNull == null) {
             return@combine AccountViewState.Content.NotFound
         }
-
-        val syncing = false
-        val busy = false
-
-        val actionSync =
-            FlatItemAction(
-                leading = {
-                    SyncIcon(rotating = syncing)
-                },
-                title = translate(Res.strings.sync),
-                onClick = if (busy) {
-                    null
-                } else {
-                    // on click listener
-                    ::doSyncAccountById.partially1(accountOrNull.id)
-                },
-            )
-        val actionRemove =
-            FlatItemAction(
-                icon = Icons.Outlined.Logout,
-                title = translate(Res.strings.account_action_sign_out_title),
-                onClick = if (busy) {
-                    null
-                } else {
-                    // on click listener
-                    ::doRemoveAccountById.partially1(accountOrNull.id)
-                },
-            )
         AccountViewState.Content.Data(
             data = accountOrNull,
-            actions = listOf(
-                actionSync,
-                actionRemove,
-            ),
+            actions = actions,
             items = items,
             primaryAction = primaryAction,
             onOpenWebVault = {

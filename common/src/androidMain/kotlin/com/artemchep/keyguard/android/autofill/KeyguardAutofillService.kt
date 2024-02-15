@@ -65,10 +65,16 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 when (session) {
                     is MasterSession.Key -> {
                         val getCiphers = session.di.direct.instance<GetCiphers>()
-                        getCiphers()
+                        val getProfiles = session.di.direct.instance<GetProfiles>()
+                        val ciphersRawFlow = filterHiddenProfiles(
+                            getProfiles = getProfiles,
+                            getCiphers = getCiphers,
+                            filter = null,
+                        )
+                        ciphersRawFlow
                             .map { ciphers ->
                                 ciphers
-                                    .filter { it.deletedDate == null }
+                                    .filter { !it.deleted }
                                     .right()
                             }
                     }

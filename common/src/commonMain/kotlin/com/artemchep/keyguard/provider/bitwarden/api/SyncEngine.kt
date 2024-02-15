@@ -190,7 +190,11 @@ class SyncEngine(
             }
 
             // Insert updated profile.
-            if (existingProfile?.data_ != newProfile) {
+            val newMergedProfile = merge(
+                remote = newProfile,
+                local = existingProfile?.data_,
+            )
+            if (newMergedProfile != existingProfile?.data_) {
                 profileDao.insert(
                     profileId = newProfile.profileId,
                     accountId = newProfile.accountId,

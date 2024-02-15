@@ -200,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Change master password hint</string>
     <string name="account_action_sign_out_title">Sign out</string>
     <string name="account_action_sign_in_title">Sign in</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
     <string name="account_action_tfa_title">Two-factor authentication</string>

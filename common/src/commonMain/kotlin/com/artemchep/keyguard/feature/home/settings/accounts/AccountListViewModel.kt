@@ -255,6 +255,7 @@ fun accountListScreenState(
                     text = it.host,
                     error = error,
                     hidden = profile?.hidden == true,
+                    premium = profile?.premium == true,
                     syncing = syncing,
                     selecting = selectionMode,
                     actions = listOf(),

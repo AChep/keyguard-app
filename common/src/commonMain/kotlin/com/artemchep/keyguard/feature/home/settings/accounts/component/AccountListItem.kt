@@ -39,6 +39,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.theme.selectedContainer
 
@@ -90,6 +91,11 @@ fun AccountListItemText(
                     if (item.hidden) {
                         AvatarBadgeIcon(
                             imageVector = Icons.Outlined.VisibilityOff,
+                        )
+                    }
+                    if (item.premium) {
+                        AvatarBadgeIcon(
+                            imageVector = Icons.Outlined.KeyguardPremium,
                         )
                     }
                 },

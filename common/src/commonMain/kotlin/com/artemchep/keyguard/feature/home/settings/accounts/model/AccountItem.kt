@@ -33,6 +33,7 @@ sealed interface AccountItem {
         val text: String?,
         val error: Boolean = false,
         val hidden: Boolean,
+        val premium: Boolean,
         val syncing: Boolean = false,
         val selecting: Boolean = false,
         val actionNeeded: Boolean,

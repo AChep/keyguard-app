@@ -1021,10 +1021,12 @@
     "name": "AOL / Instant Messenger",
     "domains": [
       "aol.com",
+      "aol.mydashboard.oath.com",
       "cancel.aol.com"
     ],
-    "url": "https://cancel.aol.com",
-    "difficulty": "easy"
+    "url": "https://aol.mydashboard.oath.com/#section-manage",
+    "difficulty": "easy",
+    "notes": "Account gets deactivated for a waiting period of 30-180 days depending on your country, then permanently deleted."
   },
   {
     "name": "Aparat",
@@ -1158,6 +1160,15 @@
     "url": "https://cloud.archipad.com/",
     "difficulty": "easy",
     "notes": "Click on your e-mail on the top right. Click on 'Profile'. Scroll down to find the delete account button in red. Enter password to complete deletion."
+  },
+  {
+    "name": "Archive of Our Own",
+    "domains": [
+      "https://archiveofourown.org/"
+    ],
+    "url": "https://archiveofourown.org/faq/your-account?language_id=en#deleteaccount",
+    "difficulty": "easy",
+    "notes": "Click on your profile picture on the top right, go to 'Profile', and click the 'Delete my account' button"
   },
   {
     "name": "Arduino",
@@ -2841,6 +2852,15 @@
     "url": "https://www.chess.com/my-data",
     "difficulty": "medium",
     "notes": "Enter your email, do the CAPTCHA and click \"Show my data\". Scroll to the bottom, enter your username, and click \"Delete\". Any comments and public posts must be deleted individually before deleting your account."
+  },
+  {
+    "name": "Chessable",
+    "domains": [
+      "chessable.com"
+    ],
+    "url": "https://www.chessable.com/settings/delete",
+    "difficulty": "easy",
+    "notes": "Once you submit your account for deletion, your account (and all data associated with it, including your purchased content) will be scheduled for deletion in compliance with the applicable legislation."
   },
   {
     "name": "Chick-fil-A",
@@ -12821,6 +12841,7 @@
       "calendar.proton.me",
       "drive.proton.me",
       "mail.proton.me",
+      "protonapps.com",
       "protonmail.com",
       "protonvpn.com",
       "account.protonvpn.com"
@@ -16333,8 +16354,10 @@
     "notes": "You only need to confirm your email address; there's no requirement to log in."
   },
   {
-    "name": "Tutanota",
+    "name": "Tutamail",
     "domains": [
+      "tuta.com",
+      "app.tuta.com",
       "keemail.me",
       "tuta.io",
       "tutamail.com",
@@ -16342,7 +16365,7 @@
       "tutanota.de",
       "mail.tutanota.com"
     ],
-    "url": "https://mail.tutanota.com/settings/subscription",
+    "url": "https://app.tuta.com/settings/global",
     "difficulty": "easy",
     "notes": "Go to \"Delete account\", type your password and confirm your action by clicking \"Delete\"."
   },
@@ -16983,6 +17006,15 @@
     "url": "https://vive-lamode.com",
     "difficulty": "hard",
     "notes": "Contact support using the linked form or by email and request account deletion."
+  },
+  {
+    "name": "ViVo",
+    "domains": [
+      "passport.vivo.com"
+    ],
+    "url": "https://passport.vivo.com/in/#/personalCenter",
+    "difficulty": "easy",
+    "notes": "All data related to the account will be wiped in 180 days."
   },
   {
     "name": "VK/\u0412\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u0435",
@@ -18091,7 +18123,8 @@
       "edit.yahoo.com"
     ],
     "url": "https://edit.yahoo.com/config/delete_user",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "notes": "Account gets deactivated for a waiting period of 30-180 days depending on your country, then permanently deleted."
   },
   {
     "name": "Yammer",

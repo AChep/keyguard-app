@@ -21,7 +21,7 @@ data class WordlistListState(
         val revision: Int,
         val items: ImmutableList<Item>,
         val selection: Selection?,
-        val primaryAction: (() -> Unit)?,
+        val primaryActions: ImmutableList<ContextItem>,
     ) {
         companion object
     }

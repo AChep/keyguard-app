@@ -9,6 +9,10 @@ data class AddWordlistRequest(
             val uri: String,
         ) : Wordlist
 
+        data class FromUrl(
+            val url: String,
+        ) : Wordlist
+
         data class FromList(
             val list: List<String>,
         ) : Wordlist

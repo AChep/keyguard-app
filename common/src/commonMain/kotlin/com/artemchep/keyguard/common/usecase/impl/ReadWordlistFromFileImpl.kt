@@ -5,7 +5,6 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromFileAsText
 import com.artemchep.keyguard.common.usecase.ReadWordlistFromFile
-import kotlinx.collections.immutable.toImmutableList
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -20,15 +19,8 @@ class ReadWordlistFromFileImpl(
         uri: String,
     ): IO<List<String>> = ioEffect {
         val content = textService.readFromFileAsText(uri)
-        content
-            .lineSequence()
-            .filter {
-                it.isNotBlank() &&
-                        !it.startsWith('#') &&
-                        !it.startsWith(';') &&
-                        !it.startsWith('-') &&
-                        !it.startsWith('/')
-            }
-            .toImmutableList()
+        with(content) {
+            ReadWordlistUtil.parseAsWordlist()
+        }
     }
 }

@@ -1,16 +1,13 @@
 package com.artemchep.keyguard.feature.generator.wordlist.list
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AddLink
+import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.ViewList
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
-import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.model.AddWordlistRequest
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
-import com.artemchep.keyguard.common.model.EditWordlistRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.EditWordlist
@@ -20,22 +17,18 @@ import com.artemchep.keyguard.common.usecase.RemoveWordlistById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
-import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
-import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
-import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
-import com.artemchep.keyguard.ui.icons.KeyguardWordlist
+import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toPersistentList
@@ -250,6 +243,24 @@ fun produceWordlistListState(
                 cause = e,
             )
         }
+    val primaryActions = buildContextItems {
+        section {
+            this += FlatItemAction(
+                leading = icon(Icons.Outlined.AttachFile),
+                title = translate(Res.strings.wordlist_add_wordlist_via_file_title),
+                onClick = WordlistUtil::onNewFromFile
+                    .partially1(this@produceScreenState)
+                    .partially1(addWordlist),
+            )
+            this += FlatItemAction(
+                leading = icon(Icons.Outlined.KeyguardWebsite),
+                title = translate(Res.strings.wordlist_add_wordlist_via_url_title),
+                onClick = WordlistUtil::onNewFromUrl
+                    .partially1(this@produceScreenState)
+                    .partially1(addWordlist),
+            )
+        }
+    }
     val contentFlow = combine(
         selectionFlow,
         itemsFlow,
@@ -260,9 +271,7 @@ fun produceWordlistListState(
                     revision = 0,
                     items = items,
                     selection = selection,
-                    primaryAction = WordlistUtil::onNew
-                        .partially1(this@produceScreenState)
-                        .partially1(addWordlist),
+                    primaryActions = primaryActions,
                 )
             }
         Loadable.Ok(contentOrException)

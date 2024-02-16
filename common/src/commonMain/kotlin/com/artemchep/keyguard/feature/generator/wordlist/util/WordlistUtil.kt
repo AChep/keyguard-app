@@ -69,7 +69,7 @@ object WordlistUtil {
     }
 
     context(RememberStateFlowScope)
-    fun onNew(
+    fun onNewFromFile(
         addWordlist: AddWordlist,
     ) {
         val nameKey = "name"
@@ -113,6 +113,66 @@ object WordlistUtil {
 
                 val wordlist = AddWordlistRequest.Wordlist.FromFile(
                     uri = file.uri,
+                )
+                val request = AddWordlistRequest(
+                    name = name,
+                    wordlist = wordlist,
+                )
+                addWordlist(request)
+                    .launchIn(appScope)
+            }
+        }
+        val intent = NavigationIntent.NavigateToRoute(route)
+        navigate(intent)
+    }
+
+    context(RememberStateFlowScope)
+    fun onNewFromUrl(
+        addWordlist: AddWordlist,
+    ) {
+        val nameKey = "name"
+        val nameItem = ConfirmationRoute.Args.Item.StringItem(
+            key = nameKey,
+            value = "",
+            title = translate(Res.strings.generic_name),
+            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
+            canBeEmpty = false,
+        )
+
+        val urlKey = "url"
+        val urlItem = ConfirmationRoute.Args.Item.StringItem(
+            key = urlKey,
+            value = "",
+            title = translate(Res.strings.url),
+            type = ConfirmationRoute.Args.Item.StringItem.Type.Command,
+            canBeEmpty = false,
+        )
+
+        val items = listOfNotNull(
+            nameItem,
+            urlItem,
+        )
+        val route = registerRouteResultReceiver(
+            route = ConfirmationRoute(
+                args = ConfirmationRoute.Args(
+                    icon = icon(
+                        main = Icons.Outlined.KeyguardWordlist,
+                        secondary = Icons.Outlined.Add,
+                    ),
+                    title = translate(Res.strings.wordlist_add_wordlist_title),
+                    items = items,
+                    docUrl = null,
+                ),
+            ),
+        ) { result ->
+            if (result is ConfirmationResult.Confirm) {
+                val name = result.data[nameKey] as? String
+                    ?: return@registerRouteResultReceiver
+                val url = result.data[urlKey] as? String
+                    ?: return@registerRouteResultReceiver
+
+                val wordlist = AddWordlistRequest.Wordlist.FromUrl(
+                    url = url,
                 )
                 val request = AddWordlistRequest(
                     name = name,

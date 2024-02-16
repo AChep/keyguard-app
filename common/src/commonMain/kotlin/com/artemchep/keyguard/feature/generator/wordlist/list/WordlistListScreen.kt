@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,8 +30,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +57,9 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
+import com.artemchep.keyguard.ui.DropdownMenuItemFlat
+import com.artemchep.keyguard.ui.DropdownMinWidth
+import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
@@ -108,6 +115,9 @@ fun WordlistListScreen(
         listState.scrollToItem(0, 0)
     }
 
+    val primaryActionsDropdownVisibleState = remember {
+        mutableStateOf(false)
+    }
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -147,8 +157,15 @@ fun WordlistListScreen(
             )
         },
         floatingActionState = run {
-            val onClick =
-                loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryAction
+            val actions = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions.orEmpty()
+            val onClick = if (actions.isNotEmpty()) {
+                // lambda
+                {
+                    primaryActionsDropdownVisibleState.value = true
+                }
+            } else {
+                null
+            }
             val state = FabState(
                 onClick = onClick,
                 model = null,
@@ -159,6 +176,31 @@ fun WordlistListScreen(
             DefaultFab(
                 icon = {
                     IconBox(main = Icons.Outlined.Add)
+
+                    // Inject the dropdown popup to the bottom of the
+                    // content.
+                    val onDismissRequest = remember(primaryActionsDropdownVisibleState) {
+                        // lambda
+                        {
+                            primaryActionsDropdownVisibleState.value = false
+                        }
+                    }
+                    DropdownMenu(
+                        modifier = Modifier
+                            .widthIn(min = DropdownMinWidth),
+                        expanded = primaryActionsDropdownVisibleState.value,
+                        onDismissRequest = onDismissRequest,
+                    ) {
+                        val actions = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions.orEmpty()
+                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
+                        with(scope) {
+                            actions.forEachIndexed { index, action ->
+                                DropdownMenuItemFlat(
+                                    action = action,
+                                )
+                            }
+                        }
+                    }
                 },
                 text = {
                     Text(

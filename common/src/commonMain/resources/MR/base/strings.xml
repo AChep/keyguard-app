@@ -520,6 +520,8 @@
     <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">No wordlists</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
 

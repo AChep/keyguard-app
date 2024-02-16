@@ -47,7 +47,7 @@ bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
 buildkonfigPlugin = "0.15.1"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
-commonsCodec = "1.16.0"
+commonsCodec = "1.16.1"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.14.0"
 # https://github.com/JetBrains/compose-multiplatform
@@ -55,12 +55,12 @@ composeMultiplatform = "1.6.0-beta02"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.0"
 crashlyticsPlugin = "2.9.9"
-firebase = "32.7.1"
+firebase = "32.7.2"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
 glide = "5.0.0-rc01"
-googleServicesPlugin = "4.4.0"
+googleServicesPlugin = "4.4.1"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
@@ -74,7 +74,7 @@ kotlin = "1.9.22"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.3.7"
 # https://github.com/Kotlin/kotlinx.coroutines
-kotlinCoroutines = "1.7.3"
+kotlinCoroutines = "1.8.0"
 # https://github.com/Kotlin/kotlinx-datetime
 kotlinDatetime = "0.5.0"
 kotlinDsl = "4.3.0"
@@ -91,9 +91,9 @@ ktlintPlugin = "12.1.0"
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
 ktor = "2.3.8"
 # https://github.com/skydoves/landscapist
-landscapist = "2.3.0"
+landscapist = "2.3.1"
 # https://github.com/cashapp/licensee
-licenseCheckPlugin = "1.9.0"
+licenseCheckPlugin = "1.9.1"
 # https://github.com/tony19/logback-android
 logback = "3.0.0"
 # https://developers.google.com/android/guides/setup
@@ -111,7 +111,7 @@ playServicesBase = "18.3.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "0.20.0"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "8.0.1"
+signalr = "8.0.2"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.12"
 # https://github.com/bcgit/bc-java

@@ -30,9 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
+import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewFullRoute
+import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
+import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
@@ -74,7 +78,19 @@ fun AccountListItemText(
     val backgroundColor = when {
         item.isSelected -> MaterialTheme.colorScheme.primaryContainer
         item.isOpened -> MaterialTheme.colorScheme.selectedContainer
-        else -> Color.Unspecified
+        else -> run {
+            if (LocalHasDetailPane.current) {
+                val nextEntry = navigationNextEntryOrNull()
+                val nextRoute = nextEntry?.route as? AccountViewRoute
+
+                val selected = nextRoute?.accountId?.id == item.id
+                if (selected) {
+                    return@run MaterialTheme.colorScheme.selectedContainer
+                }
+            }
+
+            Color.Unspecified
+        }
     }
     FlatItemLayout(
         backgroundColor = backgroundColor,

@@ -22,17 +22,16 @@ import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.theme.selectedContainer
 
 @Composable
 fun SettingListItem(
     item: SettingsItem,
-    selected: Boolean,
-    onClick: (SettingsItem) -> Unit,
+    backgroundColor: Color,
+    onClick: () -> Unit,
 ) {
     Column {
         FlatItemLayout(
-            backgroundColor = if (selected) MaterialTheme.colorScheme.selectedContainer else Color.Unspecified,
+            backgroundColor = backgroundColor,
             leading = {
                 Avatar {
                     when {
@@ -86,9 +85,7 @@ fun SettingListItem(
                     },
                 )
             },
-            onClick = {
-                onClick(item)
-            },
+            onClick = onClick,
         )
         if (item.content != null) {
             Row(

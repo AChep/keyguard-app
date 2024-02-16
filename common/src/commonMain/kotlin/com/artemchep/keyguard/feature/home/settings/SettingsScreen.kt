@@ -18,7 +18,7 @@ fun SettingsScreen() {
         LocalNavigationNodeVisualStack provides visualStack,
     ) {
         NavigationRouter(
-            id = "settings",
+            id = SettingsRoute.ROUTER_NAME,
             initial = SettingListRoute,
         ) { backStack ->
             TwoPaneNavigationContent(backStack)

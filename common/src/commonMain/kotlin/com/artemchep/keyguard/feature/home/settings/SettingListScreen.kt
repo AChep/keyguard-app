@@ -31,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.common.usecase.GetAccountsHasError
@@ -49,12 +50,13 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
-import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.onboarding.SmallOnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
+import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.isStandalone
 import com.artemchep.keyguard.platform.util.hasAutofill
@@ -66,6 +68,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
+import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import dev.icerock.moko.resources.compose.stringResource
 import org.kodein.di.compose.rememberInstance
@@ -230,14 +233,6 @@ private fun SettingListScreenContent(
     items: List<SettingsItem2>,
 ) {
     val q = LocalNavigationController.current
-    val l = LocalNavigationRouter.current.value
-    val s = l
-        .indexOfLast { it.id == "settings" }
-    val t = if (s != -1) {
-        l.subList(fromIndex = s, toIndex = l.size)
-    } else {
-        emptyList()
-    }
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = false,
@@ -289,13 +284,26 @@ private fun SettingListScreenContent(
         items(items, key = { it.id }) {
             when (it) {
                 is SettingsItem -> {
+                    val backgroundColor = run {
+                        if (LocalHasDetailPane.current) {
+                            val nextEntry = navigationNextEntryOrNull()
+                            val nextRoute = nextEntry?.route
+
+                            val selected = it.route === nextRoute
+                            if (selected) {
+                                return@run MaterialTheme.colorScheme.selectedContainer
+                            }
+                        }
+
+                        Color.Unspecified
+                    }
                     SettingListItem(
-                        selected = it.route === t.getOrNull(1)?.route,
+                        backgroundColor = backgroundColor,
                         item = it,
                         onClick = {
                             val intent = NavigationIntent.Composite(
                                 listOf(
-                                    NavigationIntent.PopById("settings"),
+                                    NavigationIntent.PopById(SettingsRoute.ROUTER_NAME),
                                     NavigationIntent.NavigateToRoute(it.route),
                                 ),
                             )

@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> записей</string>
     <string name="items_all">Все элементы</string>
     <string name="items_empty_label">Нет элементов</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Без папки</string>
     <string name="folder_new">Новая папка</string>
     <string name="folder">Папка</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Изменить подсказку к мастер-паролю</string>
     <string name="account_action_sign_out_title">Выйти</string>
     <string name="account_action_sign_in_title">Войти</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Посетите веб-хранилище для подтверждения адреса вашей электронной почты</string>
     <string name="account_action_premium_purchase_instructions_title">Перейдите на Премиум и получите некоторые замечательные дополнительные функции</string>
     <string name="account_action_tfa_title">Двухфакторная аутентификация</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">Удалить списки?</string>
     <string name="wordlist_edit_wordlist_title">Редактировать список слов</string>
     <string name="wordlist_add_wordlist_title">Добавить список слов</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">Нет списков слов</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="urloverride_header_title">Переопределение URL-адреса</string>

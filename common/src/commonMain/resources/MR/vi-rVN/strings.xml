@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> mục</string>
     <string name="items_all">Tất cả mục</string>
     <string name="items_empty_label">Không có mục</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Chưa có thư mục</string>
     <string name="folder_new">Tạo thư mục</string>
     <string name="folder">Thư mục</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Thay đổi gợi ý mật khẩu chính</string>
     <string name="account_action_sign_out_title">Đăng xuất</string>
     <string name="account_action_sign_in_title">Đăng nhập</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Truy cập trang web của kho để xác thực email của bạn</string>
     <string name="account_action_premium_purchase_instructions_title">Nâng cấp tài khoản của bạn lên thành viên cao cấp và mở khóa một số tính năng bổ sung tuyệt vời</string>
     <string name="account_action_tfa_title">Xác thực hai bước</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">No wordlists</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="urloverride_header_title">URL override</string>

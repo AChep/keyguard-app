@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> itens</string>
     <string name="items_all">Todos os itens</string>
     <string name="items_empty_label">Nenhum item</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Nenhuma pasta</string>
     <string name="folder_new">Nova pasta</string>
     <string name="folder">Pasta</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Alterar dica da senha mestra</string>
     <string name="account_action_sign_out_title">Encerrar Sessão</string>
     <string name="account_action_sign_in_title">Iniciar sessão</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Visite o cofre web para verificar seu endereço de email</string>
     <string name="account_action_premium_purchase_instructions_title">Atualize a sua conta para uma conta premium e desbloqueie ótimos recursos adicionais</string>
     <string name="account_action_tfa_title">Autenticação de dois fatores</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">Excluir as listas de palavras?</string>
     <string name="wordlist_edit_wordlist_title">Editar uma lista de palavras</string>
     <string name="wordlist_add_wordlist_title">Adicionar uma lista de palavras</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">Sem listas de palavras</string>
     <string name="wordlist_word_search_placeholder">Pesquisar palavras</string>
     <string name="urloverride_header_title">Substituição de URL</string>
@@ -511,87 +516,87 @@
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">Desbloquear um cofre</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_text">Use biometric authentication to unlock the vault.</string>
-    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
-    <string name="userverification_button_go">Verify</string>
-    <string name="syncstatus_header_title">Sync status</string>
-    <string name="syncstatus_status_up_to_date">Up to date</string>
-    <string name="syncstatus_status_pending">Pending</string>
-    <string name="syncstatus_status_syncing">Syncing</string>
-    <string name="syncstatus_status_failed">Sync failed</string>
-    <string name="additem_header_new_title">New item</string>
-    <string name="additem_header_edit_title">Edit item</string>
-    <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
-    <string name="additem_markdown_note_italic">italic</string>
-    <string name="additem_markdown_note_bold">bold</string>
-    <string name="additem_markdown_render_preview">Render preview</string>
-    <string name="additem_auth_reprompt_title">Auth re-prompt</string>
-    <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addaccount_header_title">Add Bitwarden account</string>
-    <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
+    <string name="unlock_biometric_auth_confirm_text">Usar autenticação biométrica para desbloquear o cofre.</string>
+    <string name="userverification_header_text">A verificação do usuário é necessária. Digite sua senha do aplicativo para continuar.</string>
+    <string name="userverification_button_go">Verificar</string>
+    <string name="syncstatus_header_title">Status da sincronização</string>
+    <string name="syncstatus_status_up_to_date">Atualizado</string>
+    <string name="syncstatus_status_pending">Pendente</string>
+    <string name="syncstatus_status_syncing">Sincronizando</string>
+    <string name="syncstatus_status_failed">Falha na sincronização</string>
+    <string name="additem_header_new_title">Novo item</string>
+    <string name="additem_header_edit_title">Editar item</string>
+    <string name="additem_markdown_note">Estilize o texto com <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> e muito mais. Suporte à sintaxe Markdown limitada.</string>
+    <string name="additem_markdown_note_italic">itálico</string>
+    <string name="additem_markdown_note_bold">negrito</string>
+    <string name="additem_markdown_render_preview">Renderizar pré-visualização</string>
+    <string name="additem_auth_reprompt_title">Confirmação de autenticação</string>
+    <string name="additem_auth_reprompt_text">Pedir para autenticar novamente quando você visualizar ou preencher automaticamente uma cifra</string>
+    <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Não somos afiliados, associados, autorizados, endossados ou de qualquer forma oficialmente conectados à Bitwarden, Inc., nem a nenhuma de suas subsidiárias ou afiliadas.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
+    <string name="addaccount_captcha_need_client_secret_note">Para passar na verificação do captcha em um cliente Bitwarden não oficial, é necessário especificar a chave secreta do cliente. Para encontrá-lo, visite Web vault / Configurações / Chave de API.</string>
     <!-- A label on top of the Client secret field -->
-    <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
-    <string name="addaccount_sign_in_button">Sign in</string>
-    <string name="addaccount_region_section">Region</string>
-    <string name="addaccount_region_us_type">United States</string>
-    <string name="addaccount_region_eu_type">Europe</string>
-    <string name="addaccount_region_custom_type">Custom (self-hosted)</string>
-    <string name="addaccount_http_header_section">HTTP headers</string>
-    <string name="addaccount_http_header_type">HTTP header</string>
-    <string name="addaccount_http_header_note">You can add custom HTTP headers that will be sent with every request to the server.</string>
-    <string name="addaccount_http_header_key_label">Key</string>
-    <string name="addaccount_http_header_value_label">Value</string>
-    <string name="addaccount_http_header_add_more_button">Add more</string>
-    <string name="addaccount_base_env_server_url_label">Server URL</string>
-    <string name="addaccount_base_env_note">Specify the base URL of your self-hosted Bitwarden installation.</string>
-    <string name="addaccount_custom_env_section">Custom environment</string>
-    <string name="addaccount_custom_env_note">You can specify the base URL of each service independently.</string>
-    <string name="addaccount_custom_env_web_vault_url_label">Web Vault Server URL</string>
-    <string name="addaccount_custom_env_api_url_label">API Server URL</string>
-    <string name="addaccount_custom_env_icons_url_label">Icons Server URL</string>
-    <string name="addaccount_custom_env_identity_url_label">Identity Server URL</string>
-    <string name="addaccount2fa_header_title">Verification</string>
-    <string name="addaccount2fa_unsupported_note">This authentication method is not supported yet.</string>
-    <string name="addaccount2fa_otp_note">Enter the verification code from your authenticator app.</string>
-    <string name="addaccount2fa_email_note">Enter the verification code that was emailed to <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
-    <string name="addaccount2fa_yubikey_manual_text">Enter the YubiKey authentication code manually. Place the cursor on the field below and trigger the YubiKey.</string>
-    <string name="provider_2fa_authenticator">Authenticator</string>
-    <string name="provider_2fa_duo_organization">Duo (Organization)</string>
-    <string name="provider_2fa_fido2_webauthn">FIDO2 Web Authentication</string>
-    <string name="provider_2fa_email">Email</string>
+    <string name="addaccount_captcha_need_client_secret_label">Chave secreta do cliente</string>
+    <string name="addaccount_sign_in_button">Iniciar sessão</string>
+    <string name="addaccount_region_section">Região</string>
+    <string name="addaccount_region_us_type">Estados Unidos</string>
+    <string name="addaccount_region_eu_type">Europa</string>
+    <string name="addaccount_region_custom_type">Personalizado (auto-hospedado)</string>
+    <string name="addaccount_http_header_section">Cabeçalhos HTTP</string>
+    <string name="addaccount_http_header_type">Cabeçalho HTTP</string>
+    <string name="addaccount_http_header_note">Você pode adicionar cabeçalhos HTTP personalizados que serão enviados com cada solicitação ao servidor.</string>
+    <string name="addaccount_http_header_key_label">Chave</string>
+    <string name="addaccount_http_header_value_label">Valor</string>
+    <string name="addaccount_http_header_add_more_button">Adicionar mais</string>
+    <string name="addaccount_base_env_server_url_label">Endereço do servidor</string>
+    <string name="addaccount_base_env_note">Especifique a URL raiz de sua instalação Bitwarden auto-hospedada.</string>
+    <string name="addaccount_custom_env_section">Ambiente personalizado</string>
+    <string name="addaccount_custom_env_note">Você pode especificar a URL raiz de cada serviço independentemente.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Endereço do servidor do Cofre Web</string>
+    <string name="addaccount_custom_env_api_url_label">Endereço do servidor da API</string>
+    <string name="addaccount_custom_env_icons_url_label">Endereço do servidor de ícones</string>
+    <string name="addaccount_custom_env_identity_url_label">URL do Servidor de Identidade</string>
+    <string name="addaccount2fa_header_title">Verificação</string>
+    <string name="addaccount2fa_unsupported_note">Este método de autenticação ainda não é suportado.</string>
+    <string name="addaccount2fa_otp_note">Insira o código de verificação do seu aplicativo de autenticação.</string>
+    <string name="addaccount2fa_email_note">Insira o código de verificação que foi enviado por e-mail para <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
+    <string name="addaccount2fa_yubikey_manual_text">Digite o código de autenticação do YubiKey manualmente. Coloque o cursor no campo abaixo e acione o YubiKey.</string>
+    <string name="provider_2fa_authenticator">Autenticador</string>
+    <string name="provider_2fa_duo_organization">Duo (Organização)</string>
+    <string name="provider_2fa_fido2_webauthn">Autenticação Web FIDO2</string>
+    <string name="provider_2fa_email">E-mail</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
-    <string name="yubikey_usb_title">Connect YubiKey via USB</string>
-    <string name="yubikey_usb_text">Requires USB OTG support.</string>
-    <string name="yubikey_usb_touch_the_gold_sensor_note">Touch the gold sensor on your YubiKey now.</string>
-    <string name="yubikey_nfc_title">Hold your YubiKey flat against the back of your device</string>
-    <string name="yubikey_nfc_text">Requires NFC support.</string>
-    <string name="yubikey_error_failed_to_read">Failed to read YubiKey</string>
-    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Using FIDO2 WebAuthn requires using the Bitwarden Web vault version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> or higher. On older versions the authentication result will incorrectly be forwarded to the official Bitwarden app.</string>
-    <string name="elevatedaccess_header_title">Confirm access</string>
-    <string name="elevatedaccess_header_text">This data is protected, to continue please enter your app password.</string>
+    <string name="yubikey_usb_title">Conecte o YubiKey via USB</string>
+    <string name="yubikey_usb_text">Requer suporte USB OTG.</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Toque no sensor dourado em sua YubiKey agora.</string>
+    <string name="yubikey_nfc_title">Segure sua YubiKey contra a parte traseira de seu dispositivo</string>
+    <string name="yubikey_nfc_text">Requer suporte a NFC.</string>
+    <string name="yubikey_error_failed_to_read">Falha ao ler YubiKey</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Usar FIDO2 WebAuthn requer usar a versão Web do cofre Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> ou superior. Em versões mais antigas, o resultado da autenticação será encaminhado incorretamente para o aplicativo oficial Bitwarden.</string>
+    <string name="elevatedaccess_header_title">Confirmar acesso</string>
+    <string name="elevatedaccess_header_text">Estes dados estão protegidos, para continuar por favor digite a senha do seu aplicativo.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_title">Confirm access</string>
+    <string name="elevatedaccess_biometric_auth_confirm_title">Confirmar acesso</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_text">Use biometric authentication to confirm your access and unlock this data.</string>
-    <string name="home_vault_label">Vault</string>
-    <string name="home_send_label">Send</string>
-    <string name="home_generator_label">Generator</string>
+    <string name="elevatedaccess_biometric_auth_confirm_text">Use a autenticação biométrica para confirmar seu acesso e desbloquear os dados.</string>
+    <string name="home_vault_label">Cofre</string>
+    <string name="home_send_label">Enviar</string>
+    <string name="home_generator_label">Gerador</string>
     <string name="home_watchtower_label">Guardião</string>
-    <string name="home_settings_label">Settings</string>
-    <string name="lock_reason_inactivity">Locked due to inactivity</string>
-    <string name="send_type_text">Text</string>
-    <string name="send_type_file">File</string>
-    <string name="cipher_type_login">Login</string>
-    <string name="cipher_type_card">Card</string>
-    <string name="cipher_type_identity">Identity</string>
-    <string name="cipher_type_note">Note</string>
+    <string name="home_settings_label">Configurações</string>
+    <string name="lock_reason_inactivity">Bloqueado devido à inatividade</string>
+    <string name="send_type_text">Texto</string>
+    <string name="send_type_file">Arquivo</string>
+    <string name="cipher_type_login">Entrar</string>
+    <string name="cipher_type_card">Cartão</string>
+    <string name="cipher_type_identity">Identidade</string>
+    <string name="cipher_type_note">Nota</string>
     <string name="cipher_type_passkey">Passkey</string>
-    <string name="field_type_text">Text</string>
-    <string name="field_type_boolean">Boolean</string>
+    <string name="field_type_text">Texto</string>
+    <string name="field_type_boolean">Booleano</string>
     <string name="field_type_linked">Linked</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
@@ -631,63 +636,63 @@
     <string name="sortby_password_reverse_mode">Reverse Alphabetically</string>
     <string name="sortby_password_modification_date_title">Password modification date</string>
     <string name="sortby_password_modification_date_normal_mode">Newest First</string>
-    <string name="sortby_password_modification_date_reverse_mode">Oldest First</string>
-    <string name="sortby_password_strength_title">Password strength</string>
-    <string name="sortby_password_strength_normal_mode">Weakest First</string>
-    <string name="sortby_password_strength_reverse_mode">Strongest First</string>
-    <string name="vault_main_search_placeholder">Search vault</string>
-    <string name="vault_main_new_item_button">New item</string>
-    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <string name="sortby_password_modification_date_reverse_mode">Mais antigos primeiro</string>
+    <string name="sortby_password_strength_title">Força da senha</string>
+    <string name="sortby_password_strength_normal_mode">Mais fraca Primeiro</string>
+    <string name="sortby_password_strength_reverse_mode">Mais forte Primeiro</string>
+    <string name="vault_main_search_placeholder">Pesquisar no cofre</string>
+    <string name="vault_main_new_item_button">Novo item</string>
+    <string name="vault_main_no_suggested_items">Não há itens sugeridos disponíveis para esse contexto</string>
     <!-- A label for the CVV code of the card -->
-    <string name="vault_view_card_cvv_label">Security code</string>
-    <string name="vault_view_saved_to_label">Saved to <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_password_revision_label">Password last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Passkey created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_revision_label">Last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_created_at_label">Created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expired_at_label">Expired at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deletion_scheduled_at_label">Deleting scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_card_cvv_label">Código de segurança</string>
+    <string name="vault_view_saved_to_label">Salvo em <xliff:g id="email" example="username@example.com">%1$s</xliff:g> em <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Senha modificada pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Passkey criada em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">Última modificação em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">Criado em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">Excluído em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Expirado em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Expiração programada para <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Exclusão programada para <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
-    <string name="vault_view_call_phone_action">Call</string>
+    <string name="vault_view_call_phone_action">Ligar</string>
     <!-- Text the phone number (SMS). The text should be as short as possible! -->
-    <string name="vault_view_text_phone_action">Text</string>
+    <string name="vault_view_text_phone_action">Texto</string>
     <!-- Compose an email. The text should be as short as possible! -->
-    <string name="vault_view_email_action">Email</string>
+    <string name="vault_view_email_action">E-mail</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
-    <string name="vault_view_navigate_action">Directions</string>
+    <string name="vault_view_navigate_action">Rotas</string>
     <string name="send_main_header_title">Sends</string>
-    <string name="send_main_search_placeholder">Search sends</string>
-    <string name="send_main_new_item_button">New item</string>
-    <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
-    <string name="generator_header_title">Generator</string>
-    <string name="generator_header_username_title">Username generator</string>
-    <string name="generator_header_password_title">Password generator</string>
-    <string name="generator_generate_button">Generate</string>
-    <string name="generator_regenerate_button">Regenerate</string>
-    <string name="generator_passphrase_type">Passphrase</string>
-    <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
-    <string name="generator_passphrase_delimiter_title">Delimiter</string>
-    <string name="generator_passphrase_capitalize_title">Capitalize</string>
-    <string name="generator_passphrase_number_title">Number</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
-    <string name="generator_username_type">Username</string>
-    <string name="generator_username_delimiter_title">Delimiter</string>
-    <string name="generator_username_custom_word_title">Custom word</string>
-    <string name="generator_username_capitalize_title">Capitalize</string>
-    <string name="generator_username_number_title">Number</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
-    <string name="generator_password_type">Random symbols</string>
-    <string name="generator_password_note">A strong password has at least <xliff:g id="length" example="15">%1$d</xliff:g> characters, uppercase &amp; lowercase letters, digits and symbols.</string>
-    <string name="generator_password_numbers_title">Digits</string>
-    <string name="generator_password_symbols_title">Symbols</string>
-    <string name="generator_password_uppercase_letters_title">Uppercase letters</string>
-    <string name="generator_password_lowercase_letters_title">Lowercase letters</string>
+    <string name="send_main_search_placeholder">Pesquisar Sends</string>
+    <string name="send_main_new_item_button">Novo item</string>
+    <string name="send_password_is_required_to_access_label">É necessária uma senha para acessar este compartilhamento</string>
+    <string name="generator_header_title">Gerador</string>
+    <string name="generator_header_username_title">Gerador de nome de usuário</string>
+    <string name="generator_header_password_title">Gerador de senha</string>
+    <string name="generator_generate_button">Gerar</string>
+    <string name="generator_regenerate_button">Gerar novamente</string>
+    <string name="generator_passphrase_type">Frase Secreta</string>
+    <string name="generator_passphrase_note">Senhas de palavras aleatórias fornecem a melhor combinação de memorização e segurança.</string>
+    <string name="generator_passphrase_delimiter_title">Delimitador</string>
+    <string name="generator_passphrase_capitalize_title">Capitalizar</string>
+    <string name="generator_passphrase_number_title">Número</string>
+    <string name="generator_passphrase_wordlist_title">Lista de Palavras</string>
+    <string name="generator_username_type">Nome de usuário</string>
+    <string name="generator_username_delimiter_title">Delimitador</string>
+    <string name="generator_username_custom_word_title">Palavra customizada</string>
+    <string name="generator_username_capitalize_title">Capitalizar</string>
+    <string name="generator_username_number_title">Número</string>
+    <string name="generator_username_wordlist_title">Lista de Palavras</string>
+    <string name="generator_password_type">Símbolos aleatórios</string>
+    <string name="generator_password_note">Uma senha forte tem pelo menos <xliff:g id="length" example="15">%1$d</xliff:g> caracteres, letras maiúsculas &amp; letras minúsculas, dígitos e símbolos.</string>
+    <string name="generator_password_numbers_title">Dígitos</string>
+    <string name="generator_password_symbols_title">Símbolos</string>
+    <string name="generator_password_uppercase_letters_title">Letras maiúsculas</string>
+    <string name="generator_password_lowercase_letters_title">Letras minúsculas</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
-    <string name="generator_password_exclude_similar_symbols_title">Exclude similar symbols</string>
+    <string name="generator_password_exclude_similar_symbols_title">Excluir símbolos semelhantes</string>
     <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
-    <string name="generator_password_exclude_ambiguous_symbols_title">Exclude ambiguous symbols</string>
+    <string name="generator_password_exclude_ambiguous_symbols_title">Excluir símbolos ambíguos</string>
     <string name="generator_email_catch_all_type">Catch-all email</string>
     <string name="generator_email_catch_all_note">A catch-all email address provides users the option to receive all mail sent to their domain, even if they are sent to an email address that has not been set up for their domain. Ensure that your email hosting supports this feature before using it.</string>
     <!-- Referring to a website domain -->

@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g>개 항목</string>
     <string name="items_all">모든 항목</string>
     <string name="items_empty_label">항목 없음</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">폴더 없음</string>
     <string name="folder_new">새 폴더</string>
     <string name="folder">폴더</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">마스터 비밀번호 힌트 변경</string>
     <string name="account_action_sign_out_title">로그아웃</string>
     <string name="account_action_sign_in_title">로그인</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">웹 보관함에 접속하여 이메일 주소를 인증하세요.</string>
     <string name="account_action_premium_purchase_instructions_title">계정을 프리미엄으로 업그레이드하고 다양한 추가 기능을 잠금 해제하세요.</string>
     <string name="account_action_tfa_title">2단계 인증</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">단어 목록을 삭제하시겠습니까?</string>
     <string name="wordlist_edit_wordlist_title">단어 목록 편집</string>
     <string name="wordlist_add_wordlist_title">단어 목록 추가</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">단어 목록 없음</string>
     <string name="wordlist_word_search_placeholder">단어 검색</string>
     <string name="urloverride_header_title">URL 덮어쓰기</string>

@@ -7,8 +7,8 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名前</string>
     <string name="account_name">アカウント名</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
+    <string name="enabled">有効</string>
+    <string name="disabled">無効</string>
     <string name="wordlist">Wordlist</string>
     <string name="username">ユーザー名</string>
     <string name="password">パスワード</string>
@@ -31,10 +31,10 @@
     <string name="card_number_empty_label">カード番号なし</string>
     <string name="card_type">ブランド</string>
     <string name="card_cvv">セキュリティコード</string>
-    <string name="card_valid_from">Valid from</string>
-    <string name="card_valid_to">Valid to</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
+    <string name="card_valid_from">有効開始</string>
+    <string name="card_valid_to">有効期限</string>
+    <string name="card_expiry_month">有効期限月</string>
+    <string name="card_expiry_year">有効期限年</string>
     <string name="cardholder_name">カードの名義人名</string>
     <string name="valid_from">有効開始</string>
     <string name="expiry_date">有効期限</string>
@@ -47,7 +47,7 @@
     <!-- Shows up instead of a value if a value is an empty text -->
     <string name="empty_value">なし</string>
     <!-- Social Security Number -->
-    <string name="ssn">社会保障番号</string>
+    <string name="ssn">マイナンバー</string>
     <string name="city">市町村</string>
     <string name="state">都道府県</string>
     <string name="info">情報</string>
@@ -64,15 +64,16 @@
     <string name="notes">メモ</string>
     <string name="attachments">添付ファイル</string>
     <string name="attachments_empty_label">添付ファイルなし</string>
-    <string name="expired">Expired</string>
-    <string name="expiring_soon">Expiring soon</string>
-    <string name="item_incomplete_title">Incomplete data</string>
-    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="expired">期限切れ</string>
+    <string name="expiring_soon">まもなく期限切れ</string>
+    <string name="item_incomplete_title">不完全なデータ</string>
+    <string name="item_incomplete_text">このアイテムは重要な情報の一部が欠けています。</string>
     <string name="item">アイテム</string>
     <string name="items">アイテム</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> アイテム</string>
     <string name="items_all">すべてのアイテム</string>
     <string name="items_empty_label">アイテムなし</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">フォルダーなし</string>
     <string name="folder_new">新しいフォルダー</string>
     <string name="folder">フォルダー</string>
@@ -87,10 +88,10 @@
     <string name="organizations">組織</string>
     <string name="organizations_empty_label">組織なし</string>
     <string name="misc">その他</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="command">コマンド</string>
+    <string name="execute_command">実行</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">追加</string>
     <string name="add_integration">統合を追加</string>
     <string name="account">アカウント</string>
     <string name="accounts">アカウント</string>
@@ -107,13 +108,13 @@
     <string name="identity_first_name">名</string>
     <string name="identity_middle_name">ミドルネーム</string>
     <string name="identity_last_name">姓</string>
-    <string name="identity_full_name">Full name</string>
+    <string name="identity_full_name">氏名</string>
     <string name="address1">住所1</string>
     <string name="address2">住所2</string>
     <string name="address3">住所3</string>
     <string name="rename">名前の変更</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
+    <string name="select_linked_type">タイプを選択</string>
+    <string name="select_file">ファイルを選択</string>
     <string name="autofill">自動入力</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="passkey">パスキー</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">マスターパスワードのヒントの変更</string>
     <string name="account_action_sign_out_title">ログアウト</string>
     <string name="account_action_sign_in_title">ログイン</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">ウェブ保管庫へアクセスして、メールアドレスを確認してください。</string>
     <string name="account_action_premium_purchase_instructions_title">プレミアム会員にアップグレードして他の素晴らしい追加機能を使えるようにします。</string>
     <string name="account_action_tfa_title">2段階認証</string>
@@ -259,7 +262,7 @@
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> で開く</string>
     <string name="uri_action_launch_in_smth_title">開く…</string>
     <string name="uri_action_how_to_delete_account_title">アカウントの削除方法</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
+    <string name="uri_action_get_my_data_account_title">データの取得方法</string>
     <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
     <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
     <string name="uri_unsecure">非セキュア</string>
@@ -325,23 +328,23 @@
     <string name="copy_cvv_code">CVV コードをコピー</string>
     <string name="copy_otp_code">ワンタイムパスワードをコピー</string>
     <string name="copy_otp_secret_code">秘密鍵をコピー</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
+    <string name="copied_value">値をコピーしました</string>
+    <string name="copied_url">URL をコピーしました</string>
+    <string name="copied_uri">URI をコピーしました</string>
+    <string name="copied_package_name">パッケージ名をコピーしました</string>
+    <string name="copied_password">パスワードをコピーしました</string>
     <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied a one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copied_email">メールアドレスをコピーしました</string>
+    <string name="copied_phone_number">電話番号をコピーしました</string>
+    <string name="copied_passport_number">パスポート番号をコピーしました</string>
+    <string name="copied_license_number">免許証番号をコピーしました</string>
+    <string name="copied_card_number">カード番号をコピーしました</string>
+    <string name="copied_cardholder_name">カードの名義人名をコピーしました</string>
+    <string name="copied_expiration_year">有効期限年をコピーしました</string>
+    <string name="copied_expiration_month">有効期限月をコピーしました</string>
+    <string name="copied_cvv_code">セキュリティコードをコピーしました</string>
+    <string name="copied_otp_code">ワンタイムパスワードをコピーしました</string>
+    <string name="copied_otp_secret_code">秘密鍵をコピーしました</string>
     <string name="autofill_unlock_keyguard">Keyguard のロック解除</string>
     <string name="autofill_open_keyguard">Keyguard を開く</string>
     <string name="january">1月</string>
@@ -424,21 +427,21 @@
     <string name="justdeleteme_search_placeholder">ウェブサイトを検索</string>
     <string name="justdeleteme_empty_label">手順なし</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
+    <string name="justgetmydata_title">データの取得方法</string>
     <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">簡単</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">普通</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">難しい</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">限定的</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_difficulty_impossible_label">不可能</string>
+    <string name="justgetmydata_send_email_title">メールを送信</string>
+    <string name="justgetmydata_search_placeholder">ウェブサイトを検索</string>
+    <string name="justgetmydata_empty_label">手順なし</string>
     <string name="tfa_directory_title">2段階認証</string>
     <string name="tfa_directory_text">2段階認証対応ウェブサイト一覧</string>
     <string name="tfa_directory_search_placeholder">ウェブサイトを検索</string>
@@ -489,15 +492,17 @@
     <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">No wordlists</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
+    <string name="urloverride_header_title">URL の上書き</string>
+    <string name="urloverride_list_header_title">URL の上書き</string>
+    <string name="urloverride_list_section_title">URL の上書き</string>
+    <string name="urloverride_regex_note">このルールは正規表現に一致する URL に適用されます。</string>
+    <string name="urloverride_delete_one_confirmation_title">URL の上書きルールを削除しますか？</string>
+    <string name="urloverride_delete_many_confirmation_title">URL の上書きルールを削除しますか？</string>
+    <string name="urloverride_empty_label">URL の上書きルールはありません</string>
     <string name="setup_header_text">ローカルデータを保存するための暗号化された保管庫を作成します。</string>
     <string name="setup_field_app_password_label">アプリのパスワード</string>
     <string name="setup_checkbox_biometric_auth">生体認証</string>
@@ -860,7 +865,7 @@
     <string name="pref_item_persist_vault_key_note">デバイスに保管庫のキーを保存することはセキュリティリスクとなります。デバイスの内部ストレージが侵害された場合、攻撃者はローカルの保管庫のデータにアクセスすることができます。</string>
     <string name="pref_item_permissions_title">権限</string>
     <string name="pref_item_features_overview_title">機能の概要</string>
-    <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_url_override_title">URL の上書き</string>
     <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elementi</string>
     <string name="items_all">Tutti gli elementi</string>
     <string name="items_empty_label">Non c\'è niente qui</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Nessuna cartella</string>
     <string name="folder_new">Nuova cartella</string>
     <string name="folder">Cartella</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Modifica suggerimento password principale</string>
     <string name="account_action_sign_out_title">Disconnetti</string>
     <string name="account_action_sign_in_title">Accedi</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Vai nella cassaforte web per verificare il tuo indirizzo e-mail</string>
     <string name="account_action_premium_purchase_instructions_title">Aggiorna il tuo account a un abbonamento premium per sbloccare alcune funzioni aggiuntive</string>
     <string name="account_action_tfa_title">Autenticazione a due fattori</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">Eliminare le wordlist?</string>
     <string name="wordlist_edit_wordlist_title">Modifica una wordlist</string>
     <string name="wordlist_add_wordlist_title">Aggiungi una wordlist</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">Nessuna wordlist</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="urloverride_header_title">URL override</string>

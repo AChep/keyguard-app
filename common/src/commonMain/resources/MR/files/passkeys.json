@@ -1085,6 +1085,15 @@
     "notes": "Saving and signing in with passkeys on Tailscale is limited to new user accounts only.  Users also cannot create a new tailnet using passkey key authentication. The tailnet must first be created using a different authentication method then invited users can use passkey authentication for their accounts."
   },
   {
+    "name": "Target",
+    "domain": "target.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.target.com/help/TargetGuestHelpArticleDetail?articleId=ka95d0000008R16AAE",
+    "setup": "https://www.target.com/account/settings/signinsecurity"
+  },
+  {
     "name": "Tender",
     "domain": "tender.run",
     "features": [

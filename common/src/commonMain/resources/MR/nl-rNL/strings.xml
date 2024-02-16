@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
     <string name="items_all">Alle items</string>
     <string name="items_empty_label">Geen items</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Geen map</string>
     <string name="folder_new">Nieuwe map</string>
     <string name="folder">Map</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Hint voor hoofdwachtwoord wijzigen</string>
     <string name="account_action_sign_out_title">Uitloggen</string>
     <string name="account_action_sign_in_title">Inloggen</string>
+    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Bezoek de webkluis om uw e-mailadres te verifiëren</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade naar een Premium-abonnement en ontgrendel geweldige extra functies</string>
     <string name="account_action_tfa_title">Tweestapsverificatie</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">Woordenlijst verwijderen?</string>
     <string name="wordlist_edit_wordlist_title">Woordenlijst bewerken</string>
     <string name="wordlist_add_wordlist_title">Voeg een woordenlijst toe</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">Geen woordenlijsten</string>
     <string name="wordlist_word_search_placeholder">Zoek woorden</string>
     <string name="urloverride_header_title">URL overrides</string>

@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> 项目</string>
     <string name="items_all">所有项目</string>
     <string name="items_empty_label">暂无项目</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">无文件夹</string>
     <string name="folder_new">新建文件夹</string>
     <string name="folder">文件夹</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">修改主密码提示</string>
     <string name="account_action_sign_out_title">登出</string>
     <string name="account_action_sign_in_title">登录</string>
+    <string name="account_action_hide_title">隐藏项目</string>
+    <string name="account_action_hide_text">隐藏应用主屏幕上的项目</string>
     <string name="account_action_email_verify_instructions_title">访问网页密码库来验证您的电子邮件地址</string>
     <string name="account_action_premium_purchase_instructions_title">将您的账户升级为大会员，将获得一些大会员独享的moment</string>
     <string name="account_action_tfa_title">两步验证</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">要删除此单词列表吗？</string>
     <string name="wordlist_edit_wordlist_title">编辑单词列表</string>
     <string name="wordlist_add_wordlist_title">添加单词列表</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">暂无单词列表</string>
     <string name="wordlist_word_search_placeholder">搜索单词</string>
     <string name="urloverride_header_title">URL 覆写</string>

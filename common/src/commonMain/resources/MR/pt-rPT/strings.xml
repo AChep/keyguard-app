@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> itens</string>
     <string name="items_all">Todos as entradas</string>
     <string name="items_empty_label">Não existem entradas</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Sem pasta</string>
     <string name="folder_new">Nova pasta</string>
     <string name="folder">Pasta</string>
@@ -199,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Alterar lembrete da senha mestra</string>
     <string name="account_action_sign_out_title">Terminar sessão</string>
     <string name="account_action_sign_in_title">Iniciar sessão</string>
+    <string name="account_action_hide_title">Esconder item</string>
+    <string name="account_action_hide_text">Ocultar os itens no écran principal da aplicação</string>
     <string name="account_action_email_verify_instructions_title">Visite o cofre web para verificar o seu endereço de e-mail</string>
     <string name="account_action_premium_purchase_instructions_title">Atualize conta para uma adesão premium e desbloqueie funcionalidades adicionais fantásticas</string>
     <string name="account_action_tfa_title">Autenticação de dois fatores</string>
@@ -489,6 +492,8 @@
     <string name="wordlist_delete_many_confirmation_title">Apagar listas de palavras?</string>
     <string name="wordlist_edit_wordlist_title">Editar lista de palavras</string>
     <string name="wordlist_add_wordlist_title">Adicionar lista de palavras</string>
+    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">Nenhuma lista de palavras</string>
     <string name="wordlist_word_search_placeholder">Pesquisar palavras</string>
     <string name="urloverride_header_title">Substituir ligação URL</string>

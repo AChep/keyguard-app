@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.HideSource
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Badge
@@ -54,6 +55,7 @@ import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetMetas
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
@@ -80,6 +82,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -127,6 +130,7 @@ fun accountState(
         getAccounts = instance(),
         getProfiles = instance(),
         getCiphers = instance(),
+        getSends = instance(),
         getFolders = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
@@ -138,6 +142,7 @@ fun accountState(
 
 private data class AccountCounters(
     val ciphers: Int,
+    val sends: Int,
     val organizations: Int,
     val collections: Int,
     val folders: Int,
@@ -159,6 +164,7 @@ fun accountState(
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
+    getSends: GetSends,
     getFolders: GetFolders,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
@@ -239,6 +245,10 @@ fun accountState(
                 it.accountId == accountId.id &&
                         it.deletedDate == null
             }
+        val sendsCountFlow = getSends()
+            .mapCount {
+                it.accountId == accountId.id
+            }
         val foldersCountFlow = getFolders()
             .mapCount {
                 it.accountId == accountId.id &&
@@ -251,12 +261,14 @@ fun accountState(
 
         combine(
             ciphersCountFlow,
+            sendsCountFlow,
             organizationsCountFlow,
             collectionsCountFlow,
             foldersCountFlow,
-        ) { ciphersCount, organizationsCount, collectionsCount, foldersCount ->
+        ) { ciphersCount, sendsCount, organizationsCount, collectionsCount, foldersCount ->
             AccountCounters(
                 ciphers = ciphersCount,
+                sends = sendsCount,
                 organizations = organizationsCount,
                 collections = collectionsCount,
                 folders = foldersCount,
@@ -536,6 +548,33 @@ private fun buildItemsFlow(
             },
         )
         emit(ff0)
+        val sendsItem = VaultViewItem.Action(
+            id = "sends",
+            title = scope.translate(Res.strings.sends),
+            leading = {
+                BadgedBox(
+                    badge = {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.badgeContainer,
+                        ) {
+                            val size = counters.sends
+                            Text(text = size.toString())
+                        }
+                    },
+                ) {
+                    Icon(Icons.Outlined.Send, null)
+                }
+            },
+            trailing = {
+                ChevronIcon()
+            },
+            onClick = {
+                val route = SendRoute.by(account = account)
+                val intent = NavigationIntent.NavigateToRoute(route)
+                scope.navigate(intent)
+            },
+        )
+        emit(sendsItem)
     }
     val ff = VaultViewItem.Action(
         id = "folders",

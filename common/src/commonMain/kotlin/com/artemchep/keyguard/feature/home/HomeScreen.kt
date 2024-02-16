@@ -137,6 +137,8 @@ private const val ROUTE_NAME = "home"
 
 private val vaultRoute = VaultRoute()
 
+private val sendsRoute = SendRoute()
+
 @Composable
 fun HomeScreen(
     defaultRoute: Route = vaultRoute,
@@ -151,7 +153,7 @@ fun HomeScreen(
                 label = TextHolder.Res(Res.strings.home_vault_label),
             ),
             Rail(
-                route = SendRoute,
+                route = sendsRoute,
                 icon = Icons.Outlined.Send,
                 iconSelected = Icons.Filled.Send,
                 label = TextHolder.Res(Res.strings.home_send_label),

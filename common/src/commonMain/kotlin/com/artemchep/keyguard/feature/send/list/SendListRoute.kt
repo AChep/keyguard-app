@@ -2,10 +2,15 @@ package com.artemchep.keyguard.feature.send.list
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.send.SendRoute
 
-object SendListRoute : Route {
+data class SendListRoute(
+    val args: SendRoute.Args,
+) : Route {
     @Composable
     override fun Content() {
-        SendListScreen()
+        SendListScreen(
+            args = args,
+        )
     }
 }

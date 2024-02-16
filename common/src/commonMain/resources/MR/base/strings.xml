@@ -73,6 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
     <string name="items_all">All items</string>
     <string name="items_empty_label">No items</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">No folder</string>
     <string name="folder_new">New folder</string>
     <string name="folder">Folder</string>

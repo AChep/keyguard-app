@@ -13,7 +13,7 @@ fun SendScreen(
     args: SendRoute.Args,
 ) {
     val initialRoute = remember(args) {
-        SendListRoute
+        SendListRoute(args)
     }
     // Send screen actually does not add any depth to the
     // navigation stack, it just renders sub-windows.

@@ -89,14 +89,15 @@ import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
+import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import dev.icerock.moko.resources.compose.stringResource
 
 @Composable
-fun SendListScreen() {
+fun SendListScreen(
+    args: SendRoute.Args,
+) {
     val state = sendListScreenState(
-        args = remember {
-            SendRoute.Args()
-        },
+        args = args,
         highlightBackgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
         highlightContentColor = MaterialTheme.colorScheme.onTertiaryContainer,
         mode = LocalAppMode.current,
@@ -168,49 +169,27 @@ fun SendListScreen() {
     )
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     TwoPaneScreen(
-        header = {
-            Row(
-                modifier = Modifier
-                    .heightIn(min = 64.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(Modifier.width(4.dp))
-                NavigationIcon()
-                Spacer(Modifier.width(4.dp))
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .align(Alignment.CenterVertically),
-                ) {
-                    Text(
-                        text = stringResource(Res.strings.send_main_header_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                }
-                Spacer(Modifier.width(4.dp))
-                SendListSortButton(
-                    state = state,
-                )
-                OptionsButton(
-                    actions = state.actions,
-                )
-                Spacer(Modifier.width(4.dp))
-            }
-
-            SearchTextField(
-                modifier = Modifier
+        header = { modifier ->
+            CustomSearchbarContent(
+                modifier = modifier,
+                searchFieldModifier = Modifier
                     .focusRequester2(focusRequester),
-                text = state.query.state.value,
-                placeholder = stringResource(Res.strings.send_main_search_placeholder),
-                searchIcon = false,
-                leading = {
+                searchFieldModel = state.query,
+                searchFieldPlaceholder = stringResource(Res.strings.send_main_search_placeholder),
+                title = args.appBar?.title
+                    ?: stringResource(Res.strings.send_main_header_title),
+                subtitle = args.appBar?.subtitle,
+                icon = {
+                    NavigationIcon()
                 },
-                trailing = {
+                actions = {
+                    SendListSortButton(
+                        state = state,
+                    )
+                    OptionsButton(
+                        actions = state.actions,
+                    )
                 },
-                onTextChange = state.query.onChange,
-                onGoClick = null,
             )
         },
         detail = { modifier ->
@@ -225,6 +204,8 @@ fun SendListScreen() {
             state = state,
             tabletUi = tabletUi,
             focusRequester = focusRequester,
+            title = args.appBar?.title,
+            subtitle = args.appBar?.subtitle,
             pullRefreshState = pullRefreshState,
             scrollBehavior = scrollBehavior,
         )
@@ -238,6 +219,8 @@ private fun SendScreenContent(
     state: SendListState,
     tabletUi: Boolean,
     focusRequester: FocusRequester2,
+    title: String?,
+    subtitle: String?,
     pullRefreshState: PullRefreshState,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
@@ -254,28 +237,19 @@ private fun SendScreenContent(
             CustomToolbar(
                 scrollBehavior = scrollBehavior,
             ) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .heightIn(min = 64.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Spacer(Modifier.width(4.dp))
+                CustomSearchbarContent(
+                    modifier = Modifier,
+                    searchFieldModifier = Modifier
+                        .focusRequester2(focusRequester),
+                    searchFieldModel = state.query,
+                    searchFieldPlaceholder = stringResource(Res.strings.send_main_search_placeholder),
+                    title = title
+                        ?: stringResource(Res.strings.send_main_header_title),
+                    subtitle = subtitle,
+                    icon = {
                         NavigationIcon()
-                        Spacer(Modifier.width(4.dp))
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .align(Alignment.CenterVertically),
-                        ) {
-                            Text(
-                                text = stringResource(Res.strings.send_main_header_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                        }
-                        Spacer(Modifier.width(4.dp))
+                    },
+                    actions = {
                         SendListFilterButton(
                             state = state,
                         )
@@ -285,23 +259,8 @@ private fun SendScreenContent(
                         OptionsButton(
                             actions = state.actions,
                         )
-                        Spacer(Modifier.width(4.dp))
-                    }
-
-                    SearchTextField(
-                        modifier = Modifier
-                            .focusRequester2(focusRequester),
-                        text = state.query.state.value,
-                        placeholder = stringResource(Res.strings.send_main_search_placeholder),
-                        searchIcon = false,
-                        leading = {
-                        },
-                        trailing = {
-                        },
-                        onTextChange = state.query.onChange,
-                        onGoClick = null,
-                    )
-                }
+                    },
+                )
             }
         },
         pullRefreshState = pullRefreshState,

@@ -90,6 +90,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
+import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -166,76 +167,26 @@ fun VaultListScreen(
     val focusRequester = remember { FocusRequester2() }
     TwoPaneScreen(
         header = { modifier ->
-            val title = args.appBar?.title
-            val subtitle = args.appBar?.subtitle
-            val hasTitle = title != null || subtitle != null
-            if (hasTitle) {
-                Row(
-                    modifier = Modifier
-                        .heightIn(min = 64.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Spacer(Modifier.width(4.dp))
+            CustomSearchbarContent(
+                modifier = modifier,
+                searchFieldModifier = Modifier
+                    .focusRequester2(focusRequester),
+                searchFieldModel = state.query,
+                searchFieldPlaceholder = stringResource(Res.strings.vault_main_search_placeholder),
+                title = args.appBar?.title,
+                subtitle = args.appBar?.subtitle,
+                icon = {
                     NavigationIcon()
-                    Spacer(Modifier.width(4.dp))
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically),
-                    ) {
-                        if (subtitle != null) {
-                            Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = LocalContentColor.current
-                                    .combineAlpha(MediumEmphasisAlpha),
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 2,
-                            )
-                        }
-                        if (title != null) {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.titleMedium,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                    Spacer(Modifier.width(4.dp))
+                },
+                actions = {
                     VaultListSortButton(
                         state = state,
                     )
                     OptionsButton(
                         actions = state.actions,
                     )
-                    Spacer(Modifier.width(4.dp))
-                }
-            } else {
-            }
-            SearchTextField(
-                modifier = Modifier
-                    .focusRequester2(focusRequester),
-                text = state.query.state.value,
-                placeholder = stringResource(Res.strings.vault_main_search_placeholder),
-                searchIcon = !hasTitle,
-                leading = {
-                    // Do nothing
                 },
-                trailing = {
-                    if (!hasTitle) {
-                        VaultListSortButton(
-                            state = state,
-                        )
-                        OptionsButton(
-                            actions = state.actions,
-                        )
-                    }
-                },
-                onTextChange = state.query.onChange,
-                onGoClick = null,
             )
-            //Spacer(Modifier.height(16.dp))
         },
         detail = { modifier ->
             VaultListFilterScreen(
@@ -421,88 +372,29 @@ fun VaultHomeScreenListPane(
             CustomToolbar(
                 scrollBehavior = scrollBehavior,
             ) {
-                Column {
-                    val hasTitle = title != null || subtitle != null
-                    if (hasTitle) {
-                        Row(
-                            modifier = Modifier
-                                .heightIn(min = 64.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Spacer(Modifier.width(4.dp))
-                            NavigationIcon()
-                            Spacer(Modifier.width(4.dp))
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .align(Alignment.CenterVertically),
-                            ) {
-                                if (subtitle != null) {
-                                    Text(
-                                        text = subtitle,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = LocalContentColor.current
-                                            .combineAlpha(MediumEmphasisAlpha),
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 2,
-                                    )
-                                }
-                                if (title != null) {
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1,
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.width(4.dp))
-                            VaultListFilterButton(
-                                state = state,
-                            )
-                            VaultListSortButton(
-                                state = state,
-                            )
-                            OptionsButton(
-                                actions = state.actions,
-                            )
-                            Spacer(Modifier.width(4.dp))
-                        }
-                    } else {
-                    }
-
-                    SearchTextField(
-                        modifier = Modifier
-                            .focusRequester2(focusRequester),
-                        text = state.query.state.value,
-                        placeholder = stringResource(Res.strings.vault_main_search_placeholder),
-                        searchIcon = !hasTitle,
-                        leading = {
-                            if (!hasTitle) {
-                                NavigationIcon()
-                            }
-                        },
-                        trailing = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                if (!hasTitle) {
-                                    VaultListFilterButton(
-                                        state = state,
-                                    )
-                                    VaultListSortButton(
-                                        state = state,
-                                    )
-                                    OptionsButton(
-                                        actions = state.actions,
-                                    )
-                                }
-                            }
-                        },
-                        onTextChange = state.query.onChange,
-                        onGoClick = null,
-                    )
-                }
+                CustomSearchbarContent(
+                    modifier = Modifier,
+                    searchFieldModifier = Modifier
+                        .focusRequester2(focusRequester),
+                    searchFieldModel = state.query,
+                    searchFieldPlaceholder = stringResource(Res.strings.vault_main_search_placeholder),
+                    title = title,
+                    subtitle = subtitle,
+                    icon = {
+                        NavigationIcon()
+                    },
+                    actions = {
+                        VaultListFilterButton(
+                            state = state,
+                        )
+                        VaultListSortButton(
+                            state = state,
+                        )
+                        OptionsButton(
+                            actions = state.actions,
+                        )
+                    },
+                )
             }
         },
         floatingActionState = run {

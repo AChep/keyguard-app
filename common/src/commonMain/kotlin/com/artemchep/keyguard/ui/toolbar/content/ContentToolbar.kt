@@ -28,6 +28,7 @@ private val toolbarMinHeight = 64.dp
 fun CustomToolbarContent(
     modifier: Modifier = Modifier,
     title: String?,
+    subtitle: String? = null,
     icon: @Composable () -> Unit = {},
     actions: @Composable () -> Unit = {},
 ) {
@@ -56,27 +57,35 @@ fun CustomToolbarContent(
                 .align(Alignment.CenterVertically)
                 .padding(vertical = 4.dp),
         ) {
-            val titleStyle = MaterialTheme.typography.titleLarge
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2,
+                )
+            }
             if (title != null) {
+                val titleStyle = if (subtitle != null) {
+                    MaterialTheme.typography.titleMedium
+                } else {
+                    MaterialTheme.typography.titleLarge
+                }
                 Text(
                     text = title,
                     style = titleStyle,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2,
                 )
-            } else {
-                SkeletonText(
-                    modifier = Modifier
-                        .fillMaxWidth(0.4f),
-                    style = titleStyle,
-                )
             }
         }
         Spacer(Modifier.width(8.dp))
-        Box(
+        Row(
             modifier = Modifier
                 .heightIn(min = toolbarMinHeight),
-            contentAlignment = Alignment.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             actions()
         }

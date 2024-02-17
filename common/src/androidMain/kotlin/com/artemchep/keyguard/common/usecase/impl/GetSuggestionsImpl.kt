@@ -223,6 +223,11 @@ class GetSuggestionsImpl(
 //                if (score <= scoreThreshold) {
 //                    return@parallelSearch null
 //                }
+                val favScore = if (cipher.favorite) {
+                    1.1f
+                } else {
+                    1f
+                }
                 val correctingScore = if (target.hints.isNotEmpty()) {
                     val matchingCount = target.hints
                         .count {
@@ -233,7 +238,7 @@ class GetSuggestionsImpl(
                 } else {
                     1f
                 }
-                (score * correctingScore) to wrapper
+                (score * correctingScore * favScore) to wrapper
             }
         var avgSize = 0
         var avgScore = 0f

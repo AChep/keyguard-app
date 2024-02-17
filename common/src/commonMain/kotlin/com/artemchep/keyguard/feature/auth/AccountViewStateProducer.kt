@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.HideSource
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -83,6 +84,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.SendRoute
+import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -670,6 +672,33 @@ private fun buildItemsFlow(
         },
     )
     emit(ff3)
+    val watchtowerSectionItem = VaultViewItem.Section(
+        id = "watchtower.section",
+    )
+    emit(watchtowerSectionItem)
+    val watchtowerItem = VaultViewItem.Action(
+        id = "watchtower",
+        title = scope.translate(Res.strings.watchtower_header_title),
+        leading = {
+            Icon(Icons.Outlined.Security, null)
+        },
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val route = WatchtowerRoute(
+                args = WatchtowerRoute.Args(
+                    filter = DFilter.ById(
+                        id = accountId.id,
+                        what = DFilter.ById.What.ACCOUNT,
+                    )
+                ),
+            )
+            val intent = NavigationIntent.NavigateToRoute(route)
+            scope.navigate(intent)
+        },
+    )
+    emit(watchtowerItem)
     val ff4 = VaultViewItem.Section(
         id = "section",
         text = scope.translate(Res.strings.security),

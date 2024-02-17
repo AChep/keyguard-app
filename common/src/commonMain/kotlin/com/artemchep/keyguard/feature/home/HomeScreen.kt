@@ -139,6 +139,8 @@ private val vaultRoute = VaultRoute()
 
 private val sendsRoute = SendRoute()
 
+private val watchtowerRoute = WatchtowerRoute()
+
 @Composable
 fun HomeScreen(
     defaultRoute: Route = vaultRoute,
@@ -170,7 +172,7 @@ fun HomeScreen(
                 label = TextHolder.Res(Res.strings.home_generator_label),
             ),
             Rail(
-                route = WatchtowerRoute,
+                route = watchtowerRoute,
                 icon = Icons.Outlined.Security,
                 iconSelected = Icons.Filled.Security,
                 label = TextHolder.Res(Res.strings.home_watchtower_label),

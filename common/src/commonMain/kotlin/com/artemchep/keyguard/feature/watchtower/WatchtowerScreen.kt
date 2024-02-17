@@ -20,21 +20,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.onConsumedWindowInsetsChanged
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -46,7 +41,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Timer
@@ -58,7 +52,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -69,7 +62,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -77,14 +69,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
@@ -104,21 +93,15 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.search.filter.FilterButton
 import com.artemchep.keyguard.feature.search.filter.FilterScreen
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
-import com.artemchep.keyguard.platform.leIme
-import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.Ah
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.GridLayout
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
-import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
@@ -126,8 +109,6 @@ import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.poweredby.PoweredByPasskeys
 import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
 import com.artemchep.keyguard.ui.shimmer.shimmer
-import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
-import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -144,10 +125,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
 
 @Composable
-fun WatchtowerScreen() {
+fun WatchtowerScreen(
+    args: WatchtowerRoute.Args,
+) {
     RequestAppReviewEffect()
 
-    val state = produceWatchtowerState()
+    val state = produceWatchtowerState(
+        args = args,
+    )
     WatchtowerScreen(
         state = state,
     )

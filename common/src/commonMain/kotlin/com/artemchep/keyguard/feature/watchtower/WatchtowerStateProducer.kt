@@ -55,9 +55,11 @@ import org.kodein.di.instance
 
 @Composable
 fun produceWatchtowerState(
+    args: WatchtowerRoute.Args,
 ) = with(localDI().direct) {
     produceWatchtowerState(
         directDI = this,
+        args = args,
         getCiphers = instance(),
         getAccounts = instance(),
         getProfiles = instance(),
@@ -81,6 +83,7 @@ private class WatchtowerUiException(
 @Composable
 fun produceWatchtowerState(
     directDI: DirectDI,
+    args: WatchtowerRoute.Args,
     getCiphers: GetCiphers,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
@@ -105,8 +108,17 @@ fun produceWatchtowerState(
     val ciphersRawFlow = filterHiddenProfiles(
         getProfiles = getProfiles,
         getCiphers = getCiphers,
-        filter = null,
+        filter = args.filter,
     )
+        .map { ciphers ->
+            if (args.filter != null) {
+                val predicate = args.filter.prepare(directDI, ciphers)
+                ciphers
+                    .filter { predicate(it) }
+            } else {
+                ciphers
+            }
+        }
     val ciphersFlow = ciphersRawFlow
         .map { secrets ->
             secrets
@@ -117,6 +129,15 @@ fun produceWatchtowerState(
         .map { folders ->
             folders
                 .filter { folder -> !folder.deleted }
+                .let { list ->
+                    if (args.filter != null) {
+                        val predicate = args.filter.prepareFolders(directDI, list)
+                        list
+                            .filter { predicate(it) }
+                    } else {
+                        list
+                    }
+                }
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
@@ -184,7 +205,7 @@ fun produceWatchtowerState(
         ciphersFlow = ciphersFlow,
     )
     val filteredTrashedCiphersFlow = filteredCiphers(
-        ciphersFlow = getCiphers()
+        ciphersFlow = ciphersRawFlow
             .map { secrets ->
                 secrets
                     .filter { secret -> secret.deleted }
@@ -301,9 +322,10 @@ fun produceWatchtowerState(
                 title = translate(score.formatH2()),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByPasswordStrength(score),
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -377,9 +399,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_pwned_passwords_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByPasswordPwned,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -419,9 +442,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_unsecure_websites_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByUnsecureWebsites,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -461,9 +485,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_duplicate_websites_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByDuplicateWebsites,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -503,9 +528,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_inactive_2fa_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByTfaWebsites,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -545,9 +571,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_inactive_passkey_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByPasskeyWebsites,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -587,9 +614,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_reused_passwords_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByPasswordDuplicates,
                         filter,
+                        args.filter,
                     ),
                 ),
                 sort = PasswordSort,
@@ -630,9 +658,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_vulnerable_accounts_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByWebsitePwned,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -738,9 +767,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_incomplete_items_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByIncomplete,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -780,9 +810,10 @@ fun produceWatchtowerState(
                 title = translate(Res.strings.watchtower_item_expiring_items_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
                 filter = DFilter.And(
-                    filters = listOf(
+                    filters = listOfNotNull(
                         DFilter.ByExpiring,
                         filter,
+                        args.filter,
                     ),
                 ),
             ),
@@ -821,7 +852,12 @@ fun produceWatchtowerState(
             VaultRoute.watchtower(
                 title = translate(Res.strings.watchtower_item_trashed_items_title),
                 subtitle = translate(Res.strings.watchtower_header_title),
-                filter = filter,
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        filter,
+                        args.filter,
+                    ),
+                ),
                 trash = true,
             ),
         )
@@ -857,7 +893,12 @@ fun produceWatchtowerState(
     ) {
         val route = FoldersRoute(
             args = FoldersRoute.Args(
-                filter = filter,
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        filter,
+                        args.filter,
+                    ),
+                ),
                 empty = true,
             ),
         )

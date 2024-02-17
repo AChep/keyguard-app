@@ -108,6 +108,7 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
+import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.GetConcealFields
@@ -165,6 +166,7 @@ import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
+import com.artemchep.keyguard.common.usecase.PutCloseToTray
 import com.artemchep.keyguard.common.usecase.PutColors
 import com.artemchep.keyguard.common.usecase.PutConcealFields
 import com.artemchep.keyguard.common.usecase.PutDebugPremium
@@ -228,6 +230,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetCloseToTrayImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetConcealFieldsImpl
@@ -282,6 +285,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckTwoFAImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoRefreshImpl
+import com.artemchep.keyguard.common.usecase.impl.PutCloseToTrayImpl
 import com.artemchep.keyguard.common.usecase.impl.PutColorsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutConcealFieldsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugPremiumImpl
@@ -614,6 +618,16 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutUseExternalBrowser> {
         PutUserExternalBrowserImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetCloseToTray> {
+        GetCloseToTrayImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutCloseToTray> {
+        PutCloseToTrayImpl(
             directDI = this,
         )
     }

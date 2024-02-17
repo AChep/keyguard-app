@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingClearCache
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardAutoClearProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardAutoRefreshProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardNotificationSettingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCloseToTrayProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorAccentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorSchemeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingConcealFieldsProvider
@@ -166,6 +167,7 @@ object Setting {
     const val TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
     const val TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
     const val USE_EXTERNAL_BROWSER = "use_external_browser"
+    const val CLOSE_TO_TRAY = "close_to_tray"
     const val APP_ICONS = "app_icons"
     const val WEBSITE_ICONS = "website_icons"
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
@@ -246,6 +248,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.TWO_PANEL_LAYOUT_LANDSCAPE to ::settingTwoPanelLayoutLandscapeProvider,
     Setting.TWO_PANEL_LAYOUT_PORTRAIT to ::settingTwoPanelLayoutPortraitProvider,
     Setting.USE_EXTERNAL_BROWSER to ::settingUseExternalBrowserProvider,
+    Setting.CLOSE_TO_TRAY to ::settingCloseToTrayProvider,
     Setting.APP_ICONS to ::settingAppIconsProvider,
     Setting.WEBSITE_ICONS to ::settingWebsiteIconsProvider,
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,

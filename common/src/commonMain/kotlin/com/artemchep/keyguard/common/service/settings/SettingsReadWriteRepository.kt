@@ -157,6 +157,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         useExternalBrowser: Boolean,
     ): IO<Unit>
 
+    fun setCloseToTray(
+        closeToTray: Boolean,
+    ): IO<Unit>
+
     fun setColors(
         colors: AppColors?,
     ): IO<Unit>

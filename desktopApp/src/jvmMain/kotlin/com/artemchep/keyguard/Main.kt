@@ -6,11 +6,17 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.isTraySupported
+import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.io.bind
@@ -19,6 +25,7 @@ import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -37,11 +44,12 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
-import com.mayakapps.compose.windowstyler.WindowBackdrop
-import com.mayakapps.compose.windowstyler.WindowStyle
+import dev.icerock.moko.resources.compose.painterResource
+import dev.icerock.moko.resources.compose.stringResource
 import dev.icerock.moko.resources.desc.StringDesc
 import io.kamel.core.config.KamelConfig
 import io.kamel.core.config.takeFrom
@@ -61,6 +69,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import org.kodein.di.DI
+import org.kodein.di.bindSingleton
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
 import org.kodein.di.direct
@@ -69,12 +78,15 @@ import java.util.Locale
 import kotlin.reflect.KClass
 
 fun main() {
-    val appDi = DI.invoke {
-        import(diFingerprintRepositoryModule())
-    }
     val kamelConfig = KamelConfig {
         this.takeFrom(KamelConfig.Default)
         mapper(FaviconUrlMapper)
+    }
+    val appDi = DI.invoke {
+        import(diFingerprintRepositoryModule())
+        bindSingleton {
+            kamelConfig
+        }
     }
 
     val getVaultSession by appDi.di.instance<GetVaultSession>()
@@ -184,46 +196,94 @@ fun main() {
 //        }
 //    }
 
+    val getCloseToTray: GetCloseToTray = appDi.direct.instance()
+
     application(exitProcessOnExit = true) {
         withDI(appDi) {
-            Window(
-                ::exitApplication,
-                state = rememberWindowState(),
-                title = "Keyguard",
-            ) {
-//                this.window.addWindowStateListener {
-//                    println("event $it")
-//                }
-                KeyguardTheme {
-                    val containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                    val contentColor = contentColorFor(containerColor)
+            val isWindowOpenState = remember {
+                mutableStateOf(true)
+            }
 
-                    WindowStyle(
-                        isDarkTheme = containerColor.luminance() < 0.5f,
-                        backdropType = WindowBackdrop.Default,
-                    )
-
-                    Surface(
-                        modifier = Modifier.semantics {
-                            // Allows to use testTag() for UiAutomator's resource-id.
-                            // It can be enabled high in the compose hierarchy,
-                            // so that it's enabled for the whole subtree
-                            // testTagsAsResourceId = true
-                        },
-                        color = containerColor,
-                        contentColor = contentColor,
-                    ) {
-                        CompositionLocalProvider(
-                            LocalSurfaceColor provides containerColor,
-                            LocalComposeWindow provides this.window,
-                            LocalKamelConfig provides kamelConfig,
-                        ) {
-                            Navigation(
-                                exitApplication = ::exitApplication,
-                            ) {
-                                Content()
-                            }
+            // Show a tray icon and allow the app to be collapsed into
+            // the tray on supported platforms.
+            val getCloseToTrayState = if (isTraySupported) {
+                remember { getCloseToTray() }
+                    .collectAsState(false)
+            } else {
+                // If the tray is not supported then we
+                // can never close to it.
+                remember {
+                    mutableStateOf(false)
+                }
+            }
+            if (getCloseToTrayState.value) {
+                val trayState = rememberTrayState()
+                Tray(
+                    icon = painterResource(Res.images.ic_keyguard),
+                    state = trayState,
+                    onAction = {
+                        isWindowOpenState.value = true
+                    },
+                    menu = {
+                        Item(
+                            stringResource(Res.strings.close),
+                            onClick = ::exitApplication,
+                        )
+                    },
+                )
+            } else {
+                isWindowOpenState.value = true
+            }
+            if (isWindowOpenState.value) {
+                KeyguardWindow(
+                    onCloseRequest = {
+                        val shouldCloseToTray = getCloseToTrayState.value
+                        if (shouldCloseToTray) {
+                            isWindowOpenState.value = false
+                        } else {
+                            exitApplication()
                         }
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ApplicationScope.KeyguardWindow(
+    onCloseRequest: () -> Unit,
+) {
+    val windowState = rememberWindowState()
+    Window(
+        onCloseRequest = onCloseRequest,
+        icon = painterResource(Res.images.ic_keyguard),
+        state = windowState,
+        title = "Keyguard",
+    ) {
+        KeyguardTheme {
+            val containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            val contentColor = contentColorFor(containerColor)
+            Surface(
+                modifier = Modifier.semantics {
+                    // Allows to use testTag() for UiAutomator's resource-id.
+                    // It can be enabled high in the compose hierarchy,
+                    // so that it's enabled for the whole subtree
+                    // testTagsAsResourceId = true
+                },
+                color = containerColor,
+                contentColor = contentColor,
+            ) {
+                val kamelConfig by rememberInstance<KamelConfig>()
+                CompositionLocalProvider(
+                    LocalSurfaceColor provides containerColor,
+                    LocalComposeWindow provides this.window,
+                    LocalKamelConfig provides kamelConfig,
+                ) {
+                    Navigation(
+                        exitApplication = ::exitApplication,
+                    ) {
+                        Content()
                     }
                 }
             }

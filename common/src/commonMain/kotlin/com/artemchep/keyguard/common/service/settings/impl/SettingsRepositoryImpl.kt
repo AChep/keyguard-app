@@ -67,6 +67,7 @@ class SettingsRepositoryImpl(
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
+        private const val KEY_CLOSE_TO_TRAY = "close_to_tray"
         private const val KEY_FONT = "font"
         private const val KEY_THEME = "theme"
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
@@ -165,6 +166,9 @@ class SettingsRepositoryImpl(
 
     private val useExternalBrowserPref =
         store.getBoolean(KEY_USE_EXTERNAL_BROWSER, false)
+
+    private val closeToTrayPref =
+        store.getBoolean(KEY_CLOSE_TO_TRAY, false)
 
     private val navAnimationPref =
         store.getEnumNullable(KEY_NAV_ANIMATION, lens = NavAnimation::key)
@@ -411,6 +415,13 @@ class SettingsRepositoryImpl(
 
     override fun setUseExternalBrowser(useExternalBrowser: Boolean) = useExternalBrowserPref
         .setAndCommit(useExternalBrowser)
+
+    override fun setCloseToTray(
+        closeToTray: Boolean,
+    ) = closeToTrayPref
+        .setAndCommit(closeToTray)
+
+    override fun getCloseToTray() = closeToTrayPref
 
     override fun setColors(colors: AppColors?) = colorsPref
         .setAndCommit(colors)

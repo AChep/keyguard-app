@@ -85,6 +85,8 @@ interface SettingsReadRepository {
 
     fun getUseExternalBrowser(): Flow<Boolean>
 
+    fun getCloseToTray(): Flow<Boolean>
+
     fun getColors(): Flow<AppColors?>
 
     fun getLocale(): Flow<String?>

@@ -42,6 +42,7 @@ fun UiSettingsScreen() {
                 list = listOf(
                     SettingPaneItem.Item(Setting.USE_EXTERNAL_BROWSER),
                     SettingPaneItem.Item(Setting.KEEP_SCREEN_ON),
+                    SettingPaneItem.Item(Setting.CLOSE_TO_TRAY),
                 ),
             ),
             SettingPaneItem.Group(

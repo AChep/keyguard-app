@@ -14,14 +14,16 @@ class BackgroundManager {
     val colorHighest: Color
         @Composable
         get() {
+            val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
             val surfaceContainerHigh = MaterialTheme.colorScheme.surfaceContainerHigh
             val surfaceContainerHighest = MaterialTheme.colorScheme.surfaceContainerHighest
 
             var maxPriority = 0
             surfaceColorsState.values.forEach { color ->
                 val priority = when (color) {
-                    surfaceContainerHigh -> 1
-                    surfaceContainerHighest -> 2
+                    surfaceContainer -> 1
+                    surfaceContainerHigh -> 2
+                    surfaceContainerHighest -> 3
                     else -> 0
                 }
                 if (maxPriority < priority) {
@@ -30,8 +32,9 @@ class BackgroundManager {
             }
 
             return when (maxPriority) {
-                0 -> surfaceContainerHigh
-                1 -> surfaceContainerHighest
+                0 -> surfaceContainer
+                1 -> surfaceContainerHigh
+                2 -> surfaceContainerHighest
                 else -> surfaceContainerHighest
             }
         }

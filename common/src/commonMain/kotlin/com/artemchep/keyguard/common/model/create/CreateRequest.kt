@@ -12,6 +12,7 @@ import kotlinx.datetime.Instant
 data class CreateRequest(
     val ownership: Ownership? = null,
     val ownership2: Ownership2? = null,
+    val merge: Merge? = null,
     val title: String? = null,
     val note: String? = null,
     val favorite: Boolean? = null,
@@ -46,6 +47,14 @@ data class CreateRequest(
         val folder: FolderInfo,
         val organizationId: String?,
         val collectionIds: Set<String>,
+    ) {
+        companion object;
+    }
+
+    @optics
+    data class Merge(
+        val ciphers: List<DSecret>,
+        val removeOrigin: Boolean,
     ) {
         companion object;
     }

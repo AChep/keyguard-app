@@ -560,6 +560,9 @@
 
     <string name="additem_header_new_title">New item</string>
     <string name="additem_header_edit_title">Edit item</string>
+    <string name="additem_header_merge_title">Merge items</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
+    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
     <string name="additem_markdown_note_italic">italic</string>
     <string name="additem_markdown_note_bold">bold</string>

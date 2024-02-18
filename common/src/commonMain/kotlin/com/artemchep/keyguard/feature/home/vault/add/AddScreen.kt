@@ -115,6 +115,7 @@ import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
@@ -124,6 +125,7 @@ import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.PasswordPwnedBadge
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
 import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -391,6 +393,34 @@ private fun ColumnScope.populateItemsContent(
         onClick = state.ownership.onClick,
     )
     Section()
+    if (state.merge != null) {
+        ExpandedIfNotEmpty(
+            valueOrNull = state.merge.note,
+        ) { note ->
+            FlatSimpleNote(
+                modifier = Modifier,
+                note = note,
+            )
+        }
+        FlatItemLayout(
+            leading = {
+                Checkbox(
+                    checked = state.merge.removeOrigin.checked,
+                    onCheckedChange = null,
+                )
+            },
+            content = {
+                Text(
+                    text = stringResource(Res.strings.additem_merge_remove_origin_ciphers_title),
+                )
+            },
+            onClick = {
+                val newValue = !state.merge.removeOrigin.checked
+                state.merge.removeOrigin.onChange?.invoke(newValue)
+            },
+        )
+        Section()
+    }
     Spacer(Modifier.height(24.dp))
     val logRepository by rememberInstance<LogRepository>()
     remember(state) {

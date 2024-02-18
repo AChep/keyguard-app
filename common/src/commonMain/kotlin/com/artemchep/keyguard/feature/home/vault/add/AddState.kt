@@ -18,6 +18,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ data class AddState(
     val title: String = "",
     val favourite: SwitchFieldModel,
     val ownership: Ownership,
+    val merge: Merge? = null,
     val sideEffects: SideEffects,
     val actions: List<FlatItemAction> = emptyList(),
     val items: List<AddStateItem> = emptyList(),
@@ -57,6 +59,12 @@ data class AddState(
             val collectionIds: Set<String>,
         )
     }
+
+    data class Merge(
+        val ciphers: List<DSecret>,
+        val note: SimpleNote?,
+        val removeOrigin: SwitchFieldModel,
+    )
 
     data class SaveToElement(
         val readOnly: Boolean,

@@ -6,16 +6,20 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.combine
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
+import com.artemchep.keyguard.common.io.flatTap
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -32,6 +36,7 @@ import org.kodein.di.instance
 class AddCipherImpl(
     private val modifyDatabase: ModifyDatabase,
     private val addFolder: AddFolder,
+    private val trashCipherById: TrashCipherById,
     private val cryptoGenerator: CryptoGenerator,
     private val getPasswordStrength: GetPasswordStrength,
 ) : AddCipher {
@@ -44,6 +49,7 @@ class AddCipherImpl(
     constructor(directDI: DirectDI) : this(
         modifyDatabase = directDI.instance(),
         addFolder = directDI.instance(),
+        trashCipherById = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         getPasswordStrength = directDI.instance(),
     )
@@ -132,6 +138,33 @@ class AddCipherImpl(
                     .map { it.cipherId },
             )
         }
+    }.flatTap {
+        val cipherIdsToTrash = cipherIdsToRequests
+            .values
+            .asSequence()
+            .mapNotNull {
+                val ciphers = it.merge?.ciphers
+                    ?: return@mapNotNull null
+                // Ignore the request if we do not need to trash the
+                // origin ciphers.
+                if (!it.merge.removeOrigin) {
+                    return@mapNotNull null
+                }
+                ciphers
+            }
+            .flatten()
+            .filter { cipher ->
+                cipher.canDelete() &&
+                        !cipher.deleted
+            }
+            .map { cipher ->
+                cipher.id
+            }
+            .toSet()
+        if (cipherIdsToTrash.isEmpty()) {
+            return@flatTap ioUnit()
+        }
+        trashCipherById(cipherIdsToTrash)
     }
 
     private fun copyLocalFilesToInternalStorageIo(

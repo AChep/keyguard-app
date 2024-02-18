@@ -38,6 +38,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
+import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -128,6 +129,7 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.provider.bitwarden.usecase.autofill
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.Stub
@@ -236,6 +238,39 @@ fun produceAddScreenState(
         getFolders = getFolders,
         getCiphers = getCiphers,
     )
+
+    val mergeFlow = if (args.merge != null) {
+        val ciphersHaveAttachments = args.merge.ciphers.any { it.attachments.isNotEmpty() }
+        val note = when {
+            ciphersHaveAttachments -> {
+                val text = translate(Res.strings.additem_merge_attachments_note)
+                SimpleNote(
+                    text = text,
+                    type = SimpleNote.Type.INFO,
+                )
+            }
+
+            else -> null
+        }
+
+        val mergeRemoveCiphers = mutablePersistedFlow("merge.remove_ciphers") {
+            false
+        }
+        mergeRemoveCiphers
+            .map { removeCiphers ->
+                val removeOrigin = SwitchFieldModel(
+                    checked = removeCiphers,
+                    onChange = mergeRemoveCiphers::value::set,
+                )
+                AddState.Merge(
+                    ciphers = args.merge.ciphers,
+                    note = note,
+                    removeOrigin = removeOrigin,
+                )
+            }
+    } else {
+        flowOf(null)
+    }
 
     val loginHolder = produceLoginState(
         args = args,
@@ -685,7 +720,9 @@ fun produceAddScreenState(
                 }
         }
 
-    val title = if (args.ownershipRo) {
+    val title = if (args.merge != null) {
+        translate(Res.strings.additem_header_merge_title)
+    } else if (args.ownershipRo) {
         translate(Res.strings.additem_header_edit_title)
     } else {
         translate(Res.strings.additem_header_new_title)
@@ -742,7 +779,23 @@ fun produceAddScreenState(
                         }
                         f
                     }
-            (populatorFlows.map { it.second } + ownershipPopulator + favouritePopulator + typePopulator)
+            val mergePopulator =
+                mergeFlow
+                    .map { merge ->
+                        val f = fun(r: CreateRequest): CreateRequest {
+                            if (merge == null) {
+                                return r
+                            }
+
+                            val requestMerge = CreateRequest.Merge(
+                                ciphers = merge.ciphers,
+                                removeOrigin = merge.removeOrigin.checked,
+                            )
+                            return r.copy(merge = requestMerge)
+                        }
+                        f
+                    }
+            (populatorFlows.map { it.second } + ownershipPopulator + mergePopulator + favouritePopulator + typePopulator)
                 .combineToList()
         }
         .map { populators ->
@@ -756,10 +809,11 @@ fun produceAddScreenState(
     val f = combine(
         actions,
         favouriteFlow,
-        ownershipFlow,
+        ownershipFlow
+            .combine(mergeFlow) { a, b -> a to b },
         itfff,
         outputFlow,
-    ) { q, s, c, x, request ->
+    ) { q, s, (c, merge), x, request ->
         logRepository.post(
             "Foo3",
             "create state ${x.size} (+${items1.size}) items| ${x.joinToString { it.id }}",
@@ -768,6 +822,7 @@ fun produceAddScreenState(
             title = title,
             favourite = s,
             ownership = c,
+            merge = merge,
             actions = q,
             items = items1 + x,
             sideEffects = sideEffects,

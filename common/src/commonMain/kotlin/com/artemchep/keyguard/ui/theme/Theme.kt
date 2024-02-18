@@ -290,7 +290,7 @@ fun KeyguardTheme(
             surface = if (themeBlack && isDarkColorScheme) Color.Black else scheme.surface,
             surfaceContainerLowest = if (themeBlack && isDarkColorScheme) Color.Black else scheme.surfaceContainerLowest,
             surfaceContainerLow = if (themeBlack && isDarkColorScheme) Color.Black else scheme.surfaceContainerLow,
-            surfaceContainer = if (themeBlack && isDarkColorScheme) Color.Black else scheme.surfaceContainer,
+            surfaceContainer = if (themeBlack && isDarkColorScheme) scheme.surfaceContainerLow else scheme.surfaceContainer,
             surfaceContainerHigh = if (themeBlack && isDarkColorScheme) scheme.surfaceContainerLow else scheme.surfaceContainerHigh,
             surfaceContainerHighest = if (themeBlack && isDarkColorScheme) scheme.surfaceContainer else scheme.surfaceContainerHighest,
         )

@@ -60,6 +60,7 @@ import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
 import com.artemchep.keyguard.ui.screenMaxWidth
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.surface.LocalSurfaceElevation
+import com.artemchep.keyguard.ui.surface.ReportSurfaceColor
 import com.artemchep.keyguard.ui.surface.color
 import com.artemchep.keyguard.ui.surface.splitHigh
 import com.artemchep.keyguard.ui.surface.splitLow
@@ -143,6 +144,8 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
                 LocalSurfaceColor provides surfaceElevationColor(elevation.to),
                 LocalHasDetailPane provides true,
             ) {
+                ReportSurfaceColor()
+
                 val horizontalInsets = scaffoldContentWindowInsets
                     .only(WindowInsetsSides.Horizontal)
                 PaneLayout(
@@ -165,6 +168,8 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
                 LocalSurfaceColor provides surfaceElevationColor(elevation.to),
                 LocalHasDetailPane provides false,
             ) {
+                ReportSurfaceColor()
+
                 PaneLayout(
                     modifier = Modifier
                         .background(surfaceElevation.color),

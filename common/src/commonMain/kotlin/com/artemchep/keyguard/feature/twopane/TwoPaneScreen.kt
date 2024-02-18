@@ -27,6 +27,7 @@ import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.ui.surface.LocalSurfaceElevation
 import com.artemchep.keyguard.ui.surface.ProvideSurfaceColor
+import com.artemchep.keyguard.ui.surface.ReportSurfaceColor
 import com.artemchep.keyguard.ui.surface.splitLow
 import com.artemchep.keyguard.ui.surface.surfaceElevationColor
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -61,6 +62,8 @@ fun TwoPaneScreen(
             surfaceElevationColor(elevation)
         }
         ProvideSurfaceColor(color) {
+            ReportSurfaceColor()
+
             val detailIsVisible = this@TwoPaneScaffold.tabletUi
             val insetsModifier = if (detailIsVisible) {
                 val insetsTop = WindowInsets.leSystemBars
@@ -115,6 +118,8 @@ fun TwoPaneScreen(
                     }
                     val detailSurfaceColor = surfaceElevationColor(surfaceElevation.to)
                     ProvideSurfaceColor(detailSurfaceColor) {
+                        ReportSurfaceColor()
+
                         content(
                             scope,
                             contentModifier,

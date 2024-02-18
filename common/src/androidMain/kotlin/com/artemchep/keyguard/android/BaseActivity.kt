@@ -9,7 +9,7 @@ import android.webkit.MimeTypeMap
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.navigation.N
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
+import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.google.firebase.crashlytics.ktx.crashlytics
@@ -100,7 +101,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             KeyguardTheme {
-                val containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                val containerColor = LocalBackgroundManager.current.colorHighest
                 val contentColor = contentColorFor(containerColor)
                 Surface(
                     modifier = Modifier.semantics {

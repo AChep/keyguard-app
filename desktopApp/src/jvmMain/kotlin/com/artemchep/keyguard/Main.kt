@@ -1,6 +1,6 @@
 package com.artemchep.keyguard
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.LocalComposeWindow
+import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import dev.icerock.moko.resources.compose.painterResource
@@ -262,7 +263,7 @@ private fun ApplicationScope.KeyguardWindow(
         title = "Keyguard",
     ) {
         KeyguardTheme {
-            val containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            val containerColor = LocalBackgroundManager.current.colorHighest
             val contentColor = contentColorFor(containerColor)
             Surface(
                 modifier = Modifier.semantics {

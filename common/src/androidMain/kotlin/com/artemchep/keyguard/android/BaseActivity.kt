@@ -102,6 +102,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         setContent {
             KeyguardTheme {
                 val containerColor = LocalBackgroundManager.current.colorHighest
+                val containerColorAnimatedState = animateColorAsState(containerColor)
                 val contentColor = contentColorFor(containerColor)
                 Surface(
                     modifier = Modifier.semantics {
@@ -110,7 +111,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                         // so that it's enabled for the whole subtree
                         testTagsAsResourceId = true
                     },
-                    color = containerColor,
+                    color = containerColorAnimatedState.value,
                     contentColor = contentColor,
                 ) {
                     CompositionLocalProvider(

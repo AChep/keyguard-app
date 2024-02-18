@@ -264,6 +264,7 @@ private fun ApplicationScope.KeyguardWindow(
     ) {
         KeyguardTheme {
             val containerColor = LocalBackgroundManager.current.colorHighest
+            val containerColorAnimatedState = animateColorAsState(containerColor)
             val contentColor = contentColorFor(containerColor)
             Surface(
                 modifier = Modifier.semantics {
@@ -272,7 +273,7 @@ private fun ApplicationScope.KeyguardWindow(
                     // so that it's enabled for the whole subtree
                     // testTagsAsResourceId = true
                 },
-                color = containerColor,
+                color = containerColorAnimatedState.value,
                 contentColor = contentColor,
             ) {
                 val kamelConfig by rememberInstance<KamelConfig>()

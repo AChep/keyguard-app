@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeVisualStack
 import com.artemchep.keyguard.feature.navigation.NavigationRouter
 import com.artemchep.keyguard.feature.twopane.TwoPaneNavigationContent
+import com.artemchep.keyguard.ui.screenMaxWidthCompact
 
 @Composable
 fun SettingsScreen() {
@@ -21,7 +22,10 @@ fun SettingsScreen() {
             id = SettingsRoute.ROUTER_NAME,
             initial = SettingListRoute,
         ) { backStack ->
-            TwoPaneNavigationContent(backStack)
+            TwoPaneNavigationContent(
+                backStack,
+                detailPaneMaxWidth = screenMaxWidthCompact,
+            )
         }
     }
 }

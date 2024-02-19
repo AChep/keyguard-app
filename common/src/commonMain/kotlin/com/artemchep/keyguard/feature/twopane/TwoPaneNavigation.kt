@@ -2,17 +2,22 @@ package com.artemchep.keyguard.feature.twopane
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.unit.Dp
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeVisualStack
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.feature.navigation.NavigationNode
+import com.artemchep.keyguard.ui.screenMaxWidth
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun TwoPaneNavigationContent(
     backStack: PersistentList<NavigationEntry>,
+    detailPaneMaxWidth: Dp = screenMaxWidth,
 ) {
-    TwoPaneScaffold {
+    TwoPaneScaffold(
+        detailPaneMaxWidth = detailPaneMaxWidth,
+    ) {
         if (backStack.isEmpty()) {
             // Nothing to draw, the back stack is empty.
             return@TwoPaneScaffold

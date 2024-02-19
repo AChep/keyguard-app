@@ -84,6 +84,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlin.math.log10
 
 val screenMaxWidth = 768.dp
+val screenMaxWidthCompact = 480.dp
 private val screenPaddingTop = 8.dp
 private val screenPaddingBottom = 8.dp
 

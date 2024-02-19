@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.justgetdata.directory
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.navigation.NavigationRouter
 import com.artemchep.keyguard.feature.twopane.TwoPaneNavigationContent
+import com.artemchep.keyguard.ui.screenMaxWidthCompact
 
 @Composable
 fun JustGetMyDataServicesScreen() {
@@ -10,6 +11,9 @@ fun JustGetMyDataServicesScreen() {
         id = JustGetMyDataServicesRoute.ROUTER_NAME,
         initial = JustGetMyDataListRoute,
     ) { backStack ->
-        TwoPaneNavigationContent(backStack)
+        TwoPaneNavigationContent(
+            backStack,
+            detailPaneMaxWidth = screenMaxWidthCompact,
+        )
     }
 }

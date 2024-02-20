@@ -14,18 +14,15 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.MutableWindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.onConsumedWindowInsetsChanged
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -228,13 +225,9 @@ fun WatchtowerScreen2(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val contentWindowInsets = scaffoldContentWindowInsets
-    val remainingInsets = remember { MutableWindowInsets() }
     Scaffold(
         modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .onConsumedWindowInsetsChanged { consumedWindowInsets ->
-                remainingInsets.insets = contentWindowInsets.exclude(consumedWindowInsets)
-            },
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             if (tabletUi) {
                 return@Scaffold
@@ -261,7 +254,7 @@ fun WatchtowerScreen2(
             )
         },
         containerColor = LocalSurfaceColor.current,
-        contentWindowInsets = remainingInsets,
+        contentWindowInsets = contentWindowInsets,
     ) { contentPadding ->
         ContentLayout(
             contentInsets = contentWindowInsets,

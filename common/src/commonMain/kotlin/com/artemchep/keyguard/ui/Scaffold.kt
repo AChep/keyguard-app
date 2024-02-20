@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
@@ -15,21 +14,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.MutableWindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.onConsumedWindowInsetsChanged
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -70,8 +62,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.platform.leDisplayCutout
 import com.artemchep.keyguard.platform.leIme
-import com.artemchep.keyguard.platform.leNavigationBars
-import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
@@ -123,12 +113,8 @@ fun ScaffoldLazyColumn(
         }
     }
 
-    val remainingInsets = remember { MutableWindowInsets() }
     Scaffold(
-        modifier = modifier
-            .onConsumedWindowInsetsChanged { consumedWindowInsets ->
-                remainingInsets.insets = contentWindowInsets.exclude(consumedWindowInsets)
-            },
+        modifier = modifier,
         topBar = topBar,
         bottomBar = bottomBar,
         snackbarHost = snackbarHost,
@@ -148,7 +134,7 @@ fun ScaffoldLazyColumn(
         floatingActionButtonPosition = floatingActionButtonPosition,
         containerColor = containerColor,
         contentColor = contentColor,
-        contentWindowInsets = remainingInsets,
+        contentWindowInsets = contentWindowInsets,
     ) { contentPadding ->
         val contentPaddingWithFab = calculatePaddingWithFab(
             contentPadding = contentPadding,
@@ -204,12 +190,8 @@ fun ScaffoldColumn(
     columnScrollState: ScrollState = rememberScrollState(),
     columnContent: @Composable ColumnScope.() -> Unit,
 ) {
-    val remainingInsets = remember { MutableWindowInsets() }
     Scaffold(
-        modifier = modifier
-            .onConsumedWindowInsetsChanged { consumedWindowInsets ->
-                remainingInsets.insets = contentWindowInsets.exclude(consumedWindowInsets)
-            },
+        modifier = modifier,
         topBar = topBar,
         bottomBar = bottomBar,
         snackbarHost = snackbarHost,
@@ -229,7 +211,7 @@ fun ScaffoldColumn(
         floatingActionButtonPosition = floatingActionButtonPosition,
         containerColor = containerColor,
         contentColor = contentColor,
-        contentWindowInsets = remainingInsets,
+        contentWindowInsets = contentWindowInsets,
     ) { contentPadding ->
         val contentPaddingWithFab = calculatePaddingWithFab(
             contentPadding = contentPadding,

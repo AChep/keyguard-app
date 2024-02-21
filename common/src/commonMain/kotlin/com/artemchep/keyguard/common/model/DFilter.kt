@@ -261,6 +261,9 @@ sealed interface DFilter {
                 What.COLLECTION -> {
                     // Special case: check in the set of
                     // collections.
+                    if (id == null) {
+                        return@run cipher.collectionIds.isEmpty()
+                    }
                     return@run id in cipher.collectionIds
                 }
 

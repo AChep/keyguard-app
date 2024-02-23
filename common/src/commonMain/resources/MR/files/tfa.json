@@ -2762,7 +2762,7 @@
       "custom-software"
     ],
     "custom-software": [
-      "CICB app"
+      "CIBC app"
     ],
     "documentation": "https://www.cibc.com/en/privacy-security/two-step-verification.html",
     "name": "CIBC"
@@ -8084,9 +8084,10 @@
   {
     "domain": "koofr.eu",
     "tfa": [
-      "totp"
+      "totp",
+      "u2f"
     ],
-    "documentation": "https://koofr.eu/help/other/how-do-i-enable-2-step-verification/",
+    "documentation": "https://koofr.eu/help/two-factor-authentication/does-koofr-offer-two-factor-authentication/",
     "name": "Koofr"
   },
   {

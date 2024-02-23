@@ -949,6 +949,15 @@
     "notes": "Passkeys on PayPal can only be created on mobile devices in Chrome on Android or iOS, and in Safari on iOS. Signing in with passkeys is not yet available on Google Chrome (and other Chromium browsers) on desktop.\n\n#### To set up a passkey on your PayPal account:\n1. On your mobile device, navigate to PayPal's settings > Security or use the setup link above.\n2.  Select \"Passkeys.\"\n3. Select \"Create a passkey.\"\n4. Follow the instructions provided to complete setting up a passkey.\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
   },
   {
+    "name": "PlayStation",
+    "domain": "playstation.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.playstation.com/support/account/set-up-passkey-psn/",
+    "setup": "https://www.playstation.com/passkey/"
+  },
+  {
     "name": "Porkbun",
     "domain": "porkbun.com",
     "features": [
@@ -1048,6 +1057,15 @@
     ],
     "documentation": "https://www.so-net.ne.jp/support/bioauth/",
     "setup": "https://id.so-net.ne.jp/auth_device/authenticator-manager"
+  },
+  {
+    "name": "Sony",
+    "domain": "sony.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.playstation.com/support/account/set-up-passkey-psn/",
+    "setup": "https://my.account.sony.com"
   },
   {
     "name": "Spaceship (by NameCheap)",

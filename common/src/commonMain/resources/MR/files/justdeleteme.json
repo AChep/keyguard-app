@@ -2863,6 +2863,22 @@
     "notes": "Once you submit your account for deletion, your account (and all data associated with it, including your purchased content) will be scheduled for deletion in compliance with the applicable legislation."
   },
   {
+    "name": "Chessfactor",
+    "domains": [
+      "chessfactor.com"
+    ],
+    "url": "https://www.chessfactor.com/accounts/delete/",
+    "difficulty": "easy"
+  },
+  {
+    "name": "Chesspuzzle.net",
+    "domains": [
+      "chesspuzzle.net"
+    ],
+    "url": "https://chesspuzzle.net/Manage/RequestDeletion",
+    "difficulty": "easy"
+  },
+  {
     "name": "Chick-fil-A",
     "domains": [
       "chick-fil-a.com"
@@ -4991,6 +5007,17 @@
     "notes": "At the bottom of the account settings page there is a Remove Account button"
   },
   {
+    "name": "EteSync",
+    "domains": [
+      "etesync.com",
+      "pim.etesync.com",
+      "dashboard.etebase.com"
+    ],
+    "url": "https://dashboard.etebase.com/user/partner/account/deactivate/request/",
+    "difficulty": "medium",
+    "notes": "It will send a Deletion verification email, follow the link there to delete your account."
+  },
+  {
     "name": "eToro",
     "domains": [
       "etoro.com"
@@ -5393,9 +5420,9 @@
     "domains": [
       "fiverr.com"
     ],
-    "url": "https://www.fiverr.com/support_tickets/new/account_and_security",
-    "difficulty": "hard",
-    "notes": "For each checkbox, choose: <ul><li><strong>Category:</strong> \"Data and privacy\"</li><li><strong>Topic:</strong> \"Permanently delete my personal data\"</li><br>Click on the little link \"here\" under the light blue box. Fill the fields and submit request, soon, an account manager will answer you and process your request."
+    "url": "https://www.fiverr.com/support_tickets/account-and-security/data-and-privacy/remove-personal-data",
+    "difficulty": "easy",
+    "notes": "Log-in, go to the link and make the request to **deactivate account**"
   },
   {
     "name": "Flaticon",
@@ -7598,6 +7625,15 @@
     ],
     "url": "https://secure.hulu.com/users/delete",
     "difficulty": "easy"
+  },
+  {
+    "name": "Humata",
+    "domains": [
+      "app.humata.ai"
+    ],
+    "url": "https://app.humata.ai/settings/personal",
+    "difficulty": "easy",
+    "notes": "Go to your account settings, scroll down to the end and click the 'Delete account' button."
   },
   {
     "name": "Humble Bundle",
@@ -12489,7 +12525,8 @@
     ],
     "url": "https://www.playstation.com/en-us/support/account/close-account-for-psn/",
     "difficulty": "hard",
-    "notes": "You need to have your account e-mail address, gamer tag, playstation serial number (or payment method, with transaction ID), and account name (not profile name) on hand to fulfill the request. This may take some time and should be done properly the first time (if possible)."
+    "notes": "You have to contact customer support or send them an email, and supply the email address associated with the account, along with the online ID, and one of the following information:\nthe first four and last four digits of the bank card associated with the account,\nor the details of a recent transaction made using the account,\nor the serial number of the original console associated with the account.\nAlternatively, if you don't have this information, you can supply a proof of identity (identity document) and a proof of address. If your account is linked to another account of the Sony group, you will have to delete it first. After closure, your online ID will not be reusable.",
+    "email": "siee.dpo@sony.com"
   },
   {
     "name": "Plenty of Fish",
@@ -14869,6 +14906,15 @@
     "url": "https://app.statuscake.com/User.php",
     "difficulty": "easy",
     "notes": "Under 'My Account' scroll down and click the red button 'Delete Your Account'"
+  },
+  {
+    "name": "StatusInvest",
+    "domains": [
+      "statusinvest.com.br"
+    ],
+    "url": "https://statusinvest.com.br/usuario/configuracao",
+    "difficulty": "easy",
+    "notes": "Go to your account configurations and click the button to permanently delete. You have 15 days to go back and ask for it to be restored, after that it is deleted."
   },
   {
     "name": "Steam",

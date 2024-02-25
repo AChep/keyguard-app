@@ -486,6 +486,13 @@
     "notes": "You will have to send a written request with your passport, or another identification document, to  Av. Europa Parcela 2-3, Pol. Ind. Las Salinas 30840 Alhama de Murcia. You can also request the data throught a e-mail to [lopd@pccomponentes.com](mailto:lopd@pccomponentes.com)."
   },
   {
+    "name": "PlayStation Network",
+    "domains": [],
+    "url": "https://id.sonyentertainmentnetwork.com/id/management_ca/?entry=privacy_settings",
+    "difficulty": "easy",
+    "notes": "Click on your profile icon, then on \"Account Settings\", then on \"Privacy Settings\", then on \"Data Access Request\", then on \"Request Data\". You will receive an email with a link to download your data when it is ready."
+  },
+  {
     "name": "Popeyes",
     "domains": [],
     "url": "https://privacyportal-eu-cdn.onetrust.com/dsarwebform/7ae425dd-1c76-46b0-a1b4-2422a364fae3/draft/1d4481aa-204a-4cb5-a40a-82e4369d16b2.html",

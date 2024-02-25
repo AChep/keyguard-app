@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.ui.selection
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -19,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 
@@ -36,66 +37,62 @@ fun SelectionBar(
     trailing: (@Composable RowScope.() -> Unit)? = null,
     onClear: (() -> Unit)?,
 ) {
-    Column {
-        Surface(
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(LocalBackgroundManager.current.colorHighest),
+    ) {
+        val navBarInsets = WindowInsets.leNavigationBars
+            .only(WindowInsetsSides.Bottom)
+        Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            tonalElevation = 3.dp,
+                .heightIn(min = 56.dp)
+                .windowInsetsPadding(navBarInsets),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            val navBarInsets = WindowInsets.leNavigationBars
-                .only(WindowInsetsSides.Bottom)
+            IconButton(
+                enabled = onClear != null,
+                onClick = {
+                    onClear?.invoke()
+                },
+            ) {
+                // TODO: Consider using Icons.Outlined.Deselect
+                Icon(
+                    Icons.Outlined.Clear,
+                    null,
+                )
+            }
             Row(
                 modifier = Modifier
-                    .heightIn(min = 56.dp)
-                    .windowInsetsPadding(navBarInsets),
-                verticalAlignment = Alignment.CenterVertically,
+                    .weight(1f),
             ) {
-                IconButton(
-                    enabled = onClear != null,
-                    onClick = {
-                        onClear?.invoke()
-                    },
+                Button(
+                    onClick = { /*TODO*/ },
                 ) {
-                    // TODO: Consider using Icons.Outlined.Deselect
-                    Icon(
-                        Icons.Outlined.Clear,
-                        null,
+                    IconBox(
+                        main = Icons.Outlined.ViewList,
+                        secondary = null, // Icons.Outlined.PanoramaFishEye,
                     )
-                }
-                Row(
-                    modifier = Modifier
-                        .weight(1f),
-                ) {
-                    Button(
-                        onClick = { /*TODO*/ },
-                    ) {
-                        IconBox(
-                            main = Icons.Outlined.ViewList,
-                            secondary = null, // Icons.Outlined.PanoramaFishEye,
+                    if (title != null) {
+                        Spacer(
+                            modifier = Modifier
+                                .width(Dimens.buttonIconPadding),
                         )
-                        if (title != null) {
-                            Spacer(
-                                modifier = Modifier
-                                    .width(Dimens.buttonIconPadding),
-                            )
-                            title.invoke(this)
-                        }
-                    }
-                    val textStyle = MaterialTheme.typography.titleMedium
-                    CompositionLocalProvider(
-                        LocalTextStyle provides textStyle,
-                    ) {
+                        title.invoke(this)
                     }
                 }
-                Spacer(
-                    modifier = Modifier
-                        .width(16.dp),
-                )
-                trailing?.invoke(this)
+                val textStyle = MaterialTheme.typography.titleMedium
+                CompositionLocalProvider(
+                    LocalTextStyle provides textStyle,
+                ) {
+                }
             }
+            Spacer(
+                modifier = Modifier
+                    .width(16.dp),
+            )
+            trailing?.invoke(this)
         }
-        HorizontalDivider(
-            transparency = false,
-        )
+        HorizontalDivider()
     }
 }

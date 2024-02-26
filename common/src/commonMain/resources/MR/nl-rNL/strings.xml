@@ -200,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Hint voor hoofdwachtwoord wijzigen</string>
     <string name="account_action_sign_out_title">Uitloggen</string>
     <string name="account_action_sign_in_title">Inloggen</string>
+    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_export_individual_vault_title">Export individual vault</string>
     <string name="account_action_hide_title">Hide items</string>
     <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Bezoek de webkluis om uw e-mailadres te verifiëren</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">Bewerken</string>
     <string name="ciphers_action_merge_title">Samenvoegen in…</string>
     <string name="ciphers_action_copy_title">Kopiëren naar…</string>
+    <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">Naar map verplaatsen</string>
     <string name="ciphers_action_change_name_title">Naam wijzigen</string>
     <string name="ciphers_action_change_names_title">Namen wijzigen</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">Synchroniseren mislukt</string>
     <string name="additem_header_new_title">Nieuw item</string>
     <string name="additem_header_edit_title">Item bewerken</string>
+    <string name="additem_header_merge_title">Merge items</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
+    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_markdown_note">Stijl tekst met <xliff:g id="italic" example="italic">%1$s</xliff:g> of <xliff:g id="bold" example="bold">%2$s</xliff:g> en meer. Beperkte Markdown syntax wordt ondersteund.</string>
     <string name="additem_markdown_note_italic">cursief</string>
     <string name="additem_markdown_note_bold">dikgedrukt</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">App-wachtwoord wijzigen</string>
     <string name="changepassword_disclaimer_local_note">Het app-wachtwoord wordt nooit op het apparaat opgeslagen of via het netwerk verzonden. Het wordt gebruikt om een geheime sleutel te genereren die wordt gebruikt om de lokale gegevens te versleutelen.</string>
     <string name="changepassword_disclaimer_abuse_note">Zolang u geen onbevoegde toegang vermoedt of malware hebt ontdekt op uw apparaat is het niet nodig om het wachtwoord te wijzigen als u een sterk en uniek wachtwoord gebruikt.</string>
+    <string name="exportaccount_header_title">Export items</string>
+    <string name="exportaccount_password_label">Archive password</string>
+    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">Contacteer ons</string>
     <string name="contactus_message_label">Jouw bericht</string>
     <string name="contactus_english_note">Gebruik Engels om ervoor te zorgen dat je feedback niet verkeerd wordt begrepen.</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">Thema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Gebruik zwart contrast thema</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in externe browser</string>
+    <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_conceal_fields_title">Verberg velden</string>
     <string name="pref_item_conceal_fields_text">Verberg gevoelige informatie, zoals wachtwoorden en creditcardnummers</string>
     <!--
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Beheren in Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Meldingen sturen</string>
     <string name="pref_item_permission_post_notifications_text">Wordt gebruikt voor het plaatsen van downloadmeldingen</string>
+    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
     <string name="pref_item_permission_camera_title">Camera</string>
     <string name="pref_item_permission_camera_text">Wordt gebruikt om QR-codes te scannen</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Twee panelen indeling in landschap modus toestaan</string>

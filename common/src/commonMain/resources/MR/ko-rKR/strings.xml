@@ -200,8 +200,10 @@
     <string name="account_action_change_master_password_hint_title">마스터 비밀번호 힌트 변경</string>
     <string name="account_action_sign_out_title">로그아웃</string>
     <string name="account_action_sign_in_title">로그인</string>
-    <string name="account_action_hide_title">Hide items</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
+    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_hide_title">항목 숨기기</string>
+    <string name="account_action_hide_text">앱 메인 화면에서 이 항목 숨기기</string>
     <string name="account_action_email_verify_instructions_title">웹 보관함에 접속하여 이메일 주소를 인증하세요.</string>
     <string name="account_action_premium_purchase_instructions_title">계정을 프리미엄으로 업그레이드하고 다양한 추가 기능을 잠금 해제하세요.</string>
     <string name="account_action_tfa_title">2단계 인증</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">편집</string>
     <string name="ciphers_action_merge_title">…에 병합</string>
     <string name="ciphers_action_copy_title">…로 복사</string>
+    <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">폴더로 이동</string>
     <string name="ciphers_action_change_name_title">이름 바꾸기</string>
     <string name="ciphers_action_change_names_title">이름 바꾸기</string>
@@ -492,8 +495,8 @@
     <string name="wordlist_delete_many_confirmation_title">단어 목록을 삭제하시겠습니까?</string>
     <string name="wordlist_edit_wordlist_title">단어 목록 편집</string>
     <string name="wordlist_add_wordlist_title">단어 목록 추가</string>
-    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
-    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
+    <string name="wordlist_add_wordlist_via_file_title">파일에서 불러오기</string>
+    <string name="wordlist_add_wordlist_via_url_title">URL에서 불러오기</string>
     <string name="wordlist_empty_label">단어 목록 없음</string>
     <string name="wordlist_word_search_placeholder">단어 검색</string>
     <string name="urloverride_header_title">URL 덮어쓰기</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">동기화 실패</string>
     <string name="additem_header_new_title">새 항목</string>
     <string name="additem_header_edit_title">항목 편집</string>
+    <string name="additem_header_merge_title">항목 병합</string>
+    <string name="additem_merge_remove_origin_ciphers_title">원본 항목을 휴지통으로 이동</string>
+    <string name="additem_merge_attachments_note">항목을 병합할 때 첨부파일은 병합되지 않습니다! 병합한 항목은 첨부파일 없이 생성됩니다.</string>
     <string name="additem_markdown_note"><xliff:g id="italic" example="italic">%1$s</xliff:g> 또는 <xliff:g id="bold" example="bold">%2$s</xliff:g> 등을 사용하여 텍스트를 꾸밀 수 있습니다. 일부 마크다운 문법을 지원합니다.</string>
     <string name="additem_markdown_note_italic">기울임꼴</string>
     <string name="additem_markdown_note_bold">굵게</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">앱 비밀번호 변경</string>
     <string name="changepassword_disclaimer_local_note">앱 비밀번호는 기기에 저장되거나 인터넷으로 전송되지 않습니다. 로컬 데이터를 암호화하기 위한 비밀 키를 생성하는 데에만 사용됩니다.</string>
     <string name="changepassword_disclaimer_abuse_note">강력한 비밀번호를 웹사이트마다 다르게 사용하고 있다면, 무단 접속이 의심되거나 기기에서 악성 코드가 발견되지 않는 한 비밀번호를 변경할 필요가 없습니다.</string>
+    <string name="exportaccount_header_title">Export items</string>
+    <string name="exportaccount_password_label">Archive password</string>
+    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">고객 지원</string>
     <string name="contactus_message_label">메시지 입력</string>
     <string name="contactus_english_note">메시지가 정확히 전달될 수 있도록 영어를 사용해 주세요.</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">테마</string>
     <string name="pref_item_color_scheme_amoled_dark_title">다크 테마에 검정색 사용</string>
     <string name="pref_item_open_links_in_external_browser_title">외부 브라우저에서 열기</string>
+    <string name="pref_item_close_to_tray_title">시스템 트레이로 닫기</string>
     <string name="pref_item_conceal_fields_title">필드 감추기</string>
     <string name="pref_item_conceal_fields_text">비밀번호, 신용 카드 번호 등 민감한 정보를 숨깁니다.</string>
     <!--
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play 스토어에서 관리</string>
     <string name="pref_item_permission_post_notifications_title">알림 게시</string>
     <string name="pref_item_permission_post_notifications_text">다은로드 중 알림을 게시하는 데 사용합니다.</string>
+    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
     <string name="pref_item_permission_camera_title">카메라</string>
     <string name="pref_item_permission_camera_text">QR 코드를 스캔하는 데 사용합니다.</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">가로 모드에서 이중 패널 허용</string>

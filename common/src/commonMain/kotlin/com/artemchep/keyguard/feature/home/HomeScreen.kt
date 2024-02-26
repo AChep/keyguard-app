@@ -351,44 +351,46 @@ fun HomeScreenContent(
                 AnimatedVisibility(
                     visible = bottomNavBarVisible,
                 ) {
-                    Column(
-                        modifier = Modifier,
-                    ) {
-                        BannerStatusBadge(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            statusState = accountStatusState,
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottomInsets.asPaddingValues())
-                                .height(80.dp)
-                                .selectableGroup(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                    Box {
+                        Column(
+                            modifier = Modifier,
                         ) {
-                            routes.forEach { r ->
-                                BottomNavigationControllerItem(
-                                    backStack = backStack,
-                                    route = r.route,
-                                    icon = r.icon,
-                                    iconSelected = r.iconSelected,
-                                    label = if (navLabelState.value) {
-                                        // composable
-                                        {
-                                            Text(
-                                                text = textResource(r.label),
-                                                maxLines = 1,
-                                                textAlign = TextAlign.Center,
-                                                // Default style does not fit on devices with small
-                                                // screens.
-                                                style = MaterialTheme.typography.labelSmall,
-                                            )
-                                        }
-                                    } else {
-                                        null
-                                    },
-                                )
+                            BannerStatusBadge(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                statusState = accountStatusState,
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottomInsets.asPaddingValues())
+                                    .height(80.dp)
+                                    .selectableGroup(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                routes.forEach { r ->
+                                    BottomNavigationControllerItem(
+                                        backStack = backStack,
+                                        route = r.route,
+                                        icon = r.icon,
+                                        iconSelected = r.iconSelected,
+                                        label = if (navLabelState.value) {
+                                            // composable
+                                            {
+                                                Text(
+                                                    text = textResource(r.label),
+                                                    maxLines = 1,
+                                                    textAlign = TextAlign.Center,
+                                                    // Default style does not fit on devices with small
+                                                    // screens.
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                )
+                                            }
+                                        } else {
+                                            null
+                                        },
+                                    )
+                                }
                             }
                         }
 
@@ -400,7 +402,7 @@ fun HomeScreenContent(
                                         accountStatusState.value.pending != null
                             }
                         }
-                        AnimatedVisibility(
+                        androidx.compose.animation.AnimatedVisibility(
                             visible = isSyncingState.value,
                         ) {
                             LinearProgressIndicator(

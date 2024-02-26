@@ -71,14 +71,19 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.artemchep.keyguard.common.model.DAccountStatus
@@ -284,6 +289,9 @@ fun HomeScreenContent(
                 .only(WindowInsetsSides.Bottom)
             val bottomNavBarVisible =
                 LocalHomeLayout.current is HomeLayout.Vertical && navBarVisible
+            var bottomNavBarSize by remember {
+                mutableStateOf(80.dp)
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -291,7 +299,7 @@ fun HomeScreenContent(
                     .then(
                         if (bottomNavBarVisible) {
                             val navBarInsets = bottomInsets
-                                .add(WindowInsets(bottom = 80.dp))
+                                .add(WindowInsets(bottom = bottomNavBarSize))
                             Modifier.consumeWindowInsets(navBarInsets)
                         } else {
                             Modifier
@@ -351,7 +359,16 @@ fun HomeScreenContent(
                 AnimatedVisibility(
                     visible = bottomNavBarVisible,
                 ) {
-                    Box {
+                    val updatedDensity by rememberUpdatedState(LocalDensity.current)
+                    Box(
+                        modifier = Modifier
+                            .padding(bottomInsets.asPaddingValues())
+                            .onSizeChanged {
+                                val heightDp = (it.height.toFloat() / updatedDensity.density).dp
+                                bottomNavBarSize = heightDp
+                                    .coerceAtLeast(80.dp)
+                            },
+                    ) {
                         Column(
                             modifier = Modifier,
                         ) {
@@ -363,7 +380,6 @@ fun HomeScreenContent(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottomInsets.asPaddingValues())
                                     .height(80.dp)
                                     .selectableGroup(),
                                 horizontalArrangement = Arrangement.SpaceBetween,

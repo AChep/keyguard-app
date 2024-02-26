@@ -73,7 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> записей</string>
     <string name="items_all">Все элементы</string>
     <string name="items_empty_label">Нет элементов</string>
-    <string name="sends">Sends</string>
+    <string name="sends">Отправки</string>
     <string name="folder_none">Без папки</string>
     <string name="folder_new">Новая папка</string>
     <string name="folder">Папка</string>
@@ -200,8 +200,10 @@
     <string name="account_action_change_master_password_hint_title">Изменить подсказку к мастер-паролю</string>
     <string name="account_action_sign_out_title">Выйти</string>
     <string name="account_action_sign_in_title">Войти</string>
-    <string name="account_action_hide_title">Hide items</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
+    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_hide_title">Скрыть элементы</string>
+    <string name="account_action_hide_text">Скрыть элементы с главных экранов приложения</string>
     <string name="account_action_email_verify_instructions_title">Посетите веб-хранилище для подтверждения адреса вашей электронной почты</string>
     <string name="account_action_premium_purchase_instructions_title">Перейдите на Премиум и получите некоторые замечательные дополнительные функции</string>
     <string name="account_action_tfa_title">Двухфакторная аутентификация</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">Редактировать</string>
     <string name="ciphers_action_merge_title">Объединить в…</string>
     <string name="ciphers_action_copy_title">Копировать в…</string>
+    <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">Переместить в папку</string>
     <string name="ciphers_action_change_name_title">Изменить название</string>
     <string name="ciphers_action_change_names_title">Изменить названия</string>
@@ -238,7 +241,7 @@
     <string name="ciphers_action_trash_title">Корзина</string>
     <string name="ciphers_action_restore_title">Восстановить</string>
     <string name="ciphers_action_delete_title">Удалить навсегда</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Настроить оповещения безопасности</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Переместить связанные записи в корзину</string>
     <string name="file_action_open_with_title">Открыть с помощью…</string>
     <string name="file_action_send_with_title">Отправить с помощью…</string>
@@ -262,7 +265,7 @@
     <string name="uri_action_launch_in_app_title">Запустить в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Запустить в…</string>
     <string name="uri_action_how_to_delete_account_title">Как удалить мою учетную запись?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
+    <string name="uri_action_get_my_data_account_title">Как получить мои данные?</string>
     <string name="uri_action_autofix_unsecure_title">Автоисправление незащищенного URL-адреса</string>
     <string name="uri_action_autofix_unsecure_text">Если возможно, изменяет протокол на безопасный</string>
     <string name="uri_unsecure">Незащищенный</string>
@@ -359,12 +362,12 @@
     <string name="october">Октябрь</string>
     <string name="november">Ноябрь</string>
     <string name="december">Декабрь</string>
-    <string name="tolerance">Tolerance</string>
-    <string name="tolerance_min">Min</string>
-    <string name="tolerance_low">Low</string>
-    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance">Допустимость</string>
+    <string name="tolerance_min">Минимальная</string>
+    <string name="tolerance_low">Низкая</string>
+    <string name="tolerance_normal">Нормальная</string>
     <string name="tolerance_high">High</string>
-    <string name="tolerance_max">Max</string>
+    <string name="tolerance_max">Максимальная</string>
     <string name="list_move_up">Переместить вверх</string>
     <string name="list_move_down">Переместить вниз</string>
     <string name="list_remove">Удалить</string>
@@ -427,21 +430,21 @@
     <string name="justdeleteme_search_placeholder">Поиск веб-сайтов</string>
     <string name="justdeleteme_empty_label">Нет инструкций</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_title">Как получить мои данные?</string>
+    <string name="justgetmydata_subtitle">Список информации о том, как удалить ваш аккаунт из сервисов</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Легко</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Средне</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Сложно</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Ограниченная доступность</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_difficulty_impossible_label">Невозможно</string>
+    <string name="justgetmydata_send_email_title">Отправить эл. письмо</string>
+    <string name="justgetmydata_search_placeholder">Поиск веб-сайтов</string>
+    <string name="justgetmydata_empty_label">Нет инструкций</string>
     <string name="tfa_directory_title">Двухфакторная аутентификация</string>
     <string name="tfa_directory_text">Список сайтов с двухфакторной аутентификацией</string>
     <string name="tfa_directory_search_placeholder">Поиск веб-сайтов</string>
@@ -467,7 +470,7 @@
     <string name="largetype_title">Крупно</string>
     <string name="largetype_action_show_in_large_type_title">Показать крупным шрифтом</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">Показать крупным шрифтом и заблокировать хранилище</string>
-    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
+    <string name="largetype_unicode_surrogate_note">Текст содержит символы композита Юникода!</string>
     <string name="apppicker_header_title">Выбор приложения</string>
     <string name="apppicker_search_placeholder">Поиск установленных приложений</string>
     <string name="apppicker_system_app_label">Системное приложение</string>
@@ -492,10 +495,10 @@
     <string name="wordlist_delete_many_confirmation_title">Удалить списки?</string>
     <string name="wordlist_edit_wordlist_title">Редактировать список слов</string>
     <string name="wordlist_add_wordlist_title">Добавить список слов</string>
-    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
-    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
+    <string name="wordlist_add_wordlist_via_file_title">Загрузить из файла</string>
+    <string name="wordlist_add_wordlist_via_url_title">Загрузить с URL</string>
     <string name="wordlist_empty_label">Нет списков слов</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
+    <string name="wordlist_word_search_placeholder">Поисковые слова</string>
     <string name="urloverride_header_title">Переопределение URL-адреса</string>
     <string name="urloverride_list_header_title">Переопределение URL-адреса</string>
     <string name="urloverride_list_section_title">Переопределение URL-адреса</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">Ошибка синхронизации</string>
     <string name="additem_header_new_title">Новая запись</string>
     <string name="additem_header_edit_title">Редактировать запись</string>
+    <string name="additem_header_merge_title">Объединить элементы</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Переместить исходные элементы в корзину</string>
+    <string name="additem_merge_attachments_note">Объединение элементов не объединяет их вложения! Созданный элемент не будет добавлен.</string>
     <string name="additem_markdown_note">Стилизуйте текст используя <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> и другое. Ограниченная поддержка синтаксиса Markdown.</string>
     <string name="additem_markdown_note_italic">курсив</string>
     <string name="additem_markdown_note_bold">жирный</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Изменить пароль приложения</string>
     <string name="changepassword_disclaimer_local_note">Пароль приложения никогда не хранится на устройстве и не отправляется по сети. Он используется для генерации секретного ключа, используемого для шифрования локальных данных.</string>
     <string name="changepassword_disclaimer_abuse_note">Если вы не подозреваете, что к вашему устройству был несанкционированный доступ, или вы не нашли вредоносное программное обеспечение, то не нужно изменять текущий пароль приложения, если он достаточно надежный и уникальный.</string>
+    <string name="exportaccount_header_title">Export items</string>
+    <string name="exportaccount_password_label">Archive password</string>
+    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">Связаться с нами</string>
     <string name="contactus_message_label">Ваше сообщение</string>
     <string name="contactus_english_note">Пишите на английском, чтобы убедиться, что ваше сообщение не будет понято неправильно.</string>
@@ -806,8 +817,8 @@
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
         -->
-    <string name="pref_item_app_build_ref_title">App build ref</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_build_ref_title">Референс сборки приложения</string>
+    <string name="pref_item_app_changelog_title">Список изменений</string>
     <string name="pref_item_app_team_title">Команда Keyguard</string>
     <string name="pref_item_reddit_community_title">Сообщество Reddit</string>
     <string name="pref_item_github_title">Проект на GitHub</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">Тема</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Использовать черную контрастную тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Открывать ссылки во внешнем браузере</string>
+    <string name="pref_item_close_to_tray_title">Свернуть в трей</string>
     <string name="pref_item_conceal_fields_title">Скрыть поля</string>
     <string name="pref_item_conceal_fields_text">Скрыть конфиденциальную информацию, например пароли и номера кредитных карт</string>
     <!--
@@ -874,7 +886,7 @@
     <string name="pref_item_keep_screen_on_title">Держать экран включенным во время просмотра записей</string>
     <string name="pref_item_autofill_service_title">Служба автозаполнения</string>
     <string name="pref_item_autofill_service_text">Использовать фреймворк автозаполнения Android для заполнения информации о входе в другие приложения на устройстве</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Некоторые устройства Xiaomi требуют разрешения \"Отображать всплывающие окна в фоновом режиме\". Откройте настройки и убедитесь, что оно предоставлено.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автокопирование одноразовых паролей</string>
     <string name="pref_item_autofill_auto_copy_otp_text">При заполнении регистрационной информации автоматически копировать одноразовые пароли</string>
     <string name="pref_item_autofill_inline_suggestions_title">Встроенные предложения</string>
@@ -893,7 +905,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Длительность уведомления о разовых паролях</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">При заполнении логина с одноразовым паролем уведомление с кодом подтверждения появляется по крайней мере на заданную длительность</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Никогда</string>
-    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
+    <string name="pref_item_clipboard_notification_settings_title">Настройки уведомления о разовых паролях</string>
     <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
     <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>
     <string name="pref_item_permission_post_notifications_text">Используется для отправки уведомлений о загрузке</string>
+    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
     <string name="pref_item_permission_camera_title">Камера</string>
     <string name="pref_item_permission_camera_text">Используется для сканирования QR-кодов</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Разрешить два панели в альбомном режиме</string>

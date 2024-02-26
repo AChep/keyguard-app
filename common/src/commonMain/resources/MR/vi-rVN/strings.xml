@@ -200,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Thay đổi gợi ý mật khẩu chính</string>
     <string name="account_action_sign_out_title">Đăng xuất</string>
     <string name="account_action_sign_in_title">Đăng nhập</string>
+    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_export_individual_vault_title">Export individual vault</string>
     <string name="account_action_hide_title">Hide items</string>
     <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Truy cập trang web của kho để xác thực email của bạn</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">Chỉnh sửa</string>
     <string name="ciphers_action_merge_title">Hợp nhất…</string>
     <string name="ciphers_action_copy_title">Sao chép đến…</string>
+    <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">Chuyển tới thư mục</string>
     <string name="ciphers_action_change_name_title">Đổi tên</string>
     <string name="ciphers_action_change_names_title">Đổi tên</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">Sync failed</string>
     <string name="additem_header_new_title">New item</string>
     <string name="additem_header_edit_title">Edit item</string>
+    <string name="additem_header_merge_title">Merge items</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
+    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
     <string name="additem_markdown_note_italic">italic</string>
     <string name="additem_markdown_note_bold">bold</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="exportaccount_header_title">Export items</string>
+    <string name="exportaccount_password_label">Archive password</string>
+    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn\'t get misunderstood.</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">Theme</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Use contrast black theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
+    <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_conceal_fields_title">Conceal fields</string>
     <string name="pref_item_conceal_fields_text">Conceal sensitive info, such as passwords and credit card numbers</string>
     <!--
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Manage on Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Post notifications</string>
     <string name="pref_item_permission_post_notifications_text">Used to post downloading notifications</string>
+    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
     <string name="pref_item_permission_camera_title">Camera</string>
     <string name="pref_item_permission_camera_text">Used to scan QR codes</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Allow two panel layout in landscape mode</string>

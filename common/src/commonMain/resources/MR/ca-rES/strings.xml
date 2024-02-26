@@ -200,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Canvia la pista de contrasenya mestra</string>
     <string name="account_action_sign_out_title">Tanca la sessió</string>
     <string name="account_action_sign_in_title">Inicia sessió</string>
+    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_export_individual_vault_title">Export individual vault</string>
     <string name="account_action_hide_title">Amaga els elements</string>
     <string name="account_action_hide_text">Amaga els elements de les pantalles principals de l\'app</string>
     <string name="account_action_email_verify_instructions_title">Visita la caixa forta web per a verificar la teva adreça de correu electrònic</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">Edita</string>
     <string name="ciphers_action_merge_title">Mescla a…</string>
     <string name="ciphers_action_copy_title">Copia a…</string>
+    <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">Mou a la carpeta</string>
     <string name="ciphers_action_change_name_title">Canvia el nom</string>
     <string name="ciphers_action_change_names_title">Canvia els noms</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">Error de sincronització</string>
     <string name="additem_header_new_title">Nou element</string>
     <string name="additem_header_edit_title">Editar element</string>
+    <string name="additem_header_merge_title">Combina els elements</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Mou els elements d\'origen a la paperera</string>
+    <string name="additem_merge_attachments_note">Combinar elements no combina els seus adjunts! L\'element creat no tindrà cap adjunt.</string>
     <string name="additem_markdown_note">Estilitza el text amb <xliff:g id="italic" example="italic">%1$s</xliff:g> o <xliff:g id="bold" example="bold">%2$s</xliff:g> i més. Suport per a Markdown limitat.</string>
     <string name="additem_markdown_note_italic">cursiva</string>
     <string name="additem_markdown_note_bold">negreta</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Canvia la contrasenya de l\'app</string>
     <string name="changepassword_disclaimer_local_note">La contrasenya d\'aplicació mai es desa al dispositiu ni s\'envia a través de la xarxa. Es fa servir per a generar un secret que s\'utilitza per a encriptar les dades locals.</string>
     <string name="changepassword_disclaimer_abuse_note">A no ser que sospites d\'un accés no autoritzat, o descobreixis programari maliciós al teu dispositiu, no hi ha cap necessitat de canviar la contrasenya si és una forta i única.</string>
+    <string name="exportaccount_header_title">Export items</string>
+    <string name="exportaccount_password_label">Archive password</string>
+    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">Contacta\'ns</string>
     <string name="contactus_message_label">El teu missatge</string>
     <string name="contactus_english_note">Fes servir l\'anglès per assegurar-nos que no hi ha malentesos.</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Fes servir el tema negre contrastrant</string>
     <string name="pref_item_open_links_in_external_browser_title">Obre els enllaços a un navegador extern</string>
+    <string name="pref_item_close_to_tray_title">Tanca a la safata</string>
     <string name="pref_item_conceal_fields_title">Amaga camps</string>
     <string name="pref_item_conceal_fields_text">Amaga informació sensible, tal com contrasenyes i números de targeta de crèdit</string>
     <!--
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Administra al Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Penja notificacions</string>
     <string name="pref_item_permission_post_notifications_text">Es fa servir per a penjar notificacions de descàrregues</string>
+    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
     <string name="pref_item_permission_camera_title">Càmera</string>
     <string name="pref_item_permission_camera_text">Es fa servir per a escanejar codis QR</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Permet la distribució en dos panells en el mode apaïsat</string>

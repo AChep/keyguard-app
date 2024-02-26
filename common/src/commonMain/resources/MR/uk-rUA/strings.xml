@@ -200,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Змінити підказку для головного пароля</string>
     <string name="account_action_sign_out_title">Вийти</string>
     <string name="account_action_sign_in_title">Увійти</string>
+    <string name="account_action_export_vault_title">Експорт сховища</string>
+    <string name="account_action_export_individual_vault_title">Експорт особистого сховища</string>
     <string name="account_action_hide_title">Приховати записи</string>
     <string name="account_action_hide_text">Приховати записи з основних екранів застосунку</string>
     <string name="account_action_email_verify_instructions_title">Відвідайте вебсховище для підтвердження вашої адреси електронної пошти</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">Редагувати</string>
     <string name="ciphers_action_merge_title">Об\'єднати в…</string>
     <string name="ciphers_action_copy_title">Скопіювати в…</string>
+    <string name="ciphers_action_export_title">Експорт…</string>
     <string name="ciphers_action_change_folder_title">Перемістити в теку</string>
     <string name="ciphers_action_change_name_title">Змінити назву</string>
     <string name="ciphers_action_change_names_title">Змінити назви</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">Помилка синхронізації</string>
     <string name="additem_header_new_title">Новий запис</string>
     <string name="additem_header_edit_title">Редагувати запис</string>
+    <string name="additem_header_merge_title">Об\'єднати елементи</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Перемісти початкові записи до кошика</string>
+    <string name="additem_merge_attachments_note">Об’єднання елементів не об\'єднує їх вкладення! Створений новий елемент не буде мати доданих вкладень.</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
     <string name="additem_markdown_note_italic">курсив</string>
     <string name="additem_markdown_note_bold">жирний</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Змінити пароль застосунку</string>
     <string name="changepassword_disclaimer_local_note">Пароль застосунку ніколи не зберігається на пристрої або відправляється мережею. Він використовується для генерації секретного ключа яким шифрується локальне сховище.</string>
     <string name="changepassword_disclaimer_abuse_note">Якщо ви не підозрюєте що до вашого пристрою був несанкціонований доступ, або не знайшли шкідливе програмне забезпечення, то не треба змінювати поточний пароль застосунку, якщо він достатньо надійний та унікальний.</string>
+    <string name="exportaccount_header_title">Експорт записів</string>
+    <string name="exportaccount_password_label">Пароль архіву</string>
+    <string name="exportaccount_no_attachments_note">Експортується тільки інформація про сховище, вкладення не будуть збережені.</string>
+    <string name="exportaccount_export_button">Експортувати</string>
+    <string name="exportaccount_export_success">Експорт завершено</string>
     <string name="contactus_header_title">Зв\'язатися з нами</string>
     <string name="contactus_message_label">Ваше повідомлення</string>
     <string name="contactus_english_note">Пишіть англійською, щоб переконатися, що ваше повідомлення не буде сприйнято неправильно.</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">Тема оформлення</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Використовувати контрастну чорну тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Відкривати посилання у зовнішньому браузері</string>
+    <string name="pref_item_close_to_tray_title">При закритті згортати до системного трею</string>
     <string name="pref_item_conceal_fields_title">Скрити значення полів</string>
     <string name="pref_item_conceal_fields_text">Приховувати конфіденційну інформацію, таку як паролі або номера кредитних карток</string>
     <!--
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Керувати на Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Публікувати сповіщення</string>
     <string name="pref_item_permission_post_notifications_text">Для показу сповіщень прогресу завантаження файлів</string>
+    <string name="pref_item_permission_write_external_storage_title">Запис даних на зовнішній накопичувач</string>
+    <string name="pref_item_permission_write_external_storage_text">Використовується для запису експорту сховища на диск</string>
+    <string name="pref_item_permission_write_external_storage_grant">Дозволити запис файлів на диск</string>
     <string name="pref_item_permission_camera_title">Камера</string>
     <string name="pref_item_permission_camera_text">Для сканування QR-кодів</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Дозволити інтерфейс з двома панелями в ландшафтному режимі</string>

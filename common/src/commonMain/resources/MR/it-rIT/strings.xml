@@ -200,6 +200,8 @@
     <string name="account_action_change_master_password_hint_title">Modifica suggerimento password principale</string>
     <string name="account_action_sign_out_title">Disconnetti</string>
     <string name="account_action_sign_in_title">Accedi</string>
+    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_export_individual_vault_title">Export individual vault</string>
     <string name="account_action_hide_title">Hide items</string>
     <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Vai nella cassaforte web per verificare il tuo indirizzo e-mail</string>
@@ -227,6 +229,7 @@
     <string name="ciphers_action_edit_title">Modifica</string>
     <string name="ciphers_action_merge_title">Unisci in…</string>
     <string name="ciphers_action_copy_title">Copia in…</string>
+    <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">Sposta nella cartella</string>
     <string name="ciphers_action_change_name_title">Modifica nome</string>
     <string name="ciphers_action_change_names_title">Modifica nomi</string>
@@ -526,6 +529,9 @@
     <string name="syncstatus_status_failed">Sincronizzazione non riuscita</string>
     <string name="additem_header_new_title">Nuovo elemento</string>
     <string name="additem_header_edit_title">Modifica elemento</string>
+    <string name="additem_header_merge_title">Merge items</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
+    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_markdown_note">Stile del testo con <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> e altro. È supportata una sintassi Markdown limitata.</string>
     <string name="additem_markdown_note_italic">corsivo</string>
     <string name="additem_markdown_note_bold">grassetto</string>
@@ -757,6 +763,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Modifica password app</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="exportaccount_header_title">Export items</string>
+    <string name="exportaccount_password_label">Archive password</string>
+    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Usa l\'inglese per assicurarti che il tuo feedback non venga frainteso.</string>
@@ -827,6 +838,7 @@
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Usa tema scuro a contrasto</string>
     <string name="pref_item_open_links_in_external_browser_title">Apri link in browser esterno</string>
+    <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_conceal_fields_title">Conceal fields</string>
     <string name="pref_item_conceal_fields_text">Nascondere informazioni sensibili, come password e numeri di carta di credito</string>
     <!--
@@ -905,6 +917,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gestisci su Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Posticipa notifica</string>
     <string name="pref_item_permission_post_notifications_text">Utilizzato per postare le notifiche di download</string>
+    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
     <string name="pref_item_permission_camera_title">Fotocamera</string>
     <string name="pref_item_permission_camera_text">Utilizzato per scansionare i codici QR</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Consenti layout a due colonne in modalità orizzontale</string>

@@ -27,6 +27,7 @@ fun BitwardenCipher.Companion.encrypted(
         folderId = folderId,
         organizationId = entity.organizationId,
         collectionIds = entity.collectionIds?.toSet().orEmpty(),
+        createdDate = entity.creationDate,
         revisionDate = entity.revisionDate,
         deletedDate = entity.deletedDate,
         // service fields

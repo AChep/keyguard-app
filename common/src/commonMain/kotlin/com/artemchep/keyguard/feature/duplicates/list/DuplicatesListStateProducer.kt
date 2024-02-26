@@ -45,6 +45,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherDeleteAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherDisableConfirmAccessAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherEditAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherEnableConfirmAccessAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherExportAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMergeInto
 import com.artemchep.keyguard.feature.home.vault.util.cipherMergeIntoAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
@@ -554,6 +555,10 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
 
     actions += cipherWatchtowerAlerts(
         patchWatchtowerAlertCipher = toolbox.patchWatchtowerAlertCipher,
+        ciphers = selectedCiphers,
+    )
+
+    actions += cipherExportAction(
         ciphers = selectedCiphers,
     )
 

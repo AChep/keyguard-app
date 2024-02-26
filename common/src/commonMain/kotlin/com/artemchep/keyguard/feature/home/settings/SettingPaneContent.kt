@@ -69,6 +69,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingPermissionC
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionDetailsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionOtherProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionPostNotificationsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingPermissionWriteExternalStorageProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPrivacyPolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRateAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRequireMasterPasswordProvider
@@ -126,6 +127,7 @@ object Setting {
     const val PERMISSION_DETAILS = "permission_details" // screen
     const val PERMISSION_OTHER = "permission_other"
     const val PERMISSION_CAMERA = "permission_camera"
+    const val PERMISSION_WRITE_EXTERNAL_STORAGE = "permission_write_external_storage"
     const val PERMISSION_POST_NOTIFICATION = "permission_post_notification"
     const val BIOMETRIC = "biometric"
     const val VAULT_PERSIST = "vault_persist"
@@ -207,6 +209,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.PERMISSION_OTHER to ::settingPermissionOtherProvider,
     Setting.PERMISSION_CAMERA to ::settingPermissionCameraProvider,
     Setting.PERMISSION_POST_NOTIFICATION to ::settingPermissionPostNotificationsProvider,
+    Setting.PERMISSION_WRITE_EXTERNAL_STORAGE to ::settingPermissionWriteExternalStorageProvider,
     Setting.BIOMETRIC to ::settingBiometricsProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
     Setting.VAULT_LOCK to ::settingVaultLockProvider,

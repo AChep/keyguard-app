@@ -72,10 +72,11 @@ fun settingPermissionProvider(
     leading: @Composable RowScope.() -> Unit,
     title: StringResource,
     text: StringResource,
-    minSdk: Int,
+    minSdk: Int = Int.MIN_VALUE,
+    maxSdk: Int = Int.MAX_VALUE,
     permissionProvider: () -> String,
 ): SettingComponent = kotlin.run {
-    if (Build.VERSION.SDK_INT >= minSdk) {
+    if (Build.VERSION.SDK_INT in minSdk..maxSdk) {
         kotlin.run {
             val item = SettingIi {
                 val permissionState = rememberPermissionState(permissionProvider())
@@ -102,18 +103,7 @@ fun settingPermissionProvider(
             flowOf(item)
         }
     } else {
-        kotlin.run {
-            val item = SettingIi {
-                SettingPermission(
-                    leading = leading,
-                    title = stringResource(title),
-                    text = stringResource(text),
-                    checked = true,
-                    onCheckedChange = null,
-                )
-            }
-            flowOf(item)
-        }
+        flowOf(null)
     }
 }
 

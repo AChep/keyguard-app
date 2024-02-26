@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -44,6 +45,7 @@ import com.artemchep.keyguard.copy.ConnectivityServiceAndroid
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
+import com.artemchep.keyguard.copy.DirsServiceAndroid
 import com.artemchep.keyguard.copy.LinkInfoExtractorLaunch
 import com.artemchep.keyguard.copy.LogRepositoryAndroid
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
@@ -142,6 +144,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<ConnectivityService> {
         ConnectivityServiceAndroid(this)
+    }
+    bindSingleton<DirsService> {
+        DirsServiceAndroid(this)
     }
     bindSingleton<PowerService> {
         PowerServiceAndroid(this)

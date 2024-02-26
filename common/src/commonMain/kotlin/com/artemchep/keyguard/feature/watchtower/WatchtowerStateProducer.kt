@@ -239,6 +239,7 @@ fun produceWatchtowerState(
             section = FilterParams.Section(
                 misc = false,
                 type = false,
+                custom = false,
             ),
         ),
     )

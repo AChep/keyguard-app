@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 
 data class DCollection(
     val id: String,
+    val externalId: String?,
     val organizationId: String?,
     val accountId: String,
     val revisionDate: Instant,

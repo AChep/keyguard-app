@@ -80,6 +80,7 @@ kotlin {
         val jvmMain by creating {
             dependsOn(commonMain)
             dependencies {
+                implementation(libs.lingala.zip4j)
                 implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
                 implementation(libs.bouncycastle.bcpkix)

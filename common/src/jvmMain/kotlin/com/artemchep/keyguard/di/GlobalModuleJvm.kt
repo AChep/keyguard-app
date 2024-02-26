@@ -12,6 +12,8 @@ import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
+import com.artemchep.keyguard.common.service.export.ExportService
+import com.artemchep.keyguard.common.service.export.impl.ExportServiceImpl
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoPlatformExtractor
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
@@ -67,6 +69,7 @@ import com.artemchep.keyguard.common.service.vault.impl.SessionMetadataRepositor
 import com.artemchep.keyguard.common.service.vault.impl.SessionRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.WordlistService
 import com.artemchep.keyguard.common.service.wordlist.impl.WordlistServiceImpl
+import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.AuthGenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.BiometricKeyDecryptUseCase
@@ -323,6 +326,7 @@ import com.artemchep.keyguard.copy.GetPasswordStrengthJvm
 import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.copy.PasswordGeneratorDiceware
 import com.artemchep.keyguard.copy.SimilarityServiceJvm
+import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.core.store.DatabaseDispatcher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
@@ -1066,6 +1070,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<ExportService> {
+        ExportServiceImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<WordlistService> {
         WordlistServiceImpl(
             directDI = this,
@@ -1111,6 +1120,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<LinkInfoExtractorExecute> {
         LinkInfoExtractorExecute()
+    }
+    bindSingleton<ZipService> {
+        ZipServiceJvm(
+            directDI = this,
+        )
     }
     bindSingleton<SimilarityService> {
         SimilarityServiceJvm(

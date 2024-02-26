@@ -10,4 +10,5 @@ actual enum class Permission(
     val maxSdk: Int = Int.MAX_VALUE,
 ) {
     POST_NOTIFICATIONS(Manifest.permission.POST_NOTIFICATIONS, minSdk = 33),
+    WRITE_EXTERNAL_STORAGE(Manifest.permission.WRITE_EXTERNAL_STORAGE, maxSdk = 29),
 }

@@ -34,6 +34,9 @@ data class CipherEntity(
     @JsonNames("revisionDate")
     @SerialName("RevisionDate")
     val revisionDate: Instant,
+    @JsonNames("creationDate")
+    @SerialName("CreationDate")
+    val creationDate: Instant? = null,
     @JsonNames("type")
     @SerialName("Type")
     val type: CipherTypeEntity = CipherTypeEntity.Login,

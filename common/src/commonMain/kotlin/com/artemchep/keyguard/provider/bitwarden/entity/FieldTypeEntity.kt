@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
@@ -27,6 +28,15 @@ fun FieldTypeEntity.Companion.of(
     BitwardenCipher.Field.Type.Hidden -> FieldTypeEntity.Hidden
     BitwardenCipher.Field.Type.Boolean -> FieldTypeEntity.Boolean
     BitwardenCipher.Field.Type.Linked -> FieldTypeEntity.Linked
+}
+
+fun FieldTypeEntity.Companion.of(
+    model: DSecret.Field.Type,
+) = when (model) {
+    DSecret.Field.Type.Text -> FieldTypeEntity.Text
+    DSecret.Field.Type.Hidden -> FieldTypeEntity.Hidden
+    DSecret.Field.Type.Boolean -> FieldTypeEntity.Boolean
+    DSecret.Field.Type.Linked -> FieldTypeEntity.Linked
 }
 
 fun FieldTypeEntity.domain() = when (this) {

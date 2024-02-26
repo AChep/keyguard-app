@@ -11,8 +11,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.HideSource
-import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.Security
@@ -72,6 +70,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
+import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
@@ -372,6 +371,18 @@ fun accountState(
                         // on click listener
                         ::doSyncAccountById.partially1(accountOrNull.id)
                     },
+                )
+                this += ExportRoute.actionOrNull(
+                    translator = this@produceScreenState,
+                    accountId = accountId,
+                    individual = true,
+                    navigate = ::navigate,
+                )
+                this += ExportRoute.actionOrNull(
+                    translator = this@produceScreenState,
+                    accountId = accountId,
+                    individual = false,
+                    navigate = ::navigate,
                 )
             }
             section {

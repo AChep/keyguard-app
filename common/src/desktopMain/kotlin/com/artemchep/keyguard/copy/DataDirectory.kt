@@ -1,13 +1,17 @@
 package com.artemchep.keyguard.copy
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.service.dirs.DirsService
 import kotlinx.coroutines.Dispatchers
 import net.harawata.appdirs.AppDirsFactory
 import org.kodein.di.DirectDI
+import java.io.File
+import java.io.OutputStream
 
 class DataDirectory(
-) {
+) : DirsService {
     companion object {
         private val APP_NAME = "keyguard"
         private val APP_AUTHOR = "ArtemChepurnyi"
@@ -33,5 +37,20 @@ class DataDirectory(
     fun downloads(): IO<String> = ioEffect(Dispatchers.IO) {
         val appDirs = AppDirsFactory.getInstance()
         appDirs.getUserDownloadsDir(APP_NAME, null, APP_AUTHOR)
+    }
+
+    override fun saveToDownloads(
+        fileName: String,
+        write: suspend (OutputStream) -> Unit,
+    ): IO<Unit> = ioEffect {
+        val downloadsDir = downloads()
+            .bind()
+            .let(::File)
+        val file = downloadsDir.resolve(fileName)
+        file.outputStream()
+            .use {
+                write(it)
+            }
+        Unit
     }
 }

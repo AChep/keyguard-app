@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
@@ -28,6 +29,16 @@ fun CipherTypeEntity.Companion.of(
     BitwardenCipher.Type.SecureNote -> CipherTypeEntity.SecureNote
     BitwardenCipher.Type.Card -> CipherTypeEntity.Card
     BitwardenCipher.Type.Identity -> CipherTypeEntity.Identity
+}
+
+fun CipherTypeEntity.Companion.of(
+    model: DSecret.Type,
+) = when (model) {
+    DSecret.Type.Login -> CipherTypeEntity.Login
+    DSecret.Type.SecureNote -> CipherTypeEntity.SecureNote
+    DSecret.Type.Card -> CipherTypeEntity.Card
+    DSecret.Type.Identity -> CipherTypeEntity.Identity
+    DSecret.Type.None -> null
 }
 
 fun CipherTypeEntity.domain() = when (this) {

@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.RestoreFromTrash
+import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +25,7 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.FolderOwnership2
@@ -34,6 +36,7 @@ import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CopyCipherById
+import com.artemchep.keyguard.common.usecase.ExportAccount
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
@@ -43,11 +46,13 @@ import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryRoute
@@ -204,6 +209,41 @@ fun RememberStateFlowScope.cipherMergeInto(
     )
     val intent = NavigationIntent.NavigateToRoute(route)
     navigate(intent)
+}
+
+fun RememberStateFlowScope.cipherExportAction(
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val iconImageVector = Icons.Outlined.SaveAlt
+    val title = translate(Res.strings.ciphers_action_export_title)
+    FlatItemAction(
+        icon = iconImageVector,
+        title = title,
+        onClick = {
+            before?.invoke()
+
+            val route = ExportRoute(
+                args = ExportRoute.Args(
+                    filter = DFilter.Or(
+                        filters = ciphers
+                            .map { cipher ->
+                                DFilter.ById(
+                                    id = cipher.id,
+                                    what = DFilter.ById.What.CIPHER,
+                                )
+                            },
+                    ),
+                ),
+            )
+            val intent = NavigationIntent.NavigateToRoute(route)
+            ExportRoute.navigate(
+                intent = intent,
+                navigate = ::navigate,
+            )
+        },
+    )
 }
 
 fun RememberStateFlowScope.cipherCopyToAction(

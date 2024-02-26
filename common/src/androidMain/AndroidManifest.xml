@@ -19,6 +19,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!--
+        I need this permission to write files (export vault) to the
+        external downloads directory.
+        -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+
     <!-- Vibrate on long click -->
     <uses-permission android:name="android.permission.VIBRATE" />
 

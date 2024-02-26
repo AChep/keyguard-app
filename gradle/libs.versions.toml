@@ -134,6 +134,8 @@ versionsPlugin = "0.51.0"
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
 yubiKit = "2.4.0"
+# https://github.com/srikanth-lingala/zip4j
+zip4j = "2.11.5"
 # https://github.com/nulab/zxcvbn4j
 # We use it to calculate password strength.
 zxcvbn4j = "1.8.2"
@@ -234,6 +236,7 @@ mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhtt
 moko-resources = { module = "dev.icerock.moko:resources", version.ref = "moko" }
 moko-resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "moko" }
 moko-resources-test = { module = "dev.icerock.moko:resources-test", version.ref = "moko" }
+lingala-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 nulabinc-zxcvbn = { module = "com.nulab-inc:zxcvbn", version.ref = "zxcvbn4j" }
 ricecode-string-similarity = { module = "net.ricecode:string-similarity", version.ref = "stringSimilarity" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }

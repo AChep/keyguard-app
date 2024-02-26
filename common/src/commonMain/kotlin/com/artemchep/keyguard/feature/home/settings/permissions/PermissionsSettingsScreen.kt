@@ -17,6 +17,7 @@ fun PermissionsSettingsScreen() {
                 list = listOf(
                     SettingPaneItem.Item(Setting.PERMISSION_CAMERA),
                     SettingPaneItem.Item(Setting.PERMISSION_POST_NOTIFICATION),
+                    SettingPaneItem.Item(Setting.PERMISSION_WRITE_EXTERNAL_STORAGE),
                 ),
             ),
             SettingPaneItem.Group(

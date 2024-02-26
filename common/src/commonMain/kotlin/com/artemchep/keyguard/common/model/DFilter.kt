@@ -202,6 +202,38 @@ sealed interface DFilter {
     }
 
     @Serializable
+    @SerialName("not")
+    data class Not(
+        val filter: DFilter,
+    ) : DFilter {
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val predicate = filter.prepare(
+                directDI = directDI,
+                ciphers = ciphers,
+            )
+            return@run { cipher: DSecret ->
+                !predicate(cipher)
+            }
+        }
+
+        override suspend fun prepareFolders(
+            directDI: DirectDI,
+            folders: List<DFolder>,
+        ) = kotlin.run {
+            val predicate = filter.prepareFolders(
+                directDI = directDI,
+                folders = folders,
+            )
+            return@run { folder: DFolder ->
+                !predicate(folder)
+            }
+        }
+    }
+
+    @Serializable
     @SerialName("all")
     data object All : DFilter {
         override suspend fun prepare(
@@ -242,6 +274,9 @@ sealed interface DFilter {
 
             @SerialName("organization")
             ORGANIZATION,
+
+            @SerialName("cipher")
+            CIPHER,
         }
 
         override suspend fun prepare(
@@ -270,6 +305,7 @@ sealed interface DFilter {
                 What.ACCOUNT -> cipher.accountId
                 What.FOLDER -> cipher.folderId
                 What.ORGANIZATION -> cipher.organizationId
+                What.CIPHER -> cipher.id
             } == id
         }
 
@@ -281,6 +317,7 @@ sealed interface DFilter {
                 What.ACCOUNT -> folder.accountId
                 What.COLLECTION,
                 What.ORGANIZATION,
+                What.CIPHER,
                 -> {
                     return@run true
                 }

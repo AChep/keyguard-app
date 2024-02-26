@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
@@ -78,6 +79,38 @@ fun LinkedIdTypeEntity.Companion.of(
     BitwardenCipher.Field.LinkedId.Identity_FirstName -> LinkedIdTypeEntity.Identity_FirstName
     BitwardenCipher.Field.LinkedId.Identity_LastName -> LinkedIdTypeEntity.Identity_LastName
     BitwardenCipher.Field.LinkedId.Identity_FullName -> LinkedIdTypeEntity.Identity_FullName
+}
+
+fun LinkedIdTypeEntity.Companion.of(
+    model: DSecret.Field.LinkedId,
+) = when (model) {
+    DSecret.Field.LinkedId.Login_Username -> LinkedIdTypeEntity.Login_Username
+    DSecret.Field.LinkedId.Login_Password -> LinkedIdTypeEntity.Login_Password
+    DSecret.Field.LinkedId.Card_CardholderName -> LinkedIdTypeEntity.Card_CardholderName
+    DSecret.Field.LinkedId.Card_ExpMonth -> LinkedIdTypeEntity.Card_ExpMonth
+    DSecret.Field.LinkedId.Card_ExpYear -> LinkedIdTypeEntity.Card_ExpYear
+    DSecret.Field.LinkedId.Card_Code -> LinkedIdTypeEntity.Card_Code
+    DSecret.Field.LinkedId.Card_Brand -> LinkedIdTypeEntity.Card_Brand
+    DSecret.Field.LinkedId.Card_Number -> LinkedIdTypeEntity.Card_Number
+    DSecret.Field.LinkedId.Identity_Title -> LinkedIdTypeEntity.Identity_Title
+    DSecret.Field.LinkedId.Identity_MiddleName -> LinkedIdTypeEntity.Identity_MiddleName
+    DSecret.Field.LinkedId.Identity_Address1 -> LinkedIdTypeEntity.Identity_Address1
+    DSecret.Field.LinkedId.Identity_Address2 -> LinkedIdTypeEntity.Identity_Address2
+    DSecret.Field.LinkedId.Identity_Address3 -> LinkedIdTypeEntity.Identity_Address3
+    DSecret.Field.LinkedId.Identity_City -> LinkedIdTypeEntity.Identity_City
+    DSecret.Field.LinkedId.Identity_State -> LinkedIdTypeEntity.Identity_State
+    DSecret.Field.LinkedId.Identity_PostalCode -> LinkedIdTypeEntity.Identity_PostalCode
+    DSecret.Field.LinkedId.Identity_Country -> LinkedIdTypeEntity.Identity_Country
+    DSecret.Field.LinkedId.Identity_Company -> LinkedIdTypeEntity.Identity_Company
+    DSecret.Field.LinkedId.Identity_Email -> LinkedIdTypeEntity.Identity_Email
+    DSecret.Field.LinkedId.Identity_Phone -> LinkedIdTypeEntity.Identity_Phone
+    DSecret.Field.LinkedId.Identity_Ssn -> LinkedIdTypeEntity.Identity_Ssn
+    DSecret.Field.LinkedId.Identity_Username -> LinkedIdTypeEntity.Identity_Username
+    DSecret.Field.LinkedId.Identity_PassportNumber -> LinkedIdTypeEntity.Identity_PassportNumber
+    DSecret.Field.LinkedId.Identity_LicenseNumber -> LinkedIdTypeEntity.Identity_LicenseNumber
+    DSecret.Field.LinkedId.Identity_FirstName -> LinkedIdTypeEntity.Identity_FirstName
+    DSecret.Field.LinkedId.Identity_LastName -> LinkedIdTypeEntity.Identity_LastName
+    DSecret.Field.LinkedId.Identity_FullName -> LinkedIdTypeEntity.Identity_FullName
 }
 
 fun LinkedIdTypeEntity.domain() = when (this) {

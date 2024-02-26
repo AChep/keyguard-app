@@ -10,6 +10,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Date
 
 class DateFormatterAndroid(
@@ -20,11 +21,20 @@ class DateFormatterAndroid(
 
     private val formatterDate = DateFormat.getDateInstance(DateFormat.LONG)
 
+    private val machineDateTime = SimpleDateFormat("yyyyMMddHHmmss")
+
     constructor(
         directDI: DirectDI,
     ) : this(
         context = directDI.instance(),
     )
+
+    override fun formatDateTimeMachine(
+        instant: Instant,
+    ): String {
+        val date = instant.toEpochMilliseconds().let(::Date)
+        return machineDateTime.format(date)
+    }
 
     override fun formatDateTime(
         instant: Instant,

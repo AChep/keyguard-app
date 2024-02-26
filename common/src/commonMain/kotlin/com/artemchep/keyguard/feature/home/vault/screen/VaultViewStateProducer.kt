@@ -152,6 +152,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherCopyToAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherDeleteAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherDisableConfirmAccessAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherEnableConfirmAccessAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherExportAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
@@ -693,6 +694,9 @@ fun vaultViewScreenState(
                         ).takeIf { canEdit },
                         cipherWatchtowerAlerts(
                             patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
+                            ciphers = listOf(secretOrNull),
+                        ),
+                        cipherExportAction(
                             ciphers = listOf(secretOrNull),
                         ),
                         cipherTrashAction(

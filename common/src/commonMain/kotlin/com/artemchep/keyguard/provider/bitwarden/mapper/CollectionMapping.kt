@@ -6,6 +6,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
 fun BitwardenCollection.toDomain(): DCollection {
     return DCollection(
         id = collectionId,
+        externalId = externalId,
         organizationId = organizationId,
         accountId = accountId,
         revisionDate = revisionDate,

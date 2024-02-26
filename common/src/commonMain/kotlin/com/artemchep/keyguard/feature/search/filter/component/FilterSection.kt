@@ -30,7 +30,7 @@ fun FilterSectionComposable(
         modifier = modifier,
         paddingValues = PaddingValues(
             horizontal = 0.dp,
-            vertical = 2.dp,
+            vertical = 0.dp,
         ),
         trailing = {
             val targetRotationX =

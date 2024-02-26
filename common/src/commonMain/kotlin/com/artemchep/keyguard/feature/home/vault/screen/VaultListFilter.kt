@@ -129,6 +129,7 @@ data class FilterParams(
         val collection: Boolean = true,
         val folder: Boolean = true,
         val misc: Boolean = true,
+        val custom: Boolean = true,
     )
 }
 
@@ -754,7 +755,7 @@ suspend fun <
             sectionTitle = translate(Res.strings.custom),
             collapse = false,
         )
-        .filterSection(params.section.misc)
+        .filterSection(params.section.custom)
 
     return combine(
         filterCustomListFlow,

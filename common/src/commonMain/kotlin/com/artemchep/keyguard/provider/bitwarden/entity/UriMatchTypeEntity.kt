@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
@@ -32,6 +33,17 @@ fun UriMatchTypeEntity.Companion.of(
     BitwardenCipher.Login.Uri.MatchType.Exact -> UriMatchTypeEntity.Exact
     BitwardenCipher.Login.Uri.MatchType.RegularExpression -> UriMatchTypeEntity.RegularExpression
     BitwardenCipher.Login.Uri.MatchType.Never -> UriMatchTypeEntity.Never
+}
+
+fun UriMatchTypeEntity.Companion.of(
+    model: DSecret.Uri.MatchType,
+) = when (model) {
+    DSecret.Uri.MatchType.Domain -> UriMatchTypeEntity.Domain
+    DSecret.Uri.MatchType.Host -> UriMatchTypeEntity.Host
+    DSecret.Uri.MatchType.StartsWith -> UriMatchTypeEntity.StartsWith
+    DSecret.Uri.MatchType.Exact -> UriMatchTypeEntity.Exact
+    DSecret.Uri.MatchType.RegularExpression -> UriMatchTypeEntity.RegularExpression
+    DSecret.Uri.MatchType.Never -> UriMatchTypeEntity.Never
 }
 
 fun UriMatchTypeEntity.domain() = when (this) {

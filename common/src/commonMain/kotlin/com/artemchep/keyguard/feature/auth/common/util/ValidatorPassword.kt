@@ -17,9 +17,12 @@ enum class ValidationPassword {
     }
 }
 
-fun validatePassword(password: String?): ValidationPassword {
+fun validatePassword(
+    password: String?,
+    minLength: Int = ValidationPassword.Const.MIN_LENGTH,
+): ValidationPassword {
     val passwordLength = password?.trim()?.length ?: 0
-    return if (passwordLength < ValidationPassword.Const.MIN_LENGTH) {
+    return if (passwordLength < minLength) {
         ValidationPassword.ERROR_MIN_LENGTH
     } else {
         ValidationPassword.OK
@@ -36,9 +39,15 @@ fun ValidationPassword.format(scope: TranslatorScope): String? =
         else -> null
     }
 
-fun Flow<String>.validatedPassword(scope: TranslatorScope) = this
+fun Flow<String>.validatedPassword(
+    scope: TranslatorScope,
+    minLength: Int = ValidationPassword.Const.MIN_LENGTH,
+) = this
     .map { password ->
-        val passwordError = validatePassword(password)
+        val passwordError = validatePassword(
+            password = password,
+            minLength = minLength,
+        )
             .format(scope)
         if (passwordError != null) {
             Validated.Failure(

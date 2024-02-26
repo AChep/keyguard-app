@@ -2,12 +2,13 @@ package com.artemchep.keyguard.feature.auth.common
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
-@Immutable
+@Stable
 @optics
 data class TextFieldModel2(
     val state: MutableState<String>,

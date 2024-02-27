@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
+import com.artemchep.keyguard.common.util.newChildScope
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_US_ASCII
@@ -54,7 +55,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.plus
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -1018,7 +1018,7 @@ fun <T, Argument> RememberStateFlowScope.foo(
                     }
                 }
                 if (shouldAdd) {
-                    val itemCoroutineScope = screenScope + Job()
+                    val itemCoroutineScope = screenScope.newChildScope(::Job)
                     val itemDefaultArg = inMemoryArguments[perst.key]
                     out += Foo2Scoped(
                         perst = perst,

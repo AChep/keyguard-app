@@ -8,12 +8,12 @@ import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.WindowCoroutineScopeImpl
+import com.artemchep.keyguard.common.util.job
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.leBundleOf
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.plus
@@ -49,9 +49,9 @@ class FlowHolderViewModel(
         init: RememberStateFlowScopeZygote.() -> T,
     ): T = synchronized(this) {
         store.getOrPut(key) {
-            val vmCoroutineScopeJob = SupervisorJob()
+            val vmCoroutineScopeJob = SupervisorJob(parent = scope.job)
             val vmCoroutineScope = WindowCoroutineScopeImpl(
-                scope = scope + vmCoroutineScopeJob + Dispatchers.Default,
+                scope = scope + vmCoroutineScopeJob,
                 showMessage = showMessage,
             )
             val vmScope = RememberStateFlowScopeImpl(
@@ -87,18 +87,9 @@ class FlowHolderViewModel(
         }
     }
 
-    private var isDestroyed = false
-
     fun destroy() {
-        synchronized(this) {
-            if (!isDestroyed) {
-                isDestroyed = true
-                //
-                store.keys.toSet().forEach {
-                    clear(it)
-                }
-            }
-        }
+        // Do nothing. We do not want to clear all of the screens
+        // because there still might be a screen exit animation running.
     }
 
     fun persistedState(): LeBundle {

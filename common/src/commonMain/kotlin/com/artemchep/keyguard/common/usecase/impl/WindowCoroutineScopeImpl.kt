@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.model.NoAnalytics
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.newChildScope
 import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -48,7 +49,7 @@ class WindowCoroutineScopeImpl(
         showMessage.copy(msg)
     }
 
-    private val internalScope = scope + SupervisorJob() + handler
+    private val internalScope = scope.newChildScope(::SupervisorJob) + handler
 
     override val coroutineContext: CoroutineContext
         get() = internalScope.coroutineContext

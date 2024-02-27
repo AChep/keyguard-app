@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.util.newChildScope
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.localization.textResource
@@ -72,7 +73,7 @@ class RememberStateFlowScopeImpl(
             sink: MutableStateFlow<T>,
         ) {
             private val collectScope by lazy {
-                scope + Dispatchers.Main + Job()
+                scope.newChildScope(::Job) + Dispatchers.Main
             }
 
             val mutableState by lazy {

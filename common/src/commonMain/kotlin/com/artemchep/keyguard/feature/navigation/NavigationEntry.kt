@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.artemchep.keyguard.common.util.job
 import com.artemchep.keyguard.feature.navigation.backpress.BackPressInterceptorHost
 import com.artemchep.keyguard.feature.navigation.backpress.BackPressInterceptorRegistration
 import com.artemchep.keyguard.feature.navigation.state.FlowHolderViewModel
@@ -49,7 +50,7 @@ data class NavigationEntryImpl(
 ) : NavigationEntry {
     override val type: String = route::class.simpleName.orEmpty()
 
-    private val job = Job()
+    private val job = Job(parent = parent.job)
 
     override val scope = parent + job
 

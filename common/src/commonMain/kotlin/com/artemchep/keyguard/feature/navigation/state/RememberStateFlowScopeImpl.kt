@@ -29,10 +29,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.plus
 import kotlinx.serialization.json.Json
@@ -52,7 +56,7 @@ class RememberStateFlowScopeImpl(
     private val colorSchemeState: State<ColorScheme>,
     override val screenName: String,
     override val context: LeContext,
-) : RememberStateFlowScope, CoroutineScope by scope {
+) : RememberStateFlowScopeZygote, CoroutineScope by scope {
     private val registry = mutableMapOf<String, Entry<Any?, Any?>>()
 
     override val colorScheme get() = colorSchemeState.value
@@ -97,6 +101,20 @@ class RememberStateFlowScopeImpl(
 
     override val screenId: String
         get() = screen
+
+    /**
+     * A flow that is getting observed while the user interface is
+     * visible on a screen. Used to provide lifecycle events for the
+     * screen.
+     */
+    private val keepAliveSharedFlow = MutableSharedFlow<Unit>()
+
+    private val isStartedFlow = keepAliveSharedFlow
+        .subscriptionCount
+        .map { it > 0 }
+        .distinctUntilChanged()
+
+    override val keepAliveFlow get() = keepAliveSharedFlow
 
     private fun getBundleKey(key: String) = "${this.key}:$key"
 
@@ -163,10 +181,35 @@ class RememberStateFlowScopeImpl(
 
     override fun interceptBackPress(
         interceptorFlow: Flow<(() -> Unit)?>,
-    ) = backPressInterceptorHost.interceptBackPress(
-        scope = scope,
-        interceptorFlow = interceptorFlow,
-    )
+    ): () -> Unit {
+        // We want to launch back interceptor only when the
+        // screen is currently added to the composable. Otherwise
+        // it would intercept the back press event if visually invisible
+        // to a user.
+        return launchUi {
+            backPressInterceptorHost.interceptBackPress(
+                scope = this,
+                interceptorFlow = interceptorFlow,
+            )
+        }
+    }
+
+    override fun launchUi(block: CoroutineScope.() -> Unit): () -> Unit {
+        val job = isStartedFlow
+            .mapLatest { active ->
+                if (!active) {
+                    return@mapLatest
+                }
+
+                coroutineScope {
+                    block()
+                }
+            }
+            .launchIn(scope)
+        return {
+            job.cancel()
+        }
+    }
 
     override suspend fun loadDiskHandle(
         key: String,

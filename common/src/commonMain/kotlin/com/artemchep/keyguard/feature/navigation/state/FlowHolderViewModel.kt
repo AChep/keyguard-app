@@ -46,7 +46,7 @@ class FlowHolderViewModel(
         screenName: String,
         context: LeContext,
         colorSchemeState: State<ColorScheme>,
-        init: RememberStateFlowScope.() -> T,
+        init: RememberStateFlowScopeZygote.() -> T,
     ): T = synchronized(this) {
         store.getOrPut(key) {
             val vmCoroutineScopeJob = SupervisorJob()

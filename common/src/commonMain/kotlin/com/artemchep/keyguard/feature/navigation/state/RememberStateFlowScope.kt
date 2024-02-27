@@ -86,6 +86,10 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
         interceptorFlow: Flow<(() -> Unit)?>,
     ): () -> Unit
 
+    fun launchUi(
+        block: CoroutineScope.() -> Unit,
+    ): () -> Unit
+
     //
     // Helpers
     //
@@ -99,6 +103,10 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
             started = started,
             replay = replay,
         )
+}
+
+interface RememberStateFlowScopeZygote : RememberStateFlowScope {
+    val keepAliveFlow: Flow<Unit>
 }
 
 fun RememberStateFlowScope.navigatePopSelf() {

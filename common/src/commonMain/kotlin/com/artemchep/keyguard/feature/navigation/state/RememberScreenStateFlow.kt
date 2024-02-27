@@ -20,15 +20,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.withIndex
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
@@ -76,17 +76,7 @@ fun <T> rememberScreenStateFlow(
         *rargs,
     ) {
         val now = Clock.System.now()
-        val flow: RememberStateFlowScope.() -> Flow<T> = {
-            launch {
-//                Log.i(finalTag, "Initialized the state of '$finalKey'.")
-                try {
-                    // Suspend forever.
-                    suspendCancellableCoroutine<Unit> { }
-                } finally {
-//                    Log.i(finalTag, "Finished the state of '$finalKey'.")
-                }
-            }
-
+        val flow: RememberStateFlowScopeZygote.() -> Flow<T> = {
             val structureFlow = flow {
                 val shouldDelay = getDebugScreenDelay().firstOrNull() == true
                 if (shouldDelay) {
@@ -101,12 +91,17 @@ fun <T> rememberScreenStateFlow(
                 // We don't want to recreate a state producer
                 // each time we re-subscribe to it.
                 .shareIn(this, SharingStarted.Lazily, 1)
-            structureFlow
+            val stateFlow = structureFlow
                 .flattenConcat()
                 .withIndex()
                 .map { it.value }
                 .flowOn(Dispatchers.Default)
-                .persistingStateIn(this, SharingStarted.WhileSubscribed(), initial)
+            merge(
+                stateFlow,
+                keepAliveFlow
+                    .filter { false } as Flow<T>,
+            )
+                .persistingStateIn(screenScope, SharingStarted.WhileSubscribed(), initial)
         }
         val flow2 = viewModel.getOrPut(
             finalKey,

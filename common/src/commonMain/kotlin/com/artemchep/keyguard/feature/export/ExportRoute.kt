@@ -20,10 +20,6 @@ data class ExportRoute(
     val args: Args,
 ) : Route {
     companion object {
-        // TODO: Change it to true after the app stops asking
-        //  biometrics twice.
-        private const val REQUIRE_ELEVATED_ACCESS = false
-
         fun actionOrNull(
             translator: TranslatorScope,
             accountId: AccountId,
@@ -98,11 +94,6 @@ data class ExportRoute(
             intent: NavigationIntent,
             navigate: (NavigationIntent) -> Unit,
         ) {
-            if (!REQUIRE_ELEVATED_ACCESS) {
-                navigate(intent)
-                return
-            }
-
             val elevatedRoute = registerRouteResultReceiver(
                 route = ElevatedAccessRoute(),
             ) { result ->

@@ -15,6 +15,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.onWarningContainer
 import com.artemchep.keyguard.ui.theme.warning
@@ -52,6 +53,14 @@ fun VaultViewInactiveTotpItem(
                     },
                 )
             }
+        },
+        trailing = if (item.chevron) {
+            // composable
+            {
+                ChevronIcon()
+            }
+        } else {
+            null
         },
         onClick = item.onClick,
     )

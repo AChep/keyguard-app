@@ -246,7 +246,7 @@ sealed interface VaultViewItem {
 
     data class InactiveTotp(
         override val id: String,
-        val info: TwoFaServiceInfo,
+        val chevron: Boolean,
         val onClick: () -> Unit,
     ) : VaultViewItem {
         companion object

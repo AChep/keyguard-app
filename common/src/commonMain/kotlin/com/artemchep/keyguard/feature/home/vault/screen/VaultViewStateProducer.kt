@@ -1105,7 +1105,7 @@ private fun RememberStateFlowScope.oh(
                 if (isUnsecure != null) {
                     val model = VaultViewItem.InactiveTotp(
                         id = "error2",
-                        info = isUnsecure,
+                        chevron = false,
                         onClick = {
                             val route = TwoFaServiceViewDialogRoute(
                                 args = TwoFaServiceViewDialogRoute.Args(isUnsecure),

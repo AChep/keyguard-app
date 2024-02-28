@@ -103,6 +103,8 @@ import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.isDark
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
@@ -520,6 +522,17 @@ private fun buildItemsFlow(
             copyText = copyText,
         )
     }
+    if (account != null && profile != null && !profile.twoFactorEnabled) {
+        val inactiveTfaItem = VaultViewItem.InactiveTotp(
+            id = "inactive_tfa",
+            chevron = true,
+            onClick = {
+                val intent = NavigationIntent.NavigateToBrowser(account.url)
+                scope.navigate(intent)
+            },
+        )
+        emit(inactiveTfaItem)
+    }
     if (meta != null) {
         val syncTimestamp = meta.lastSyncTimestamp
         if (syncTimestamp != null) {
@@ -702,7 +715,7 @@ private fun buildItemsFlow(
                     filter = DFilter.ById(
                         id = accountId.id,
                         what = DFilter.ById.What.ACCOUNT,
-                    )
+                    ),
                 ),
             )
             val intent = NavigationIntent.NavigateToRoute(route)
@@ -737,11 +750,6 @@ private fun buildItemsFlow(
 
     if (account != null && profile != null) {
         emitPremium(
-            scope = scope,
-            account = account,
-            profile = profile,
-        )
-        emitTwoFactorAuth(
             scope = scope,
             account = account,
             profile = profile,
@@ -905,6 +913,29 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
             .attempt()
             .bind()
             .getOrNull()
+        val badges = kotlin.run {
+            val list = mutableListOf<StateFlow<VaultViewItem.Value.Badge>>()
+            // Account email verification badge
+            list += if (profile.emailVerified) {
+                VaultViewItem.Value.Badge(
+                    text = scope.translate(Res.strings.email_verified),
+                    score = 1f,
+                )
+            } else {
+                VaultViewItem.Value.Badge(
+                    text = scope.translate(Res.strings.email_not_verified),
+                    score = 0.5f,
+                )
+            }.let(::MutableStateFlow)
+            // Account two-factor authentication badge
+            if (profile.twoFactorEnabled) {
+                list += VaultViewItem.Value.Badge(
+                    text = scope.translate(Res.strings.account_action_tfa_title),
+                    score = 1f,
+                ).let(::MutableStateFlow)
+            }
+            list
+        }
         val emailItem = VaultViewItem.Value(
             id = id,
             elevation = 1.dp,
@@ -956,53 +987,10 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
                     )
                 }
             },
-            badge = if (profile.emailVerified) {
-                VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.strings.email_verified),
-                    score = 1f,
-                )
-            } else {
-                VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.strings.email_not_verified),
-                    score = 0.5f,
-                )
-            },
+            badge2 = badges,
         )
         emit(emailItem)
     }
-}
-
-private suspend fun FlowCollector<VaultViewItem>.emitTwoFactorAuth(
-    scope: RememberStateFlowScope,
-    account: DAccount,
-    profile: DProfile,
-) {
-    val id = "twofa"
-    val twoFactorEnabled = profile.twoFactorEnabled
-    val item = VaultViewItem.Action(
-        id = id,
-        title = scope.translate(Res.strings.account_action_tfa_title),
-        text = scope.translate(Res.strings.account_action_tfa_text),
-        leading = {
-            Icon(Icons.Outlined.KeyguardTwoFa, null)
-        },
-        trailing = {
-            ChevronIcon()
-        },
-        badge = if (twoFactorEnabled) {
-            VaultViewItem.Action.Badge(
-                text = scope.translate(Res.strings.account_action_tfa_active_status),
-                score = 1f,
-            )
-        } else {
-            null
-        },
-        onClick = {
-            val intent = NavigationIntent.NavigateToBrowser(account.url)
-            scope.navigate(intent)
-        },
-    )
-    emit(item)
 }
 
 private suspend fun FlowCollector<VaultViewItem>.emitPremium(

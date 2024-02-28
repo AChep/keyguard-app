@@ -18,6 +18,7 @@ fun SubscriptionsSettingsScreen() {
                 title = stringResource(Res.strings.misc),
                 list = listOf(
                     SettingPaneItem.Item(Setting.SUBSCRIPTIONS_IN_STORE),
+                    SettingPaneItem.Item(Setting.ABOUT_TEAM),
                     SettingPaneItem.Item(Setting.FEEDBACK_APP),
                     SettingPaneItem.Item(Setting.APK),
                 ),

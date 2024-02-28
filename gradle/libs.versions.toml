@@ -64,7 +64,7 @@ googleServicesPlugin = "4.4.1"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
-kamel = "0.9.1"
+kamel = "0.9.3"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI

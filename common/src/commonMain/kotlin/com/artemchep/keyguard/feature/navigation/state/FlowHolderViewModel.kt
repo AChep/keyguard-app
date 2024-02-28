@@ -14,6 +14,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.leBundleOf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.plus
@@ -51,7 +52,7 @@ class FlowHolderViewModel(
         store.getOrPut(key) {
             val vmCoroutineScopeJob = SupervisorJob(parent = scope.job)
             val vmCoroutineScope = WindowCoroutineScopeImpl(
-                scope = scope + vmCoroutineScopeJob,
+                scope = scope + vmCoroutineScopeJob + Dispatchers.Default,
                 showMessage = showMessage,
             )
             val vmScope = RememberStateFlowScopeImpl(

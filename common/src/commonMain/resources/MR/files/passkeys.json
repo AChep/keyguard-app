@@ -347,6 +347,14 @@
     "setup": "https://crowdin.com/settings#account"
   },
   {
+    "name": "CustomerPing.AI",
+    "domain": "customerping.ai",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://customerping.ai/app/settings/login"
+  },
+  {
     "name": "Credit Union of Texas",
     "domain": "cutx.org",
     "features": [
@@ -955,7 +963,8 @@
       "signin"
     ],
     "documentation": "https://www.playstation.com/support/account/set-up-passkey-psn/",
-    "setup": "https://www.playstation.com/passkey/"
+    "setup": "https://www.playstation.com/passkey/",
+    "notes": "Go password-free with your account for PlayStation Network. Passkeys offer a faster and more secure account sign-in experience by letting you sign in through your mobile device or computer using the same convenient device unlocking method, like a fingerprint, face scan or PIN. Visit www.playstation.com/passkey to learn more. \n\n[Watch: Introducing Passkey for PlayStation on Youtube](https://www.youtube.com/watch?v=uKfQrqMS9s8 )\n"
   },
   {
     "name": "Porkbun",
@@ -991,9 +1000,8 @@
     "features": [
       "signin"
     ],
-    "documentation": "https://robinhood.com/us/en/support/articles/passkeys/",
-    "setup": "https://apps.apple.com/us/app/robinhood-investing-for-all/id938003185",
-    "notes": "Select Account \u2192 Menu \u2192 Security and Privacy \u2192 Create passkey \u2192 Continue"
+    "setup": "https://robinhood.com/us/en/support/articles/passkeys/",
+    "notes": "Saving a passkey for a Robinhood account is only supported on iOS devices running iOS 16 or later and the latest version of the Robinhood app. \n\n#### To set up a passkey on your Robinhood account on iOS:\n\n1. Open the Robinhood app.\n2. Select Account > select Menu/Settings > then select Security and Privacy.\n3. Select Create passkey, then select Continue.\n4. Follow the on-screen instructions to save a passkey for Robinhood."
   },
   {
     "name": "Roblox",

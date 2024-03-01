@@ -2528,6 +2528,17 @@
     "notes": "Login to your account first. Confirm by ticking both boxes, 'I want to close my Camel account.' and 'I\u2019m really sure!', and click 'Close Account'."
   },
   {
+    "name": "CamScanner",
+    "domains": [
+      "camscanner.com",
+      "v3.camscanner.com"
+    ],
+    "url": "https://www.camscanner.com/",
+    "difficulty": "hard",
+    "notes": "Either e-mail them requesting deletion or download the app, cancel the premium subscription, go to the bottom menu, account, tap the account name and click \"Permanently delete/cancel an account\". This will delete all data you have stored too.",
+    "email": "support@camscanner.com"
+  },
+  {
     "name": "Canva",
     "domains": [
       "canva.com"
@@ -2970,7 +2981,7 @@
       "clockify.me",
       "app.clockify.me"
     ],
-    "url": "https://clockify.me/user/settings/delete",
+    "url": "https://app.clockify.me/user/settings/delete",
     "difficulty": "easy"
   },
   {
@@ -4302,6 +4313,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "Douyin",
+    "domains": [
+      "douyin.com"
+    ],
+    "url": "https://aweme.snssdk.com/ucenter_web/app/aweme/delete-account-notice?_theme=light&hide_nav_bar=1&title=%E6%8A%96%E9%9F%B3%E6%B3%A8%E9%94%80%E9%A1%BB%E7%9F%A5&hide_status_bar=0&disable_auto_expose=1&font_scale=1.0",
+    "difficulty": "medium",
+    "notes": "You can log out of your account at 'Me'\u2b95'\u2261'\u2b95'Settings'\u2b95'Account and Security'\u2b95'Cancel Account'. However, your account has to meet the conditions linked."
+  },
+  {
     "name": "DOWN",
     "domains": [
       "downapp.com"
@@ -5062,6 +5082,15 @@
     "notes": "Search for Account, select question 'How can I delete my account', then click on 'This answer was not helpful'. A ticket will be opened."
   },
   {
+    "name": "Everand",
+    "domains": [
+      "everand.com"
+    ],
+    "url": "https://support.scribd.com/hc/en-us/articles/360000894843-Deleting-your-account#h_01HBVYCPRH4GEMX24PD473BHP8",
+    "difficulty": "easy",
+    "notes": "Follow the instructions from this link."
+  },
+  {
     "name": "Everhelper",
     "domains": [
       "everhelper.me"
@@ -5423,6 +5452,16 @@
     "url": "https://www.fiverr.com/support_tickets/account-and-security/data-and-privacy/remove-personal-data",
     "difficulty": "easy",
     "notes": "Log-in, go to the link and make the request to **deactivate account**"
+  },
+  {
+    "name": "Flat",
+    "domains": [
+      "flat.io",
+      "help.flat.io"
+    ],
+    "url": "https://flat.io/settings/account/profile",
+    "difficulty": "easy",
+    "notes": "Log-in, go to the link and click the **Delete my account** button"
   },
   {
     "name": "Flaticon",
@@ -11499,6 +11538,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "The Odin Project",
+    "domains": [
+      "theodinproject.com"
+    ],
+    "url": "https://www.theodinproject.com/privacy-policy",
+    "difficulty": "hard",
+    "notes": "Account deletion requires contacting Customer Support.",
+    "email": "theodinprojectcontact@gmail.com"
+  },
+  {
     "name": "Odnoklassniki",
     "domains": [
       "odnoklassniki.ru"
@@ -13935,8 +13984,9 @@
     "domains": [
       "scribd.com"
     ],
-    "url": "https://www.scribd.com/account_settings/preferences",
-    "difficulty": "easy"
+    "url": "https://support.scribd.com/hc/en-us/articles/360000894843-Deleting-your-account#h_01HBVYCPRH4GEMX24PD473BHP8",
+    "difficulty": "easy",
+    "notes": "Follow the instructions from this link."
   },
   {
     "name": "Seagate",
@@ -14432,11 +14482,12 @@
   {
     "name": "Slideshare",
     "domains": [
-      "slideshare.com"
+      "slideshare.com",
+      "slideshare.net"
     ],
-    "url": "https://www.linkedin.com/help/slideshare/answer/53671?query=delete%20account",
+    "url": "https://support.scribd.com/hc/en-us/articles/360000894843-Deleting-your-account#h_01HBVYCPRH4GEMX24PD473BHP8",
     "difficulty": "easy",
-    "notes": "Sign in to SlideShare, move your cursor over your photo in the top right and select Account Settings, click the Change Password tab on the left, click Delete Account, click 'Yes, delete my account', enter your password and select applicable reasons for deleting this account, then click Delete Account. Note: If you created your SlideShare account through LinkedIn, you'll have to close your LinkedIn account."
+    "notes": "Follow the instructions from this link."
   },
   {
     "name": "SmallPDF",
@@ -14597,6 +14648,57 @@
     "difficulty": "hard",
     "notes": "In order to delete your account you have to email them",
     "email": "privacy@sonos.com"
+  },
+  {
+    "name": "Sony",
+    "domains": [
+      "sony.net",
+      "sony.eu",
+      "sony-europe.com",
+      "campaign.odw.sony-europe.com",
+      "sony.at",
+      "sony.be",
+      "sony.ba",
+      "sony.bg",
+      "sony.hr",
+      "sony.gr",
+      "sony.cz",
+      "sony.dk",
+      "sony.dk",
+      "sony.ee",
+      "sony.fi",
+      "sony.fr",
+      "sony.de",
+      "sony.gr",
+      "sony.hu",
+      "sony.hu",
+      "sony.ie",
+      "sony.it",
+      "sony.kz",
+      "sonylatvija.com",
+      "sony.lt",
+      "sony.lu",
+      "sony.com.mk",
+      "sony.rs",
+      "sony.nl",
+      "sony.no",
+      "sony.pl",
+      "sony.pt",
+      "sony.ro",
+      "sony.ru",
+      "sony.rs",
+      "sony.sk",
+      "sony.si",
+      "sony.es",
+      "sony.se",
+      "sony.ch",
+      "sony.com.tr",
+      "sony.ua",
+      "sony.co.uk"
+    ],
+    "url": "https://www.sony-europe.com/mysony/account",
+    "difficulty": "easy",
+    "notes": "Go to your profile, then to \"My Account Details\", scroll down and click \"Delete Account\", at the bottom of the page."
   },
   {
     "name": "Soulseek",
@@ -16183,11 +16285,11 @@
     "name": "Transifex",
     "domains": [
       "transifex.com",
-      "docs.transifex.com"
+      "app.transifex.com"
     ],
-    "url": "https://docs.transifex.com/account/deactivating-your-account",
+    "url": "https://app.transifex.com/user/settings/",
     "difficulty": "easy",
-    "notes": "In the main navigation, click on your profile image in the top right corner; from the dropdown menu, select User Settings; scroll to the bottom of the page and click Deactivate my account; confirm you want to delete your account by clicking Deactivate my account in the popup."
+    "notes": "Click on the link, scroll to the bottom and click 'Delete my account'. Confirm you want to delete your account by clicking 'Delete my account' in the popup view."
   },
   {
     "name": "TrashMail",
@@ -17217,6 +17319,16 @@
     "notes": "Fill the form with your account's username and mail, select category \"Account/Login\" and subcategory \"Account Deletion\". Shortly after you will receive a mail that your request is being reviewed. You'll be notified via mail when the request is completed by support staff."
   },
   {
+    "name": "wallabag",
+    "domains": [
+      "wallabag.org",
+      "wallabag.it",
+      "app.wallabag.it"
+    ],
+    "url": "https://app.wallabag.it/subscription/",
+    "difficulty": "easy"
+  },
+  {
     "name": "Walmart",
     "domains": [
       "walmart.com"
@@ -17532,6 +17644,15 @@
     "url": "https://www.wikidot.com/account/settings",
     "difficulty": "easy",
     "notes": "Click on 'Delete account'. Confirm account deletion through the link sent to user email address."
+  },
+  {
+    "name": "wikiHow",
+    "domains": [
+      "wikihow.com"
+    ],
+    "url": "wikihow.com/Special:Preferences#mw-prefsection-personal",
+    "difficulty": "hard",
+    "notes": "Requires emailing them to request for deletion."
   },
   {
     "name": "Wikimedia Commons",

@@ -2969,7 +2969,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://support.malwarebytes.com/hc/en-us/articles/360042186433",
+    "documentation": "https://support.threatdown.com/hc/en-us/articles/8787932508307",
     "name": "Malwarebytes Nebula"
   },
   {
@@ -9334,13 +9334,16 @@
     "name": "MLP"
   },
   {
-    "domain": "mobile.woolworths.com.au",
+    "domain": "mobile.everyday.com.au",
+    "additional-domains": [
+      "mobile.woolworths.com.au"
+    ],
     "tfa": [
       "sms",
       "email"
     ],
-    "documentation": "https://mobile.woolworths.com.au/two-factor-authentication",
-    "name": "Woolworths Mobile"
+    "documentation": "https://mobile.everyday.com.au/two-factor-authentication",
+    "name": "Everyday Mobile"
   },
   {
     "domain": "modrinth.com",
@@ -9579,6 +9582,15 @@
     ],
     "documentation": "https://www.mychart.com/Features",
     "name": "MyChart"
+  },
+  {
+    "domain": "mydeal.com.au",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://help.mydeal.com.au/hc/en-us/articles/8901216981391",
+    "name": "MyDeal"
   },
   {
     "domain": "myemma.com",
@@ -10627,7 +10639,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://service.malwarebytes.com/hc/en-us/articles/4413802943379",
+    "documentation": "https://support.threatdown.com/hc/en-us/articles/8788574400531",
     "name": "Malwarebytes OneView"
   },
   {

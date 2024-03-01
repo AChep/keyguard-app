@@ -85,6 +85,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
@@ -399,7 +400,7 @@ fun HomeScreenContent(
                                                     textAlign = TextAlign.Center,
                                                     // Default style does not fit on devices with small
                                                     // screens.
-                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontSize = 10.sp,
                                                 )
                                             }
                                         } else {

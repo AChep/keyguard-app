@@ -44,7 +44,7 @@ you can find artifacts for your platform on the [releases](https://github.com/AC
 
 |        |
 | :----: |
-| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20230103_121606.png) |
+| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20240306-111704.png) |
 
 ## License
 

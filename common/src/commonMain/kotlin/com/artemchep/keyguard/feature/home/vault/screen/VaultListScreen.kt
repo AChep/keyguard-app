@@ -223,19 +223,13 @@ private fun VaultListFilterScreen(
     val count = (state.content as? VaultListState.Content.Items)?.count
     val filters = state.filters
     val clearFilters = state.clearFilters
+    val saveFilters = state.saveFilters
     FilterScreen(
         modifier = modifier,
         count = count,
         items = filters,
         onClear = clearFilters,
-        actions = {
-            VaultListSortButton(
-                state = state,
-            )
-            OptionsButton(
-                actions = state.actions,
-            )
-        },
+        onSave = saveFilters,
     )
 }
 
@@ -247,11 +241,13 @@ private fun VaultListFilterButton(
     val count = (state.content as? VaultListState.Content.Items)?.count
     val filters = state.filters
     val clearFilters = state.clearFilters
+    val saveFilters = state.saveFilters
     FilterButton(
         modifier = modifier,
         count = count,
         items = filters,
         onClear = clearFilters,
+        onSave = saveFilters,
     )
 }
 

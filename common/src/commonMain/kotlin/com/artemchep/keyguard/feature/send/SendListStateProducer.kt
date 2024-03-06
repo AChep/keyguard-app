@@ -843,6 +843,7 @@ fun sendListScreenState(
                 .takeIf { queryTrimmed.isEmpty() }
                 .orEmpty(),
             primaryActions = primaryActions,
+            saveFilters = null,
             clearFilters = filters.onClear,
             clearSort = if (sortDefault != sort) {
                 {

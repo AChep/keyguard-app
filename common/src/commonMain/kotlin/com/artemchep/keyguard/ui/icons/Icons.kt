@@ -5,15 +5,26 @@ import androidx.compose.material.icons.materialIcon
 import androidx.compose.material.icons.materialPath
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Attachment
-import androidx.compose.material.icons.outlined.Book
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.CollectionsBookmark
+import androidx.compose.material.icons.outlined.CopyAll
+import androidx.compose.material.icons.outlined.DataArray
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lens
 import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Recycling
+import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.StickyNote2
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
@@ -27,6 +38,9 @@ val Icons.Outlined.KeyguardView
 
 val Icons.Outlined.KeyguardTwoFa
     get() = Numbers
+
+val Icons.Outlined.KeyguardPasskey
+    get() = Key
 
 val Icons.Outlined.KeyguardNote
     get() = StickyNote2
@@ -57,6 +71,48 @@ val Icons.Outlined.KeyguardPremium
 
 val Icons.Outlined.KeyguardWordlist
     get() = LibraryBooks
+
+val Icons.Outlined.KeyguardCipherFilter
+    get() = FilterList
+
+val Icons.Outlined.KeyguardPwnedPassword
+    get() = DataArray
+
+val Icons.Outlined.KeyguardReusedPassword
+    get() = Recycling
+
+val Icons.Outlined.KeyguardPwnedWebsites
+    get() = KeyguardWebsite
+
+val Icons.Outlined.KeyguardUnsecureWebsites
+    get() = KeyguardWebsite
+
+val Icons.Outlined.KeyguardDuplicateWebsites
+    get() = KeyguardWebsite
+
+val Icons.Outlined.KeyguardDuplicateItems
+    get() = CopyAll
+
+val Icons.Outlined.KeyguardIncompleteItems
+    get() = ShortText
+
+val Icons.Outlined.KeyguardExpiringItems
+    get() = Timer
+
+val Icons.Outlined.KeyguardTrashedItems
+    get() = Delete
+
+val Icons.Outlined.KeyguardFailedItems
+    get() = ErrorOutline
+
+val Icons.Outlined.KeyguardPendingSyncItems
+    get() = CloudOff
+
+val Icons.Outlined.KeyguardAuthReprompt
+    get() = Lock
+
+val Icons.Outlined.KeyguardIgnoredAlerts
+    get() = NotificationsOff
 
 val Icons.Stub: ImageVector
     get() {

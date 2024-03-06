@@ -67,6 +67,7 @@ private fun FilterItemItem(
                 },
             ),
         checked = item.checked,
+        enabled = item.enabled,
         leading = item.leading,
         title = item.title,
         text = item.text,
@@ -79,6 +80,7 @@ private fun FilterItemSection(
     item: FilterItemModel.Section,
 ) {
     FilterSectionComposable(
+        expandable = item.expandable,
         expanded = item.expanded,
         title = item.text,
         onClick = item.onClick,

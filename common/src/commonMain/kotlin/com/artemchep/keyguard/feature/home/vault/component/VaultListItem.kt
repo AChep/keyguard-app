@@ -778,7 +778,8 @@ fun BoxScope.VaultItemIcon2(
                     .align(Alignment.Center),
                 imageVector = icon.imageVector,
                 contentDescription = null,
-                tint = Color.Black,
+                tint = Color.Black
+                    .combineAlpha(MediumEmphasisAlpha),
             )
         }
 

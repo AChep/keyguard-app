@@ -16,6 +16,7 @@ fun FilterButton(
     count: Int?,
     items: List<FilterItemModel>,
     onClear: (() -> Unit)?,
+    onSave: (() -> Unit)?,
 ) {
     DropdownButton(
         modifier = modifier,
@@ -23,6 +24,7 @@ fun FilterButton(
         title = stringResource(Res.strings.filter_header_title),
         items = items,
         onClear = onClear,
+        onSave = onSave,
     ) {
         VaultHomeScreenFilterPaneNumberOfItems(
             count = count,

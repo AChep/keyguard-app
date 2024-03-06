@@ -131,7 +131,7 @@ fun produceExportScreenState(
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterResult = createFilter()
+    val filterResult = createFilter(directDI)
 
     val filteredCiphersFlow = ciphersFlow
         .map {
@@ -192,6 +192,7 @@ fun produceExportScreenState(
             ExportState.Filter(
                 items = filterState.items,
                 onClear = filterState.onClear,
+                onSave = filterState.onSave,
             )
         }
         .stateIn(screenScope)

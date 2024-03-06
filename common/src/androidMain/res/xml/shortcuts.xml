@@ -1,20 +1,2 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <shortcut
-        android:enabled="true"
-        android:icon="@drawable/ic_shortcut_2fa"
-        android:shortcutDisabledMessage="@string/one_time_password"
-        android:shortcutId="compose"
-        android:shortcutLongLabel="@string/one_time_password"
-        android:shortcutShortLabel="@string/one_time_password">
-        <intent
-            android:action="android.intent.action.VIEW"
-            android:targetClass="com.artemchep.keyguard.android.MainActivity"
-            android:targetPackage="com.artemchep.keyguard">
-            <extra
-                android:name="customFilter"
-                android:value="2fa" />
-        </intent>
-
-        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE" />
-    </shortcut>
 </shortcuts>

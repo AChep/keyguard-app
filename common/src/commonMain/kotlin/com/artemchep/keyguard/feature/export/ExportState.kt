@@ -26,6 +26,7 @@ data class ExportState(
     data class Filter(
         val items: List<FilterItem>,
         val onClear: (() -> Unit)? = null,
+        val onSave: (() -> Unit)? = null,
     )
 
     @Immutable

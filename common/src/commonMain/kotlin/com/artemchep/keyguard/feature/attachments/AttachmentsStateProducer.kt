@@ -136,7 +136,7 @@ fun produceAttachmentsScreenState(
 ) {
     val selectionHandle = selectionHandle("selection")
 
-    val filterResult = createFilter()
+    val filterResult = createFilter(directDI)
 
     val ciphersFlow = getCiphers()
 
@@ -481,6 +481,7 @@ fun produceAttachmentsScreenState(
             filter = AttachmentsState.Filter(
                 items = filterState.items,
                 onClear = filterState.onClear,
+                onSave = filterState.onSave,
             ),
             stats = AttachmentsState.Stats(
                 totalAttachments = 0,

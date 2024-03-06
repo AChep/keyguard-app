@@ -5,6 +5,16 @@ import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepo
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepository
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepositoryImpl
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
+import com.artemchep.keyguard.common.service.filter.RemoveCipherFilterById
+import com.artemchep.keyguard.common.service.filter.RenameCipherFilter
+import com.artemchep.keyguard.common.service.filter.impl.AddCipherFilterImpl
+import com.artemchep.keyguard.common.service.filter.impl.GetCipherFiltersImpl
+import com.artemchep.keyguard.common.service.filter.impl.RemoveCipherFilterByIdImpl
+import com.artemchep.keyguard.common.service.filter.impl.RenameCipherFilterImpl
+import com.artemchep.keyguard.common.service.filter.repo.CipherFilterRepository
+import com.artemchep.keyguard.common.service.filter.repo.impl.CipherFilterRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepository
 import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlistRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistWordRepository
@@ -482,6 +492,21 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GeneratorWordlistWordRepository> {
         GeneratorWordlistWordRepositoryImpl(this)
+    }
+    bindSingleton<CipherFilterRepository> {
+        CipherFilterRepositoryImpl(this)
+    }
+    bindSingleton<AddCipherFilter> {
+        AddCipherFilterImpl(this)
+    }
+    bindSingleton<GetCipherFilters> {
+        GetCipherFiltersImpl(this)
+    }
+    bindSingleton<RemoveCipherFilterById> {
+        RemoveCipherFilterByIdImpl(this)
+    }
+    bindSingleton<RenameCipherFilter> {
+        RenameCipherFilterImpl(this)
     }
     bindSingleton<UrlOverrideRepository> {
         UrlOverrideRepositoryImpl(this)

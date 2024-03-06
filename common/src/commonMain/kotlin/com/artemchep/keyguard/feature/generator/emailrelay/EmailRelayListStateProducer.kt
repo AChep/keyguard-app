@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -292,18 +293,7 @@ fun produceEmailRelayListState(
                             )
                         }
                     }
-                    val icon = VaultItemIcon.TextIcon(
-                        run {
-                            val words = it.name.split(" ")
-                            if (words.size <= 1) {
-                                return@run words.firstOrNull()?.take(2).orEmpty()
-                            }
-
-                            words
-                                .take(2)
-                                .joinToString("") { it.take(1) }
-                        }.uppercase(),
-                    )
+                    val icon = VaultItemIcon.TextIcon.short(it.name)
 
                     val selectableFlow = selectionHandle
                         .idsFlow

@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.common.model
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.partially1
@@ -22,11 +26,29 @@ import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.icons.KeyguardAttachment
+import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
+import com.artemchep.keyguard.ui.icons.KeyguardDuplicateWebsites
+import com.artemchep.keyguard.ui.icons.KeyguardExpiringItems
+import com.artemchep.keyguard.ui.icons.KeyguardFailedItems
+import com.artemchep.keyguard.ui.icons.KeyguardIgnoredAlerts
+import com.artemchep.keyguard.ui.icons.KeyguardIncompleteItems
+import com.artemchep.keyguard.ui.icons.KeyguardPasskey
+import com.artemchep.keyguard.ui.icons.KeyguardPendingSyncItems
+import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
+import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
+import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
+import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
+import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
 import io.ktor.http.Url
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.collections.Collection
@@ -89,7 +111,24 @@ sealed interface DFilter {
                         _findOne(f, target, predicate)
                     }
 
-                    else -> Either.Left(Unit)
+                    else -> kotlin.run {
+                        filter.filters.forEach { f ->
+                            val r = _findOne(f, target, predicate)
+                            r.fold(
+                                ifLeft = {
+                                    return@run r
+                                },
+                                ifRight = {
+                                    if (it != null) {
+                                        return@run Either.Left(Unit)
+                                    }
+
+                                    it
+                                },
+                            )
+                        }
+                        Either.Right(null)
+                    }
                 }
             }
 
@@ -128,6 +167,52 @@ sealed interface DFilter {
                 }
             }
         }
+
+        inline fun <reified T> findAny(
+            filter: DFilter,
+            noinline predicate: (T) -> Boolean = { true },
+        ): T? = findAny(
+            filter = filter,
+            target = T::class.java,
+            predicate = predicate,
+        )
+
+        fun <T> findAny(
+            filter: DFilter,
+            target: Class<T>,
+            predicate: (T) -> Boolean = { true },
+        ): T? = _findAny(
+            filter = filter,
+            target = target,
+            predicate = predicate,
+        )
+
+        private fun <T> _findAny(
+            filter: DFilter,
+            target: Class<T>,
+            predicate: (T) -> Boolean = { true },
+        ): T? = when (filter) {
+            is Or<*> -> filter
+                .filters
+                .firstNotNullOfOrNull { f ->
+                    _findAny(f, target, predicate)
+                }
+
+            is And<*> -> filter
+                .filters
+                .firstNotNullOfOrNull { f ->
+                    _findAny(f, target, predicate)
+                }
+
+            else -> {
+                if (filter.javaClass == target) {
+                    val f = filter as T
+                    f.takeIf(predicate)
+                } else {
+                    null
+                }
+            }
+        }
     }
 
     suspend fun prepare(
@@ -143,6 +228,21 @@ sealed interface DFilter {
     @Serializable
     sealed interface Primitive : DFilter {
         val key: String
+    }
+
+    @Serializable
+    sealed interface PrimitiveSpecial : Primitive {
+    }
+
+    @Serializable
+    sealed interface PrimitiveSimple : Primitive {
+        data class Content(
+            val title: TextHolder,
+            val icon: ImageVector? = null,
+        )
+
+        @Transient
+        val content: Content
     }
 
     @Serializable
@@ -258,7 +358,8 @@ sealed interface DFilter {
     data class ById(
         val id: String?,
         val what: What,
-    ) : Primitive {
+    ) : PrimitiveSpecial {
+        @Transient
         override val key: String = "$id|$what"
 
         @Serializable
@@ -328,9 +429,18 @@ sealed interface DFilter {
     @Serializable
     @SerialName("by_type")
     data class ByType(
+        @SerialName("cipherType")
         val type: DSecret.Type,
-    ) : Primitive {
+    ) : PrimitiveSimple {
+        @Transient
         override val key: String = "$type"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = type.titleH()
+                .let(TextHolder::Res),
+            icon = type.iconImageVector(),
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -344,8 +454,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_otp")
-    data object ByOtp : Primitive {
+    data object ByOtp : PrimitiveSimple {
+        @Transient
         override val key: String = "otp"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.one_time_password
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardTwoFa,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -359,8 +477,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_attachments")
-    data object ByAttachments : Primitive {
+    data object ByAttachments : PrimitiveSimple {
+        @Transient
         override val key: String = "attachments"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.attachments
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardAttachment,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -374,8 +500,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_passkeys")
-    data object ByPasskeys : Primitive {
+    data object ByPasskeys : PrimitiveSimple {
+        @Transient
         override val key: String = "passkeys"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.passkeys
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.Key,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -391,8 +525,16 @@ sealed interface DFilter {
     @SerialName("by_pwd_value")
     data class ByPasswordValue(
         val value: String?,
-    ) : Primitive {
+    ) : PrimitiveSimple {
+        @Transient
         override val key: String = "pwd_value|$value"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = value?.let(::obscurePassword).orEmpty()
+                .let(TextHolder::Value),
+            icon = Icons.Outlined.Password,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -408,8 +550,22 @@ sealed interface DFilter {
     @SerialName("by_pwd_strength")
     data class ByPasswordStrength(
         val score: PasswordStrength.Score,
-    ) : Primitive {
-        override val key: String = "$score"
+    ) : PrimitiveSimple {
+        @Transient
+        override val key: String = "pwd_score|$score"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = when (score) {
+                PasswordStrength.Score.Weak -> Res.strings.passwords_weak_label
+                PasswordStrength.Score.Fair -> Res.strings.passwords_fair_label
+                PasswordStrength.Score.Good -> Res.strings.passwords_good_label
+                PasswordStrength.Score.Strong -> Res.strings.passwords_strong_label
+                PasswordStrength.Score.VeryStrong -> Res.strings.passwords_very_strong_label
+            }
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.Password,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -423,8 +579,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_pwd_duplicates")
-    data object ByPasswordDuplicates : Primitive {
+    data object ByPasswordDuplicates : PrimitiveSimple {
+        @Transient
         override val key: String = "pwd_duplicates"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_reused_passwords_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardReusedPassword,
+        )
 
         private data class DuplicatesState(
             var duplicate: Int,
@@ -497,8 +661,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_pwd_pwned")
-    data object ByPasswordPwned : Primitive {
+    data object ByPasswordPwned : PrimitiveSimple {
+        @Transient
         override val key: String = "pwd_pwned"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_pwned_passwords_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardPwnedPassword,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -565,8 +737,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_website_pwned")
-    data object ByWebsitePwned : Primitive {
+    data object ByWebsitePwned : PrimitiveSimple {
+        @Transient
         override val key: String = "website_pwned"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_vulnerable_accounts_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardPwnedWebsites,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -627,8 +807,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_incomplete")
-    data object ByIncomplete : Primitive {
+    data object ByIncomplete : PrimitiveSimple {
+        @Transient
         override val key: String = "incomplete"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_incomplete_items_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardIncompleteItems,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -676,8 +864,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_expiring")
-    data object ByExpiring : Primitive {
+    data object ByExpiring : PrimitiveSimple {
+        @Transient
         override val key: String = "expiring"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_expiring_items_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardExpiringItems,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -726,8 +922,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_unsecure_websites")
-    data object ByUnsecureWebsites : Primitive {
+    data object ByUnsecureWebsites : PrimitiveSimple {
+        @Transient
         override val key: String = "unsecure_websites"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_unsecure_websites_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardUnsecureWebsites,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -777,8 +981,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_tfa_websites")
-    data object ByTfaWebsites : Primitive {
+    data object ByTfaWebsites : PrimitiveSimple {
+        @Transient
         override val key: String = "tfa_websites"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_inactive_2fa_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardTwoFa,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -874,8 +1086,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_passkey_websites")
-    data object ByPasskeyWebsites : Primitive {
+    data object ByPasskeyWebsites : PrimitiveSimple {
+        @Transient
         override val key: String = "passkey_websites"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_inactive_passkey_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardPasskey,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -983,8 +1203,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_duplicate_websites")
-    data object ByDuplicateWebsites : Primitive {
+    data object ByDuplicateWebsites : PrimitiveSimple {
+        @Transient
         override val key: String = "duplicate_websites"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.watchtower_item_duplicate_websites_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardDuplicateWebsites,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -1049,8 +1277,16 @@ sealed interface DFilter {
     @SerialName("by_sync")
     data class BySync(
         val synced: Boolean,
-    ) : Primitive {
+    ) : PrimitiveSimple {
+        @Transient
         override val key: String = "$synced"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.filter_pending_items
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardPendingSyncItems,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -1075,8 +1311,16 @@ sealed interface DFilter {
     @SerialName("by_repromt")
     data class ByReprompt(
         val reprompt: Boolean,
-    ) : Primitive {
+    ) : PrimitiveSimple {
+        @Transient
         override val key: String = "$reprompt"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.filter_auth_reprompt_items
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardAuthReprompt,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -1092,8 +1336,16 @@ sealed interface DFilter {
     @SerialName("by_error")
     data class ByError(
         val error: Boolean,
-    ) : Primitive {
+    ) : PrimitiveSimple {
+        @Transient
         override val key: String = "$error"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.filter_failed_items
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardFailedItems,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,
@@ -1116,8 +1368,16 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("by_ignored_alerts")
-    data object ByIgnoredAlerts : Primitive {
+    data object ByIgnoredAlerts : PrimitiveSimple {
+        @Transient
         override val key: String = "ignored_alerts"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.strings.ignored_alerts
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardIgnoredAlerts,
+        )
 
         override suspend fun prepare(
             directDI: DirectDI,

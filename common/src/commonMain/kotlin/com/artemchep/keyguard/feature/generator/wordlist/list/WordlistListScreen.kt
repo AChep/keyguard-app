@@ -293,9 +293,6 @@ private fun WordlistItem(
                 val nextEntry = navigationNextEntryOrNull()
                 val nextRoute = nextEntry?.route as? WordlistViewRoute
 
-                MaterialTheme.colorScheme.selectedContainer
-                    .takeIf { LocalHasDetailPane.current }
-                    ?: Color.Unspecified
                 val selected = nextRoute?.args?.wordlistId == item.wordlistId
                 if (selected) {
                     return@run MaterialTheme.colorScheme.selectedContainer

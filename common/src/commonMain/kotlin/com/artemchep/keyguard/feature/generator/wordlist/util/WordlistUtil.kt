@@ -18,12 +18,13 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
 import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.icon
 
 object WordlistUtil {
     context(RememberStateFlowScope)
-    fun onEdit(
+    fun onRename(
         editWordlist: EditWordlist,
         entity: DGeneratorWordlist,
     ) {
@@ -43,7 +44,7 @@ object WordlistUtil {
             route = ConfirmationRoute(
                 args = ConfirmationRoute.Args(
                     icon = icon(
-                        main = Icons.Outlined.KeyguardWordlist,
+                        main = Icons.Outlined.KeyguardCipherFilter,
                         secondary = Icons.Outlined.Edit,
                     ),
                     title = translate(Res.strings.wordlist_edit_wordlist_title),

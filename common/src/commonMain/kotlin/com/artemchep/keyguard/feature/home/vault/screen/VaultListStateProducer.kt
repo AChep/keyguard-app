@@ -76,6 +76,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.duplicates.list.createCipherSelectionFlow
+import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
@@ -387,7 +388,7 @@ fun vaultListScreenState(
     var scrollPositionKey: Any? = null
     val scrollPositionSink = mutablePersistedFlow<OhOhOh>("scroll_state") { OhOhOh() }
 
-    val filterResult = createFilter()
+    val filterResult = createFilter(directDI)
     val actionsFlow = kotlin.run {
         val actionTrashItem = FlatItemAction(
             leading = {
@@ -429,9 +430,15 @@ fun vaultListScreenState(
             },
         )
         val actionDownloadsFlow = flowOf(actionDownloadsItem)
+        val actionFiltersItem = CipherFiltersRoute.actionOrNull(
+            translator = this,
+            navigate = ::navigate,
+        )
+        val actionFiltersFlow = flowOf(actionFiltersItem)
         val actionGroupFlow = combine(
             actionTrashFlow,
             actionDownloadsFlow,
+            actionFiltersFlow,
         ) { array ->
             buildContextItems {
                 section {
@@ -1223,15 +1230,15 @@ fun vaultListScreenState(
         .map {
             val keepOtp = it.filterConfig?.filter
                 ?.let {
-                    DFilter.findOne(it, DFilter.ByOtp::class.java)
+                    DFilter.findAny<DFilter.ByOtp>(it)
                 } != null
             val keepAttachment = it.filterConfig?.filter
                 ?.let {
-                    DFilter.findOne(it, DFilter.ByAttachments::class.java)
+                    DFilter.findAny<DFilter.ByAttachments>(it)
                 } != null
             val keepPasskey = it.filterConfig?.filter
                 ?.let {
-                    DFilter.findOne(it, DFilter.ByPasskeys::class.java)
+                    DFilter.findAny<DFilter.ByPasskeys>(it)
                 } != null ||
                     // If a user is in the pick a passkey mode,
                     // then we want to always show it in the items.
@@ -1511,6 +1518,7 @@ fun vaultListScreenState(
             } else {
                 emptyList()
             },
+            saveFilters = filters.onSave,
             clearFilters = filters.onClear,
             clearSort = if (sortDefault != sort) {
                 {

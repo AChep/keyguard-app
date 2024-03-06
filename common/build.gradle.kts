@@ -127,6 +127,7 @@ kotlin {
                 api(libs.androidx.browser)
                 api(libs.androidx.core.ktx)
                 api(libs.androidx.core.splashscreen)
+                api(libs.androidx.core.shortcuts)
                 api(libs.androidx.credentials)
                 api(libs.androidx.datastore)
                 api(libs.androidx.lifecycle.livedata.ktx)

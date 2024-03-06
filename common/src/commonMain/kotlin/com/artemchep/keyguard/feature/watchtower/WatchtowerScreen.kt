@@ -33,12 +33,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.CopyAll
-import androidx.compose.material.icons.outlined.DataArray
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Warning
@@ -99,7 +97,17 @@ import com.artemchep.keyguard.ui.GridLayout
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
+import com.artemchep.keyguard.ui.icons.KeyguardDuplicateItems
+import com.artemchep.keyguard.ui.icons.KeyguardDuplicateWebsites
+import com.artemchep.keyguard.ui.icons.KeyguardExpiringItems
+import com.artemchep.keyguard.ui.icons.KeyguardIncompleteItems
+import com.artemchep.keyguard.ui.icons.KeyguardPasskey
+import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
+import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
+import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
+import com.artemchep.keyguard.ui.icons.KeyguardTrashedItems
+import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
@@ -211,8 +219,6 @@ fun VaultHomeScreenFilterPaneCard2(
         count = null,
         items = items,
         onClear = onClear,
-        actions = {
-        },
     )
 }
 
@@ -397,6 +403,7 @@ private fun VaultHomeScreenFilterButton(
         modifier = modifier,
         items = state.filter.items,
         onClear = state.filter.onClear,
+        onSave = state.filter.onSave,
     )
 }
 
@@ -405,12 +412,14 @@ fun VaultHomeScreenFilterButton2(
     modifier: Modifier = Modifier,
     items: List<FilterItem>,
     onClear: (() -> Unit)?,
+    onSave: (() -> Unit)?,
 ) {
     FilterButton(
         modifier = modifier,
         count = null,
         items = items,
         onClear = onClear,
+        onSave = onSave,
     )
 }
 
@@ -701,7 +710,7 @@ private fun CardPwnedPassword(
             )
         },
         text = stringResource(Res.strings.watchtower_item_pwned_passwords_text),
-        imageVector = Icons.Outlined.DataArray,
+        imageVector = Icons.Outlined.KeyguardPwnedPassword,
         onClick = state.onClick,
         content = {
             PoweredByHaveibeenpwned(
@@ -727,7 +736,7 @@ private fun CardReusedPassword(
             )
         },
         text = stringResource(Res.strings.watchtower_item_reused_passwords_text),
-        imageVector = Icons.Outlined.Recycling,
+        imageVector = Icons.Outlined.KeyguardReusedPassword,
         onClick = state.onClick,
     )
 }
@@ -746,7 +755,7 @@ private fun CardVulnerableAccounts(
             )
         },
         text = stringResource(Res.strings.watchtower_item_vulnerable_accounts_text),
-        imageVector = Icons.Outlined.KeyguardWebsite,
+        imageVector = Icons.Outlined.KeyguardPwnedWebsites,
         onClick = state.onClick,
         content = {
             PoweredByHaveibeenpwned(
@@ -772,7 +781,7 @@ private fun CardUnsecureWebsites(
             )
         },
         text = stringResource(Res.strings.watchtower_item_unsecure_websites_text),
-        imageVector = Icons.Outlined.KeyguardWebsite,
+        imageVector = Icons.Outlined.KeyguardUnsecureWebsites,
         onClick = state.onClick,
     )
 }
@@ -843,7 +852,7 @@ private fun CardInactivePasskey(
             )
         },
         text = stringResource(Res.strings.watchtower_item_inactive_passkey_text),
-        imageVector = Icons.Outlined.KeyguardTwoFa,
+        imageVector = Icons.Outlined.KeyguardPasskey,
         onClick = state.onClick,
         content = {
             PoweredByPasskeys(
@@ -869,7 +878,7 @@ private fun CardIncompleteItems(
             )
         },
         text = stringResource(Res.strings.watchtower_item_incomplete_items_text),
-        imageVector = Icons.Outlined.ShortText,
+        imageVector = Icons.Outlined.KeyguardIncompleteItems,
         onClick = state.onClick,
     )
 }
@@ -888,7 +897,7 @@ private fun CardExpiringItems(
             )
         },
         text = stringResource(Res.strings.watchtower_item_expiring_items_text),
-        imageVector = Icons.Outlined.Timer,
+        imageVector = Icons.Outlined.KeyguardExpiringItems,
         onClick = state.onClick,
     )
 }
@@ -907,7 +916,7 @@ private fun CardDuplicateWebsites(
             )
         },
         text = stringResource(Res.strings.watchtower_item_duplicate_websites_text),
-        imageVector = Icons.Outlined.KeyguardWebsite,
+        imageVector = Icons.Outlined.KeyguardDuplicateWebsites,
         onClick = state.onClick,
     )
 }
@@ -934,7 +943,7 @@ private fun CardTrashedItems(
             )
         },
         text = stringResource(Res.strings.watchtower_item_trashed_items_text),
-        imageVector = Icons.Outlined.Delete,
+        imageVector = Icons.Outlined.KeyguardTrashedItems,
         onClick = state.onClick,
     )
 }
@@ -977,7 +986,7 @@ private fun CardDuplicateItems(
             )
         },
         text = stringResource(Res.strings.watchtower_item_duplicate_items_text),
-        imageVector = Icons.Outlined.CopyAll,
+        imageVector = Icons.Outlined.KeyguardDuplicateItems,
         onClick = state.onClick,
     )
 }

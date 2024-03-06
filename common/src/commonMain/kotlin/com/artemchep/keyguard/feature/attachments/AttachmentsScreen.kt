@@ -104,6 +104,7 @@ fun AttachmentsScreen(
                         modifier = modifier,
                         items = state.getOrNull()?.filter?.items.orEmpty(),
                         onClear = state.getOrNull()?.filter?.onClear,
+                        onSave = state.getOrNull()?.filter?.onSave,
                     )
                 },
                 scrollBehavior = scrollBehavior,

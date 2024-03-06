@@ -22,6 +22,7 @@ import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -166,9 +167,7 @@ fun DSecret.toVaultItemIcon(
         }
     }
     val textIcon = if (name.isNotBlank()) {
-        VaultItemIcon.TextIcon(
-            text = name.take(2),
-        )
+        VaultItemIcon.TextIcon.short(name)
     } else {
         null
     }

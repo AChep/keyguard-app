@@ -127,6 +127,7 @@ fun ExportScreenSkeleton(
                 modifier = modifier,
                 items = items,
                 onClear = null,
+                onSave = null,
             )
         },
     ) { modifier, tabletUi ->
@@ -185,6 +186,7 @@ fun ExportScreenOk(
                 modifier = modifier,
                 items = filter.items,
                 onClear = filter.onClear,
+                onSave = filter.onSave,
             )
         },
     ) { modifier, tabletUi ->
@@ -211,14 +213,14 @@ private fun ExportScreenFilterList(
     modifier: Modifier = Modifier,
     items: List<FilterItem>,
     onClear: (() -> Unit)?,
+    onSave: (() -> Unit)?,
 ) {
     FilterScreen(
         modifier = modifier,
         count = null,
         items = items,
         onClear = onClear,
-        actions = {
-        },
+        onSave = onSave,
     )
 }
 
@@ -227,12 +229,14 @@ private fun ExportScreenFilterButton(
     modifier: Modifier = Modifier,
     items: List<FilterItem>,
     onClear: (() -> Unit)?,
+    onSave: (() -> Unit)?,
 ) {
     FilterButton(
         modifier = modifier,
         count = null,
         items = items,
         onClear = onClear,
+        onSave = onSave,
     )
 }
 
@@ -277,6 +281,7 @@ private fun ExportScreen(
                             modifier = Modifier,
                             items = filter.items,
                             onClear = filter.onClear,
+                            onSave = filter.onSave,
                         )
                     }
                 },

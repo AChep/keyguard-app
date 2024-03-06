@@ -8,3 +8,6 @@ fun Platform.hasAutofill(): Boolean =
 
 fun Platform.hasSubscription(): Boolean =
     this is Platform.Mobile.Android
+
+fun Platform.hasDynamicShortcuts(): Boolean =
+    this is Platform.Mobile.Android

@@ -192,6 +192,9 @@
     <string name="master_password_hint">Master password hint</string>
     <string name="fingerprint_phrase">Fingerprint phrase</string>
     <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
 
@@ -670,6 +673,14 @@
     <string name="passwords_good_label">Good passwords</string>
     <string name="passwords_fair_label">Fair passwords</string>
     <string name="passwords_weak_label">Weak passwords</string>
+
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Search filters</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
 
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">No filters available</string>

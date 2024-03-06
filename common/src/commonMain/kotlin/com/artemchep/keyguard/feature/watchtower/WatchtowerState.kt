@@ -14,6 +14,7 @@ data class WatchtowerState(
     data class Filter(
         val items: List<FilterItem> = emptyList(),
         val onClear: (() -> Unit)? = null,
+        val onSave: (() -> Unit)? = null,
     )
 
     data class Content(

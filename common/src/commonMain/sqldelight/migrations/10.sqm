@@ -1,0 +1,59 @@
+CREATE TABLE cipherFilter (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  data TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+  type TEXT,
+  icon TEXT
+);
+
+INSERT INTO cipherFilter(name, data, updatedAt, createdAt, type, icon)
+VALUES (
+  '',
+  '',
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  'login',
+  NULL
+);
+
+INSERT INTO cipherFilter(name, data, updatedAt, createdAt, type, icon)
+VALUES (
+  '',
+  '',
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  'card',
+  NULL
+);
+
+INSERT INTO cipherFilter(name, data, updatedAt, createdAt, type, icon)
+VALUES (
+  '',
+  '',
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  'identity',
+  NULL
+);
+
+INSERT INTO cipherFilter(name, data, updatedAt, createdAt, type, icon)
+VALUES (
+  '',
+  '',
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  'note',
+  NULL
+);
+
+INSERT INTO cipherFilter(name, data, updatedAt, createdAt, type, icon)
+VALUES (
+  '',
+  '',
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  CAST(unixepoch('subsecond') * 1000 AS INTEGER),
+  'otp',
+  NULL
+);

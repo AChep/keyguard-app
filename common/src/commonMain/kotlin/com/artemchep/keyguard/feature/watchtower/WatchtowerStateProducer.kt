@@ -141,7 +141,7 @@ fun produceWatchtowerState(
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterResult = createFilter()
+    val filterResult = createFilter(directDI)
 
     fun filteredCiphers(ciphersFlow: Flow<List<DSecret>>) = ciphersFlow
         .map {
@@ -993,6 +993,7 @@ fun produceWatchtowerState(
                 filter = WatchtowerState.Filter(
                     items = filterState.items,
                     onClear = filterState.onClear,
+                    onSave = filterState.onSave,
                 ),
                 actions = actions,
             )

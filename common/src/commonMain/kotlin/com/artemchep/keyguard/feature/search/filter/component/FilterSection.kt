@@ -22,6 +22,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 @Composable
 fun FilterSectionComposable(
     modifier: Modifier = Modifier,
+    expandable: Boolean,
     expanded: Boolean,
     title: String,
     onClick: (() -> Unit)?,
@@ -33,6 +34,10 @@ fun FilterSectionComposable(
             vertical = 0.dp,
         ),
         trailing = {
+            if (!expandable) {
+                return@FlatItem
+            }
+
             val targetRotationX =
                 if (expanded) {
                     0f
@@ -63,5 +68,6 @@ fun FilterSectionComposable(
             )
         },
         onClick = onClick,
+        enabled = true,
     )
 }

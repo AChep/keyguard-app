@@ -346,14 +346,6 @@ private fun SendListFilterScreen(
         count = count,
         items = filters,
         onClear = clearFilters,
-        actions = {
-            SendListSortButton(
-                state = state,
-            )
-            OptionsButton(
-                actions = state.actions,
-            )
-        },
     )
 }
 
@@ -365,11 +357,13 @@ private fun SendListFilterButton(
     val count = (state.content as? SendListState.Content.Items)?.count
     val filters = state.filters
     val clearFilters = state.clearFilters
+    val saveFilters = state.saveFilters
     FilterButton(
         modifier = modifier,
         count = count,
         items = filters,
         onClear = clearFilters,
+        onSave = saveFilters,
     )
 }
 

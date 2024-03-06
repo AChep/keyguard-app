@@ -42,6 +42,7 @@ fun FilterItemComposable(
     title: String,
     text: String?,
     onClick: (() -> Unit)?,
+    enabled: Boolean = onClick != null,
 ) {
     FilterItemLayout(
         modifier = modifier,
@@ -67,6 +68,7 @@ fun FilterItemComposable(
             }
         },
         onClick = onClick,
+        enabled = enabled,
     )
 }
 

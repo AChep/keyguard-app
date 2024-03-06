@@ -19,6 +19,7 @@ data class SendListState(
     val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
     val filters: List<SendFilterItem> = emptyList(),
     val sort: List<SendSortItem> = emptyList(),
+    val saveFilters: (() -> Unit)? = null,
     val clearFilters: (() -> Unit)? = null,
     val clearSort: (() -> Unit)? = null,
     val showKeyboard: Boolean = false,

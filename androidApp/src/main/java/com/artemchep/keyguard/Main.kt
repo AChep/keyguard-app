@@ -1,11 +1,16 @@
 package com.artemchep.keyguard
 
 import android.content.Context
+import android.content.Intent
 import androidx.core.content.ContextCompat
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.android.MainActivity
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
 import com.artemchep.keyguard.android.passkeysModule
@@ -22,6 +27,7 @@ import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.model.PersistedSession
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
@@ -220,6 +226,54 @@ class Main : BaseApp(), DIAware {
                     clearVaultSession()
                         .attempt()
                         .launchIn(this)
+                }
+                .launchIn(this)
+        }
+
+        // shortcuts
+        ProcessLifecycleOwner.get().lifecycleScope.launch {
+            getVaultSession()
+                .flatMapLatest { session ->
+                    when (session) {
+                        is MasterSession.Key -> {
+                            val getCipherFilters: GetCipherFilters = session.di.direct.instance()
+                            getCipherFilters()
+                        }
+
+                        is MasterSession.Empty -> emptyFlow()
+                    }
+                }
+                .onEach { filters ->
+                    val dynamicShortcutsIdsToRemove = kotlin.run {
+                        val oldDynamicShortcutsIds =
+                            ShortcutManagerCompat.getDynamicShortcuts(this@Main)
+                                .map { it.id }
+                                .toSet()
+                        val newDynamicShortcutsIds = filters
+                            .map { it.id }
+                            .toSet()
+                        oldDynamicShortcutsIds - newDynamicShortcutsIds
+                    }
+                    if (dynamicShortcutsIdsToRemove.isNotEmpty()) {
+                        val ids = dynamicShortcutsIdsToRemove.toList()
+                        ShortcutManagerCompat.removeDynamicShortcuts(this@Main, ids)
+                    }
+
+                    val shortcuts = filters
+                        .map {
+                            val intent = MainActivity.getIntent(this@Main).apply {
+                                action = Intent.ACTION_VIEW
+                                putExtra("customFilter", it.id)
+                            }
+                            val icon = IconCompat.createWithResource(this@Main, com.artemchep.keyguard.common.R.drawable.ic_shortcut_keyguard)
+                            ShortcutInfoCompat.Builder(this@Main, it.id)
+                                .setIcon(icon)
+                                .setShortLabel(it.name)
+                                .setIntent(intent)
+                                .addCapabilityBinding("actions.intent.OPEN_APP_FEATURE")
+                                .build()
+                        }
+                    ShortcutManagerCompat.addDynamicShortcuts(this@Main, shortcuts)
                 }
                 .launchIn(this)
         }

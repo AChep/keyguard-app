@@ -14,6 +14,7 @@ data class AttachmentsState(
     data class Filter(
         val items: List<FilterItem> = emptyList(),
         val onClear: (() -> Unit)? = null,
+        val onSave: (() -> Unit)? = null,
     )
 
     data class Stats(

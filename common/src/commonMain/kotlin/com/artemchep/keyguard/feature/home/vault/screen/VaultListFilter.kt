@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
@@ -18,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import arrow.core.widen
+import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
@@ -27,22 +30,37 @@ import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
+import com.artemchep.keyguard.common.service.filter.AddCipherFilter
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
+import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
+import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
+import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
+import com.artemchep.keyguard.ui.icons.KeyguardFailedItems
+import com.artemchep.keyguard.ui.icons.KeyguardIgnoredAlerts
+import com.artemchep.keyguard.ui.icons.KeyguardPendingSyncItems
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
+import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.icons.iconSmall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -66,10 +84,54 @@ private fun <T, R> mapCiphers(
 data class CreateFilterResult(
     val filterFlow: Flow<FilterHolder>,
     val onToggle: (String, Set<DFilter.Primitive>) -> Unit,
+    val onApply: (Map<String, Set<DFilter.Primitive>>) -> Unit,
     val onClear: () -> Unit,
+    val onSave: (Map<String, Set<DFilter.Primitive>>) -> Unit,
 )
 
-suspend fun RememberStateFlowScope.createFilter(): CreateFilterResult {
+enum class FilterSection(
+    val id: String,
+    val title: TextHolder,
+) {
+    CUSTOM(
+        id = "custom",
+        title = TextHolder.Res(Res.strings.custom),
+    ),
+    ACCOUNT(
+        id = "account",
+        title = TextHolder.Res(Res.strings.account),
+    ),
+    ORGANIZATION(
+        id = "organization",
+        title = TextHolder.Res(Res.strings.organization),
+    ),
+    TYPE(
+        id = "type",
+        title = TextHolder.Res(Res.strings.type),
+    ),
+    FOLDER(
+        id = "folder",
+        title = TextHolder.Res(Res.strings.folder),
+    ),
+    COLLECTION(
+        id = "collection",
+        title = TextHolder.Res(Res.strings.collection),
+    ),
+    MISC(
+        id = "misc",
+        title = TextHolder.Res(Res.strings.misc),
+    ),
+}
+
+enum class FilterZzz {
+
+}
+
+suspend fun RememberStateFlowScope.createFilter(
+    directDI: DirectDI,
+): CreateFilterResult {
+    val addCipherFilter: AddCipherFilter = directDI.instance()
+
     val emptyState = FilterHolder(
         state = mapOf(),
     )
@@ -85,6 +147,25 @@ suspend fun RememberStateFlowScope.createFilter(): CreateFilterResult {
     ) { emptyState }
     val onClear = {
         filterSink.value = emptyState
+    }
+    val onSave = { state: Map<String, Set<DFilter.Primitive>> ->
+        val intent = createConfirmationDialogIntent(
+            item = ConfirmationRoute.Args.Item.StringItem(
+                key = "name",
+                title = translate(Res.strings.generic_name),
+                canBeEmpty = false,
+            ),
+            icon = icon(Icons.Outlined.KeyguardCipherFilter, Icons.Outlined.Add),
+            title = translate(Res.strings.customfilters_add_filter_title),
+        ) { name ->
+            val request = AddCipherFilterRequest(
+                name = name,
+                filter = state,
+            )
+            addCipherFilter(request)
+                .launchIn(appScope)
+        }
+        navigate(intent)
     }
     val onToggle = { sectionId: String, filters: Set<DFilter.Primitive> ->
         filterSink.update { holder ->
@@ -105,10 +186,25 @@ suspend fun RememberStateFlowScope.createFilter(): CreateFilterResult {
             )
         }
     }
+    val onApply = { state: Map<String, Set<DFilter.Primitive>> ->
+        filterSink.update { holder ->
+            if (holder.state == state) {
+                // Reset the filters if you click on the
+                // same item.
+                return@update emptyState
+            }
+
+            holder.copy(
+                state = state,
+            )
+        }
+    }
     return CreateFilterResult(
         filterFlow = filterSink,
         onToggle = onToggle,
+        onApply = onApply,
         onClear = onClear,
+        onSave = onSave,
     )
 }
 
@@ -116,6 +212,7 @@ data class OurFilterResult(
     val rev: Int = 0,
     val items: List<FilterItem> = emptyList(),
     val onClear: (() -> Unit)? = null,
+    val onSave: (() -> Unit)? = null,
 )
 
 data class FilterParams(
@@ -158,6 +255,8 @@ suspend fun <
     input: CreateFilterResult,
     params: FilterParams = FilterParams(),
 ): Flow<OurFilterResult> {
+    val getCipherFilters: GetCipherFilters = directDI.instance()
+
     val storage = kotlin.run {
         val disk = loadDiskHandle("ciphers.filter")
         PersistedStorage.InDisk(disk)
@@ -213,17 +312,12 @@ suspend fun <
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
+        checked: (FilterItem.Item, FilterHolder) -> Boolean,
     ) = this
         .combine(input.filterFlow) { items, filterHolder ->
             items
                 .map { item ->
-                    val shouldBeChecked = kotlin.run {
-                        val activeFilters = filterHolder.state[item.filterSectionId].orEmpty()
-                        item.filters
-                            .all { itemFilter ->
-                                itemFilter in activeFilters
-                            }
-                    }
+                    val shouldBeChecked = checked(item, filterHolder)
                     if (shouldBeChecked == item.checked) {
                         return@map item
                     }
@@ -233,7 +327,7 @@ suspend fun <
         }
         .distinctUntilChanged()
         .map { items ->
-            if (items.size <= 1 && collapse) {
+            if (items.size <= 1 && collapse || items.isEmpty()) {
                 // Do not show a single filter item.
                 return@map emptyList<FilterItem>()
             }
@@ -253,15 +347,43 @@ suspend fun <
                 }
         }
 
-    val setOfNull = setOf(null)
+    fun Flow<List<FilterItem.Item>>.aaa(
+        sectionId: String,
+        sectionTitle: String,
+        collapse: Boolean = true,
+    ) = aaa(
+        sectionId = sectionId,
+        sectionTitle = sectionTitle,
+        collapse = collapse,
+        checked = { item, filterHolder ->
+            when (item.filter) {
+                is FilterItem.Item.Filter.Toggle -> {
+                    val activeFilters = filterHolder.state[item.filterSectionId].orEmpty()
+                    item.filter.filters
+                        .all { itemFilter ->
+                            itemFilter in activeFilters
+                        }
+                }
 
-    val customSectionId = "custom"
-    val typeSectionId = "type"
-    val accountSectionId = "account"
-    val folderSectionId = "folder"
-    val collectionSectionId = "collection"
-    val organizationSectionId = "organization"
-    val miscSectionId = "misc"
+                is FilterItem.Item.Filter.Apply -> kotlin.run {
+                    // If the size of the current state and the item
+                    // state is different then there's no way it's currently
+                    // selected.
+                    if (filterHolder.state.size != item.filter.filters.size) {
+                        return@run false
+                    }
+
+                    item.filter.filters
+                        .all { (filterSectionId, filterSet) ->
+                            val activeFilters = filterHolder.state[filterSectionId].orEmpty()
+                            activeFilters == filterSet
+                        }
+                }
+            }
+        },
+    )
+
+    val setOfNull = setOf(null)
 
     fun createFilterAction(
         sectionId: String,
@@ -276,7 +398,9 @@ suspend fun <
     ) = FilterItem.Item(
         sectionId = sectionId,
         filterSectionId = filterSectionId,
-        filters = filter,
+        filter = FilterItem.Item.Filter.Toggle(
+            filters = filter,
+        ),
         leading = when {
             icon != null -> {
                 // composable
@@ -325,7 +449,7 @@ suspend fun <
         tint: AccentColors? = null,
         icon: ImageVector? = null,
     ) = createFilterAction(
-        sectionId = accountSectionId,
+        sectionId = FilterSection.ACCOUNT.id,
         filter = accountIds
             .asSequence()
             .map { accountId ->
@@ -343,10 +467,10 @@ suspend fun <
 
     fun createTypeFilterAction(
         type: DSecret.Type,
-        sectionId: String = typeSectionId,
+        sectionId: String = FilterSection.TYPE.id,
     ) = createFilterAction(
         sectionId = sectionId,
-        filterSectionId = typeSectionId,
+        filterSectionId = FilterSection.TYPE.id,
         filter = setOf(
             DFilter.ByType(type),
         ),
@@ -361,7 +485,7 @@ suspend fun <
         fill: Boolean,
         indent: Int,
     ) = createFilterAction(
-        sectionId = folderSectionId,
+        sectionId = FilterSection.FOLDER.id,
         filter = folderIds
             .asSequence()
             .map { folderId ->
@@ -382,7 +506,7 @@ suspend fun <
         title: String,
         icon: ImageVector? = null,
     ) = createFilterAction(
-        sectionId = collectionSectionId,
+        sectionId = FilterSection.COLLECTION.id,
         filter = collectionIds
             .asSequence()
             .map { collectionId ->
@@ -401,7 +525,7 @@ suspend fun <
         title: String,
         icon: ImageVector? = null,
     ) = createFilterAction(
-        sectionId = organizationSectionId,
+        sectionId = FilterSection.ORGANIZATION.id,
         filter = organizationIds
             .asSequence()
             .map { organizationId ->
@@ -432,7 +556,8 @@ suspend fun <
         .combine(filterAccountsWithCiphers) { items, accountIds ->
             items
                 .filter { filterItem ->
-                    filterItem.filters
+                    val filterItemFilter = filterItem.filter as FilterItem.Item.Filter.Toggle
+                    filterItemFilter.filters
                         .any { filter ->
                             val filterFixed = filter as DFilter.ById
                             require(filterFixed.what == DFilter.ById.What.ACCOUNT)
@@ -441,8 +566,8 @@ suspend fun <
                 }
         }
         .aaa(
-            sectionId = accountSectionId,
-            sectionTitle = translate(Res.strings.account),
+            sectionId = FilterSection.ACCOUNT.id,
+            sectionTitle = translate(FilterSection.ACCOUNT.title),
         )
         .filterSection(params.section.account)
 
@@ -468,8 +593,8 @@ suspend fun <
             }
         }
         .aaa(
-            sectionId = typeSectionId,
-            sectionTitle = translate(Res.strings.type),
+            sectionId = FilterSection.TYPE.id,
+            sectionTitle = translate(FilterSection.TYPE.title),
         )
         .filterSection(params.section.type)
 
@@ -531,7 +656,8 @@ suspend fun <
         .combine(filterFoldersWithCiphers) { items, folderIds ->
             items
                 .filter { filterItem ->
-                    filterItem.filters
+                    val filterItemFilter = filterItem.filter as FilterItem.Item.Filter.Toggle
+                    filterItemFilter.filters
                         .any { filter ->
                             val filterFixed = filter as DFilter.ById
                             require(filterFixed.what == DFilter.ById.What.FOLDER)
@@ -540,8 +666,8 @@ suspend fun <
                 }
         }
         .aaa(
-            sectionId = folderSectionId,
-            sectionTitle = translate(Res.strings.folder),
+            sectionId = FilterSection.FOLDER.id,
+            sectionTitle = translate(FilterSection.FOLDER.title),
         )
         .filterSection(params.section.folder)
 
@@ -573,7 +699,8 @@ suspend fun <
         .combine(filterCollectionsWithCiphers) { items, collectionIds ->
             items
                 .filter { filterItem ->
-                    filterItem.filters
+                    val filterItemFilter = filterItem.filter as FilterItem.Item.Filter.Toggle
+                    filterItemFilter.filters
                         .any { filter ->
                             val filterFixed = filter as DFilter.ById
                             require(filterFixed.what == DFilter.ById.What.COLLECTION)
@@ -582,8 +709,8 @@ suspend fun <
                 }
         }
         .aaa(
-            sectionId = collectionSectionId,
-            sectionTitle = translate(Res.strings.collection),
+            sectionId = FilterSection.COLLECTION.id,
+            sectionTitle = translate(FilterSection.COLLECTION.title),
         )
         .filterSection(params.section.collection)
 
@@ -615,7 +742,8 @@ suspend fun <
         .combine(filterOrganizationsWithCiphers) { items, organizationIds ->
             items
                 .filter { filterItem ->
-                    filterItem.filters
+                    val filterItemFilter = filterItem.filter as FilterItem.Item.Filter.Toggle
+                    filterItemFilter.filters
                         .any { filter ->
                             val filterFixed = filter as DFilter.ById
                             require(filterFixed.what == DFilter.ById.What.ORGANIZATION)
@@ -624,74 +752,74 @@ suspend fun <
                 }
         }
         .aaa(
-            sectionId = organizationSectionId,
-            sectionTitle = translate(Res.strings.organization),
+            sectionId = FilterSection.ORGANIZATION.id,
+            sectionTitle = translate(FilterSection.ORGANIZATION.title),
         )
         .filterSection(params.section.organization)
 
     val filterMiscAll = listOf(
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByOtp,
             ),
-            filterSectionId = "$miscSectionId.otp",
-            title = translate(Res.strings.one_time_password),
-            icon = Icons.Outlined.KeyguardTwoFa,
+            filterSectionId = "${FilterSection.MISC.id}.otp",
+            title = translate(DFilter.ByOtp.content.title),
+            icon = DFilter.ByOtp.content.icon,
         ),
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByAttachments,
             ),
-            filterSectionId = "$miscSectionId.attachments",
-            title = translate(Res.strings.attachments),
-            icon = Icons.Outlined.KeyguardAttachment,
+            filterSectionId = "${FilterSection.MISC.id}.attachments",
+            title = translate(DFilter.ByAttachments.content.title),
+            icon = DFilter.ByAttachments.content.icon,
         ),
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByPasskeys,
             ),
-            filterSectionId = "$miscSectionId.passkeys",
-            title = translate(Res.strings.passkeys),
-            icon = Icons.Outlined.Key,
+            filterSectionId = "${FilterSection.MISC.id}.passkeys",
+            title = translate(DFilter.ByPasskeys.content.title),
+            icon = DFilter.ByPasskeys.content.icon,
         ),
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByReprompt(reprompt = true),
             ),
-            filterSectionId = "$miscSectionId.reprompt",
-            title = "Auth re-prompt",
-            icon = Icons.Outlined.Lock,
+            filterSectionId = "${FilterSection.MISC.id}.reprompt",
+            title = translate(Res.strings.filter_auth_reprompt_items),
+            icon = Icons.Outlined.KeyguardAuthReprompt,
         ),
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.BySync(synced = false),
             ),
-            filterSectionId = "$miscSectionId.sync",
-            title = "Un-synced",
-            icon = Icons.Outlined.CloudOff,
+            filterSectionId = "${FilterSection.MISC.id}.sync",
+            title = translate(Res.strings.filter_pending_items),
+            icon = Icons.Outlined.KeyguardPendingSyncItems,
         ),
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByError(error = true),
             ),
-            filterSectionId = "$miscSectionId.error",
-            title = "Failed",
-            icon = Icons.Outlined.ErrorOutline,
+            filterSectionId = "${FilterSection.MISC.id}.error",
+            title = translate(Res.strings.filter_failed_items),
+            icon = Icons.Outlined.KeyguardFailedItems,
         ),
         createFilterAction(
-            sectionId = miscSectionId,
+            sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByIgnoredAlerts,
             ),
-            filterSectionId = "$miscSectionId.watchtower_alerts",
+            filterSectionId = "${FilterSection.MISC.id}.watchtower_alerts",
             title = translate(Res.strings.ignored_alerts),
-            icon = Icons.Outlined.NotificationsOff,
+            icon = Icons.Outlined.KeyguardIgnoredAlerts,
         ),
     )
 
@@ -700,59 +828,51 @@ suspend fun <
             filterMiscAll
         }
         .aaa(
-            sectionId = miscSectionId,
-            sectionTitle = translate(Res.strings.misc),
+            sectionId = FilterSection.MISC.id,
+            sectionTitle = translate(FilterSection.MISC.title),
             collapse = false,
         )
         .filterSection(params.section.misc)
 
-    val filterCustomTypesAll = listOf(
-        DSecret.Type.Login to createTypeFilterAction(
-            sectionId = customSectionId,
-            type = DSecret.Type.Login,
-        ),
-        DSecret.Type.Card to createTypeFilterAction(
-            sectionId = customSectionId,
-            type = DSecret.Type.Card,
-        ),
-        DSecret.Type.Identity to createTypeFilterAction(
-            sectionId = customSectionId,
-            type = DSecret.Type.Identity,
-        ),
-        DSecret.Type.SecureNote to createTypeFilterAction(
-            sectionId = customSectionId,
-            type = DSecret.Type.SecureNote,
-        ),
-    )
-
-    val filterCustomAll = listOf(
-        createFilterAction(
-            sectionId = customSectionId,
-            filter = setOf(
-                DFilter.ByOtp,
-            ),
-            filterSectionId = "$miscSectionId.otp",
-            title = translate(Res.strings.one_time_password),
-            icon = Icons.Outlined.KeyguardTwoFa,
-        ),
-    )
-
-    if (params.deeplinkCustomFilter == "2fa") {
-        input.onToggle(
-            "$miscSectionId.otp",
-            setOf(
-                DFilter.ByOtp,
-            ),
-        )
+    if (params.deeplinkCustomFilter != null) {
+        val customFilter = kotlin.run {
+            val customFilters = getCipherFilters()
+                .first()
+            customFilters.firstOrNull { it.id == params.deeplinkCustomFilter }
+        }
+        if (customFilter != null) {
+            input.onApply(customFilter.filter)
+        }
     }
 
-    val filterCustomListFlow = flowOf(Unit)
-        .map {
-            filterCustomTypesAll.map { it.second } + filterCustomAll
+    val filterCustomListFlow = getCipherFilters()
+        .map { filters ->
+            filters
+                .map { filter ->
+                    FilterItem.Item(
+                        sectionId = FilterSection.CUSTOM.id,
+                        filterSectionId = FilterSection.CUSTOM.id,
+                        filter = FilterItem.Item.Filter.Apply(
+                            filters = filter.filter,
+                            id = filter.id,
+                        ),
+                        leading = filter.icon
+                            ?.let {
+                                iconSmall(it)
+                            },
+                        title = filter.name,
+                        text = null,
+                        onClick = input.onApply
+                            .partially1(filter.filter),
+                        fill = false,
+                        indent = 0,
+                        checked = false,
+                    )
+                }
         }
         .aaa(
-            sectionId = customSectionId,
-            sectionTitle = translate(Res.strings.custom),
+            sectionId = FilterSection.CUSTOM.id,
+            sectionTitle = translate(FilterSection.CUSTOM.title),
             collapse = false,
         )
         .filterSection(params.section.custom)
@@ -795,7 +915,7 @@ suspend fun <
                     when (it) {
                         is FilterItem.Section -> null
                         is FilterItem.Item -> it.takeIf { it.checked }
-                            ?.sectionId
+                            ?.filterSectionId
                     }
                 }
                 .toSet()
@@ -808,9 +928,11 @@ suspend fun <
                         val fastEnabled = item.checked ||
                                 // If one of the items in a section is enabled, then
                                 // enable the whole section.
-                                item.sectionId in checkedSectionIds
+                                item.filterSectionId in checkedSectionIds
                         val enabled = fastEnabled || kotlin.run {
-                            item.filters
+                            val filterItemFilter = item.filter as? FilterItem.Item.Filter.Toggle
+                                ?: return@run true
+                            filterItemFilter.filters
                                 .any { filter ->
                                     val filterPredicate = filter.prepare(directDI, outputCiphers)
                                     outputCiphers.any(filterPredicate)
@@ -822,7 +944,10 @@ suspend fun <
                             return@forEach
                         }
 
-                        out += item.copy(onClick = null)
+                        out += item.copy(
+                            onClick = null,
+                            enabled = false,
+                        )
                     }
                 }
             }
@@ -833,6 +958,9 @@ suspend fun <
                 rev = b.id,
                 items = a,
                 onClear = input.onClear.takeIf { b.id != 0 },
+                onSave = input.onSave
+                    .takeIf { b.id != 0 }
+                    ?.partially1(b.state),
             )
         }
         .flowOn(Dispatchers.Default)

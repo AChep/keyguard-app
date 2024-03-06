@@ -26,6 +26,7 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
@@ -235,18 +236,7 @@ fun accountListScreenState(
                 val busy = syncing || removing
                 val accent = profile?.accentColor
                     ?: generateAccentColorsByAccountId(it.id.id)
-                val icon = VaultItemIcon.TextIcon(
-                    run {
-                        val words = profile?.name?.split(" ").orEmpty()
-                        if (words.size <= 1) {
-                            return@run words.firstOrNull()?.take(2).orEmpty()
-                        }
-
-                        words
-                            .take(2)
-                            .joinToString("") { it.take(1) }
-                    }.uppercase(),
-                )
+                val icon = VaultItemIcon.TextIcon.short(profile?.name.orEmpty())
                 AccountItem.Item(
                     id = it.id.id,
                     icon = icon,

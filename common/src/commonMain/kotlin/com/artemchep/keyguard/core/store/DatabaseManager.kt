@@ -19,6 +19,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.data.GeneratorWordlist
@@ -106,6 +107,10 @@ class DatabaseManagerImpl(
                 Database(
                     driver = driver,
                     cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
+                    cipherFilterAdapter = CipherFilter.Adapter(
+                        updatedAtAdapter = InstantToLongAdapter,
+                        createdAtAdapter = InstantToLongAdapter,
+                    ),
                     generatorHistoryAdapter = GeneratorHistory.Adapter(InstantToLongAdapter),
                     generatorWordlistAdapter = GeneratorWordlist.Adapter(InstantToLongAdapter),
                     generatorEmailRelayAdapter = GeneratorEmailRelay.Adapter(InstantToLongAdapter),

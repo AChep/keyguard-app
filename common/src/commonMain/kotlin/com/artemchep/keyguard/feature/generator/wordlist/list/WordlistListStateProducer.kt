@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.generator.wordlist.list
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -22,6 +21,7 @@ import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
@@ -128,7 +128,7 @@ fun produceWordlistListState(
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
                             title = translate(Res.strings.edit),
-                            onClick = WordlistUtil::onEdit
+                            onClick = WordlistUtil::onRename
                                 .partially1(this@produceScreenState)
                                 .partially1(editWordlist)
                                 .partially1(selectedItem),
@@ -166,18 +166,7 @@ fun produceWordlistListState(
         .map { list ->
             list
                 .map {
-                    val icon = VaultItemIcon.TextIcon(
-                        run {
-                            val words = it.name.split(" ")
-                            if (words.size <= 1) {
-                                return@run words.firstOrNull()?.take(2).orEmpty()
-                            }
-
-                            words
-                                .take(2)
-                                .joinToString("") { it.take(1) }
-                        }.uppercase(),
-                    )
+                    val icon = VaultItemIcon.TextIcon.short(it.name)
 
                     val selectableFlow = selectionHandle
                         .idsFlow

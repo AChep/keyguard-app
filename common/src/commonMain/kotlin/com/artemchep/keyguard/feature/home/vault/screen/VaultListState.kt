@@ -21,6 +21,7 @@ data class VaultListState(
     val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
     val filters: List<FilterItem> = emptyList(),
     val sort: List<SortItem> = emptyList(),
+    val saveFilters: (() -> Unit)? = null,
     val clearFilters: (() -> Unit)? = null,
     val clearSort: (() -> Unit)? = null,
     val selectCipher: ((DSecret) -> Unit)? = null,

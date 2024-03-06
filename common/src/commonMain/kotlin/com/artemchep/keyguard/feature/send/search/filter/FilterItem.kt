@@ -14,8 +14,9 @@ sealed interface SendFilterItem : FilterItemModel {
     data class Section(
         override val sectionId: String,
         override val text: String,
+        override val expandable: Boolean = true,
         override val expanded: Boolean = true,
-        override val onClick: () -> Unit,
+        override val onClick: (() -> Unit)?,
     ) : SendFilterItem, FilterItemModel.Section {
         companion object;
 
@@ -33,6 +34,7 @@ sealed interface SendFilterItem : FilterItemModel {
         override val title: String,
         override val text: String?,
         override val onClick: (() -> Unit)?,
+        override val enabled: Boolean = onClick != null,
     ) : SendFilterItem, FilterItemModel.Item {
         companion object;
 

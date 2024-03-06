@@ -79,7 +79,7 @@ fun produceWordlistViewState(
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
                             title = translate(Res.strings.edit),
-                            onClick = WordlistUtil::onEdit
+                            onClick = WordlistUtil::onRename
                                 .partially1(this@produceScreenState)
                                 .partially1(editWordlist)
                                 .partially1(wordlist),

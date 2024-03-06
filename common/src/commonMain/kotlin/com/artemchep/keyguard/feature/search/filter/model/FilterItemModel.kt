@@ -7,8 +7,9 @@ interface FilterItemModel {
 
     interface Section : FilterItemModel {
         val text: String
+        val expandable: Boolean
         val expanded: Boolean
-        val onClick: () -> Unit
+        val onClick: (() -> Unit)?
     }
 
     interface Item : FilterItemModel {
@@ -16,6 +17,7 @@ interface FilterItemModel {
         val title: String
         val text: String?
         val checked: Boolean
+        val enabled: Boolean
         val fill: Boolean
         val indent: Int
         val onClick: (() -> Unit)?

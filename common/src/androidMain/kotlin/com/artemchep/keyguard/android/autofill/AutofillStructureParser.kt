@@ -100,6 +100,9 @@ class AutofillStructureParser {
         // https://github.com/AChep/keyguard-app/issues/15#issuecomment-1740598689
         "用户名",
         "用戶名",
+        // https://github.com/AChep/keyguard-app/issues/198
+        "id",
+        "customer",
     )
 
     private val autofillLabelCreditCardNumberTranslations = listOf(

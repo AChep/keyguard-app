@@ -142,6 +142,7 @@
     <string name="ignored_alerts">Ignorierte Warnungen</string>
     <string name="api_key">API-Schlüssel</string>
     <string name="domain">Domäne</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Bearbeiten</string>
     <string name="delete">Löschen</string>
     <string name="remove">Entfernen</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Master-Passwort-Hinweis</string>
     <string name="fingerprint_phrase">Fingerabdrucksatz</string>
     <string name="fingerprint_phrase_help_title">Was ist ein Fingerabdruck?</string>
+    <string name="filter_auth_reprompt_items">Authentifizierung erneut anfordern</string>
+    <string name="filter_pending_items">Ausstehend</string>
+    <string name="filter_failed_items">Fehlgeschlagen</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Inoffizieller Bitwarden-Server</string>
     <string name="account_last_synced_at">Zuletzt synchronisiert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -200,8 +204,8 @@
     <string name="account_action_change_master_password_hint_title">Master-Passwort-Hinweis ändern</string>
     <string name="account_action_sign_out_title">Abmelden</string>
     <string name="account_action_sign_in_title">Anmelden</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_export_vault_title">Tresor exportieren</string>
+    <string name="account_action_export_individual_vault_title">Individuellen Tresor exportieren</string>
     <string name="account_action_hide_title">Element ausblenden</string>
     <string name="account_action_hide_text">Elemente auf den Hauptbildschirmen der App ausblenden</string>
     <string name="account_action_email_verify_instructions_title">Besuchen Sie den Web-Tresor, um Ihre E-Mail-Adresse zu verifizieren</string>
@@ -229,7 +233,7 @@
     <string name="ciphers_action_edit_title">Bearbeiten</string>
     <string name="ciphers_action_merge_title">Zusammenführen…</string>
     <string name="ciphers_action_copy_title">Kopieren nach…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">Exportieren…</string>
     <string name="ciphers_action_change_folder_title">In Ordner verschieben</string>
     <string name="ciphers_action_change_name_title">Name ändern</string>
     <string name="ciphers_action_change_names_title">Namen ändern</string>
@@ -618,6 +622,13 @@
     <string name="passwords_good_label">Gute Passwörter</string>
     <string name="passwords_fair_label">Faire Passwörter</string>
     <string name="passwords_weak_label">Schwache Passwörter</string>
+    <string name="customfilters_header_title">Benutzerdefinierte Filter</string>
+    <string name="customfilters_search_placeholder">Suchfilter</string>
+    <string name="customfilters_dynamic_shortcut_tip">Filter können schnell angewendet werden, indem eine Verknüpfung auf dem Startbildschirm hinzugefügt wird.</string>
+    <string name="customfilters_delete_one_confirmation_title">Filter löschen?</string>
+    <string name="customfilters_delete_many_confirmation_title">Filter löschen?</string>
+    <string name="customfilters_edit_filter_title">Benutzerdefinierten Filter bearbeiten</string>
+    <string name="customfilters_add_filter_title">Benutzerdefinierten Filter hinzufügen</string>
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">Keine Filter verfügbar</string>
     <string name="sort_header_title">Sortieren nach</string>
@@ -763,11 +774,11 @@
     <string name="changepassword_biometric_auth_confirm_title">App-Passwort ändern</string>
     <string name="changepassword_disclaimer_local_note">App-Passwort wird nie auf dem Gerät gespeichert oder über das Netzwerk versendet. Es wird verwendet, um einen geheimen Schlüssel zu generieren, der zur Verschlüsselung der lokalen Daten verwendet wird.</string>
     <string name="changepassword_disclaimer_abuse_note">Es sei denn, Sie vermuten unbefugten Zugriff oder eine Malware auf dem Gerät zu entdecken, es gibt keine Notwendigkeit, das Passwort zu ändern, wenn es ein starkes und einzigartiges Passwort ist.</string>
-    <string name="exportaccount_header_title">Export items</string>
-    <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
-    <string name="exportaccount_export_button">Export</string>
-    <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_header_title">Elemente exportieren</string>
+    <string name="exportaccount_password_label">Passwort archivieren</string>
+    <string name="exportaccount_no_attachments_note">Nur Tresor Informationen werden exportiert und werden keine zugehörigen Anhänge enthalten.</string>
+    <string name="exportaccount_export_button">Exportieren</string>
+    <string name="exportaccount_export_success">Export abgeschlossen</string>
     <string name="contactus_header_title">Kontaktiere uns</string>
     <string name="contactus_message_label">Ihre Nachricht</string>
     <string name="contactus_english_note">Benutzen Sie Englisch um sicherzustellen, dass Ihr Feedback nicht missverstanden wird.</string>
@@ -917,9 +928,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Im Play Store verwalten</string>
     <string name="pref_item_permission_post_notifications_title">Benachrichtigungen</string>
     <string name="pref_item_permission_post_notifications_text">Verwendet, um Download-Benachrichtigungen zu posten</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
+    <string name="pref_item_permission_write_external_storage_title">Externen Speicher schreiben</string>
+    <string name="pref_item_permission_write_external_storage_text">Wird verwendet, um Tresorexporte im Download Verzeichnis zu speichern.</string>
+    <string name="pref_item_permission_write_external_storage_grant">Schreibberechtigung für externen Speicher erteilen</string>
     <string name="pref_item_permission_camera_title">Kamera</string>
     <string name="pref_item_permission_camera_text">Wird zum Scannen von QR-Codes verwendet</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Erlaube zwei Panels Layout im Querformat</string>

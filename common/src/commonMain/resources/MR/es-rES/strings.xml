@@ -142,6 +142,7 @@
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">Clave API</string>
     <string name="domain">Dominio</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Editar</string>
     <string name="delete">Borrar</string>
     <string name="remove">Eliminar</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Sugerencia de contraseña maestra</string>
     <string name="fingerprint_phrase">Frase de huella digital</string>
     <string name="fingerprint_phrase_help_title">¿Qué es una huella digital?</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor no oficial de Bitwarden</string>
     <string name="account_last_synced_at">Última sincronización en <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -618,6 +622,13 @@
     <string name="passwords_good_label">Buenas contraseñas</string>
     <string name="passwords_fair_label">No está mal</string>
     <string name="passwords_weak_label">Contraseñas débiles</string>
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Search filters</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
     <string name="filter_header_title">Filtro</string>
     <string name="filter_empty_label">No hay filtros disponibles</string>
     <string name="sort_header_title">Ordenar por</string>

@@ -2,26 +2,26 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> аккаунт</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> аккаунта</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> аккаунтов</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> аккаунтов</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> вхождение</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> вхождения</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> вхождений</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> вхождений</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> слово</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> слова</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> слов</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> слов</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> результат</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> результата</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> результатов</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> результатов</item>
     </plurals>
 </resources>

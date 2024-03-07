@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
+import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -264,6 +265,11 @@ fun produceCipherFilterViewState(
                 filter
                     ?: return@run persistentListOf()
                 buildContextItems {
+                    section {
+                        this += CipherFilterUtil.addShortcutActionOrNull(
+                            filter = filter,
+                        )
+                    }
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,

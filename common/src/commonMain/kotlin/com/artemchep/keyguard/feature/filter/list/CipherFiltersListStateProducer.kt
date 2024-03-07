@@ -17,6 +17,7 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
+import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.filter.view.CipherFilterViewDialogRoute
 import com.artemchep.keyguard.feature.filter.view.CipherFilterViewFullRoute
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
@@ -211,8 +212,13 @@ fun produceCipherFiltersListState(
 
             val actions = buildContextItems {
                 if (selectedItems.size == 1) {
+                    val selectedItem = selectedItems.first()
                     section {
-                        val selectedItem = selectedItems.first()
+                        this += CipherFilterUtil.addShortcutActionOrNull(
+                            filter = selectedItem,
+                        )
+                    }
+                    section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
                             title = translate(Res.strings.edit),

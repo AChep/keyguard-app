@@ -11,13 +11,18 @@ import com.artemchep.keyguard.common.service.filter.model.RenameCipherFilterRequ
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
 import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.icons.iconSmall
 
 object CipherFilterUtil {
     context(RememberStateFlowScope)
@@ -92,3 +97,8 @@ object CipherFilterUtil {
         navigate(intent)
     }
 }
+
+context(RememberStateFlowScope)
+expect fun CipherFilterUtil.addShortcutActionOrNull(
+    filter: DCipherFilter,
+): FlatItemAction?

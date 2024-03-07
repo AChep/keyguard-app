@@ -142,6 +142,7 @@
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API key</string>
     <string name="domain">Domain</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="remove">Remove</string>

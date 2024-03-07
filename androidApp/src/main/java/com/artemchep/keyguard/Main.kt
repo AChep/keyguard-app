@@ -1,19 +1,17 @@
 package com.artemchep.keyguard
 
 import android.content.Context
-import android.content.Intent
 import androidx.core.content.ContextCompat
-import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.android.BaseApp
-import com.artemchep.keyguard.android.MainActivity
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
 import com.artemchep.keyguard.android.passkeysModule
+import com.artemchep.keyguard.android.util.ShortcutIds
+import com.artemchep.keyguard.android.util.ShortcutInfo
 import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
 import com.artemchep.keyguard.common.AppWorker
@@ -250,7 +248,7 @@ class Main : BaseApp(), DIAware {
                                 .map { it.id }
                                 .toSet()
                         val newDynamicShortcutsIds = filters
-                            .map { it.id }
+                            .map { ShortcutIds.forFilter(it.id) }
                             .toSet()
                         oldDynamicShortcutsIds - newDynamicShortcutsIds
                     }
@@ -260,18 +258,11 @@ class Main : BaseApp(), DIAware {
                     }
 
                     val shortcuts = filters
-                        .map {
-                            val intent = MainActivity.getIntent(this@Main).apply {
-                                action = Intent.ACTION_VIEW
-                                putExtra("customFilter", it.id)
-                            }
-                            val icon = IconCompat.createWithResource(this@Main, com.artemchep.keyguard.common.R.drawable.ic_shortcut_keyguard)
-                            ShortcutInfoCompat.Builder(this@Main, it.id)
-                                .setIcon(icon)
-                                .setShortLabel(it.name)
-                                .setIntent(intent)
-                                .addCapabilityBinding("actions.intent.OPEN_APP_FEATURE")
-                                .build()
+                        .map { filter ->
+                            ShortcutInfo.forFilter(
+                                context = this@Main,
+                                filter = filter,
+                            )
                         }
                     ShortcutManagerCompat.addDynamicShortcuts(this@Main, shortcuts)
                 }

@@ -70,6 +70,7 @@ kotlin {
                 api(libs.cash.sqldelight.coroutines.extensions)
                 api(libs.halilibo.richtext.ui.material3)
                 api(libs.halilibo.richtext.commonmark)
+                api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
             }
         }

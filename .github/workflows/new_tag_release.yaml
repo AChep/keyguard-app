@@ -63,6 +63,12 @@ jobs:
           name: logs-mac
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
+      - name: 'Upload binaries'
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-mac
+          path: desktopApp/build/compose/binaries/main/**
+          retention-days: 1
       - name: 'Upload .dmg'
         uses: actions/upload-artifact@v4
         with:

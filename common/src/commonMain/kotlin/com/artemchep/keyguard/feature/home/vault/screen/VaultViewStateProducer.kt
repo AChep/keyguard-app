@@ -192,6 +192,7 @@ import com.artemchep.keyguard.ui.text.annotate
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.totp.formatCode2
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -387,6 +388,7 @@ fun vaultViewScreenState(
 
     val selectionHandle = selectionHandle("selection")
     val markdown = getMarkdown().first()
+    val markdownParser = CommonmarkAstNodeParser()
 
     val accountFlow = getAccounts()
         .map { accounts ->
@@ -715,6 +717,7 @@ fun vaultViewScreenState(
                     primaryAction = primaryAction,
                     items = oh(
                         mode = mode,
+                        markdownParser = markdownParser,
                         sharingScope = screenScope, // FIXME: must not be a screen scope!!
                         selectionHandle = selectionHandle,
                         canEdit = canEdit,
@@ -767,6 +770,7 @@ fun vaultViewScreenState(
 
 private fun RememberStateFlowScope.oh(
     mode: AppMode,
+    markdownParser: CommonmarkAstNodeParser,
     sharingScope: CoroutineScope,
     selectionHandle: SelectionHandle,
     canEdit: Boolean,
@@ -1423,10 +1427,14 @@ private fun RememberStateFlowScope.oh(
     }
 
     if (cipher.type == DSecret.Type.SecureNote && cipher.notes.isNotEmpty()) {
+        val content = VaultViewItem.Note.Content.of(
+            parser = markdownParser,
+            markdown = markdown,
+            text = cipher.notes,
+        )
         val note = VaultViewItem.Note(
             id = "note.text",
-            text = if (markdown) cipher.notes.trimIndent() else cipher.notes,
-            markdown = markdown,
+            content = content,
             verify = verify,
             conceal = verify != null,
         )
@@ -1633,10 +1641,14 @@ private fun RememberStateFlowScope.oh(
             text = translate(Res.strings.notes),
         )
         emit(section)
+        val content = VaultViewItem.Note.Content.of(
+            parser = markdownParser,
+            markdown = markdown,
+            text = cipher.notes,
+        )
         val note = VaultViewItem.Note(
             id = "note.text",
-            text = if (markdown) cipher.notes.trimIndent() else cipher.notes,
-            markdown = markdown,
+            content = content,
             verify = verify,
             conceal = verify != null,
         )

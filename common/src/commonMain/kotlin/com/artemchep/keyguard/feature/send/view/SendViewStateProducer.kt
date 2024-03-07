@@ -87,6 +87,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.selection.SelectionHandle
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import com.artemchep.keyguard.ui.text.annotate
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import io.ktor.http.Url
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
@@ -226,6 +227,7 @@ fun sendViewScreenState(
     )
 
     val markdown = getMarkdown().first()
+    val markdownParser = CommonmarkAstNodeParser()
 
     val accountFlow = getAccounts()
         .map { accounts ->
@@ -297,6 +299,7 @@ fun sendViewScreenState(
                         null
                     },
                     items = oh(
+                        markdownParser = markdownParser,
                         canEdit = canAddSecret,
                         contentColor = contentColor,
                         disabledContentColor = disabledContentColor,
@@ -323,6 +326,7 @@ fun sendViewScreenState(
 }
 
 private fun RememberStateFlowScope.oh(
+    markdownParser: CommonmarkAstNodeParser,
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,
@@ -438,10 +442,14 @@ private fun RememberStateFlowScope.oh(
             text = translate(Res.strings.notes),
         )
         emit(section)
+        val content = VaultViewItem.Note.Content.of(
+            parser = markdownParser,
+            markdown = markdown,
+            text = send.notes,
+        )
         val note = VaultViewItem.Note(
             id = "note.text",
-            text = if (markdown) send.notes.trimIndent() else send.notes,
-            markdown = markdown,
+            content = content,
         )
         emit(note)
     }

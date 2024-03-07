@@ -16,6 +16,8 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.markdown.node.AstNode
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -144,13 +146,39 @@ sealed interface VaultViewItem {
 
     data class Note(
         override val id: String,
-        val text: String,
-        val markdown: Boolean,
+        val content: Content,
         val elevation: Dp = 0.dp,
         val conceal: Boolean = false,
         val verify: ((() -> Unit) -> Unit)? = null,
     ) : VaultViewItem {
-        companion object
+        companion object;
+
+        sealed interface Content {
+            companion object {
+                fun of(
+                    parser: CommonmarkAstNodeParser,
+                    markdown: Boolean,
+                    text: String,
+                ): Content =
+                    if (markdown) {
+                        kotlin.runCatching {
+                            val data = text.trimIndent()
+                            val node = parser.parse(data)
+                            Markdown(node)
+                        }.getOrNull()
+                    } else {
+                        null
+                    } ?: Text(text)
+            }
+
+            data class Markdown(
+                val node: AstNode,
+            ) : Content
+
+            data class Text(
+                val text: String,
+            ) : Content
+        }
     }
 
     data class Spacer(

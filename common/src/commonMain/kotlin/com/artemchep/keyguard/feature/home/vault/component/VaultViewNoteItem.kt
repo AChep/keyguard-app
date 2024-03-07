@@ -78,12 +78,15 @@ fun VaultViewNoteItem(
                     .fillMaxWidth(),
             ) {
                 SelectionContainer {
-                    if (item.markdown) {
-                        MarkdownText(
-                            markdown = item.text,
-                        )
-                    } else {
-                        Text(item.text)
+                    when (item.content) {
+                        is VaultViewItem.Note.Content.Markdown -> {
+                            MarkdownText(
+                                markdown = item.content.node,
+                            )
+                        }
+                        is VaultViewItem.Note.Content.Text -> {
+                            Text(item.content.text)
+                        }
                     }
                 }
             }

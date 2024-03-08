@@ -73,7 +73,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> mục</string>
     <string name="items_all">Tất cả mục</string>
     <string name="items_empty_label">Không có mục</string>
-    <string name="sends">Sends</string>
+    <string name="sends">Gửi</string>
     <string name="folder_none">Chưa có thư mục</string>
     <string name="folder_new">Tạo thư mục</string>
     <string name="folder">Thư mục</string>
@@ -114,19 +114,19 @@
     <string name="address3">Địa chỉ 3</string>
     <string name="rename">Đổi tên</string>
     <string name="select_linked_type">Chọn loại liên kết</string>
-    <string name="select_file">Select a file</string>
-    <string name="autofill">Autofill</string>
-    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
+    <string name="select_file">Chọn một tệp</string>
+    <string name="autofill">Tự động điền</string>
+    <string name="autofill_and_save_uri">Tự động điền và lưu thông tin ứng dụng hoặc trang web</string>
     <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkey_create_header">Tạo một passkey</string>
+    <string name="passkey_unlock_header">Mở khóa Keyguard</string>
+    <string name="passkey_auth_via_header">Đang xác nhận yêu cầu xác thực…</string>
     <string name="passkeys">Passkeys</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
         -->
-    <string name="passkey_signature_counter">Signature counter</string>
+    <string name="passkey_signature_counter">Bộ đếm chữ ký</string>
     <!--
         The entity whose web application utilizes the Web Authentication API
         to register and authenticate users. For example "Google" is a relying party.
@@ -138,10 +138,11 @@
         -->
     <string name="passkey_discoverable">Discoverable</string>
     <string name="passkey_user_username">Username</string>
-    <string name="passkey_user_display_name">Display name</string>
+    <string name="passkey_user_display_name">Tên hiển thị</string>
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API key</string>
     <string name="domain">Domain</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Edit</string>
     <string name="delete">Xoá</string>
     <string name="remove">Xóa</string>
@@ -155,7 +156,7 @@
     <string name="passkey_available">Passkey available</string>
     <string name="twofa_available">Two-factor authentication available</string>
     <string name="custom">Custom</string>
-    <string name="follow_system_settings">Theo hệ thống</string>
+    <string name="follow_system_settings">Theo thiết đặt hệ thống</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Sắp ra mắt</string>
     <string name="powered_by">Được cung cấp bởi</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Gợi ý mật khẩu chính</string>
     <string name="fingerprint_phrase">Cụm từ Fingerprint</string>
     <string name="fingerprint_phrase_help_title">Fingerprint là gì?</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden cao cấp</string>
     <string name="bitwarden_unofficial_server">Máy chủ Bitwarden không chính thức</string>
     <string name="account_last_synced_at">Cập nhật lần cuối lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -443,7 +447,7 @@
     <!-- Cannot be obtained -->
     <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
     <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
+    <string name="justgetmydata_search_placeholder">Tìm các trang web</string>
     <string name="justgetmydata_empty_label">No instructions</string>
     <string name="tfa_directory_title">Xác thực hai bước</string>
     <string name="tfa_directory_text">Danh sách các trang web hỗ trợ xác thực hai bước</string>
@@ -472,7 +476,7 @@
     <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
     <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
     <string name="apppicker_header_title">App Picker</string>
-    <string name="apppicker_search_placeholder">Search installed apps</string>
+    <string name="apppicker_search_placeholder">Tìm các ứng dụng đã cài đặt</string>
     <string name="apppicker_system_app_label">System app</string>
     <string name="apppicker_empty_label">No apps</string>
     <string name="folderpicker_header_title">Choose a folder</string>
@@ -480,7 +484,7 @@
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">This organization will have an ownership of the copy. You will not be the direct owner.</string>
+    <string name="destinationpicker_organization_ownership_note">Tổ chức này sẽ có quyền sở hữu bản sao. Bạn sẽ không phải là chủ sở hữu trực tiếp.</string>
     <string name="emailrelay_list_header_title">Email forwarders</string>
     <string name="emailrelay_list_section_title">Email forwarders</string>
     <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
@@ -498,7 +502,7 @@
     <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
     <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">No wordlists</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
+    <string name="wordlist_word_search_placeholder">Tìm các từ</string>
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
@@ -527,14 +531,14 @@
     <string name="syncstatus_status_pending">Pending</string>
     <string name="syncstatus_status_syncing">Syncing</string>
     <string name="syncstatus_status_failed">Sync failed</string>
-    <string name="additem_header_new_title">New item</string>
+    <string name="additem_header_new_title">Mục mới</string>
     <string name="additem_header_edit_title">Edit item</string>
     <string name="additem_header_merge_title">Merge items</string>
     <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
     <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
-    <string name="additem_markdown_note_italic">italic</string>
-    <string name="additem_markdown_note_bold">bold</string>
+    <string name="additem_markdown_note_italic">in nghiêng</string>
+    <string name="additem_markdown_note_bold">in đậm</string>
     <string name="additem_markdown_render_preview">Render preview</string>
     <string name="additem_auth_reprompt_title">Auth re-prompt</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
@@ -588,18 +592,18 @@
     <string name="elevatedaccess_biometric_auth_confirm_title">Confirm access</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Use biometric authentication to confirm your access and unlock this data.</string>
-    <string name="home_vault_label">Vault</string>
+    <string name="home_vault_label">Kho</string>
     <string name="home_send_label">Send</string>
-    <string name="home_generator_label">Generator</string>
+    <string name="home_generator_label">Tạo</string>
     <string name="home_watchtower_label">Watchtower</string>
-    <string name="home_settings_label">Settings</string>
+    <string name="home_settings_label">Thiết đặt</string>
     <string name="lock_reason_inactivity">Locked due to inactivity</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">File</string>
-    <string name="cipher_type_login">Login</string>
-    <string name="cipher_type_card">Card</string>
-    <string name="cipher_type_identity">Identity</string>
-    <string name="cipher_type_note">Note</string>
+    <string name="cipher_type_login">Đăng nhập</string>
+    <string name="cipher_type_card">Thẻ</string>
+    <string name="cipher_type_identity">Danh tính</string>
+    <string name="cipher_type_note">Ghi chú</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Boolean</string>
@@ -618,23 +622,30 @@
     <string name="passwords_good_label">Good passwords</string>
     <string name="passwords_fair_label">Fair passwords</string>
     <string name="passwords_weak_label">Weak passwords</string>
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Tìm các bộ lọc</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">No filters available</string>
-    <string name="sort_header_title">Sort by</string>
+    <string name="sort_header_title">Sắp xếp theo</string>
     <string name="sort_empty_label">No sorting available</string>
-    <string name="sortby_title_title">Title</string>
-    <string name="sortby_title_normal_mode">Alphabetically</string>
-    <string name="sortby_title_reverse_mode">Reverse Alphabetically</string>
-    <string name="sortby_access_count_title">Access count</string>
+    <string name="sortby_title_title">Tiêu đề</string>
+    <string name="sortby_title_normal_mode">ABC</string>
+    <string name="sortby_title_reverse_mode">Đảo ngược ABC</string>
+    <string name="sortby_access_count_title">Số lượng truy cập</string>
     <string name="sortby_access_count_normal_mode">Largest First</string>
     <string name="sortby_access_count_reverse_mode">Smallest First</string>
-    <string name="sortby_modification_date_title">Modification date</string>
+    <string name="sortby_modification_date_title">Ngày sửa đổi</string>
     <string name="sortby_modification_date_normal_mode">Newest First</string>
     <string name="sortby_modification_date_reverse_mode">Oldest First</string>
-    <string name="sortby_expiration_date_title">Expiration date</string>
+    <string name="sortby_expiration_date_title">Ngày hết hạn</string>
     <string name="sortby_expiration_date_normal_mode">Newest First</string>
     <string name="sortby_expiration_date_reverse_mode">Oldest First</string>
-    <string name="sortby_deletion_date_title">Deletion date</string>
+    <string name="sortby_deletion_date_title">Ngày xóa</string>
     <string name="sortby_deletion_date_normal_mode">Newest First</string>
     <string name="sortby_deletion_date_reverse_mode">Oldest First</string>
     <string name="sortby_password_title">Password</string>
@@ -646,8 +657,8 @@
     <string name="sortby_password_strength_title">Password strength</string>
     <string name="sortby_password_strength_normal_mode">Weakest First</string>
     <string name="sortby_password_strength_reverse_mode">Strongest First</string>
-    <string name="vault_main_search_placeholder">Search vault</string>
-    <string name="vault_main_new_item_button">New item</string>
+    <string name="vault_main_search_placeholder">Tìm trong kho</string>
+    <string name="vault_main_new_item_button">Mục mới</string>
     <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Security code</string>
@@ -668,15 +679,15 @@
     <string name="vault_view_email_action">Email</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Directions</string>
-    <string name="send_main_header_title">Sends</string>
-    <string name="send_main_search_placeholder">Search sends</string>
-    <string name="send_main_new_item_button">New item</string>
+    <string name="send_main_header_title">Gửi</string>
+    <string name="send_main_search_placeholder">Tìm kiếm gửi</string>
+    <string name="send_main_new_item_button">Mục mới</string>
     <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
-    <string name="generator_header_title">Generator</string>
+    <string name="generator_header_title">Tạo</string>
     <string name="generator_header_username_title">Username generator</string>
     <string name="generator_header_password_title">Password generator</string>
-    <string name="generator_generate_button">Generate</string>
-    <string name="generator_regenerate_button">Regenerate</string>
+    <string name="generator_generate_button">Tạo</string>
+    <string name="generator_regenerate_button">Tạo lại</string>
     <string name="generator_passphrase_type">Passphrase</string>
     <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
     <string name="generator_passphrase_delimiter_title">Delimiter</string>
@@ -710,11 +721,11 @@
     <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
-    <string name="generator_create_item_with_password_title">Create new login with the password</string>
-    <string name="generator_create_item_with_username_title">Create new login with the username</string>
+    <string name="generator_create_item_with_password_title">Tạo thông tin đăng nhập mới bằng mật khẩu</string>
+    <string name="generator_create_item_with_username_title">Tạo thông tin đăng nhập mới với tên người dùng</string>
     <string name="generator_password_history_title">Password history</string>
     <string name="generator_show_tips_title">Show tips</string>
-    <string name="generatorhistory_header_title">Generator history</string>
+    <string name="generatorhistory_header_title">Lịch sử tạo</string>
     <string name="generatorhistory_clear_history_title">Clear history</string>
     <string name="generatorhistory_clear_history_confirmation_title">Clear generator history?</string>
     <string name="generatorhistory_clear_history_confirmation_text">This will remove all items from the history.</string>
@@ -733,7 +744,7 @@
     <string name="watchtower_item_pwned_passwords_title">Pwned Passwords</string>
     <string name="watchtower_item_pwned_passwords_text">Passwords that have been exposed in data breaches. Such passwords should be changed immediately.</string>
     <string name="watchtower_item_reused_passwords_title">Reused Passwords</string>
-    <string name="watchtower_item_reused_passwords_text">Don\'t use the same password on multiple websites. Generate unique passwords to improve security.</string>
+    <string name="watchtower_item_reused_passwords_text">Không sử dụng cùng một mật khẩu trên nhiều trang web. Tạo mật khẩu duy nhất để cải thiện bảo mật.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
     <string name="watchtower_item_unsecure_websites_title">Unsecure Websites</string>
@@ -761,7 +772,7 @@
     <string name="changepassword_biometric_auth_checkbox">Biometric authentication</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
-    <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
+    <string name="changepassword_disclaimer_local_note">Mật khẩu ứng dụng không bao giờ được lưu trữ trên thiết bị cũng như không được gửi qua mạng. Nó được sử dụng để tạo khóa bí mật dùng để mã hóa dữ liệu cục bộ.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
@@ -772,27 +783,27 @@
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn\'t get misunderstood.</string>
     <string name="contactus_thanks_note">We appreciate the time that you spend sending us a message. Your message goes directly to us and we use it to troubleshoot issues, make product improvements and fix problems. While we may not reply to every report, we\'re reviewing and working on improvements &amp; fixing issues as fast as we can.</string>
-    <string name="account_main_header_title">Accounts</string>
-    <string name="account_main_add_account_title">Add account</string>
+    <string name="account_main_header_title">Tài khoản</string>
+    <string name="account_main_add_account_title">Thêm tài khoản</string>
     <string name="team_header_title">Team behind the app</string>
     <string name="team_artem_whoami_text">I\'m a Software engineer from Ukraine. I specialize on app design and development.</string>
     <string name="team_follow_me_section">Follow me</string>
-    <string name="settingssearch_header_title">Search</string>
-    <string name="settingssearch_header_subtitle">Settings</string>
-    <string name="settingssearch_search_placeholder">Search settings</string>
-    <string name="settings_appearance_header_title">Appearance</string>
-    <string name="settings_autofill_header_title">Autofill</string>
-    <string name="settings_dev_header_title">Development</string>
-    <string name="settings_experimental_header_title">Experimental</string>
-    <string name="settings_main_header_title">Settings</string>
-    <string name="settings_notifications_header_title">Notifications</string>
-    <string name="settings_other_header_title">Other</string>
-    <string name="settings_permissions_header_title">Permissions</string>
-    <string name="settings_security_header_title">Security</string>
+    <string name="settingssearch_header_title">Tìm</string>
+    <string name="settingssearch_header_subtitle">Thiết đặt</string>
+    <string name="settingssearch_search_placeholder">Tìm các thiết đặt</string>
+    <string name="settings_appearance_header_title">Vẻ ngoài</string>
+    <string name="settings_autofill_header_title">Tự động điền</string>
+    <string name="settings_dev_header_title">Phát triển</string>
+    <string name="settings_experimental_header_title">Thử nghiệm</string>
+    <string name="settings_main_header_title">Thiết đặt</string>
+    <string name="settings_notifications_header_title">Thông báo</string>
+    <string name="settings_other_header_title">Khác</string>
+    <string name="settings_permissions_header_title">Quyền</string>
+    <string name="settings_security_header_title">Bảo mật</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
-    <string name="settings_watchtower_header_title">Watchtower</string>
-    <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
-    <string name="pref_item_accounts_title">Accounts</string>
+    <string name="settings_watchtower_header_title">Tháp canh</string>
+    <string name="settings_open_source_licenses_header_title">Giấy phép nguồn mở</string>
+    <string name="pref_item_accounts_title">Tài khoản</string>
     <string name="pref_item_accounts_text">Add &amp; view accounts</string>
     <string name="pref_item_autofill_title">Autofill</string>
     <string name="pref_item_autofill_text">Android Autofill &amp; Credential services</string>
@@ -863,7 +874,7 @@
     <string name="pref_item_allow_screenshots_text_on">Show the content of the app when switching between recent apps and allow capturing a screen</string>
     <string name="pref_item_allow_screenshots_text_off">Hide the content of the app when switching between recent apps and forbid capturing a screen</string>
     <string name="pref_item_data_safety_title">Data safety</string>
-    <string name="pref_item_lock_vault_title">Lock vault</string>
+    <string name="pref_item_lock_vault_title">Khóa kho</string>
     <string name="pref_item_lock_vault_after_reboot_title">Lock after a reboot</string>
     <string name="pref_item_lock_vault_after_reboot_text">Lock the vault after a device reboot</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Lock when screen turns off</string>
@@ -892,7 +903,7 @@
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggestions</string>
     <string name="pref_item_autofill_inline_suggestions_text">Embeds autofill suggestions directly into compatible keyboards</string>
     <string name="pref_item_autofill_manual_selection_title">Manual selection</string>
-    <string name="pref_item_autofill_manual_selection_text">Displays an option to manually search a vault for an entry</string>
+    <string name="pref_item_autofill_manual_selection_text">Hiển thị tùy chọn để tìm kiếm mục nhập trong kho theo cách thủ công</string>
     <string name="pref_item_autofill_respect_autofill_disabled_title">Respect Autofill disabled flag</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Disables autofill for a browser field that has autofill disabled flag set</string>
     <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are notorious for disabling autofill for a password field as well as some browsers are notorious for ignoring the autofill disabled flag</string>
@@ -905,7 +916,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">One-time password notification duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">When you autofill a login item that has a one-time password, the notification with verification code will popup for at least the defined duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Never</string>
-    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
+    <string name="pref_item_clipboard_notification_settings_title">Thiết đặt thông báo mật khẩu một lần</string>
     <string name="pref_item_premium_membership_title">About Keyguard membership</string>
     <string name="pref_item_premium_membership_text">The Premium unlocks extra features and funds a development of the app. Thank you for supporting us! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Subscriptions</string>
@@ -913,7 +924,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Failed to load a list of subscriptions</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Failed to load a list of products</string>
     <string name="pref_item_premium_status_active">Active</string>
-    <string name="pref_item_premium_status_will_not_renew">Will not renew</string>
+    <string name="pref_item_premium_status_will_not_renew">Sẽ không gia hạn</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Manage on Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Post notifications</string>
     <string name="pref_item_permission_post_notifications_text">Used to post downloading notifications</string>
@@ -938,8 +949,8 @@
     <string name="feat_item_two_way_sync_text">Add or edit items and sync the changes back.</string>
     <string name="feat_item_offline_editing_title">Offline editing</string>
     <string name="feat_item_offline_editing_text">Add or edit items without internet connection.</string>
-    <string name="feat_section_search_title">Search</string>
-    <string name="feat_item_search_by_anything_title">Search by anything</string>
+    <string name="feat_section_search_title">Tìm</string>
+    <string name="feat_item_search_by_anything_title">Tìm kiếm bằng bất cứ thứ gì</string>
     <string name="feat_item_search_by_anything_text">Name, email, password, phone number etc.</string>
     <string name="feat_item_filter_title">Filter</string>
     <string name="feat_item_filter_text">Filter by folder, organization, type etc.</string>
@@ -968,14 +979,14 @@
     <string name="feat_item_show_barcode_title">Show as Barcode</string>
     <string name="feat_item_show_barcode_text">Encode a text as different barcodes.</string>
     <string name="feat_item_generator_title">Generator</string>
-    <string name="feat_item_generator_text">Generate passwords or usernames.</string>
+    <string name="feat_item_generator_text">Tạo mật khẩu hoặc tên người dùng.</string>
     <string name="datasafety_header_title">Data safety</string>
     <string name="datasafety_local_section">Local data</string>
     <string name="datasafety_local_text">Local data consists of Downloads, User settings, Vault. They are stored in the internal storage of a device, which can only be accessed by the Android system or the Keyguard.</string>
     <string name="datasafety_local_downloads_section">Downloads</string>
-    <string name="datasafety_local_settings_section">User settings</string>
+    <string name="datasafety_local_settings_section">Thiết đặt người dùng</string>
     <string name="datasafety_local_settings_note">The User settings are encrypted using a device-specific key.</string>
-    <string name="datasafety_local_vault_section">Vault</string>
+    <string name="datasafety_local_vault_section">Kho</string>
     <string name="datasafety_local_encryption_algorithm_intro">The Vault is encrypted using a Key, derived from the App password using following steps:</string>
     <string name="datasafety_local_encryption_algorithm_outro">The Salt and the Hash is then stored locally on a device, to later generate a master key to unlock the vault.</string>
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device\'s RAM, gaining an ability to read and modify encrypted Vault.</string>

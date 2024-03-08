@@ -142,6 +142,7 @@
     <string name="ignored_alerts">Alertes ignorades</string>
     <string name="api_key">Clau d\'API</string>
     <string name="domain">Domini</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Edita</string>
     <string name="delete">Eliminar</string>
     <string name="remove">Suprimir</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Pista de la contrasenya mestra</string>
     <string name="fingerprint_phrase">Frase d\'empremta digital</string>
     <string name="fingerprint_phrase_help_title">Què és una empremta?</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Servidor de Bitwarden no oficial</string>
     <string name="account_last_synced_at">Última sincronització <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -200,8 +204,8 @@
     <string name="account_action_change_master_password_hint_title">Canvia la pista de contrasenya mestra</string>
     <string name="account_action_sign_out_title">Tanca la sessió</string>
     <string name="account_action_sign_in_title">Inicia sessió</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_export_vault_title">Exportar caixa forta</string>
+    <string name="account_action_export_individual_vault_title">Exporta una caixa forta individual</string>
     <string name="account_action_hide_title">Amaga els elements</string>
     <string name="account_action_hide_text">Amaga els elements de les pantalles principals de l\'app</string>
     <string name="account_action_email_verify_instructions_title">Visita la caixa forta web per a verificar la teva adreça de correu electrònic</string>
@@ -229,7 +233,7 @@
     <string name="ciphers_action_edit_title">Edita</string>
     <string name="ciphers_action_merge_title">Mescla a…</string>
     <string name="ciphers_action_copy_title">Copia a…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">Exportar…</string>
     <string name="ciphers_action_change_folder_title">Mou a la carpeta</string>
     <string name="ciphers_action_change_name_title">Canvia el nom</string>
     <string name="ciphers_action_change_names_title">Canvia els noms</string>
@@ -618,6 +622,13 @@
     <string name="passwords_good_label">Bones contrasenyes</string>
     <string name="passwords_fair_label">Contrasenyes correctes</string>
     <string name="passwords_weak_label">Contrasenyes poc segures</string>
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Search filters</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
     <string name="filter_header_title">Filtra</string>
     <string name="filter_empty_label">No hi ha filtres disponibles</string>
     <string name="sort_header_title">Ordena per</string>
@@ -763,11 +774,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Canvia la contrasenya de l\'app</string>
     <string name="changepassword_disclaimer_local_note">La contrasenya d\'aplicació mai es desa al dispositiu ni s\'envia a través de la xarxa. Es fa servir per a generar un secret que s\'utilitza per a encriptar les dades locals.</string>
     <string name="changepassword_disclaimer_abuse_note">A no ser que sospites d\'un accés no autoritzat, o descobreixis programari maliciós al teu dispositiu, no hi ha cap necessitat de canviar la contrasenya si és una forta i única.</string>
-    <string name="exportaccount_header_title">Export items</string>
-    <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
-    <string name="exportaccount_export_button">Export</string>
-    <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_header_title">Exportar elements</string>
+    <string name="exportaccount_password_label">Arxivar contrasenya</string>
+    <string name="exportaccount_no_attachments_note">Només s\'exportarà la informació de la caixa forta, sense adjunts.</string>
+    <string name="exportaccount_export_button">Exportar</string>
+    <string name="exportaccount_export_success">S\'ha completat l\'exportació</string>
     <string name="contactus_header_title">Contacta\'ns</string>
     <string name="contactus_message_label">El teu missatge</string>
     <string name="contactus_english_note">Fes servir l\'anglès per assegurar-nos que no hi ha malentesos.</string>
@@ -917,9 +928,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Administra al Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Penja notificacions</string>
     <string name="pref_item_permission_post_notifications_text">Es fa servir per a penjar notificacions de descàrregues</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
+    <string name="pref_item_permission_write_external_storage_title">Escriure a l\'emmagatzematge extern</string>
+    <string name="pref_item_permission_write_external_storage_text">Es fa servir per a desar exportacions de la caixa forta a la carpeta de baixades</string>
+    <string name="pref_item_permission_write_external_storage_grant">Dona permís per accedir a l\'emmagatzematge extern</string>
     <string name="pref_item_permission_camera_title">Càmera</string>
     <string name="pref_item_permission_camera_text">Es fa servir per a escanejar codis QR</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Permet la distribució en dos panells en el mode apaïsat</string>

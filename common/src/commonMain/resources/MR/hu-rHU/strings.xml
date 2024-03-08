@@ -1,70 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
-    <string name="close">Close</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="close">Bezárás</string>
+    <string name="yes">Igen</string>
+    <string name="no">Nem</string>
     <!-- A name of a thing, such as an account -->
-    <string name="generic_name">Name</string>
-    <string name="account_name">Account name</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
-    <string name="username">Username</string>
-    <string name="password">Password</string>
-    <string name="app_password">App password</string>
-    <string name="current_password">Current password</string>
-    <string name="new_password">New password</string>
-    <string name="email">Email</string>
-    <string name="email_verified">Verified</string>
-    <string name="email_not_verified">Not verified</string>
-    <string name="email_visibility">Email visibility</string>
-    <string name="public_url">Public URL</string>
+    <string name="generic_name">Név</string>
+    <string name="account_name">Fiók neve</string>
+    <string name="enabled">Engedélyezve</string>
+    <string name="disabled">Letiltva</string>
+    <string name="wordlist">Szólista</string>
+    <string name="username">Felhasználónév</string>
+    <string name="password">Jelszó</string>
+    <string name="app_password">Alkalmazásjelszó</string>
+    <string name="current_password">Jelenlegi jelszó</string>
+    <string name="new_password">Új jelszó</string>
+    <string name="email">Email cím</string>
+    <string name="email_verified">Megerősítve</string>
+    <string name="email_not_verified">Nincs megerősítve</string>
+    <string name="email_visibility">Email láthatóság</string>
+    <string name="public_url">Nyilvános URL</string>
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
-    <string name="access_count">Access count</string>
-    <string name="learn_more">Learn more</string>
-    <string name="phone_number">Phone number</string>
-    <string name="passport_number">Passport number</string>
-    <string name="license_number">License number</string>
-    <string name="card_number">Card number</string>
-    <string name="card_number_empty_label">No card number</string>
-    <string name="card_type">Brand</string>
-    <string name="card_cvv">Security code</string>
-    <string name="card_valid_from">Valid from</string>
-    <string name="card_valid_to">Valid to</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
-    <string name="cardholder_name">Cardholder name</string>
-    <string name="valid_from">Valid from</string>
-    <string name="expiry_date">Expiry date</string>
-    <string name="company">Company</string>
-    <string name="sync">Sync</string>
+    <string name="access_count">Hozzáférések száma</string>
+    <string name="learn_more">További információ</string>
+    <string name="phone_number">Telefonszám</string>
+    <string name="passport_number">Útlevélszám</string>
+    <string name="license_number">Jogsi száma</string>
+    <string name="card_number">Kártya száma</string>
+    <string name="card_number_empty_label">Nincs kártyaszám</string>
+    <string name="card_type">Márka</string>
+    <string name="card_cvv">Biztonsági kód</string>
+    <string name="card_valid_from">Érvényesség kezdete</string>
+    <string name="card_valid_to">Érvényesség vége</string>
+    <string name="card_expiry_month">A  kártya lejárati hónapja</string>
+    <string name="card_expiry_year">Kártya lejárati éve</string>
+    <string name="cardholder_name">Kártyatulajdonos neve</string>
+    <string name="valid_from">Érvényesség kezdete</string>
+    <string name="expiry_date">Lejárat dátuma</string>
+    <string name="company">Cég</string>
+    <string name="sync">Szinkronizálás</string>
     <!-- Opposite of 'visible' -->
-    <string name="hidden">Hidden</string>
+    <string name="hidden">Rejtve</string>
     <!-- Opposite of 'hidden' -->
-    <string name="visible">Visible</string>
+    <string name="visible">Látható</string>
     <!-- Shows up instead of a value if a value is an empty text -->
-    <string name="empty_value">Empty</string>
+    <string name="empty_value">Üres</string>
     <!-- Social Security Number -->
-    <string name="ssn">SSN</string>
-    <string name="city">City</string>
-    <string name="state">State</string>
-    <string name="info">Info</string>
-    <string name="cancel">Cancel</string>
-    <string name="continue_">Continue</string>
-    <string name="country">Country</string>
-    <string name="address">Address</string>
-    <string name="postal_code">Postal code</string>
+    <string name="ssn">SSN (TB szám)</string>
+    <string name="city">Település</string>
+    <string name="state">Megye</string>
+    <string name="info">Infó</string>
+    <string name="cancel">Mégsem</string>
+    <string name="continue_">Folytatás</string>
+    <string name="country">Ország</string>
+    <string name="address">Cím</string>
+    <string name="postal_code">Irányítószám</string>
     <string name="pull_to_search">Pull to search</string>
-    <string name="save">Save</string>
+    <string name="save">Mentés</string>
     <string name="uri">URI</string>
-    <string name="uris">URIs</string>
-    <string name="note">Note</string>
-    <string name="notes">Notes</string>
-    <string name="attachments">Attachments</string>
-    <string name="attachments_empty_label">No attachments</string>
-    <string name="expired">Expired</string>
+    <string name="uris">URI</string>
+    <string name="note">Megjegyzés</string>
+    <string name="notes">Megjegyzések</string>
+    <string name="attachments">Mellékletek</string>
+    <string name="attachments_empty_label">Nincsenek mellékletek</string>
+    <string name="expired">Lejárt</string>
     <string name="expiring_soon">Expiring soon</string>
     <string name="item_incomplete_title">Incomplete data</string>
     <string name="item_incomplete_text">This item is missing some of the important information.</string>
@@ -107,72 +107,73 @@
     <string name="identity_title">Title</string>
     <string name="identity_first_name">First name</string>
     <string name="identity_middle_name">Middle name</string>
-    <string name="identity_last_name">Last name</string>
-    <string name="identity_full_name">Full name</string>
-    <string name="address1">Address line 1</string>
-    <string name="address2">Address line 2</string>
-    <string name="address3">Address line 3</string>
-    <string name="rename">Rename</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
-    <string name="autofill">Autofill</string>
-    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
-    <string name="passkeys">Passkeys</string>
+    <string name="identity_last_name">Vezetéknév</string>
+    <string name="identity_full_name">Teljes név</string>
+    <string name="address1">Cím 1. sor</string>
+    <string name="address2">Cím 2. sor</string>
+    <string name="address3">Cím 3. sor</string>
+    <string name="rename">Átnevezés</string>
+    <string name="select_linked_type">Típus kiválasztása</string>
+    <string name="select_file">Fájl kiválasztása</string>
+    <string name="autofill">Automatikus kitöltés</string>
+    <string name="autofill_and_save_uri">Kitöltés és app vagy weboldal infó mentése</string>
+    <string name="passkey">Hozzáférési kulcs</string>
+    <string name="passkey_create_header">Hozzáférési kulcs létrehozása</string>
+    <string name="passkey_unlock_header">Keyguard feloldása</string>
+    <string name="passkey_auth_via_header">Auth kérés megerősítése…</string>
+    <string name="passkeys">Hozzáférési kulcsok</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
         -->
-    <string name="passkey_signature_counter">Signature counter</string>
+    <string name="passkey_signature_counter">Aláírás számláló</string>
     <!--
         The entity whose web application utilizes the Web Authentication API
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Relying party</string>
+    <string name="passkey_relying_party">Bízó fél</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
-    <string name="passkey_user_display_name">Display name</string>
-    <string name="ignored_alerts">Ignored alerts</string>
-    <string name="api_key">API key</string>
-    <string name="domain">Domain</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="remove">Remove</string>
-    <string name="remove_from_history">Remove from the history</string>
-    <string name="reused_password">Reused password</string>
-    <string name="reused_passwords">Reused passwords</string>
-    <string name="one_time_password">One-time password</string>
-    <string name="one_time_password_authenticator_key">Authenticator key</string>
-    <string name="passkey_use_short">Use</string>
-    <string name="passkey_save">Save passkey</string>
-    <string name="passkey_available">Passkey available</string>
-    <string name="twofa_available">Two-factor authentication available</string>
-    <string name="custom">Custom</string>
-    <string name="follow_system_settings">Follow system settings</string>
+    <string name="passkey_discoverable">Felfedezhető</string>
+    <string name="passkey_user_username">Felhasználónév</string>
+    <string name="passkey_user_display_name">Megjelenített név</string>
+    <string name="ignored_alerts">Mellőzött figyelmeztetések</string>
+    <string name="api_key">API kulcs</string>
+    <string name="domain">Domain név</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="edit">Szerkesztés</string>
+    <string name="delete">Törlés</string>
+    <string name="remove">Eltávolítás</string>
+    <string name="remove_from_history">Eltávolítás az előzményekből</string>
+    <string name="reused_password">Újrahasznált jelszó</string>
+    <string name="reused_passwords">Újrahasznált jelszavak</string>
+    <string name="one_time_password">Egyszeri jelszó</string>
+    <string name="one_time_password_authenticator_key">Hitelesítési kulcs</string>
+    <string name="passkey_use_short">Használ</string>
+    <string name="passkey_save">Hozzáférési kulcs mentése</string>
+    <string name="passkey_available">Hozzáférési kulcs elérhető</string>
+    <string name="twofa_available">Kétfaktoros hitelesítés elérhető</string>
+    <string name="custom">Egyéni</string>
+    <string name="follow_system_settings">Rendszerbeállítások követése</string>
     <!-- A feature is coming soon! -->
-    <string name="coming_soon">Coming soon</string>
-    <string name="powered_by">Powered by</string>
-    <string name="verification_code">Verification code</string>
-    <string name="resend_verification_code">Re-send verification code</string>
-    <string name="requested_verification_email">Requested a verification email</string>
-    <string name="web_vault">Web vault</string>
-    <string name="launch_web_vault">Launch Web vault</string>
+    <string name="coming_soon">Hamarosan</string>
+    <string name="powered_by">Biztosítja</string>
+    <string name="verification_code">Hitelesítő kód</string>
+    <string name="resend_verification_code">Kód újraküldése</string>
+    <string name="requested_verification_email">Ellenőrző e-mailt kért</string>
+    <string name="web_vault">Webes széf</string>
+    <string name="launch_web_vault">Webes széf indítása</string>
     <!-- Remember me to not have to enter OTP code second time -->
-    <string name="remember_me">Remember me</string>
+    <string name="remember_me">Emlékezzen rám</string>
     <!-- A Trash screen -->
-    <string name="trash">Trash</string>
+    <string name="trash">Lomtár</string>
     <!-- To download something -->
-    <string name="download">Download</string>
-    <string name="downloads">Downloads</string>
-    <string name="downloads_empty_label">No downloads</string>
-    <string name="duplicates_empty_label">No duplicates</string>
+    <string name="download">Letöltés</string>
+    <string name="downloads">Letöltések</string>
+    <string name="downloads_empty_label">Nincsenek letöltések</string>
+    <string name="duplicates_empty_label">Nincsenek ismétlődések</string>
     <string name="duplicate">Duplicate</string>
     <string name="regex">Regular expression</string>
     <string name="encryption">Encryption</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Master password hint</string>
     <string name="fingerprint_phrase">Fingerprint phrase</string>
     <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -226,7 +230,7 @@
     <string name="ciphers_action_remove_from_favorites_title">Remove from favourites</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
     <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
-    <string name="ciphers_action_edit_title">Edit</string>
+    <string name="ciphers_action_edit_title">Szerkesztés</string>
     <string name="ciphers_action_merge_title">Merge into…</string>
     <string name="ciphers_action_copy_title">Copy to…</string>
     <string name="ciphers_action_export_title">Export…</string>
@@ -618,6 +622,13 @@
     <string name="passwords_good_label">Good passwords</string>
     <string name="passwords_fair_label">Fair passwords</string>
     <string name="passwords_weak_label">Weak passwords</string>
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Search filters</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">No filters available</string>
     <string name="sort_header_title">Sort by</string>

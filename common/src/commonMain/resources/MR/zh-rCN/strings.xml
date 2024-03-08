@@ -9,7 +9,7 @@
     <string name="account_name">账户名</string>
     <string name="enabled">已启用</string>
     <string name="disabled">已禁用</string>
-    <string name="wordlist">单词列表</string>
+    <string name="wordlist">词表</string>
     <string name="username">用户名</string>
     <string name="password">密码</string>
     <string name="app_password">应用专用密码</string>
@@ -30,7 +30,7 @@
     <string name="card_number">卡号</string>
     <string name="card_number_empty_label">无卡号</string>
     <string name="card_type">品牌</string>
-    <string name="card_cvv">安全码（CVV）</string>
+    <string name="card_cvv">安全码</string>
     <string name="card_valid_from">有效期自</string>
     <string name="card_valid_to">有效期至</string>
     <string name="card_expiry_month">卡过期月份</string>
@@ -48,7 +48,7 @@
     <string name="empty_value">空</string>
     <!-- Social Security Number -->
     <string name="ssn">社会保险号码（SSN）</string>
-    <string name="city">城市/区县</string>
+    <string name="city">城市</string>
     <string name="state">州/省</string>
     <string name="info">信息</string>
     <string name="cancel">取消</string>
@@ -70,7 +70,7 @@
     <string name="item_incomplete_text">此项目缺少一些重要信息。</string>
     <string name="item">项目</string>
     <string name="items">项目</string>
-    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> 项目</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> 个项目</string>
     <string name="items_all">所有项目</string>
     <string name="items_empty_label">暂无项目</string>
     <string name="sends">Sends</string>
@@ -107,7 +107,7 @@
     <string name="identity_title">标题</string>
     <string name="identity_first_name">名</string>
     <string name="identity_middle_name">中间名</string>
-    <string name="identity_last_name">姓氏</string>
+    <string name="identity_last_name">姓</string>
     <string name="identity_full_name">全名</string>
     <string name="address1">地址行 1</string>
     <string name="address2">地址行 2</string>
@@ -142,6 +142,7 @@
     <string name="ignored_alerts">忽略提醒</string>
     <string name="api_key">API 密钥</string>
     <string name="domain">域名</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">编辑</string>
     <string name="delete">删除</string>
     <string name="remove">移除</string>
@@ -153,12 +154,12 @@
     <string name="passkey_use_short">使用</string>
     <string name="passkey_save">保存通行密钥</string>
     <string name="passkey_available">可用通行密钥</string>
-    <string name="twofa_available">可用两步验证</string>
+    <string name="twofa_available">双因素认证可用</string>
     <string name="custom">自定义</string>
     <string name="follow_system_settings">跟随系统设置</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">即将上线</string>
-    <string name="powered_by">基于</string>
+    <string name="powered_by">技术支持：</string>
     <string name="verification_code">验证码</string>
     <string name="resend_verification_code">重新发送验证码</string>
     <string name="requested_verification_email">已请求验证电子邮件</string>
@@ -180,43 +181,46 @@
     <string name="encryption_key">密钥</string>
     <string name="encryption_hash">哈希值</string>
     <string name="encryption_salt">盐</string>
-    <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
-    <string name="encryption_random_bits_data">随机 <xliff:g id="length" example="64">%1$d</xliff:g> 位数据</string>
+    <string name="encryption_algorithm_256bit_aes">256位 AES</string>
+    <string name="encryption_random_bits_data">随机的 <xliff:g id="length" example="64">%1$d</xliff:g> 位数据</string>
     <string name="none">无</string>
     <string name="text">文本</string>
     <string name="linked_apps">关联应用</string>
-    <string name="linked_uris">链接的 URI</string>
+    <string name="linked_uris">关联的 URI</string>
     <string name="custom_fields">自定义字段</string>
     <string name="reveal_secure_note">显示安全笔记</string>
     <string name="hide_secure_note">隐藏安全笔记</string>
     <string name="master_password_hint">主密码提示</string>
     <string name="fingerprint_phrase">指纹短语</string>
     <string name="fingerprint_phrase_help_title">什么是指纹？</string>
-    <string name="bitwarden_premium">Bitwarden 大会员</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
+    <string name="bitwarden_premium">Bitwarden 高级版</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 服务器</string>
     <string name="account_last_synced_at">最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="account_action_change_name_title">更换名称</string>
-    <string name="account_action_change_color_title">更改颜色</string>
+    <string name="account_action_change_name_title">修改名称</string>
+    <string name="account_action_change_color_title">修改颜色</string>
     <string name="account_action_change_master_password_hint_title">修改主密码提示</string>
     <string name="account_action_sign_out_title">登出</string>
     <string name="account_action_sign_in_title">登录</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_export_vault_title">导出密码库</string>
+    <string name="account_action_export_individual_vault_title">导出个人密码库</string>
     <string name="account_action_hide_title">隐藏项目</string>
     <string name="account_action_hide_text">隐藏应用主屏幕上的项目</string>
     <string name="account_action_email_verify_instructions_title">访问网页密码库来验证您的电子邮件地址</string>
-    <string name="account_action_premium_purchase_instructions_title">将您的账户升级为大会员，将获得一些大会员独享的moment</string>
-    <string name="account_action_tfa_title">两步验证</string>
+    <string name="account_action_premium_purchase_instructions_title">将您的账户升级至高级会员，解锁一些强大的附加功能。</string>
+    <string name="account_action_tfa_title">双因素认证</string>
     <string name="account_action_tfa_text">需要使用另一个设备进行登录验证，如安全密钥、身份验证器应用、短信或电子邮件</string>
     <string name="account_action_tfa_active_status">启用</string>
     <string name="account_action_items_title">项目</string>
     <string name="account_action_log_out_title">登出</string>
-    <string name="account_log_out_confirmation_title">登出?</string>
+    <string name="account_log_out_confirmation_title">确认登出？</string>
     <string name="account_log_out_confirmation_text">所有未同步的更改都将丢失！</string>
-    <string name="folder_action_change_name_title">更换名称</string>
-    <string name="folder_action_change_names_title">更换名称</string>
+    <string name="folder_action_change_name_title">修改名称</string>
+    <string name="folder_action_change_names_title">修改名称</string>
     <string name="folder_delete_one_confirmation_title">确认删除文件夹？</string>
-    <string name="folder_delete_many_confirmation_title">确认删除文件夹？</string>
+    <string name="folder_delete_many_confirmation_title">确认删除全部选中的文件夹？</string>
     <string name="folder_delete_confirmation_text">此项目将被立即删除且这是不可逆的。</string>
     <string name="ciphers_recently_opened">最近打开</string>
     <string name="ciphers_often_opened">经常打开</string>
@@ -224,15 +228,15 @@
     <string name="ciphers_save_to">保存至</string>
     <string name="ciphers_action_add_to_favorites_title">添加到收藏夹</string>
     <string name="ciphers_action_remove_from_favorites_title">从收藏夹中删除</string>
-    <string name="ciphers_action_enable_auth_reprompt_title">启用再次要求验证</string>
-    <string name="ciphers_action_disable_auth_reprompt_title">禁用再次要求验证</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">启用身份验证二次确认</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">禁用身份验证二次确认</string>
     <string name="ciphers_action_edit_title">编辑</string>
     <string name="ciphers_action_merge_title">合并到…</string>
     <string name="ciphers_action_copy_title">复制到…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">导出...</string>
     <string name="ciphers_action_change_folder_title">移动至文件夹</string>
-    <string name="ciphers_action_change_name_title">更换名称</string>
-    <string name="ciphers_action_change_names_title">更换名称</string>
+    <string name="ciphers_action_change_name_title">修改名称</string>
+    <string name="ciphers_action_change_names_title">修改名称</string>
     <string name="ciphers_action_add_password_title">添加密码</string>
     <string name="ciphers_action_add_passwords_title">添加密码</string>
     <string name="ciphers_action_change_password_title">修改密码</string>
@@ -241,7 +245,7 @@
     <string name="ciphers_action_trash_title">回收站</string>
     <string name="ciphers_action_restore_title">恢复</string>
     <string name="ciphers_action_delete_title">永久删除</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">配置 Watchtower 提醒</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">配置概况提醒</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">将关联项目移动到回收站</string>
     <string name="file_action_open_with_title">打开方式…</string>
     <string name="file_action_send_with_title">通过...发送</string>
@@ -260,7 +264,7 @@
     <string name="uri_action_launch_website_title">打开网站</string>
     <string name="uri_action_launch_docs_title">打开文档</string>
     <string name="uri_action_launch_browser_title">打开浏览器</string>
-    <string name="uri_action_launch_browser_main_page_title">打开主页面</string>
+    <string name="uri_action_launch_browser_main_page_title">打开主页</string>
     <string name="uri_action_launch_play_store_title">启动 Play 商店</string>
     <string name="uri_action_launch_in_app_title">启动 <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">使用第三方应用操作</string>
@@ -275,42 +279,42 @@
     <string name="uri_match_detection_domain_note">按顶级和次级域匹配资源。</string>
     <string name="uri_match_detection_host_title">域</string>
     <string name="uri_match_detection_host_note">通过主机名和端口 (如果指定) 匹配资源。</string>
-    <string name="uri_match_detection_startswith_title">开始于</string>
-    <string name="uri_match_detection_startswith_note">当检测到的资源开始于 URI 时匹配资源。</string>
+    <string name="uri_match_detection_startswith_title">匹配开头</string>
+    <string name="uri_match_detection_startswith_note">当检测到的资源以URI开头时，匹配资源。</string>
     <string name="uri_match_detection_exact_title">完全匹配</string>
     <string name="uri_match_detection_exact_note">当检测到的资源与 URI 完全匹配时匹配资源。</string>
-    <string name="uri_match_detection_regex_title">正则表达式（Regex）</string>
+    <string name="uri_match_detection_regex_title">正则表达式</string>
     <string name="uri_match_detection_regex_note">通过正则表达式匹配资源（高级选项）</string>
     <string name="uri_match_detection_never_title">从不</string>
-    <string name="uri_match_detection_never_note">在自动填充项目搜索时忽略 URI。</string>
-    <string name="field_linked_to_password">已链接 <xliff:g id="name" example="passwordField">%1$s</xliff:g> 至密码</string>
-    <string name="field_linked_to_username">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至用户名</string>
-    <string name="field_linked_to_card_cardholdername">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至持卡人姓名</string>
-    <string name="field_linked_to_card_expmonth">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至过期月份</string>
-    <string name="field_linked_to_card_expyear">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至过期年份</string>
-    <string name="field_linked_to_card_code">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至卡号</string>
-    <string name="field_linked_to_card_brand">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至卡牌</string>
-    <string name="field_linked_to_card_number">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至卡号</string>
-    <string name="field_linked_to_identity_title">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至标题</string>
-    <string name="field_linked_to_identity_middlename">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至中间名</string>
-    <string name="field_linked_to_identity_address1">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至地址行  1</string>
-    <string name="field_linked_to_identity_address2">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至地址行 2</string>
-    <string name="field_linked_to_identity_address3">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至地址行 3</string>
-    <string name="field_linked_to_identity_city">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至城市</string>
-    <string name="field_linked_to_identity_state">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至州/省</string>
-    <string name="field_linked_to_identity_postalcode">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至邮政编码</string>
-    <string name="field_linked_to_identity_country">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至国家/地区</string>
-    <string name="field_linked_to_identity_company">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至公司</string>
-    <string name="field_linked_to_identity_email">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至电子邮件</string>
-    <string name="field_linked_to_identity_phone">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至手机号码</string>
-    <string name="field_linked_to_identity_ssn">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至社会保险号码（SSN）</string>
-    <string name="field_linked_to_identity_username">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至用户名</string>
-    <string name="field_linked_to_identity_passportnumber">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至护照号码</string>
-    <string name="field_linked_to_identity_licensenumber">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至执照号码</string>
+    <string name="uri_match_detection_never_note">在搜索自动填充项目时忽略 URI。</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> 已被关联至密码</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至用户名</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至持卡人姓名</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至过期月份</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至过期年份</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至卡片安全码</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至卡片品牌</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 至卡号</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至标题</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至中间名</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至地址行 1</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至地址行 2</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至地址行 3</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至城市</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至州/省</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至邮政编码</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至国家/地区</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至公司</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至电子邮件</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至手机号码</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至社会保险号码（SSN）</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至用户名</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至护照号码</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至执照号码</string>
     <string name="field_linked_to_identity_firstname">已链接  <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至名字</string>
-    <string name="field_linked_to_identity_lastname">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至姓氏。</string>
-    <string name="field_linked_to_identity_fullname">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至全名</string>
-    <string name="field_linked_to_unknown_field">已链接 <xliff:g id="name" example="usernameField">%1$s</xliff:g> 至一个未知字段</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至姓氏</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至全名</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至一个未知字段</string>
     <string name="text_action_share_with_title">分享</string>
     <string name="selection_n_selected">已选择 <xliff:g id="size" example="15">%1$d</xliff:g> 项</string>
     <string name="copy">复制</string>
@@ -323,7 +327,7 @@
     <string name="copy_email">复制电子邮件</string>
     <string name="copy_phone_number">复制电话号码</string>
     <string name="copy_passport_number">复制护照号码</string>
-    <string name="copy_license_number">复制许可证号码</string>
+    <string name="copy_license_number">复制执照号码</string>
     <string name="copy_card_number">复制卡号</string>
     <string name="copy_cardholder_name">复制持卡人姓名</string>
     <string name="copy_expiration_year">复制过期年份</string>
@@ -345,7 +349,7 @@
     <string name="copied_cardholder_name">已复制持卡人姓名</string>
     <string name="copied_expiration_year">已复制过期年份</string>
     <string name="copied_expiration_month">已复制过期月份</string>
-    <string name="copied_cvv_code">已复制安全码（CCV）</string>
+    <string name="copied_cvv_code">已复制安全码（CVV）</string>
     <string name="copied_otp_code">复制动态密码</string>
     <string name="copied_otp_secret_code">复制私钥</string>
     <string name="autofill_unlock_keyguard">解锁 Keyguard</string>
@@ -371,16 +375,16 @@
     <string name="list_move_up">上移</string>
     <string name="list_move_down">下移</string>
     <string name="list_remove">移除</string>
-    <string name="list_remove_confirmation_title">删除此项吗？</string>
+    <string name="list_remove_confirmation_title">确定删除此项吗？</string>
     <string name="list_add">添加更多</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">验证 WebAuthn</string>
     <string name="fido2webauthn_action_return_title">返回应用</string>
-    <string name="expiry_tips_item_line1">此项目于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。</string>
+    <string name="expiry_tips_item_line1">该项目于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。</string>
     <string name="expiry_tips_card_line1">此卡于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。您可以做几件事情来确保平稳过渡：</string>
-    <string name="expiry_tips_card_line2">1. 获取新卡：您的卡片发行方可能已经向您发送了一个新过期日的替换卡。 如果不是，请联系您的卡片发行方查看他们是否打算向您发送新卡片以及何时期待它。</string>
-    <string name="expiry_tips_card_line3">2. 更新自动付款：如果您的卡已设置任何自动付款， 如健身房每月会员或 Netflix 订阅，确保更新新卡号和过期日期。</string>
-    <string name="expiry_tips_card_line4">3. 销毁旧卡：一旦新卡到达并更新了任何必要的信息 一定要安全地处理旧的、过期的卡，以防止身份资料被盗。</string>
+    <string name="expiry_tips_card_line2">1. 获取新卡：您的卡片发卡方可能已经向您寄送了一张具有新到期日期的替换卡。如果没有，请联系您的卡发卡公司，了解他们是否计划向您发送一张新卡，并预计何时可以收到。</string>
+    <string name="expiry_tips_card_line3">2. 更新自动付款：如果您用您的卡设置了任何自动付款，例如健身房会员月费或Netflix订阅，请确保使用新的卡号和到期日期更新信息。</string>
+    <string name="expiry_tips_card_line4">3. 销毁旧卡：一旦您收到新卡并更新了任何必要信息，请确保安全销毁旧卡，以防止身份资料被盗。</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -389,25 +393,25 @@
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
-    <string name="error_must_not_be_blank">不可为空字符串</string>
-    <string name="error_must_be_custom_domain">必须为自定义域</string>
+    <string name="error_must_not_be_blank">不可为空</string>
+    <string name="error_must_be_custom_domain">必须为第三方域名</string>
     <string name="error_must_contain_only_us_ascii_chars">必须只包含 US-ASCII 字符</string>
-    <string name="error_must_have_at_least_n_symbols">长度至少为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
+    <string name="error_must_have_at_least_n_symbols">长度须至少为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
     <string name="error_must_have_exactly_n_symbols">长度必须为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
-    <string name="error_invalid_domain">无效域名</string>
-    <string name="error_invalid_email">无效的电子邮件</string>
-    <string name="error_invalid_url">无效的 URL</string>
-    <string name="error_invalid_uri">无效的 URI</string>
+    <string name="error_invalid_domain">域名无效</string>
+    <string name="error_invalid_email">电子邮件无效</string>
+    <string name="error_invalid_url">URL无效</string>
+    <string name="error_invalid_uri">URI无效</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
-    <string name="error_failed_generate_otp_code">生成 OTP 代码失败</string>
+    <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
     <string name="error_failed_use_passkey">授权请求失败</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
     <!-- Title of the 'Show as Barcode' dialog -->
-    <string name="barcodetype_title">二维码</string>
-    <string name="barcodetype_action_show_in_barcode_title">显示为二维码</string>
+    <string name="barcodetype_title">条形码</string>
+    <string name="barcodetype_action_show_in_barcode_title">显示为条形码</string>
     <string name="barcodetype_copy_otp_secret_code_note">通过扫描二维码将此验证器复制到另一个设备。</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">日期选择器</string>
@@ -445,8 +449,8 @@
     <string name="justgetmydata_send_email_title">发送电子邮件</string>
     <string name="justgetmydata_search_placeholder">搜索网站</string>
     <string name="justgetmydata_empty_label">无指令</string>
-    <string name="tfa_directory_title">双重验证</string>
-    <string name="tfa_directory_text">支持两步验证的网站列表</string>
+    <string name="tfa_directory_title">双因素认证</string>
+    <string name="tfa_directory_text">支持双因素认证的网站列表</string>
     <string name="tfa_directory_search_placeholder">搜索网站</string>
     <string name="passkeys_directory_title">通行密钥</string>
     <string name="passkeys_directory_text">支持通行密钥的网站列表</string>
@@ -459,7 +463,7 @@
     <string name="emailleak_breach_section">泄露</string>
     <string name="emailleak_breach_occurred_at">泄露于 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">报告于 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">无法检查数据泄露情况，互联网连接可能有误</string>
+    <string name="emailleak_failed_to_load_status_text">无法检查数据泄露情况。您目前可能处于离线状态。</string>
     <string name="passwordleak_title">数据泄露</string>
     <string name="passwordleak_note">在数据泄露事件中发现的密码，破解所需的时间要短得多，因此绝对不能使用。</string>
     <string name="passwordleak_occurrences_found_title">密码已泄露</string>
@@ -483,28 +487,28 @@
     <string name="destinationpicker_organization_ownership_note">此副本将归组织所有，你将不再是直接所有者。</string>
     <string name="emailrelay_list_header_title">电子邮件转发器</string>
     <string name="emailrelay_list_section_title">电子邮件转发器</string>
-    <string name="emailrelay_delete_one_confirmation_title">要删除此邮件转发器吗？</string>
-    <string name="emailrelay_delete_many_confirmation_title">要删除邮件转发器吗？</string>
+    <string name="emailrelay_delete_one_confirmation_title">确定要删除此邮件转发器吗？</string>
+    <string name="emailrelay_delete_many_confirmation_title">确定要删除选中的邮件转发器吗？</string>
     <string name="emailrelay_integration_title">电子邮件转发器集成</string>
     <string name="emailrelay_empty_label">暂无邮件转发器</string>
     <string name="emailrelay_base_env_server_url_label">服务器 URL</string>
-    <string name="emailrelay_base_env_note">指定自托管 Bitwarden 安装的基本 URL（Base URL）</string>
-    <string name="wordlist_list_header_title">单词列表</string>
-    <string name="wordlist_list_section_title">单词列表</string>
-    <string name="wordlist_delete_one_confirmation_title">要删除此单词列表吗？</string>
-    <string name="wordlist_delete_many_confirmation_title">要删除此单词列表吗？</string>
-    <string name="wordlist_edit_wordlist_title">编辑单词列表</string>
-    <string name="wordlist_add_wordlist_title">添加单词列表</string>
+    <string name="emailrelay_base_env_note">指定自托管 Bitwarden 实例的根 URL。</string>
+    <string name="wordlist_list_header_title">词表</string>
+    <string name="wordlist_list_section_title">词表</string>
+    <string name="wordlist_delete_one_confirmation_title">确定要删除该词表吗？</string>
+    <string name="wordlist_delete_many_confirmation_title">确定要删除选中的词表吗？</string>
+    <string name="wordlist_edit_wordlist_title">编辑词表</string>
+    <string name="wordlist_add_wordlist_title">添加词表</string>
     <string name="wordlist_add_wordlist_via_file_title">从文件加载</string>
     <string name="wordlist_add_wordlist_via_url_title">从网址加载</string>
-    <string name="wordlist_empty_label">暂无单词列表</string>
-    <string name="wordlist_word_search_placeholder">搜索单词</string>
+    <string name="wordlist_empty_label">暂无词表</string>
+    <string name="wordlist_word_search_placeholder">搜索助记词</string>
     <string name="urloverride_header_title">URL 覆写</string>
     <string name="urloverride_list_header_title">URL 覆写</string>
     <string name="urloverride_list_section_title">URL 覆写</string>
     <string name="urloverride_regex_note">覆写将被应用于与正则表达式匹配的 URL。</string>
-    <string name="urloverride_delete_one_confirmation_title">要删除此 URL 覆写吗？</string>
-    <string name="urloverride_delete_many_confirmation_title">要删除这些 URL 覆写吗？</string>
+    <string name="urloverride_delete_one_confirmation_title">确定要删除此 URL 覆写吗？</string>
+    <string name="urloverride_delete_many_confirmation_title">确定要删除这些 URL 覆写吗？</string>
     <string name="urloverride_empty_label">暂无 URL 覆写</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
@@ -536,14 +540,14 @@
     <string name="additem_markdown_note_italic">斜体</string>
     <string name="additem_markdown_note_bold">粗体</string>
     <string name="additem_markdown_render_preview">渲染预览</string>
-    <string name="additem_auth_reprompt_title">再次验证提示</string>
+    <string name="additem_auth_reprompt_title">身份验证二次确认</string>
     <string name="additem_auth_reprompt_text">当您查看或自动填充密码时要求再次验证</string>
     <string name="addaccount_header_title">添加 Bitwarden 账户</string>
     <string name="addaccount_disclaimer_bitwarden_label">我们与 Bitwarden, Inc. 其任何子公司或附属机构均无隶属、关联、授权、许可关系，或任何形式的官方联系。</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">要在非官方 Bitwarden 客户端上通过验证码，您必须指定客户端密钥。要找到它，请访问 网页密码库 / 设置 / API 密钥。</string>
+    <string name="addaccount_captcha_need_client_secret_note">要通过非官方的Bitwarden客户端上的验证码验证，您必须指定客户端密钥。 要找到它，请访问 Web vault / Settings / API Key。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">客户端密钥</string>
     <string name="addaccount_sign_in_button">登录</string>
@@ -558,16 +562,16 @@
     <string name="addaccount_http_header_value_label">值</string>
     <string name="addaccount_http_header_add_more_button">添加更多</string>
     <string name="addaccount_base_env_server_url_label">服务器 URL</string>
-    <string name="addaccount_base_env_note">指定自托管 Bitwarden 安装的基本 URL（Base URL）</string>
+    <string name="addaccount_base_env_note">指定自托管 Bitwarden 实例的根 URL。</string>
     <string name="addaccount_custom_env_section">自定义环境</string>
-    <string name="addaccount_custom_env_note">您可以单独指定每个服务的基本 URL。</string>
+    <string name="addaccount_custom_env_note">您可以单独指定每个服务的根 URL。</string>
     <string name="addaccount_custom_env_web_vault_url_label">网页密码库的服务器 URL</string>
     <string name="addaccount_custom_env_api_url_label">API 服务器 URL</string>
     <string name="addaccount_custom_env_icons_url_label">图标服务器 URL</string>
     <string name="addaccount_custom_env_identity_url_label">身份验证器 URL</string>
     <string name="addaccount2fa_header_title">验证</string>
     <string name="addaccount2fa_unsupported_note">此认证方法尚未被支持。</string>
-    <string name="addaccount2fa_otp_note">请输入您的身份验证器应用中的 6 位验证码（OTP）</string>
+    <string name="addaccount2fa_otp_note">请输入您的身份验证器应用中的 6 位验证码</string>
     <string name="addaccount2fa_email_note">输入发送给 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> 的验证码。</string>
     <string name="addaccount2fa_yubikey_manual_text">手动输入 YubiKey 验证码，将光标放在下方输入框并按下 YubiKey 的按钮。</string>
     <string name="provider_2fa_authenticator">身份验证器</string>
@@ -577,7 +581,7 @@
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
     <string name="yubikey_usb_title">通过 USB 连接 YubiKey</string>
     <string name="yubikey_usb_text">需要 USB OTG 支持。</string>
-    <string name="yubikey_usb_touch_the_gold_sensor_note">现在按下 YubiKey 上的金色按钮。</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">现在请触摸您YubiKey上的金色传感器。</string>
     <string name="yubikey_nfc_title">将您的 YubiKey 平放在设备背部的 NFC 区域</string>
     <string name="yubikey_nfc_text">需要 NFC 支持。</string>
     <string name="yubikey_error_failed_to_read">读取 YubiKey 失败</string>
@@ -603,7 +607,7 @@
     <string name="cipher_type_passkey">密钥</string>
     <string name="field_type_text">文本</string>
     <string name="field_type_boolean">布尔值</string>
-    <string name="field_type_linked">已链接</string>
+    <string name="field_type_linked">已关联</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
         ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
@@ -614,11 +618,18 @@
     <string name="password_strength_fair_label">一般</string>
     <string name="password_strength_weak_label">不安全</string>
     <string name="passwords_very_strong_label">相当安全的密码</string>
-    <string name="passwords_strong_label">相当安全的密码</string>
+    <string name="passwords_strong_label">安全的密码</string>
     <string name="passwords_good_label">安全的密码</string>
     <string name="passwords_fair_label">一般安全的密码</string>
     <string name="passwords_weak_label">不安全的密码</string>
-    <string name="filter_header_title">过滤器</string>
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Search filters</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
+    <string name="filter_header_title">筛选条件</string>
     <string name="filter_empty_label">没有可用的筛选条件</string>
     <string name="sort_header_title">排序方式</string>
     <string name="sort_empty_label">没有可用的排序方式</string>
@@ -650,7 +661,7 @@
     <string name="vault_main_new_item_button">新项目</string>
     <string name="vault_main_no_suggested_items">没有针对此上下文的建议项目</string>
     <!-- A label for the CVV code of the card -->
-    <string name="vault_view_card_cvv_label">安全码（CVV）</string>
+    <string name="vault_view_card_cvv_label">安全码</string>
     <string name="vault_view_saved_to_label">保存到 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
     <string name="vault_view_password_revision_label">密码最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">通行密钥创建于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -677,19 +688,19 @@
     <string name="generator_header_password_title">密码生成器</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">重新生成</string>
-    <string name="generator_passphrase_type">密码短语</string>
+    <string name="generator_passphrase_type">口令</string>
     <string name="generator_passphrase_note">随机口令是可记忆性和安全性的最佳组合。</string>
     <string name="generator_passphrase_delimiter_title">分隔符</string>
     <string name="generator_passphrase_capitalize_title">首字母大写</string>
     <string name="generator_passphrase_number_title">数字</string>
-    <string name="generator_passphrase_wordlist_title">单词列表</string>
+    <string name="generator_passphrase_wordlist_title">词表</string>
     <string name="generator_username_type">用户名</string>
     <string name="generator_username_delimiter_title">分隔符</string>
-    <string name="generator_username_custom_word_title">自定义单词</string>
+    <string name="generator_username_custom_word_title">自定义助记词</string>
     <string name="generator_username_capitalize_title">大写</string>
     <string name="generator_username_number_title">数字</string>
     <string name="generator_username_wordlist_title">单词列表</string>
-    <string name="generator_password_type">随机密码</string>
+    <string name="generator_password_type">随机符号</string>
     <string name="generator_password_note">安全的密码长度至少为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符（包含大写、小写字母、数字和符号）</string>
     <string name="generator_password_numbers_title">位数</string>
     <string name="generator_password_symbols_title">符号</string>
@@ -718,18 +729,18 @@
     <string name="generatorhistory_clear_history_title">清除历史记录</string>
     <string name="generatorhistory_clear_history_confirmation_title">清除生成器历史记录？</string>
     <string name="generatorhistory_clear_history_confirmation_text">这将从历史记录中删除所有项目。</string>
-    <string name="generatorhistory_delete_one_confirmation_title">要从历史中移除该项目吗？</string>
+    <string name="generatorhistory_delete_one_confirmation_title">确定要从历史中移除该项目吗？</string>
     <string name="generatorhistory_delete_many_confirmation_title">要从历史中移除这些项目吗？</string>
     <string name="passwordhistory_header_title">密码历史</string>
     <string name="passwordhistory_clear_history_title">清除历史记录</string>
     <string name="passwordhistory_clear_history_confirmation_title">清除密码历史记录？</string>
     <string name="passwordhistory_clear_history_confirmation_text">这将从历史记录中删除所有密码。</string>
-    <string name="passwordhistory_delete_one_confirmation_title">要从历史记录中删除密码吗？</string>
-    <string name="passwordhistory_delete_many_confirmation_title">要从历史记录中删除这些密码吗？</string>
+    <string name="passwordhistory_delete_one_confirmation_title">确定要从历史记录中删除密码吗？</string>
+    <string name="passwordhistory_delete_many_confirmation_title">确定要从历史记录中删除这些密码吗？</string>
     <string name="watchtower_header_title">概况</string>
     <string name="watchtower_section_password_strength_label">密码强度</string>
     <string name="watchtower_section_security_label">安全性</string>
-    <string name="watchtower_section_maintenance_label">可维护</string>
+    <string name="watchtower_section_maintenance_label">维护</string>
     <string name="watchtower_item_pwned_passwords_title">泄露的密码</string>
     <string name="watchtower_item_pwned_passwords_text">密码存在于已知的数据泄露事件中，应立即更改此密码。</string>
     <string name="watchtower_item_reused_passwords_title">重复使用的密码</string>
@@ -756,18 +767,18 @@
     <string name="watchtower_item_duplicate_items_text">帮助您寻找并删除密码库中的重复项目。</string>
     <string name="watchtower_item_compromised_accounts_title">被盗账户</string>
     <string name="watchtower_item_compromised_accounts_text">使用用户名或电子邮件地址检查数据泄露情况。</string>
-    <string name="changepassword_header_title">更改应用专用密码</string>
+    <string name="changepassword_header_title">修改应用专用密码</string>
     <string name="changepassword_change_password_button">修改密码</string>
     <string name="changepassword_biometric_auth_checkbox">生物识别认证</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">更改应用专用密码</string>
     <string name="changepassword_disclaimer_local_note">应用专用密码不会存储在设备上，更不会上传到服务器。它仅用于生成密钥以加密本地数据。</string>
     <string name="changepassword_disclaimer_abuse_note">除非你怀疑有未经授权的访问或在设备上发现了恶意软件，否则如果密码强大且唯一则没有必要更改。</string>
-    <string name="exportaccount_header_title">Export items</string>
-    <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
-    <string name="exportaccount_export_button">Export</string>
-    <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_header_title">导出项目</string>
+    <string name="exportaccount_password_label">归档密码</string>
+    <string name="exportaccount_no_attachments_note">只导出密码库条目信息，不包含相关附件。</string>
+    <string name="exportaccount_export_button">导出</string>
+    <string name="exportaccount_export_success">导出完成</string>
     <string name="contactus_header_title">联系我们</string>
     <string name="contactus_message_label">您的留言</string>
     <string name="contactus_english_note">使用英语来确保您的反馈不会被误解。</string>
@@ -789,24 +800,24 @@
     <string name="settings_other_header_title">其它</string>
     <string name="settings_permissions_header_title">权限</string>
     <string name="settings_security_header_title">安全</string>
-    <string name="settings_subscriptions_header_title">Keyguard 大会员</string>
+    <string name="settings_subscriptions_header_title">Keyguard 高级版</string>
     <string name="settings_watchtower_header_title">概况</string>
     <string name="settings_open_source_licenses_header_title">开放源代码许可</string>
     <string name="pref_item_accounts_title">账户</string>
-    <string name="pref_item_accounts_text">添加和预览账户</string>
+    <string name="pref_item_accounts_text">添加和查看账户</string>
     <string name="pref_item_autofill_title">自动填充</string>
     <string name="pref_item_autofill_text">Android 自动填充服务</string>
-    <string name="pref_item_security_title">安全性</string>
+    <string name="pref_item_security_title">安全</string>
     <string name="pref_item_security_text">生物识别、修改密码、密码库超时时间</string>
-    <string name="pref_item_subscription_title">Keyguard 大会员</string>
+    <string name="pref_item_subscription_title">Keyguard 高级版</string>
     <string name="pref_item_subscription_text">解锁功能并支持后续开发</string>
     <string name="pref_item_watchtower_title">概况</string>
     <string name="pref_item_watchtower_text">泄露的和不安全的密码</string>
     <string name="pref_item_notifications_title">通知</string>
     <string name="pref_item_notifications_text">警报</string>
-    <string name="pref_item_appearance_title">界面外观</string>
+    <string name="pref_item_appearance_title">外观</string>
     <string name="pref_item_appearance_text">语言、主题和动画</string>
-    <string name="pref_item_dev_title">开发者</string>
+    <string name="pref_item_dev_title">开发</string>
     <string name="pref_item_dev_text">开发测试设置</string>
     <string name="pref_item_other_title">其它</string>
     <string name="pref_item_other_text">社区网站、应用信息</string>
@@ -836,7 +847,7 @@
     <string name="pref_item_rate_on_play_store_title">在 Play 商店评价</string>
     <string name="pref_item_color_accent_title">主题颜色</string>
     <string name="pref_item_color_scheme_title">主题</string>
-    <string name="pref_item_color_scheme_amoled_dark_title">使用纯黑主题（OLED屏模式）</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">使用纯黑主题</string>
     <string name="pref_item_open_links_in_external_browser_title">在外部浏览器中打开链接</string>
     <string name="pref_item_close_to_tray_title">关闭至系统托盘</string>
     <string name="pref_item_conceal_fields_title">隐藏字段</string>
@@ -853,7 +864,7 @@
     <string name="pref_item_change_app_password_title">更改应用专用密码</string>
     <string name="pref_item_require_app_password_title">请求应用专用密码</string>
     <string name="pref_item_require_app_password_note">除了常规的安全设置外，您的应用专用密码将在这段时间后或生物识别设置更改时被请求键入</string>
-    <string name="pref_item_require_app_password_immediately_text">立即加锁</string>
+    <string name="pref_item_require_app_password_immediately_text">立即</string>
     <string name="pref_item_require_app_password_never_text">从不</string>
     <string name="pref_item_send_crash_reports_title">发送崩溃报告</string>
     <string name="pref_item_nav_animation_title">过渡动画</string>
@@ -906,8 +917,8 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">自动填充具有一次性密码的登录项目时，会弹出带有验证码的通知，持续时间至少为所定义的持续时间</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">从不</string>
     <string name="pref_item_clipboard_notification_settings_title">一次性密码通知设置</string>
-    <string name="pref_item_premium_membership_title">关于 Keyguard 大会员权益</string>
-    <string name="pref_item_premium_membership_text">大会员可解锁额外功能，并提供更多的钱钱以支持开发。感谢您对我们的支持！❤️</string>
+    <string name="pref_item_premium_membership_title">关于 Keyguard 高级会员</string>
+    <string name="pref_item_premium_membership_text">高级版可解锁额外功能并支持应用程序的开发。感谢您的支持！❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">订阅</string>
     <string name="pref_item_premium_membership_section_products_title">产品</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">无法加载订阅列表</string>
@@ -917,9 +928,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">在 Play 商店管理</string>
     <string name="pref_item_permission_post_notifications_title">发送通知</string>
     <string name="pref_item_permission_post_notifications_text">用于发布下载通知</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
+    <string name="pref_item_permission_write_external_storage_title">写入外部存储</string>
+    <string name="pref_item_permission_write_external_storage_text">用于将保险库导出保存到下载目录</string>
+    <string name="pref_item_permission_write_external_storage_grant">授予外部存储权限</string>
     <string name="pref_item_permission_camera_title">摄像头</string>
     <string name="pref_item_permission_camera_text">用于扫描 QR 码</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">横屏下启用双面板布局</string>
@@ -931,7 +942,7 @@
     <string name="nav_animation_crossfade">淡入淡出</string>
     <string name="font_atkinson_hyperlegible_text">专为弱视群体开发，以提高易读性和理解力</string>
     <string name="feat_header_title">功能概述</string>
-    <string name="feat_keyguard_premium_label">Keyguard 大会员</string>
+    <string name="feat_keyguard_premium_label">Keyguard 高级版</string>
     <string name="feat_item_multiple_accounts_title">多个账户</string>
     <string name="feat_item_multiple_accounts_text">同时登录到多个账户。</string>
     <string name="feat_item_two_way_sync_title">双向同步</string>

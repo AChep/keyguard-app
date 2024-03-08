@@ -142,6 +142,7 @@
     <string name="ignored_alerts">Genegeerde waarschuwingen</string>
     <string name="api_key">API sleutel</string>
     <string name="domain">Domein</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Bewerken</string>
     <string name="delete">Verwijderen</string>
     <string name="remove">Verwijderen</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Hint voor hoofdwachtwoord</string>
     <string name="fingerprint_phrase">Vingerafdrukzin</string>
     <string name="fingerprint_phrase_help_title">Wat is een vingerafdruk?</string>
+    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
+    <string name="filter_pending_items">Pending</string>
+    <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Onofficiële Bitwarden server</string>
     <string name="account_last_synced_at">Laatst gesynchroniseerd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -618,6 +622,13 @@
     <string name="passwords_good_label">Goede wachtwoorden</string>
     <string name="passwords_fair_label">Redelijke wachtwoorden</string>
     <string name="passwords_weak_label">Zwakke wachtwoorden</string>
+    <string name="customfilters_header_title">Custom filters</string>
+    <string name="customfilters_search_placeholder">Search filters</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
+    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
+    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
+    <string name="customfilters_add_filter_title">Add a custom filter</string>
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">Geen filters beschikbaar</string>
     <string name="sort_header_title">Sorteren op</string>

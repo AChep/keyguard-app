@@ -99,7 +99,7 @@
     <string name="account_none">Nenhuma conta</string>
     <string name="type">Tipo</string>
     <string name="options">Opções</string>
-    <string name="send">Enviar</string>
+    <string name="send">Send</string>
     <string name="reset">Redefinir</string>
     <string name="length">Comprimento</string>
     <string name="security">Segurança</string>
@@ -142,6 +142,7 @@
     <string name="ignored_alerts">Alertas ignorados</string>
     <string name="api_key">Chave da API</string>
     <string name="domain">Domínio</string>
+    <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Editar</string>
     <string name="delete">Deletar</string>
     <string name="remove">Remover</string>
@@ -192,6 +193,9 @@
     <string name="master_password_hint">Dica da Senha Mestra</string>
     <string name="fingerprint_phrase">Frase de impressão digital</string>
     <string name="fingerprint_phrase_help_title">O que é uma impressão digital?</string>
+    <string name="filter_auth_reprompt_items">Confirmação de autenticação</string>
+    <string name="filter_pending_items">Pendente</string>
+    <string name="filter_failed_items">Falhou</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial do Bitwarden</string>
     <string name="account_last_synced_at">Última sincronização em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -200,8 +204,8 @@
     <string name="account_action_change_master_password_hint_title">Alterar dica da senha mestra</string>
     <string name="account_action_sign_out_title">Encerrar Sessão</string>
     <string name="account_action_sign_in_title">Iniciar sessão</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_export_vault_title">Exportar cofre</string>
+    <string name="account_action_export_individual_vault_title">Exportar cofre individual</string>
     <string name="account_action_hide_title">Ocultar itens</string>
     <string name="account_action_hide_text">Ocultar os itens das telas principais do aplicativo</string>
     <string name="account_action_email_verify_instructions_title">Visite o cofre web para verificar seu endereço de e-mail</string>
@@ -229,7 +233,7 @@
     <string name="ciphers_action_edit_title">Editar</string>
     <string name="ciphers_action_merge_title">Mesclar em…</string>
     <string name="ciphers_action_copy_title">Copiar para…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">Exportar…</string>
     <string name="ciphers_action_change_folder_title">Mover para a pasta</string>
     <string name="ciphers_action_change_name_title">Renomear</string>
     <string name="ciphers_action_change_names_title">Renomear</string>
@@ -589,7 +593,7 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Use a autenticação biométrica para confirmar seu acesso e desbloquear os dados.</string>
     <string name="home_vault_label">Cofre</string>
-    <string name="home_send_label">Enviar</string>
+    <string name="home_send_label">Send</string>
     <string name="home_generator_label">Gerador</string>
     <string name="home_watchtower_label">Guardião</string>
     <string name="home_settings_label">Configurações</string>
@@ -618,6 +622,13 @@
     <string name="passwords_good_label">Senhas boas</string>
     <string name="passwords_fair_label">Senhas razoáveis</string>
     <string name="passwords_weak_label">Senhas fracas</string>
+    <string name="customfilters_header_title">Filtros personalizados</string>
+    <string name="customfilters_search_placeholder">Filtros de busca</string>
+    <string name="customfilters_dynamic_shortcut_tip">Você pode aplicar filtros rapidamente adicionando um atalho à sua tela inicial.</string>
+    <string name="customfilters_delete_one_confirmation_title">Excluir o filtro?</string>
+    <string name="customfilters_delete_many_confirmation_title">Excluir os filtros?</string>
+    <string name="customfilters_edit_filter_title">Editar um filtro personalizado</string>
+    <string name="customfilters_add_filter_title">Adicionar um filtro personalizado</string>
     <string name="filter_header_title">Filtro</string>
     <string name="filter_empty_label">Nenhum filtro disponível</string>
     <string name="sort_header_title">Ordenar por</string>
@@ -763,11 +774,11 @@
     <string name="changepassword_biometric_auth_confirm_title">Alterar senha do aplicativo</string>
     <string name="changepassword_disclaimer_local_note">A senha do aplicativo nunca é armazenada no dispositivo nem enviada pela rede. Ela é usada para gerar uma chave secreta que é usada para criptografar os dados locais.</string>
     <string name="changepassword_disclaimer_abuse_note">A menos que você suspeite de acesso não autorizado ou descubra um malware no dispositivo, não há necessidade de alterar a senha se ela for uma senha forte e única.</string>
-    <string name="exportaccount_header_title">Export items</string>
-    <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
-    <string name="exportaccount_export_button">Export</string>
-    <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_header_title">Exportar itens</string>
+    <string name="exportaccount_password_label">Senha do arquivo</string>
+    <string name="exportaccount_no_attachments_note">Somente as informações do item do cofre serão exportadas e não incluirão os anexos associados.</string>
+    <string name="exportaccount_export_button">Exportar</string>
+    <string name="exportaccount_export_success">Exportação concluída</string>
     <string name="contactus_header_title">Contate-nos</string>
     <string name="contactus_message_label">Sua mensagem</string>
     <string name="contactus_english_note">Comunique-se em inglês para garantir que seu feedback não seja mal interpretado.</string>
@@ -917,9 +928,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gerenciar na Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Enviar notificações</string>
     <string name="pref_item_permission_post_notifications_text">Usado para mostrar notificações de download</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
+    <string name="pref_item_permission_write_external_storage_title">Gravar no armazenamento externo</string>
+    <string name="pref_item_permission_write_external_storage_text">Usado para salvar as exportações do cofre no diretório de downloads</string>
+    <string name="pref_item_permission_write_external_storage_grant">Conceder permissão para gravar no armazenamento externo</string>
     <string name="pref_item_permission_camera_title">Câmera</string>
     <string name="pref_item_permission_camera_text">Usado para escanear QR code</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Permitir o layout de dois painéis no modo paisagem</string>

@@ -87,6 +87,11 @@ fun BitwardenCrCta.transformString(
         encoder(env.key).invoke(encryptionType, data)
     },
     isDecrypt = {
+        // This should never happen, but just in case to not
+        // fail the decryption process we fall back to an empty string.
+        if (value.isEmpty()) {
+            return@whatIf value
+        }
         val data = decoder(env.key).invoke(value).data
         String(data)
     },

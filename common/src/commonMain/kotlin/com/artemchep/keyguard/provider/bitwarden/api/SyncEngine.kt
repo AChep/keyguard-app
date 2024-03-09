@@ -317,7 +317,7 @@ class SyncEngine(
                     deleted = false,
                     version = BitwardenService.VERSION,
                 )
-                val model = BitwardenFolder(
+                val model = localOrNull?.copy(service = service) ?: BitwardenFolder(
                     accountId = user.id,
                     folderId = localId,
                     revisionDate = remote.revisionDate,
@@ -543,7 +543,7 @@ class SyncEngine(
                     deleted = false,
                     version = BitwardenService.VERSION,
                 )
-                val model = BitwardenCipher(
+                val model = localOrNull?.copy(service = service) ?: BitwardenCipher(
                     accountId = user.id,
                     cipherId = localId,
                     folderId = folderId,
@@ -768,7 +768,7 @@ class SyncEngine(
                     deleted = false,
                     version = BitwardenService.VERSION,
                 )
-                val model = BitwardenCollection(
+                val model = localOrNull?.copy(service = service) ?: BitwardenCollection(
                     accountId = user.id,
                     collectionId = remote.id,
                     externalId = remote.externalId,
@@ -883,7 +883,7 @@ class SyncEngine(
                     deleted = false,
                     version = BitwardenService.VERSION,
                 )
-                val model = BitwardenOrganization(
+                val model = localOrNull?.copy(service = service) ?: BitwardenOrganization(
                     accountId = user.id,
                     organizationId = remote.id,
                     revisionDate = now,
@@ -1001,7 +1001,7 @@ class SyncEngine(
                     deleted = false,
                     version = BitwardenService.VERSION,
                 )
-                val model = BitwardenSend(
+                val model = localOrNull?.copy(service = service) ?: BitwardenSend(
                     accountId = user.id,
                     sendId = localOrNull?.sendId ?: cryptoGenerator.uuid(),
                     revisionDate = now,

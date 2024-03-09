@@ -124,6 +124,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -1277,8 +1278,17 @@ fun vaultListScreenState(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val dl = deeplinkService.get("customFilter")
-    deeplinkService.clear("customFilter")
+    val deeplinkCustomFilterFlow = if (args.main) {
+        val customFilterKey = "customFilter"
+        deeplinkService
+            .getFlow(customFilterKey)
+            .filterNotNull()
+            .onEach {
+                deeplinkService.clear(customFilterKey)
+            }
+    } else {
+        null
+    }
     val filterListFlow = ah(
         directDI = directDI,
         outputGetter = { it.source },
@@ -1301,7 +1311,7 @@ fun vaultListScreenState(
         organizationFlow = getOrganizations(),
         input = filterResult,
         params = FilterParams(
-            deeplinkCustomFilter = dl,
+            deeplinkCustomFilterFlow = deeplinkCustomFilterFlow,
         ),
     )
         .stateIn(this, SharingStarted.WhileSubscribed(), OurFilterResult())

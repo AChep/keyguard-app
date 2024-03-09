@@ -63,7 +63,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.encodeToString
 import org.kodein.di.DirectDI
@@ -216,7 +218,7 @@ data class OurFilterResult(
 )
 
 data class FilterParams(
-    val deeplinkCustomFilter: String? = null,
+    val deeplinkCustomFilterFlow: Flow<String>? = null,
     val section: Section = Section(),
 ) {
     data class Section(
@@ -834,15 +836,19 @@ suspend fun <
         )
         .filterSection(params.section.misc)
 
-    if (params.deeplinkCustomFilter != null) {
-        val customFilter = kotlin.run {
-            val customFilters = getCipherFilters()
-                .first()
-            customFilters.firstOrNull { it.id == params.deeplinkCustomFilter }
-        }
-        if (customFilter != null) {
-            input.onApply(customFilter.filter)
-        }
+    if (params.deeplinkCustomFilterFlow != null) {
+        params.deeplinkCustomFilterFlow
+            .onEach { customFilterId ->
+                val customFilter = kotlin.run {
+                    val customFilters = getCipherFilters()
+                        .first()
+                    customFilters.firstOrNull { it.id == customFilterId }
+                }
+                if (customFilter != null) {
+                    input.onApply(customFilter.filter)
+                }
+            }
+            .launchIn(screenScope)
     }
 
     val filterCustomListFlow = getCipherFilters()

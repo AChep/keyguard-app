@@ -141,7 +141,11 @@ data class Rail(
 
 private const val ROUTE_NAME = "home"
 
-private val vaultRoute = VaultRoute()
+private val vaultRoute = VaultRoute(
+    args = VaultRoute.Args(
+        main = true,
+    ),
+)
 
 private val sendsRoute = SendRoute()
 

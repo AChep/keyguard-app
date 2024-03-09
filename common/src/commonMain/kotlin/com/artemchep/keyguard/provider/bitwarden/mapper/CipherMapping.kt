@@ -41,7 +41,8 @@ suspend fun BitwardenCipher.toDomain(
         favorite = favorite,
         reprompt = reprompt == BitwardenCipher.RepromptType.Password,
         synced = !service.deleted &&
-                revisionDate == service.remote?.revisionDate,
+                revisionDate == service.remote?.revisionDate &&
+                deletedDate == service.remote.deletedDate,
         ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
         fields = fields.map(BitwardenCipher.Field::toDomain),

@@ -1361,6 +1361,15 @@
     "notes": "Delete all tenants on the Auth0 dashboard then send a private message to a support moment on the forums."
   },
   {
+    "name": "Author.today",
+    "domains": [
+      "author.today"
+    ],
+    "url": "https://help.author.today/knowledge_base/item/268554?sid=58980",
+    "difficulty": "impossible",
+    "notes": "You cannot delete your account, only disable it. To do so, go to \u2b95 personal area \u2b95 account \u2b95 general \u2b95 account management."
+  },
+  {
     "name": "Authy",
     "domains": [
       "authy.com"
@@ -2049,6 +2058,16 @@
     "notes": "Contact support via the contact form and request deletion of your account."
   },
   {
+    "name": "Bluesky",
+    "domains": [
+      "bsky.app",
+      "bsky.social"
+    ],
+    "url": "https://bsky.app/settings",
+    "difficulty": "medium",
+    "notes": "Scroll to the bottom and click \"Delete My Account...\". Then provide the confirmation code sent to your email and your account password. No confirmation is given, but the account is deleted instantly."
+  },
+  {
     "name": "Board Game Arena",
     "domains": [
       "boardgamearena.com"
@@ -2343,6 +2362,17 @@
     "difficulty": "hard",
     "notes": "Contact the customer support via email and request the deletion of your account.",
     "email": "bonjour@brutx.com"
+  },
+  {
+    "name": "Bubbl.us",
+    "domains": [
+      "bubbl.us",
+      "help.bubbl.us"
+    ],
+    "url": "https://help.bubbl.us/article/110-remove-my-account",
+    "difficulty": "hard",
+    "notes": "You need to contact support and request account deletion, but the address listed on the help page is incorrect. You need to send an email to the address listed below.",
+    "email": "support@bubbl.us"
   },
   {
     "name": "Buffer",
@@ -3298,6 +3328,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "Computeruniverse",
+    "domains": [
+      "computeruniverse.net"
+    ],
+    "url": "https://www.computeruniverse.net/en/page/computeruniverse-privacy-policy#hbmpp-toc-III-4",
+    "difficulty": "hard",
+    "notes": "You need to email them to request deletion of your data.",
+    "email": "computeruniverse@datenschutzanfrage.de"
+  },
+  {
     "name": "Conte.it",
     "domains": [
       "conte.it"
@@ -3609,6 +3649,15 @@
     "url": "https://support.imaginecurve.com/hc/en-gb/articles/214179685-How-do-I-cancel-my-account",
     "difficulty": "medium",
     "notes": "They cannot delete your account immediately as they are obliged by the Money Laundering Regulations 2017 to keep your data for 5 years after you stop using Curve."
+  },
+  {
+    "name": "Cutout",
+    "domains": [
+      "cutout.pro"
+    ],
+    "url": "https://www.cutout.pro/user/set",
+    "difficulty": "easy",
+    "notes": "Go to My Dashboard, then Account Settings to delete your account."
   },
   {
     "name": "CV online",
@@ -5462,6 +5511,17 @@
     "url": "https://flat.io/settings/account/profile",
     "difficulty": "easy",
     "notes": "Log-in, go to the link and click the **Delete my account** button"
+  },
+  {
+    "name": "Flathub",
+    "domains": [
+      "flathub.org",
+      "discourse.flathub.org",
+      "docs.flathub.org"
+    ],
+    "url": "https://flathub.org/settings",
+    "difficulty": "easy",
+    "notes": "Log in to your account, go to the linked page, click \"Delete account\" and confirm the deletion."
   },
   {
     "name": "Flaticon",
@@ -7812,6 +7872,26 @@
     "email": "vincent@illasoft.com"
   },
   {
+    "name": "iLoveIMG",
+    "domains": [
+      "iloveimg.com",
+      "developer.iloveimg.com"
+    ],
+    "url": "https://www.iloveimg.com/contact",
+    "difficulty": "hard",
+    "notes": "Fill out the form, selecting the topic \"Privacy\", in which request the deletion of your account."
+  },
+  {
+    "name": "iLovePDF",
+    "domains": [
+      "ilovepdf.com",
+      "developer.ilovepdf.com"
+    ],
+    "url": "https://www.ilovepdf.com/contact",
+    "difficulty": "hard",
+    "notes": "Fill out the form, selecting the topic \"Privacy\", in which request the deletion of your account."
+  },
+  {
     "name": "ImageShack",
     "domains": [
       "imageshack.com"
@@ -8196,6 +8276,15 @@
     "url": "https://account.ioi.dk/",
     "difficulty": "easy",
     "notes": "Go to the deletion URL, 'login' \u2b95 'account settings' \u2b95 'delete account'."
+  },
+  {
+    "name": "iOSGods",
+    "domains": [
+      "iosgods.com"
+    ],
+    "url": "https://iosgods.com/settings/account-security/#requestAccountDeletion",
+    "difficulty": "easy",
+    "notes": "Sends a verification email with a confirmation button before submitting the deletion request."
   },
   {
     "name": "ipinfo.io",
@@ -9275,6 +9364,15 @@
     "url": "https://help.li.me/hc/en/articles/360017597013",
     "difficulty": "hard",
     "notes": "You must contact support via your Lime's contact form to request deletion."
+  },
+  {
+    "name": "Lingualeo",
+    "domains": [
+      "lingualeo.com"
+    ],
+    "url": "https://lingualeo.com/profile/edit",
+    "difficulty": "medium",
+    "notes": "Go to the linked page, scroll to the bottom and click \"Delete account\". You'll have to confirm the deletion by clicking the link from the confirmation email."
   },
   {
     "name": "Lingvano",
@@ -10901,6 +10999,15 @@
     "notes": "You have to contact Customer Support to delete your account, and provide your account username, support pin and reason why you would like to close your account."
   },
   {
+    "name": "NameMC",
+    "domains": [
+      "namemc.com"
+    ],
+    "url": "https://namemc.com/my-account",
+    "difficulty": "easy",
+    "notes": "All of your followers, favorite servers, and social media information will be removed from all of your linked Minecraft profiles if you delete your NameMC account."
+  },
+  {
     "name": "Nandos",
     "domains": [
       "nandos.com",
@@ -11573,6 +11680,15 @@
     "url": "https://www.officedepot.com/ccpa/landing.do",
     "difficulty": "hard",
     "notes": "Note that while their privacy policy states that California residents may have their information deleted permanently, it does not specify whether they delete other accounts also. Go to the URL and fill out the form with the information pertaining to your account. Open the 'Delete My Information' section and check the box next to 'Delete my consumer data'. Submit the form and wait for an email to arrive. Click the link in the email. If after 24 hours your account is not deleted, you might have to reach out to their customer support and present their Privacy Policy to have them act."
+  },
+  {
+    "name": "OGLoot",
+    "domains": [
+      "ogloot.com"
+    ],
+    "url": "https://ogloot.com/",
+    "difficulty": "hard",
+    "notes": "Need to write a ticket for the app. Once the account is deleted, it is impossible to create a new account with the same login information."
   },
   {
     "name": "OkCupid",
@@ -12525,9 +12641,9 @@
     "domains": [
       "planetminecraft.com"
     ],
-    "url": "https://www.planetminecraft.com/tickets/new/",
-    "difficulty": "hard",
-    "notes": "Visit the linked page and submit a ticket asking to have your account deleted."
+    "url": "https://www.planetminecraft.com/account/settings/delete/",
+    "difficulty": "easy",
+    "notes": "Sends a verification email with a confirmation button before submitting the deletion request."
   },
   {
     "name": "PlantSnap",
@@ -12791,6 +12907,15 @@
     "notes": "Fill in account information and click 'Report Issue'. Reply to the email sent to you to confirm deletion."
   },
   {
+    "name": "Pottermore",
+    "domains": [
+      "pottermore.com"
+    ],
+    "url": "https://privacyportal.onetrust.com/webform/1b21e05d-c206-4e0b-970e-2d73a23e42e8/780a7716-f409-47f4-afdf-fbe274737e6f",
+    "difficulty": "hard",
+    "notes": "Fill out form and submit. Non-USA form entries will receive an email to confirm the deletion request. If you are from the USA, use [this form](https://privacy.wizardingworld.com/delete-data-request/) instead."
+  },
+  {
     "name": "The Powder Toy",
     "domains": [
       "powdertoy.co.uk"
@@ -12965,6 +13090,16 @@
     "notes": "Prusa does not offer a way to delete your account."
   },
   {
+    "name": "PTC (MathCad, Vuforia Chalk Community)",
+    "domains": [
+      "ptc.com",
+      "mathcad.com"
+    ],
+    "url": "https://www.ptc.com/en/support/article/CS115856",
+    "difficulty": "hard",
+    "notes": "Log into your account to check the current state of the help page for any updates. If you cannot log in to your account anymore, use this [link](https://support.ptc.com/support/feedback/web-account.htm) and fill out the form to request the deletion of a personal accounts data. A support agent should reach out to reconfirm your choice via email. This process may differ for education or business accounts."
+  },
+  {
     "name": "Public Lab",
     "domains": [
       "publiclab.org"
@@ -13005,7 +13140,7 @@
     "domains": [
       "put.io"
     ],
-    "url": "https://put.io/payment/billing",
+    "url": "https://app.put.io/account",
     "difficulty": "easy",
     "notes": "Click Destroy my account completely, then click Delete everything."
   },
@@ -13109,6 +13244,15 @@
     "difficulty": "hard",
     "notes": "Email support@quip.com and ask them to delete your account.",
     "email": "support@quip.com"
+  },
+  {
+    "name": "Quire",
+    "domains": [
+      "quire.io"
+    ],
+    "url": "https://quire.io/r/setting?tab=options#additional",
+    "difficulty": "medium",
+    "notes": "Settings \u2b95 Options \u2b95 Advanced \u2b95 Delete account... Type in a reason and your password."
   },
   {
     "name": "Quizlet",
@@ -13583,6 +13727,33 @@
     "email": "privacy@intango.com"
   },
   {
+    "name": "Reverso",
+    "domains": [
+      "reverso.net",
+      "coniugazione.reverso.net",
+      "conjugacao.reverso.net",
+      "conjugador.reverso.net",
+      "conjugator.reverso.net",
+      "conjugueur.reverso.net",
+      "context.reverso.net",
+      "corporate-translation.reverso.com",
+      "synonyms.reverso.net",
+      "glagol.reverso.net",
+      "documents.reverso.net",
+      "diccionario.reverso.net",
+      "dicionario.reverso.net",
+      "dictionary.reverso.net",
+      "dictionnaire.reverso.net",
+      "dizionario.reverso.net",
+      "grammar.reverso.net",
+      "konjugator.reverso.net",
+      "woerterbuch.reverso.net"
+    ],
+    "url": "https://www.reverso.net/contact",
+    "difficulty": "hard",
+    "notes": "On your own, you can only disable your account in your profile settings. If you want to request its removal, you must contact support using the linked form, but they may ask you to confirm your identity."
+  },
+  {
     "name": "Revolt",
     "domains": [
       "revolt.chat"
@@ -13989,6 +14160,14 @@
     "notes": "Follow the instructions from this link."
   },
   {
+    "name": "Sdc.com",
+    "domains": [
+      "sdc.com"
+    ],
+    "url": "http://www.sdc.com/react/#/settings2",
+    "difficulty": "easy"
+  },
+  {
     "name": "Seagate",
     "domains": [
       "seagate.com",
@@ -14190,6 +14369,15 @@
     "url": "https://shein.com/robot",
     "difficulty": "hard",
     "notes": "Click on the link, then click on \"Contact Agent\", select \"Unsubscribe and delete\". Finally fill in the various fields and then press \"Submit\". \u26a0\ufe0f It is imperative to give a reason for deleting an account for it to work."
+  },
+  {
+    "name": "Shikimori",
+    "domains": [
+      "shikimori.one"
+    ],
+    "url": "https://shikimori.one/clubs/1093-faq-chasto-zadavaemye-voprosy",
+    "difficulty": "impossible",
+    "notes": "The site does not provide for the possibility of account deletion. However, you can remove all contact information from your profile and replace your email with a non-existent one. After performing these actions, there will be virtually nothing left of your account."
   },
   {
     "name": "Shinden",
@@ -15613,6 +15801,16 @@
     "notes": "Scroll to the bottom, click \"Delete Account\", and click through the prompts.  You'll need to re-enter your password."
   },
   {
+    "name": "TapTap",
+    "domains": [
+      "taptap.io",
+      "accounts.taptap.io"
+    ],
+    "url": "https://accounts.taptap.io/delete-account",
+    "difficulty": "easy",
+    "notes": "Visit the linked page and delete your account. The account will be locked for a week, after which it will be deleted."
+  },
+  {
     "name": "Target",
     "domains": [
       "target.com"
@@ -15875,6 +16073,14 @@
     "url": "https://teuxdeux.com/account/request-delete",
     "difficulty": "easy",
     "notes": "Check your email. There will be the url for permanently deleting your account."
+  },
+  {
+    "name": "Text.ru",
+    "domains": [
+      "text.ru"
+    ],
+    "url": "https://text.ru/user/profile/settings/secure",
+    "difficulty": "easy"
   },
   {
     "name": "TextNow",
@@ -17263,13 +17469,20 @@
   {
     "name": "Vuforia Chalk",
     "domains": [
-      "ptc.com",
-      "support.ptc.com",
-      "vuforia.com"
+      "vuforiachalk.com"
     ],
-    "url": "https://support.ptc.com/help/vuforia/chalk_app_center/#page/Vuforia_Chalk_Admin_Center%2Fcommon%2Fget_help.html%23",
+    "url": "https://support.ptc.com/help/vuforia/chalk_app_center/index.html#page/Vuforia_Chalk_Admin_Center/common/delete_account.html",
+    "difficulty": "easy",
+    "notes": "To request that your Chalk account be deleted, open the Chalk app and navigate to Settings > My Account, and tap Delete Account. When a pop-up appears at the bottom of your screen, tap Request account deletion. This action will trigger a process in which a PTC Administrator will delete the specific personal or business user.  If the user account being deleted belongs to a Primary Administrator, a new Primary Administrator must be designated before the user account can be deleted. Business Account users may need to contact their company administrator. You can contact your administrator by navigating to Settings > Help > Contact Company Admin in the Chalk app.<br>Alternatively you might still be able to reach the Vuforia team at PTC by [email](mailto:vuforia-support@ptc.com) (vuforia-support@ptc.com) or get transferred by calling your regions phone number found [here]( https://support.ptc.com/company/mathsoft/)."
+  },
+  {
+    "name": "Vuforia Developer Account",
+    "domains": [
+      "developer.vuforia.com"
+    ],
+    "url": "https://developer.vuforia.com/support/contact/login",
     "difficulty": "hard",
-    "notes": "Business Account users must contact their company administrator. Peronal Account users must contact PTC by phone to request account deletion. (The email address provided at the URL does not accept mail.) Call 1-877-275-4782, press 2 for Support Services, 9 for an operator, and ask them to delete your account. They should pass your information to the Vuforia team to delete your account. After about two weeks, your login credentials should no longer work in the Chalk app."
+    "notes": "Use [this form](https://developer.vuforia.com/support/contact/login) to request deletion of your Vuforia developer account and its associated data. A support agent will reach out to you to reconfirm account ownership and intent to delete.<br>WARNING: The form may not display properly if not logged in, using a privacy focused browser, using a cookie blocker or using Firefox or Safari. Using Chrome or Edge without extensions is recommended for this step."
   },
   {
     "name": "Vultr",
@@ -17326,6 +17539,14 @@
       "app.wallabag.it"
     ],
     "url": "https://app.wallabag.it/subscription/",
+    "difficulty": "easy"
+  },
+  {
+    "name": "wallpiece",
+    "domains": [
+      "wallpiece.io"
+    ],
+    "url": "https://wallpiece.io/account/register/",
     "difficulty": "easy"
   },
   {
@@ -18124,6 +18345,15 @@
     "notes": "Make sure you're logged in and fill the form to delete the account."
   },
   {
+    "name": "Wizarding World",
+    "domains": [
+      "wizardingworld.com"
+    ],
+    "url": "https://www.wizardingworld.com/profile/settings/delete-account",
+    "difficulty": "easy",
+    "notes": "Does not delete data from a previous Pottermore account. See [Pottermore entry](https://justdeleteme.xyz/#pottermore)."
+  },
+  {
     "name": "Wizards of the Coast",
     "domains": [
       "wizards.com",
@@ -18219,6 +18449,16 @@
     "url": "https://www.worldanvil.com/dashboard/user/account",
     "difficulty": "easy",
     "notes": "Visit the linked page, scroll down to `Account Deletion`, enter your username, then click `Delete Account`"
+  },
+  {
+    "name": "WOT (Web Of Trust)",
+    "domains": [
+      "mywot.com",
+      "support.mywot.com"
+    ],
+    "url": "https://support.mywot.com/hc/en-us/articles/115002805334-How-can-I-delete-my-account",
+    "difficulty": "easy",
+    "notes": "Log into your account \u2b95 go to \"My profile\" page \u2b95 click on pencil icon \u2b95 click on \"Delete account\"."
   },
   {
     "name": "WP",

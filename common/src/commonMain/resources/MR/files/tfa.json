@@ -790,6 +790,14 @@
     "name": "AppVeyor"
   },
   {
+    "domain": "appwrite.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://appwrite.io/docs/advanced/security/2fa",
+    "name": "Appwrite"
+  },
+  {
     "domain": "arduino.cc",
     "tfa": [
       "totp"
@@ -3987,6 +3995,14 @@
     "name": "Databox"
   },
   {
+    "domain": "datadoghq.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.datadoghq.com/account_management/multi-factor_authentication/",
+    "name": "Datadog"
+  },
+  {
     "domain": "datarobot.com",
     "tfa": [
       "totp"
@@ -6357,7 +6373,6 @@
       "totp"
     ],
     "documentation": "https://support.grammarly.com/hc/en-us/articles/360032922091",
-    "notes": "SMS-capable phone is required.",
     "name": "Grammarly"
   },
   {
@@ -8794,7 +8809,7 @@
     "custom-hardware": [
       "Yubico OTP"
     ],
-    "documentation": "https://kb.mailbox.org/x/5AcS",
+    "documentation": "https://kb.mailbox.org/de/privat/sicherheit-privatsphaere/die-zwei-faktor-authentifizierung-einrichten/",
     "name": "mailbox.org"
   },
   {
@@ -10679,6 +10694,14 @@
     ],
     "documentation": "https://www.onvista-bank.de/service/sicherheit/transaktionssicherheit.html#tab-1301-2",
     "name": "onvista bank"
+  },
+  {
+    "domain": "openai.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.openai.com/en/articles/7967234",
+    "name": "OpenAI"
   },
   {
     "domain": "openbank.es",
@@ -13769,6 +13792,21 @@
     "name": "SpaceHey"
   },
   {
+    "domain": "spaceship.com.au",
+    "additional-domains": [
+      "spaceshipinvest.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "WhatsApp"
+    ],
+    "documentation": "https://help.spaceship.com.au/en/articles/8695426",
+    "name": "Spaceship"
+  },
+  {
     "domain": "sparda.de",
     "tfa": [
       "custom-software",
@@ -14582,7 +14620,11 @@
     "domain": "telstra.com.au",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "My Telstra app"
     ],
     "documentation": "https://www.telstra.com.au/mytelstra/my-telstra-security",
     "name": "Telstra"

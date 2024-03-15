@@ -10,12 +10,21 @@
     "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
   },
   {
+    "name": "Albert Heijn",
+    "domain": "ah.nl",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.ah.nl/account/inloggegevens/passkey"
+  },
+  {
     "name": "Air New Zealand",
     "domain": "airnewzealand.co.nz",
     "features": [
       "signin"
     ],
-    "setup": "https://auth.identity.airnewzealand.co.nz/enable-passkeys",
+    "documentation": "https://www.airnewzealand.co.nz/manage-multi-factor-authentication#passkey",
+    "setup": "https://www.airnewzealand.com/membership/profile/personalInfo/mfa",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
@@ -24,7 +33,8 @@
     "features": [
       "signin"
     ],
-    "setup": "https://auth.identity.airnewzealand.com/enable-passkeys",
+    "documentation": "https://www.airnewzealand.com/manage-multi-factor-authentication#passkeys",
+    "setup": "https://www.airnewzealand.com/membership/profile/personalInfo/mfa",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
@@ -1048,6 +1058,23 @@
     "documentation": "https://help.shopify.com/manual/your-account/logging-in/passkeys#create-a-passkey",
     "setup": "https://www.shopify.com",
     "notes": "Sign in to Shopify with your email address and password, then follow the steps in the documentation link above to create a passkey. \n\nSign out, then sign back in with your email address and choose \"Log in with passkey\" to use your passkey."
+  },
+  {
+    "name": "Simply.com",
+    "domain": "simply.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.simply.com/en/controlpanel/user/"
+  },
+  {
+    "name": "Sirius XM Satellite Radio",
+    "domain": "siriusxm.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.siriusxm.com/player/welcome",
+    "notes": "Passkeys are offered after successful sign-in."
   },
   {
     "name": "Skiff",

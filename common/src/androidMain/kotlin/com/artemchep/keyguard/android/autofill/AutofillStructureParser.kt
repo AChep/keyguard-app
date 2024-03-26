@@ -30,6 +30,7 @@ class AutofillStructureParser {
         val hint: AutofillHint,
         val value: String? = null,
         val reason: String? = null,
+        val parentWebViewNodeId: Int?,
     ) {
         enum class Accuracy(
             val value: Float,
@@ -379,7 +380,9 @@ class AutofillStructureParser {
 
             applicationId = appIdCandidate
             // Parse view node
-            val nodeAutofillStructure = parseViewNode(windowNode.rootViewNode)
+            val nodeAutofillStructure = parseViewNode(
+                node = windowNode.rootViewNode,
+            )
             val nodeAutofillStructureHasItems = nodeAutofillStructure.items
                 .any { it.hint != AutofillHint.OFF }
             if (nodeAutofillStructureHasItems) {
@@ -394,8 +397,20 @@ class AutofillStructureParser {
             val value: String?,
         )
 
+        // If there's a WebView then we autofill only the
+        // items that come from a WebView.
+        val allowOnlyWebViewItems = autofillStructure?.webView == true
+
         val items = mutableListOf<AutofillStructure2.Item>()
         autofillStructure?.items.orEmpty()
+            .let { list ->
+                if (allowOnlyWebViewItems) {
+                    return@let list
+                        .filter { it.parentWebViewNodeId != null }
+                }
+
+                list
+            }
             .let { list ->
                 // We are solving the problem that the app actually detect message fields in
                 // Slack/Signal/other apps as username fields. If the accuracy is low and we
@@ -519,8 +534,13 @@ class AutofillStructureParser {
 
     private fun parseViewNode(
         node: AssistStructure.ViewNode,
+        parentWebViewNodeId: Int? = null,
     ): AutofillStructure {
         var webView = node.className == "android.webkit.WebView"
+        val webViewNodeId = node.id
+            .takeIf { webView }
+            ?: parentWebViewNodeId
+
         var webDomain: String? = node.webDomain?.takeIf { it.isNotEmpty() }
         var webScheme: String? =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -556,12 +576,16 @@ class AutofillStructureParser {
                         value = it.value
                             ?: node.autofillValue?.takeIf { it.isText }?.textValue?.toString(),
                         reason = it.reason,
+                        parentWebViewNodeId = webViewNodeId,
                     )
                 }
             }
             // Recursive method to process each node
             for (i in 0 until node.childCount) {
-                val childStructure = parseViewNode(node.getChildAt(i))
+                val childStructure = parseViewNode(
+                    node = node.getChildAt(i),
+                    parentWebViewNodeId = webViewNodeId,
+                )
                 if (childStructure.webView) {
                     webView = childStructure.webView
                 }

@@ -790,6 +790,14 @@
     "name": "AppVeyor"
   },
   {
+    "domain": "appwrite.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://appwrite.io/docs/advanced/security/2fa",
+    "name": "Appwrite"
+  },
+  {
     "domain": "arduino.cc",
     "tfa": [
       "totp"
@@ -1874,9 +1882,10 @@
     "domain": "bluehost.com",
     "tfa": [
       "email",
+      "sms",
       "totp"
     ],
-    "documentation": "https://my.bluehost.com/cgi/help/two-factor-authentication",
+    "documentation": "https://www.bluehost.com/help/article/two-factor-authentication",
     "name": "Bluehost"
   },
   {
@@ -2707,7 +2716,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Chat"
   },
   {
@@ -3985,6 +3994,14 @@
     ],
     "documentation": "https://help.databox.com/overview-two-factor-authentication-2fa",
     "name": "Databox"
+  },
+  {
+    "domain": "datadoghq.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.datadoghq.com/account_management/multi-factor_authentication/",
+    "name": "Datadog"
   },
   {
     "domain": "datarobot.com",
@@ -6357,7 +6374,6 @@
       "totp"
     ],
     "documentation": "https://support.grammarly.com/hc/en-us/articles/360032922091",
-    "notes": "SMS-capable phone is required.",
     "name": "Grammarly"
   },
   {
@@ -8794,7 +8810,7 @@
     "custom-hardware": [
       "Yubico OTP"
     ],
-    "documentation": "https://kb.mailbox.org/x/5AcS",
+    "documentation": "https://kb.mailbox.org/de/privat/sicherheit-privatsphaere/die-zwei-faktor-authentifizierung-einrichten/",
     "name": "mailbox.org"
   },
   {
@@ -9600,6 +9616,13 @@
     ],
     "documentation": "https://support.e2ma.net/s/article/Two-factor-authentication",
     "name": "Emma Email Marketing"
+  },
+  {
+    "domain": "myfico.com",
+    "tfa": [
+      "sms"
+    ],
+    "name": "myFICO"
   },
   {
     "domain": "myfritz.net",
@@ -10679,6 +10702,14 @@
     ],
     "documentation": "https://www.onvista-bank.de/service/sicherheit/transaktionssicherheit.html#tab-1301-2",
     "name": "onvista bank"
+  },
+  {
+    "domain": "openai.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.openai.com/en/articles/7967234",
+    "name": "OpenAI"
   },
   {
     "domain": "openbank.es",
@@ -12428,6 +12459,13 @@
     "name": "Republic"
   },
   {
+    "domain": "resend.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Resend"
+  },
+  {
     "domain": "rest.com.au",
     "tfa": [
       "sms"
@@ -13769,6 +13807,21 @@
     "name": "SpaceHey"
   },
   {
+    "domain": "spaceship.com.au",
+    "additional-domains": [
+      "spaceshipinvest.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "WhatsApp"
+    ],
+    "documentation": "https://help.spaceship.com.au/en/articles/8695426",
+    "name": "Spaceship"
+  },
+  {
     "domain": "sparda.de",
     "tfa": [
       "custom-software",
@@ -14582,7 +14635,11 @@
     "domain": "telstra.com.au",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "My Telstra app"
     ],
     "documentation": "https://www.telstra.com.au/mytelstra/my-telstra-security",
     "name": "Telstra"
@@ -14812,6 +14869,9 @@
   },
   {
     "domain": "timetastic.co.uk",
+    "additional-domains": [
+      "timetastic.us"
+    ],
     "tfa": [
       "totp"
     ],
@@ -15805,6 +15865,16 @@
     ],
     "documentation": "https://usefathom.com/support/two-factor-authentication",
     "name": "Fathom Analytics"
+  },
+  {
+    "domain": "usmobile.com",
+    "tfa": [
+      "sms",
+      "email",
+      "totp"
+    ],
+    "documentation": "https://usmobile.frontkb.com/en/articles/237760",
+    "name": "US Mobile"
   },
   {
     "domain": "usps.com",

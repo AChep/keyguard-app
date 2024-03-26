@@ -262,6 +262,7 @@ fun organizationConfirmationState(
     val collectionsFlow = getCollections()
         .map { collections ->
             collections
+                .sortedWith(StringComparatorIgnoreCase { it.name })
                 .map { collection ->
                     val enabled = collection.id !in args.blacklistedCollectionIds &&
                             !collection.readOnly

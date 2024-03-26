@@ -17,7 +17,7 @@ androidBillingClient = "6.2.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.0.4"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "8.3.0"
+androidPlugin = "8.3.1"
 androidxActivity = "1.8.2"
 androidxAppCompat = "1.7.0-alpha03"
 androidxAutofill = "1.3.0-alpha01"
@@ -56,7 +56,7 @@ composeMultiplatform = "1.6.1"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.0"
 crashlyticsPlugin = "2.9.9"
-firebase = "32.7.4"
+firebase = "32.8.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
@@ -65,7 +65,7 @@ googleServicesPlugin = "4.4.1"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
-kamel = "0.9.3"
+kamel = "0.9.4"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
@@ -112,7 +112,7 @@ playServicesBase = "18.3.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha01"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "8.0.2"
+signalr = "8.0.3"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.12"
 # https://github.com/bcgit/bc-java
@@ -126,7 +126,7 @@ sqliteJdbcCrypt = "3.45.1.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
-touchIcon = "0.9.7"
+touchIcon = "0.9.8"
 # https://github.com/littlerobots/version-catalog-update-plugin
 versionCatalogPlugin = "0.8.4"
 # https://github.com/ben-manes/gradle-versions-plugin
@@ -134,7 +134,7 @@ versionsPlugin = "0.51.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
-yubiKit = "2.4.0"
+yubiKit = "2.5.0"
 # https://github.com/srikanth-lingala/zip4j
 zip4j = "2.11.5"
 # https://github.com/nulab/zxcvbn4j

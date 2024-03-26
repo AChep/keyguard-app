@@ -11,9 +11,9 @@ data class OrganizationConfirmationState(
 ) {
     data class Content(
         val accounts: Section,
-        val organizations: Section,
-        val collections: Section,
-        val folders: Section,
+        val organizations: Section?,
+        val collections: Section?,
+        val folders: Section?,
         val folderNew: TextFieldModel2?,
     ) {
         data class Section(

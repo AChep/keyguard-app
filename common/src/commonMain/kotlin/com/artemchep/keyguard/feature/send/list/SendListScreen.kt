@@ -1,13 +1,15 @@
 package com.artemchep.keyguard.feature.send.list
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,11 +17,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalAbsoluteTonalElevation
@@ -50,7 +55,6 @@ import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.expiredFlow
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayout2
-import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
@@ -74,8 +78,15 @@ import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.Compose
+import com.artemchep.keyguard.ui.DefaultFab
+import com.artemchep.keyguard.ui.DefaultSelection
+import com.artemchep.keyguard.ui.DropdownMenuItemFlat
+import com.artemchep.keyguard.ui.DropdownMinWidth
+import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
+import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
@@ -83,6 +94,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
@@ -224,6 +236,12 @@ private fun SendScreenContent(
     pullRefreshState: PullRefreshState,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val dp = remember {
+        mutableStateOf(false)
+    }
+    if (state.primaryActions.isEmpty()) {
+        dp.value = false
+    }
     ScaffoldLazyColumn(
         modifier = modifier
             .pullRefresh(pullRefreshState)
@@ -263,7 +281,77 @@ private fun SendScreenContent(
                 )
             }
         },
+        floatingActionState = run {
+            val fabVisible = state.primaryActions.isNotEmpty()
+            val fabState = if (fabVisible) {
+                // If there's only one primary action, then there's no
+                // need to show the dropdown.
+                val onClick = run {
+                    val action =
+                        state.primaryActions.firstNotNullOfOrNull { it as? FlatItemAction }
+                    action?.onClick
+                        ?.takeIf {
+                            val count = state.primaryActions
+                                .count { it is FlatItemAction }
+                            count == 1
+                        }
+                } ?:
+                // lambda
+                {
+                    dp.value = true
+                }
+                FabState(
+                    onClick = onClick,
+                    model = null,
+                )
+            } else {
+                null
+            }
+            rememberUpdatedState(newValue = fabState)
+        },
+        floatingActionButton = {
+            DefaultFab(
+                icon = {
+                    IconBox(main = Icons.Outlined.Add)
+
+                    // Inject the dropdown popup to the bottom of the
+                    // content.
+                    val onDismissRequest = remember(dp) {
+                        // lambda
+                        {
+                            dp.value = false
+                        }
+                    }
+                    DropdownMenu(
+                        modifier = Modifier
+                            .widthIn(min = DropdownMinWidth),
+                        expanded = dp.value,
+                        onDismissRequest = onDismissRequest,
+                    ) {
+                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
+                        with(scope) {
+                            state.primaryActions.forEachIndexed { index, action ->
+                                DropdownMenuItemFlat(
+                                    action = action,
+                                )
+                            }
+                        }
+                    }
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.strings.send_main_new_item_button),
+                    )
+                },
+            )
+        },
         pullRefreshState = pullRefreshState,
+        bottomBar = {
+            val selectionOrNull = (state.content as? SendListState.Content.Items)?.selection
+            DefaultSelection(
+                state = selectionOrNull,
+            )
+        },
         overlay = {
             PullToSearch(
                 modifier = Modifier
@@ -602,7 +690,33 @@ fun VaultSendItemText(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            ChevronIcon()
+            val showCheckbox = when {
+                localState.selectableItemState.selecting -> true
+                else -> false
+            }
+            Crossfade(
+                modifier = Modifier
+                    .size(
+                        width = 36.dp,
+                        height = 36.dp,
+                    ),
+                targetState = showCheckbox,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (showCheckbox) {
+                        Checkbox(
+                            checked = localState.selectableItemState.selected,
+                            onCheckedChange = null,
+                        )
+                    } else {
+                        ChevronIcon()
+                    }
+                }
+            }
         },
         onClick = onClick,
         onLongClick = onLongClick,

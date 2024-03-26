@@ -27,6 +27,11 @@ sealed interface BitwardenCrKey {
     data class SendToken(
         val id: String,
     ) : BitwardenCrKey
+
+    data class CryptoKey(
+        val symmetricCryptoKey: SymmetricCryptoKey2? = null,
+        val asymmetricCryptoKey: AsymmetricCryptoKey? = null,
+    ) : BitwardenCrKey
 }
 
 interface BitwardenCr {
@@ -54,7 +59,7 @@ class BitwardenCrCta(
     data class BitwardenCrCtaEnv(
         val key: BitwardenCrKey,
         /** An encryption type */
-        val encryptionType: CipherEncryptor.Type,
+        val encryptionType: CipherEncryptor.Type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
     )
 
     fun withEnv(env: BitwardenCrCtaEnv) = BitwardenCrCta(
@@ -164,9 +169,27 @@ class BitwardenCrImpl(
     // Decoder
     //
 
-    override fun decoder(key: BitwardenCrKey): Decoder = decoders.getValue(key)
+    override fun decoder(key: BitwardenCrKey): Decoder = when (key) {
+        is BitwardenCrKey.CryptoKey -> {
+            cipherEncryptor::decode2
+                .partially2(key.symmetricCryptoKey)
+                .partially2(key.asymmetricCryptoKey)
+                .withExceptionHandling(
+                    key,
+                    symmetricCryptoKey = key.symmetricCryptoKey,
+                )
+        }
+        else -> decoders.getValue(key)
+    }
 
-    override fun encoder(key: BitwardenCrKey): Encoder = encoders.getValue(key)
+    override fun encoder(key: BitwardenCrKey): Encoder = when (key) {
+        is BitwardenCrKey.CryptoKey -> {
+            cipherEncryptor::encode2
+                .partially3(key.symmetricCryptoKey)
+                .partially3(key.asymmetricCryptoKey)
+        }
+        else -> encoders.getValue(key)
+    }
 
     override fun cta(
         env: BitwardenCrCta.BitwardenCrCtaEnv,
@@ -299,37 +322,6 @@ fun BitwardenCrFactoryScope.appendOrganizationToken(
     appendEncoder(key, encoder)
 }
 
-fun BitwardenCrFactoryScope.appendSendToken(
-    id: String,
-    keyCipherText: String,
-) {
-    val symmetricCryptoKey = decoder(BitwardenCrKey.UserToken)(keyCipherText)
-        .data
-        .let { keyMaterial ->
-            val key = cryptoGenerator.hkdf(
-                seed = keyMaterial,
-                salt = "bitwarden-send".toByteArray(),
-                info = "send".toByteArray(),
-                length = 64,
-            )
-            key
-        }
-        .let(CryptoKey::decodeSymmetricOrThrow)
-    val key = BitwardenCrKey.SendToken(id)
-    val decoder = cipherEncryptor::decode2
-        .partially2(symmetricCryptoKey)
-        .partially2(null)
-        .withExceptionHandling(
-            key,
-            symmetricCryptoKey = symmetricCryptoKey,
-        )
-    val encoder = cipherEncryptor::encode2
-        .partially3(symmetricCryptoKey)
-        .partially3(null)
-    appendDecoder(key, decoder)
-    appendEncoder(key, encoder)
-}
-
 fun BitwardenCrFactoryScope.appendOrganizationToken2(
     id: String,
     keyData: ByteArray,
@@ -348,4 +340,21 @@ fun BitwardenCrFactoryScope.appendOrganizationToken2(
         .partially3(null)
     appendDecoder(key, decoder)
     appendEncoder(key, encoder)
+}
+
+//
+// Sends
+//
+
+fun CryptoGenerator.makeSendCryptoKeyMaterial() = seed(length = 16)
+
+fun CryptoGenerator.makeSendCryptoKey(
+    keyMaterial: ByteArray = makeSendCryptoKeyMaterial(),
+): ByteArray {
+    return hkdf(
+        seed = keyMaterial,
+        salt = "bitwarden-send".toByteArray(),
+        info = "send".toByteArray(),
+        length = 64,
+    )
 }

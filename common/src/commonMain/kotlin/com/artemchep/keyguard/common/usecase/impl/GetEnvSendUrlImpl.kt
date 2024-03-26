@@ -26,12 +26,15 @@ class GetEnvSendUrlImpl(
     ): IO<String> = tokenRepository
         .getById(AccountId(send.accountId))
         .effectMap { token ->
-            val sendBaseUrl = token?.env?.back()?.buildSendUrl()
-            requireNotNull(sendBaseUrl) { "Failed to get base send url." }
+            val baseUrl = token?.env?.back()?.buildSendUrl()
+            requireNotNull(baseUrl) { "Failed to get base send url." }
+
+            val accessId = send.accessId.takeIf { it.isNotEmpty() }
+            requireNotNull(accessId) { "Failed to get access id." }
 
             val sendUrl = buildString {
-                append(sendBaseUrl)
-                append(send.accessId)
+                append(baseUrl)
+                append(accessId)
                 append('/')
 
                 val key = send.keyBase64

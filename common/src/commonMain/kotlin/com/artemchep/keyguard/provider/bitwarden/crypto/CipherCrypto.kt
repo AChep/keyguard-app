@@ -82,7 +82,7 @@ fun List<BitwardenCipher.Login.Uri>.transform(
 fun BitwardenCipher.Login.Uri.transform(
     crypto: BitwardenCrCta,
 ) = copy(
-    uri = crypto.transformString(uri),
+    uri = crypto.transformString(uri.orEmpty()),
 )
 
 @JvmName("encryptListOfBitwardenCipherLoginFido2Credentials")

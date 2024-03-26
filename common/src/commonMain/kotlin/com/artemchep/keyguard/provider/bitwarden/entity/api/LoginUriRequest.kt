@@ -20,7 +20,7 @@ fun LoginUriRequest.Companion.of(
     model: BitwardenCipher.Login.Uri,
 ) = kotlin.run {
     LoginUriRequest(
-        uri = model.uri.orEmpty(),
+        uri = requireNotNull(model.uri) { "Login URI request must have a non-null URI!" },
         match = model.match?.let(UriMatchTypeEntity::of),
     )
 }

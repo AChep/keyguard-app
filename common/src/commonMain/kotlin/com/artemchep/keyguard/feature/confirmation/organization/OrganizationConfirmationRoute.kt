@@ -28,11 +28,21 @@ class OrganizationConfirmationRoute(
             private const val RAW_RO_ORGANIZATION = 2
             private const val RAW_RO_COLLECTION = 4
             private const val RAW_RO_FOLDER = 8
+            private const val RAW_HIDE_ORGANIZATION = 16
+            private const val RAW_HIDE_COLLECTION = 32
+            private const val RAW_HIDE_FOLDER = 64
+            private const val RAW_PREMIUM_ACCOUNT = 128
 
             const val RO_ACCOUNT = RAW_RO_ACCOUNT
             const val RO_ORGANIZATION = RAW_RO_ORGANIZATION
             const val RO_COLLECTION = RAW_RO_COLLECTION
             const val RO_FOLDER = RAW_RO_FOLDER
+
+            const val HIDE_ORGANIZATION = RAW_RO_ORGANIZATION or RAW_HIDE_ORGANIZATION
+            const val HIDE_COLLECTION = RAW_RO_COLLECTION or RAW_HIDE_COLLECTION
+            const val HIDE_FOLDER = RAW_RO_FOLDER or RAW_HIDE_FOLDER
+
+            const val PREMIUM_ACCOUNT = RAW_PREMIUM_ACCOUNT
         }
 
         data class Decor(

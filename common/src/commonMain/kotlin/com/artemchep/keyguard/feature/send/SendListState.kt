@@ -7,8 +7,11 @@ import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.send.search.SendSortItem
 import com.artemchep.keyguard.feature.send.search.filter.SendFilterItem
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -23,7 +26,7 @@ data class SendListState(
     val clearFilters: (() -> Unit)? = null,
     val clearSort: (() -> Unit)? = null,
     val showKeyboard: Boolean = false,
-    val primaryActions: List<FlatItemAction> = emptyList(),
+    val primaryActions: ImmutableList<ContextItem> = persistentListOf(),
     val actions: List<FlatItemAction> = emptyList(),
     val content: Content = Content.Skeleton,
     val sideEffects: SideEffects = SideEffects(),

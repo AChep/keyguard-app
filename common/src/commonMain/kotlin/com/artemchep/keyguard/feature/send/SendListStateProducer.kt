@@ -34,6 +34,7 @@ import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
+import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -59,6 +60,7 @@ import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
+import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.feature.send.search.AccessCountSendSort
 import com.artemchep.keyguard.feature.send.search.AlphabeticalSendSort
 import com.artemchep.keyguard.feature.send.search.LastDeletedSendSort
@@ -70,23 +72,28 @@ import com.artemchep.keyguard.feature.send.search.SendSortItem
 import com.artemchep.keyguard.feature.send.search.ah
 import com.artemchep.keyguard.feature.send.search.createFilter
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
+import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
+import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
+import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import dev.icerock.moko.resources.StringResource
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -177,7 +184,7 @@ fun sendListScreenState(
     getProfiles: GetProfiles,
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
-    toolbox: CipherToolbox,
+    toolbox: SendToolbox,
     queueSyncAll: QueueSyncAll,
     syncSupervisor: SupervisorRead,
     dateFormatter: DateFormatter,
@@ -226,6 +233,11 @@ fun sendListScreenState(
             }
         }
         .launchIn(this)
+
+    val canEditFlow = SendUtil.canEditFlow(
+        profilesFlow = getProfiles(),
+        canWriteFlow = getCanWrite(),
+    )
 
     val showKeyboardSink = if (args.canAlwaysShowKeyboard) {
         mutablePersistedFlow(
@@ -677,7 +689,50 @@ fun sendListScreenState(
     )
         .stateIn(this, SharingStarted.WhileSubscribed(), OurFilterResult())
 
-    val selectionFlow = flowOf<Selection?>(null)
+    fun createTypeAction(
+        type: DSend.Type,
+    ) = FlatItemAction(
+        leading = icon(type.iconImageVector()),
+        title = translate(type.titleH()),
+        onClick = {
+            val route = SendAddRoute(
+                args = SendAddRoute.Args(
+                    type = type,
+                ),
+            )
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+
+    val primaryActionsAll = buildContextItems {
+        this += createTypeAction(
+            type = DSend.Type.Text,
+        )
+        this += createTypeAction(
+            type = DSend.Type.File,
+        )
+    }
+    val primaryActionsFlow = kotlin.run {
+        combine(
+            canEditFlow,
+            selectionHandle.idsFlow,
+        ) { canEdit, selectedItemIds ->
+            if (canEdit && selectedItemIds.isEmpty() && !isRelease) {
+                primaryActionsAll
+            } else {
+                // No items
+                persistentListOf()
+            }
+        }
+    }
+
+    val selectionFlow = SendUtil.selectionFlow(
+        selectionHandle = selectionHandle,
+        sendsFlow = ciphersRawFlow,
+        canEditFlow = canEditFlow,
+        toolbox = toolbox,
+    )
 
     val itemsFlow = ciphersFilteredFlow
         .combine(selectionFlow) { ciphers, selection ->
@@ -792,49 +847,6 @@ fun sendListScreenState(
             )
         }
 
-        fun createTypeAction(
-            type: DSecret.Type,
-        ) = FlatItemAction(
-            leading = icon(type.iconImageVector()),
-            title = translate(type.titleH()),
-            onClick = {
-                val autofill = when (mode) {
-                    is AppMode.Main -> null
-                    is AppMode.PickPasskey -> null
-                    is AppMode.SavePasskey -> null
-                    is AppMode.Save -> {
-                        AddRoute.Args.Autofill.leof(mode.args)
-                    }
-
-                    is AppMode.Pick -> {
-                        AddRoute.Args.Autofill.leof(mode.args)
-                    }
-                }
-                val route = LeAddRoute(
-                    args = AddRoute.Args(
-                        type = type,
-                        autofill = autofill,
-                    ),
-                )
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
-            },
-        )
-
-        val primaryActions = listOf(
-            createTypeAction(
-                type = DSecret.Type.Login,
-            ),
-            createTypeAction(
-                type = DSecret.Type.Card,
-            ),
-            createTypeAction(
-                type = DSecret.Type.Identity,
-            ),
-            createTypeAction(
-                type = DSecret.Type.SecureNote,
-            ),
-        )
         SendListState(
             revision = revision,
             query = queryField,
@@ -842,7 +854,6 @@ fun sendListScreenState(
             sort = comparators
                 .takeIf { queryTrimmed.isEmpty() }
                 .orEmpty(),
-            primaryActions = primaryActions,
             saveFilters = null,
             clearFilters = filters.onClear,
             clearSort = if (sortDefault != sort) {
@@ -855,16 +866,9 @@ fun sendListScreenState(
             content = content,
             sideEffects = SendListState.SideEffects(cipherSink),
         )
-    }.combine(
-        combine(
-            getCanWrite(),
-            selectionHandle.idsFlow,
-        ) { canWrite, itemIds ->
-            canWrite && itemIds.isEmpty()
-        },
-    ) { state, canWrite ->
+    }.combine(primaryActionsFlow) { state, actions ->
         state.copy(
-            primaryActions = state.primaryActions.takeIf { canWrite }.orEmpty(),
+            primaryActions = actions,
         )
     }.combine(actionsFlow) { state, actions ->
         state.copy(

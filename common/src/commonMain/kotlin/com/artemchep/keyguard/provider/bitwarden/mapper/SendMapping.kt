@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.mapper
 
 import com.artemchep.keyguard.common.model.DSend
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 
 suspend fun BitwardenSend.toDomain(
@@ -25,9 +26,14 @@ suspend fun BitwardenSend.toDomain(
         notes = notes.orEmpty(),
         accessCount = accessCount,
         maxAccessCount = maxAccessCount,
+        hasPassword = changes?.passwordBase64
+            ?.let { it as? BitwardenOptionalStringNullable.Some }
+            ?.let { it.value != null }
+            ?: (password != null),
+        synced = !service.deleted &&
+                revisionDate == service.remote?.revisionDate,
         disabled = disabled,
         hideEmail = hideEmail ?: false,
-        password = password,
         // types
         type = type,
         text = text?.toDomain(),

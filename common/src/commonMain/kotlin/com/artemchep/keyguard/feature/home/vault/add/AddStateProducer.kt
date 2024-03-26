@@ -95,6 +95,9 @@ import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.validLuhn
+import com.artemchep.keyguard.feature.add.AddStateItem
+import com.artemchep.keyguard.feature.add.AddStateOwnership
+import com.artemchep.keyguard.feature.add.LocalStateItem
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
@@ -130,6 +133,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.autofill
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.Stub
@@ -458,7 +462,7 @@ fun produceAddScreenState(
             val item = AddStateItem.Add(
                 id = "attachment.add",
                 text = translate(Res.strings.list_add),
-                actions = listOf(action),
+                actions = persistentListOf(action),
             )
             flowOf(emptyList())
         },
@@ -522,7 +526,7 @@ fun produceAddScreenState(
             id = "reprompt",
             title = translate(Res.strings.additem_auth_reprompt_title),
             text = translate(Res.strings.additem_auth_reprompt_text),
-            state = LocalStateItem(
+            state = LocalStateItem<SwitchFieldModel, CreateRequest>(
                 flow = kotlin.run {
                     val sink = mutablePersistedFlow("reprompt") {
                         args.initialValue?.reprompt
@@ -650,7 +654,7 @@ fun produceAddScreenState(
         },
     )
 
-    val titleItem = AddStateItem.Title(
+    val titleItem = AddStateItem.Title<CreateRequest>(
         id = "title",
         state = LocalStateItem(
             flow = kotlin.run {
@@ -707,7 +711,7 @@ fun produceAddScreenState(
         .map { items ->
             items
                 .mapNotNull { item ->
-                    val stateHolder = item as? AddStateItem.HasState<Any?>
+                    val stateHolder = item as? AddStateItem.HasState<Any?, CreateRequest>
                         ?: return@mapNotNull null
 
                     val state = stateHolder.state
@@ -858,7 +862,7 @@ fun produceAddScreenState(
     f
 }
 
-class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment, DSecret.Attachment> {
+class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DSecret.Attachment> {
     override val type: String = "attachment"
 
     override fun RememberStateFlowScope.release(key: String) {
@@ -868,7 +872,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment, DSecr
     override fun RememberStateFlowScope.add(
         key: String,
         initial: DSecret.Attachment?,
-    ): AddStateItem.Attachment {
+    ): AddStateItem.Attachment<CreateRequest> {
         val nameKey = "$key.name"
         val nameSink = mutablePersistedFlow(nameKey) {
             initial?.fileName().orEmpty()
@@ -902,7 +906,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment, DSecr
                     synced = initial != null,
                 ),
             )
-        return AddStateItem.Attachment(
+        return AddStateItem.Attachment<CreateRequest>(
             id = key,
             state = LocalStateItem(
                 flow = stateFlow,
@@ -916,7 +920,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment, DSecr
 
 class AddStateItemUriFactory(
     private val cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
-) : Foo2Factory<AddStateItem.Url, DSecret.Uri> {
+) : Foo2Factory<AddStateItem.Url<*>, DSecret.Uri> {
     override val type: String = "uri"
 
     override fun RememberStateFlowScope.release(key: String) {
@@ -927,7 +931,7 @@ class AddStateItemUriFactory(
     override fun RememberStateFlowScope.add(
         key: String,
         initial: DSecret.Uri?,
-    ): AddStateItem.Url {
+    ): AddStateItem.Url<CreateRequest> {
         val uriKey = "$key.uri"
         val uriSink = mutablePersistedFlow(uriKey) {
             initial?.uri.orEmpty()
@@ -1018,7 +1022,10 @@ class AddStateItemUriFactory(
             }
         val actionsFlow = actionsMatchTypeItemFlow
             .map {
-                listOf(it, actionsAppPickerItem)
+                buildContextItems {
+                    this += it
+                    this += actionsAppPickerItem
+                }
             }
 
         val textFlow = uriSink
@@ -1090,7 +1097,7 @@ class AddStateItemUriFactory(
                     matchType = DSecret.Uri.MatchType.default,
                 ),
             )
-        return AddStateItem.Url(
+        return AddStateItem.Url<CreateRequest>(
             id = key,
             state = LocalStateItem(
                 flow = stateFlow,
@@ -1108,7 +1115,7 @@ class AddStateItemUriFactory(
 }
 
 class AddStateItemPasskeyFactory(
-) : Foo2Factory<AddStateItem.Passkey, DSecret.Login.Fido2Credentials> {
+) : Foo2Factory<AddStateItem.Passkey<*>, DSecret.Login.Fido2Credentials> {
     @kotlinx.serialization.Serializable
     private data class PasskeyHolder(
         val data: PasskeyData? = null,
@@ -1158,7 +1165,7 @@ class AddStateItemPasskeyFactory(
     override fun RememberStateFlowScope.add(
         key: String,
         initial: DSecret.Login.Fido2Credentials?,
-    ): AddStateItem.Passkey {
+    ): AddStateItem.Passkey<CreateRequest> {
         val dataKey = "$key.data"
         val dataSink = mutablePersistedFlow(
             dataKey,
@@ -1203,7 +1210,7 @@ class AddStateItemPasskeyFactory(
                     passkey = null,
                 ),
             )
-        return AddStateItem.Passkey(
+        return AddStateItem.Passkey<CreateRequest>(
             id = key,
             state = LocalStateItem(
                 flow = stateFlow,
@@ -1220,11 +1227,11 @@ class AddStateItemPasskeyFactory(
     }
 }
 
-abstract class AddStateItemFieldFactory : Foo2Factory<AddStateItem.Field, DSecret.Field> {
+abstract class AddStateItemFieldFactory : Foo2Factory<AddStateItem.Field<*>, DSecret.Field> {
     fun foo(
         key: String,
         flow: StateFlow<AddStateItem.Field.State>,
-    ) = AddStateItem.Field(
+    ) = AddStateItem.Field<CreateRequest>(
         id = key,
         state = LocalStateItem(
             flow = flow,
@@ -1282,7 +1289,7 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
     override fun RememberStateFlowScope.add(
         key: String,
         initial: DSecret.Field?,
-    ): AddStateItem.Field {
+    ): AddStateItem.Field<CreateRequest> {
         val labelSink = mutablePersistedFlow("$key.label") {
             initial?.name.orEmpty()
         }
@@ -1342,9 +1349,9 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
             }
         val actionsFlow = actionsConcealItemFlow
             .map { concealItem ->
-                listOf(
-                    concealItem,
-                )
+                buildContextItems {
+                    this += concealItem
+                }
             }
 
         val stateFlow = combine(
@@ -1386,7 +1393,7 @@ class AddStateItemFieldBooleanFactory : AddStateItemFieldFactory() {
     override fun RememberStateFlowScope.add(
         key: String,
         initial: DSecret.Field?,
-    ): AddStateItem.Field {
+    ): AddStateItem.Field<CreateRequest> {
         val labelSink = mutablePersistedFlow("$key.label") {
             initial?.name.orEmpty()
         }
@@ -1441,7 +1448,7 @@ class AddStateItemFieldLinkedIdFactory(
     override fun RememberStateFlowScope.add(
         key: String,
         initial: DSecret.Field?,
-    ): AddStateItem.Field {
+    ): AddStateItem.Field<CreateRequest> {
         val labelSink = mutablePersistedFlow("$key.label") {
             initial?.name.orEmpty()
         }
@@ -1488,11 +1495,13 @@ class AddStateItemFieldLinkedIdFactory(
             }
         val actionsFlow = typeFlow
             .map { type ->
-                actionsAll
-                    .mapNotNull { (itemLinkedId, itemAction) ->
-                        itemAction
-                            .takeIf { itemLinkedId.type == type }
-                    }
+                buildContextItems {
+                    actionsAll
+                        .forEach { (itemLinkedId, itemAction) ->
+                            this += itemAction
+                                .takeIf { itemLinkedId.type == type }
+                        }
+                }
             }
         val stateFlow = combine(
             labelFlow,
@@ -1511,7 +1520,7 @@ class AddStateItemFieldLinkedIdFactory(
                 initialValue = AddStateItem.Field.State.LinkedId(
                     label = TextFieldModel2.empty,
                     value = null,
-                    actions = emptyList(),
+                    actions = persistentListOf(),
                 ),
             )
         return foo(
@@ -1646,15 +1655,16 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
             return@map null // hide add item
         }
 
-        val actions = types
-            .map { type ->
-                FlatItemAction(
+        val actions = buildContextItems {
+            types.forEach { type ->
+                this += FlatItemAction(
                     title = type.name,
                     onClick = ::add
                         .partially1(type.type)
                         .partially1(null),
                 )
             }
+        }
         AddStateItem.Add(
             id = "$scope.add",
             text = translator.translate(Res.strings.list_add),
@@ -1795,35 +1805,35 @@ fun <T, Argument> RememberStateFlowScope.foo(
 
                 // Appends list-specific options to be able to reorder
                 // the list or remove an item.
-                val options = item.options.toMutableList()
-                if (index > 0) {
-                    options += FlatItemAction(
-                        icon = Icons.Outlined.ArrowUpward,
-                        title = translate(Res.strings.list_move_up),
-                        onClick = ::moveUp.partially1(entry.key),
+                val options = buildContextItems(item.options) {
+                    if (index > 0) {
+                        this += FlatItemAction(
+                            icon = Icons.Outlined.ArrowUpward,
+                            title = translate(Res.strings.list_move_up),
+                            onClick = ::moveUp.partially1(entry.key),
+                        )
+                    }
+                    if (index < state.size - 1) {
+                        this += FlatItemAction(
+                            icon = Icons.Outlined.ArrowDownward,
+                            title = translate(Res.strings.list_move_down),
+                            onClick = ::moveDown.partially1(entry.key),
+                        )
+                    }
+                    this += FlatItemAction(
+                        icon = Icons.Outlined.DeleteForever,
+                        title = translate(Res.strings.list_remove),
+                        onClick = {
+                            val intent = createConfirmationDialogIntent(
+                                icon = icon(Icons.Outlined.DeleteForever),
+                                title = translate(Res.strings.list_remove_confirmation_title),
+                            ) {
+                                delete(entry.key)
+                            }
+                            navigate(intent)
+                        },
                     )
                 }
-                if (index < state.size - 1) {
-                    options += FlatItemAction(
-                        icon = Icons.Outlined.ArrowDownward,
-                        title = translate(Res.strings.list_move_down),
-                        onClick = ::moveDown.partially1(entry.key),
-                    )
-                }
-                options += FlatItemAction(
-                    icon = Icons.Outlined.DeleteForever,
-                    title = translate(Res.strings.list_remove),
-                    onClick = {
-                        val intent = createConfirmationDialogIntent(
-                            icon = icon(Icons.Outlined.DeleteForever),
-                            title = translate(Res.strings.list_remove_confirmation_title),
-                        ) {
-                            delete(entry.key)
-                        }
-                        navigate(intent)
-                    },
-                )
-
                 item.withOptions(options)
             }
         }
@@ -1853,7 +1863,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
 
     data class Fool<T>(
         val value: T,
-        val element: AddState.SaveToElement?,
+        val element: AddStateOwnership.Element?,
     )
 
     val disk = loadDiskHandle("new_item")
@@ -1882,31 +1892,31 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         // Make an account that has the most ciphers a
         // default account.
         val accountId = ioEffect {
-                val accountIds = getProfiles().toIO().bind()
-                    .map { it.accountId() }
-                    .toSet()
+            val accountIds = getProfiles().toIO().bind()
+                .map { it.accountId() }
+                .toSet()
 
-                fun String.takeIfAccountIdExists() = this
-                    .takeIf { id ->
-                        id in accountIds
-                    }
-
-                val lastAccountId = accountIdSink.value?.takeIfAccountIdExists()
-                if (lastAccountId != null) {
-                    return@ioEffect lastAccountId
+            fun String.takeIfAccountIdExists() = this
+                .takeIf { id ->
+                    id in accountIds
                 }
 
-                val ciphers = getCiphers().toIO().bind()
-                ciphers
-                    .asSequence()
-                    .filter { it.organizationId != null }
-                    .groupBy { it.accountId }
-                    // the one that has the most ciphers
-                    .maxByOrNull { entry -> entry.value.size }
-                    // account id
-                    ?.key
-                    ?.takeIfAccountIdExists()
-            }.attempt().bind().getOrNull()
+            val lastAccountId = accountIdSink.value?.takeIfAccountIdExists()
+            if (lastAccountId != null) {
+                return@ioEffect lastAccountId
+            }
+
+            val ciphers = getCiphers().toIO().bind()
+            ciphers
+                .asSequence()
+                .filter { it.organizationId != null }
+                .groupBy { it.accountId }
+                // the one that has the most ciphers
+                .maxByOrNull { entry -> entry.value.size }
+                // account id
+                ?.key
+                ?.takeIfAccountIdExists()
+        }.attempt().bind().getOrNull()
 
         AddItemOwnershipData(
             accountId = accountId,
@@ -1934,11 +1944,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         getProfiles(),
     ) { accountId, profiles ->
         if (accountId == null) {
-            val item = AddState.SaveToElement.Item(
+            val item = AddStateOwnership.Element.Item(
                 key = "account.empty",
                 title = translate(Res.strings.account_none),
+                stub = true,
             )
-            val el = AddState.SaveToElement(
+            val el = AddStateOwnership.Element(
                 readOnly = ro,
                 items = listOf(item),
             )
@@ -1949,12 +1960,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         }
         val profileOrNull = profiles
             .firstOrNull { it.accountId() == accountId }
-        val el = AddState.SaveToElement(
+        val el = AddStateOwnership.Element(
             readOnly = ro,
             items = listOfNotNull(profileOrNull)
                 .map { account ->
                     val key = "account.${account.accountId()}"
-                    AddState.SaveToElement.Item(
+                    AddStateOwnership.Element.Item(
                         key = key,
                         title = account.email,
                         text = account.accountHost,
@@ -1975,11 +1986,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         getOrganizations(),
     ) { organizationId, organizations ->
         if (organizationId == null) {
-            val item = AddState.SaveToElement.Item(
+            val item = AddStateOwnership.Element.Item(
                 key = "organization.empty",
                 title = translate(Res.strings.organization_none),
+                stub = true,
             )
-            val el = AddState.SaveToElement(
+            val el = AddStateOwnership.Element(
                 readOnly = ro,
                 items = listOf(item),
             )
@@ -1990,12 +2002,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         }
         val organizationOrNull = organizations
             .firstOrNull { it.id == organizationId }
-        val el = AddState.SaveToElement(
+        val el = AddStateOwnership.Element(
             readOnly = ro,
             items = listOfNotNull(organizationOrNull)
                 .map { organization ->
                     val key = "organization.${organization.id}"
-                    AddState.SaveToElement.Item(
+                    AddStateOwnership.Element.Item(
                         key = key,
                         title = organization.name,
                     )
@@ -2023,12 +2035,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         val selectedCollections = collections
             .sortedWith(StringComparatorIgnoreCase { it.name })
             .filter { it.id in collectionIds }
-        val el = AddState.SaveToElement(
+        val el = AddStateOwnership.Element(
             readOnly = ro,
             items = selectedCollections
                 .map { collection ->
                     val key = "collection.${collection.id}"
-                    AddState.SaveToElement.Item(
+                    AddStateOwnership.Element.Item(
                         key = key,
                         title = collection.name,
                     )
@@ -2048,11 +2060,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
     ) { selectedFolder, folders ->
         when (selectedFolder) {
             is FolderInfo.None -> {
-                val item = AddState.SaveToElement.Item(
+                val item = AddStateOwnership.Element.Item(
                     key = "folder.empty",
                     title = translate(Res.strings.folder_none),
+                    stub = true,
                 )
-                val el = AddState.SaveToElement(
+                val el = AddStateOwnership.Element(
                     readOnly = false,
                     items = listOf(item),
                 )
@@ -2063,11 +2076,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             }
 
             is FolderInfo.New -> {
-                val item = AddState.SaveToElement.Item(
+                val item = AddStateOwnership.Element.Item(
                     key = "folder.new",
                     title = selectedFolder.name,
+                    stub = true,
                 )
-                val el = AddState.SaveToElement(
+                val el = AddStateOwnership.Element(
                     readOnly = false,
                     items = listOf(item),
                 )
@@ -2080,12 +2094,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             is FolderInfo.Id -> {
                 val selectedFolderOrNull = folders
                     .firstOrNull { it.id == selectedFolder.id }
-                val el = AddState.SaveToElement(
+                val el = AddStateOwnership.Element(
                     readOnly = false,
                     items = listOfNotNull(selectedFolderOrNull)
                         .map { folder ->
                             val key = "folder.${folder.id}"
-                            AddState.SaveToElement.Item(
+                            AddStateOwnership.Element.Item(
                                 key = key,
                                 title = folder.name,
                             )
@@ -2118,8 +2132,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             organizationId = organization.value,
             collectionIds = collection.value,
         )
-        AddState.Ownership(
-            data = data,
+        val ui = AddStateOwnership(
             account = account.element,
             organization = organization.element.takeIf { account.value != null },
             collection = collection.element.takeIf { account.value != null },
@@ -2129,7 +2142,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     route = OrganizationConfirmationRoute(
                         args = OrganizationConfirmationRoute.Args(
                             decor = OrganizationConfirmationRoute.Args.Decor(
-                                title = "Save to",
+                                title = translate(Res.strings.save_to),
                                 icon = Icons.Outlined.AccountBox,
                             ),
                             flags = flags,
@@ -2154,50 +2167,54 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                 navigate(intent)
             },
         )
+        AddState.Ownership(
+            data = data,
+            ui = ui,
+        )
     }
 }
 
 data class TmpLogin(
-    val username: AddStateItem.Username,
-    val password: AddStateItem.Password,
-    val totp: AddStateItem.Totp,
+    val username: AddStateItem.Username<CreateRequest>,
+    val password: AddStateItem.Password<CreateRequest>,
+    val totp: AddStateItem.Totp<CreateRequest>,
     val items: List<AddStateItem>,
 )
 
 data class TmpCard(
-    val cardholderName: AddStateItem.Text,
-    val brand: AddStateItem.Text,
-    val number: AddStateItem.Text,
-    val fromDate: AddStateItem.DateMonthYear,
-    val expDate: AddStateItem.DateMonthYear,
-    val code: AddStateItem.Text,
+    val cardholderName: AddStateItem.Text<CreateRequest>,
+    val brand: AddStateItem.Text<CreateRequest>,
+    val number: AddStateItem.Text<CreateRequest>,
+    val fromDate: AddStateItem.DateMonthYear<CreateRequest>,
+    val expDate: AddStateItem.DateMonthYear<CreateRequest>,
+    val code: AddStateItem.Text<CreateRequest>,
     val items: List<AddStateItem>,
 )
 
 data class TmpIdentity(
-    val title: AddStateItem.Text,
-    val firstName: AddStateItem.Text,
-    val middleName: AddStateItem.Text,
-    val lastName: AddStateItem.Text,
-    val address1: AddStateItem.Text,
-    val address2: AddStateItem.Text,
-    val address3: AddStateItem.Text,
-    val city: AddStateItem.Text,
-    val state: AddStateItem.Text,
-    val postalCode: AddStateItem.Text,
-    val country: AddStateItem.Text,
-    val company: AddStateItem.Text,
-    val email: AddStateItem.Text,
-    val phone: AddStateItem.Text,
-    val ssn: AddStateItem.Text,
-    val username: AddStateItem.Text,
-    val passportNumber: AddStateItem.Text,
-    val licenseNumber: AddStateItem.Text,
+    val title: AddStateItem.Text<CreateRequest>,
+    val firstName: AddStateItem.Text<CreateRequest>,
+    val middleName: AddStateItem.Text<CreateRequest>,
+    val lastName: AddStateItem.Text<CreateRequest>,
+    val address1: AddStateItem.Text<CreateRequest>,
+    val address2: AddStateItem.Text<CreateRequest>,
+    val address3: AddStateItem.Text<CreateRequest>,
+    val city: AddStateItem.Text<CreateRequest>,
+    val state: AddStateItem.Text<CreateRequest>,
+    val postalCode: AddStateItem.Text<CreateRequest>,
+    val country: AddStateItem.Text<CreateRequest>,
+    val company: AddStateItem.Text<CreateRequest>,
+    val email: AddStateItem.Text<CreateRequest>,
+    val phone: AddStateItem.Text<CreateRequest>,
+    val ssn: AddStateItem.Text<CreateRequest>,
+    val username: AddStateItem.Text<CreateRequest>,
+    val passportNumber: AddStateItem.Text<CreateRequest>,
+    val licenseNumber: AddStateItem.Text<CreateRequest>,
     val items: List<AddStateItem>,
 )
 
 data class TmpNote(
-    val note: AddStateItem.Note,
+    val note: AddStateItem.Note<CreateRequest>,
     val items: List<AddStateItem>,
 )
 
@@ -2214,7 +2231,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         key: String,
         initialValue: String? = null,
         populator: CreateRequest.(AddStateItem.Username.State) -> CreateRequest,
-        factory: (String, LocalStateItem<AddStateItem.Username.State>) -> Item,
+        factory: (String, LocalStateItem<AddStateItem.Username.State, CreateRequest>) -> Item,
     ) = kotlin.run {
         val id = "$prefix.$key"
 
@@ -2225,9 +2242,10 @@ private suspend fun RememberStateFlowScope.produceLoginState(
             LocalStateItem(
                 flow = ownershipFlow
                     .map {
-                        it.account
+                        it.ui.account
                             ?.items
                             ?.asSequence()
+                            ?.filter { !it.stub }
                             ?.map { it.title }
                             ?.toPersistentList()
                             ?: persistentListOf()
@@ -2262,7 +2280,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         key: String,
         initialValue: String? = null,
         populator: CreateRequest.(TextFieldModel2) -> CreateRequest,
-        factory: (String, LocalStateItem<TextFieldModel2>) -> Item,
+        factory: (String, LocalStateItem<TextFieldModel2, CreateRequest>) -> Item,
     ) = kotlin.run {
         val id = "$prefix.$key"
 
@@ -2381,7 +2399,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                 totpToken = totp,
             )
         }
-        LocalStateItem(
+        LocalStateItem<AddStateItem.Totp.State, CreateRequest>(
             flow = flow
                 .persistingStateIn(
                     scope = screenScope,
@@ -2444,7 +2462,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         initialMonth: String? = null,
         initialYear: String? = null,
         populator: CreateRequest.(AddStateItem.DateMonthYear.State) -> CreateRequest,
-        factory: (String, LocalStateItem<AddStateItem.DateMonthYear.State>) -> Item,
+        factory: (String, LocalStateItem<AddStateItem.DateMonthYear.State, CreateRequest>) -> Item,
     ): Item {
         val id = "$prefix.$key"
 
@@ -2557,7 +2575,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
         visualTransformation: VisualTransformation = VisualTransformation.None,
         lens: Optional<CreateRequest, String>,
-    ) = createItem(
+    ) = createItem<CreateRequest>(
         prefix = prefix,
         key = key,
         label = label,
@@ -2587,7 +2605,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
 
         val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
         val state = mutableComposeState(sink)
-        val state2 = LocalStateItem(
+        val state2 = LocalStateItem<AddStateItem.Text.State, CreateRequest>(
             flow = sink
                 .map { value ->
                     val isValid = kotlin.run {
@@ -2899,7 +2917,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         autocompleteOptions: ImmutableList<String> = persistentListOf(),
         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
         lens: Optional<CreateRequest, String>,
-    ) = createItem(
+    ) = createItem<CreateRequest>(
         prefix = prefix,
         key = key,
         label = label,
@@ -3255,7 +3273,7 @@ private suspend fun RememberStateFlowScope.produceNoteState(
 
         val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
         val state = mutableComposeState(sink)
-        val stateItem = LocalStateItem(
+        val stateItem = LocalStateItem<TextFieldModel2, CreateRequest>(
             flow = sink
                 .map { value ->
                     val model = TextFieldModel2(
@@ -3300,7 +3318,7 @@ private suspend fun RememberStateFlowScope.produceNoteState(
     )
 }
 
-private suspend fun RememberStateFlowScope.createItem(
+suspend fun <Request> RememberStateFlowScope.createItem(
     prefix: String,
     key: String,
     label: String? = null,
@@ -3310,7 +3328,7 @@ private suspend fun RememberStateFlowScope.createItem(
     singleLine: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    populator: CreateRequest.(AddStateItem.Text.State) -> CreateRequest,
+    populator: Request.(AddStateItem.Text.State) -> Request,
 ) = createItem(
     prefix = prefix,
     key = key,
@@ -3329,7 +3347,7 @@ private suspend fun RememberStateFlowScope.createItem(
     )
 }
 
-private suspend fun <Item> RememberStateFlowScope.createItem(
+suspend fun <Item, Request> RememberStateFlowScope.createItem(
     prefix: String,
     key: String,
     label: String? = null,
@@ -3339,8 +3357,8 @@ private suspend fun <Item> RememberStateFlowScope.createItem(
     singleLine: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    populator: CreateRequest.(AddStateItem.Text.State) -> CreateRequest,
-    factory: (String, LocalStateItem<AddStateItem.Text.State>) -> Item,
+    populator: Request.(AddStateItem.Text.State) -> Request,
+    factory: (String, LocalStateItem<AddStateItem.Text.State, Request>) -> Item,
 ): Item {
     val id = "$prefix.$key"
 
@@ -3384,7 +3402,7 @@ private suspend fun RememberStateFlowScope.createItem2Txt(
     key: String,
     args: AddRoute.Args,
     getSuggestion: (DSecret) -> String?,
-    field: AddStateItem.Text,
+    field: AddStateItem.Text<CreateRequest>,
     concealed: Boolean = false,
 ) = createItem2(
     prefix = prefix,
@@ -3406,7 +3424,7 @@ private suspend fun RememberStateFlowScope.createItem2(
     selectedFlow: Flow<String>,
     concealed: Boolean = false,
     onClick: (String) -> Unit,
-): AddStateItem.Suggestion? {
+): AddStateItem.Suggestion<CreateRequest>? {
     val finalKey = "$prefix.$key.suggestions"
     val suggestions = args.merge
         ?.ciphers

@@ -1,17 +1,18 @@
 package com.artemchep.keyguard.feature.home.vault.add.attachment
 
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.model.create.attachments
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
+import com.artemchep.keyguard.feature.add.AddStateItem
+import com.artemchep.keyguard.feature.add.LocalStateItem
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
-import com.artemchep.keyguard.feature.home.vault.add.AddStateItem
 import com.artemchep.keyguard.feature.home.vault.add.Foo2Factory
-import com.artemchep.keyguard.feature.home.vault.add.LocalStateItem
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 
-class SkeletonAttachmentItemFactory : Foo2Factory<AddStateItem.Attachment, SkeletonAttachment> {
+class SkeletonAttachmentItemFactory : Foo2Factory<AddStateItem.Attachment<*>, SkeletonAttachment> {
     override val type: String = "attachment"
 
     override fun RememberStateFlowScope.release(key: String) {
@@ -22,7 +23,7 @@ class SkeletonAttachmentItemFactory : Foo2Factory<AddStateItem.Attachment, Skele
     override fun RememberStateFlowScope.add(
         key: String,
         initial: SkeletonAttachment?,
-    ): AddStateItem.Attachment {
+    ): AddStateItem.Attachment<CreateRequest> {
         val identitySink = mutablePersistedFlow("$key.identity") {
             val identity = initial?.identity
             requireNotNull(identity)

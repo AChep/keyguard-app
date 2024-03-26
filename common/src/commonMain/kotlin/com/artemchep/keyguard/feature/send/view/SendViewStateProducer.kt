@@ -57,10 +57,13 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
+import com.artemchep.keyguard.common.usecase.PatchSendById
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
+import com.artemchep.keyguard.common.usecase.RemoveSendById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
+import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
@@ -78,8 +81,10 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
 import com.artemchep.keyguard.feature.send.toVaultItemIcon
+import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -89,6 +94,7 @@ import com.artemchep.keyguard.ui.selection.selectionHandle
 import com.artemchep.keyguard.ui.text.annotate
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import io.ktor.http.Url
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -120,18 +126,8 @@ fun sendViewScreenState(
         getAppIcons = instance(),
         getWebsiteIcons = instance(),
         getPasswordStrength = instance(),
-        cipherUnsecureUrlCheck = instance(),
-        cipherUnsecureUrlAutoFix = instance(),
-        cipherFieldSwitchToggle = instance(),
-        moveCipherToFolderById = instance(),
-        changeCipherNameById = instance(),
-        changeCipherPasswordById = instance(),
         retryCipher = instance(),
-        copyCipherById = instance(),
-        restoreCipherById = instance(),
-        trashCipherById = instance(),
-        removeCipherById = instance(),
-        favouriteCipherById = instance(),
+        toolbox = instance(),
         downloadManager = instance(),
         downloadAttachment = instance(),
         removeAttachment = instance(),
@@ -173,18 +169,8 @@ fun sendViewScreenState(
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
     getPasswordStrength: GetPasswordStrength,
-    cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
-    cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
-    cipherFieldSwitchToggle: CipherFieldSwitchToggle,
-    moveCipherToFolderById: MoveCipherToFolderById,
-    changeCipherNameById: ChangeCipherNameById,
-    changeCipherPasswordById: ChangeCipherPasswordById,
     retryCipher: RetryCipher,
-    copyCipherById: CopyCipherById,
-    restoreCipherById: RestoreCipherById,
-    trashCipherById: TrashCipherById,
-    removeCipherById: RemoveCipherById,
-    favouriteCipherById: FavouriteCipherById,
+    toolbox: SendToolbox,
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
@@ -241,6 +227,7 @@ fun sendViewScreenState(
                 .firstOrNull { it.id == sendId && it.accountId == accountId }
         }
         .distinctUntilChanged()
+    launchAutoPopSelfHandler(secretFlow)
     combine(
         accountFlow,
         secretFlow,
@@ -276,11 +263,17 @@ fun sendViewScreenState(
                 } else {
                     null
                 }
+
+                val actions = SendUtil.actions(
+                    toolbox = toolbox,
+                    sends = listOf(secretOrNull),
+                    canEdit = canAddSecret,
+                )
                 SendViewState.Content.Cipher(
                     data = secretOrNull,
                     icon = icon,
                     synced = true,
-                    actions = emptyList(),
+                    actions = actions,
                     onCopy = if (info != null) {
                         // lambda
                         {
@@ -393,8 +386,7 @@ private fun RememberStateFlowScope.oh(
         emit(section)
         emit(url)
 
-        val password = send.password
-        if (password != null) {
+        if (send.hasPassword) {
             val w = VaultViewItem.Label(
                 id = "url.password",
                 text = AnnotatedString(

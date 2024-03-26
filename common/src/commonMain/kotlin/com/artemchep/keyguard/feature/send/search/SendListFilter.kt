@@ -188,7 +188,7 @@ suspend fun <
         }
         .distinctUntilChanged()
         .map { items ->
-            if (items.size <= 1 && collapse) {
+            if (items.size <= 1 && collapse || items.isEmpty()) {
                 // Do not show a single filter item.
                 return@map emptyList<SendFilterItem>()
             }

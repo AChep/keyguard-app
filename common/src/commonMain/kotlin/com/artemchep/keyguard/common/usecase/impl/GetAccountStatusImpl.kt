@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetMetas
+import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.util.flow.combineToList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -24,6 +25,7 @@ class GetAccountStatusImpl(
     private val getMetas: GetMetas,
     private val getCiphers: GetCiphers,
     private val getFolders: GetFolders,
+    private val getSends: GetSends,
 ) : GetAccountStatus {
     private val importantPermissions = listOf(
         Permission.POST_NOTIFICATIONS,
@@ -35,6 +37,7 @@ class GetAccountStatusImpl(
         getMetas = directDI.instance(),
         getCiphers = directDI.instance(),
         getFolders = directDI.instance(),
+        getSends = directDI.instance(),
     )
 
     override fun invoke(): Flow<DAccountStatus> {
@@ -65,7 +68,11 @@ class GetAccountStatusImpl(
                 .map {
                     it.count { !it.synced }
                 }
-            combine(c, f) { a, b -> a + b }
+            val s = getSends()
+                .map {
+                    it.count { !it.synced }
+                }
+            combine(c, f, s) { a, b, s -> a + b + s }
         }
 
         val pendingPermissionsFlow = importantPermissions

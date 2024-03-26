@@ -12,6 +12,7 @@ import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
@@ -25,6 +26,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.delete
 import com.artemchep.keyguard.provider.bitwarden.api.builder.get
 import com.artemchep.keyguard.provider.bitwarden.api.builder.post
 import com.artemchep.keyguard.provider.bitwarden.api.builder.put
+import com.artemchep.keyguard.provider.bitwarden.api.builder.removePassword
 import com.artemchep.keyguard.provider.bitwarden.api.builder.restore
 import com.artemchep.keyguard.provider.bitwarden.api.builder.sync
 import com.artemchep.keyguard.provider.bitwarden.api.builder.trash
@@ -33,11 +35,13 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
+import com.artemchep.keyguard.provider.bitwarden.crypto.CryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendOrganizationToken
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendProfileToken
-import com.artemchep.keyguard.provider.bitwarden.crypto.appendSendToken
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendUserToken
+import com.artemchep.keyguard.provider.bitwarden.crypto.decodeSymmetricOrThrow
 import com.artemchep.keyguard.provider.bitwarden.crypto.encrypted
+import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
@@ -47,6 +51,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.SyncProfile
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncSends
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.FolderUpdate
+import com.artemchep.keyguard.provider.bitwarden.entity.request.SendUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import io.ktor.client.HttpClient
@@ -122,7 +127,6 @@ class SyncEngine(
         val now = Clock.System.now()
         val crypto = crypto(
             profile = response.profile,
-            sends = response.sends.orEmpty(),
         )
 
         fun getCodec(
@@ -135,7 +139,7 @@ class SyncEngine(
                 val key = BitwardenCrKey.SendToken(sendId)
                 BitwardenCrCta.BitwardenCrCtaEnv(
                     key = key,
-                    encryptionType = CipherEncryptor.Type.AesCbc256_B64,
+                    encryptionType = envEncryptionType,
                 )
             } else if (organizationId != null) {
                 val key = BitwardenCrKey.OrganizationToken(organizationId)
@@ -152,6 +156,43 @@ class SyncEngine(
             }
             crypto.cta(
                 env = env,
+                mode = mode,
+            )
+        }
+
+        fun getCodecPair(
+            mode: BitwardenCrCta.Mode,
+            key: ByteArray,
+        ) = kotlin.run {
+            val itemCrypto = kotlin.run {
+                val symmetricCryptoKey = key
+                    .let(cryptoGenerator::makeSendCryptoKey)
+                    .let(CryptoKey.Companion::decodeSymmetricOrThrow)
+                val cryptoKey = BitwardenCrKey.CryptoKey(
+                    symmetricCryptoKey = symmetricCryptoKey,
+                )
+                val cryptoKeyEnv = BitwardenCrCta.BitwardenCrCtaEnv(
+                    key = cryptoKey,
+                )
+                crypto.cta(
+                    env = cryptoKeyEnv,
+                    mode = mode,
+                )
+            }
+            val globalCrypto = getCodec(
+                mode = mode,
+            )
+            itemCrypto to globalCrypto
+        }
+
+        fun getCodecPairFromEncrypted(
+            mode: BitwardenCrCta.Mode,
+            keyCipherText: String,
+        ) = kotlin.run {
+            val key = crypto.decoder(BitwardenCrKey.UserToken)(keyCipherText)
+                .data
+            getCodecPair(
+                key = key,
                 mode = mode,
             )
         }
@@ -940,8 +981,28 @@ class SyncEngine(
             localReEncoder = { model ->
                 model
             },
-            localDecoder = { l, d ->
-                Unit
+            localDecoder = { local, remote ->
+                val itemKey = requireNotNull(local.keyBase64)
+                    .let(base64Service::decode)
+                val (
+                    itemCrypto,
+                    globalCrypto,
+                ) = getCodecPair(
+                    mode = BitwardenCrCta.Mode.ENCRYPT,
+                    key = itemKey,
+                )
+                val encryptedSend = local.transform(
+                    itemCrypto = itemCrypto,
+                    globalCrypto = globalCrypto,
+                )
+                with(cryptoGenerator) {
+                    with(base64Service) {
+                        SendUpdate.of(
+                            model = encryptedSend,
+                            key = itemKey,
+                        )
+                    }
+                } to local
             },
             localDeleteById = { ids ->
                 sendDao.transaction {
@@ -966,32 +1027,36 @@ class SyncEngine(
             remoteItems = response.sends.orEmpty(),
             remoteLens = SyncManager.Lens<SyncSends>(
                 getId = { it.id },
-                getRevisionDate = { Instant.DISTANT_FUTURE },
+                getRevisionDate = { it.revisionDate },
             ),
             remoteDecoder = { remote, local ->
-                val codec = getCodec(
+                val (
+                    itemCrypto,
+                    globalCrypto,
+                ) = getCodecPairFromEncrypted(
                     mode = BitwardenCrCta.Mode.DECRYPT,
-                    sendId = remote.id,
+                    keyCipherText = remote.key,
                 )
-                val codec2 = getCodec(
-                    mode = BitwardenCrCta.Mode.DECRYPT,
-                )
-                codec
+                itemCrypto
                     .sendDecoder(
                         entity = remote,
-                        codec2 = codec2,
+                        codec2 = globalCrypto,
                         localSyncId = local?.sendId,
                     )
             },
             remoteDeleteById = { id ->
-                TODO()
+                user.env.back().api.sends.focus(id).delete(
+                    httpClient = httpClient,
+                    env = env,
+                    token = user.token.accessToken,
+                )
             },
             remoteDecodedFallback = { remote, localOrNull, e ->
                 e.printStackTrace()
                 val service = BitwardenService(
                     remote = BitwardenService.Remote(
                         id = remote.id,
-                        revisionDate = now,
+                        revisionDate = remote.revisionDate,
                         deletedDate = null,
                     ),
                     error = BitwardenService.Error(
@@ -1015,8 +1080,68 @@ class SyncEngine(
                 )
                 model
             },
-            remotePut = {
-                TODO()
+            remotePut = { (r, local) ->
+                val sendsApi = user.env.back().api.sends
+                val sendResponse = when (r) {
+                    is SendUpdate.Modify -> {
+                        val cipherApi = sendsApi.focus(r.sendId)
+                        var cipherRequest = r.sendRequest
+
+                        val hasChanged =
+                            r.source.service.remote?.revisionDate != r.source.revisionDate
+                        if (hasChanged) {
+                            val putCipher = cipherApi.put(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                                body = cipherRequest,
+                            )
+
+                            // Removing a password has a separate endpoint and
+                            // requires an additional request.
+                            val shouldRemovePassword = r.source.changes?.passwordBase64
+                                ?.let { it is BitwardenOptionalStringNullable.Some && it.value == null } == true
+                            if (shouldRemovePassword && putCipher.password != null) {
+                                cipherApi.removePassword(
+                                    httpClient = httpClient,
+                                    env = env,
+                                    token = user.token.accessToken,
+                                )
+                            }
+                        }
+
+                        cipherApi.get(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                        )
+                    }
+
+                    is SendUpdate.Create -> {
+                        sendsApi.post(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                            body = r.sendRequest,
+                        )
+                    }
+                }
+
+                val itemKey = requireNotNull(local.keyBase64)
+                    .let(base64Service::decode)
+                val (
+                    itemCrypto,
+                    globalCrypto,
+                ) = getCodecPair(
+                    mode = BitwardenCrCta.Mode.DECRYPT,
+                    key = itemKey,
+                )
+                itemCrypto
+                    .sendDecoder(
+                        entity = sendResponse,
+                        codec2 = globalCrypto,
+                        localSyncId = local.sendId,
+                    )
             },
             onLog = { msg, logLevel ->
                 logRepository.post(TAG, msg, logLevel)
@@ -1030,7 +1155,6 @@ class SyncEngine(
 
     private fun crypto(
         profile: SyncProfile,
-        sends: List<SyncSends>,
     ): BitwardenCr = kotlin.run {
         val builder = BitwardenCrImpl(
             cipherEncryptor = cipherEncryptor,
@@ -1052,13 +1176,6 @@ class SyncEngine(
                 appendOrganizationToken(
                     id = organization.id,
                     keyCipherText = organization.key,
-                )
-            }
-
-            sends.forEach { send ->
-                appendSendToken(
-                    id = send.id,
-                    keyCipherText = send.key,
                 )
             }
         }

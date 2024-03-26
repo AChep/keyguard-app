@@ -2,6 +2,7 @@ package com.artemchep.keyguard.core.store.bitwarden
 
 import arrow.optics.optics
 import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,6 +34,8 @@ data class BitwardenSend(
     val type: Type = Type.None,
     val file: File? = null,
     val text: Text? = null,
+    // changes
+    val changes: Changes? = null,
 ) : BitwardenService.Has<BitwardenSend> {
     companion object;
 
@@ -43,6 +46,15 @@ data class BitwardenSend(
         None,
         File,
         Text,
+    }
+
+    @optics
+    @Serializable
+    @SerialName("changes")
+    data class Changes(
+        val passwordBase64: BitwardenOptionalStringNullable = BitwardenOptionalStringNullable.None,
+    ) {
+        companion object;
     }
 
     //

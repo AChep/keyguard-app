@@ -5,6 +5,7 @@ import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 
 @Immutable
@@ -27,7 +28,7 @@ data class SendViewState(
             val synced: Boolean,
             val onCopy: (() -> Unit)?,
             val onShare: (() -> Unit)?,
-            val actions: List<FlatItemAction>,
+            val actions: List<ContextItem>,
             val items: List<VaultViewItem>,
         ) : Content {
             companion object;

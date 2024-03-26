@@ -455,12 +455,37 @@ suspend fun ServerEnvApi.Sends.post(
     route = "post-send",
 )
 
+suspend fun ServerEnvApi.Sends.Send.get(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+) = httpClient
+    .get(url) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "get-send")
+    }
+    .bodyOrApiException<SyncSends>()
+
+suspend fun ServerEnvApi.Sends.Send.put(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: SendRequest,
+) = url.put<SendRequest, SyncSends>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-send",
+)
+
 suspend fun ServerEnvApi.Sends.Send.removePassword(
     httpClient: HttpClient,
     env: ServerEnv,
     token: String,
 ) = httpClient
-    .put(url) {
+    .put(removePassword) {
         headers(env)
         header("Authorization", "Bearer $token")
         attributes.put(routeAttribute, "remove-password-send")

@@ -681,7 +681,7 @@ fun RememberStateFlowScope.cipherDeleteAction(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon(Icons.Outlined.DeleteForever),
-                        title = "Delete forever?",
+                        title = translate(Res.strings.ciphers_action_delete_confirmation_title),
                     ),
                 ),
             ) { result ->

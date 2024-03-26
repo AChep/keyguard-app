@@ -3,17 +3,17 @@ package com.artemchep.keyguard.provider.bitwarden.crypto
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 
 fun BitwardenSend.transform(
-    crypto: BitwardenCrCta,
-    codec2: BitwardenCrCta,
+    itemCrypto: BitwardenCrCta,
+    globalCrypto: BitwardenCrCta,
 ) = copy(
     // common
     // key is encoded with profile key
-    keyBase64 = keyBase64?.let(codec2::transformBase64),
-    name = crypto.transformString(name),
-    notes = crypto.transformString(notes),
+    keyBase64 = keyBase64?.let(globalCrypto::transformBase64),
+    name = itemCrypto.transformString(name),
+    notes = itemCrypto.transformString(notes),
     // types
-    text = text?.transform(crypto),
-    file = file?.transform(crypto),
+    text = text?.transform(itemCrypto),
+    file = file?.transform(itemCrypto),
 )
 
 fun BitwardenSend.File.transform(
@@ -26,5 +26,5 @@ fun BitwardenSend.File.transform(
 fun BitwardenSend.Text.transform(
     crypto: BitwardenCrCta,
 ) = copy(
-    text = crypto.transformString(text),
+    text = crypto.transformString(requireNotNull(text)),
 )

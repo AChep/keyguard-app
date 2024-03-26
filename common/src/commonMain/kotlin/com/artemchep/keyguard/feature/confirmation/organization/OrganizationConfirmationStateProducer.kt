@@ -38,6 +38,7 @@ import com.artemchep.keyguard.ui.theme.isDark
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
@@ -54,7 +55,6 @@ fun organizationConfirmationState(
     organizationConfirmationState(
         args = args,
         transmitter = transmitter,
-        getAccounts = instance(),
         getProfiles = instance(),
         getOrganizations = instance(),
         getCollections = instance(),
@@ -192,7 +192,6 @@ private data class FolderVariant(
 fun organizationConfirmationState(
     args: OrganizationConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<OrganizationConfirmationResult>,
-    getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCollections: GetCollections,
@@ -211,11 +210,18 @@ fun organizationConfirmationState(
     val readOnlyFolder = OrganizationConfirmationRoute.Args.RO_FOLDER in args.flags
     val readOnlyCollections = OrganizationConfirmationRoute.Args.RO_COLLECTION in args.flags
 
+    val hideOrganization = OrganizationConfirmationRoute.Args.HIDE_ORGANIZATION in args.flags
+    val hideFolder = OrganizationConfirmationRoute.Args.HIDE_FOLDER in args.flags
+    val hideCollections = OrganizationConfirmationRoute.Args.HIDE_COLLECTION in args.flags
+
+    val premiumAccount = OrganizationConfirmationRoute.Args.PREMIUM_ACCOUNT in args.flags
+
     val accountsFlow = getProfiles()
         .map { profiles ->
             profiles
                 .map { profile ->
-                    val enabled = profile.accountId() !in args.blacklistedAccountIds
+                    val enabled = profile.accountId() !in args.blacklistedAccountIds &&
+                            (!premiumAccount || profile.premium)
                     AccountVariant(
                         accountId = profile.accountId(),
                         name = profile.email,
@@ -494,7 +500,11 @@ fun organizationConfirmationState(
             items = items,
         )
     }
-    val itemOrganizationsFlow = combine(
+    val itemOrganizationsFlow = if (hideOrganization) {
+        // When we hide the organization UI we just display
+        // a section as null.
+        flowOf(null)
+    } else combine(
         organizationsFlow,
         selectionFlow
             .map { it.organizationId to it.accountId }
@@ -527,7 +537,11 @@ fun organizationConfirmationState(
                 .takeIf { selectedOrganizationId != null },
         )
     }
-    val itemCollectionsFlow = combine(
+    val itemCollectionsFlow = if (hideCollections) {
+        // When we hide the collection UI we just display
+        // a section as null.
+        flowOf(null)
+    } else combine(
         collectionsFlow,
         selectionFlow
             .map {
@@ -577,7 +591,11 @@ fun organizationConfirmationState(
         val accountId: String?,
     )
 
-    val itemFoldersFlow = combine(
+    val itemFoldersFlow = if (hideFolder) {
+        // When we hide the collection UI we just display
+        // a section as null.
+        flowOf(null)
+    } else combine(
         foldersFlow,
         selectionFlow
             .map {

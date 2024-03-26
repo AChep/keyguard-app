@@ -112,7 +112,7 @@ playServicesBase = "18.3.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha01"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "8.0.3"
+signalr = "9.0.0-preview.2.24128.4"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.12"
 # https://github.com/bcgit/bc-java

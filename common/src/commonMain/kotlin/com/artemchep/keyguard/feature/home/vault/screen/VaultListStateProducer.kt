@@ -1279,7 +1279,7 @@ fun vaultListScreenState(
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
     val deeplinkCustomFilterFlow = if (args.main) {
-        val customFilterKey = "customFilter"
+        val customFilterKey = DeeplinkService.CUSTOM_FILTER
         deeplinkService
             .getFlow(customFilterKey)
             .filterNotNull()

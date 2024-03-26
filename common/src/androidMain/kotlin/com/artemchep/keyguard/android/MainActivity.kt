@@ -51,7 +51,12 @@ class MainActivity : BaseActivity() {
     private fun updateDeeplinkFromIntent(intent: Intent) {
         val customFilter = intent.getStringExtra("customFilter")
         if (customFilter != null) {
-            deeplinkService.put("customFilter", customFilter)
+            deeplinkService.put(DeeplinkService.CUSTOM_FILTER, customFilter)
+        }
+
+        val customHome = intent.getStringExtra("customHome")
+        if (customHome != null) {
+            deeplinkService.put(DeeplinkService.CUSTOM_HOME, customHome)
         }
 
         val dta = intent.data

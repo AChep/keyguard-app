@@ -88,6 +88,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.artemchep.keyguard.common.model.DAccountStatus
+import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
@@ -149,13 +150,28 @@ private val vaultRoute = VaultRoute(
 
 private val sendsRoute = SendRoute()
 
+private val generatorRoute = GeneratorRoute(
+    args = GeneratorRoute.Args(
+        password = true,
+        username = true,
+    ),
+)
+
 private val watchtowerRoute = WatchtowerRoute()
 
 @Composable
 fun HomeScreen(
-    defaultRoute: Route = vaultRoute,
     navBarVisible: Boolean = true,
 ) {
+    val deeplinkService by rememberInstance<DeeplinkService>()
+    val defaultRoute = remember {
+        val defaultHome = deeplinkService.get(DeeplinkService.CUSTOM_HOME)
+        when (defaultHome) {
+            "generator" -> generatorRoute
+            else -> vaultRoute
+        }
+    }
+
     val navRoutes = remember {
         persistentListOf(
             Rail(
@@ -171,12 +187,7 @@ fun HomeScreen(
                 label = TextHolder.Res(Res.strings.home_send_label),
             ),
             Rail(
-                route = GeneratorRoute(
-                    args = GeneratorRoute.Args(
-                        password = true,
-                        username = true,
-                    ),
-                ),
+                route = generatorRoute,
                 icon = Icons.Outlined.Password,
                 iconSelected = Icons.Filled.Password,
                 label = TextHolder.Res(Res.strings.home_generator_label),

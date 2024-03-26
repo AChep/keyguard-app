@@ -10,12 +10,21 @@
     "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
   },
   {
+    "name": "Albert Heijn",
+    "domain": "ah.nl",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.ah.nl/account/inloggegevens/passkey"
+  },
+  {
     "name": "Air New Zealand",
     "domain": "airnewzealand.co.nz",
     "features": [
       "signin"
     ],
-    "setup": "https://auth.identity.airnewzealand.co.nz/enable-passkeys",
+    "documentation": "https://www.airnewzealand.co.nz/manage-multi-factor-authentication#passkey",
+    "setup": "https://www.airnewzealand.com/membership/profile/personalInfo/mfa",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
@@ -24,7 +33,8 @@
     "features": [
       "signin"
     ],
-    "setup": "https://auth.identity.airnewzealand.com/enable-passkeys",
+    "documentation": "https://www.airnewzealand.com/manage-multi-factor-authentication#passkeys",
+    "setup": "https://www.airnewzealand.com/membership/profile/personalInfo/mfa",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
@@ -330,6 +340,14 @@
     "documentation": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/passkeys"
   },
   {
+    "name": "Home Assistant",
+    "domain": "community.home-assistant.io",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://community.home-assistant.io/"
+  },
+  {
     "name": "Corbado",
     "domain": "corbado.com",
     "features": [
@@ -387,6 +405,14 @@
       "signin"
     ],
     "setup": "https://app.datapacket.com/settings/security"
+  },
+  {
+    "name": "Devolutions",
+    "domain": "devolutions.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://portal.devolutions.com/security/key"
   },
   {
     "name": "Dinero",
@@ -703,7 +729,7 @@
     ],
     "documentation": "https://www.linkedin.com/help/linkedin/answer/a1621596",
     "setup": "https://www.linkedin.com/mypreferences/d/passkey",
-    "notes": "Linkedin is actively rolling out support for saving and signing in with passkeys on Linkedin accounts. Not all accounts have access to saving and signing in with passkeys yet whilst Linkedin rolls this out."
+    "notes": "Linkedin is actively rolling out support for saving and signing in with passkeys on LinkedIn accounts. Not all accounts have access to saving a passkey whilst LinkedIn rolls out support and you may see an error when navigating to the setup link above. "
   },
   {
     "name": "lnk.bio",
@@ -954,7 +980,7 @@
     ],
     "documentation": "https://www.paypal.com/us/cshelp/article/what-are-paypal-passkeys-help997",
     "setup": "https://www.paypal.com/myaccount/security/",
-    "notes": "Passkeys on PayPal can only be created on mobile devices in Chrome on Android or iOS, and in Safari on iOS. Signing in with passkeys is not yet available on Google Chrome (and other Chromium browsers) on desktop.\n\n#### To set up a passkey on your PayPal account:\n1. On your mobile device, navigate to PayPal's settings > Security or use the setup link above.\n2.  Select \"Passkeys.\"\n3. Select \"Create a passkey.\"\n4. Follow the instructions provided to complete setting up a passkey.\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
+    "notes": "Passkeys on PayPal can only be created on mobile devices in Chrome on Android or iOS and in Safari on iOS.\n\n#### To set up a passkey on your PayPal account:\n1. On your mobile device, navigate to PayPal's settings > Security or use the setup link above.\n2.  Select \"Passkeys.\"\n3. Select \"Create a passkey.\"\n4. Follow the instructions provided to complete setting up a passkey.\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
   },
   {
     "name": "PlayStation",
@@ -1048,6 +1074,23 @@
     "documentation": "https://help.shopify.com/manual/your-account/logging-in/passkeys#create-a-passkey",
     "setup": "https://www.shopify.com",
     "notes": "Sign in to Shopify with your email address and password, then follow the steps in the documentation link above to create a passkey. \n\nSign out, then sign back in with your email address and choose \"Log in with passkey\" to use your passkey."
+  },
+  {
+    "name": "Simply.com",
+    "domain": "simply.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.simply.com/en/controlpanel/user/"
+  },
+  {
+    "name": "Sirius XM Satellite Radio",
+    "domain": "siriusxm.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.siriusxm.com/player/welcome",
+    "notes": "Passkeys are offered after successful sign-in."
   },
   {
     "name": "Skiff",

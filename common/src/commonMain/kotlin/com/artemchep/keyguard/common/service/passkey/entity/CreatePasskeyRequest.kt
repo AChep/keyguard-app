@@ -73,7 +73,7 @@ data class CreatePasskeyUser(
 @Serializable
 data class CreatePasskeyPubKeyCredParams(
     // https://www.iana.org/assignments/cose/cose.xhtml#algorithms
-    val alg: Int,
+    val alg: Double,
     val type: String,
 )
 

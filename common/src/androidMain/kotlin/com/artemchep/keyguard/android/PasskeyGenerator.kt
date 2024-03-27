@@ -6,6 +6,7 @@ import java.security.KeyPairGenerator
 import java.security.PrivateKey
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
+import kotlin.math.roundToInt
 
 abstract class PasskeyGeneratorBase : PasskeyGenerator {
     // https://www.iana.org/assignments/cose/cose.xhtml#algorithms
@@ -17,7 +18,7 @@ abstract class PasskeyGeneratorBase : PasskeyGenerator {
      */
     override fun handles(
         params: CreatePasskeyPubKeyCredParams,
-    ): Boolean = params.alg == type
+    ): Boolean = params.alg.roundToInt() == type
 }
 
 interface PasskeyGenerator {

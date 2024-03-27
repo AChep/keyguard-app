@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> tài khoản</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> lần xuất hiện</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> từ</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> kết quả</item>
     </plurals>
 </resources>

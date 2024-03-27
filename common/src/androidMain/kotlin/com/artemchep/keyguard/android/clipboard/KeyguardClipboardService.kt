@@ -8,12 +8,14 @@ import android.app.Service
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.IBinder
 import android.os.Parcelable
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
 import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.downloader.receiver.CopyActionReceiver
@@ -258,7 +260,7 @@ class KeyguardClipboardService : Service(), DIAware {
                         expiration = expiration - now,
                         alertOnlyOnce = alertOnlyOnce,
                     )
-                    startForeground(notificationId, notification)
+                    startForegroundWithType(notificationId, notification)
                 }
 
                 lastSeconds = newSeconds
@@ -274,8 +276,22 @@ class KeyguardClipboardService : Service(), DIAware {
                 expiration = null,
                 alertOnlyOnce = false,
             )
-            startForeground(notificationId, notification)
+            startForegroundWithType(notificationId, notification)
         }
+    }
+
+    // https://github.com/AChep/keyguard-app/issues/226
+    private fun startForegroundWithType(
+        notificationId: Int,
+        notification: Notification,
+    ) {
+        val serviceType = ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        ServiceCompat.startForeground(
+            this,
+            notificationId,
+            notification,
+            serviceType,
+        )
     }
 
     private fun <T> Flow<T>.takeFor(

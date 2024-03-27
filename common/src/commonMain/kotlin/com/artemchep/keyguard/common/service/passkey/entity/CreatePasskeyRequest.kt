@@ -136,5 +136,5 @@ data class CreatePasskey(
      * The time (in milliseconds) that the user has to respond
      * to a prompt for registration before an error is returned.
      */
-    val timeout: Long? = null,
+    val timeout: Double? = null,
 )

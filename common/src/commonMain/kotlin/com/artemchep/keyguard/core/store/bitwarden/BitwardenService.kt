@@ -31,6 +31,7 @@ data class BitwardenService(
     data class Error(
         val code: Int,
         val message: String? = null,
+        val blob: String? = null,
         val revisionDate: Instant,
     ) {
         companion object {

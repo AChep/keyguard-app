@@ -10,7 +10,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
     private val local: LensLocal<Local>,
     private val remote: Lens<Remote>,
 ) {
-    class Lens<T>(
+    data class Lens<T>(
         val getId: (T) -> String,
         val getRevisionDate: (T) -> Instant,
         val getDeletedDate: (T) -> Instant? = { null },

@@ -58,6 +58,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.RuntimeException
 import kotlin.String
 import kotlin.TODO
@@ -73,6 +75,7 @@ import kotlin.to
 class SyncEngine(
     private val httpClient: HttpClient,
     private val dbManager: DatabaseManager,
+    private val json: Json,
     private val base64Service: Base64Service,
     private val cryptoGenerator: CryptoGenerator,
     private val cipherEncryptor: CipherEncryptor,
@@ -88,6 +91,32 @@ class SyncEngine(
     class EmptyVaultException(message: String) : RuntimeException(message)
 
     class DecodeVaultException(message: String, e: Throwable) : RuntimeException(message, e)
+
+    private inline fun <reified T> createDecodingFailedServiceModel(
+        now: Instant,
+        model: T,
+        lens: SyncManager.Lens<T>,
+    ): BitwardenService {
+        val revisionDate = lens.getRevisionDate(model)
+            .takeUnless { it == Instant.DISTANT_FUTURE }
+            ?: now
+
+        val blob = json.encodeToString(model)
+        return BitwardenService(
+            remote = BitwardenService.Remote(
+                id = lens.getId(model),
+                revisionDate = revisionDate,
+                deletedDate = lens.getDeletedDate(model),
+            ),
+            error = BitwardenService.Error(
+                code = BitwardenService.Error.CODE_DECODING_FAILED,
+                blob = blob,
+                revisionDate = now,
+            ),
+            deleted = false,
+            version = BitwardenService.VERSION,
+        )
+    }
 
     suspend fun sync() = kotlin.run {
         val env = user.env.back()
@@ -264,6 +293,10 @@ class SyncEngine(
         }
 
         val folderDao = db.folderQueries
+        val folderRemoteLens = SyncManager.Lens<FolderEntity>(
+            getId = { it.id },
+            getRevisionDate = { it.revisionDate },
+        )
         val existingFolders = folderDao
             .getByAccountId(
                 accountId = user.id,
@@ -345,18 +378,10 @@ class SyncEngine(
 
                 val localId = localOrNull?.folderId
                     ?: cryptoGenerator.uuid()
-                val service = BitwardenService(
-                    remote = BitwardenService.Remote(
-                        id = remote.id,
-                        revisionDate = remote.revisionDate,
-                        deletedDate = null,
-                    ),
-                    error = BitwardenService.Error(
-                        code = BitwardenService.Error.CODE_DECODING_FAILED,
-                        revisionDate = now,
-                    ),
-                    deleted = false,
-                    version = BitwardenService.VERSION,
+                val service = createDecodingFailedServiceModel(
+                    now = now,
+                    model = remote,
+                    lens = folderRemoteLens,
                 )
                 val model = localOrNull?.copy(service = service) ?: BitwardenFolder(
                     accountId = user.id,
@@ -457,6 +482,11 @@ class SyncEngine(
         }
 
         val cipherDao = db.cipherQueries
+        val cipherRemoteLens = SyncManager.Lens<CipherEntity>(
+            getId = { it.id },
+            getRevisionDate = { cipher -> cipher.revisionDate },
+            getDeletedDate = { cipher -> cipher.deletedDate },
+        )
         val existingCipher = cipherDao
             .getByAccountId(
                 accountId = user.id,
@@ -530,11 +560,7 @@ class SyncEngine(
                 false
             },
             remoteItems = response.ciphers.orEmpty(),
-            remoteLens = SyncManager.Lens(
-                getId = { it.id },
-                getRevisionDate = { cipher -> cipher.revisionDate },
-                getDeletedDate = { cipher -> cipher.deletedDate },
-            ),
+            remoteLens = cipherRemoteLens,
             remoteDecoder = { remote, local ->
                 val codec = getCodec(
                     mode = BitwardenCrCta.Mode.DECRYPT,
@@ -571,18 +597,10 @@ class SyncEngine(
                 val localId = localOrNull?.cipherId
                     ?: cryptoGenerator.uuid()
                 val folderId = remote.folderId?.let { remoteToLocalFolders[it] }
-                val service = BitwardenService(
-                    remote = BitwardenService.Remote(
-                        id = remote.id,
-                        revisionDate = remote.revisionDate,
-                        deletedDate = remote.deletedDate,
-                    ),
-                    error = BitwardenService.Error(
-                        code = BitwardenService.Error.CODE_DECODING_FAILED,
-                        revisionDate = now,
-                    ),
-                    deleted = false,
-                    version = BitwardenService.VERSION,
+                val service = createDecodingFailedServiceModel(
+                    now = now,
+                    model = remote,
+                    lens = cipherRemoteLens,
                 )
                 val model = localOrNull?.copy(service = service) ?: BitwardenCipher(
                     accountId = user.id,
@@ -732,6 +750,10 @@ class SyncEngine(
         }
 
         val collectionDao = db.collectionQueries
+        val collectionRemoteLens = SyncManager.Lens<CollectionEntity>(
+            getId = { it.id },
+            getRevisionDate = { Instant.DISTANT_FUTURE },
+        )
         val existingCollections = collectionDao
             .getByAccountId(
                 accountId = user.id,
@@ -772,10 +794,7 @@ class SyncEngine(
                 }
             },
             remoteItems = response.collections.orEmpty(),
-            remoteLens = SyncManager.Lens<CollectionEntity>(
-                getId = { it.id },
-                getRevisionDate = { Instant.DISTANT_FUTURE },
-            ),
+            remoteLens = collectionRemoteLens,
             remoteDecoder = { remote, local ->
                 val codec = getCodec(
                     mode = BitwardenCrCta.Mode.DECRYPT,
@@ -796,18 +815,10 @@ class SyncEngine(
                 )
                 recordException(logE)
 
-                val service = BitwardenService(
-                    remote = BitwardenService.Remote(
-                        id = remote.id,
-                        revisionDate = now,
-                        deletedDate = null,
-                    ),
-                    error = BitwardenService.Error(
-                        code = BitwardenService.Error.CODE_DECODING_FAILED,
-                        revisionDate = now,
-                    ),
-                    deleted = false,
-                    version = BitwardenService.VERSION,
+                val service = createDecodingFailedServiceModel(
+                    now = now,
+                    model = remote,
+                    lens = collectionRemoteLens,
                 )
                 val model = localOrNull?.copy(service = service) ?: BitwardenCollection(
                     accountId = user.id,
@@ -848,6 +859,10 @@ class SyncEngine(
         }
 
         val organizationDao = db.organizationQueries
+        val organizationRemoteLens = SyncManager.Lens<OrganizationEntity>(
+            getId = { it.id },
+            getRevisionDate = { Instant.DISTANT_FUTURE },
+        )
         val existingOrganizations = organizationDao
             .getByAccountId(
                 accountId = user.id,
@@ -888,10 +903,7 @@ class SyncEngine(
                 }
             },
             remoteItems = response.profile.organizations.orEmpty(),
-            remoteLens = SyncManager.Lens<OrganizationEntity>(
-                getId = { it.id },
-                getRevisionDate = { Instant.DISTANT_FUTURE },
-            ),
+            remoteLens = organizationRemoteLens,
             remoteDecoder = { remote, local ->
                 val codec = getCodec(
                     mode = BitwardenCrCta.Mode.DECRYPT,
@@ -911,18 +923,10 @@ class SyncEngine(
                 )
                 recordException(logE)
 
-                val service = BitwardenService(
-                    remote = BitwardenService.Remote(
-                        id = remote.id,
-                        revisionDate = now,
-                        deletedDate = null,
-                    ),
-                    error = BitwardenService.Error(
-                        code = BitwardenService.Error.CODE_DECODING_FAILED,
-                        revisionDate = now,
-                    ),
-                    deleted = false,
-                    version = BitwardenService.VERSION,
+                val service = createDecodingFailedServiceModel(
+                    now = now,
+                    model = remote,
+                    lens = organizationRemoteLens,
                 )
                 val model = localOrNull?.copy(service = service) ?: BitwardenOrganization(
                     accountId = user.id,
@@ -965,6 +969,10 @@ class SyncEngine(
         }
 
         val sendDao = db.sendQueries
+        val sendRemoteLens = SyncManager.Lens<SyncSends>(
+            getId = { it.id },
+            getRevisionDate = { it.revisionDate },
+        )
         val existingSends = sendDao
             .getByAccountId(
                 accountId = user.id,
@@ -1025,10 +1033,7 @@ class SyncEngine(
                 }
             },
             remoteItems = response.sends.orEmpty(),
-            remoteLens = SyncManager.Lens<SyncSends>(
-                getId = { it.id },
-                getRevisionDate = { it.revisionDate },
-            ),
+            remoteLens = sendRemoteLens,
             remoteDecoder = { remote, local ->
                 val (
                     itemCrypto,
@@ -1053,18 +1058,10 @@ class SyncEngine(
             },
             remoteDecodedFallback = { remote, localOrNull, e ->
                 e.printStackTrace()
-                val service = BitwardenService(
-                    remote = BitwardenService.Remote(
-                        id = remote.id,
-                        revisionDate = remote.revisionDate,
-                        deletedDate = null,
-                    ),
-                    error = BitwardenService.Error(
-                        code = BitwardenService.Error.CODE_DECODING_FAILED,
-                        revisionDate = now,
-                    ),
-                    deleted = false,
-                    version = BitwardenService.VERSION,
+                val service = createDecodingFailedServiceModel(
+                    now = now,
+                    model = remote,
+                    lens = sendRemoteLens,
                 )
                 val model = localOrNull?.copy(service = service) ?: BitwardenSend(
                     accountId = user.id,

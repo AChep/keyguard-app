@@ -819,6 +819,7 @@ private fun RememberStateFlowScope.oh(
             id = "error",
             name = "Couldn't sync the item",
             message = cipherError.message(),
+            blob = cipherError.blob,
             timestamp = time,
             onRetry = if (cipherError.canRetry(cipher.revisionDate)) {
                 // lambda
@@ -826,6 +827,17 @@ private fun RememberStateFlowScope.oh(
                     val cipherIds = setOf(cipher.id)
                     retryCipher(cipherIds)
                         .launchIn(appScope)
+                }
+            } else {
+                null
+            },
+            onCopyBlob = if (cipherError.blob != null) {
+                // lambda
+                {
+                    copy.copy(
+                        text = cipherError.blob,
+                        hidden = false,
+                    )
                 }
             } else {
                 null

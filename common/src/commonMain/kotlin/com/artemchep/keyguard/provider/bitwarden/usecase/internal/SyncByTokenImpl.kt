@@ -82,6 +82,7 @@ class SyncByTokenImpl(
                 val syncEngine = SyncEngine(
                     httpClient = httpClient,
                     dbManager = db,
+                    json = json,
                     base64Service = base64Service,
                     cryptoGenerator = cryptoGenerator,
                     cipherEncryptor = cipherEncryptor,

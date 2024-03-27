@@ -111,8 +111,10 @@ sealed interface VaultViewItem {
         override val id: String,
         val name: String,
         val message: String?,
+        val blob: String? = null,
         val timestamp: String,
         val onRetry: (() -> Unit)? = null,
+        val onCopyBlob: (() -> Unit)? = null,
     ) : VaultViewItem {
         companion object;
     }

@@ -712,7 +712,12 @@ fun vaultViewScreenState(
                         cipherDeleteAction(
                             removeCipherById = removeCipherById,
                             ciphers = listOf(secretOrNull),
-                        ).takeIf { canDelete && (secretOrNull.deletedDate != null || secretOrNull.service.remote == null) },
+                        ).takeIf {
+                            canDelete &&
+                                    (secretOrNull.deletedDate != null ||
+                                            secretOrNull.service.remote == null ||
+                                            secretOrNull.hasError)
+                        },
                     ),
                     primaryAction = primaryAction,
                     items = oh(

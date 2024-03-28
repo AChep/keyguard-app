@@ -575,7 +575,15 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
         )
     }
 
-    if (canDelete && selectedCiphers.all { it.deletedDate != null || it.service.remote == null }) {
+    if (
+        canDelete &&
+        selectedCiphers
+            .all {
+                it.deletedDate != null ||
+                        it.service.remote == null ||
+                        it.hasError
+            }
+    ) {
         actions += cipherDeleteAction(
             removeCipherById = toolbox.removeCipherById,
             ciphers = selectedCiphers,

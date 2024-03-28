@@ -30,6 +30,7 @@ fun BitwardenCipher.Companion.encrypted(
         createdDate = entity.creationDate,
         revisionDate = entity.revisionDate,
         deletedDate = entity.deletedDate,
+        keyBase64 = entity.key,
         // service fields
         service = service,
         // common

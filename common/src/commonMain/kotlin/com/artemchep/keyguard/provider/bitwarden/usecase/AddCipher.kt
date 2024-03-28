@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -23,6 +24,9 @@ import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
+import com.artemchep.keyguard.platform.util.isRelease
+import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherCryptoKeyMaterial
+import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.Clock
@@ -39,6 +43,7 @@ class AddCipherImpl(
     private val trashCipherById: TrashCipherById,
     private val cryptoGenerator: CryptoGenerator,
     private val getPasswordStrength: GetPasswordStrength,
+    private val base64Service: Base64Service,
 ) : AddCipher {
     companion object {
         private const val TAG = "AddCipher.bitwarden"
@@ -52,6 +57,7 @@ class AddCipherImpl(
         trashCipherById = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         getPasswordStrength = directDI.instance(),
+        base64Service = directDI.instance(),
     )
 
     override fun invoke(
@@ -106,6 +112,7 @@ class AddCipherImpl(
                     val old = oldCiphersMap[cipherId]?.data_
                     BitwardenCipher.of(
                         cryptoGenerator = cryptoGenerator,
+                        base64Service = base64Service,
                         getPasswordStrength = getPasswordStrength,
                         now = now,
                         request = request,
@@ -233,6 +240,7 @@ class AddCipherImpl(
 
 private suspend fun BitwardenCipher.Companion.of(
     cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
     getPasswordStrength: GetPasswordStrength,
     request: CreateRequest,
     now: Instant,
@@ -374,6 +382,13 @@ private suspend fun BitwardenCipher.Companion.of(
             }
     }
 
+    val keyBase64 = old?.keyBase64
+        ?: if (!isRelease) {
+            val key = cryptoGenerator.makeCipherCryptoKeyMaterial()
+            base64Service.encodeToString(key)
+        } else {
+            null
+        }
     val cipherId = old?.cipherId ?: cryptoGenerator.uuid()
     val createdDate = old?.createdDate ?: request.now
     val deletedDate = old?.deletedDate
@@ -386,6 +401,7 @@ private suspend fun BitwardenCipher.Companion.of(
         revisionDate = now,
         createdDate = createdDate,
         deletedDate = deletedDate,
+        keyBase64 = keyBase64,
         // service fields
         service = BitwardenService(
             remote = old?.service?.remote,

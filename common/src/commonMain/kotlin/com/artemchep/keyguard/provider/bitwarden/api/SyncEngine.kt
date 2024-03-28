@@ -226,6 +226,59 @@ class SyncEngine(
             )
         }
 
+        fun getCipherCodecPair(
+            mode: BitwardenCrCta.Mode,
+            key: ByteArray?,
+            organizationId: String?,
+        ) = kotlin.run {
+            val globalCrypto = getCodec(
+                mode = mode,
+                organizationId = organizationId,
+            )
+            val itemCrypto = if (key != null) kotlin.run {
+                val symmetricCryptoKey = key
+                    .let(CryptoKey.Companion::decodeSymmetricOrThrow)
+                val cryptoKey = BitwardenCrKey.CryptoKey(
+                    symmetricCryptoKey = symmetricCryptoKey,
+                )
+                val cryptoKeyEnv = BitwardenCrCta.BitwardenCrCtaEnv(
+                    key = cryptoKey,
+                )
+                crypto.cta(
+                    env = cryptoKeyEnv,
+                    mode = mode,
+                )
+            } else {
+                globalCrypto
+            }
+            itemCrypto to globalCrypto
+        }
+
+        fun getCipherCodecPairFromEncrypted(
+            mode: BitwardenCrCta.Mode,
+            keyCipherText: String?,
+            organizationId: String?,
+        ) = kotlin.run {
+            val key = if (keyCipherText != null) {
+                val decoderKey = if (organizationId != null) {
+                    BitwardenCrKey.OrganizationToken(
+                        id = organizationId,
+                    )
+                } else {
+                    BitwardenCrKey.UserToken
+                }
+                crypto.decoder(decoderKey)(keyCipherText)
+                    .data
+            } else {
+                null
+            }
+            getCipherCodecPair(
+                mode = mode,
+                key = key,
+                organizationId = organizationId,
+            )
+        }
+
         //
         // Profile
         //
@@ -449,6 +502,7 @@ class SyncEngine(
 
         fun BitwardenCrCta.cipherDecoder(
             entity: CipherEntity,
+            codec2: BitwardenCrCta,
             localCipherId: String?,
         ) = kotlin.run {
             val folderId = entity.folderId
@@ -478,7 +532,7 @@ class SyncEngine(
                     folderId = folderId,
                     entity = entity,
                 )
-                .transform(this)
+                .transform(this, codec2)
         }
 
         val cipherDao = db.cipherQueries
@@ -505,11 +559,20 @@ class SyncEngine(
                 model
             },
             localDecoder = { local, remote ->
-                val codec = getCodec(
+                val itemKey = local.keyBase64
+                    ?.let(base64Service::decode)
+                val (
+                    itemCrypto,
+                    globalCrypto,
+                ) = getCipherCodecPair(
                     mode = BitwardenCrCta.Mode.ENCRYPT,
+                    key = itemKey,
                     organizationId = local.organizationId,
                 )
-                val encryptedCipher = local.transform(codec)
+                val encryptedCipher = local.transform(
+                    itemCrypto = itemCrypto,
+                    globalCrypto = globalCrypto,
+                )
                 CipherUpdate.of(
                     model = encryptedCipher,
                     folders = localToRemoteFolders,
@@ -562,13 +625,18 @@ class SyncEngine(
             remoteItems = response.ciphers.orEmpty(),
             remoteLens = cipherRemoteLens,
             remoteDecoder = { remote, local ->
-                val codec = getCodec(
+                val (
+                    itemCrypto,
+                    globalCrypto,
+                ) = getCipherCodecPairFromEncrypted(
                     mode = BitwardenCrCta.Mode.DECRYPT,
+                    keyCipherText = remote.key,
                     organizationId = remote.organizationId,
                 )
-                codec
+                itemCrypto
                     .cipherDecoder(
                         entity = remote,
+                        codec2 = globalCrypto,
                         localCipherId = local?.cipherId,
                     )
                     .let { remoteDecoded ->
@@ -715,13 +783,20 @@ class SyncEngine(
                     }
                 }
 
-                val codec = getCodec(
+                val itemKey = local.keyBase64
+                    ?.let(base64Service::decode)
+                val (
+                    itemCrypto,
+                    globalCrypto,
+                ) = getCipherCodecPair(
                     mode = BitwardenCrCta.Mode.DECRYPT,
+                    key = itemKey,
                     organizationId = r.source.organizationId,
                 )
-                codec
+                itemCrypto
                     .cipherDecoder(
                         entity = cipherResponse,
+                        codec2 = globalCrypto,
                         localCipherId = r.source.cipherId,
                     )
                     .let { remoteDecoded ->

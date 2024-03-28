@@ -3,18 +3,20 @@ package com.artemchep.keyguard.provider.bitwarden.crypto
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 
 fun BitwardenCipher.transform(
-    crypto: BitwardenCrCta,
+    itemCrypto: BitwardenCrCta,
+    globalCrypto: BitwardenCrCta,
 ) = copy(
     // common
-    name = crypto.transformString(name),
-    notes = crypto.transformString(notes),
-    fields = fields.transform(crypto),
-    attachments = attachments.transform(crypto),
+    keyBase64 = keyBase64?.let(globalCrypto::transformBase64),
+    name = itemCrypto.transformString(name),
+    notes = itemCrypto.transformString(notes),
+    fields = fields.transform(itemCrypto),
+    attachments = attachments.transform(itemCrypto),
     // types
-    login = login?.transform(crypto),
-    secureNote = secureNote?.transform(crypto),
-    card = card?.transform(crypto),
-    identity = identity?.transform(crypto),
+    login = login?.transform(itemCrypto),
+    secureNote = secureNote?.transform(itemCrypto),
+    card = card?.transform(itemCrypto),
+    identity = identity?.transform(itemCrypto),
 )
 
 @JvmName("encryptListOfBitwardenCipherAttachment")

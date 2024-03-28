@@ -554,7 +554,7 @@ fun HttpRequestBuilder.headers(env: ServerEnv) {
     // Seems like now Bitwarden now requires you to specify
     // the client name and version.
     header("Bitwarden-Client-Name", "web")
-    header("Bitwarden-Client-Version", "2023.10.1")
+    header("Bitwarden-Client-Version", "2024.03.0")
     // App does not work if hidden behind reverse-proxy under
     // a subdirectory. We should specify the 'referer' so the server
     // generates correct urls for us.

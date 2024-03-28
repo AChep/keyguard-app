@@ -26,6 +26,7 @@ data class BitwardenCipher(
     // service fields
     override val service: BitwardenService,
     // common
+    val keyBase64: String? = null,
     val name: String?,
     val notes: String?,
     val favorite: Boolean,

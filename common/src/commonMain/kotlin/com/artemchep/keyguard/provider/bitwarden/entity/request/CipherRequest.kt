@@ -15,6 +15,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CipherRequest(
+    @SerialName("key")
+    val key: String?,
     @SerialName("type")
     val type: CipherTypeEntity,
     @SerialName("organizationId")
@@ -93,7 +95,9 @@ fun CipherRequest.Companion.of(
         attachments to attachments2
     }
 
+    val keyBase64 = model.keyBase64
     CipherRequest(
+        key = keyBase64,
         type = type,
         organizationId = model.organizationId,
         folderId = model.folderId

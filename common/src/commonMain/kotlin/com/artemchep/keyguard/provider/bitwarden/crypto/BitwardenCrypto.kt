@@ -343,6 +343,12 @@ fun BitwardenCrFactoryScope.appendOrganizationToken2(
 }
 
 //
+// Cipher
+//
+
+fun CryptoGenerator.makeCipherCryptoKeyMaterial() = seed(length = 64)
+
+//
 // Sends
 //
 

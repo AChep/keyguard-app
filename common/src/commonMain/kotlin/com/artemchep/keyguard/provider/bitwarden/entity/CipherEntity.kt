@@ -22,6 +22,9 @@ data class CipherEntity(
     @JsonNames("userId")
     @SerialName("UserId")
     val userId: String? = null,
+    @JsonNames("key")
+    @SerialName("Key")
+    val key: String? = null,
     @JsonNames("edit")
     @SerialName("Edit")
     val edit: Boolean = true,

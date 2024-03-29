@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.LocalLeContext
+import com.artemchep.keyguard.res.Res
 import com.halilibo.richtext.commonmark.Markdown
 import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.markdown.node.AstNode
@@ -52,16 +55,18 @@ fun MarkdownText(
 @Composable
 private fun rememberGracefulLinkClickHandler(): LinkClickHandler {
     val showMessage by rememberInstance<ShowMessage>()
+
+    val updatedContext by rememberUpdatedState(LocalLeContext)
     val updatedUriHandler by rememberUpdatedState(LocalUriHandler.current)
     return remember {
         LinkClickHandler { uri ->
             try {
                 updatedUriHandler.openUri(uri)
             } catch (e: Exception) {
-                val title = e.message
-                    ?: "Could not open a URI"
+                val title = textResource(Res.strings.error_failed_open_uri, updatedContext)
                 val msg = ToastMessage(
                     title = title,
+                    text = e.message,
                     type = ToastMessage.Type.ERROR,
                 )
                 showMessage.copy(msg)

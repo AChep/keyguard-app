@@ -57,6 +57,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration?,
     ): IO<Unit>
 
+    fun setBiometricRequireConfirmation(
+        requireConfirmation: Boolean,
+    ): IO<Unit>
+
     fun setClipboardClearDelay(
         duration: Duration?,
     ): IO<Unit>

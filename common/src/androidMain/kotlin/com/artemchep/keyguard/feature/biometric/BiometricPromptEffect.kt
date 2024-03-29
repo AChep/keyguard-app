@@ -51,6 +51,7 @@ private fun FragmentActivity.launchPrompt(
                 ?.also(::setDescription)
         }
         .setNegativeButtonText(getString(android.R.string.cancel))
+        .setConfirmationRequired(event.requireConfirmation)
         .build()
     val prompt = BiometricPrompt(
         this,
@@ -89,6 +90,7 @@ private fun FragmentActivity.launchPrompt(
                 ?.also(::setDescription)
         }
         .setNegativeButtonText(getString(android.R.string.cancel))
+        .setConfirmationRequired(event.requireConfirmation)
         .build()
     val prompt = BiometricPrompt(
         this,

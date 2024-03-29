@@ -35,6 +35,8 @@ interface SettingsReadRepository {
 
     fun getBiometricTimeout(): Flow<Duration?>
 
+    fun getBiometricRequireConfirmation(): Flow<Boolean>
+
     fun getClipboardClearDelay(): Flow<Duration?>
 
     fun getClipboardUpdateDuration(): Flow<Duration?>

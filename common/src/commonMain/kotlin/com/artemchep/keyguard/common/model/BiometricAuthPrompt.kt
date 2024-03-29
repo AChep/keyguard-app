@@ -10,6 +10,7 @@ class BiometricAuthPrompt(
     val title: TextHolder,
     val text: TextHolder? = null,
     val cipher: LeCipher,
+    val requireConfirmation: Boolean,
     /**
      * Called when the user either failed the authentication or
      * successfully passed it.
@@ -22,6 +23,7 @@ class BiometricAuthPrompt(
 class BiometricAuthPromptSimple(
     val title: TextHolder,
     val text: TextHolder? = null,
+    val requireConfirmation: Boolean,
     /**
      * Called when the user either failed the authentication or
      * successfully passed it.

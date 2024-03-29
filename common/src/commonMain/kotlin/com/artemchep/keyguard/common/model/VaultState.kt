@@ -17,6 +17,7 @@ sealed interface VaultState {
         class WithBiometric(
             val getCipher: () -> Either<Throwable, LeCipher>,
             val getCreateIo: (String) -> IO<Unit>,
+            val requireConfirmation: Boolean,
         )
     }
 
@@ -32,6 +33,7 @@ sealed interface VaultState {
         class WithBiometric(
             val getCipher: () -> Either<Throwable, LeCipher>,
             val getCreateIo: () -> IO<Unit>,
+            val requireConfirmation: Boolean,
         )
     }
 

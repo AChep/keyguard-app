@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
+import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -28,6 +29,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.compose.localDI
@@ -43,6 +45,7 @@ fun produceElevatedAccessState(
     produceElevatedAccessState(
         transmitter = transmitter,
         biometricStatusUseCase = instance(),
+        getBiometricRequireConfirmation = instance(),
         confirmAccessByPasswordUseCase = instance(),
         windowCoroutineScope = instance(),
     )
@@ -52,6 +55,7 @@ fun produceElevatedAccessState(
 fun produceElevatedAccessState(
     transmitter: RouteResultTransmitter<ElevatedAccessResult>,
     biometricStatusUseCase: BiometricStatusUseCase,
+    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
     windowCoroutineScope: WindowCoroutineScope,
 ): ElevatedAccessState = produceScreenState(
@@ -74,8 +78,11 @@ fun produceElevatedAccessState(
             .getOrNull()
         when (biometricStatus) {
             is BiometricStatus.Available -> {
+                val requireConfirmation = getBiometricRequireConfirmation()
+                    .first()
                 createPromptOrNull(
                     executor = executor,
+                    requireConfirmation = requireConfirmation,
                     fn = {
                         navigatePopSelf()
                         transmitter(ElevatedAccessResult.Allow)
@@ -165,11 +172,13 @@ fun produceElevatedAccessState(
 
 private fun createPromptOrNull(
     executor: LoadingTask,
+    requireConfirmation: Boolean,
     fn: () -> Unit,
 ): PureBiometricAuthPrompt = run {
     BiometricAuthPromptSimple(
         title = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_title),
         text = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_text),
+        requireConfirmation = requireConfirmation,
         onComplete = { result ->
             result.fold(
                 ifLeft = { exception ->

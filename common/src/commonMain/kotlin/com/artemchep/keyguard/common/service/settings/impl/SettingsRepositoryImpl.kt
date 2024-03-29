@@ -47,6 +47,7 @@ class SettingsRepositoryImpl(
         private const val KEY_VAULT_TIMEOUT = "vault_timeout"
         private const val KEY_VAULT_SCREEN_LOCK = "vault_screen_lock"
         private const val KEY_BIOMETRIC_TIMEOUT = "biometric_timeout"
+        private const val KEY_BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
         private const val KEY_CLIPBOARD_CLEAR_DELAY = "clipboard_clear_delay"
         private const val KEY_CLIPBOARD_UPDATE_DURATION = "clipboard_update_duration"
         private const val KEY_CONCEAL_FIELDS = "conceal_fields"
@@ -106,6 +107,8 @@ class SettingsRepositoryImpl(
     private val vaultScreenLockPref = store.getBoolean(KEY_VAULT_SCREEN_LOCK, true)
 
     private val biometricTimeoutPref = store.getLong(KEY_BIOMETRIC_TIMEOUT, NONE_DURATION)
+
+    private val biometricRequireConfirmationPref = store.getBoolean(KEY_BIOMETRIC_REQUIRE_CONFIRMATION, true)
 
     private val clipboardClearDelayPref =
         store.getLong(KEY_CLIPBOARD_CLEAR_DELAY, NONE_DURATION)
@@ -276,6 +279,13 @@ class SettingsRepositoryImpl(
 
     override fun getBiometricTimeout() = biometricTimeoutPref
         .asDuration()
+
+    override fun setBiometricRequireConfirmation(
+        requireConfirmation: Boolean,
+    ) = biometricRequireConfirmationPref
+        .setAndCommit(requireConfirmation)
+
+    override fun getBiometricRequireConfirmation() = biometricRequireConfirmationPref
 
     override fun setClipboardClearDelay(duration: Duration?) = clipboardClearDelayPref
         .setAndCommit(duration)

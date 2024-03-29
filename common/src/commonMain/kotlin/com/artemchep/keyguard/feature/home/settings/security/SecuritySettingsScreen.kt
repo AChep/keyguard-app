@@ -36,6 +36,7 @@ fun SecuritySettingsScreen() {
                 key = "biometric",
                 list = listOf(
                     SettingPaneItem.Item(Setting.BIOMETRIC),
+                    SettingPaneItem.Item(Setting.BIOMETRIC_REQUIRE_CONFIRMATION),
                     SettingPaneItem.Item(Setting.REQUIRE_MASTER_PASSWORD),
                 ),
             ),

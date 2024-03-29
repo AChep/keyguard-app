@@ -35,6 +35,7 @@ import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.DisableBiometric
 import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
+import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
@@ -48,6 +49,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -69,6 +71,7 @@ class UnlockUseCaseImpl(
     private val disableBiometric: DisableBiometric,
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
     private val sessionMetadataReadWriteRepository: SessionMetadataReadWriteRepository,
+    private val getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     private val getBiometricRemainingDuration: GetBiometricRemainingDuration,
     private val biometricKeyEncryptUseCase: BiometricKeyEncryptUseCase,
     private val decryptBiometricKeyUseCase: BiometricKeyDecryptUseCase,
@@ -127,6 +130,7 @@ class UnlockUseCaseImpl(
         disableBiometric = directDI.instance(),
         keyReadWriteRepository = directDI.instance(),
         sessionMetadataReadWriteRepository = directDI.instance(),
+        getBiometricRequireConfirmation = directDI.instance(),
         getBiometricRemainingDuration = directDI.instance(),
         biometricKeyEncryptUseCase = directDI.instance(),
         decryptBiometricKeyUseCase = directDI.instance(),
@@ -163,7 +167,7 @@ class UnlockUseCaseImpl(
                 }
         }
 
-    private fun createCreateVaultState(
+    private suspend fun createCreateVaultState(
         biometric: BiometricStatus,
     ): VaultState {
         return VaultState.Create(
@@ -194,6 +198,8 @@ class UnlockUseCaseImpl(
                     // the code in the block. This allows us to not
                     // return the cipher from the action.
                     .memoize()
+                val requireConfirmation = getBiometricRequireConfirmation()
+                    .first()
                 VaultState.Create.WithBiometric(
                     getCipher = getCipherForEncryption,
                     getCreateIo = { password ->
@@ -231,6 +237,7 @@ class UnlockUseCaseImpl(
                             }
                             .dispatchOn(Dispatchers.Default)
                     },
+                    requireConfirmation = requireConfirmation,
                 )
             } else {
                 null
@@ -238,7 +245,7 @@ class UnlockUseCaseImpl(
         )
     }
 
-    private fun createUnlockVaultState(
+    private suspend fun createUnlockVaultState(
         tokens: Fingerprint,
         biometric: BiometricStatus,
         lockReason: String?,
@@ -275,6 +282,8 @@ class UnlockUseCaseImpl(
                     // the code in the block. This allows us to not
                     // return the cipher from the action.
                     .memoize()
+                val requireConfirmation = getBiometricRequireConfirmation()
+                    .first()
                 VaultState.Unlock.WithBiometric(
                     getCipher = getCipherForDecryption,
                     getCreateIo = {
@@ -296,6 +305,7 @@ class UnlockUseCaseImpl(
                             .flatMap(::unlock)
                             .dispatchOn(Dispatchers.Default)
                     },
+                    requireConfirmation = requireConfirmation,
                 )
             } else {
                 null

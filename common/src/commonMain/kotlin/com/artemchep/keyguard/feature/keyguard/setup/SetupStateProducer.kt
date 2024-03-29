@@ -144,6 +144,7 @@ private fun createPromptOrNull(
     BiometricAuthPrompt(
         title = TextHolder.Res(Res.strings.setup_biometric_auth_confirm_title),
         cipher = cipher,
+        requireConfirmation = createVaultWithMasterPasswordAndBiometricFn.requireConfirmation,
         onComplete = { result ->
             result.fold(
                 ifLeft = { exception ->
@@ -185,6 +186,7 @@ private class CreateVaultWithBiometric(
      */
     val getCipher: () -> Either<Throwable, LeCipher>,
     getCreateIo: (String) -> IO<Unit>,
+    val requireConfirmation: Boolean,
 ) : CreateVaultWithPassword(executor, getCreateIo) {
     // Create from vault state options
     constructor(
@@ -194,6 +196,7 @@ private class CreateVaultWithBiometric(
         executor = executor,
         getCipher = options.getCipher,
         getCreateIo = options.getCreateIo,
+        requireConfirmation = options.requireConfirmation,
     )
 }
 

@@ -50,6 +50,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
+import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -536,6 +537,7 @@ fun produceUserVerificationState(
     produceUserVerificationState(
         onAuthenticated = onAuthenticated,
         biometricStatusUseCase = instance(),
+        getBiometricRequireConfirmation = instance(),
         confirmAccessByPasswordUseCase = instance(),
         windowCoroutineScope = instance(),
     )
@@ -545,6 +547,7 @@ fun produceUserVerificationState(
 fun produceUserVerificationState(
     onAuthenticated: () -> Unit,
     biometricStatusUseCase: BiometricStatusUseCase,
+    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
     windowCoroutineScope: WindowCoroutineScope,
 ): UserVerificationState = produceScreenState(
@@ -567,8 +570,11 @@ fun produceUserVerificationState(
             .getOrNull()
         when (biometricStatus) {
             is BiometricStatus.Available -> {
+                val requireConfirmation = getBiometricRequireConfirmation()
+                    .first()
                 createPromptOrNull(
                     executor = executor,
+                    requireConfirmation = requireConfirmation,
                     fn = {
                         onAuthenticated()
                     },
@@ -652,11 +658,13 @@ fun produceUserVerificationState(
 
 private fun createPromptOrNull(
     executor: LoadingTask,
+    requireConfirmation: Boolean,
     fn: () -> Unit,
 ): PureBiometricAuthPrompt = run {
     BiometricAuthPromptSimple(
         title = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_title),
         text = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_text),
+        requireConfirmation = requireConfirmation,
         onComplete = { result ->
             result.fold(
                 ifLeft = { exception ->

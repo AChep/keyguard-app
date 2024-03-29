@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRes
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveRequestProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsRequireConfirmationProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckPwnedPasswordsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckPwnedServicesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckTwoFAProvider
@@ -130,6 +131,7 @@ object Setting {
     const val PERMISSION_WRITE_EXTERNAL_STORAGE = "permission_write_external_storage"
     const val PERMISSION_POST_NOTIFICATION = "permission_post_notification"
     const val BIOMETRIC = "biometric"
+    const val BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
     const val VAULT_PERSIST = "vault_persist"
     const val VAULT_LOCK = "vault_lock"
     const val VAULT_LOCK_AFTER_REBOOT = "vault_lock_after_reboot"
@@ -211,6 +213,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.PERMISSION_POST_NOTIFICATION to ::settingPermissionPostNotificationsProvider,
     Setting.PERMISSION_WRITE_EXTERNAL_STORAGE to ::settingPermissionWriteExternalStorageProvider,
     Setting.BIOMETRIC to ::settingBiometricsProvider,
+    Setting.BIOMETRIC_REQUIRE_CONFIRMATION to ::settingBiometricsRequireConfirmationProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
     Setting.VAULT_LOCK to ::settingVaultLockProvider,
     Setting.VAULT_LOCK_AFTER_REBOOT to ::settingVaultLockAfterRebootProvider,

@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -21,6 +22,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -37,6 +39,7 @@ private const val KEY_BIOMETRIC_ENABLED = "biometric.enabled"
 fun changePasswordState(): Loadable<ChangePasswordState> = with(localDI().direct) {
     changePasswordState(
         unlockUseCase = instance(),
+        getBiometricRequireConfirmation = instance(),
         windowCoroutineScope = instance(),
     )
 }
@@ -44,6 +47,7 @@ fun changePasswordState(): Loadable<ChangePasswordState> = with(localDI().direct
 @Composable
 fun changePasswordState(
     unlockUseCase: UnlockUseCase,
+    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     windowCoroutineScope: WindowCoroutineScope,
 ): Loadable<ChangePasswordState> = produceScreenState(
     key = "change_password",
@@ -63,11 +67,16 @@ fun changePasswordState(
     val fn = unlockUseCase()
         .map { vaultState ->
             when (vaultState) {
-                is VaultState.Main -> ah(
-                    state = vaultState,
-                    biometricPromptSink = biometricPromptSink,
-                    windowCoroutineScope = windowCoroutineScope,
-                )
+                is VaultState.Main -> {
+                    val requireConfirmation = getBiometricRequireConfirmation()
+                        .first()
+                    ah(
+                        state = vaultState,
+                        requireConfirmation = requireConfirmation,
+                        biometricPromptSink = biometricPromptSink,
+                        windowCoroutineScope = windowCoroutineScope,
+                    )
+                }
 
                 else -> null
             }
@@ -154,6 +163,7 @@ fun changePasswordState(
 
 private fun RememberStateFlowScope.ah(
     state: VaultState.Main,
+    requireConfirmation: Boolean,
     biometricPromptSink: EventFlow<BiometricAuthPrompt>,
     windowCoroutineScope: WindowCoroutineScope,
 ) = Fn(
@@ -184,6 +194,7 @@ private fun RememberStateFlowScope.ah(
             val prompt = BiometricAuthPrompt(
                 title = TextHolder.Res(Res.strings.changepassword_biometric_auth_confirm_title),
                 cipher = cipher,
+                requireConfirmation = requireConfirmation,
                 onComplete = { result ->
                     result.fold(
                         ifLeft = { e ->

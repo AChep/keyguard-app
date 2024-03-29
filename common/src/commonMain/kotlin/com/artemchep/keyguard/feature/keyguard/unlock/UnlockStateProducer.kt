@@ -201,6 +201,7 @@ private fun createPromptOrNull(
         title = TextHolder.Res(Res.strings.unlock_biometric_auth_confirm_title),
         text = TextHolder.Res(Res.strings.unlock_biometric_auth_confirm_text),
         cipher = cipher,
+        requireConfirmation = fn.requireConfirmation,
         onComplete = { result ->
             result.fold(
                 ifLeft = { exception ->
@@ -249,6 +250,7 @@ private class UnlockVaultWithBiometric(
      */
     val getCipher: () -> Either<Throwable, LeCipher>,
     private val getCreateIo: () -> IO<Unit>,
+    val requireConfirmation: Boolean,
 ) : () -> Unit {
     // Create from vault state options
     constructor(
@@ -258,6 +260,7 @@ private class UnlockVaultWithBiometric(
         executor = executor,
         getCipher = options.getCipher,
         getCreateIo = options.getCreateIo,
+        requireConfirmation = options.requireConfirmation,
     )
 
     override fun invoke() {

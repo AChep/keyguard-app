@@ -46,6 +46,10 @@ you can find artifacts for your platform on the [releases](https://github.com/AC
 | :----: |
 | ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20240306-111704.png) |
 
+## Localisation
+
+You can help me translate the app by going to [Crowdin](https://crowdin.com/project/keyguard).
+
 ## License
 
 The source code is available for **personal use** only.

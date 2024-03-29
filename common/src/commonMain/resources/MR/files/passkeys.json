@@ -582,6 +582,15 @@
     "setup": "https://hardwax.com/my-details/#login-settings"
   },
   {
+    "name": "Hatena",
+    "domain": "hatena.ne.jp",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://hatena.zendesk.com/hc/ja/articles/29891975697177",
+    "setup": "https://accounts.hatena.ne.jp/settings"
+  },
+  {
     "name": "Visma",
     "domain": "home.visma.com",
     "features": [
@@ -887,8 +896,7 @@
     "name": "okta",
     "domain": "okta.com",
     "features": [
-      "mfa",
-      "signin"
+      "mfa"
     ],
     "documentation": "https://help.okta.com/oie/en-us/Content/Topics/identity-engine/authenticators/configure-webauthn.htm"
   },
@@ -1243,6 +1251,15 @@
     "setup": "https://account.uber.com/passkeys"
   },
   {
+    "name": "usesarchbtw.lol",
+    "domain": "usesarchbtw.lol",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://auth.usesarchbtw.lol",
+    "notes": "After setting up a password it will prompt for a yubikey, passkey or finally TOTP if neither are available."
+  },
+  {
     "name": "United Southeast Federal Credit Union",
     "domain": "usfcu.org",
     "features": [
@@ -1342,6 +1359,24 @@
     "documentation": "https://in.help.yahoo.com/kb/SLN35635.html",
     "setup": "https://login.yahoo.com/myaccount/security",
     "notes": "Passkeys can be setup after signing in from a mobile device. "
+  },
+  {
+    "name": "Yandex",
+    "domain": "yandex.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://yandex.com/support/id/no-password.html#face-or-touchpass",
+    "setup": "https://id.yandex.com/security/webauthn"
+  },
+  {
+    "name": "Yandex",
+    "domain": "yandex.ru",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://yandex.ru/support/id/no-password.html#face-or-touchpass",
+    "setup": "https://id.yandex.ru/security/webauthn"
   },
   {
     "name": "YouTube",

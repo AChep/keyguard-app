@@ -58,7 +58,7 @@
     <string name="postal_code">PLZ</string>
     <string name="pull_to_search">Zum Suchen ziehen</string>
     <string name="save">Speichern</string>
-    <string name="save_to">Save to</string>
+    <string name="save_to">Speichern unter</string>
     <string name="uri">URI</string>
     <string name="uris">URIs</string>
     <string name="note">Notiz</string>
@@ -89,6 +89,7 @@
     <string name="organizations">Organisationen</string>
     <string name="organizations_empty_label">Keine Organisationen vorhanden</string>
     <string name="misc">Diverses</string>
+    <string name="category">Category</string>
     <string name="command">Aktion</string>
     <string name="execute_command">Ausführen</string>
     <!-- Add (something) -->
@@ -246,33 +247,33 @@
     <string name="ciphers_action_trash_title">Papierkorb</string>
     <string name="ciphers_action_restore_title">Wiederherstellen</string>
     <string name="ciphers_action_delete_title">Für immer löschen</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
+    <string name="ciphers_action_delete_confirmation_title">Endgültig löschen?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Wachturm Alarme konfigurieren</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Zugehörige Elemente in den Papierkorb verschieben</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
-    <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Inactive send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_delete_title">Delete forever</string>
-    <string name="sends_action_delete_confirmation_title">Delete forever?</string>
+    <string name="sends_action_change_name_title">Name ändern</string>
+    <string name="sends_action_change_names_title">Namen ändern</string>
+    <string name="sends_action_change_filename_title">Dateiname ändern</string>
+    <string name="sends_action_change_filenames_title">Dateinamen ändern</string>
+    <string name="sends_action_set_password_title">Passwort festlegen</string>
+    <string name="sends_action_set_passwords_title">Passwörter festlegen</string>
+    <string name="sends_action_set_password_confirmation_message">Für den Zugriff auf dieses Element ist ein Passwort erforderlich</string>
+    <string name="sends_action_change_password_title">Passwort ändern</string>
+    <string name="sends_action_change_passwords_title">Passwörter ändern</string>
+    <string name="sends_action_remove_password_title">Passwort entfernen</string>
+    <string name="sends_action_remove_passwords_title">Passwörter entfernen</string>
+    <string name="sends_action_remove_password_confirmation_title">Passwort entfernen?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Passwörter entfernen?</string>
+    <string name="sends_action_remove_password_confirmation_message">Für den Zugriff auf dieses Element ist kein Passwort erforderlich</string>
+    <string name="sends_action_hide_email_title">E-Mail ausblenden</string>
+    <string name="sends_action_show_email_title">E-Mail anzeigen</string>
+    <string name="sends_action_enable_title">Aktivieren</string>
+    <string name="sends_action_enable_text">Aktives Senden ist über eine öffentliche URL zugänglich</string>
+    <string name="sends_action_enable_confirmation_title">Aktivieren?</string>
+    <string name="sends_action_disable_title">Deaktivieren</string>
+    <string name="sends_action_disable_text">Inaktives Senden ist über eine öffentliche URL unzugänglich</string>
+    <string name="sends_action_disable_confirmation_title">Deaktivieren?</string>
+    <string name="sends_action_delete_title">Endgültig löschen</string>
+    <string name="sends_action_delete_confirmation_title">Endgültig löschen?</string>
     <string name="file_action_open_with_title">Öffnen mit…</string>
     <string name="file_action_send_with_title">Mit… senden</string>
     <string name="file_action_open_in_file_manager_title">Im Dateimanager öffnen</string>
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des OTP-Codes</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
@@ -568,8 +570,8 @@
     <string name="additem_markdown_render_preview">Render-Vorschau</string>
     <string name="additem_auth_reprompt_title">Auth erneut anfordern</string>
     <string name="additem_auth_reprompt_text">Nach erneuter Authentifizierung fragen, wenn du eine Chiffre ansiehst oder automatisch Einfügst</string>
-    <string name="addsend_header_new_title">New item</string>
-    <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_header_new_title">Neues Element</string>
+    <string name="addsend_header_edit_title">Element bearbeiten</string>
     <string name="addaccount_header_title">Bitwarden Account hinzufügen</string>
     <string name="addaccount_disclaimer_bitwarden_label">Wir sind nicht verbunden, verknüpft, autorisiert, unterstützt oder in irgendeiner Weise offiziell verbunden mit der Bitwarden, Inc. oder einer ihrer Tochtergesellschaften oder ihrer verbundenen Unternehmen.</string>
     <!--
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">Feature-Überblick</string>
     <string name="pref_item_url_override_title">URL Überschreibungen</string>
     <string name="pref_item_biometric_unlock_title">Biometrisches Entsperren</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

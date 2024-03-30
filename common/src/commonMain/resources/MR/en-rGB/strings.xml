@@ -89,6 +89,7 @@
     <string name="organizations">Organisations</string>
     <string name="organizations_empty_label">No organisations</string>
     <string name="misc">Miscellaneous</string>
+    <string name="category">Category</string>
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
     <!-- Add (something) -->
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorise a request</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">Features overview</string>
     <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

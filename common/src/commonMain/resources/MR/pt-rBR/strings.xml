@@ -89,6 +89,7 @@
     <string name="organizations">Empresas</string>
     <string name="organizations_empty_label">Sem empresas</string>
     <string name="misc">Diversos</string>
+    <string name="category">Category</string>
     <string name="command">Comando</string>
     <string name="execute_command">Executar</string>
     <!-- Add (something) -->
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar uma passkey</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">Descrição geral dos recursos</string>
     <string name="pref_item_url_override_title">Substituições de URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

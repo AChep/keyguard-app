@@ -89,6 +89,7 @@
     <string name="organizations">Organitzacions</string>
     <string name="organizations_empty_label">Cap organització</string>
     <string name="misc">Miscel·lània</string>
+    <string name="category">Category</string>
     <string name="command">Comandament</string>
     <string name="execute_command">Executa</string>
     <!-- Add (something) -->
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">No s\'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s\'ha pogut crear la passkey</string>
     <string name="error_failed_use_passkey">No s\'ha pogut autoritzar la petició</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">No s\'ha pogut formatar el marcador</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Codi de barres</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">Visió general de funcions</string>
     <string name="pref_item_url_override_title">Sobreescriptures d\'URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueig biomètric</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

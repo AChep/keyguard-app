@@ -58,7 +58,7 @@
     <string name="postal_code">Posta kodu</string>
     <string name="pull_to_search">Aramak için çekin</string>
     <string name="save">Kaydet</string>
-    <string name="save_to">Save to</string>
+    <string name="save_to">Şuraya kaydet</string>
     <string name="uri">URI</string>
     <string name="uris">URI\'ler</string>
     <string name="note">Not</string>
@@ -89,6 +89,7 @@
     <string name="organizations">Kuruluşlar</string>
     <string name="organizations_empty_label">Kuruluş yok</string>
     <string name="misc">Çeşitli Hükümler</string>
+    <string name="category">Category</string>
     <string name="command">Komut</string>
     <string name="execute_command">Yürüt</string>
     <!-- Add (something) -->
@@ -246,40 +247,40 @@
     <string name="ciphers_action_trash_title">Çöp</string>
     <string name="ciphers_action_restore_title">Geri Yükle</string>
     <string name="ciphers_action_delete_title">Sonsuza dek sil</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
+    <string name="ciphers_action_delete_confirmation_title">Sonsuza dek sil?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Gözlemci uyarılarını yapılandır</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">İlişkili öğeleri çöp kutusuna taşı</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
-    <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Inactive send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_delete_title">Delete forever</string>
-    <string name="sends_action_delete_confirmation_title">Delete forever?</string>
+    <string name="sends_action_change_name_title">Adı değiştir</string>
+    <string name="sends_action_change_names_title">Adları değiştir</string>
+    <string name="sends_action_change_filename_title">Dosya adını değiştir</string>
+    <string name="sends_action_change_filenames_title">Dosya adlarını değiştir</string>
+    <string name="sends_action_set_password_title">Şifre belirle</string>
+    <string name="sends_action_set_passwords_title">Şifreleri belirle</string>
+    <string name="sends_action_set_password_confirmation_message">Kullanıcıların bu öğeye erişmesi için bir parola iste</string>
+    <string name="sends_action_change_password_title">Parolayı değiştir</string>
+    <string name="sends_action_change_passwords_title">Parolaları değiştir</string>
+    <string name="sends_action_remove_password_title">Parolayı kaldır</string>
+    <string name="sends_action_remove_passwords_title">Parolayı kaldır</string>
+    <string name="sends_action_remove_password_confirmation_title">Parola kaldırılsın mı?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Parolalar kaldırılsın mı?</string>
+    <string name="sends_action_remove_password_confirmation_message">Kullanıcıların bu öğeye erişmesi için parola isteme</string>
+    <string name="sends_action_hide_email_title">E-postayı gizle</string>
+    <string name="sends_action_show_email_title">E-postayı göster</string>
+    <string name="sends_action_enable_title">Etkinleştir</string>
+    <string name="sends_action_enable_text">Aktif gönderime herkese açık bir URL ile erişilebilir</string>
+    <string name="sends_action_enable_confirmation_title">Etkinleştir?</string>
+    <string name="sends_action_disable_title">Devre dışı bırak</string>
+    <string name="sends_action_disable_text">Etkin olmayan gönderime genel bir URL ile erişilemiyor</string>
+    <string name="sends_action_disable_confirmation_title">Devre dışı bırak?</string>
+    <string name="sends_action_delete_title">Sonsuza dek sil</string>
+    <string name="sends_action_delete_confirmation_title">Sonsuza dek sil?</string>
     <string name="file_action_open_with_title">Birlikte aç…</string>
     <string name="file_action_send_with_title">Şununla gönder...</string>
     <string name="file_action_open_in_file_manager_title">Dosya yöneticisinde aç</string>
     <string name="file_action_delete_local_title">Yerel dosyayı sil</string>
     <string name="file_action_view_cipher_title">Üst öğeyi görüntüle</string>
     <string name="vault_action_always_show_keyboard_title">Her zaman klavyeyi göster</string>
-    <string name="vault_action_sync_vault_title">Senkronizasyon kasası</string>
+    <string name="vault_action_sync_vault_title">Kasayı senkronize et</string>
     <string name="vault_action_lock_vault_title">Kasayı kilitle</string>
     <string name="vault_action_rename_folder_title">Klasörü yeniden adlandır</string>
     <string name="email_action_check_data_breach_title">Bilinen veri ihlallerinde e-postayı kontrol edin</string>
@@ -422,7 +423,7 @@
     <string name="error_must_not_be_blank">Boş bırakılmamalıdır</string>
     <string name="error_must_be_custom_domain">Özel alan adı olmalıdır</string>
     <string name="error_must_contain_only_us_ascii_chars">Yalnızca US - ASCII karakterleri içermelidir</string>
-    <string name="error_must_have_at_least_n_symbols">En az olmalıdır <xliff:g id="length" example="15">%1$d</xliff:g> semboller uzun</string>
+    <string name="error_must_have_at_least_n_symbols">En az <xliff:g id="length" example="15">%1$d</xliff:g> sembol uzunluğunda olmalıdır</string>
     <string name="error_must_have_exactly_n_symbols">Olmalı <xliff:g id="length" example="15">%1$d</xliff:g> semboller uzun</string>
     <string name="error_invalid_domain">Geçersiz alan adı</string>
     <string name="error_invalid_email">Geçersiz e-posta</string>
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">OTP kodu oluşturulamadı</string>
     <string name="error_failed_create_passkey">Parola oluşturulamadı</string>
     <string name="error_failed_use_passkey">Bir istek yetkilendirilemedi</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirilemedi</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
@@ -540,7 +542,7 @@
     <string name="setup_field_app_password_label">Uygulama şifresi</string>
     <string name="setup_checkbox_biometric_auth">Biyometrik kimlik doğrulama</string>
     <string name="setup_biometric_auth_confirm_title">Kasa oluştur</string>
-    <string name="setup_button_send_crash_reports">Çökme raporları gönder</string>
+    <string name="setup_button_send_crash_reports">Çökme raporlarını gönder</string>
     <string name="setup_button_create_vault">Kasa oluştur</string>
     <string name="setup_action_erase_data_title">Uygulama verilerini sil</string>
     <string name="setup_action_erase_data_text">Uygulamayı kapatın ve tüm yerel uygulama verilerini silin</string>
@@ -568,8 +570,8 @@
     <string name="additem_markdown_render_preview">Render önizlemesi</string>
     <string name="additem_auth_reprompt_title">Kimlik doğrulama yeniden istemi</string>
     <string name="additem_auth_reprompt_text">Bir şifreyi görüntülediğinizde veya otomatik olarak doldurduğunuzda yeniden kimlik doğrulaması isteyin</string>
-    <string name="addsend_header_new_title">New item</string>
-    <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_header_new_title">Yeni öğe</string>
+    <string name="addsend_header_edit_title">Öğeyi düzenle</string>
     <string name="addaccount_header_title">Bitwarden hesabı ekle</string>
     <string name="addaccount_disclaimer_bitwarden_label">Bitwarden, Inc. veya herhangi bir yan kuruluşu veya bağlı kuruluşu ile bağlı, ilişkili, yetkili, onaylanmış veya herhangi bir şekilde resmi olarak bağlantılı değiliz.</string>
     <!--
@@ -621,8 +623,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Erişiminizi onaylamak ve bu verilerin kilidini açmak için biyometrik kimlik doğrulamayı kullanın.</string>
     <string name="home_vault_label">Kasa</string>
-    <string name="home_send_label">Gönderme</string>
-    <string name="home_generator_label">Jeneratör</string>
+    <string name="home_send_label">Gönderilenler</string>
+    <string name="home_generator_label">Oluşturucu</string>
     <string name="home_watchtower_label">Gözlemci</string>
     <string name="home_settings_label">Ayarlar</string>
     <string name="lock_reason_inactivity">Hareketsizlik nedeniyle kilitlendi</string>
@@ -639,7 +641,7 @@
     <!--
         Displayed below a password that was exposed in the known data breached. It
         ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
-    <string name="password_pwned_label">Pwned</string>
+    <string name="password_pwned_label">Sızan</string>
     <string name="password_strength_very_strong_label">Çok güçlü</string>
     <string name="password_strength_strong_label">Güçlü</string>
     <string name="password_strength_good_label">İyi</string>
@@ -711,7 +713,7 @@
     <string name="send_main_search_placeholder">Gönderilenler\'de ara</string>
     <string name="send_main_new_item_button">Yeni öğe</string>
     <string name="send_password_is_required_to_access_label">Bu paylaşıma erişmek için bir parola gereklidir</string>
-    <string name="generator_header_title">Jeneratör</string>
+    <string name="generator_header_title">Oluşturucu</string>
     <string name="generator_header_username_title">Kullanıcı adı oluşturucu</string>
     <string name="generator_header_password_title">Parola oluşturucu</string>
     <string name="generator_generate_button">Oluştur</string>
@@ -753,9 +755,9 @@
     <string name="generator_create_item_with_username_title">Kullanıcı adıyla yeni giriş oluştur</string>
     <string name="generator_password_history_title">Parola geçmişi</string>
     <string name="generator_show_tips_title">İpuçlarını göster</string>
-    <string name="generatorhistory_header_title">Jeneratör geçmişi</string>
+    <string name="generatorhistory_header_title">Oluşturucu geçmişi</string>
     <string name="generatorhistory_clear_history_title">Geçmişi temizle</string>
-    <string name="generatorhistory_clear_history_confirmation_title">Jeneratör geçmişi temizlensin mi?</string>
+    <string name="generatorhistory_clear_history_confirmation_title">Oluşturucu geçmişi temizlensin mi?</string>
     <string name="generatorhistory_clear_history_confirmation_text">Bu, geçmişteki tüm öğeleri kaldıracaktır.</string>
     <string name="generatorhistory_delete_one_confirmation_title">Öğe geçmişten silinsin mi?</string>
     <string name="generatorhistory_delete_many_confirmation_title">Öğeler geçmişten silinsin mi?</string>
@@ -769,7 +771,7 @@
     <string name="watchtower_section_password_strength_label">Parola gücü</string>
     <string name="watchtower_section_security_label">Güvenlik</string>
     <string name="watchtower_section_maintenance_label">Bakım</string>
-    <string name="watchtower_item_pwned_passwords_title">Pwned Şifreleri</string>
+    <string name="watchtower_item_pwned_passwords_title">Sızan Şifreler</string>
     <string name="watchtower_item_pwned_passwords_text">Veri ihlallerinde açığa çıkan şifreler. Bu tür şifreler derhal değiştirilmelidir.</string>
     <string name="watchtower_item_reused_passwords_title">Yeniden Kullanılan Şifreler</string>
     <string name="watchtower_item_reused_passwords_text">Aynı parolayı birden fazla web sitesinde kullanmayın. Güvenliği artırmak için benzersiz parolalar oluşturun.</string>
@@ -851,7 +853,7 @@
     <string name="pref_item_other_text">Topluluk web siteleri, uygulama bilgileri</string>
     <string name="pref_item_nav_label_title">Gezinme düğmelerinde etiketleri göster</string>
     <string name="pref_item_app_version_title">Uygulama sürümü</string>
-    <string name="pref_item_app_build_date_title">Uygulama derleme tarihi</string>
+    <string name="pref_item_app_build_date_title">Uygulama derlenme tarihi</string>
     <!--
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
@@ -868,7 +870,7 @@
     <string name="pref_item_load_website_icons_title">Web sitesi simgelerini yükle</string>
     <string name="pref_item_load_website_icons_text">Sıraya giren web sitesi simgesi, web sitesi adresini internet sağlayıcısına sızdırabilir</string>
     <string name="pref_item_markdown_title">Zengin metin biçimlendirme</string>
-    <string name="pref_item_markdown_text">Notları biçimlendirmek için İndirim\'i kullanın</string>
+    <string name="pref_item_markdown_text">Notları biçimlendirmek için Markdown kullanın</string>
     <string name="pref_item_locale_title">Dil</string>
     <string name="pref_item_locale_help_translation_button">Çeviri öner</string>
     <string name="pref_item_font_title">Yazı tipi</string>
@@ -894,7 +896,7 @@
     <string name="pref_item_require_app_password_note">Düzenli güvenlik ayarlarınıza ek olarak, bu süreden sonra veya biyometri ayarları değiştirildiğinde uygulama şifreniz gerekecektir</string>
     <string name="pref_item_require_app_password_immediately_text">Hemen</string>
     <string name="pref_item_require_app_password_never_text">Asla</string>
-    <string name="pref_item_send_crash_reports_title">Çökme raporları gönder</string>
+    <string name="pref_item_send_crash_reports_title">Çökme raporlarını gönder</string>
     <string name="pref_item_nav_animation_title">Geçiş animasyonu</string>
     <string name="pref_item_erase_data_title">Uygulama verilerini sil</string>
     <string name="pref_item_erase_data_text">Uygulamayı kapatın ve tüm yerel uygulama verilerini silin</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">Özelliklere genel bakış</string>
     <string name="pref_item_url_override_title">URL geçersiz kılmaları</string>
     <string name="pref_item_biometric_unlock_title">Biyometrik kilit açma</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -967,7 +971,7 @@
     <string name="theme_light">Açık</string>
     <string name="nav_animation_disabled">Devre dışı</string>
     <string name="nav_animation_dynamic">Dinamik</string>
-    <string name="nav_animation_crossfade">Crossfade</string>
+    <string name="nav_animation_crossfade">Çapraz geçiş</string>
     <string name="font_atkinson_hyperlegible_text">Görme azlığı olan okuyucular için okunabilirliği artırmak ve anlamayı geliştirmek için özel olarak geliştirilmiştir</string>
     <string name="feat_header_title">Özelliklere Genel Bakış</string>
     <string name="feat_keyguard_premium_label">Keyguard Premium</string>
@@ -985,7 +989,7 @@
     <string name="feat_item_multiple_keywords_title">Birden fazla anahtar kelime</string>
     <string name="feat_item_multiple_keywords_text">\' Bitwarden Test Hesabı \' öğenizi bulmak için \' bitw test \' ile arama yapın.</string>
     <string name="feat_section_watchtower_title">Gözlemci</string>
-    <string name="feat_item_pwned_passwords_title">Verilen şifreler</string>
+    <string name="feat_item_pwned_passwords_title">Sızan şifreler</string>
     <string name="feat_item_pwned_passwords_text">Veri ihlalleri şifrelerinde açığa çıkan öğeleri bulun.</string>
     <string name="feat_item_password_strength_title">Parola gücü</string>
     <string name="feat_item_password_strength_text">Parolası zayıf olan öğeleri bulun.</string>
@@ -1006,7 +1010,7 @@
     <string name="feat_item_multi_selection_text">Şifreleri birleştirin, yeniden düzenlemeyi toplu işlemlerle sabitleyin.</string>
     <string name="feat_item_show_barcode_title">Barkod olarak göster</string>
     <string name="feat_item_show_barcode_text">Bir metni farklı barkodlar olarak kodlayın.</string>
-    <string name="feat_item_generator_title">Jeneratör</string>
+    <string name="feat_item_generator_title">Oluşturucu</string>
     <string name="feat_item_generator_text">Parolalar veya kullanıcı adları oluşturun.</string>
     <string name="datasafety_header_title">Veri güvenliği</string>
     <string name="datasafety_local_section">Yerel veri</string>

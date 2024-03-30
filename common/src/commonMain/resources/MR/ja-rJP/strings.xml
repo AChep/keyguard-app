@@ -89,6 +89,7 @@
     <string name="organizations">組織</string>
     <string name="organizations_empty_label">組織なし</string>
     <string name="misc">その他</string>
+    <string name="category">Category</string>
     <string name="command">コマンド</string>
     <string name="execute_command">実行</string>
     <!-- Add (something) -->
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">OTP コードの生成に失敗しました</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">バーコード</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">機能の概要</string>
     <string name="pref_item_url_override_title">URL の上書き</string>
     <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

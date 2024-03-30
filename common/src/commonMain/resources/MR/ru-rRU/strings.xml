@@ -89,6 +89,7 @@
     <string name="organizations">Организации</string>
     <string name="organizations_empty_label">Нет организаций</string>
     <string name="misc">Разное</string>
+    <string name="category">Category</string>
     <string name="command">Команда</string>
     <string name="execute_command">Выполнить</string>
     <!-- Add (something) -->
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">Обзор возможностей</string>
     <string name="pref_item_url_override_title">Переопределение URL-адреса</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

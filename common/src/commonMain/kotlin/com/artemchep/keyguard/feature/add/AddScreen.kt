@@ -109,6 +109,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatSimpleNote
@@ -1370,13 +1371,14 @@ private fun AddItem(
             }
         },
         onClick = {
-            if (item.actions.size == 1) {
-                // TODO: !!!!!!!!!
-                // item.actions.first()
-                //     .onClick?.invoke()
-            } else {
-                dropdownShownState.value = true
+            if (item.actions.size == 1) run {
+                val action = item.actions
+                    .firstNotNullOfOrNull { it as? FlatItemAction }
+                action?.onClick?.invoke()
+                return@run
             }
+
+            dropdownShownState.value = true
         },
     )
 }

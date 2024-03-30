@@ -82,10 +82,10 @@ fun producePasskeysListState(
             .map { serviceInfo ->
                 val key = kotlin.run {
                     val newNameCollisionCounter = nameCollisions
-                        .getOrDefault(serviceInfo.name, 0) + 1
-                    nameCollisions[serviceInfo.name] =
+                        .getOrDefault(serviceInfo.id, 0) + 1
+                    nameCollisions[serviceInfo.id] =
                         newNameCollisionCounter
-                    serviceInfo.name + ":" + newNameCollisionCounter
+                    serviceInfo.id + ":" + newNameCollisionCounter
                 }
                 val faviconUrl = serviceInfo.documentation?.let { url ->
                     FaviconUrl(

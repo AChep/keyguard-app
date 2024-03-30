@@ -89,6 +89,7 @@
     <string name="organizations">Organizations</string>
     <string name="organizations_empty_label">No organizations</string>
     <string name="misc">Miscellaneous</string>
+    <string name="category">Category</string>
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
     <!-- Add (something) -->

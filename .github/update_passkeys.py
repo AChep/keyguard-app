@@ -1,6 +1,7 @@
 import json
 import requests
 import argparse
+import hashlib
 
 parser = argparse.ArgumentParser("update_passkeys")
 parser.add_argument("api_key", help="An API Key to access the https://passkeys.directory/ backend.", type=str)
@@ -23,8 +24,14 @@ response = requests.get(
 aggr = []
 
 for site in response.json():
+    # generate a unique id
+    id_str = site['name'] + '|' + site['domain'] + '|' + (site.get('created_at') or '')
+    id = hashlib\
+        .md5(id_str.encode('utf-8'))\
+        .hexdigest()
     features = []
     entry = {
+        'id': id,
         'name': site['name'],
         'domain': site['domain'],
         'features': features,
@@ -36,6 +43,8 @@ for site in response.json():
 
     append_if_not_empty('documentation_link', 'documentation')
     append_if_not_empty('setup_link', 'setup')
+    append_if_not_empty('category', 'category')
+    append_if_not_empty('created_at', 'created_at')
     append_if_not_empty('notes', 'notes')
 
     # convert features to a list

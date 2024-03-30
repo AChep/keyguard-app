@@ -1,5 +1,6 @@
 [
   {
+    "id": "da2572366f5f4637ec396b4fab9e4727",
     "name": "Adobe",
     "domain": "adobe.com",
     "features": [
@@ -7,17 +8,23 @@
     ],
     "documentation": "https://helpx.adobe.com/manage-account/using/secure-sign-in-with-passkey.html#set-up",
     "setup": "https://account.adobe.com/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-21T19:37:59+00:00",
     "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
   },
   {
+    "id": "61a3e313d61080750cd23d799aeda103",
     "name": "Albert Heijn",
     "domain": "ah.nl",
     "features": [
       "signin"
     ],
-    "setup": "https://www.ah.nl/account/inloggegevens/passkey"
+    "setup": "https://www.ah.nl/account/inloggegevens/passkey",
+    "category": "eCommerce",
+    "created_at": "2023-10-14T12:55:30.917158+00:00"
   },
   {
+    "id": "8a04c4bad707b7b785373f1b215dee13",
     "name": "Air New Zealand",
     "domain": "airnewzealand.co.nz",
     "features": [
@@ -25,9 +32,12 @@
     ],
     "documentation": "https://www.airnewzealand.co.nz/manage-multi-factor-authentication#passkey",
     "setup": "https://www.airnewzealand.com/membership/profile/personalInfo/mfa",
+    "category": "Travel & Tourism",
+    "created_at": "2023-07-15T00:22:58.421269+00:00",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
+    "id": "35d2c9e7bffec3c546a0a586a80e3b19",
     "name": "Air New Zealand",
     "domain": "airnewzealand.com",
     "features": [
@@ -35,214 +45,292 @@
     ],
     "documentation": "https://www.airnewzealand.com/manage-multi-factor-authentication#passkeys",
     "setup": "https://www.airnewzealand.com/membership/profile/personalInfo/mfa",
+    "category": "Travel & Tourism",
+    "created_at": "2023-10-07T10:59:49.754188+00:00",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
+    "id": "19f295803032ff7ea93981ebca818d7d",
     "name": "Air New Zealand (Australia)",
     "domain": "airnewzealand.com.au",
     "features": [
       "signin"
     ],
     "setup": "https://auth.identity.airnewzealand.com.au/enable-passkeys",
+    "category": "Travel & Tourism",
+    "created_at": "2023-07-15T00:22:00.575585+00:00",
     "notes": "Passkey upgrade will be offered after creating an account or signing in."
   },
   {
+    "id": "9221bc4b7c0cffe639d51927070c28c3",
     "name": "Amazon Canada",
     "domain": "amazon.ca",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.ca/your-account"
+    "setup": "https://www.amazon.ca/your-account",
+    "category": "eCommerce",
+    "created_at": "2023-03-23T21:19:18.73449+00:00"
   },
   {
+    "id": "077da7fa683dd71b38b4714ae73befcf",
     "name": "Amazon Japan",
     "domain": "amazon.co.jp",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.co.jp/-/en/gp/css/homepage.html"
+    "setup": "https://www.amazon.co.jp/-/en/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-06-11T02:48:35+00:00"
   },
   {
+    "id": "f13dd38dec6a35aa9eae3dfa4fcb5275",
     "name": "Amazon UK",
     "domain": "amazon.co.uk",
     "features": [
       "signin"
     ],
     "setup": "https://www.amazon.co.uk/your-account",
+    "category": "eCommerce",
+    "created_at": "2023-03-23T11:33:11.163718+00:00",
     "notes": "Amazon is actively rolling out sign in with passkey support. Setting up a passkey on Amazon needs to meet one of the minimum software requirements of iOS 16, macOS Big Sur, or Android 9 (if applicable).\n\n#### To set up a passkey on your Amazon account:\n\n1. In Your Account, select Login & Security.\n2. Select Set up next to Passkey.\n3. Select Set up.\n4. Follow the instructions provided to complete setting up a passkey.\n\nSigning in to different Amazon marketplaces (Amazon.co.uk compared to Amazon.com for example) requires either a new passkey for that specific marketplace or using your Amazon password."
   },
   {
+    "id": "99d130785587b44a12b1186358b1c99b",
     "name": "Amazon",
     "domain": "amazon.com",
     "features": [
       "signin"
     ],
     "setup": "https://www.amazon.com/your-account",
+    "category": "eCommerce",
+    "created_at": "2023-03-21T19:38:33+00:00",
     "notes": "Amazon is actively rolling out sign in with passkey support. Setting up a passkey on Amazon needs to meet one of the minimum software requirements of iOS 16, macOS Big Sur, or Android 9 (if applicable).\n\n#### To set up a passkey on your Amazon account:\n\n1. In Your Account, select Login & Security.\n2. Select Set up next to Passkey.\n3. Select Set up.\n4. Follow the instructions provided to complete setting up a passkey.\n\nSigning in to different Amazon marketplaces (Amazon.co.uk compared to Amazon.com for example) requires either a new passkey for that specific marketplace or using your Amazon password."
   },
   {
+    "id": "7f50767fb1b895ea34b7da26791b436b",
     "name": "Amazon AU",
     "domain": "amazon.com.au",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.com.au/gp/css/homepage.html"
+    "setup": "https://www.amazon.com.au/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-09-22T05:27:17.592219+00:00"
   },
   {
+    "id": "789871134fa220820cd8ded018a8f38e",
     "name": "Amazon.com.be",
     "domain": "amazon.com.be",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.com.be/gp/css/homepage.html"
+    "setup": "https://www.amazon.com.be/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-11-02T22:41:13.30532+00:00"
   },
   {
+    "id": "989d53ddb1fbbbb172f0611c131b0db7",
     "name": "Amazon Brazil",
     "domain": "amazon.com.br",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.com.br/gp/css/homepage.html"
+    "setup": "https://www.amazon.com.br/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-06-01T19:09:27.529171+00:00"
   },
   {
+    "id": "3063cc5965f3c3ef7434ea3550b8ac40",
     "name": "Amazon T\u00fcrkiye",
     "domain": "amazon.com.tr",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.com.tr/gp/css/homepage.html"
+    "setup": "https://www.amazon.com.tr/gp/css/homepage.html",
+    "category": "Other",
+    "created_at": "2023-04-01T15:31:38.21845+00:00"
   },
   {
+    "id": "78cbe4abb41faa0af60d386b8e4d1a3d",
     "name": "Amazon Germany",
     "domain": "amazon.de",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.de/-/en/gp/css/homepage.html"
+    "setup": "https://www.amazon.de/-/en/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-03-30T15:24:14.332861+00:00"
   },
   {
+    "id": "51044b4b7bb7d7421fe1715c9bcacc80",
     "name": "Amazon Spain",
     "domain": "amazon.es",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.es/gp/css/homepage.html"
+    "setup": "https://www.amazon.es/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-03-25T21:13:09.986993+00:00"
   },
   {
+    "id": "cd517eb029bdd080d850424f7bdea617",
     "name": "Amazon France",
     "domain": "amazon.fr",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.fr/gp/css/homepage.html"
+    "setup": "https://www.amazon.fr/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-06-08T09:48:35.91211+00:00"
   },
   {
+    "id": "7c1d13dafbb5cd9f517d6e5bf6752987",
     "name": "Amazon India",
     "domain": "amazon.in",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.in/gp/css/homepage.html"
+    "setup": "https://www.amazon.in/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-03-30T16:04:52.484804+00:00"
   },
   {
+    "id": "694bad9e215138a258b69e1a5fd539bd",
     "name": "Amazon.it",
     "domain": "amazon.it",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.it/gp/css/homepage"
+    "setup": "https://www.amazon.it/gp/css/homepage",
+    "category": "eCommerce",
+    "created_at": "2023-04-06T07:41:58.127706+00:00"
   },
   {
+    "id": "7b68aa716ed490060b92e7cedc20e6f4",
     "name": "Amazon Netherlands",
     "domain": "amazon.nl",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.nl/gp/css/homepage.html"
+    "setup": "https://www.amazon.nl/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-03-30T15:24:25.839056+00:00"
   },
   {
+    "id": "698c166410a0c090c4f0c5bacb047417",
     "name": "Amazon Sweden",
     "domain": "amazon.se",
     "features": [
       "signin"
     ],
-    "setup": "https://www.amazon.se/gp/css/homepage.html"
+    "setup": "https://www.amazon.se/gp/css/homepage.html",
+    "category": "eCommerce",
+    "created_at": "2023-12-05T11:11:36.413782+00:00"
   },
   {
+    "id": "5404c126a9d3e39448a0d357af43b882",
     "name": "Amazon SG",
     "domain": "amazon.sg",
     "features": [
       "signin"
-    ]
+    ],
+    "category": "eCommerce",
+    "created_at": "2023-10-08T16:41:31.0696+00:00"
   },
   {
+    "id": "d3b7268e890129afb066640102955714",
     "name": "Apple",
     "domain": "apple.com",
     "features": [
       "signin"
     ],
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Passkeys for Apple accounts are automatically generated by any Apple devices signed in to an Apple ID running iOS 17 or macOS Sonoma or newer. You will then be able to sign in with passkeys on Apple using any iOS device or Mac signed in to the same Apple ID you are signing in to.\n\nIf you are using a different browser or device, such as a Windows PC or Mac signed in with a different Apple ID, you can scan the QR code using your iOS device and sign in with passkeys on Apple.\n\nYou are not yet able to save passkeys for Apple ID accounts in third-party credential managers and can only be stored in iCloud Passwords at this time."
   },
   {
+    "id": "cabfc1967b0d0f526976cbb4b1a9d890",
     "name": "nulab",
     "domain": "apps.nulab.com",
     "features": [
       "signin"
     ],
     "documentation": "https://support.nulab.com/hc/en-us/articles/7745339110041-Passwordless-authentication-setup",
-    "setup": "https://apps.nulab.com/profile/security/security_device"
+    "setup": "https://apps.nulab.com/profile/security/security_device",
+    "category": "Information Technology",
+    "created_at": "2023-11-21T22:55:05.759371+00:00"
   },
   {
+    "id": "fa2a17946d65dc0b58cbd6e947adae4d",
     "name": "Arcalive",
     "domain": "arca.live",
     "features": [
       "mfa",
       "signin"
     ],
-    "setup": "https://arca.live/settings/account"
+    "setup": "https://arca.live/settings/account",
+    "category": "Social",
+    "created_at": "2023-11-30T12:20:32.631731+00:00"
   },
   {
+    "id": "87c784094420055521967a05d62a3d24",
     "name": "Arpari",
     "domain": "arpari.com",
     "features": [
       "signin"
     ],
     "setup": "https://app.arpari.com/login",
+    "category": "Finance",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "b91b373882b8442d694254959a6d7dcd",
     "name": "Authgear",
     "domain": "authgear.com",
     "features": [
       "signin"
     ],
-    "setup": "https://authgear.com"
+    "setup": "https://authgear.com",
+    "category": "Authentication Provider",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "5064fd8452a1c75542f5b536c2997078",
     "name": "Bagou450",
     "domain": "bagou450.com",
     "features": [
       "signin"
-    ]
+    ],
+    "category": "Information Technology",
+    "created_at": "2023-12-13T19:28:12.855946+00:00"
   },
   {
+    "id": "e911cc2dfd01290d4204754ce727df83",
     "name": "Best Buy",
     "domain": "bestbuy.com",
     "features": [
       "signin"
     ],
     "setup": "https://www.bestbuy.com/identity/accountSettings/",
+    "category": "E-Commerce",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Use the setup link provided and sign in with your email address and password, then follow the steps to create a passkey.\n\nSign out, then choose Sign In with a Passkey when you sign back in to use your passkey."
   },
   {
+    "id": "5ea3f5ff22246acbe3aa5755a6a5e243",
     "name": "Beyond Identity",
     "domain": "beyondidentity.com",
     "features": [
       "signin"
     ],
-    "setup": "https://console-us.beyondidentity.com/signup"
+    "setup": "https://console-us.beyondidentity.com/signup",
+    "category": "Authentication Provider",
+    "created_at": "2023-02-02T00:00:00+00:00"
   },
   {
+    "id": "8678b10de2f791603642e85d0a83fef4",
     "name": "Binance",
     "domain": "binance.com",
     "features": [
@@ -250,58 +338,79 @@
       "signin"
     ],
     "documentation": "https://www.binance.com/en/support/faq/how-to-create-a-passkey-for-my-binance-account-2aec8fe0437242f2a5fbef9cdb71d4c2",
-    "setup": "https://accounts.binance.com/en/manage-yubikey-authenticator"
+    "setup": "https://accounts.binance.com/en/manage-yubikey-authenticator",
+    "category": "Finance",
+    "created_at": "2023-03-22T22:16:24.084764+00:00"
   },
   {
+    "id": "83beaa3f99b800b55fd261355ec4044f",
     "name": "Bitwarden",
     "domain": "bitwarden.com",
     "features": [
       "mfa",
       "signin"
-    ]
+    ],
+    "category": "Information Technology",
+    "created_at": "2023-03-27T09:11:32.900538+00:00"
   },
   {
+    "id": "d8915fbe73b57587b57193fbbea2e541",
     "name": "Boursorama",
     "domain": "boursorama.com",
     "features": [
       "signin"
     ],
     "documentation": "https://www.boursorama.com/aide-en-ligne/securite/proteger-mon-espace-client/question/comment-se-connecter-a-votre-espace-client-grace-aux-cles-de-securite-5165516",
-    "setup": "https://www.boursorama.com"
+    "setup": "https://www.boursorama.com",
+    "category": "Finance",
+    "created_at": "2023-05-17T07:54:25.211309+00:00"
   },
   {
+    "id": "b95c3108788a4f21eee1b1148b182f11",
     "name": "Bridgecrest",
     "domain": "bridgecrest.com",
     "features": [
       "signin"
     ],
-    "setup": "https://bridgecrest.com"
+    "setup": "https://bridgecrest.com",
+    "category": "Finance",
+    "created_at": "2023-06-26T12:34:44.738975+00:00"
   },
   {
+    "id": "022acd9b0992c0892963dd56250b42ba",
     "name": "Cape Cod 5",
     "domain": "capecodfive.com",
     "features": [
       "signin"
     ],
-    "setup": "https://online.capecodfive.com/settings/security/"
+    "setup": "https://online.capecodfive.com/settings/security/",
+    "category": "Finance",
+    "created_at": "2023-11-02T11:30:01.732488+00:00"
   },
   {
+    "id": "f89ff6bc0506f8e46d7304736959f394",
     "name": "CardPointers",
     "domain": "cardpointers.com",
     "features": [
       "signin"
     ],
-    "setup": "https://apps.apple.com/app/apple-store/id1472875808?pt=285054&ct=homepage&mt=8"
+    "setup": "https://apps.apple.com/app/apple-store/id1472875808?pt=285054&ct=homepage&mt=8",
+    "category": "Finance",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "7cfff77e6b3087df45c3faa379b63a23",
     "name": "Caremark",
     "domain": "caremark.com",
     "features": [
       "signin"
     ],
-    "setup": "https://www.caremark.com/digital-fast/caremark-login-web/#/login"
+    "setup": "https://www.caremark.com/digital-fast/caremark-login-web/#/login",
+    "category": "Health & Wellness",
+    "created_at": "2023-10-19T04:36:33.183993+00:00"
   },
   {
+    "id": "51bb256a0f5d44ce4a5de9a92170978d",
     "name": "Chek",
     "domain": "chekspend.com",
     "features": [
@@ -309,18 +418,24 @@
     ],
     "documentation": "https://help.chekspend.com/hc/en-us/articles/22351702437780-Get-Started-Guide-Setting-up-a-Chek-Passkey",
     "setup": "https://secure.chekspend.com/#/login",
+    "category": "Finance",
+    "created_at": "2024-01-17T09:37:26.906562+00:00",
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "daba29d2da5b392a5b89e9a049348b0c",
     "name": "Cloudflare",
     "domain": "cloudflare.com",
     "features": [
       "mfa"
     ],
     "documentation": "https://support.cloudflare.com/hc/en-us/articles/200167906-Securing-user-access-with-two-factor-authentication-2FA-#6Gqe6f3nZtXSTpwyS2PBZ1",
-    "setup": "https://dash.cloudflare.com/profile/authentication"
+    "setup": "https://dash.cloudflare.com/profile/authentication",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "c5a18986290381763974917f3b5c03e1",
     "name": "Cloze",
     "domain": "cloze.com",
     "features": [
@@ -328,125 +443,170 @@
       "signin"
     ],
     "setup": "https://www.cloze.com/in/#setup",
+    "category": "Information Technology",
+    "created_at": "2023-11-12T17:01:49.029644+00:00",
     "notes": "### To add a passkey to your account\n\nFrom the side menu bar:\n1. Select (\u2022\u2022\u2022 more)\n2. Select, settings\n3. Expand 'your account' and select [Add] passkeys"
   },
   {
+    "id": "62bc1f1c5efe0c400379a67a78615752",
     "name": "Coinbase",
     "domain": "coinbase.com",
     "features": [
       "mfa",
       "signin"
     ],
-    "documentation": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/passkeys"
+    "documentation": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/passkeys",
+    "category": "Finance",
+    "created_at": "2023-03-31T12:34:31.154201+00:00"
   },
   {
+    "id": "7ef932e057e4c50ae54f2f075ec51c2c",
     "name": "Home Assistant",
     "domain": "community.home-assistant.io",
     "features": [
       "signin"
     ],
-    "setup": "https://community.home-assistant.io/"
+    "setup": "https://community.home-assistant.io/",
+    "category": "Social",
+    "created_at": "2024-03-19T18:45:03.016947+00:00"
   },
   {
+    "id": "e7d20319ad3baa0d8460a62338c95fad",
     "name": "Corbado",
     "domain": "corbado.com",
     "features": [
       "signin"
     ],
-    "setup": "https://app.corbado.com/"
+    "setup": "https://app.corbado.com/",
+    "category": "Authentication Provider",
+    "created_at": "2022-12-13T00:00:00+00:00"
   },
   {
+    "id": "b879b19164a17f191673985d1d88058f",
     "name": "Crowdin",
     "domain": "crowdin.com",
     "features": [
       "mfa",
       "signin"
     ],
-    "setup": "https://crowdin.com/settings#account"
+    "setup": "https://crowdin.com/settings#account",
+    "category": "Information Technology",
+    "created_at": "2023-05-11T20:08:35.414342+00:00"
   },
   {
+    "id": "61021026a31cf5c542f2685f347c3309",
     "name": "CustomerPing.AI",
     "domain": "customerping.ai",
     "features": [
       "signin"
     ],
-    "setup": "https://customerping.ai/app/settings/login"
+    "setup": "https://customerping.ai/app/settings/login",
+    "category": "Marketing",
+    "created_at": "2024-02-24T18:29:12.007139+00:00"
   },
   {
+    "id": "10f615a973fe66fc9693a65d05752059",
     "name": "Credit Union of Texas",
     "domain": "cutx.org",
     "features": [
       "mfa",
       "signin"
     ],
-    "setup": "https://online.cutx.org/settings/security"
+    "setup": "https://online.cutx.org/settings/security",
+    "category": "Finance",
+    "created_at": "2023-05-20T22:24:14.217246+00:00"
   },
   {
+    "id": "955e751ae125571a9c8c6092aa6082b6",
     "name": "CVS",
     "domain": "cvs.com",
     "features": [
       "signin"
     ],
     "setup": "https://www.cvs.com/account/login",
+    "category": "Health & Wellness",
+    "created_at": "2023-05-04T20:56:39.15274+00:00",
     "notes": "Register individual passkeys using iOS, with Safari or Edge browsers.\n\nPlease note: Saving and signing in with passkeys on CVS is currently incompatible with 1Password in the browser and third-party passkey managers on iOS."
   },
   {
+    "id": "a72fa0cc9c67e7839d3420fb960380a4",
     "name": "CVS Speciality",
     "domain": "cvsspecialty.com",
     "features": [
       "signin"
     ],
-    "setup": "https://www.cvsspeciality.com/digital-fastproxy/specialty/#/login"
+    "setup": "https://www.cvsspeciality.com/digital-fastproxy/specialty/#/login",
+    "category": "Health & Wellness",
+    "created_at": "2023-12-14T13:18:23.963085+00:00"
   },
   {
+    "id": "884e2a203956f8187e0e38b46f626c18",
     "name": "DataPacket",
     "domain": "datapacket.com",
     "features": [
       "signin"
     ],
-    "setup": "https://app.datapacket.com/settings/security"
+    "setup": "https://app.datapacket.com/settings/security",
+    "category": "Information Technology",
+    "created_at": "2024-01-21T14:10:54.400022+00:00"
   },
   {
+    "id": "29000fd24c82c85fc045f8e5877d1b17",
     "name": "Devolutions",
     "domain": "devolutions.com",
     "features": [
       "signin"
     ],
-    "setup": "https://portal.devolutions.com/security/key"
+    "setup": "https://portal.devolutions.com/security/key",
+    "category": "Information Technology",
+    "created_at": "2024-03-25T11:32:16.619088+00:00"
   },
   {
+    "id": "9bbe3e34ccbca9ed0470cf12514fcd66",
     "name": "Dinero",
     "domain": "dinero.dk",
     "features": [
       "signin"
     ],
-    "setup": "https://accountsettings.connect.visma.com/"
+    "setup": "https://accountsettings.connect.visma.com/",
+    "category": "Finance",
+    "created_at": "2023-02-02T00:00:00+00:00"
   },
   {
+    "id": "4d72c2b00be176104a8e77a6e970b999",
     "name": "Discord",
     "domain": "discord.com",
     "features": [
       "mfa"
     ],
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-03-21T21:22:32+00:00",
     "notes": "### How to setup passkey\n\nGoto settings > My Account\n\n### Available on:\nWeb, desktop app and on iOS."
   },
   {
+    "id": "51d4645e45c0800d8f4bd7083b1969ad",
     "name": "Discord",
     "domain": "discord.gg",
     "features": [
       "mfa"
-    ]
+    ],
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-10-16T17:39:05.401667+00:00"
   },
   {
+    "id": "19d9be1a6e6ef6175cd1544de9f1bf4f",
     "name": "Discourse",
     "domain": "discourse.org",
     "features": [
       "mfa",
       "signin"
     ],
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-05-27T22:42:06.344918+00:00",
     "notes": "Passkeys can be setup within members account preferences > security"
   },
   {
+    "id": "1aeda7b0cf0214eddd1eaeb8a2ea1a85",
     "name": "DocuSign",
     "domain": "docusign.com",
     "features": [
@@ -455,61 +615,82 @@
     ],
     "documentation": "https://support.docusign.com/s/document-item?language=en_US&bundleId=jux1643235969954&topicId=niw1651694673085.html&_LANG=enus",
     "setup": "https://app.docusign.com/auth",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Click the setup link and sign in with your email address and password, then follow the steps to set up passwordless login using biometrics to create a passkey. \n\nSign out, then sign back in with your email address and choose Log in Without Password to use your passkey."
   },
   {
+    "id": "46b3a3590420f56f8e70139980f7c953",
     "name": "eBay",
     "domain": "ebay.com",
     "features": [
       "signin"
     ],
     "setup": "https://accounts.ebay.com/acctsec/security-center",
+    "category": "E-Commerce",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Select the setup link above and sign in with your email address and password, then select \"Turn on\" next to \"Passkeys\" or \"Face/fingerprint/PIN sign in\" section and follow the steps to create a passkey.\n\nSign out, then sign back in. 1Password will sign in with your passkey automatically."
   },
   {
+    "id": "ffedf5be9581c59c6692beadc6bd3353",
     "name": "Finom",
     "domain": "finom.co",
     "features": [
       "signin"
     ],
     "documentation": "https://help.finom.co/en/articles/8512790-what-are-passkeys-and-how-do-i-use-them",
+    "category": "Finance",
+    "created_at": "2023-12-15T13:18:18.729211+00:00",
     "notes": "To setup a passkey: \n\nSettings -> Security -> Passkeys"
   },
   {
+    "id": "1ca2059de8831f206d884c71b9f65d89",
     "name": "Fleeps",
     "domain": "fleeps.co",
     "features": [
       "signin"
     ],
-    "setup": "https://fleeps.co/atlas"
+    "setup": "https://fleeps.co/atlas",
+    "category": "Travel & Tourism",
+    "created_at": "2023-12-20T11:28:29.118995+00:00"
   },
   {
+    "id": "7f5882d622b562324a79f1a5ef8ea7f1",
     "name": "FormX.ai",
     "domain": "formx.ai",
     "features": [
       "signin"
     ],
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Uses AuthGear. Setup on register or at https://auth.formextractorai.com/settings"
   },
   {
+    "id": "d2945c826aa478ef27fe3481d9c50df6",
     "name": "FreePrints",
     "domain": "freeprints.com",
     "features": [
       "signin"
     ],
     "setup": "https://www.freeprints.com/apps",
+    "category": "eCommerce",
+    "created_at": "2024-01-15T10:10:34.96516+00:00",
     "notes": "Only available within app. \n\nPasskey is offered when signing up instead of password prompt. Also available in settings > Personal Information, tap \"Save a passkey\"."
   },
   {
+    "id": "ed7a8f1028a94bb8b250c90d4e4a84a0",
     "name": "FusionAuth",
     "domain": "fusionauth.io",
     "features": [
       "signin"
     ],
     "documentation": "https://fusionauth.io/docs/v1/tech/passwordless/webauthn-passkeys",
-    "setup": "https://fusionauth.io/"
+    "setup": "https://fusionauth.io/",
+    "category": "Authentication Provider",
+    "created_at": "2023-05-31T18:40:28.37621+00:00"
   },
   {
+    "id": "e93364eb16b037a4163f0506d1826e09",
     "name": "GitHub",
     "domain": "github.com",
     "features": [
@@ -518,26 +699,35 @@
     ],
     "documentation": "https://docs.github.com/en/authentication/authenticating-with-a-passkey/about-passkeys",
     "setup": "https://github.com/settings/security",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "#### To save a passkey on your GitHub account\n1. Navigate to your GitHub account's security settings by heading to https://github.com/settings/security or selecting the setup link above.\n2. Select \"Add a passkey\" under \"Passkeys.\"\n3. Select \"Add passkey\" and follow the on-screen instructions to save a passkey to your GitHub account.\n\nOnce added, you will be able to sign in to your GitHub account by selecting \"Sign in with a passkey\" on the sign in page.\n\n#### Blog post:\n\nhttps://github.blog/2023-09-21-passkeys-are-generally-available/"
   },
   {
+    "id": "da893101fec1552791a984afe8f1f194",
     "name": "GitLab",
     "domain": "gitlab.com",
     "features": [
       "mfa"
     ],
     "documentation": "https://docs.gitlab.com/ee/user/profile/account/two_factor_authentication.html#set-up-a-webauthn-device",
-    "setup": "https://gitlab.com/-/profile/two_factor_auth"
+    "setup": "https://gitlab.com/-/profile/two_factor_auth",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "1b64d0ec6fb9bc359db8166d069ce9b0",
     "name": "GoDaddy",
     "domain": "godaddy.com",
     "features": [
       "mfa"
     ],
-    "setup": "https://sso.godaddy.com/security"
+    "setup": "https://sso.godaddy.com/security",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "0fa5d9653468089cf5894aa7a2e41eff",
     "name": "Google",
     "domain": "google.com",
     "features": [
@@ -546,51 +736,69 @@
     ],
     "documentation": "https://support.google.com/accounts/answer/13548313",
     "setup": "https://g.co/passkeys",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Visit setup link and sign in to a personal Google account with your email address and password, then follow the steps to create a passkey.\n\nSign out, then sign back in. You may need to click \"Try another way\" to see the option to use your passkey."
   },
   {
+    "id": "7217832b441610be9e4974dd2032288f",
     "name": "haeppie",
     "domain": "haeppie.com",
     "features": [
       "signin"
     ],
     "setup": "https://be.haeppie.com/#register",
+    "category": "Information Technology",
+    "created_at": "2023-06-30T14:04:16.666051+00:00",
     "notes": "Passkeys offered after sign up or sign in, after verifying email address. "
   },
   {
+    "id": "f63467a544d7b79705c26ced6f3af4c7",
     "name": "Hancock",
     "domain": "hancock.ink",
     "features": [
       "signin"
     ],
     "setup": "https://app.hancock.ink",
+    "category": "Information Technology",
+    "created_at": "2023-08-10T13:27:35.936615+00:00",
     "notes": "During logon and account setup, passkeys are presented as an option. If you decide not to set up passkeys at that time, you will be prompted to set them up during application use. Should you choose not to do so, or if you want to manage your passkeys, you can go to your user profile to perform these tasks"
   },
   {
+    "id": "e58a8f2c0ff59acdf3d570d81777c97d",
     "name": "Hanko.io",
     "domain": "hanko.io",
     "features": [
       "signin"
-    ]
+    ],
+    "category": "Authentication Provider",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "def96b729637e3a483caea2f97ab9f71",
     "name": "Hard Wax",
     "domain": "hardwax.com",
     "features": [
       "signin"
     ],
-    "setup": "https://hardwax.com/my-details/#login-settings"
+    "setup": "https://hardwax.com/my-details/#login-settings",
+    "category": "eCommerce",
+    "created_at": "2024-02-01T13:19:19.70243+00:00"
   },
   {
+    "id": "4943cddc869b1e3f490f51d5a0500392",
     "name": "Hatena",
     "domain": "hatena.ne.jp",
     "features": [
       "signin"
     ],
     "documentation": "https://hatena.zendesk.com/hc/ja/articles/29891975697177",
-    "setup": "https://accounts.hatena.ne.jp/settings"
+    "setup": "https://accounts.hatena.ne.jp/settings",
+    "category": "Information Technology",
+    "created_at": "2024-03-27T10:38:36.26944+00:00"
   },
   {
+    "id": "fe83d2c9b996786f5c26a2bc4789d902",
     "name": "Visma",
     "domain": "home.visma.com",
     "features": [
@@ -598,27 +806,35 @@
       "signin"
     ],
     "documentation": "https://community.visma.com/t5/Brukertips-i-Visma-net-ERP/Hvordan-kan-du-aktivere-totrinnskontroll-med-FIDO2/ta-p/293830",
-    "setup": "https://accountsettings.connect.visma.com"
+    "setup": "https://accountsettings.connect.visma.com",
+    "category": "Finance"
   },
   {
+    "id": "6b1970a2e5b1b64adfc58acca9018434",
     "name": "Home Depot",
     "domain": "homedepot.com",
     "features": [
       "mfa"
     ],
     "setup": "https://www.homedepot.com/myaccount/security",
+    "category": "E-Commerce",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Home Depot may ask you to set up a new passkey on each new device or browser when signing in to your Home Depot account."
   },
   {
+    "id": "1622f04767e67e33c40c4a82373c6100",
     "name": "Horizon Pics",
     "domain": "horizon.pics",
     "features": [
       "signin"
     ],
     "documentation": "https://docs.hrzn.cool/pics/webauthn",
-    "setup": "https://horizon.pics/settings"
+    "setup": "https://horizon.pics/settings",
+    "category": "Information Technology",
+    "created_at": "2022-12-01T00:00:00+00:00"
   },
   {
+    "id": "db8eb89a905eabc4745c800101475285",
     "name": "World of Hyatt",
     "domain": "hyatt.com",
     "features": [
@@ -626,111 +842,150 @@
     ],
     "documentation": "https://www.hyatt.com/en-US/member/passkey/what-is-passkey",
     "setup": "https://www.hyatt.com/member/passkey/manage",
+    "category": "Travel & Leisure",
+    "created_at": "2023-04-24T11:31:53.02483+00:00",
     "notes": "Hyatt.com will require verification via an emailed code in order to create or manage passkeys."
   },
   {
+    "id": "4db2a87f650fddc9dc3563ce117efabf",
     "name": "au",
     "domain": "id.auone.jp",
     "features": [
       "signin"
     ],
     "documentation": "https://www.au.com/support/faq/detail/26/a00000000826/",
-    "setup": "https://connect.auone.jp/net/vw/cca_eu_net/cca?ID=ENET0570"
+    "setup": "https://connect.auone.jp/net/vw/cca_eu_net/cca?ID=ENET0570",
+    "category": "Information Technology",
+    "created_at": "2023-07-31T11:56:47.211357+00:00"
   },
   {
+    "id": "acbd01e7adfb7c27558d119b7e18b33b",
     "name": "ID.me",
     "domain": "id.me",
     "features": [
       "mfa"
     ],
     "documentation": "https://help.id.me/hc/en-us/articles/10295798300951-Setting-up-Passkey-multi-factor-authentication-MFA-",
-    "setup": "https://account.id.me/signin/security"
+    "setup": "https://account.id.me/signin/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-24T22:49:33.90031+00:00"
   },
   {
+    "id": "05afc7db04408a1418220717ca1f6565",
     "name": "Money Forward ID",
     "domain": "id.moneyforward.com",
     "features": [
       "signin"
     ],
-    "setup": "https://id.moneyforward.com/webauthn/credentials"
+    "setup": "https://id.moneyforward.com/webauthn/credentials",
+    "category": "Finance",
+    "created_at": "2022-12-01T00:00:00+00:00"
   },
   {
+    "id": "4b01b9430c625cb5dfb049df153e514e",
     "name": "Docomo",
     "domain": "id.smt.docomo.ne.jp",
     "features": [
       "signin"
     ],
-    "setup": "https://id.smt.docomo.ne.jp/ast/tra/id/conts/setwebauthn/top/"
+    "setup": "https://id.smt.docomo.ne.jp/ast/tra/id/conts/setwebauthn/top/",
+    "category": "Information Technology",
+    "created_at": "2023-04-24T11:37:28.076064+00:00"
   },
   {
+    "id": "b0b7851d81b36c34280be5ab4ad0a5bc",
     "name": "Instacart",
     "domain": "instacart.com",
     "features": [
       "signin"
     ],
+    "category": "eCommerce",
+    "created_at": "2023-08-20T03:35:00.31331+00:00",
     "notes": "New users signing up in the Instacart app will be asked to set up a passkey. Existing users or new users signing up through a web browser are not yet able to add a passkey to their accounts.\n\nIf you are an Instacart shopper, you are able to add a passkey to your existing account through the Shopper app.\n\n#### To set up a passkey on your Shopper account:\n\nStep 1: Go to the Account tab in the Shopper app.\n\nStep 2: Tap Settings.\n\nStep 3: Tap Set up passkey."
   },
   {
+    "id": "be28b9d62ed5bbd17d056c4e7c125c44",
     "name": "Intastellar Accounts",
     "domain": "intastellaraccounts.com",
     "features": [
       "signin"
     ],
-    "setup": "https://my.intastellaraccounts.com/security/passkeys"
+    "setup": "https://my.intastellaraccounts.com/security/passkeys",
+    "category": "Information Technology",
+    "created_at": "2023-10-10T13:00:00+00:00"
   },
   {
+    "id": "151f0645309eb9efb966041626479322",
     "name": "Mercari",
     "domain": "jp.mercari.com",
     "features": [
       "signin"
     ],
     "documentation": "https://help.jp.mercari.com/guide/articles/1103/",
-    "setup": "https://jp.mercari.com/mypage/personal_info/passkeys"
+    "setup": "https://jp.mercari.com/mypage/personal_info/passkeys",
+    "category": "eCommerce",
+    "created_at": "2023-10-16T02:30:21.148977+00:00"
   },
   {
+    "id": "c472ca83e62fee83e1417b3fd26d58b9",
     "name": "KAYAK",
     "domain": "kayak.com",
     "features": [
       "signin"
     ],
     "setup": "https://www.kayak.com/profile/account",
+    "category": "Travel & Leisure",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "From the setup link, click \"Sign in\" > \"Continue with email\" to create a new account with a passkey.\n\nSign out, then repeat the same process to sign in with your passkey."
   },
   {
+    "id": "235e9ff82379487dbac9544a09c5ef15",
     "name": "Klemn",
     "domain": "klemn.net",
     "features": [
       "signin"
     ],
     "setup": "https://klemn.net/parametres/securite",
+    "category": "Information Technology",
+    "created_at": "2023-12-17T12:30:56.187095+00:00",
     "notes": "To add to your account go to _\"Param\u00e8tres > S\u00e9curit\u00e9 > Ajouter une cl\u00e9 d'acc\u00e8s\"_.\n\nTo log in with a passkey, simply click _\"Utiliser une cl\u00e9 d'acc\u00e8s\"_ on the login screen."
   },
   {
+    "id": "9b8b0a3dfa678e8f6641ee4939bfd9b3",
     "name": "L\u00e4\u00e4k\u00e4ri.chat",
     "domain": "laakari.chat",
     "features": [
       "signin"
     ],
-    "documentation": "https://l\u00e4\u00e4k\u00e4ri.chat/help#webauthn"
+    "documentation": "https://l\u00e4\u00e4k\u00e4ri.chat/help#webauthn",
+    "category": "Health & Wellness",
+    "created_at": "2023-02-11T00:00:00+00:00"
   },
   {
+    "id": "1f048345499b71dfd0977d7d7ad0c5b9",
     "name": "LGTM.lol",
     "domain": "lgtm.lol",
     "features": [
       "signin"
     ],
-    "setup": "https://lgtm.lol/signin"
+    "setup": "https://lgtm.lol/signin",
+    "category": "Other",
+    "created_at": "2023-11-21T23:01:46.027214+00:00"
   },
   {
+    "id": "b497ec04aa7a47bcc30ebaedd0ff8b7a",
     "name": "Link by Stripe",
     "domain": "link.com",
     "features": [
       "signin"
     ],
     "setup": "https://app.link.com",
+    "category": "eCommerce",
+    "created_at": "2023-10-24T12:40:51.999711+00:00",
     "notes": "Link by Stripe offers a quick checkout solution, ensuring the secure storage of credit card information. By default, it sends 2FA codes to the customer's phone number.  However, users also have the option to create passkeys, either after signing in or from the user account menu when they are logged in."
   },
   {
+    "id": "195fcc970db462f85bb3313851d273aa",
     "name": "LinkedIn",
     "domain": "linkedin.com",
     "features": [
@@ -738,77 +993,104 @@
     ],
     "documentation": "https://www.linkedin.com/help/linkedin/answer/a1621596",
     "setup": "https://www.linkedin.com/mypreferences/d/passkey",
+    "category": "Social Media",
+    "created_at": "2023-03-21T19:40:03.497726+00:00",
     "notes": "Linkedin is actively rolling out support for saving and signing in with passkeys on LinkedIn accounts. Not all accounts have access to saving a passkey whilst LinkedIn rolls out support and you may see an error when navigating to the setup link above. "
   },
   {
+    "id": "a99bfc977a3a2edffa59bbae08d25da9",
     "name": "lnk.bio",
     "domain": "lnk.bio",
     "features": [
       "signin"
     ],
     "documentation": "https://lnk.bio/linkin/log-in-with-passkeys-to-lnkbio",
-    "setup": "https://lnk.bio/manage/settings"
+    "setup": "https://lnk.bio/manage/settings",
+    "category": "Information Technology",
+    "created_at": "2023-10-24T12:55:12.125501+00:00"
   },
   {
+    "id": "c21393bcac46ee06f4ba0c4d63b764f0",
     "name": "Locker ",
     "domain": "locker.io",
     "features": [
       "signin"
     ],
     "documentation": "https://support.locker.io/articles/What-are-passkeys-How-to-create-passkeys-for-a-Locker-account-d59668df96034b42859c05ed50149ba4",
-    "setup": "https://id.locker.io/security/webauthn"
+    "setup": "https://id.locker.io/security/webauthn",
+    "category": "Information Technology",
+    "created_at": "2023-08-10T16:21:46.269876+00:00"
   },
   {
+    "id": "e32c51739a7683dc5ab381193f759f2d",
     "name": "Login.gov",
     "domain": "login.gov",
     "features": [
       "mfa"
     ],
-    "setup": "https://secure.login.gov/account"
+    "setup": "https://secure.login.gov/account",
+    "category": "Government",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "45700e3826c053a111f62c063cd660a7",
     "name": "MIXI M",
     "domain": "m.mixi.com",
     "features": [
       "signin"
     ],
-    "setup": "https://account.mixi.com/security/authenticators"
+    "setup": "https://account.mixi.com/security/authenticators",
+    "category": "Finance",
+    "created_at": "2023-09-11T14:41:20.059537+00:00"
   },
   {
+    "id": "d937023c0458bf777fd2ad0f46d1d564",
     "name": "Mangadex",
     "domain": "mangadex.org",
     "features": [
       "mfa",
       "signin"
     ],
-    "setup": "https://auth.mangadex.org/"
+    "setup": "https://auth.mangadex.org/",
+    "category": "Social Media",
+    "created_at": "2023-01-03T00:00:00+00:00"
   },
   {
+    "id": "477906c5cea46dc10f240222386a378a",
     "name": "Daylite",
     "domain": "marketcircle.com",
     "features": [
       "signin"
     ],
-    "documentation": "https://www.marketcircle.com/learn/passkeys"
+    "documentation": "https://www.marketcircle.com/learn/passkeys",
+    "category": "Information Technology",
+    "created_at": "2023-02-06T14:42:03+00:00"
   },
   {
+    "id": "3a472ffdafc4781b553d66eaa255d99d",
     "name": "Marshmallow",
     "domain": "marshmallow-qa.com",
     "features": [
       "signin"
     ],
     "documentation": "https://diverdown.wraptas.site/3ec9bbfd244d41149909d1cd5f8003ec",
-    "setup": "https://marshmallow-qa.com/setting"
+    "setup": "https://marshmallow-qa.com/setting",
+    "category": "Social Media",
+    "created_at": "2023-05-09T11:38:54.775753+00:00"
   },
   {
+    "id": "e679b57f56cb5caad14a9d15dc850127",
     "name": "Mastodon",
     "domain": "mastodon.social",
     "features": [
       "mfa"
     ],
-    "setup": "https://mastodon.social/settings/two_factor_authentication_methods"
+    "setup": "https://mastodon.social/settings/two_factor_authentication_methods",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-03-22T20:08:31.604388+00:00"
   },
   {
+    "id": "a5e07a60daee2ce2ac9c2793f40c3b04",
     "name": "State of Michigan",
     "domain": "michigan.gov",
     "features": [
@@ -816,9 +1098,12 @@
       "signin"
     ],
     "documentation": "https://milogin.michigan.gov/uisecure/selfservice/anonymous/passwordlessUserGuide",
-    "setup": "https://milogin.michigan.gov/uisecure/selfservice/enrollFIDO"
+    "setup": "https://milogin.michigan.gov/uisecure/selfservice/enrollFIDO",
+    "category": "Government",
+    "created_at": "2024-01-05T12:56:56.072443+00:00"
   },
   {
+    "id": "0bcc7209268a5a87c723ec114350b7b1",
     "name": "Microsoft (Personal)",
     "domain": "microsoft.com",
     "features": [
@@ -827,18 +1112,24 @@
     ],
     "documentation": "https://support.microsoft.com/en-us/windows/sign-in-to-your-microsoft-account-with-windows-hello-or-a-security-key-800a8c01-6b61-49f5-0660-c2159bea4d84",
     "setup": "https://account.live.com/proofs/manage/additional",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nNot available using Safari right now and passkeys cannot be added to Microsoft 365 Business or Education accounts at this time."
   },
   {
+    "id": "dbca0b5781a9d4f79129eb89fb1daf87",
     "name": "minter.io",
     "domain": "minter.io",
     "features": [
       "signin"
     ],
     "documentation": "https://help.minter.io/en/articles/8207212-adding-a-passkey-for-your-minter-io-account",
-    "setup": "https://minter.io/app/edit/passkeys/add"
+    "setup": "https://minter.io/app/edit/passkeys/add",
+    "category": "Information Technology",
+    "created_at": "2023-08-07T21:31:00.898781+00:00"
   },
   {
+    "id": "137dcbb08b043e289ff3b5cef3410efd",
     "name": "Moneybird",
     "domain": "moneybird.com",
     "features": [
@@ -846,43 +1137,58 @@
       "signin"
     ],
     "documentation": "https://help.moneybird.nl/support/solutions/articles/103000250142-gebruik-passkeys-om-in-te-loggen-in-moneybird",
-    "setup": "https://moneybird.com/user/webauthn_credential_setup/new"
+    "setup": "https://moneybird.com/user/webauthn_credential_setup/new",
+    "category": "Finance",
+    "created_at": "2023-12-13T17:41:30.823092+00:00"
   },
   {
+    "id": "7099aaec5857886524b38410f5dcebe6",
     "name": "KEMBA Financial Credit Union",
     "domain": "my.kemba.org",
     "features": [
       "signin"
     ],
-    "setup": "https://my.kemba.org/settings/security"
+    "setup": "https://my.kemba.org/settings/security",
+    "category": "Finance",
+    "created_at": "2023-09-11T14:25:05.900516+00:00"
   },
   {
+    "id": "2e36fdd9c82f7fd7294fb3b10618c2db",
     "name": "Namecheap",
     "domain": "namecheap.com",
     "features": [
       "mfa"
     ],
     "documentation": "https://www.namecheap.com/support/knowledgebase/article.aspx/10102/45/how-can-i-use-the-u2f-method-for-twofactor-authentication/?_ga=2.209547478.59346046.1668175019-514097103.1666667155&_gl=1*8xtpo2*_ga*NTE0MDk3MTAzLjE2NjY2NjcxNTU.*_ga_7DMJMG20P8*MTY2ODE3NTAxOS4yLjEuMTY2ODE3NTIyOC4zOS4wLjA.",
-    "setup": "https://ap.www.namecheap.com/settings/security/twofa/manage"
+    "setup": "https://ap.www.namecheap.com/settings/security/twofa/manage",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "e6461f34405d4c9761bed754761ca24c",
     "name": "Nintendo",
     "domain": "nintendo.com",
     "features": [
       "signin"
     ],
     "documentation": "https://en-americas-support.nintendo.com/app/answers/detail/a_id/62531",
-    "setup": "https://accounts.nintendo.com/"
+    "setup": "https://accounts.nintendo.com/",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-03-24T11:28:53.879784+00:00"
   },
   {
+    "id": "861f548a532d390975af8f676cdeaeb5",
     "name": "Nord Account",
     "domain": "nordaccount.com",
     "features": [
       "mfa"
     ],
-    "setup": "https://my.nordaccount.com/account-settings/account-security/"
+    "setup": "https://my.nordaccount.com/account-settings/account-security/",
+    "category": "Information Technology",
+    "created_at": "2023-07-07T16:57:04.132945+00:00"
   },
   {
+    "id": "cc8650d40c166d09310eed5aca932b7b",
     "name": "Nvidia",
     "domain": "nvidia.com",
     "features": [
@@ -890,69 +1196,93 @@
       "signin"
     ],
     "setup": "https://profile.nvgs.nvidia.com/security",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Click the setup link and sign in with your email address and password, then choose Hardware Security Device, click Add New Security Device, and follow the steps to create a passkey.\n\nSign out, then choose \"Log In With Security Device\" at the bottom of the page when you sign back in to use your passkey."
   },
   {
+    "id": "659d1ac3ed549d5b2530e7cf4dcde405",
     "name": "okta",
     "domain": "okta.com",
     "features": [
       "mfa"
     ],
-    "documentation": "https://help.okta.com/oie/en-us/Content/Topics/identity-engine/authenticators/configure-webauthn.htm"
+    "documentation": "https://help.okta.com/oie/en-us/Content/Topics/identity-engine/authenticators/configure-webauthn.htm",
+    "category": "Information Technology",
+    "created_at": "2023-01-04T00:00:00+00:00"
   },
   {
+    "id": "5af69f909c7383e477833284ec241b05",
     "name": "OKX",
     "domain": "okx.com",
     "features": [
       "signin"
     ],
-    "setup": "https://www.okx.com/account/security/passkeys"
+    "setup": "https://www.okx.com/account/security/passkeys",
+    "category": "Finance",
+    "created_at": "2023-05-05T12:45:32.548044+00:00"
   },
   {
+    "id": "da9770b28c12cffa37a5b5568c7234d9",
     "name": "omg.lol",
     "domain": "omg.lol",
     "features": [
       "signin"
     ],
     "setup": "https://home.omg.lol/account",
+    "category": "Social Media",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "1cd4f1a21ff42491a54d07f3f52da993",
     "name": "OneLogin",
     "domain": "onelogin.com",
     "features": [
       "mfa"
     ],
     "documentation": "https://onelogin.service-now.com/support?id=kb_article&sys_id=927dc6659778e150c90c3b0e6253af9a",
+    "category": "Information Technology",
+    "created_at": "2023-03-30T16:22:57.315215+00:00",
     "notes": "Passkeys Support can be enabled by an Administrator of a OneLogin environment by enabling the Webauthn authentication factor on a User Security policy which is then allocated to either a group of users or all users in the environment. "
   },
   {
+    "id": "fce676b9097aaab8a7532ecda190b8ba",
     "name": "OnlyFans",
     "domain": "onlyfans.com",
     "features": [
       "signin"
     ],
     "setup": "https://onlyfans.com/my/settings/account/passwordless-sign-in",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-07-27T15:42:17.162685+00:00",
     "notes": "Setup 'passwordless login' through Account Settings. "
   },
   {
+    "id": "af97abd5ad298fb6170be7985252a455",
     "name": "Passage Authentication Demo",
     "domain": "passage.1password.com",
     "features": [
       "signin"
     ],
     "documentation": "https://passage.1password.com/demo",
-    "setup": "https://passage.1password.com/demo"
+    "setup": "https://passage.1password.com/demo",
+    "category": "Authentication Provider",
+    "created_at": "2023-05-24T16:02:44.415398+00:00"
   },
   {
+    "id": "a2bfe8e26031e818e3918e4cf5cbfb4f",
     "name": "Passage",
     "domain": "passage.id",
     "features": [
       "signin"
     ],
-    "setup": "https://console.passage.id/register"
+    "setup": "https://console.passage.id/register",
+    "category": "Authentication Provider",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "72122988b1ab14a053159522a0126440",
     "name": "Descope passkeys demo",
     "domain": "passkeys.guru",
     "features": [
@@ -960,17 +1290,23 @@
     ],
     "documentation": "https://passkeys.guru",
     "setup": "https://passkeys.guru",
+    "category": "Authentication Provider",
+    "created_at": "2023-03-23T14:17:39.906624+00:00",
     "notes": "Passkeys demo powered by descope"
   },
   {
+    "id": "7644829b9f61f0e6f9e1adea36d5b5a2",
     "name": "Pastery",
     "domain": "pastery.net",
     "features": [
       "signin"
     ],
-    "setup": "https://www.pastery.net/login/"
+    "setup": "https://www.pastery.net/login/",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "d9c95eff2b2388fa489dbbe2e678d11d",
     "name": "PayFit",
     "domain": "payfit.com",
     "features": [
@@ -978,9 +1314,12 @@
     ],
     "documentation": "https://support.payfit.com/en/articles/74363-two-factor-authentication-for-employees",
     "setup": "https://payfit.com",
+    "category": "Finance",
+    "created_at": "2023-06-15T10:02:27+00:00",
     "notes": "PayFit do not explicitly call setting up 'biometric authentication' option as a passkey or use terminology/iconography from the FIDO passkey guidelines but these are passkeys."
   },
   {
+    "id": "84906e9df84e5269a59080fcb32c77de",
     "name": "PayPal",
     "domain": "paypal.com",
     "features": [
@@ -988,9 +1327,12 @@
     ],
     "documentation": "https://www.paypal.com/us/cshelp/article/what-are-paypal-passkeys-help997",
     "setup": "https://www.paypal.com/myaccount/security/",
+    "category": "Finance",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Passkeys on PayPal can only be created on mobile devices in Chrome on Android or iOS and in Safari on iOS.\n\n#### To set up a passkey on your PayPal account:\n1. On your mobile device, navigate to PayPal's settings > Security or use the setup link above.\n2.  Select \"Passkeys.\"\n3. Select \"Create a passkey.\"\n4. Follow the instructions provided to complete setting up a passkey.\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
   },
   {
+    "id": "867af8aa7bf57d42dd3f185fc89bb0be",
     "name": "PlayStation",
     "domain": "playstation.com",
     "features": [
@@ -998,9 +1340,12 @@
     ],
     "documentation": "https://www.playstation.com/support/account/set-up-passkey-psn/",
     "setup": "https://www.playstation.com/passkey/",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2024-02-21T12:06:01+00:00",
     "notes": "Go password-free with your account for PlayStation Network. Passkeys offer a faster and more secure account sign-in experience by letting you sign in through your mobile device or computer using the same convenient device unlocking method, like a fingerprint, face scan or PIN. Visit www.playstation.com/passkey to learn more. \n\n[Watch: Introducing Passkey for PlayStation on Youtube](https://www.youtube.com/watch?v=uKfQrqMS9s8 )\n"
   },
   {
+    "id": "b050f03bbce82cc95753897ca0c5353e",
     "name": "Porkbun",
     "domain": "porkbun.com",
     "features": [
@@ -1008,17 +1353,23 @@
       "signin"
     ],
     "documentation": "https://kb.porkbun.com/article/119-how-to-secure-your-account-with-a-physical-security-key-using-webauthn",
-    "setup": "https://porkbun.com/account"
+    "setup": "https://porkbun.com/account",
+    "category": "Information Technology",
+    "created_at": "2023-05-03T20:31:27+00:00"
   },
   {
+    "id": "4ad215d27dc9d9a784ccbd28c8fc9c1a",
     "name": "Qapital",
     "domain": "qapital.com",
     "features": [
       "signin"
     ],
-    "setup": "https://qapital.com"
+    "setup": "https://qapital.com",
+    "category": "Finance",
+    "created_at": "2023-03-21T23:42:42.705399+00:00"
   },
   {
+    "id": "f29588795da8d6ca4153bbb02b9bbc74",
     "name": "rad.dad",
     "domain": "rad.dad",
     "features": [
@@ -1026,18 +1377,24 @@
     ],
     "documentation": "https://rad.dad/help#accessing",
     "setup": "https://rad.dad/control-panel/",
+    "category": "Information Technology",
+    "created_at": "2023-06-05T11:10:13.364756+00:00",
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "59e0672f73f2c88fd2440c79f7f601b8",
     "name": "Robinhood",
     "domain": "robinhood.com",
     "features": [
       "signin"
     ],
     "setup": "https://robinhood.com/us/en/support/articles/passkeys/",
+    "category": "Finance",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Saving a passkey for a Robinhood account is only supported on iOS devices running iOS 16 or later and the latest version of the Robinhood app. \n\n#### To set up a passkey on your Robinhood account on iOS:\n\n1. Open the Robinhood app.\n2. Select Account > select Menu/Settings > then select Security and Privacy.\n3. Select Create passkey, then select Continue.\n4. Follow the on-screen instructions to save a passkey for Robinhood."
   },
   {
+    "id": "a4acb21e1f0f0d4bde7b8b2171cb90f0",
     "name": "Roblox",
     "domain": "roblox.com",
     "features": [
@@ -1045,17 +1402,23 @@
     ],
     "documentation": "https://en.help.roblox.com/hc/en-us/articles/20669991483156-Login-with-a-Passkey",
     "setup": "https://www.roblox.com/my/account#!/info",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-05-27T17:12:11+00:00",
     "notes": "### Setting up passkeys: \n\n- Navigate to Settings on your iOS app or web browser. Log in if prompted.\n*Note: Android support will be coming soon*\n- Under Account Info > Login Methods > Passkeys, press the \u201cAdd passkey\u201d button.\n- Note: You may need to verify your identity with your password or a one-time code sent to your email.\n\nTo complete adding a passkey, you will be asked to unlock your device.\n\n\n### Manage your passkeys\n\nGo to Settings on your iOS app or web browser. Login to your account if prompted.\n\n*Note: Android support will be coming soon*\n- Under Account Info > Login Methods > Passkeys, press the \u201cManage\u201d button.\n- Press the trashcan icon next to the passkey you want to remove.\n- You may be asked to verify your identity using passwords or an email one-time code."
   },
   {
+    "id": "a3b5a03b7d7a6fbe75a856ee353a9b97",
     "name": "Scrooge Games",
     "domain": "scrooge.games",
     "features": [
       "signin"
     ],
-    "setup": "https://scrooge.games/login/"
+    "setup": "https://scrooge.games/login/",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "51fdc1ce2f2c3895140dd5e7b767a676",
     "name": "Shakepay",
     "domain": "shakepay.com",
     "features": [
@@ -1063,17 +1426,23 @@
     ],
     "documentation": "https://help.shakepay.com/en/articles/8569018-how-to-enable-passkeys",
     "setup": "https://shakepay.com/dashboard/profile",
+    "category": "Finance",
+    "created_at": "2024-02-02T00:54:24+00:00",
     "notes": "#### To set up a passkey on your Shakepay account:\n\n1. In the Shakepay app, enter the settings page by clicking the gear icon or selecting the setup link above.\n2. Select \u2018Security & privacy\u2019\n3. Select \u2018Passkeys\u2019\n4. Select \u2018Add new passkey\u2019 and follow the on-screen instructions."
   },
   {
+    "id": "c292d80cf5024ce557cdbbc6aa79579e",
     "name": "Shop Pay",
     "domain": "shop.app",
     "features": [
       "signin"
     ],
-    "setup": "https://pay.shopify.com/pay/webauthn/new"
+    "setup": "https://pay.shopify.com/pay/webauthn/new",
+    "category": "E-Commerce",
+    "created_at": "2023-01-12T00:00:00+00:00"
   },
   {
+    "id": "3726af1525fff97f8e02c792354eaf0a",
     "name": "Shopify",
     "domain": "shopify.com",
     "features": [
@@ -1081,77 +1450,104 @@
     ],
     "documentation": "https://help.shopify.com/manual/your-account/logging-in/passkeys#create-a-passkey",
     "setup": "https://www.shopify.com",
+    "category": "E-Commerce",
+    "created_at": "2023-02-09T00:00:00+00:00",
     "notes": "Sign in to Shopify with your email address and password, then follow the steps in the documentation link above to create a passkey. \n\nSign out, then sign back in with your email address and choose \"Log in with passkey\" to use your passkey."
   },
   {
+    "id": "ecd8a4360978689e7cde2e7682336b28",
     "name": "Simply.com",
     "domain": "simply.com",
     "features": [
       "signin"
     ],
-    "setup": "https://www.simply.com/en/controlpanel/user/"
+    "setup": "https://www.simply.com/en/controlpanel/user/",
+    "category": "Information Technology",
+    "created_at": "2024-03-11T13:48:57.175244+00:00"
   },
   {
+    "id": "42c796e83acd17050b6b25751bd0e0f1",
     "name": "Sirius XM Satellite Radio",
     "domain": "siriusxm.com",
     "features": [
       "signin"
     ],
     "setup": "https://www.siriusxm.com/player/welcome",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-04-17T04:08:58.340309+00:00",
     "notes": "Passkeys are offered after successful sign-in."
   },
   {
+    "id": "053d4310bf0176363ff49ee780291ff8",
     "name": "Skiff",
     "domain": "skiff.com",
     "features": [
       "mfa"
     ],
-    "setup": "https://app.skiff.com/mail/inbox?settingTab=security"
+    "setup": "https://app.skiff.com/mail/inbox?settingTab=security",
+    "category": "Information Technology",
+    "created_at": "2023-04-02T06:36:23.978722+00:00"
   },
   {
+    "id": "99b12ded197fe076d262078402601076",
     "name": "So-net",
     "domain": "so-net.ne.jp",
     "features": [
       "signin"
     ],
     "documentation": "https://www.so-net.ne.jp/support/bioauth/",
-    "setup": "https://id.so-net.ne.jp/auth_device/authenticator-manager"
+    "setup": "https://id.so-net.ne.jp/auth_device/authenticator-manager",
+    "category": "Information Technology",
+    "created_at": "2023-12-13T19:27:14.733708+00:00"
   },
   {
+    "id": "d8213a6a75033f596f15ba6e123bc369",
     "name": "Sony",
     "domain": "sony.com",
     "features": [
       "signin"
     ],
     "documentation": "https://www.playstation.com/support/account/set-up-passkey-psn/",
-    "setup": "https://my.account.sony.com"
+    "setup": "https://my.account.sony.com",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2024-02-21T11:41:17+00:00"
   },
   {
+    "id": "c67c289fc601ee74be8e2e5269770801",
     "name": "Spaceship (by NameCheap)",
     "domain": "spaceship.com",
     "features": [
       "signin"
     ],
     "documentation": "https://twitter.com/NamecheapCEO/status/1746970583944818722",
-    "setup": "https://www.spaceship.com/application/security-center/"
+    "setup": "https://www.spaceship.com/application/security-center/",
+    "category": "Information Technology",
+    "created_at": "2024-01-16T10:48:30.911937+00:00"
   },
   {
+    "id": "30ed26f1344075662635b3af8a4525cb",
     "name": "Stall-Frei.de",
     "domain": "stall-frei.de",
     "features": [
       "signin"
     ],
-    "setup": "https://www.stall-frei.de/account/security/"
+    "setup": "https://www.stall-frei.de/account/security/",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-12-13T17:47:06.128025+00:00"
   },
   {
+    "id": "bc1adb391ba58d1668e3a883e7fcdf4f",
     "name": "Synology",
     "domain": "synology.com",
     "features": [
       "signin"
     ],
-    "setup": "https://account.synology.com/security/"
+    "setup": "https://account.synology.com/security/",
+    "category": "Information Technology",
+    "created_at": "2023-04-17T03:49:23+00:00"
   },
   {
+    "id": "d583981ceb6649500b5a5a8123b16fa4",
     "name": "Tailscale",
     "domain": "tailscale.com",
     "features": [
@@ -1159,18 +1555,24 @@
     ],
     "documentation": "https://tailscale.com/kb/1269/passkeys/",
     "setup": "https://login.tailscale.com/admin/users",
+    "category": "Information Technology",
+    "created_at": "2023-03-23T16:44:05+00:00",
     "notes": "Saving and signing in with passkeys on Tailscale is limited to new user accounts only.  Users also cannot create a new tailnet using passkey key authentication. The tailnet must first be created using a different authentication method then invited users can use passkey authentication for their accounts."
   },
   {
+    "id": "52881db7084a7ebc456aa072dfdc64c1",
     "name": "Target",
     "domain": "target.com",
     "features": [
       "signin"
     ],
     "documentation": "https://help.target.com/help/TargetGuestHelpArticleDetail?articleId=ka95d0000008R16AAE",
-    "setup": "https://www.target.com/account/settings/signinsecurity"
+    "setup": "https://www.target.com/account/settings/signinsecurity",
+    "category": "eCommerce",
+    "created_at": "2024-02-13T17:48:19+00:00"
   },
   {
+    "id": "95dcfb4174733c6176889e6b5985dfae",
     "name": "Tender",
     "domain": "tender.run",
     "features": [
@@ -1178,33 +1580,45 @@
     ],
     "documentation": "https://tender.run/passkeys",
     "setup": "https://app.tender.run/create-account",
+    "category": "Finance",
+    "created_at": "2023-11-30T11:59:01.138312+00:00",
     "notes": "Tender only supports passkeys for authentication"
   },
   {
+    "id": "f3050159590b55aa3ff4c697cd76b8ce",
     "name": "The Hendrix",
     "domain": "thehendrixjc.com",
     "features": [
       "signin"
     ],
-    "setup": "https://apply.thehendrixjc.com/new-application"
+    "setup": "https://apply.thehendrixjc.com/new-application",
+    "category": "Real Estate",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "612bd0e58e15286297be5e907f906288",
     "name": "TikTok",
     "domain": "tiktok.com",
     "features": [
       "signin"
     ],
     "documentation": "https://support.tiktok.com/en/log-in-troubleshoot/log-in/log-in-with-a-passkey#4",
+    "category": "Social Media",
+    "created_at": "2023-03-24T13:29:05+00:00",
     "notes": "TikTok is rolling out passkeys for iOS to users and requires the following criteria to be met:\n- Have an Apple device running iOS 16 or macOS Ventura or later.\n- iCloud Keychain must be turned on in your Apple device settings.\n- Two-factor authentication must be turned on for your Apple ID.\n\n#### To set up a passkey on your TikTok account:\n\n1. In the TikTok app, tap Profile at the bottom.\n2. Tap the Menu button at the top.\n3. Tap Settings and privacy.\n4. Tap Account.\n5. Tap iCloud passkey, then tap Set up on the next screen and follow the instructions provided to complete setup."
   },
   {
+    "id": "be728ecb4758d9ddb26e3346908959eb",
     "name": "Tripletex",
     "domain": "tripletex.no",
     "features": [
       "signin"
-    ]
+    ],
+    "category": "Finance",
+    "created_at": "2023-12-13T19:28:49.949076+00:00"
   },
   {
+    "id": "b50e0f30375422a186c18b2445b58364",
     "name": "Trusona Authentication Cloud",
     "domain": "trusona.com",
     "features": [
@@ -1212,62 +1626,82 @@
     ],
     "documentation": "https://www.trusona.com/customers/authentication-cloud",
     "setup": "https://portal.trusona.io",
+    "category": "Authentication Provider",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Requires a commercial license. Contact Trusona at info@trusona.com for more information."
   },
   {
+    "id": "e45ff5e43531d7ac153c9c1153696c20",
     "name": "Trustworthy",
     "domain": "trustworthy.com",
     "features": [
       "signin"
     ],
     "setup": "https://trustworthy.com",
+    "category": "Health & Wellness",
+    "created_at": "2023-08-10T16:40:42.008205+00:00",
     "notes": "Available on iOS after signing up / signing in. "
   },
   {
+    "id": "e6c90947cf0103b1cb53bc83654a8aba",
     "name": "Turnkey",
     "domain": "turnkey.com",
     "features": [
       "signin"
     ],
     "documentation": "https://docs.turnkey.com/passkeys/introduction",
-    "setup": "ttps://app.turnkey.com/dashboard/users/detail"
+    "setup": "ttps://app.turnkey.com/dashboard/users/detail",
+    "category": "Information Technology",
+    "created_at": "2023-12-13T21:03:52.855203+00:00"
   },
   {
+    "id": "a48d06b00025b5b8dabc142540dd0429",
     "name": "Twitter",
     "domain": "twitter.com",
     "features": [
       "signin"
     ],
     "documentation": "https://help.twitter.com/en/managing-your-account/how-to-use-passkey",
-    "setup": "https://twitter.com/settings/security"
+    "setup": "https://twitter.com/settings/security",
+    "category": "Social Networking",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "0adc8411272286b5f40a3c71cc2c22bf",
     "name": "Uber",
     "domain": "uber.com",
     "features": [
       "signin"
     ],
     "documentation": "https://help.uber.com/riders/article/using-passkeys-to-sign-in?nodeId=61701cda-3615-43b2-8187-1440e91035d8",
-    "setup": "https://account.uber.com/passkeys"
+    "setup": "https://account.uber.com/passkeys",
+    "category": "Travel & Tourism",
+    "created_at": "2023-10-10T16:47:49+00:00"
   },
   {
+    "id": "55a0f9ccf405f9a08fbf08cca61fb052",
     "name": "usesarchbtw.lol",
     "domain": "usesarchbtw.lol",
     "features": [
       "signin"
     ],
     "setup": "https://auth.usesarchbtw.lol",
+    "category": "Information Technology",
+    "created_at": "2024-03-27T10:37:57.690671+00:00",
     "notes": "After setting up a password it will prompt for a yubikey, passkey or finally TOTP if neither are available."
   },
   {
+    "id": "1076e18e9c529e438e08edfbc4afb06c",
     "name": "United Southeast Federal Credit Union",
     "domain": "usfcu.org",
     "features": [
       "signin"
     ],
-    "setup": "https://my.usfcu.org/settings/security"
+    "setup": "https://my.usfcu.org/settings/security",
+    "category": "Finance"
   },
   {
+    "id": "7e3973421b83b4aece53cf0f99d86ccb",
     "name": "Vault Vision",
     "domain": "vaultvision.com",
     "features": [
@@ -1275,26 +1709,35 @@
       "signin"
     ],
     "documentation": "https://docs.vaultvision.com/index.html",
-    "setup": "https://auth.vaultvision.com/signup"
+    "setup": "https://auth.vaultvision.com/signup",
+    "category": "Authentication Provider",
+    "created_at": "2023-03-23T14:12:32.285632+00:00"
   },
   {
+    "id": "af1fd2bd0a3fe81f447dc59a09401ab6",
     "name": "Vercel",
     "domain": "vercel.com",
     "features": [
       "signin"
     ],
     "documentation": "https://vercel.com/docs/accounts/create-an-account#login-methods-and-connections",
-    "setup": "https://vercel.com/account/authentication"
+    "setup": "https://vercel.com/account/authentication",
+    "category": "Information Technology",
+    "created_at": "2023-04-03T16:02:31.413658+00:00"
   },
   {
+    "id": "a3e7dc7f0332f633ea49d9abfe09a452",
     "name": "Virgin Media",
     "domain": "virginmedia.com",
     "features": [
       "signin"
     ],
-    "setup": "https://virginmedia.com"
+    "setup": "https://virginmedia.com",
+    "category": "Information Technology",
+    "created_at": "2022-12-01T00:00:00+00:00"
   },
   {
+    "id": "d44659415c9eeff5035f525a18155a6f",
     "name": "vk",
     "domain": "vk.com",
     "features": [
@@ -1302,34 +1745,46 @@
     ],
     "documentation": "https://vk.com/press/id-onepass",
     "setup": "https://id.vk.ru/account/#/connected-keys",
+    "category": "Other",
+    "created_at": "2023-06-22T18:07:47.22373+00:00",
     "notes": "VK.com / VK.ru provide passkey sign in using their 'OnePass' ID. A phone number or email address is required to create a passkey."
   },
   {
+    "id": "17d3ec9281d1690f5762dbd1c3cf173e",
     "name": "Voura",
     "domain": "voura.com",
     "features": [
       "signin"
     ],
     "setup": "https://app.voura.com/auth/login",
+    "category": "Finance",
+    "created_at": "2023-09-20T14:13:37.262547+00:00",
     "notes": "When signing up for Voura, you will be automatically prompted to save a passkey for your account.\n\nPowered by Passage by 1Password."
   },
   {
+    "id": "ffe0c8cc238d5545af34bcdde2e1c523",
     "name": "WebAuthn.io",
     "domain": "webauthn.io",
     "features": [
       "signin"
     ],
-    "setup": "https://webauthn.io"
+    "setup": "https://webauthn.io",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
+    "id": "faf4f532290505c2788cd00cdba74527",
     "name": "WhatsApp (Android beta)",
     "domain": "whatsapp.com",
     "features": [
       "signin"
     ],
+    "category": "Information Technology",
+    "created_at": "2023-04-09T07:00:20.568068+00:00",
     "notes": "Available only to WhatsApp (beta) for Android\n\nhttps://www.androidpolice.com/passkey-support-whatsapp-goes-live-beta-channel"
   },
   {
+    "id": "b5d2c9bfa99b8a457e14c621bebaac51",
     "name": "X (formerly Twitter)",
     "domain": "x.com",
     "features": [
@@ -1337,9 +1792,12 @@
     ],
     "documentation": "https://help.twitter.com/en/managing-your-account/how-to-use-passkey",
     "setup": "https://x.com/settings/security",
+    "category": "Social Networking",
+    "created_at": "2024-01-23T11:26:41+00:00",
     "notes": "X (formerly Twitter) is rolling out signing in with passkeys support to existing US-based accounts on iOS. No other platforms or locations are able to save a passkey to their accounts at this time.\n\n**To set up a passkey on your X account:**\n1. Log in to the X app with the account you wish to enable passkey for.\n2. Select Your account in the navigation bar.\n3. Select Settings and privacy, select Security and account access, then Security.\n4. Under Additional password protection, select Passkey.\n5. Enter your password when prompted.\n6. Select Add a passkey and follow the on-screen prompts."
   },
   {
+    "id": "e530fa6fa3831727debb154a6dd4ff58",
     "name": "Yahoo! JAPAN",
     "domain": "yahoo.co.jp",
     "features": [
@@ -1347,9 +1805,12 @@
     ],
     "documentation": "https://about.yahoo.co.jp/pr/release/2023/03/14b/",
     "setup": "https://id.yahoo.co.jp",
+    "category": "Information Technology",
+    "created_at": "2023-03-23T10:11:31.224377+00:00",
     "notes": "https://fidoalliance.org/yahoo-japan-announces-support-for-passkeys-across-available-platforms/"
   },
   {
+    "id": "f9e3dc7029516b8cb36c68ab55d0b8a5",
     "name": "Yahoo!",
     "domain": "yahoo.com",
     "features": [
@@ -1358,36 +1819,48 @@
     ],
     "documentation": "https://in.help.yahoo.com/kb/SLN35635.html",
     "setup": "https://login.yahoo.com/myaccount/security",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Passkeys can be setup after signing in from a mobile device. "
   },
   {
+    "id": "25948bb03b49a44827ffedf2bf0c589d",
     "name": "Yandex",
     "domain": "yandex.com",
     "features": [
       "signin"
     ],
     "documentation": "https://yandex.com/support/id/no-password.html#face-or-touchpass",
-    "setup": "https://id.yandex.com/security/webauthn"
+    "setup": "https://id.yandex.com/security/webauthn",
+    "category": "Information Technology",
+    "created_at": "2023-05-06T08:24:46.329722+00:00"
   },
   {
+    "id": "d1d23898ea717f9be95616beaacdcd03",
     "name": "Yandex",
     "domain": "yandex.ru",
     "features": [
       "signin"
     ],
     "documentation": "https://yandex.ru/support/id/no-password.html#face-or-touchpass",
-    "setup": "https://id.yandex.ru/security/webauthn"
+    "setup": "https://id.yandex.ru/security/webauthn",
+    "category": "Information Technology",
+    "created_at": "2023-06-22T18:08:09.988477+00:00"
   },
   {
+    "id": "c882cddb3cd2aeb42ba6f54157c3a4b0",
     "name": "YouTube",
     "domain": "youtube.com",
     "features": [
       "signin"
     ],
     "documentation": "https://support.google.com/accounts/answer/13548313",
-    "setup": "https://g.co/passkeys"
+    "setup": "https://g.co/passkeys",
+    "category": "Entertainment",
+    "created_at": "2023-03-23T11:33:49.801159+00:00"
   },
   {
+    "id": "e2c0d9d15d19483408365edb7ced849a",
     "name": "Zoho",
     "domain": "zoho.com",
     "features": [
@@ -1396,6 +1869,8 @@
     ],
     "documentation": "https://help.zoho.com/portal/en/kb/accounts/faqs-troubleshooting/troubleshooting/sign-in/articles/passkey-sign-in-failed-on-mac#What_happened",
     "setup": "https://accounts.zoho.com/home#multiTFA/modes",
+    "category": "Information Technology",
+    "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Recently updated this listing to include passkey support for signing in, in addition to MFA."
   }
 ]

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.tfa.directory.FlatLaunchBrowserItem
 import com.artemchep.keyguard.res.Res
@@ -194,14 +195,26 @@ fun ColumnScope.Content(
                 .padding(horizontal = Dimens.horizontalPadding),
             markdown = notes,
         )
-        Spacer(
+    }
+
+    val category = state?.model?.category
+    if (category != null) {
+        Section(
+            text = stringResource(Res.strings.category),
+        )
+        Text(
             modifier = Modifier
-                .height(16.dp),
+                .padding(horizontal = Dimens.horizontalPadding),
+            text = category,
         )
     }
 
     val documentationUrl = state?.model?.documentation
     if (documentationUrl != null) {
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
         FlatLaunchBrowserItem(
             title = stringResource(Res.strings.uri_action_launch_docs_title),
             url = documentationUrl,

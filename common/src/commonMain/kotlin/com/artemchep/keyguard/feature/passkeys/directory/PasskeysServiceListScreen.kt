@@ -258,7 +258,7 @@ private fun AppItem(
             val nextEntry = navigationNextEntryOrNull()
             val nextRoute = nextEntry?.route as? PasskeysServiceViewFullRoute
 
-            val selected = nextRoute?.args?.model?.name == item.name.text
+            val selected = nextRoute?.args?.model?.id == item.data.id
             if (selected) {
                 return@run MaterialTheme.colorScheme.selectedContainer
             }

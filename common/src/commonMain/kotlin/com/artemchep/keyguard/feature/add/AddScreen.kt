@@ -1375,7 +1375,7 @@ private fun AddItem(
                 val action = item.actions
                     .firstNotNullOfOrNull { it as? FlatItemAction }
                 action?.onClick?.invoke()
-                return@run
+                return@FlatItem
             }
 
             dropdownShownState.value = true

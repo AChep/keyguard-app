@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import arrow.core.andThen
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
@@ -224,7 +225,7 @@ fun organizationConfirmationState(
                             (!premiumAccount || profile.premium)
                     AccountVariant(
                         accountId = profile.accountId(),
-                        name = profile.email,
+                        name = profile.displayName,
                         text = profile.accountHost,
                         enabled = enabled,
                         accentColors = profile.accentColor,

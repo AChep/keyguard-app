@@ -12,8 +12,10 @@ import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import arrow.core.widen
 import com.artemchep.keyguard.common.model.DAccount
+import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DSendFilter
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
@@ -115,14 +117,12 @@ data class FilterParams(
 
 suspend fun <
         Output : Any,
-        Account,
         Secret,
         > RememberStateFlowScope.ah(
     directDI: DirectDI,
     outputGetter: (Output) -> DSend,
     outputFlow: Flow<List<Output>>,
-    accountGetter: (Account) -> DAccount,
-    accountFlow: Flow<List<Account>>,
+    profileFlow: Flow<List<DProfile>>,
     cipherGetter: (Secret) -> DSend,
     cipherFlow: Flow<List<Secret>>,
     input: CreateFilterResult,
@@ -301,20 +301,17 @@ suspend fun <
         icon = type.iconImageVector(),
     )
 
-    val filterAccountListFlow = accountFlow
-        .map { accounts ->
-            accounts
-                .map { account ->
-                    val model = accountGetter(account)
-                    val accountId = model.accountId()
-                    val tint = generateAccentColorsByAccountId(accountId)
+    val filterAccountListFlow = profileFlow
+        .map { profiles ->
+            profiles
+                .map { profile ->
                     createAccountFilterAction(
                         accountIds = setOf(
-                            model.accountId(),
+                            profile.accountId,
                         ),
-                        title = model.username,
-                        text = model.host,
-                        tint = tint,
+                        title = profile.displayName,
+                        text = profile.accountHost,
+                        tint = profile.accentColor,
                     )
                 }
         }

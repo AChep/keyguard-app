@@ -679,8 +679,7 @@ fun sendListScreenState(
             .map { state ->
                 state.list.mapNotNull { it as? SendItem.Item }
             },
-        accountGetter = ::identity,
-        accountFlow = getAccounts(),
+        profileFlow = getProfiles(),
         cipherGetter = {
             it.model.source
         },

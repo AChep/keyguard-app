@@ -33,3 +33,7 @@ data class DProfile(
 
     override fun accountId(): String = accountId
 }
+
+val DProfile.displayName: String
+    get() = name.takeIf { it.isNotBlank() }
+        ?: email

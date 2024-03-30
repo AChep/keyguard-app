@@ -41,6 +41,7 @@ import com.artemchep.keyguard.common.model.create.state
 import com.artemchep.keyguard.common.model.create.text
 import com.artemchep.keyguard.common.model.create.title
 import com.artemchep.keyguard.common.model.create.username
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -531,7 +532,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     val key = "account.${account.accountId()}"
                     AddStateOwnership.Element.Item(
                         key = key,
-                        title = account.email,
+                        title = account.displayName,
                         text = account.accountHost,
                         accentColors = account.accentColor,
                     )

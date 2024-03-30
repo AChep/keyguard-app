@@ -28,6 +28,7 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
@@ -549,7 +550,7 @@ suspend fun <
                         accountIds = setOf(
                             profile.accountId,
                         ),
-                        title = profile.email,
+                        title = profile.displayName,
                         text = profile.accountHost,
                         tint = profile.accentColor,
                     )

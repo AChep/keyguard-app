@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DProfile
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.usecase.GetAccountHasError
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -241,7 +242,7 @@ fun accountListScreenState(
                     id = it.id.id,
                     icon = icon,
                     name = profile?.name.orEmpty(),
-                    title = AnnotatedString(it.username),
+                    title = AnnotatedString(profile?.displayName.orEmpty()),
                     text = it.host,
                     error = error,
                     hidden = profile?.hidden == true,

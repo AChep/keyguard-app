@@ -89,6 +89,7 @@
     <string name="organizations">조직</string>
     <string name="organizations_empty_label">조직 없음</string>
     <string name="misc">기타</string>
+    <string name="category">Category</string>
     <string name="command">명령어</string>
     <string name="execute_command">실행</string>
     <!-- Add (something) -->
@@ -434,6 +435,7 @@
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
+    <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
@@ -918,6 +920,8 @@
     <string name="pref_item_features_overview_title">기능 살펴보기</string>
     <string name="pref_item_url_override_title">URL 덮어쓰기</string>
     <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

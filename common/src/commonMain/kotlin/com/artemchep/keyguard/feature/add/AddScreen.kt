@@ -32,7 +32,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Folder
@@ -41,7 +40,6 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -64,9 +62,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
@@ -77,15 +73,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
-import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.titleH
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
-import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemTextContent2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge2
@@ -107,12 +99,12 @@ import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.EmailFlatTextField
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
+import com.artemchep.keyguard.ui.FakeFlatTextField
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
-import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
@@ -142,7 +134,6 @@ import com.artemchep.keyguard.ui.theme.isDark
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import com.artemchep.keyguard.ui.util.VerticalDivider
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.collections.immutable.ImmutableList
 
@@ -1086,104 +1077,44 @@ private fun DateMonthYearField(
     item: AddStateItem.DateMonthYear<*>,
 ) {
     val state by item.state.flow.collectAsState()
-    BiFlatContainer(
+    val isEmpty by derivedStateOf {
+        val isEmpty = state.month.state.value.isEmpty() &&
+                state.year.state.value.isEmpty()
+        isEmpty
+    }
+    val onClear = remember {
+        // lambda
+        {
+            state.month.state.value = ""
+            state.year.state.value = ""
+        }
+    }
+    FakeFlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        contentModifier = Modifier
-            .clickable(
-                indication = LocalIndication.current,
-                interactionSource = remember {
-                    MutableInteractionSource()
-                },
-                role = Role.Button,
-            ) {
-                state.onClick.invoke()
-            },
-        isError = rememberUpdatedState(newValue = false),
-        isFocused = rememberUpdatedState(newValue = false),
-        isEmpty = rememberUpdatedState(newValue = false),
-        label = {
-            Text(
-                text = item.label,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        },
-        content = {
-            val density = LocalDensity.current
+        label = item.label,
+        value = {
             Row(
-                modifier = Modifier
-                    .graphicsLayer {
-                        translationY = 12f + density.density
-                    },
+                modifier = Modifier,
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Row(
-                    modifier = Modifier
-                        .heightIn(min = BiFlatValueHeightMin)
-                        .weight(1f, fill = false),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    val month = state.month.text.ifBlank { "--" }
-                    val year = state.year.text.ifBlank { "----" }
-                    Text(
-                        text = month,
-                    )
-                    Text(
-                        text = "/",
-                        color = LocalContentColor.current
-                            .combineAlpha(DisabledEmphasisAlpha),
-                    )
-                    Text(
-                        text = year,
-                    )
-                }
-//                Spacer(
-//                    modifier = Modifier
-//                        .width(4.dp),
-//                )
-//                Icon(
-//                    modifier = Modifier
-//                        .alpha(MediumEmphasisAlpha),
-//                    imageVector = Icons.Outlined.ArrowDropDown,
-//                    contentDescription = null,
-//                )
+                val month = state.month.text.ifBlank { "--" }
+                val year = state.year.text.ifBlank { "----" }
+                Text(
+                    text = month,
+                )
+                Text(
+                    text = "/",
+                    color = LocalContentColor.current
+                        .combineAlpha(DisabledEmphasisAlpha),
+                )
+                Text(
+                    text = year,
+                )
             }
         },
-        trailing = {
-            val isEmpty = state.month.state.value.isEmpty() &&
-                    state.year.state.value.isEmpty()
-            ExpandedIfNotEmptyForRow(
-                valueOrNull = Unit.takeUnless { isEmpty },
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Spacer(
-                        modifier = Modifier
-                            .width(8.dp),
-                    )
-                    VerticalDivider(
-                        modifier = Modifier
-                            .height(24.dp),
-                    )
-                    Spacer(
-                        modifier = Modifier
-                            .width(8.dp),
-                    )
-                    IconButton(
-                        enabled = true,
-                        onClick = {
-                            state.month.state.value = ""
-                            state.year.state.value = ""
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Clear,
-                            contentDescription = null,
-                        )
-                    }
-                }
-            }
-        },
+        onClick = state.onClick,
+        onClear = onClear.takeIf { !isEmpty },
     )
 }
 

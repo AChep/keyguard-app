@@ -9,6 +9,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -72,6 +75,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -297,6 +301,189 @@ fun ConcealedFlatTextField(
 }
 
 @Composable
+fun FakeFlatTextField(
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    error: String? = null,
+    value: @Composable () -> Unit,
+    onClick: (() -> Unit)?,
+    onClear: (() -> Unit)?,
+    textStyle: TextStyle = LocalTextStyle.current,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    content: (@Composable ColumnScope.() -> Unit)? = null,
+) {
+    val isError = error != null
+    var hasFocus by remember {
+        mutableStateOf(false)
+    }
+
+    val updatedOnClick by rememberUpdatedState(onClick)
+    FlatTextFieldSurface(
+        modifier = modifier
+            .onFocusChanged { state ->
+                hasFocus = state.hasFocus
+            },
+        isError = isError,
+        isFocused = hasFocus,
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable(
+                    indication = LocalIndication.current,
+                    enabled = onClick != null,
+                    interactionSource = remember {
+                        MutableInteractionSource()
+                    },
+                    role = Role.Button,
+                ) {
+                    updatedOnClick?.invoke()
+                },
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(
+                        start = 16.dp,
+                        end = 8.dp,
+                        top = 8.dp,
+                        bottom = 8.dp,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val disabledAlphaTarget = if (onClick != null) 1f else DisabledEmphasisAlpha
+                val disabledAlphaState = animateFloatAsState(disabledAlphaTarget)
+
+                if (leading != null) {
+                    Row(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                alpha = disabledAlphaState.value
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        leading()
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .width(16.dp),
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f),
+                ) {
+                    val expanded = onClear != null
+                    TextFieldLabelLayout(
+                        modifier = Modifier
+                            .heightIn(min = 50.dp),
+                        expanded = onClear != null,
+                    ) {
+                        if (label != null) {
+                            TextFieldLabel(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize()
+                                    .graphicsLayer {
+                                        alpha = disabledAlphaState.value
+                                    },
+                                text = label,
+                                expanded = expanded,
+                                hasFocus = hasFocus,
+                                hasError = isError,
+                            )
+                        }
+
+                        Box {
+                            androidx.compose.animation.AnimatedVisibility(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                                visible = expanded,
+                            ) {
+                                // If color is not provided via the text style, use content color as a default
+                                val textColor = run {
+                                    val color =
+                                        contentColorFor(backgroundColor = MaterialTheme.colorScheme.background)
+                                    val alpha =
+                                        if (onClick != null) DefaultEmphasisAlpha else DisabledEmphasisAlpha
+                                    color.copy(alpha = alpha)
+                                }
+                                val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
+                                ProvideTextStyle(mergedTextStyle) {
+                                    value()
+                                }
+                            }
+                        }
+                    }
+                    Column(
+                        modifier = Modifier
+                            .padding(
+                                end = 8.dp,
+                            ),
+                    ) {
+                        ExpandedIfNotEmpty(
+                            valueOrNull = error,
+                        ) { text ->
+                            FlatTextFieldBadgeLegacy(
+                                error = text,
+                                badge = null,
+                            )
+                        }
+                        if (content != null) {
+                            content()
+                        }
+                    }
+                }
+                if (trailing != null) {
+                    Spacer(
+                        modifier = Modifier
+                            .width(8.dp),
+                    )
+                    Row(
+                        modifier = Modifier
+                            .graphicsLayer {
+                                alpha = disabledAlphaState.value
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        trailing()
+                    }
+                }
+                ExpandedIfNotEmptyForRow(
+                    valueOrNull = onClear,
+                ) { lambda ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Spacer(
+                            modifier = Modifier
+                                .width(8.dp),
+                        )
+                        VerticalDivider(
+                            modifier = Modifier
+                                .height(24.dp),
+                        )
+                        Spacer(
+                            modifier = Modifier
+                                .width(8.dp),
+                        )
+                        IconButton(
+                            onClick = lambda,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Clear,
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun FlatTextField(
     modifier: Modifier = Modifier,
     fieldModifier: Modifier = Modifier,
@@ -376,24 +563,7 @@ fun FlatTextField(
                         expanded = focused,
                     ) {
                         if (label != null) {
-                            val focusedTextSize = MaterialTheme.typography.bodySmall.fontSize.value
-                            val normalTextSize = LocalTextStyle.current.fontSize.value
-                            val textSize by animateFloatAsState(
-                                targetValue = if (focused) focusedTextSize else normalTextSize,
-                            )
-
-                            val focusedTextColor = when {
-                                isError -> MaterialTheme.colorScheme.error
-                                hasFocus -> MaterialTheme.colorScheme.primary
-                                else -> LocalContentColor.current
-                            }
-                            val normalTextColor = LocalContentColor.current
-                                .combineAlpha(HighEmphasisAlpha)
-                            val textColor by animateColorAsState(
-                                targetValue = if (focused) focusedTextColor else normalTextColor,
-                            )
-
-                            Text(
+                            TextFieldLabel(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .animateContentSize()
@@ -401,9 +571,9 @@ fun FlatTextField(
                                         alpha = disabledAlphaState.value
                                     },
                                 text = label,
-                                fontSize = textSize.sp,
-                                maxLines = 1,
-                                color = textColor,
+                                expanded = focused,
+                                hasFocus = hasFocus,
+                                hasError = isError,
                             )
                         }
 
@@ -626,6 +796,40 @@ private data class Afh(
     val options: ImmutableList<String>,
     val createdAt: Instant,
 )
+
+@Composable
+private fun TextFieldLabel(
+    modifier: Modifier = Modifier,
+    text: String,
+    expanded: Boolean,
+    hasFocus: Boolean,
+    hasError: Boolean,
+) {
+    val expandedTextSize = MaterialTheme.typography.bodySmall.fontSize.value
+    val normalTextSize = LocalTextStyle.current.fontSize.value
+    val textSize by animateFloatAsState(
+        targetValue = if (expanded) expandedTextSize else normalTextSize,
+    )
+
+    val expandedTextColor = when {
+        hasError -> MaterialTheme.colorScheme.error
+        hasFocus -> MaterialTheme.colorScheme.primary
+        else -> LocalContentColor.current
+    }
+    val normalTextColor = LocalContentColor.current
+        .combineAlpha(HighEmphasisAlpha)
+    val textColor by animateColorAsState(
+        targetValue = if (expanded) expandedTextColor else normalTextColor,
+    )
+
+    Text(
+        modifier = modifier,
+        text = text,
+        fontSize = textSize.sp,
+        maxLines = 1,
+        color = textColor,
+    )
+}
 
 @Composable
 private fun TextFieldLabelLayout(

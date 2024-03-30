@@ -37,7 +37,6 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Password
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -71,6 +70,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -111,6 +111,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 @Composable
 fun UrlFlatTextField(
@@ -367,14 +369,13 @@ fun FlatTextField(
                     modifier = Modifier
                         .weight(1f),
                 ) {
-                    Box(
+                    val focused = hasFocus || value.text.isNotEmpty()
+                    TextFieldLabelLayout(
                         modifier = Modifier
-                            .heightIn(min = 48.dp),
-                        contentAlignment = Alignment.TopStart,
+                            .heightIn(min = 50.dp),
+                        expanded = focused,
                     ) {
                         if (label != null) {
-                            val focused = hasFocus || value.text.isNotEmpty()
-
                             val focusedTextSize = MaterialTheme.typography.bodySmall.fontSize.value
                             val normalTextSize = LocalTextStyle.current.fontSize.value
                             val textSize by animateFloatAsState(
@@ -392,44 +393,26 @@ fun FlatTextField(
                                 targetValue = if (focused) focusedTextColor else normalTextColor,
                             )
 
-                            val padding by animateDpAsState(
-                                targetValue = if (focused) 16.dp else 0.dp,
-                            )
-
-                            Box(
+                            Text(
                                 modifier = Modifier
-                                    .heightIn(min = 48.dp)
+                                    .fillMaxWidth()
+                                    .animateContentSize()
                                     .graphicsLayer {
                                         alpha = disabledAlphaState.value
-                                        translationY = -padding.value
                                     },
-                                contentAlignment = Alignment.CenterStart,
-                            ) {
-                                Text(
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    text = label,
-                                    fontSize = textSize.sp,
-                                    maxLines = 1,
-                                    color = textColor,
-                                )
-                            }
+                                text = label,
+                                fontSize = textSize.sp,
+                                maxLines = 1,
+                                color = textColor,
+                            )
                         }
-                        val focused = (hasFocus || value.text.isNotEmpty()) && label != null
-                        val padding by animateDpAsState(
-                            targetValue = if (focused) 8.dp else 0.dp,
-                        )
 
                         val finalPlaceholder = placeholder ?: value.hint
                         PlainTextField(
                             modifier = fieldModifier
                                 .fillMaxWidth()
-                                .focusRequester2(fieldFocusRequester)
-                                .heightIn(min = 48.dp),
-                            boxModifier = boxModifier
-                                .graphicsLayer {
-                                    translationY = padding.value
-                                },
+                                .focusRequester2(fieldFocusRequester),
+                            boxModifier = boxModifier,
                             placeholder = if (finalPlaceholder != null) {
                                 // composable
                                 {
@@ -643,6 +626,56 @@ private data class Afh(
     val options: ImmutableList<String>,
     val createdAt: Instant,
 )
+
+@Composable
+private fun TextFieldLabelLayout(
+    modifier: Modifier = Modifier,
+    expanded: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val progress by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0f,
+    )
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Layout(
+            content = content,
+        ) { measurables, constraints ->
+            val itemConstraints = constraints.copy(
+                minHeight = 0,
+            )
+            val placeables = measurables
+                .map { measurable ->
+                    measurable.measure(itemConstraints)
+                }
+
+            val width = constraints.maxWidth
+            val height = kotlin.run {
+                val maxHeight = placeables
+                    .maxOf { it.height }
+                if (placeables.size == 2) {
+                    val (label, field) = placeables
+                    val height = (label.height * progress).roundToInt() + field.height
+                    max(height, maxHeight)
+                } else {
+                    maxHeight
+                }
+            }
+            layout(width, height) {
+                if (placeables.size == 2) {
+                    val (label, field) = placeables
+                    label.placeRelative(0, 0)
+                    field.placeRelative(0, (label.height * progress).roundToInt())
+                } else {
+                    placeables.first()
+                        .placeRelative(0, 0)
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun PlainTextField(

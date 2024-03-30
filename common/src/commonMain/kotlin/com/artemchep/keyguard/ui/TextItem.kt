@@ -393,7 +393,7 @@ fun FlatTextField(
                             )
 
                             val padding by animateDpAsState(
-                                targetValue = if (focused) 28.dp else 0.dp,
+                                targetValue = if (focused) 16.dp else 0.dp,
                             )
 
                             Box(
@@ -401,13 +401,13 @@ fun FlatTextField(
                                     .heightIn(min = 48.dp)
                                     .graphicsLayer {
                                         alpha = disabledAlphaState.value
+                                        translationY = -padding.value
                                     },
                                 contentAlignment = Alignment.CenterStart,
                             ) {
                                 Text(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = padding),
+                                        .fillMaxWidth(),
                                     text = label,
                                     fontSize = textSize.sp,
                                     maxLines = 1,
@@ -417,7 +417,7 @@ fun FlatTextField(
                         }
                         val focused = (hasFocus || value.text.isNotEmpty()) && label != null
                         val padding by animateDpAsState(
-                            targetValue = if (focused) 20.dp else 0.dp,
+                            targetValue = if (focused) 8.dp else 0.dp,
                         )
 
                         val finalPlaceholder = placeholder ?: value.hint
@@ -427,7 +427,9 @@ fun FlatTextField(
                                 .focusRequester2(fieldFocusRequester)
                                 .heightIn(min = 48.dp),
                             boxModifier = boxModifier
-                                .padding(top = padding),
+                                .graphicsLayer {
+                                    translationY = padding.value
+                                },
                             placeholder = if (finalPlaceholder != null) {
                                 // composable
                                 {

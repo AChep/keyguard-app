@@ -10,7 +10,7 @@ jdk = "17"
 # @keep
 appVersionName = "1.0.0"
 # @keep
-appVersionCode = "2"
+appVersionCode = "3"
 # https://github.com/google/accompanist
 accompanist = "0.34.0"
 androidBillingClient = "6.2.0"

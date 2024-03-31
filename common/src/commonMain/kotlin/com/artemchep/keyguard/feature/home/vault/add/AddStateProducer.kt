@@ -1902,7 +1902,10 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         // default account.
         val accountId = ioEffect {
             val accountIds = getProfiles().toIO().bind()
-                .map { it.accountId() }
+                .asSequence()
+                .map { profile ->
+                    profile.accountId()
+                }
                 .toSet()
 
             fun String.takeIfAccountIdExists() = this
@@ -1918,10 +1921,17 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             val ciphers = getCiphers().toIO().bind()
             ciphers
                 .asSequence()
-                .filter { it.organizationId != null }
-                .groupBy { it.accountId }
-                // the one that has the most ciphers
-                .maxByOrNull { entry -> entry.value.size }
+                .map {
+                    val groupKey = it.accountId
+                    val score = 1.0 +
+                            (if (it.organizationId == null) 0.8 else 0.0) +
+                            (if (it.folderId != null) 0.2 else 0.0)
+                    groupKey to score
+                }
+                .groupBy { it.first }
+                .mapValues { it.value.sumOf { it.second } }
+                // the one that has the highest score
+                .maxByOrNull { entry -> entry.value }
                 // account id
                 ?.key
                 ?.takeIfAccountIdExists()

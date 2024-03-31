@@ -33,6 +33,7 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
@@ -73,6 +74,7 @@ import com.artemchep.keyguard.common.model.creditCards
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
+import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -243,6 +245,12 @@ fun produceAddScreenState(
         getFolders = getFolders,
         getCiphers = getCiphers,
     )
+    val profileFlow = getProfiles()
+        .combine(ownershipFlow) { profiles, ownership ->
+            profiles
+                .firstOrNull { it.accountId == ownership.data.accountId }
+        }
+        .distinctUntilChanged()
 
     val mergeFlow = if (args.merge != null) {
         val ciphersHaveAttachments = args.merge.ciphers.any { it.attachments.isNotEmpty() }
@@ -279,7 +287,7 @@ fun produceAddScreenState(
 
     val loginHolder = produceLoginState(
         args = args,
-        ownershipFlow = ownershipFlow,
+        profileFlow = profileFlow,
         copyText = copyText,
         getTotpCode = getTotpCode,
         getGravatarUrl = getGravatarUrl,
@@ -2221,7 +2229,7 @@ data class TmpNote(
 
 private suspend fun RememberStateFlowScope.produceLoginState(
     args: AddRoute.Args,
-    ownershipFlow: Flow<AddState.Ownership>,
+    profileFlow: Flow<DProfile?>,
     copyText: CopyText,
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
@@ -2241,15 +2249,11 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         factory(
             id,
             LocalStateItem(
-                flow = ownershipFlow
-                    .map {
-                        it.ui.account
-                            ?.items
-                            ?.asSequence()
-                            ?.filter { !it.stub }
-                            ?.map { it.title }
-                            ?.toPersistentList()
-                            ?: persistentListOf()
+                flow = profileFlow
+                    .map { profile ->
+                        val email = profile?.email
+                            ?: return@map persistentListOf<String>()
+                        persistentListOf(email)
                     }
                     .combine(sink) { autocompleteOptions, value ->
                         val model = TextFieldModel2(

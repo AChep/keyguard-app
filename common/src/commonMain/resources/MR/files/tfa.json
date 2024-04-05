@@ -6583,6 +6583,14 @@
     "name": "Hatch"
   },
   {
+    "domain": "hatena.ne.jp",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://hatena.zendesk.com/hc/ja/articles/29892170781209",
+    "name": "Hatena"
+  },
+  {
     "domain": "he.net",
     "url": "https://www.he.net/",
     "tfa": [
@@ -6841,14 +6849,18 @@
   },
   {
     "domain": "home.saxo",
-    "url": "https://www.home.saxo/",
     "additional-domains": [
-      "saxotrader.com"
+      "saxotrader.com",
+      "saxobank.com",
+      "bgsaxo.it"
     ],
     "tfa": [
-      "totp"
+      "sms",
+      "custom-software"
     ],
-    "documentation": "https://www.help.saxo/hc/en-us/articles/360038307372",
+    "custom-software": [
+      "Saxo app"
+    ],
     "name": "Saxo Bank"
   },
   {
@@ -8708,6 +8720,7 @@
     "tfa": [
       "sms",
       "call",
+      "totp",
       "email",
       "u2f"
     ],
@@ -9292,6 +9305,7 @@
       "totp"
     ],
     "documentation": "https://help.miro.com/hc/en-us/articles/7935469290002",
+    "notes": "Only available for Enterprise plan accounts and must be enabled by a Company Admin",
     "name": "Miro"
   },
   {

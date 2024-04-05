@@ -3346,6 +3346,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "Compiled",
+    "domains": [
+      "cosoc.com",
+      "compiled.social"
+    ],
+    "url": "https://cosoc.com",
+    "difficulty": "easy",
+    "notes": "Enter your user settings and select \"Delete Account,\" and \"Delete\" when prompted again. This is irreversible."
+  },
+  {
     "name": "Computeruniverse",
     "domains": [
       "computeruniverse.net"
@@ -3622,6 +3632,15 @@
     "email_body": "Please delete my cTrader account that uses the e-mail XXXXX and the passport is YYYYY."
   },
   {
+    "name": "Cubeast",
+    "domains": [
+      "app.cubeast.com"
+    ],
+    "url": "https://app.cubeast.com/settings/user_settings",
+    "difficulty": "easy",
+    "notes": "Select \"Remove Account,\" confirm your email, then select \"DELETE MY ACCOUNT.\""
+  },
+  {
     "name": "CubieCloud",
     "domains": [
       "cloud.cubie.com.br",
@@ -3883,6 +3902,15 @@
     "url": "https://www.delugerpg.com/faq#delete",
     "difficulty": "hard",
     "notes": "There is no way to delete an account. Inactive accounts are deleted automatically after 15 months."
+  },
+  {
+    "name": "Demiplane",
+    "domains": [
+      "demiplane.com"
+    ],
+    "url": "https://support.demiplane.com/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "You must submit a support ticket to request account closure."
   },
   {
     "name": "Depop",
@@ -4594,6 +4622,15 @@
     "notes": "Scroll down and click \"ERASE PERSONAL DATA\". You will receive an e-mail in which you have to click the link after \"Delete my data link:\". This confirms the erasure of your personal data and account."
   },
   {
+    "name": "Duotrope",
+    "domains": [
+      "duotrope.com"
+    ],
+    "url": "https://duotrope.com/contact/customerservice.aspx",
+    "difficulty": "hard",
+    "notes": "You must submit a support ticket to request account deletion."
+  },
+  {
     "name": "Dwell",
     "domains": [
       "dwell.co.uk"
@@ -5146,7 +5183,8 @@
   {
     "name": "Eventbrite",
     "domains": [
-      "eventbrite.com"
+      "eventbrite.com",
+      "privacy.eventbrite.com"
     ],
     "url": "https://www.eventbrite.com/account-close",
     "difficulty": "easy"
@@ -5651,6 +5689,15 @@
     "url": "https://www.floatplane.com/user/settings",
     "difficulty": "easy",
     "notes": "Click the 'Delete Account' button and type your password. Your account will be deleted in 2 weeks."
+  },
+  {
+    "name": "Floor Plan Creator",
+    "domains": [
+      "floorplancreator.net"
+    ],
+    "url": "https://floorplancreator.net/account/",
+    "difficulty": "easy",
+    "notes": "Click the 'Delete Account' button and confirm your selection."
   },
   {
     "name": "Flowkey",
@@ -6485,6 +6532,15 @@
     "url": "https://glitch.com/settings/account",
     "difficulty": "easy",
     "notes": "Log in first, go to the url, scroll down and press delete account."
+  },
+  {
+    "name": "Glorious Forums",
+    "domains": [
+      "gloriousforum.com"
+    ],
+    "url": "https://gloriousforum.com",
+    "difficulty": "easy",
+    "notes": "Select your account in the top right, select the bottom-most yellow button (contact icon), and select \"Delete My Account\". Confirm your selection, and it is done."
   },
   {
     "name": "Glovo",
@@ -7480,6 +7536,15 @@
     "notes": "Click \"Account settings\" and then the red button \"Delete my account\" at the bottom of the page."
   },
   {
+    "name": "HigherMe",
+    "domains": [
+      "higherme.com"
+    ],
+    "url": "https://app.higherme.com/profile/settings",
+    "difficulty": "easy",
+    "notes": "Select \"Delete Account,\" confirm your email, then select \"Yes, delete account.\" You have 30 days to recover the account."
+  },
+  {
     "name": "HiNative",
     "domains": [
       "hinative.com"
@@ -7646,6 +7711,16 @@
     "url": "https://www.hotspotshield.com",
     "difficulty": "hard",
     "notes": "If you're a paid user, you can contact support. If you're a free user, it's only possible if you have regulations that require deletion."
+  },
+  {
+    "name": "Hotstar",
+    "domains": [
+      "help.hotstar.com",
+      "hotstar.com"
+    ],
+    "url": "https://help.hotstar.com/in/en/support/tickets/new",
+    "difficulty": "hard",
+    "notes": "Select account related, then delete my account and write your issue."
   },
   {
     "name": "Houzz",
@@ -7821,6 +7896,16 @@
     "url": "https://help.ibotta.com/hc/en-us/articles/225528727-How-Do-I-Cancel-My-Ibotta-Account-",
     "difficulty": "hard",
     "email": "accountsupport@ibotta.com"
+  },
+  {
+    "name": "ICANN",
+    "domains": [
+      "icann.org",
+      "account.icann.org"
+    ],
+    "url": "https://account.icann.org/",
+    "difficulty": "easy",
+    "notes": "On the account settings, click 'delete my data'."
   },
   {
     "name": "Icedrive",
@@ -8758,6 +8843,17 @@
     "difficulty": "hard",
     "notes": "You may deactivate your Keeper Security account and delete your personally identifiable information at any time by contacting their support at support@keepersecurity.com clearly indicating that you wish to delete your account.",
     "email": "support@keepersecurity.com"
+  },
+  {
+    "name": "Kendall County History",
+    "domains": [
+      "kendallcountyhistory.com"
+    ],
+    "url": "https://kendallcountyhistory.com/contact-us/",
+    "difficulty": "hard",
+    "notes": "You can also use the google form in contact us page and ask them to remove your profile.",
+    "email": "contact@kendallcountyhistory.com",
+    "email_subject": "Delete My Profile"
   },
   {
     "name": "Keybase.io",
@@ -9882,6 +9978,15 @@
     "url": "https://my.mlh.io/users/edit",
     "difficulty": "easy",
     "notes": "Go to the linked page, scroll to the bottom, click \"Cancel Account\" and confirm."
+  },
+  {
+    "name": "MakeMyTrip",
+    "domains": [
+      "makemytrip.com"
+    ],
+    "url": "https://www.makemytrip.com/",
+    "difficulty": "easy",
+    "notes": "App \u2b95 Menu \u2b95 Account \u2b95 Settings \u2b95 Delete."
   },
   {
     "name": "Mangadex",
@@ -12022,6 +12127,16 @@
     "notes": "On the linked page select 'Delete my account'."
   },
   {
+    "name": "Optum",
+    "domains": [
+      "docasap.com",
+      "optum.com"
+    ],
+    "url": "https://docasap.com/user/profile",
+    "difficulty": "easy",
+    "notes": "On the linked page select \"Deactivate Account\" and provide the code sent to the account's email address."
+  },
+  {
     "name": "Oracle",
     "domains": [
       "oracle.com"
@@ -12635,6 +12750,17 @@
     "url": "https://pinterest.com/settings/account-settings/",
     "difficulty": "medium",
     "notes": "On the Account Settings, click 'Delete Account', state reason and click 'Next', then 'Send email'. You need to check the e-mail and confirm the deletion."
+  },
+  {
+    "name": "Pivot Interactives",
+    "domains": [
+      "pivotinteractives.com"
+    ],
+    "url": "https://www.pivotinteractives.com",
+    "difficulty": "hard",
+    "notes": "You must send an email to remove your account. This service \"may still retain certain information associated with your account\" for any of the reasons outlined in section 7 of their [privacy policy](https://www.discoveryeducation.com/privacy-policy/).",
+    "email": "info@pivotinteractives.com",
+    "email_subject": "Privacy Rights Request"
   },
   {
     "name": "PivotalTracker",
@@ -15446,6 +15572,15 @@
     "notes": "Log in, select the option view my account, a dialog will have delete my account button which is then confirmed by the email. After confirming, your GDPR request will takes 2 weeks to be completed. You are able to cancel this deletion request any time within that 2 week processing period by clicking the link below in the confirmation email."
   },
   {
+    "name": "StudentBeans",
+    "domains": [
+      "studentbeans.com"
+    ],
+    "url": "https://accounts.studentbeans.com/us/my/account",
+    "difficulty": "easy",
+    "notes": "Open account settings, click on 'Delete Account', provide a reason, and confirm you'd like to delete it."
+  },
+  {
     "name": "Studio",
     "domains": [
       "studio.com"
@@ -16308,7 +16443,7 @@
       "blog.ticktick.com",
       "support.ticktick.com"
     ],
-    "url": "https://support.ticktick.com/hc/en-us/articles/360011759031",
+    "url": "https://help.ticktick.com/articles/7136181511681736704",
     "difficulty": "easy",
     "notes": "Follow the instructions from this link."
   },
@@ -17474,6 +17609,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "Voi",
+    "domains": [
+      "voi.com",
+      "voiscooters.com"
+    ],
+    "url": "https://help.voi.com/en_gb/i-want-to-delete-my-voi-account-S1TgkzhO_",
+    "difficulty": "easy",
+    "notes": "In the Voi, view your profile, and press 'Delete Account' at the bottom of the screen."
+  },
+  {
     "name": "Voicemod",
     "domains": [
       "voicemod.net"
@@ -18599,6 +18744,18 @@
     "url": "https://www.xing.com/preferences/account",
     "difficulty": "easy",
     "notes": "Select 'Delete Profile' at the bottom of the page."
+  },
+  {
+    "name": "XREAL",
+    "domains": [
+      "xreal.com"
+    ],
+    "url": "https://us.shop.xreal.com/",
+    "difficulty": "hard",
+    "notes": "\"Account deactivation requires you to contact the support email, and they will assist you with the deactivation process. Deactivation removes all your personal information, including your account details, profile, and data associated with your account. This information will be permanently removed, and the operation cannot be undone.\"",
+    "email": "support@xreal.com",
+    "email_subject": "XREAL Account Deletion Request",
+    "email_body": "Please delete my XREAL account."
   },
   {
     "name": "XSplit",

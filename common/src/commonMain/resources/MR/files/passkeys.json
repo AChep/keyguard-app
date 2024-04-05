@@ -1762,6 +1762,16 @@
     "notes": "When signing up for Voura, you will be automatically prompted to save a passkey for your account.\n\nPowered by Passage by 1Password."
   },
   {
+    "id": "bff0afd9478c21a01136e954ad0d7164",
+    "name": "Mintbase Wallet",
+    "domain": "wallet.mintbase.xyz",
+    "features": [
+      "signin"
+    ],
+    "category": "Finance",
+    "created_at": "2024-04-02T09:40:56.495819+00:00"
+  },
+  {
     "id": "ffe0c8cc238d5545af34bcdde2e1c523",
     "name": "WebAuthn.io",
     "domain": "webauthn.io",
@@ -1858,6 +1868,19 @@
     "setup": "https://g.co/passkeys",
     "category": "Entertainment",
     "created_at": "2023-03-23T11:33:49.801159+00:00"
+  },
+  {
+    "id": "8039068512fe83e77191866daf109f3e",
+    "name": "Zitadel",
+    "domain": "zitadel.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://zitadel.com/docs/guides/integrate/login-ui/passkey#login-with-passkey",
+    "setup": "https://zitadel.com/admin/users/me?id=security",
+    "category": "Information Technology",
+    "created_at": "2024-04-02T09:52:14.488498+00:00",
+    "notes": "Partial passkey support verified with a desktop browser and 1Password extension.  \n\nSome intermittent issues with mobile Safari. "
   },
   {
     "id": "e2c0d9d15d19483408365edb7ced849a",

@@ -139,7 +139,7 @@ yubiKit = "2.5.0"
 zip4j = "2.11.5"
 # https://github.com/nulab/zxcvbn4j
 # We use it to calculate password strength.
-zxcvbn4j = "1.8.2"
+zxcvbn4j = "1.9.0"
 # https://github.com/zxing/zxing
 zxing = "3.5.3"
 

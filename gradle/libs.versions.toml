@@ -116,7 +116,7 @@ signalr = "8.0.3"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.12"
 # https://github.com/bcgit/bc-java
-bouncycastle = "1.77"
+bouncycastle = "1.78"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.5.6"
 # https://github.com/cashapp/sqldelight

@@ -80,6 +80,7 @@ import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
+import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.feature.send.toVaultItemIcon
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.res.Res
@@ -291,6 +292,23 @@ fun sendViewScreenState(
                     } else {
                         null
                     },
+                    onEdit = {
+                        val route = SendAddRoute(
+                            args = SendAddRoute.Args(
+                                behavior = SendAddRoute.Args.Behavior(
+                                    // When you edit a send, you do not know what field
+                                    // user is targeting, so it's better to not show the
+                                    // keyboard automatically.
+                                    autoShowKeyboard = false,
+                                    launchEditedCipher = false,
+                                ),
+                                type = secretOrNull.type,
+                                initialValue = secretOrNull,
+                            ),
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
+                    },
                     items = oh(
                         markdownParser = markdownParser,
                         canEdit = canAddSecret,
@@ -339,8 +357,8 @@ private fun RememberStateFlowScope.oh(
     if (send.disabled) {
         val model = VaultViewItem.Info(
             id = "disabled",
-            name = "Deactivated",
-            message = "This share is deactivated, no one can access it.",
+            name = translate(Res.strings.deactivated),
+            message = translate(Res.strings.sends_action_disabled_note),
         )
         emit(model)
     }
@@ -351,6 +369,7 @@ private fun RememberStateFlowScope.oh(
             copy = copy,
             id = "text.text",
             title = translate(Res.strings.text),
+            send = send.name,
             value = text.text.orEmpty(),
             elevated = true,
         )
@@ -520,6 +539,7 @@ fun RememberStateFlowScope.create(
     copy: CopyText,
     id: String,
     title: String?,
+    send: String,
     value: String,
     badge: VaultViewItem.Value.Badge? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
@@ -563,6 +583,8 @@ fun RememberStateFlowScope.create(
                     navigate = ::navigate,
                 )
                 this += createSendActionOrNull(
+                    translator = this@create,
+                    name = send,
                     text = value,
                     navigate = ::navigate,
                 )

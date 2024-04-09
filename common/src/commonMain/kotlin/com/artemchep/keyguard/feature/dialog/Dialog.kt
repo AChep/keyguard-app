@@ -71,11 +71,11 @@ fun Dialog(
                     .weight(1f, fill = false)
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
             ) {
-                Spacer(
-                    modifier = Modifier
-                        .height(24.dp),
-                )
                 if (title != null) {
+                    Spacer(
+                        modifier = Modifier
+                            .height(24.dp),
+                    )
                     val centerAlign = icon != null
                     Column(
                         modifier = Modifier
@@ -124,6 +124,14 @@ fun Dialog(
                                     } else {
                                         Modifier
                                     },
+                                )
+                                .then(
+                                    if (title == null) {
+                                        Modifier
+                                            .padding(top = 24.dp)
+                                    } else {
+                                        Modifier
+                                    },
                                 ),
                             contentAlignment = Alignment.TopStart,
                         ) {
@@ -137,7 +145,7 @@ fun Dialog(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .fillMaxWidth(),
-                            visible = scrollState.canScrollBackward && contentScrollable,
+                            visible = scrollState.canScrollBackward && contentScrollable && title != null,
                         ) {
                             HorizontalDivider(transparency = false)
                         }

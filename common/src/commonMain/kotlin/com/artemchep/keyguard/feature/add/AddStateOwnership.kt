@@ -22,3 +22,8 @@ data class AddStateOwnership(
         )
     }
 }
+
+data class AddStateOwnershipElementHolder<out T>(
+    val value: T,
+    val element: AddStateOwnership.Element?,
+)

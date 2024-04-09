@@ -28,6 +28,7 @@ data class SendViewState(
             val synced: Boolean,
             val onCopy: (() -> Unit)?,
             val onShare: (() -> Unit)?,
+            val onEdit: (() -> Unit)?,
             val actions: List<ContextItem>,
             val items: List<VaultViewItem>,
         ) : Content {

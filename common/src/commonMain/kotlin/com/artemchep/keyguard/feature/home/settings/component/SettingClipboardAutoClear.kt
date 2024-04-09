@@ -18,6 +18,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.icon
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.flow.combine
@@ -79,7 +80,7 @@ private fun getAutoClearDurationTitle(duration: Duration, context: LeContext) = 
         context,
     )
 
-    else -> duration.toString()
+    else -> duration.format(context)
 }
 
 @Composable

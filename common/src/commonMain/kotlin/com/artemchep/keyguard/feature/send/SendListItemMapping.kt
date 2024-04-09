@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.flow.StateFlow
 
@@ -63,9 +64,7 @@ fun DSend.toVaultItemIcon(
 ): VaultItemIcon = kotlin.run {
     val vectorIconSrc = type.iconImageVector()
     val textIcon = if (name.isNotBlank()) {
-        VaultItemIcon.TextIcon(
-            text = name.take(2),
-        )
+        VaultItemIcon.TextIcon.short(name)
     } else {
         null
     }

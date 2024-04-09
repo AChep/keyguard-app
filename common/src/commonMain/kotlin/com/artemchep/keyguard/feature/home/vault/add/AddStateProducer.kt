@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.add
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Checkbox
 import androidx.compose.material.RadioButton
@@ -100,7 +101,11 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.validLuhn
 import com.artemchep.keyguard.feature.add.AddStateItem
 import com.artemchep.keyguard.feature.add.AddStateOwnership
+import com.artemchep.keyguard.feature.add.AddStateOwnershipElementHolder
 import com.artemchep.keyguard.feature.add.LocalStateItem
+import com.artemchep.keyguard.feature.add.OwnershipState
+import com.artemchep.keyguard.feature.add.accountFlow
+import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
@@ -198,11 +203,11 @@ fun produceAddScreenState(
 @kotlinx.serialization.Serializable
 @LeParcelize
 data class AddItemOwnershipData(
-    val accountId: String?,
+    override val accountId: String?,
     val folder: FolderInfo,
     val organizationId: String?,
     val collectionIds: Set<String>,
-) : LeParcelable
+) : LeParcelable, OwnershipState
 
 @Composable
 fun produceAddScreenState(
@@ -1870,136 +1875,40 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
 ): Flow<AddState.Ownership> {
     val ro = args.ownershipRo
 
-    data class Fool<T>(
-        val value: T,
-        val element: AddStateOwnership.Element?,
+    val ownershipHandle = ownershipHandle(
+        key = "new_item",
+        profilesFlow = getProfiles(),
+        ciphersFlow = getCiphers(),
+        initialValue = args.initialValue
+            ?.let { value ->
+                AddItemOwnershipData(
+                    accountId = value.accountId,
+                    organizationId = value.organizationId,
+                    collectionIds = value.collectionIds,
+                    folder = kotlin.run {
+                        val folderId = value.folderId
+                        if (folderId != null) {
+                            FolderInfo.Id(folderId)
+                        } else {
+                            FolderInfo.None
+                        }
+                    },
+                )
+            },
+        factory = { accountId ->
+            AddItemOwnershipData(
+                accountId = accountId,
+                organizationId = null,
+                collectionIds = emptySet(),
+                folder = FolderInfo.None,
+            )
+        },
     )
 
-    val disk = loadDiskHandle("new_item")
-    val accountIdSink = mutablePersistedFlow<String?>(
-        key = "ownership.account_id",
-        storage = PersistedStorage.InDisk(disk),
-    ) { null }
-
-    val initialState = kotlin.run {
-        if (args.initialValue != null) {
-            return@run AddItemOwnershipData(
-                accountId = args.initialValue.accountId,
-                organizationId = args.initialValue.organizationId,
-                collectionIds = args.initialValue.collectionIds,
-                folder = kotlin.run {
-                    val folderId = args.initialValue.folderId
-                    if (folderId != null) {
-                        FolderInfo.Id(folderId)
-                    } else {
-                        FolderInfo.None
-                    }
-                },
-            )
-        }
-
-        // Make an account that has the most ciphers a
-        // default account.
-        val accountId = ioEffect {
-            val accountIds = getProfiles().toIO().bind()
-                .asSequence()
-                .map { profile ->
-                    profile.accountId()
-                }
-                .toSet()
-
-            fun String.takeIfAccountIdExists() = this
-                .takeIf { id ->
-                    id in accountIds
-                }
-
-            val lastAccountId = accountIdSink.value?.takeIfAccountIdExists()
-            if (lastAccountId != null) {
-                return@ioEffect lastAccountId
-            }
-
-            val ciphers = getCiphers().toIO().bind()
-            ciphers
-                .asSequence()
-                .map {
-                    val groupKey = it.accountId
-                    val score = 1.0 +
-                            (if (it.organizationId == null) 0.8 else 0.0) +
-                            (if (it.folderId != null) 0.2 else 0.0)
-                    groupKey to score
-                }
-                .groupBy { it.first }
-                .mapValues { it.value.sumOf { it.second } }
-                // the one that has the highest score
-                .maxByOrNull { entry -> entry.value }
-                // account id
-                ?.key
-                ?.takeIfAccountIdExists()
-        }.attempt().bind().getOrNull()
-
-        AddItemOwnershipData(
-            accountId = accountId,
-            organizationId = null,
-            collectionIds = emptySet(),
-            folder = FolderInfo.None,
-        )
-    }
-    val sink = mutablePersistedFlow("ownership") {
-        initialState
-    }
-
-    // If we are creating a new item, then remember the
-    // last selected account to pre-select it next time.
-    // TODO: Remember only when an item is created.
-    sink
-        .map { it.accountId }
-        .onEach(accountIdSink::value::set)
-        .launchIn(screenScope)
-
-    val accountFlow = combine(
-        sink
-            .map { it.accountId }
-            .distinctUntilChanged(),
-        getProfiles(),
-    ) { accountId, profiles ->
-        if (accountId == null) {
-            val item = AddStateOwnership.Element.Item(
-                key = "account.empty",
-                title = translate(Res.strings.account_none),
-                stub = true,
-            )
-            val el = AddStateOwnership.Element(
-                readOnly = ro,
-                items = listOf(item),
-            )
-            return@combine Fool(
-                value = null,
-                element = el,
-            )
-        }
-        val profileOrNull = profiles
-            .firstOrNull { it.accountId() == accountId }
-        val el = AddStateOwnership.Element(
-            readOnly = ro,
-            items = listOfNotNull(profileOrNull)
-                .map { account ->
-                    val key = "account.${account.accountId()}"
-                    AddStateOwnership.Element.Item(
-                        key = key,
-                        title = account.displayName,
-                        text = account.accountHost,
-                        accentColors = account.accentColor,
-                    )
-                },
-        )
-        Fool(
-            value = accountId,
-            element = el,
-        )
-    }
+    val accountFlow = ownershipHandle.accountFlow(readOnly = ro)
 
     val organizationFlow = combine(
-        sink
+        ownershipHandle.stateSink
             .map { it.organizationId }
             .distinctUntilChanged(),
         getOrganizations(),
@@ -2014,7 +1923,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                 readOnly = ro,
                 items = listOf(item),
             )
-            return@combine Fool(
+            return@combine AddStateOwnershipElementHolder(
                 value = null,
                 element = el,
             )
@@ -2032,20 +1941,20 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     )
                 },
         )
-        Fool(
+        AddStateOwnershipElementHolder(
             value = organizationId,
             element = el,
         )
     }
 
     val collectionFlow = combine(
-        sink
+        ownershipHandle.stateSink
             .map { it.collectionIds }
             .distinctUntilChanged(),
         getCollections(),
     ) { collectionIds, collections ->
         if (collectionIds.isEmpty()) {
-            return@combine Fool(
+            return@combine AddStateOwnershipElementHolder(
                 value = emptySet(),
                 element = null,
             )
@@ -2065,14 +1974,14 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     )
                 },
         )
-        Fool(
+        AddStateOwnershipElementHolder(
             value = collectionIds,
             element = el,
         )
     }
 
     val folderFlow = combine(
-        sink
+        ownershipHandle.stateSink
             .map { it.folder }
             .distinctUntilChanged(),
         getFolders(),
@@ -2088,7 +1997,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     readOnly = false,
                     items = listOf(item),
                 )
-                return@combine Fool(
+                return@combine AddStateOwnershipElementHolder(
                     value = selectedFolder,
                     element = el,
                 )
@@ -2104,7 +2013,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     readOnly = false,
                     items = listOf(item),
                 )
-                return@combine Fool(
+                return@combine AddStateOwnershipElementHolder(
                     value = selectedFolder,
                     element = el,
                 )
@@ -2124,7 +2033,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                             )
                         },
                 )
-                Fool(
+                AddStateOwnershipElementHolder(
                     value = selectedFolder,
                     element = el,
                 )
@@ -2179,7 +2088,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                             collectionIds = result.collectionsIds,
                             folder = result.folderId,
                         )
-                        sink.value = newState
+                        ownershipHandle.stateSink.value = newState
                     }
                 }
                 val intent = NavigationIntent.NavigateToRoute(route)
@@ -3294,7 +3203,7 @@ private suspend fun RememberStateFlowScope.produceNoteState(
                     val model = TextFieldModel2(
                         state = state,
                         text = value,
-                        hint = "Add any notes about this item here",
+                        hint = translate(Res.strings.additem_note_placeholder),
                         onChange = state::value::set,
                     )
                     model
@@ -3338,7 +3247,9 @@ suspend fun <Request> RememberStateFlowScope.createItem(
     key: String,
     label: String? = null,
     hint: String? = null,
+    note: String? = null,
     initialValue: String? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
     autocompleteOptions: ImmutableList<String> = persistentListOf(),
     singleLine: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -3358,6 +3269,8 @@ suspend fun <Request> RememberStateFlowScope.createItem(
 ) { id, state ->
     AddStateItem.Text(
         id = id,
+        leading = leading,
+        note = note,
         state = state,
     )
 }

@@ -16,7 +16,10 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -339,6 +342,17 @@ private fun RowScope.VaultViewTitleActions(
             OfflineIcon(
                 modifier = Modifier
                     .minimumInteractiveComponentSize(),
+            )
+        }
+        IconButton(
+            onClick = {
+                state.content.onEdit?.invoke()
+            },
+            enabled = state.content.onEdit != null,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = null,
             )
         }
         OptionsButton(

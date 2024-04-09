@@ -714,13 +714,12 @@ object SendUtil {
                     return@flatMapLatest flowOf(false)
                 }
 
-                // Using send requires a user to have the
-                // Bitwarden premium. We don't want to show the
-                // new item button if a user won't be able to
-                // create an item anyway.
+                // Here we might want to filter the accounts if
+                // Bitwarden Send becomes unavailable for non
+                // premium users.
                 profilesFlow
                     .map { profiles ->
-                        profiles.any { it.premium }
+                        profiles.any { true }
                     }
             }
             .distinctUntilChanged()

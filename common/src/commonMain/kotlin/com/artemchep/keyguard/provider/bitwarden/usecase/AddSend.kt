@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
@@ -32,6 +33,8 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Duration
@@ -161,15 +164,65 @@ private suspend fun BitwardenSend.Companion.of(
         }
     val cipherId = old?.sendId
         ?: cryptoGenerator.uuid()
+
     val createdDate = old?.createdDate ?: request.now
-    val deletedDate = old?.deletedDate ?: request.now.plus(with(Duration) {3L.days})
+    val deletedDate = kotlin.run {
+        // Prioritize the duration parameter over the
+        // date as a timestamp.
+        val tmp = request.deletionDateAsDuration
+            ?.let { duration -> request.now.plus(duration) }
+        // Then focus on the deletion timestamp.
+            ?: request.deletionDate
+                ?.toInstant(TimeZone.currentSystemDefault())
+            // Then just use existing timestamp.
+            ?: old?.deletedDate
+            // Should never happen: just add one day to the
+            // current time.
+            ?: request.now.plus(with(Duration) { 1.days })
+        tmp.coerceIn(
+            minimumValue = request.now.plus(with(Duration) { 1.minutes }),
+            maximumValue = request.now.plus(with(Duration) { 31.days }),
+        )
+    }
+    val expirationDate = kotlin.run {
+        // Prioritize the duration parameter over the
+        // date as a timestamp.
+        val tmp = request.expirationDateAsDuration
+            ?.also {
+                // If it should never expire, then we just
+                // send `null` instead of infinity.
+                if (it == Duration.INFINITE) {
+                    return@run null
+                }
+            }
+            ?.let { duration -> request.now.plus(duration) }
+        // Then focus on the expiration timestamp.
+            ?: request.expirationDate
+                ?.toInstant(TimeZone.currentSystemDefault())
+            // Then just use existing timestamp.
+            ?: old?.expirationDate
+            // Should never happen: just add one day to the
+            // current time.
+            ?: request.now.plus(with(Duration) { 1.days })
+        tmp
+    }
+
+    val passwordBase64 = request.password
+        ?.takeIf { it.isNotBlank() }
+        ?.let {
+            base64Service.encodeToString(it)
+        }
+
+    val maxAccessCount = request.maxAccessCount
+        ?.toIntOrNull()
     return BitwardenSend(
         accountId = accountId,
         sendId = cipherId,
-        accessId = "",
+        accessId = old?.accessId.orEmpty(),
         revisionDate = now,
         createdDate = createdDate,
         deletedDate = deletedDate,
+        expirationDate = expirationDate,
         // service fields
         service = BitwardenService(
             remote = old?.service?.remote,
@@ -180,11 +233,19 @@ private suspend fun BitwardenSend.Companion.of(
         keyBase64 = keyBase64,
         name = request.title,
         notes = request.note,
-        accessCount = 0,
-        maxAccessCount = null,
-        password = null,
-        disabled = false,
-        hideEmail = null,
+        maxAccessCount = maxAccessCount,
+        // Doesn't make sense to make it anything but the old value,
+        // because if it's a new item them no one has accessed it yet.
+        accessCount = old?.accessCount ?: 0,
+        // Password is only used to reflect the changed on remote.
+        password = old?.password,
+        changes = BitwardenSend.Changes(
+            passwordBase64 = passwordBase64
+                ?.let(BitwardenOptionalStringNullable::Some)
+                ?: BitwardenOptionalStringNullable.None,
+        ),
+        disabled = request.disabled,
+        hideEmail = request.hideEmail,
         // types
         type = type,
         text = text,

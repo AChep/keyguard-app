@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AutoDelete
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.pullrefresh.PullRefreshState
@@ -54,6 +55,7 @@ import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.expiredFlow
 import com.artemchep.keyguard.feature.EmptySearchView
+import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayout2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
@@ -376,17 +378,7 @@ private fun SendScreenContent(
             else -> {
                 if (state.content is SendListState.Content.AddAccount) {
                     item("header.add_account") {
-                        FlatItem(
-                            elevation = 1.dp,
-                            title = {
-                                Text(
-                                    text = "Add an account",
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            },
-                            leading = {
-                                Icon(Icons.Outlined.PersonAdd, contentDescription = null)
-                            },
+                        AddAccountView(
                             onClick = state.content.onAddAccount,
                         )
                     }
@@ -531,45 +523,45 @@ fun VaultSendItemText(
                     ?.let {
                         // composable
                         {
-                            Column {
-                                Text(
-                                    text = it,
-                                    overflow = TextOverflow.Ellipsis,
-                                    maxLines = 4,
-                                )
-                                if (item.notes != null && item.notes.isNotEmpty()) {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .height(4.dp),
-                                    )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier
-                                                .width(14.dp),
-                                            imageVector = Icons.Outlined.KeyguardNote,
-                                            contentDescription = null,
-                                            tint = LocalTextStyle.current.color,
-                                        )
-                                        Spacer(
-                                            modifier = Modifier
-                                                .width(8.dp),
-                                        )
-                                        Text(
-                                            text = item.notes,
-                                            overflow = TextOverflow.Ellipsis,
-                                            maxLines = 4,
-                                        )
-                                    }
-                                }
-                            }
+                            Text(
+                                text = it,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                            )
                         }
                     },
             )
 
+            if (!item.notes.isNullOrEmpty()) {
+                Spacer(
+                    modifier = Modifier
+                        .height(4.dp),
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(MediumEmphasisAlpha),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .width(14.dp),
+                        imageVector = Icons.Outlined.KeyguardNote,
+                        contentDescription = null,
+                    )
+                    Spacer(
+                        modifier = Modifier
+                            .width(8.dp),
+                    )
+                    Text(
+                        text = item.notes,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+            }
             if (item.deletion != null) {
-                val elevation = LocalAbsoluteTonalElevation.current
                 Spacer(
                     modifier = Modifier
                         .height(4.dp),
@@ -587,7 +579,7 @@ fun VaultSendItemText(
                         Icon(
                             modifier = Modifier
                                 .width(14.dp),
-                            imageVector = Icons.Outlined.AccessTime,
+                            imageVector = Icons.Outlined.AutoDelete,
                             contentDescription = null,
                         )
                         Spacer(
@@ -629,6 +621,29 @@ fun VaultSendItemText(
                     }
                 }
             }
+            if (expiredState.value || item.source.disabled) {
+                Spacer(
+                    modifier = Modifier
+                        .height(4.dp),
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (item.source.disabled) {
+                        SmallInfoBadge(
+                            text = stringResource(Res.strings.deactivated),
+                        )
+                    }
+                    if (expiredState.value) {
+                        SmallInfoBadge(
+                            text = stringResource(Res.strings.expired),
+                        )
+                    }
+                }
+            }
         },
         leading = {
             AccountListItemTextIcon(
@@ -638,56 +653,6 @@ fun VaultSendItemText(
             )
         },
         trailing = {
-            ExpandedIfNotEmptyForRow(
-                Unit.takeIf { expiredState.value || item.source.disabled },
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    horizontalAlignment = Alignment.End,
-                ) {
-                    if (expiredState.value) {
-                        val elevation = LocalAbsoluteTonalElevation.current
-                        Text(
-                            modifier = Modifier
-                                .widthIn(max = 72.dp)
-                                .background(
-                                    MaterialTheme.colorScheme
-                                        .surfaceColorAtElevationSemi(elevation + 2.dp),
-                                    MaterialTheme.shapes.small,
-                                )
-                                .padding(
-                                    horizontal = 6.dp,
-                                    vertical = 2.dp,
-                                ),
-                            text = "Expired",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                    if (item.source.disabled) {
-                        val elevation = LocalAbsoluteTonalElevation.current
-                        Text(
-                            modifier = Modifier
-                                .widthIn(max = 72.dp)
-                                .background(
-                                    MaterialTheme.colorScheme
-                                        .surfaceColorAtElevationSemi(elevation + 2.dp),
-                                    MaterialTheme.shapes.small,
-                                )
-                                .padding(
-                                    horizontal = 6.dp,
-                                    vertical = 2.dp,
-                                ),
-                            text = "Disabled",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
-            }
-
             Spacer(modifier = Modifier.width(8.dp))
 
             val showCheckbox = when {
@@ -720,6 +685,31 @@ fun VaultSendItemText(
         },
         onClick = onClick,
         onLongClick = onLongClick,
+    )
+}
+
+@Composable
+private fun SmallInfoBadge(
+    modifier: Modifier = Modifier,
+    text: String,
+) {
+    val elevation = LocalAbsoluteTonalElevation.current
+    Text(
+        modifier = modifier
+            .widthIn(max = 128.dp)
+            .background(
+                MaterialTheme.colorScheme
+                    .surfaceColorAtElevationSemi(elevation + 2.dp),
+                MaterialTheme.shapes.small,
+            )
+            .padding(
+                horizontal = 6.dp,
+                vertical = 2.dp,
+            ),
+        text = text,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.labelMedium,
     )
 }
 

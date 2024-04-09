@@ -1,14 +1,13 @@
 package com.artemchep.keyguard.feature.add
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.VisualTransformation
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
-import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -16,8 +15,7 @@ import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
+import kotlinx.datetime.LocalDateTime
 
 sealed interface AddStateItem {
     val id: String
@@ -58,12 +56,15 @@ sealed interface AddStateItem {
     @Stable
     data class Password<Request>(
         override val id: String,
+        val label: String? = null,
         override val state: LocalStateItem<TextFieldModel2, Request>,
     ) : AddStateItem, HasState<TextFieldModel2, Request>
 
     @Stable
     data class Text<Request>(
         override val id: String,
+        val leading: (@Composable RowScope.() -> Unit)? = null,
+        val note: String? = null,
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasState<Text.State, Request> {
         data class State(
@@ -229,11 +230,12 @@ sealed interface AddStateItem {
 
     data class Enum<Request>(
         override val id: String,
-        val icon: ImageVector,
+        val leading: (@Composable RowScope.() -> Unit)? = null,
         val label: String,
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasState<Enum.State, Request> {
         data class State(
+            val data: Any? = null,
             val value: String = "",
             val dropdown: ImmutableList<ContextItem> = persistentListOf(),
         )
@@ -244,7 +246,9 @@ sealed interface AddStateItem {
         val title: String,
         val text: String? = null,
         override val state: LocalStateItem<SwitchFieldModel, Request>,
-    ) : AddStateItem, HasState<SwitchFieldModel, Request>
+    ) : AddStateItem, HasState<SwitchFieldModel, Request> {
+        companion object
+    }
 
     data class Section(
         override val id: String,
@@ -270,11 +274,14 @@ sealed interface AddStateItem {
     data class DateTime<Request>(
         override val id: String,
         override val state: LocalStateItem<State, Request>,
-        val label: String,
     ) : AddStateItem, HasState<DateTime.State, Request> {
+        companion object;
+
         data class State(
-            val localDate: LocalDate,
-            val localTime: LocalTime,
+            val value: LocalDateTime,
+            val date: String,
+            val time: String,
+            val badge: TextFieldModel2.Vl? = null,
             val onSelectDate: () -> Unit,
             val onSelectTime: () -> Unit,
         )

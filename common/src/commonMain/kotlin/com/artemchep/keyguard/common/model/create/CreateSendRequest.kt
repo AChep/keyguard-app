@@ -8,18 +8,23 @@ import com.artemchep.keyguard.platform.LeUri
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 @optics
 data class CreateSendRequest(
     val ownership: Ownership? = null,
     val title: String? = null,
     val note: String? = null,
-    val favorite: Boolean? = null,
-    val reprompt: Boolean? = null,
-    val uris: PersistentList<DSecret.Uri> = persistentListOf(),
-    val fido2Credentials: PersistentList<DSecret.Login.Fido2Credentials> = persistentListOf(),
-    val fields: PersistentList<DSecret.Field> = persistentListOf(),
+    val password: String? = null,
+    val maxAccessCount: String? = null,
+    val deletionDateAsDuration: Duration? = null,
+    val deletionDate: LocalDateTime? = null,
+    val expirationDateAsDuration: Duration? = null,
+    val expirationDate: LocalDateTime? = null,
+    val disabled: Boolean = false,
+    val hideEmail: Boolean = false,
     // types
     val type: DSend.Type? = null,
     val text: Text = Text(),

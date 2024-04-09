@@ -122,6 +122,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardCollection
 import com.artemchep.keyguard.ui.icons.KeyguardOrganization
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
+import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.shimmer.shimmer
@@ -136,6 +137,10 @@ import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.collections.immutable.ImmutableList
+
+private val paddingValues = PaddingValues(
+    horizontal = 8.dp,
+)
 
 context(AddScreenScope)
 @Composable
@@ -385,6 +390,7 @@ private fun PasswordTextField(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
         value = field,
+        label = item.label,
         leading = {
             IconBox(
                 main = Icons.Outlined.Password,
@@ -747,6 +753,7 @@ private fun PasskeyField(
     FlatItemLayout(
         modifier = modifier,
         leading = icon<RowScope>(Icons.Outlined.Key),
+        paddingValues = paddingValues,
         contentPadding = PaddingValues(
             horizontal = 16.dp,
             vertical = 8.dp,
@@ -790,18 +797,33 @@ context(AddScreenScope)
 private fun TextTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Text<*>,
-) {
+) = Column(modifier = modifier) {
     val state by item.state.flow.collectAsState()
     val field = state.value
     FlatTextField(
-        modifier = modifier
+        modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
+        leading = item.leading,
         label = state.label,
         value = field,
         singleLine = state.singleLine,
         keyboardOptions = state.keyboardOptions,
         visualTransformation = state.visualTransformation,
     )
+    if (item.note != null) {
+        Text(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(
+                    top = Dimens.topPaddingCaption,
+                    bottom = Dimens.topPaddingCaption,
+                ),
+            style = MaterialTheme.typography.bodyMedium,
+            text = item.note,
+            color = LocalContentColor.current
+                .combineAlpha(alpha = MediumEmphasisAlpha),
+        )
+    }
 }
 
 context(AddScreenScope)
@@ -1044,6 +1066,7 @@ private fun SwitchField(
     }
     FlatItem(
         modifier = modifier,
+        paddingValues = paddingValues,
         leading = {
             Checkbox(
                 checked = state.checked,
@@ -1123,12 +1146,66 @@ context(AddScreenScope)
 private fun DateTimeField(
     modifier: Modifier = Modifier,
     item: AddStateItem.DateTime<*>,
-) {
+) = Column (modifier = modifier) {
     val state by item.state.flow.collectAsState()
-    Column(
-        modifier = modifier,
+    Row(
+        modifier = Modifier,
     ) {
-
+        FlatItemLayout(
+            modifier = Modifier
+                .weight(1.5f),
+            paddingValues = paddingValues,
+            content = {
+                FlatItemTextContent2(
+                    title = {
+                        Text(
+                            text = stringResource(Res.strings.date),
+                        )
+                    },
+                    text = {
+                        val text = state.date
+                        Text(text)
+                    },
+                )
+            },
+            leading = {
+                Icon(
+                    imageVector = Icons.Stub,
+                    contentDescription = null,
+                )
+            },
+            onClick = state.onSelectDate,
+        )
+        FlatItemLayout(
+            modifier = Modifier
+                .weight(1f),
+            paddingValues = paddingValues,
+            content = {
+                FlatItemTextContent2(
+                    title = {
+                        Text(
+                            text = stringResource(Res.strings.time),
+                        )
+                    },
+                    text = {
+                        val text = state.time
+                        Text(text)
+                    },
+                )
+            },
+            onClick = state.onSelectTime,
+        )
+    }
+    ExpandedIfNotEmpty(state.badge) { badge ->
+        FlatTextFieldBadge(
+            modifier = Modifier
+                .padding(
+                    start = 56.dp,
+                    top = 0.dp,
+                ),
+            type = badge.type,
+            text = badge.text,
+        )
     }
 }
 
@@ -1141,6 +1218,8 @@ private fun EnumItem(
     val state by item.state.flow.collectAsState()
     FlatDropdown(
         modifier = modifier,
+        paddingValues = paddingValues,
+        leading = item.leading,
         content = {
             FlatItemTextContent2(
                 title = {
@@ -1149,12 +1228,6 @@ private fun EnumItem(
                 text = {
                     Text(state.value)
                 },
-            )
-        },
-        leading = {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
             )
         },
         dropdown = state.dropdown,
@@ -1276,6 +1349,7 @@ private fun AddItem(
     }
     val contentColor = MaterialTheme.colorScheme.primary
     FlatItem(
+        paddingValues = paddingValues,
         leading = {
             Icon(Icons.Outlined.Add, null, tint = contentColor)
         },
@@ -1456,10 +1530,7 @@ fun ToolbarContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = 8.dp,
-                vertical = 2.dp,
-            )
+            .padding(paddingValues)
             .clip(MaterialTheme.shapes.medium)
             .then(
                 if (onClick != null) {

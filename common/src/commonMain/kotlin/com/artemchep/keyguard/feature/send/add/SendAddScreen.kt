@@ -53,12 +53,13 @@ fun SendAddScreen(
     val loadableState = produceSendAddScreenState(
         args = args,
     )
+
     val addScreenScope = remember {
+        val addScreenBehavior = args.behavior
         AddScreenScope(
-            initialFocusRequested = true,
+            initialFocusRequested = !addScreenBehavior.autoShowKeyboard,
         )
     }
-
     SendAddScreen(
         addScreenScope = addScreenScope,
         loadableState = loadableState,

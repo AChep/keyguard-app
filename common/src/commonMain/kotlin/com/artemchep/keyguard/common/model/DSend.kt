@@ -105,3 +105,9 @@ fun DSend.Type.titleH() = when (this) {
     DSend.Type.File -> Res.strings.send_type_file
     DSend.Type.None -> Res.strings.send_type_unknown
 }
+
+fun DSend.Companion.requiresPremium(type: DSend.Type) = when (type) {
+    DSend.Type.Text -> false
+    DSend.Type.File -> true
+    DSend.Type.None -> false
+}

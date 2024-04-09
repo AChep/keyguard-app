@@ -24,6 +24,7 @@ import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -82,7 +83,7 @@ private fun getAutoRefreshDurationTitle(duration: Duration, context: LeContext) 
         context,
     )
 
-    else -> duration.toString()
+    else -> duration.format(context)
 }
 
 @Composable

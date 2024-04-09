@@ -710,7 +710,7 @@ fun sendListScreenState(
         )
         this += createTypeAction(
             type = DSend.Type.File,
-        )
+        ).takeIf { !isRelease }
     }
     val primaryActionsFlow = kotlin.run {
         combine(

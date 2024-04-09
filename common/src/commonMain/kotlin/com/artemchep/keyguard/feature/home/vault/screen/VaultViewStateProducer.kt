@@ -905,6 +905,7 @@ private fun RememberStateFlowScope.oh(
             id = "card",
             verify = verify.takeIf { concealFields },
             concealFields = concealFields,
+            name = cipher.name,
             data = cipherCard,
         )
         emit(model)
@@ -2615,6 +2616,7 @@ fun RememberStateFlowScope.create(
                     navigate = ::navigate,
                 )
                 this += createSendActionOrNull(
+                    translator = this@create,
                     text = value,
                     navigate = ::navigate,
                 )
@@ -2669,6 +2671,7 @@ private fun RememberStateFlowScope.create(
     id: String,
     verify: ((() -> Unit) -> Unit)? = null,
     concealFields: Boolean,
+    name: String,
     data: DSecret.Card,
 ): VaultViewItem {
     val dropdown = buildContextItems {
@@ -2723,6 +2726,8 @@ private fun RememberStateFlowScope.create(
                     navigate = ::navigate,
                 )?.verify(verify)
                 this += createSendActionOrNull(
+                    translator = this@create,
+                    name = name,
                     text = cardNumber,
                     navigate = ::navigate,
                 )?.verify(verify)

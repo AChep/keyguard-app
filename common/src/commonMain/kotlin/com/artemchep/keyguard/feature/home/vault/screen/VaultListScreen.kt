@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
@@ -536,20 +537,7 @@ fun VaultHomeScreenListPane(
             else -> {
                 if (state.content is VaultListState.Content.AddAccount) {
                     item("header.add_account") {
-                        FlatItem(
-                            elevation = 1.dp,
-                            title = {
-                                Text(
-                                    text = stringResource(Res.strings.account_main_add_account_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            },
-                            trailing = {
-                                ChevronIcon()
-                            },
-                            leading = {
-                                Icon(Icons.Outlined.PersonAdd, contentDescription = null)
-                            },
+                        AddAccountView(
                             onClick = state.content.onAddAccount,
                         )
                     }

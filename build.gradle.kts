@@ -74,6 +74,9 @@ subprojects {
             allowUrl("https://spdx.org/licenses/MIT.txt") {
                 because("MIT License, but self-hosted copy of the license")
             }
+            allowUrl("https://opensource.org/licenses/MIT") {
+                because("MIT License, but self-hosted copy of the license")
+            }
             allowUrl("https://opensource.org/licenses/mit-license.php") {
                 because("MIT License, but self-hosted copy of the license")
             }

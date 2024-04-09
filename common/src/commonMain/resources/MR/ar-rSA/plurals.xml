@@ -32,4 +32,36 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> results</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
     </plurals>
+    <plurals name="seconds_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+    </plurals>
+    <plurals name="minutes_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+    </plurals>
+    <plurals name="hours_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+    </plurals>
+    <plurals name="days_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+    </plurals>
 </resources>

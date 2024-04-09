@@ -23,6 +23,11 @@
     <string name="url">URL-адреса</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Кількість відвідувань</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Макс. кількість відвідувань</string>
     <string name="learn_more">Дізнатися більше</string>
     <string name="phone_number">Номер телефону</string>
     <string name="passport_number">Номер паспорта</string>
@@ -63,8 +68,11 @@
     <string name="uris">URI-адреси</string>
     <string name="note">Нотатка</string>
     <string name="notes">Нотатки</string>
+    <string name="date">Дата</string>
+    <string name="time">Час</string>
     <string name="attachments">Файли</string>
     <string name="attachments_empty_label">Немає вкладень</string>
+    <string name="deactivated">Деактивовано</string>
     <string name="expired">Термін дії закінчився</string>
     <string name="expiring_soon">Незабаром закінчується термін дії</string>
     <string name="item_incomplete_title">Неповні дані</string>
@@ -89,7 +97,7 @@
     <string name="organizations">Організації</string>
     <string name="organizations_empty_label">Організації відсутні</string>
     <string name="misc">Різне</string>
-    <string name="category">Category</string>
+    <string name="category">Категорія</string>
     <string name="command">Команда</string>
     <string name="execute_command">Виконати</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">Адресний рядок 2</string>
     <string name="address3">Адресний рядок 3</string>
     <string name="rename">Перейменувати</string>
+    <string name="deletion_date">Дата видалення</string>
+    <string name="deletion_date_custom">Користувацька</string>
+    <string name="expiration_date">Дата закінчення дії</string>
+    <string name="expiration_date_custom">Користувацька</string>
+    <string name="expiration_date_never">Ніколи</string>
     <string name="select_linked_type">Оберіть тип</string>
     <string name="select_file">Виберіть файл</string>
     <string name="autofill">Автозаповнити</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">В очікуванні</string>
     <string name="filter_failed_items">Помилка синхронізації</string>
     <string name="bitwarden_premium">Bitwarden преміум</string>
+    <string name="bitwarden_premium_required">Необхідний Bitwarden преміум</string>
     <string name="bitwarden_unofficial_server">Неофіційний сервер Bitwarden</string>
     <string name="account_last_synced_at">Останній раз синхронізовано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Змінити назву</string>
@@ -272,6 +286,7 @@
     <string name="sends_action_disable_title">Деактивувати</string>
     <string name="sends_action_disable_text">Неактивний запис недоступний за публічною URL-адресою</string>
     <string name="sends_action_disable_confirmation_title">Деактивувати?</string>
+    <string name="sends_action_disabled_note">Це відправлення деактивоване, до нього ніхто не має доступу.</string>
     <string name="sends_action_delete_title">Видалити назавжди</string>
     <string name="sends_action_delete_confirmation_title">Видалити назавжди?</string>
     <string name="file_action_open_with_title">Відкрити за допомогою…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з повним іменем</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з невідомим полем</string>
     <string name="text_action_share_with_title">Поділитися через…</string>
+    <string name="text_action_send_title">Створити відправлення</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> вибрано</string>
     <string name="copy">Скопіювати</string>
     <string name="copy_value">Скопіювати значення</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Не може бути порожнім</string>
     <string name="error_must_be_custom_domain">Має бути вашим доменом</string>
+    <string name="error_must_be_number">Має бути числом</string>
+    <string name="error_must_be_less_than_days">Має бути менше ніж <xliff:g id="days" example="15">%1$d</xliff:g> днів з поточного моменту</string>
     <string name="error_must_contain_only_us_ascii_chars">Має містити тільки US-ASCII символи</string>
     <string name="error_must_have_at_least_n_symbols">Має мати довжину в хоча б <xliff:g id="length" example="15">%1$d</xliff:g> символів</string>
     <string name="error_must_have_exactly_n_symbols">Має мати довжину в <xliff:g id="length" example="15">%1$d</xliff:g> символів</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">Об\'єднати елементи</string>
     <string name="additem_merge_remove_origin_ciphers_title">Перемісти початкові записи до кошика</string>
     <string name="additem_merge_attachments_note">Об’єднання елементів не об\'єднує їх вкладення! Створений новий елемент не буде мати доданих вкладень.</string>
+    <string name="additem_note_placeholder">Додайте будь-які примітки про цей запис</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
     <string name="additem_markdown_note_italic">курсив</string>
     <string name="additem_markdown_note_bold">жирний</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">Перезапитувати аутентифікацію, коли ви переглядаєте або використовуєте запис</string>
     <string name="addsend_header_new_title">Нове відправлення</string>
     <string name="addsend_header_edit_title">Редагувати запис</string>
+    <string name="addsend_text_hide_by_default_title">При доступі до відправлення приховувати текст</string>
+    <string name="addsend_hide_text_by_default_title">При доступі до відправлення приховувати текст</string>
+    <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
+    <string name="addsend_max_access_count_note">Якщо встановлено, користувачі більше не зможуть отримати доступ до цього відправлення після досягнення максимальної кількості відвідувань.</string>
     <string name="addaccount_header_title">Додати обліковий запис Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Ми не асоційовані, авторизовані, схвалені, або будь-яким чином офіційно з\'єднані з Bitwarden Inc., або будь-якими його дочірніми компаніями або партнерами.</string>
     <!--

@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Количество посещений</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Узнать больше</string>
     <string name="phone_number">Номер телефона</string>
     <string name="passport_number">Номер паспорта</string>
@@ -63,8 +68,11 @@
     <string name="uris">URI-адреса</string>
     <string name="note">Заметка</string>
     <string name="notes">Заметки</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Вложения</string>
     <string name="attachments_empty_label">Без вложений</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Срок действия закончился</string>
     <string name="expiring_soon">Срок действия истекает</string>
     <string name="item_incomplete_title">Неполные данные</string>
@@ -89,7 +97,7 @@
     <string name="organizations">Организации</string>
     <string name="organizations_empty_label">Нет организаций</string>
     <string name="misc">Разное</string>
-    <string name="category">Category</string>
+    <string name="category">Категория</string>
     <string name="command">Команда</string>
     <string name="execute_command">Выполнить</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">Адрес, строка 2</string>
     <string name="address3">Адрес, строка 3</string>
     <string name="rename">Переименовать</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Выберите тип</string>
     <string name="select_file">Выбрать файл</string>
     <string name="autofill">Автозаполнение</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">Ожидает синхронизации</string>
     <string name="filter_failed_items">Не синхронизировано</string>
     <string name="bitwarden_premium">Bitwarden премиум</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Неофициальный Bitwarden сервер</string>
     <string name="account_last_synced_at">Последний раз синхронизировано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Изменить название</string>
@@ -247,31 +261,32 @@
     <string name="ciphers_action_trash_title">Корзина</string>
     <string name="ciphers_action_restore_title">Восстановить</string>
     <string name="ciphers_action_delete_title">Удалить навсегда</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
+    <string name="ciphers_action_delete_confirmation_title">Удалить навсегда?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Настроить оповещения безопасности</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Переместить связанные записи в корзину</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
+    <string name="sends_action_change_name_title">Изменить название</string>
+    <string name="sends_action_change_names_title">Изменить названия</string>
+    <string name="sends_action_change_filename_title">Изменить название файла</string>
+    <string name="sends_action_change_filenames_title">Изменить названия файлов</string>
+    <string name="sends_action_set_password_title">Установить пароль</string>
+    <string name="sends_action_set_passwords_title">Установить пароли</string>
+    <string name="sends_action_set_password_confirmation_message">Требовать пароль для доступа пользователей к этому элементу</string>
+    <string name="sends_action_change_password_title">Изменить пароль</string>
+    <string name="sends_action_change_passwords_title">Изменить пароли</string>
+    <string name="sends_action_remove_password_title">Удалить пароль</string>
+    <string name="sends_action_remove_passwords_title">Удалить пароли</string>
+    <string name="sends_action_remove_password_confirmation_title">Удалить пароль?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Удалить пароли?</string>
+    <string name="sends_action_remove_password_confirmation_message">Не запрашивать пароль для доступа пользователей к этому элементу</string>
     <string name="sends_action_hide_email_title">Hide email</string>
     <string name="sends_action_show_email_title">Show email</string>
     <string name="sends_action_enable_title">Activate</string>
     <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
     <string name="sends_action_enable_confirmation_title">Activate?</string>
     <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Inactive send is inaccessible by a public URL</string>
+    <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
     <string name="sends_action_disable_confirmation_title">Deactivate?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">Delete forever</string>
     <string name="sends_action_delete_confirmation_title">Delete forever?</string>
     <string name="file_action_open_with_title">Открыть с помощью…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к полному имени</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан в неизвестному полю</string>
     <string name="text_action_share_with_title">Поделиться через…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> выбрано</string>
     <string name="copy">Копировать</string>
     <string name="copy_value">Копировать значение</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Не должно быть пустым</string>
     <string name="error_must_be_custom_domain">Должен быть собственный домен</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Должен содержать только символы US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Должно быть не менее <xliff:g id="length" example="15">%1$d</xliff:g> символов</string>
     <string name="error_must_have_exactly_n_symbols">Должно быть <xliff:g id="length" example="15">%1$d</xliff:g> символов</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">Объединить элементы</string>
     <string name="additem_merge_remove_origin_ciphers_title">Переместить исходные элементы в корзину</string>
     <string name="additem_merge_attachments_note">Объединение элементов не объединяет их вложения! Созданный элемент не будет добавлен.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Стилизуйте текст используя <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> и другое. Ограниченная поддержка синтаксиса Markdown.</string>
     <string name="additem_markdown_note_italic">курсив</string>
     <string name="additem_markdown_note_bold">жирный</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">Запрашивать повторную аутентификацию при просмотре или автозаполнении шифра</string>
     <string name="addsend_header_new_title">New item</string>
     <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Добавить аккаунт Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Мы не являемся аффилированными, связанными, уполномоченными, одобренными или каким-либо образом официально связанными с Bitwarden Inc., или с одним из её дочерних предприятий или филиалов.</string>
     <!--

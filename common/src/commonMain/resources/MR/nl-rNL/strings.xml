@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Aantal keer bekeken</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Lees meer</string>
     <string name="phone_number">Telefoonnummer</string>
     <string name="passport_number">Paspoortnummer</string>
@@ -63,8 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Notitie</string>
     <string name="notes">Notities</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Bijlagen</string>
     <string name="attachments_empty_label">Geen bijlagen</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Verlopen</string>
     <string name="expiring_soon">Verloopt binnenkort</string>
     <string name="item_incomplete_title">Onvolledige gegevens</string>
@@ -115,6 +123,11 @@
     <string name="address2">Adresregel 2</string>
     <string name="address3">Adresregel 3</string>
     <string name="rename">Hernoemen</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Selecteer type</string>
     <string name="select_file">Bestand selecteren</string>
     <string name="autofill">Automatisch aanvullen</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">In behandeling</string>
     <string name="filter_failed_items">Mislukt</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Onofficiële Bitwarden server</string>
     <string name="account_last_synced_at">Laatst gesynchroniseerd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Naam wijzigen</string>
@@ -272,6 +286,7 @@
     <string name="sends_action_disable_title">Deactiveren</string>
     <string name="sends_action_disable_text">Inactieve send is niet toegankelijk via een openbare URL</string>
     <string name="sends_action_disable_confirmation_title">Deactiveren?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">Definitief verwijderen</string>
     <string name="sends_action_delete_confirmation_title">Definitief verwijderen?</string>
     <string name="file_action_open_with_title">Open met…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de volledige naam</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan een onbekend veld</string>
     <string name="text_action_share_with_title">Delen met…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> geselecteerd</string>
     <string name="copy">Kopiëren</string>
     <string name="copy_value">Kopieer waarde</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Veld mag niet leeg zijn</string>
     <string name="error_must_be_custom_domain">Moet een aangepast domein zijn</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Mag alleen US-ASCII tekens bevatten</string>
     <string name="error_must_have_at_least_n_symbols">Moet minstens <xliff:g id="length" example="15">%1$d</xliff:g> symbolen lang zijn</string>
     <string name="error_must_have_exactly_n_symbols">Moet exact <xliff:g id="length" example="15">%1$d</xliff:g> symbolen lang zijn</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">Items samenvoegen</string>
     <string name="additem_merge_remove_origin_ciphers_title">Verplaats originele item(s) naar de prullenbak</string>
     <string name="additem_merge_attachments_note">Bijlagen worden niet automatisch samengevoegd! Het nieuwe item zal geen bijlagen gekoppeld hebben.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Stijl tekst met <xliff:g id="italic" example="italic">%1$s</xliff:g> of <xliff:g id="bold" example="bold">%2$s</xliff:g> en meer. Beperkte Markdown syntax wordt ondersteund.</string>
     <string name="additem_markdown_note_italic">cursief</string>
     <string name="additem_markdown_note_bold">dikgedrukt</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">Vraag om opnieuw te verifiëren wanneer je een item wilt bekijken of automatisch wilt aanvullen</string>
     <string name="addsend_header_new_title">Nieuw item</string>
     <string name="addsend_header_edit_title">Item bewerken</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Bitwarden account toevoegen</string>
     <string name="addaccount_disclaimer_bitwarden_label">We zijn niet geaffilieerd, geassocieerd, geautoriseerd, goedgekeurd door of op enige manier officieel verbonden met Bitwarden, Inc. of een van zijn filialen of medewerkers.</string>
     <!--

@@ -24,4 +24,28 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> результатів</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> результатів</item>
     </plurals>
+    <plurals name="seconds_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> секунда</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> секунди</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> секунд</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> секунд</item>
+    </plurals>
+    <plurals name="minutes_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> хвилина</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> хвилини</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> хвилин</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> хвилин</item>
+    </plurals>
+    <plurals name="hours_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> година</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> години</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> годин</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> годин</item>
+    </plurals>
+    <plurals name="days_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> день</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> дня</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> днів</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> днів</item>
+    </plurals>
 </resources>

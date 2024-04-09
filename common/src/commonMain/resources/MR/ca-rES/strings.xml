@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Recompte d\'accessos</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Més informació</string>
     <string name="phone_number">Número de telèfon</string>
     <string name="passport_number">Número de passaport</string>
@@ -63,8 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
     <string name="notes">Notes</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Adjunts</string>
     <string name="attachments_empty_label">Sense adjunts</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Expirat</string>
     <string name="expiring_soon">Expira prompte</string>
     <string name="item_incomplete_title">Dades incompletes</string>
@@ -89,7 +97,7 @@
     <string name="organizations">Organitzacions</string>
     <string name="organizations_empty_label">Cap organització</string>
     <string name="misc">Miscel·lània</string>
-    <string name="category">Category</string>
+    <string name="category">Categoria</string>
     <string name="command">Comandament</string>
     <string name="execute_command">Executa</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">Línia 2 de l\'adreça</string>
     <string name="address3">Línia 3 de l\'adreça</string>
     <string name="rename">Reanomenar</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Seleccioneu tipus</string>
     <string name="select_file">Seleccionar fitxer</string>
     <string name="autofill">Emplenament automàtic</string>
@@ -144,7 +157,7 @@
     <string name="ignored_alerts">Alertes ignorades</string>
     <string name="api_key">Clau d\'API</string>
     <string name="domain">Domini</string>
-    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="add_to_home_screen">Afegeix a la pantalla d\'inici</string>
     <string name="edit">Edita</string>
     <string name="delete">Eliminar</string>
     <string name="remove">Suprimir</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">Pendent</string>
     <string name="filter_failed_items">Ha fallat</string>
     <string name="bitwarden_premium">Bitwarden Premium</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor de Bitwarden no oficial</string>
     <string name="account_last_synced_at">Última sincronització <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Canvia el nom</string>
@@ -252,28 +266,29 @@
     <string name="ciphers_action_cascade_trash_associated_items_title">Mou els elements associats a la paperera</string>
     <string name="sends_action_change_name_title">Canvia el nom</string>
     <string name="sends_action_change_names_title">Canviar noms</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
-    <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Inactive send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_delete_title">Delete forever</string>
-    <string name="sends_action_delete_confirmation_title">Delete forever?</string>
+    <string name="sends_action_change_filename_title">Canvia el nom del fitxer</string>
+    <string name="sends_action_change_filenames_title">Canvia els noms dels fitxers</string>
+    <string name="sends_action_set_password_title">Estableix una contrasenya</string>
+    <string name="sends_action_set_passwords_title">Estableix contrasenyes</string>
+    <string name="sends_action_set_password_confirmation_message">Requereix una contrasenya perquè els usuaris accedeixin a aquest element</string>
+    <string name="sends_action_change_password_title">Canviar contrasenya</string>
+    <string name="sends_action_change_passwords_title">Canviar contrasenyes</string>
+    <string name="sends_action_remove_password_title">Eliminar contrasenya</string>
+    <string name="sends_action_remove_passwords_title">Eliminar contrasenyes</string>
+    <string name="sends_action_remove_password_confirmation_title">Eliminar contrasenya?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Eliminar contrasenyes?</string>
+    <string name="sends_action_remove_password_confirmation_message">No exigeixis una contrasenya perquè els usuaris accedeixin a aquest element</string>
+    <string name="sends_action_hide_email_title">Amaga l\'email</string>
+    <string name="sends_action_show_email_title">Mostra l\'email</string>
+    <string name="sends_action_enable_title">Activar</string>
+    <string name="sends_action_enable_text">Opció d\'enviament a través d\'una URL pública activada</string>
+    <string name="sends_action_enable_confirmation_title">Activar?</string>
+    <string name="sends_action_disable_title">Desactivar</string>
+    <string name="sends_action_disable_text">Opció d\'enviament a través d\'una URL pública desactivada</string>
+    <string name="sends_action_disable_confirmation_title">Desactivar?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_delete_title">Eliminar per sempre</string>
+    <string name="sends_action_delete_confirmation_title">Eliminar per sempre?</string>
     <string name="file_action_open_with_title">Obre amb…</string>
     <string name="file_action_send_with_title">Envia amb…</string>
     <string name="file_action_open_in_file_manager_title">Obre a l\'administrador de fitxers</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom complet</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a un camp desconegut</string>
     <string name="text_action_share_with_title">Comparteix amb…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seleccionats</string>
     <string name="copy">Copia</string>
     <string name="copy_value">Copia el valor</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">No pot estar en blanc</string>
     <string name="error_must_be_custom_domain">Ha de ser un domini personalitzat</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Només pot contenir caràcters US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Ha de tenir com a mínim <xliff:g id="length" example="15">%1$d</xliff:g> símbols</string>
     <string name="error_must_have_exactly_n_symbols">Ha de tenir <xliff:g id="length" example="15">%1$d</xliff:g> símbols</string>
@@ -435,7 +453,7 @@
     <string name="error_failed_generate_otp_code">No s\'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s\'ha pogut crear la passkey</string>
     <string name="error_failed_use_passkey">No s\'ha pogut autoritzar la petició</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">No s\'ha pogut obrir una URI</string>
     <string name="error_failed_format_placeholder">No s\'ha pogut formatar el marcador</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Codi de barres</string>
@@ -564,14 +582,19 @@
     <string name="additem_header_merge_title">Combina els elements</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mou els elements d\'origen a la paperera</string>
     <string name="additem_merge_attachments_note">Combinar elements no combina els seus adjunts! L\'element creat no tindrà cap adjunt.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Estilitza el text amb <xliff:g id="italic" example="italic">%1$s</xliff:g> o <xliff:g id="bold" example="bold">%2$s</xliff:g> i més. Suport per a Markdown limitat.</string>
     <string name="additem_markdown_note_italic">cursiva</string>
     <string name="additem_markdown_note_bold">negreta</string>
     <string name="additem_markdown_render_preview">Renderitzar previsualització</string>
     <string name="additem_auth_reprompt_title">Torna a autenticar</string>
     <string name="additem_auth_reprompt_text">Demana autenticar-se altre vegada quan visualitzes o emplenes automàticament</string>
-    <string name="addsend_header_new_title">New item</string>
-    <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_header_new_title">Nou element</string>
+    <string name="addsend_header_edit_title">Editar element</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Afegir un compte de Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">No estem afiliats, associats, autoritzats, finançats, ni relacionats de cap manera oficial amb Bitwarden, Inc., o qualsevol dels seus afiliats o subsidiàries.</string>
     <!--
@@ -920,8 +943,8 @@
     <string name="pref_item_features_overview_title">Visió general de funcions</string>
     <string name="pref_item_url_override_title">Sobreescriptures d\'URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueig biomètric</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Requerir confirmació</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Exigeix tocar sobre un botó addicionalment a l\'autenticació biomètrica</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

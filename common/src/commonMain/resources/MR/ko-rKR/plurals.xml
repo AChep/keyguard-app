@@ -12,4 +12,16 @@
     <plurals name="result_count_plural">
         <item quantity="other">결과 <xliff:g id="number">%1$s</xliff:g>개</item>
     </plurals>
+    <plurals name="seconds_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+    </plurals>
+    <plurals name="minutes_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+    </plurals>
+    <plurals name="hours_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+    </plurals>
+    <plurals name="days_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+    </plurals>
 </resources>

@@ -1,19 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> compte</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> comptes</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> mot</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> mots</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> résultat</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> résultats</item>
+    </plurals>
+    <plurals name="seconds_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+    </plurals>
+    <plurals name="minutes_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+    </plurals>
+    <plurals name="hours_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+    </plurals>
+    <plurals name="days_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
     </plurals>
 </resources>

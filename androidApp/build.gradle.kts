@@ -87,6 +87,7 @@ android {
     //     - /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.22.0/c6a128a44ba52a18265e5ec816130cd341d80792/atomicfu-jvm-0.22.0.jar
     packagingOptions {
         resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
+        resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
 
     buildFeatures {

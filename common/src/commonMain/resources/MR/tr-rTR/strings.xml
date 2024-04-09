@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Erişim sayısı</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Daha fazla bilgi edinin</string>
     <string name="phone_number">Telefon numarası</string>
     <string name="passport_number">Pasaport numarası</string>
@@ -63,8 +68,11 @@
     <string name="uris">URI\'ler</string>
     <string name="note">Not</string>
     <string name="notes">Notlar</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Ekler</string>
     <string name="attachments_empty_label">Ek yok</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Süresi doldu</string>
     <string name="expiring_soon">Yakında süresi doluyor</string>
     <string name="item_incomplete_title">Eksik veri</string>
@@ -88,8 +96,8 @@
     <string name="organization">Organizasyon</string>
     <string name="organizations">Kuruluşlar</string>
     <string name="organizations_empty_label">Kuruluş yok</string>
-    <string name="misc">Çeşitli Hükümler</string>
-    <string name="category">Category</string>
+    <string name="misc">Çeşitli</string>
+    <string name="category">Kategori</string>
     <string name="command">Komut</string>
     <string name="execute_command">Yürüt</string>
     <!-- Add (something) -->
@@ -106,7 +114,7 @@
     <string name="length">Uzunluk</string>
     <string name="security">Güvenlik</string>
     <string name="contact_info">İletişim bilgileri</string>
-    <string name="identity_title">Unvanı</string>
+    <string name="identity_title">Başlık</string>
     <string name="identity_first_name">Ad</string>
     <string name="identity_middle_name">İkinci ad</string>
     <string name="identity_last_name">Soyadı</string>
@@ -115,6 +123,11 @@
     <string name="address2">Adres satırı 2</string>
     <string name="address3">Adres satırı 3</string>
     <string name="rename">Yeniden adlandır</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Bir tür seçin</string>
     <string name="select_file">Bir dosya seçin</string>
     <string name="autofill">Otomatik Doldurma</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">Beklemede</string>
     <string name="filter_failed_items">Başarısız</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Resmi olmayan Bitwarden sunucusu</string>
     <string name="account_last_synced_at">Son senkronizasyon zamanı <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Adı değiştir</string>
@@ -272,6 +286,7 @@
     <string name="sends_action_disable_title">Devre dışı bırak</string>
     <string name="sends_action_disable_text">Etkin olmayan gönderime genel bir URL ile erişilemiyor</string>
     <string name="sends_action_disable_confirmation_title">Devre dışı bırak?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">Sonsuza dek sil</string>
     <string name="sends_action_delete_confirmation_title">Sonsuza dek sil?</string>
     <string name="file_action_open_with_title">Birlikte aç…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> tam adla bağlantılı</string>
     <string name="field_linked_to_unknown_field">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> bilinmeyen bir alana bağlı</string>
     <string name="text_action_share_with_title">Şununla paylaş:</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected">    <xliff:g id="size" example="15">%1$d</xliff:g> seçildi</string>
     <string name="copy">Kopyala</string>
     <string name="copy_value">Değeri kopyala</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Boş bırakılmamalıdır</string>
     <string name="error_must_be_custom_domain">Özel alan adı olmalıdır</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Yalnızca US - ASCII karakterleri içermelidir</string>
     <string name="error_must_have_at_least_n_symbols">En az <xliff:g id="length" example="15">%1$d</xliff:g> sembol uzunluğunda olmalıdır</string>
     <string name="error_must_have_exactly_n_symbols">Olmalı <xliff:g id="length" example="15">%1$d</xliff:g> semboller uzun</string>
@@ -435,7 +453,7 @@
     <string name="error_failed_generate_otp_code">OTP kodu oluşturulamadı</string>
     <string name="error_failed_create_passkey">Parola oluşturulamadı</string>
     <string name="error_failed_use_passkey">Bir istek yetkilendirilemedi</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">Bağlantı açılırken bir hata oluştu</string>
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirilemedi</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">Öğeleri birleştir</string>
     <string name="additem_merge_remove_origin_ciphers_title">Başlangıç öğelerini çöp kutusuna taşı</string>
     <string name="additem_merge_attachments_note">Öğeleri birleştirmek eklerini birleştirmez! Oluşturulan öğenin eklenmiş herhangi bir eki olmayacaktır.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Metni ile biçimlendir <xliff:g id="italic" example="italic">%1$s</xliff:g> veya <xliff:g id="bold" example="bold">%2$s</xliff:g> ve daha fazlası. Sınırlı Markdown sözdizimi desteklenir.</string>
     <string name="additem_markdown_note_italic">italik</string>
     <string name="additem_markdown_note_bold">kalın</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">Bir şifreyi görüntülediğinizde veya otomatik olarak doldurduğunuzda yeniden kimlik doğrulaması isteyin</string>
     <string name="addsend_header_new_title">Yeni öğe</string>
     <string name="addsend_header_edit_title">Öğeyi düzenle</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Bitwarden hesabı ekle</string>
     <string name="addaccount_disclaimer_bitwarden_label">Bitwarden, Inc. veya herhangi bir yan kuruluşu veya bağlı kuruluşu ile bağlı, ilişkili, yetkili, onaylanmış veya herhangi bir şekilde resmi olarak bağlantılı değiliz.</string>
     <!--
@@ -663,7 +686,7 @@
     <string name="filter_empty_label">Kullanılabilir filtre yok</string>
     <string name="sort_header_title">Sıralama ölçütü</string>
     <string name="sort_empty_label">Tasnif mevcut değil</string>
-    <string name="sortby_title_title">Unvanı</string>
+    <string name="sortby_title_title">Başlık</string>
     <string name="sortby_title_normal_mode">Alfabetik</string>
     <string name="sortby_title_reverse_mode">Alfabetik Olarak Tersine Çevir</string>
     <string name="sortby_access_count_title">Erişim sayısı</string>
@@ -718,7 +741,7 @@
     <string name="generator_header_password_title">Parola oluşturucu</string>
     <string name="generator_generate_button">Oluştur</string>
     <string name="generator_regenerate_button">Yeniden Oluştur</string>
-    <string name="generator_passphrase_type">Parola İfadesi</string>
+    <string name="generator_passphrase_type">Parola</string>
     <string name="generator_passphrase_note">Rastgele parolalar, akılda kalıcılık ve güvenliğin en iyi kombinasyonunu sağlar.</string>
     <string name="generator_passphrase_delimiter_title">Sınırlayıcı</string>
     <string name="generator_passphrase_capitalize_title">Büyük Harfle</string>
@@ -745,7 +768,7 @@
     <!-- Referring to a website domain -->
     <string name="generator_email_catch_all_domain_title">Alan</string>
     <string name="generator_email_plus_addressing_type">Artı adresleme e-postası</string>
-    <string name="generator_email_plus_addressing_note">Artı adresleme, şu adrese gönderilen herhangi bir e-posta <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> hala hesabınıza gönderiliyor. Bu, farklı kişilere, sitelere veya posta listelerine vermek için e-posta adresinizde birçok varyasyona sahip olabileceğiniz anlamına gelir. Kullanmadan önce e -posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
+    <string name="generator_email_plus_addressing_note">Artı adresleme, <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> adresine gönderilen herhangi bir e-postanın hala hesabınıza gönderildiği anlamına gelir. Bu, farklı kişilere, sitelere veya posta listelerine vermek için e-posta adresinizin birçok varyasyonuna sahip olabileceğiniz anlamına gelir. Kullanmadan önce e-posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
     <string name="generator_email_plus_addressing_email_title">E-posta</string>
     <string name="generator_email_subdomain_addressing_type">Alt alan adı adresleme e-postası</string>
     <string name="generator_email_subdomain_addressing_note">Alt alan adı adresleme, şu adrese gönderilen herhangi bir e-posta anlamına gelir <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> hala hesabınıza gönderiliyor. Bu, farklı kişilere, sitelere veya posta listelerine vermek için e-posta adresinizde birçok varyasyona sahip olabileceğiniz anlamına gelir. Kullanmadan önce e-posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
@@ -846,7 +869,7 @@
     <string name="pref_item_notifications_title">Bildirimler</string>
     <string name="pref_item_notifications_text">Uyarılar</string>
     <string name="pref_item_appearance_title">Görünüm</string>
-    <string name="pref_item_appearance_text">Dil, tema VE animasyonlar</string>
+    <string name="pref_item_appearance_text">Dil, tema ve animasyonlar</string>
     <string name="pref_item_dev_title">Geliştirme</string>
     <string name="pref_item_dev_text">Geliştirme için test ayarları</string>
     <string name="pref_item_other_title">Diğer</string>
@@ -920,8 +943,8 @@
     <string name="pref_item_features_overview_title">Özelliklere genel bakış</string>
     <string name="pref_item_url_override_title">URL geçersiz kılmaları</string>
     <string name="pref_item_biometric_unlock_title">Biyometrik kilit açma</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Onay iste</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Başarılı bir biyometrik kimlik doğrulamasından sonra ek bir onay düğmesine dokunulmasını gerektir</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -981,7 +1004,7 @@
     <string name="feat_item_two_way_sync_text">Öğe ekleyin veya düzenleyin ve değişiklikleri yeniden senkronize edin.</string>
     <string name="feat_item_offline_editing_title">Çevrimdışı düzenleme</string>
     <string name="feat_item_offline_editing_text">İnternet bağlantısı olmayan öğeleri ekleyin veya düzenleyin.</string>
-    <string name="feat_section_search_title">Ara</string>
+    <string name="feat_section_search_title">Arama</string>
     <string name="feat_item_search_by_anything_title">Herhangi bir şeye göre arayın</string>
     <string name="feat_item_search_by_anything_text">Ad, e-posta, şifre, telefon numarası vb.</string>
     <string name="feat_item_filter_title">Filtre</string>

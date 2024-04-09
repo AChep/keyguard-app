@@ -23,6 +23,11 @@
     <string name="url">Ligação</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Contagem de acessos</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Saber mais</string>
     <string name="phone_number">Número de telemóvel</string>
     <string name="passport_number">Número do passaporte</string>
@@ -63,8 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
     <string name="notes">Notas</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Anexos</string>
     <string name="attachments_empty_label">Sem anexos</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Fim de validade</string>
     <string name="expiring_soon">Expira em breve</string>
     <string name="item_incomplete_title">Dados incompletos</string>
@@ -89,7 +97,7 @@
     <string name="organizations">Organizações</string>
     <string name="organizations_empty_label">Sem organizações</string>
     <string name="misc">Diversos</string>
-    <string name="category">Category</string>
+    <string name="category">Categoria</string>
     <string name="command">Comando</string>
     <string name="execute_command">Executar</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">Endereço linha 2</string>
     <string name="address3">Endereço linha 3</string>
     <string name="rename">Renomear</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Selecionar tipo</string>
     <string name="select_file">Selecionar ficheiro</string>
     <string name="autofill">Preenchimento automático</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">Pendente</string>
     <string name="filter_failed_items">Falhou</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial Bitwarden</string>
     <string name="account_last_synced_at">Última sincronização a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Alterar nome</string>
@@ -272,6 +286,7 @@
     <string name="sends_action_disable_title">Desativar</string>
     <string name="sends_action_disable_text">Envio inativo é acessível por um URL público</string>
     <string name="sends_action_disable_confirmation_title">Desativar?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">Eliminar definitivamente</string>
     <string name="sends_action_delete_confirmation_title">Eliminar definitivamente?</string>
     <string name="file_action_open_with_title">Abrir com…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome completo</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a um campo desconhecido</string>
     <string name="text_action_share_with_title">Partilhar com…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="copy">Copiar</string>
     <string name="copy_value">Copiar valor</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Não deve estar em branco</string>
     <string name="error_must_be_custom_domain">Deve ser um domínio personalizado</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Deve conter apenas caracteres US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Mínimo <xliff:g id="length" example="15">%1$d</xliff:g> caracteres de comprimento</string>
     <string name="error_must_have_exactly_n_symbols">Deve ter <xliff:g id="length" example="15">%1$d</xliff:g> símbolos de comprimento</string>
@@ -435,7 +453,7 @@
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">Falha ao abrir URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">Unir entradas</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mover entradas de origem para a reciclagem</string>
     <string name="additem_merge_attachments_note">Unir entradas não une os anexos! A entrada criada não terá nenhum anexo adicionado.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Estilizar texto com <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> e muito mais. Sintaxe de Markdown limitada é suportada.</string>
     <string name="additem_markdown_note_italic">itálico</string>
     <string name="additem_markdown_note_bold">negrito</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">Pedir para autenticar novamente quando visualizar ou preencher automaticamente uma cifra</string>
     <string name="addsend_header_new_title">Nova entrada</string>
     <string name="addsend_header_edit_title">Editar entrada</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Nós não somos afiliados, associados, autorizados, endossados ou de qualquer forma oficialmente ligados com Bitwarden, ou qualquer uma das suas filiais ou afiliadas.</string>
     <!--
@@ -920,8 +943,8 @@
     <string name="pref_item_features_overview_title">Resumo de funcionalidades</string>
     <string name="pref_item_url_override_title">Substituição de ligações URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Requer confirmação</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir um toque adicional no botão de confirmação após uma autenticação biométrica bem sucedida</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">访问次数</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">了解详情</string>
     <string name="phone_number">电话号码</string>
     <string name="passport_number">护照号码</string>
@@ -60,11 +65,14 @@
     <string name="save">保存</string>
     <string name="save_to">保存至</string>
     <string name="uri">URI</string>
-    <string name="uris">URIs</string>
+    <string name="uris">URI</string>
     <string name="note">备注</string>
     <string name="notes">备注</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">附件</string>
     <string name="attachments_empty_label">暂无附件</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">已过期</string>
     <string name="expiring_soon">即将过期</string>
     <string name="item_incomplete_title">不完整的数据</string>
@@ -89,7 +97,7 @@
     <string name="organizations">组织</string>
     <string name="organizations_empty_label">暂无组织</string>
     <string name="misc">杂项</string>
-    <string name="category">Category</string>
+    <string name="category">分类</string>
     <string name="command">命令</string>
     <string name="execute_command">执行</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">地址行 2</string>
     <string name="address3">地址行 3</string>
     <string name="rename">重命名</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">选择类型</string>
     <string name="select_file">选择文件</string>
     <string name="autofill">自动填充</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">等待中</string>
     <string name="filter_failed_items">失败</string>
     <string name="bitwarden_premium">Bitwarden 高级版</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 服务器</string>
     <string name="account_last_synced_at">最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">修改名称</string>
@@ -272,6 +286,7 @@
     <string name="sends_action_disable_title">停用</string>
     <string name="sends_action_disable_text">未激活的 Send 无法通过公共网址访问</string>
     <string name="sends_action_disable_confirmation_title">停用?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">永久删除</string>
     <string name="sends_action_delete_confirmation_title">永久删除?</string>
     <string name="file_action_open_with_title">打开方式…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至全名</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至一个未知字段</string>
     <string name="text_action_share_with_title">分享</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected">已选择 <xliff:g id="size" example="15">%1$d</xliff:g> 项</string>
     <string name="copy">复制</string>
     <string name="copy_value">复制值</string>
@@ -422,20 +438,22 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">不可为空</string>
     <string name="error_must_be_custom_domain">必须为第三方域名</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">必须只包含 US-ASCII 字符</string>
     <string name="error_must_have_at_least_n_symbols">长度须至少为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
     <string name="error_must_have_exactly_n_symbols">长度必须为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
     <string name="error_invalid_domain">域名无效</string>
     <string name="error_invalid_email">电子邮件无效</string>
     <string name="error_invalid_url">URL无效</string>
-    <string name="error_invalid_uri">URI无效</string>
+    <string name="error_invalid_uri">URI 无效</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
     <string name="error_failed_use_passkey">授权请求失败</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">无法打开 URI</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">条形码</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">合并项目</string>
     <string name="additem_merge_remove_origin_ciphers_title">移动源项目到回收站</string>
     <string name="additem_merge_attachments_note">合并项目不会合并其附件！创建的项目将不会添加任何附件。</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">包括 <xliff:g id="italic" example="italic">%1$s</xliff:g> 或 <xliff:g id="bold" example="bold">%2$s</xliff:g> 等样式的文本。支持有限的 Markdown 语法。</string>
     <string name="additem_markdown_note_italic">斜体</string>
     <string name="additem_markdown_note_bold">粗体</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">当您查看或自动填充密码时要求再次验证</string>
     <string name="addsend_header_new_title">新项目</string>
     <string name="addsend_header_edit_title">编辑项目</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">添加 Bitwarden 账户</string>
     <string name="addaccount_disclaimer_bitwarden_label">我们与 Bitwarden, Inc. 其任何子公司或附属机构均无隶属、关联、授权、许可关系，或任何形式的官方联系。</string>
     <!--
@@ -920,8 +943,8 @@
     <string name="pref_item_features_overview_title">功能概述</string>
     <string name="pref_item_url_override_title">URL 覆写</string>
     <string name="pref_item_biometric_unlock_title">生物识别解锁</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">需要确认</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">需要在成功的生物识别认证后点击额外的确认按钮</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

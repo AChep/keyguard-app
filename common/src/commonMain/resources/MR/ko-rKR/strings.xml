@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">조회수</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">자세히 알아보기</string>
     <string name="phone_number">전화번호</string>
     <string name="passport_number">여권 번호</string>
@@ -63,8 +68,11 @@
     <string name="uris">URI</string>
     <string name="note">메모</string>
     <string name="notes">메모</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">첨부 파일</string>
     <string name="attachments_empty_label">첨부 파일 없음</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">만료됨</string>
     <string name="expiring_soon">곧 만료</string>
     <string name="item_incomplete_title">불완전 데이터</string>
@@ -89,7 +97,7 @@
     <string name="organizations">조직</string>
     <string name="organizations_empty_label">조직 없음</string>
     <string name="misc">기타</string>
-    <string name="category">Category</string>
+    <string name="category">카테고리</string>
     <string name="command">명령어</string>
     <string name="execute_command">실행</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">주소 2</string>
     <string name="address3">주소 3</string>
     <string name="rename">이름 바꾸기</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
     <string name="autofill">자동 완성</string>
@@ -144,7 +157,7 @@
     <string name="ignored_alerts">무시한 경고</string>
     <string name="api_key">API 키</string>
     <string name="domain">도메인</string>
-    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="add_to_home_screen">홈 화면에 추가</string>
     <string name="edit">편집</string>
     <string name="delete">삭제</string>
     <string name="remove">제거</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">보류 중</string>
     <string name="filter_failed_items">실패</string>
     <string name="bitwarden_premium">Bitwarden 프리미엄</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
     <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
     <string name="account_action_change_name_title">이름 바꾸기</string>
@@ -247,33 +261,34 @@
     <string name="ciphers_action_trash_title">휴지통</string>
     <string name="ciphers_action_restore_title">복원</string>
     <string name="ciphers_action_delete_title">완전히 삭제</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
+    <string name="ciphers_action_delete_confirmation_title">완전히 삭제하시겠습니까?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Watchtower 경고 설정</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">연관 항목을 휴지통으로 이동</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
+    <string name="sends_action_change_name_title">이름 바꾸기</string>
+    <string name="sends_action_change_names_title">이름 바꾸기</string>
+    <string name="sends_action_change_filename_title">파일 이름 바꾸기</string>
+    <string name="sends_action_change_filenames_title">파일 이름 바꾸기</string>
+    <string name="sends_action_set_password_title">비밀번호 설정</string>
+    <string name="sends_action_set_passwords_title">비밀번호 설정</string>
+    <string name="sends_action_set_password_confirmation_message">이 항목에 접근하기 전에 비밀번호 요청</string>
+    <string name="sends_action_change_password_title">비밀번호 변경</string>
+    <string name="sends_action_change_passwords_title">비밀번호 변경</string>
+    <string name="sends_action_remove_password_title">비밀번호 제거</string>
+    <string name="sends_action_remove_passwords_title">비밀번호 제거</string>
+    <string name="sends_action_remove_password_confirmation_title">비밀번호를 제거하시겠습니까?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">비밀번호를 제거하시겠습니까?</string>
+    <string name="sends_action_remove_password_confirmation_message">이 항목에 접근하기 전에 비밀번호를 요청하지 않음</string>
+    <string name="sends_action_hide_email_title">이메일 숨기기</string>
     <string name="sends_action_show_email_title">Show email</string>
     <string name="sends_action_enable_title">Activate</string>
     <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
     <string name="sends_action_enable_confirmation_title">Activate?</string>
     <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Inactive send is inaccessible by a public URL</string>
+    <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
     <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_delete_title">Delete forever</string>
-    <string name="sends_action_delete_confirmation_title">Delete forever?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_delete_title">완전히 삭제</string>
+    <string name="sends_action_delete_confirmation_title">완전히 삭제하시겠습니까?</string>
     <string name="file_action_open_with_title">다른 앱으로 열기…</string>
     <string name="file_action_send_with_title">다른 앱으로 전송…</string>
     <string name="file_action_open_in_file_manager_title">파일 관리자에서 열기</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 전체 이름이 연결되어 있습니다.</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 알 수 없는 필드에 연결되어 있습니다.</string>
     <string name="text_action_share_with_title">공유…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g>개 항목 선택됨</string>
     <string name="copy">복사</string>
     <string name="copy_value">값 복사</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">비워둘 수 없는 칸입니다.</string>
     <string name="error_must_be_custom_domain">사용자 지정 도메인을 입력해야 합니다.</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">US-ASCII 문자만 사용할 수 있습니다.</string>
     <string name="error_must_have_at_least_n_symbols">최소 <xliff:g id="length" example="15">%1$d</xliff:g>글자 이상이어야 합니다.</string>
     <string name="error_must_have_exactly_n_symbols">정확히 <xliff:g id="length" example="15">%1$d</xliff:g>글자여야 합니다.</string>
@@ -564,14 +582,19 @@
     <string name="additem_header_merge_title">항목 병합</string>
     <string name="additem_merge_remove_origin_ciphers_title">원본 항목을 휴지통으로 이동</string>
     <string name="additem_merge_attachments_note">항목을 병합할 때 첨부파일은 병합되지 않습니다! 병합한 항목은 첨부파일 없이 생성됩니다.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note"><xliff:g id="italic" example="italic">%1$s</xliff:g> 또는 <xliff:g id="bold" example="bold">%2$s</xliff:g> 등을 사용하여 텍스트를 꾸밀 수 있습니다. 일부 마크다운 문법을 지원합니다.</string>
     <string name="additem_markdown_note_italic">기울임꼴</string>
     <string name="additem_markdown_note_bold">굵게</string>
     <string name="additem_markdown_render_preview">미리보기</string>
     <string name="additem_auth_reprompt_title">인증 재요청</string>
     <string name="additem_auth_reprompt_text">비밀번호를 보거나 자동 완성할 때 다시 인증 요청</string>
-    <string name="addsend_header_new_title">New item</string>
-    <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_header_new_title">새 항목</string>
+    <string name="addsend_header_edit_title">항목 편집</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Bitwarden 계정 추가</string>
     <string name="addaccount_disclaimer_bitwarden_label">Keyguard 팀은 Bitwarden, Inc. 또는 그 계열사와 제휴, 연관, 승인, 보증 또는 공식적으로 어떤 식으로든 연결되어 있지 않습니다.</string>
     <!--
@@ -920,7 +943,7 @@
     <string name="pref_item_features_overview_title">기능 살펴보기</string>
     <string name="pref_item_url_override_title">URL 덮어쓰기</string>
     <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">확인 요청</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
@@ -960,9 +983,9 @@
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play 스토어에서 관리</string>
     <string name="pref_item_permission_post_notifications_title">알림 게시</string>
     <string name="pref_item_permission_post_notifications_text">다은로드 중 알림을 게시하는 데 사용합니다.</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
+    <string name="pref_item_permission_write_external_storage_title">외부 저장소에 쓰기</string>
     <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
+    <string name="pref_item_permission_write_external_storage_grant">외부 저장소에 쓰기 권한 허용</string>
     <string name="pref_item_permission_camera_title">카메라</string>
     <string name="pref_item_permission_camera_text">QR 코드를 스캔하는 데 사용합니다.</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">가로 모드에서 이중 패널 허용</string>

@@ -23,6 +23,11 @@
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Anzahl der Ansichten</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Mehr Informationen</string>
     <string name="phone_number">Telefonnummer</string>
     <string name="passport_number">Ausweisnummer</string>
@@ -63,8 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Notiz</string>
     <string name="notes">Notizen</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Anhänge</string>
     <string name="attachments_empty_label">Keine Anhänge</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Abgelaufen</string>
     <string name="expiring_soon">Läuft bald ab</string>
     <string name="item_incomplete_title">Unvollständige Daten</string>
@@ -115,6 +123,11 @@
     <string name="address2">Adresszeile 2</string>
     <string name="address3">Adresszeile 3</string>
     <string name="rename">Umbenennen</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Typ auswählen</string>
     <string name="select_file">Datei wählen</string>
     <string name="autofill">Automatisches Ausfüllen</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">Ausstehend</string>
     <string name="filter_failed_items">Fehlgeschlagen</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Inoffizieller Bitwarden-Server</string>
     <string name="account_last_synced_at">Zuletzt synchronisiert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Name ändern</string>
@@ -272,6 +286,7 @@
     <string name="sends_action_disable_title">Deaktivieren</string>
     <string name="sends_action_disable_text">Inaktives Senden ist über eine öffentliche URL unzugänglich</string>
     <string name="sends_action_disable_confirmation_title">Deaktivieren?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">Endgültig löschen</string>
     <string name="sends_action_delete_confirmation_title">Endgültig löschen?</string>
     <string name="file_action_open_with_title">Öffnen mit…</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> mit dem vollständigen Namen verknüpft</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> mit einem unbekannten Feld verknüpft</string>
     <string name="text_action_share_with_title">Teilen mit…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> ausgewählt</string>
     <string name="copy">Kopieren</string>
     <string name="copy_value">Inhalt kopieren</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Darf nicht leer sein</string>
     <string name="error_must_be_custom_domain">Muss eine eigene Domain sein</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Darf nur US-ASCII-Zeichen enthalten</string>
     <string name="error_must_have_at_least_n_symbols">Muss mindestens <xliff:g id="length" example="15">%1$d</xliff:g> Zeichen lang sein</string>
     <string name="error_must_have_exactly_n_symbols">Muss <xliff:g id="length" example="15">%1$d</xliff:g> Zeichen lang sein</string>
@@ -564,6 +582,7 @@
     <string name="additem_header_merge_title">Elemente zusammenführen</string>
     <string name="additem_merge_remove_origin_ciphers_title">Ursprüngliche Elemente in den Papierkorb verschieben</string>
     <string name="additem_merge_attachments_note">Beim Zusammenführen von Elementen werden deren Anhänge nicht zusammengeführt! Dem erstellten Element werden keine Anhänge hinzugefügt.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Text mit <xliff:g id="italic" example="italic">%1$s</xliff:g> oder <xliff:g id="bold" example="bold">%2$s</xliff:g> und mehr visuell aufarbeiten. Limitierter Markdown-Syntax wird unterstützt.</string>
     <string name="additem_markdown_note_italic">kursiv</string>
     <string name="additem_markdown_note_bold">fett</string>
@@ -572,6 +591,10 @@
     <string name="additem_auth_reprompt_text">Nach erneuter Authentifizierung fragen, wenn du eine Chiffre ansiehst oder automatisch Einfügst</string>
     <string name="addsend_header_new_title">Neues Element</string>
     <string name="addsend_header_edit_title">Element bearbeiten</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Bitwarden Account hinzufügen</string>
     <string name="addaccount_disclaimer_bitwarden_label">Wir sind nicht verbunden, verknüpft, autorisiert, unterstützt oder in irgendeiner Weise offiziell verbunden mit der Bitwarden, Inc. oder einer ihrer Tochtergesellschaften oder ihrer verbundenen Unternehmen.</string>
     <!--

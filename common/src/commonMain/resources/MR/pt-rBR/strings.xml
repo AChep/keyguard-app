@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="close">Fechar</string>
     <string name="yes">Sim</string>
     <string name="no">Não</string>
@@ -23,6 +23,11 @@
     <string name="url">Endereço da URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Quantidade de acessos</string>
+    <!--
+        Access count increases every time someone opens a send and looks and the page. Maximum
+        access count limits the amount a send can be opened.
+        -->
+    <string name="max_access_count">Max access count</string>
     <string name="learn_more">Saiba mais</string>
     <string name="phone_number">Telefone</string>
     <string name="passport_number">Número do passaporte</string>
@@ -58,13 +63,16 @@
     <string name="postal_code">Código postal</string>
     <string name="pull_to_search">Puxe para pesquisar</string>
     <string name="save">Salvar</string>
-    <string name="save_to">Save to</string>
+    <string name="save_to">Salvar em</string>
     <string name="uri">URI</string>
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
     <string name="notes">Notas</string>
+    <string name="date">Date</string>
+    <string name="time">Time</string>
     <string name="attachments">Anexos</string>
     <string name="attachments_empty_label">Sem anexos</string>
+    <string name="deactivated">Deactivated</string>
     <string name="expired">Vencido</string>
     <string name="expiring_soon">Expira em breve</string>
     <string name="item_incomplete_title">Dados incompletos</string>
@@ -89,7 +97,7 @@
     <string name="organizations">Empresas</string>
     <string name="organizations_empty_label">Sem empresas</string>
     <string name="misc">Diversos</string>
-    <string name="category">Category</string>
+    <string name="category">Categoria</string>
     <string name="command">Comando</string>
     <string name="execute_command">Executar</string>
     <!-- Add (something) -->
@@ -115,6 +123,11 @@
     <string name="address2">Endereço 2</string>
     <string name="address3">Endereço 3</string>
     <string name="rename">Renomear</string>
+    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date_custom">Custom</string>
+    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date_custom">Custom</string>
+    <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Selecione um tipo</string>
     <string name="select_file">Selecione um arquivo</string>
     <string name="autofill">Preenchimento Automático</string>
@@ -199,6 +212,7 @@
     <string name="filter_pending_items">Pendente</string>
     <string name="filter_failed_items">Falhou</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial do Bitwarden</string>
     <string name="account_last_synced_at">Última sincronização em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Renomear</string>
@@ -247,33 +261,34 @@
     <string name="ciphers_action_trash_title">Lixeira</string>
     <string name="ciphers_action_restore_title">Restaurar</string>
     <string name="ciphers_action_delete_title">Apagar permanentemente</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
+    <string name="ciphers_action_delete_confirmation_title">Excluir para sempre?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configurar alertas do Guardião</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Mover os itens associados para a lixeira</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
-    <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Inactive send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_delete_title">Delete forever</string>
-    <string name="sends_action_delete_confirmation_title">Delete forever?</string>
+    <string name="sends_action_change_name_title">Mudar o nome</string>
+    <string name="sends_action_change_names_title">Mudar os nomes</string>
+    <string name="sends_action_change_filename_title">Alterar nome do arquivo</string>
+    <string name="sends_action_change_filenames_title">Alterar nomes dos arquivos</string>
+    <string name="sends_action_set_password_title">Definir senha</string>
+    <string name="sends_action_set_passwords_title">Definir senhas</string>
+    <string name="sends_action_set_password_confirmation_message">Exigir uma senha para que usuários acessem esse item</string>
+    <string name="sends_action_change_password_title">Alterar senha</string>
+    <string name="sends_action_change_passwords_title">Alterar senhas</string>
+    <string name="sends_action_remove_password_title">Remover senha</string>
+    <string name="sends_action_remove_passwords_title">Remover senhas</string>
+    <string name="sends_action_remove_password_confirmation_title">Remover esta senha?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Remover estas senhas?</string>
+    <string name="sends_action_remove_password_confirmation_message">Não exigir uma senha para que usuários acessem esse item</string>
+    <string name="sends_action_hide_email_title">Esconder email</string>
+    <string name="sends_action_show_email_title">Mostrar email</string>
+    <string name="sends_action_enable_title">Ativar</string>
+    <string name="sends_action_enable_text">Envio ativo é acessível por uma URL pública</string>
+    <string name="sends_action_enable_confirmation_title">Ativar?</string>
+    <string name="sends_action_disable_title">Desativar</string>
+    <string name="sends_action_disable_text">O envio inativo não está acessível por uma URL pública</string>
+    <string name="sends_action_disable_confirmation_title">Desativar?</string>
+    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_delete_title">Excluir para sempre</string>
+    <string name="sends_action_delete_confirmation_title">Excluir para sempre?</string>
     <string name="file_action_open_with_title">Abrir com…</string>
     <string name="file_action_send_with_title">Enviar com…</string>
     <string name="file_action_open_in_file_manager_title">Abrir em um gerenciador de arquivos</string>
@@ -343,6 +358,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome completo</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a um campo desconhecido</string>
     <string name="text_action_share_with_title">Compartilhar com…</string>
+    <string name="text_action_send_title">Create a send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="copy">Copiar</string>
     <string name="copy_value">Copiar valor</string>
@@ -422,6 +438,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Não pode estar vazio</string>
     <string name="error_must_be_custom_domain">Deve ser um domínio personalizado</string>
+    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
     <string name="error_must_contain_only_us_ascii_chars">Deve conter apenas caracteres US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Deve ter no mínimo <xliff:g id="length" example="15">%1$d</xliff:g> símbolos</string>
     <string name="error_must_have_exactly_n_symbols">Deve ter <xliff:g id="length" example="15">%1$d</xliff:g> símbolos</string>
@@ -435,7 +453,7 @@
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar uma passkey</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">Falhou em abrir a URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
@@ -564,14 +582,19 @@
     <string name="additem_header_merge_title">Mesclar itens</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mover itens de origem para a lixeira</string>
     <string name="additem_merge_attachments_note">Mesclar itens não faz com que seus anexos sejam mesclados! O item criado não terá nenhum anexo adicionado.</string>
+    <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Estilize o texto com <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> e muito mais. Suporte à sintaxe Markdown limitada.</string>
     <string name="additem_markdown_note_italic">itálico</string>
     <string name="additem_markdown_note_bold">negrito</string>
     <string name="additem_markdown_render_preview">Renderizar pré-visualização</string>
     <string name="additem_auth_reprompt_title">Confirmação de autenticação</string>
     <string name="additem_auth_reprompt_text">Pedir para autenticar novamente quando você visualizar ou preencher automaticamente uma cifra</string>
-    <string name="addsend_header_new_title">New item</string>
-    <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_header_new_title">Item novo</string>
+    <string name="addsend_header_edit_title">Editar item</string>
+    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Não somos afiliados, associados, autorizados, endossados ou de qualquer forma oficialmente conectados à Bitwarden, Inc., nem a nenhuma de suas subsidiárias ou afiliadas.</string>
     <!--
@@ -920,8 +943,8 @@
     <string name="pref_item_features_overview_title">Descrição geral dos recursos</string>
     <string name="pref_item_url_override_title">Substituições de URL</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Exigir confirmação</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir uma confirmação adicional via um toque de botão depois de uma autenticação biométrica</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

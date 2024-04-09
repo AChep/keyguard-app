@@ -43,6 +43,7 @@ import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentC
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -59,6 +60,7 @@ import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import dev.icerock.moko.resources.compose.stringResource
 
 @Composable
 fun SendViewScreen(
@@ -141,7 +143,7 @@ fun SendViewScreen(
                     },
                     text = {
                         Text(
-                            text = "Copy share",
+                            text = stringResource(Res.strings.copy_send),
                         )
                     },
                 )

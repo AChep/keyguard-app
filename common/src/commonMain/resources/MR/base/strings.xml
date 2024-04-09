@@ -377,6 +377,7 @@
     <string name="copy_value">Copy value</string>
     <string name="copy_url">Copy URL</string>
     <string name="copy_uri">Copy URI</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copy package name</string>
     <string name="copy_password">Copy password</string>
     <string name="copy_username">Copy username</string>

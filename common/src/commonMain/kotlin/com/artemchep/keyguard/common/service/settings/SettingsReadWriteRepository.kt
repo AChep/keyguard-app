@@ -149,6 +149,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         keepScreenOn: Boolean,
     ): IO<Unit>
 
+    fun setGravatar(
+        enabled: Boolean,
+    ): IO<Unit>
+
     fun setAllowTwoPanelLayoutInPortrait(
         allow: Boolean,
     ): IO<Unit>

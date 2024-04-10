@@ -81,6 +81,8 @@ interface SettingsReadRepository {
 
     fun getKeepScreenOn(): Flow<Boolean>
 
+    fun getGravatar(): Flow<Boolean>
+
     fun getAllowTwoPanelLayoutInPortrait(): Flow<Boolean>
 
     fun getAllowTwoPanelLayoutInLandscape(): Flow<Boolean>

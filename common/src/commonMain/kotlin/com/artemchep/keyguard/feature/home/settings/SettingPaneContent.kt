@@ -57,6 +57,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingFeaturesOve
 import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingFontProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGitHubProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenOnProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
@@ -150,6 +151,7 @@ object Setting {
     const val REDDIT = "reddit"
     const val CROWDIN = "crowdin"
     const val GITHUB = "github"
+    const val GRAVATAR = "gravatar"
     const val PRIVACY_POLICY = "privacy_policy"
     const val OPEN_SOURCE_LICENSES = "open_source_licenses"
     const val ABOUT_APP = "about_app"
@@ -237,6 +239,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.REDDIT to ::settingAboutTelegramProvider,
     Setting.CROWDIN to ::settingLocalizationProvider,
     Setting.GITHUB to ::settingGitHubProvider,
+    Setting.GRAVATAR to ::settingGravatarProvider,
     Setting.PRIVACY_POLICY to ::settingPrivacyPolicyProvider,
     Setting.OPEN_SOURCE_LICENSES to ::settingOpenSourceLicensesProvider,
     Setting.EXPERIMENTAL to ::settingExperimentalProvider,

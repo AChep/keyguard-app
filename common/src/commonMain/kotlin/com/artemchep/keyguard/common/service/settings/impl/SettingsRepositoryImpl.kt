@@ -74,6 +74,7 @@ class SettingsRepositoryImpl(
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
         private const val KEY_ONBOARDING_LAST_VISIT = "onboarding_last_visit"
         private const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
+        private const val KEY_GRAVATAR = "gravatar"
         private const val KEY_COLORS = "colors"
         private const val KEY_LOCALE = "locale"
 
@@ -157,6 +158,9 @@ class SettingsRepositoryImpl(
 
     private val keepScreenOnPref =
         store.getBoolean(KEY_KEEP_SCREEN_ON, true)
+
+    private val gravatarPref =
+        store.getBoolean(KEY_GRAVATAR, true)
 
     private val navLabelPref =
         store.getBoolean(KEY_NAV_LABEL, true)
@@ -408,6 +412,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(keepScreenOn)
 
     override fun getKeepScreenOn() = keepScreenOnPref
+
+    override fun setGravatar(enabled: Boolean) = gravatarPref
+        .setAndCommit(enabled)
+
+    override fun getGravatar() = gravatarPref
 
     override fun setAllowTwoPanelLayoutInLandscape(allow: Boolean) =
         allowTwoPanelLayoutInLandscapePref

@@ -120,6 +120,7 @@ import com.artemchep.keyguard.common.usecase.GetDebugPremium
 import com.artemchep.keyguard.common.usecase.GetDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
+import com.artemchep.keyguard.common.usecase.GetGravatar
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
 import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
@@ -177,6 +178,7 @@ import com.artemchep.keyguard.common.usecase.PutConcealFields
 import com.artemchep.keyguard.common.usecase.PutDebugPremium
 import com.artemchep.keyguard.common.usecase.PutDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.PutFont
+import com.artemchep.keyguard.common.usecase.PutGravatar
 import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutMarkdown
 import com.artemchep.keyguard.common.usecase.PutNavAnimation
@@ -244,6 +246,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetDebugPremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.GetDebugScreenDelayImpl
 import com.artemchep.keyguard.common.usecase.impl.GetFontImpl
 import com.artemchep.keyguard.common.usecase.impl.GetFontVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGravatarImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGravatarUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetJustDeleteMeByUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetJustGetMyDataByUrlImpl
@@ -298,6 +301,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutConcealFieldsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugPremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugScreenDelayImpl
 import com.artemchep.keyguard.common.usecase.impl.PutFontImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGravatarImpl
 import com.artemchep.keyguard.common.usecase.impl.PutKeepScreenOnImpl
 import com.artemchep.keyguard.common.usecase.impl.PutMarkdownImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavAnimationImpl
@@ -862,6 +866,16 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetGravatarUrl> {
         GetGravatarUrlImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetGravatar> {
+        GetGravatarImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutGravatar> {
+        PutGravatarImpl(
             directDI = this,
         )
     }

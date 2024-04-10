@@ -35,6 +35,7 @@ fun UiSettingsScreen() {
                 list = listOf(
                     SettingPaneItem.Item(Setting.APP_ICONS),
                     SettingPaneItem.Item(Setting.WEBSITE_ICONS),
+                    SettingPaneItem.Item(Setting.GRAVATAR),
                 ),
             ),
             SettingPaneItem.Group(

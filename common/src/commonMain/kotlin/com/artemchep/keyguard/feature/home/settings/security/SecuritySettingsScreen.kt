@@ -30,6 +30,7 @@ fun SecuritySettingsScreen() {
                     SettingPaneItem.Item(Setting.CONCEAL),
                     SettingPaneItem.Item(Setting.SCREENSHOTS),
                     SettingPaneItem.Item(Setting.WEBSITE_ICONS),
+                    SettingPaneItem.Item(Setting.GRAVATAR),
                 ),
             ),
             SettingPaneItem.Group(

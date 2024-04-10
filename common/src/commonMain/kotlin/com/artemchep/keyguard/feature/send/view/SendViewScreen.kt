@@ -311,12 +311,23 @@ private fun VaultViewTitle(
         }
 
         is SendViewState.Content.Cipher -> {
-            val name = state.content.data.name
-            Text(
-                text = name,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+            val title = state.content.data.name
+                .takeUnless { it.isEmpty() }
+            if (title != null) {
+                Text(
+                    text = title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            } else {
+                Text(
+                    text = stringResource(Res.strings.empty_value),
+                    color = LocalContentColor.current
+                        .combineAlpha(DisabledEmphasisAlpha),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
 
         is SendViewState.Content.NotFound -> {

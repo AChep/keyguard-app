@@ -302,11 +302,23 @@ fun VaultListItemText(
         content = {
             FlatItemTextContent(
                 title = {
-                    Text(
-                        text = item.title,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
+                    val title = item.title
+                        .takeUnless { it.isEmpty() }
+                    if (title != null) {
+                        Text(
+                            text = title,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(Res.strings.empty_value),
+                            color = LocalContentColor.current
+                                .combineAlpha(DisabledEmphasisAlpha),
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                        )
+                    }
                 },
                 text = item.text
                     ?.takeIf { it.isNotEmpty() }

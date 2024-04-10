@@ -38,6 +38,7 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -620,6 +621,10 @@ private enum class Try {
 fun FlatItemLayout2(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
     content: @Composable ColumnScope.() -> Unit,
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
@@ -670,7 +675,7 @@ fun FlatItemLayout2(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CompositionLocalProvider(
-            LocalContentColor provides LocalContentColor.current
+            LocalContentColor provides contentColor
                 .let { color ->
                     if (enabled) {
                         color

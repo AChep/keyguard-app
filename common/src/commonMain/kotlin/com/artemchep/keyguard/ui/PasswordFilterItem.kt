@@ -68,6 +68,7 @@ import com.artemchep.keyguard.feature.home.vault.component.localSurfaceColorAtEl
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.ui.surface.ProvideSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -416,6 +417,10 @@ fun FlatItemLayout(
     contentPadding: PaddingValues = defaultContentPadding,
     elevation: Dp = 0.dp,
     backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
     content: @Composable ColumnScope.() -> Unit,
     actions: List<FlatItemAction> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
@@ -424,10 +429,11 @@ fun FlatItemLayout(
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = onClick != null,
 ) {
-    Column(
+    ContentColorColumn(
         modifier = modifier
             .fillMaxWidth()
             .padding(paddingValues),
+        color = contentColor,
     ) {
         val backgroundModifier = kotlin.run {
             // Check if there's actually a background color
@@ -563,6 +569,19 @@ fun FlatItemLayout(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ContentColorColumn(
+    modifier: Modifier = Modifier,
+    color: Color,
+    content: @Composable ColumnScope.() -> Unit,
+) = Column(modifier = modifier) {
+    CompositionLocalProvider(
+        LocalContentColor provides color,
+    ) {
+        content()
     }
 }
 

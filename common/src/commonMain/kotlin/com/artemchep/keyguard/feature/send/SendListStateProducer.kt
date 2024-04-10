@@ -717,7 +717,7 @@ fun sendListScreenState(
             canEditFlow,
             selectionHandle.idsFlow,
         ) { canEdit, selectedItemIds ->
-            if (canEdit && selectedItemIds.isEmpty() && !isRelease) {
+            if (canEdit && selectedItemIds.isEmpty()) {
                 primaryActionsAll
             } else {
                 // No items

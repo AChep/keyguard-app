@@ -6,8 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.focus.FocusRequester
 import com.artemchep.keyguard.ui.focus.FocusRequester2
+import kotlinx.coroutines.delay
 
 class AddScreenScope(
     initialFocusRequested: Boolean = false,
@@ -22,6 +22,7 @@ class AddScreenScope(
         LaunchedEffect(focusRequester) {
             var initialFocusRequested by initialFocusRequestedState
             if (!initialFocusRequested) {
+                delay(100L)
                 focusRequester.requestFocus()
                 // do not request it the second time
                 initialFocusRequested = true

@@ -364,6 +364,7 @@
     <string name="copy_value">Скопіювати значення</string>
     <string name="copy_url">Скопіювати URL</string>
     <string name="copy_uri">Скопіювати URI</string>
+    <string name="copy_send">Скопіювати відправлення</string>
     <string name="copy_package_name">Скопіювати назву пакета</string>
     <string name="copy_password">Копіювати пароль</string>
     <string name="copy_username">Скопіювати ім\'я користувача</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Завантажувати іконки застосунків</string>
     <string name="pref_item_load_website_icons_title">Завантажувати іконки вебсайтів</string>
     <string name="pref_item_load_website_icons_text">Запит іконки вебсайту може дати інформацію інтернет-провайдеру про збережені в сховищі адреси вебсайтів</string>
+    <string name="pref_item_load_gravatar_icons_title">Завантажувати Gravatar іконки</string>
     <string name="pref_item_markdown_title">Розширене форматування тексту</string>
     <string name="pref_item_markdown_text">Використовувати Markdown для форматування нотаток</string>
     <string name="pref_item_locale_title">Мова</string>

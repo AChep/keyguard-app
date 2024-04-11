@@ -364,6 +364,7 @@
     <string name="copy_value">값 복사</string>
     <string name="copy_url">URL 복사</string>
     <string name="copy_uri">URI 복사</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">패키지 이름 복사</string>
     <string name="copy_password">비밀번호 복사</string>
     <string name="copy_username">사용자 이름 복사</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">앱 아이콘 불러오기</string>
     <string name="pref_item_load_website_icons_title">웹사이트 아이콘 불러오기</string>
     <string name="pref_item_load_website_icons_text">웹사이트 아이콘을 불러오면 인터넷 제공사에 웹사이트 주소가 노출될 수 있습니다.</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">리치 텍스트 포맷</string>
     <string name="pref_item_markdown_text">메모에 마크다운 문법을 사용합니다.</string>
     <string name="pref_item_locale_title">언어</string>

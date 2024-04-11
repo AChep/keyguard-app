@@ -691,6 +691,10 @@ fun FlatTextField(
 
             val optionsText = rememberUpdatedState(value.text)
             val optionsList = rememberUpdatedState(value.autocompleteOptions)
+            if (optionsList.value.isEmpty()) {
+                return@Column
+            }
+
             val options by remember {
                 val valueFlow = snapshotFlow { optionsText.value }
                     .debounce(80L)

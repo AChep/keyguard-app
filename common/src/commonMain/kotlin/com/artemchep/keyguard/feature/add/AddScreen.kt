@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActionScope
@@ -143,51 +144,43 @@ private val paddingValues = PaddingValues(
 )
 
 context(AddScreenScope)
-@Composable
-fun ColumnScope.AddScreenItems(
+fun LazyListScope.AddScreenItems(
 ) {
-    SkeletonTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
-    )
-    SkeletonTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
-    )
-    SkeletonText(
-        modifier = Modifier
-            .fillMaxWidth(0.75f)
-            .padding(horizontal = Dimens.horizontalPadding),
-        style = MaterialTheme.typography.labelMedium,
-    )
-    SkeletonText(
-        modifier = Modifier
-            .fillMaxWidth(0.4f)
-            .padding(horizontal = Dimens.horizontalPadding),
-        style = MaterialTheme.typography.labelMedium,
-    )
-}
-
-context(AddScreenScope)
-@Composable
-fun ColumnScope.AddScreenItems(
-    items: List<AddStateItem>,
-) {
-    items.forEach {
-        key(it.id) {
-            AnyField(
-                modifier = Modifier,
-                item = it,
-            )
-        }
+    item("items.skeleton.1") {
+        SkeletonTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.horizontalPadding),
+        )
+    }
+    item("items.skeleton.2") {
+        SkeletonTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.horizontalPadding),
+        )
+    }
+    item("items.skeleton.3") {
+        SkeletonText(
+            modifier = Modifier
+                .fillMaxWidth(0.75f)
+                .padding(horizontal = Dimens.horizontalPadding),
+            style = MaterialTheme.typography.labelMedium,
+        )
+    }
+    item("items.skeleton.4") {
+        SkeletonText(
+            modifier = Modifier
+                .fillMaxWidth(0.4f)
+                .padding(horizontal = Dimens.horizontalPadding),
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
 }
 
 context(AddScreenScope)
 @Composable
-private fun AnyField(
+fun AnyField(
     modifier: Modifier = Modifier,
     item: AddStateItem,
 ) = when (item) {

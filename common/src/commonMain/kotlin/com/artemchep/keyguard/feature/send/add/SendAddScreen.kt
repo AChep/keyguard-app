@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Checkbox
@@ -27,6 +29,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.add.AddScreenItems
 import com.artemchep.keyguard.feature.add.AddScreenScope
+import com.artemchep.keyguard.feature.add.AnyField
 import com.artemchep.keyguard.feature.add.ToolbarContent
 import com.artemchep.keyguard.feature.add.ToolbarContentItemErrSkeleton
 import com.artemchep.keyguard.feature.home.vault.add.AddState
@@ -40,6 +43,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
@@ -72,7 +76,7 @@ fun SendAddScreen(
     loadableState: Loadable<SendAddState>,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    ScaffoldColumn(
+    ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
@@ -128,7 +132,7 @@ fun SendAddScreen(
                 },
             )
         },
-        columnVerticalArrangement = Arrangement.spacedBy(8.dp),
+        listVerticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         populateItems(
             addScreenScope = addScreenScope,
@@ -137,8 +141,7 @@ fun SendAddScreen(
     }
 }
 
-@Composable
-private fun ColumnScope.populateItems(
+private fun LazyListScope.populateItems(
     addScreenScope: AddScreenScope,
     loadableState: Loadable<SendAddState>,
 ) = loadableState.fold(
@@ -155,12 +158,78 @@ private fun ColumnScope.populateItems(
     },
 )
 
-@Composable
-private fun ColumnScope.populateItemsSkeleton(
+private fun LazyListScope.populateItemsSkeleton(
     addScreenScope: AddScreenScope,
 ) {
+    item("ownership") {
+        AddScreenToolbarSkeletonItem()
+    }
+    item("ownership.section") {
+        Section()
+    }
+    item("items") {
+        Spacer(
+            modifier = Modifier
+                .height(24.dp),
+        )
+    }
+    with(addScreenScope) {
+        AddScreenItems()
+    }
+}
+
+private fun LazyListScope.populateItemsContent(
+    addScreenScope: AddScreenScope,
+    state: SendAddState,
+) {
+    item("ownership") {
+        AddScreenToolbarItem(
+            state = state,
+        )
+    }
+    item("ownership.section") {
+        Section()
+    }
+    item("items") {
+        Spacer(
+            modifier = Modifier
+                .height(24.dp),
+        )
+    }
+    items(
+        items = state.items,
+        key = { it.id },
+    ) { item ->
+        with(addScreenScope) {
+            AnyField(
+                modifier = Modifier,
+                item = item,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddScreenToolbarItem(
+    modifier: Modifier = Modifier,
+    state: SendAddState,
+) {
+    ToolbarContent(
+        modifier = modifier,
+        account = state.ownership.ui.account,
+        organization = state.ownership.ui.organization,
+        collection = state.ownership.ui.collection,
+        folder = state.ownership.ui.folder,
+        onClick = state.ownership.ui.onClick,
+    )
+}
+
+@Composable
+private fun AddScreenToolbarSkeletonItem(
+    modifier: Modifier = Modifier,
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(
                 horizontal = 8.dp,
@@ -173,33 +242,6 @@ private fun ColumnScope.populateItemsSkeleton(
             modifier = Modifier
                 .padding(end = 8.dp),
             fraction = 0.5f,
-        )
-    }
-    Section()
-    Spacer(Modifier.height(24.dp))
-    with(addScreenScope) {
-        AddScreenItems()
-    }
-}
-
-@Composable
-private fun ColumnScope.populateItemsContent(
-    addScreenScope: AddScreenScope,
-    state: SendAddState,
-) {
-    ToolbarContent(
-        modifier = Modifier,
-        account = state.ownership.ui.account,
-        organization = state.ownership.ui.organization,
-        collection = state.ownership.ui.collection,
-        folder = state.ownership.ui.folder,
-        onClick = state.ownership.ui.onClick,
-    )
-    Section()
-    Spacer(Modifier.height(24.dp))
-    with(addScreenScope) {
-        AddScreenItems(
-            items = state.items,
         )
     }
 }

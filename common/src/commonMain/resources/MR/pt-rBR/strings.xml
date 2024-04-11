@@ -364,6 +364,7 @@
     <string name="copy_value">Copiar valor</string>
     <string name="copy_url">Copiar URL</string>
     <string name="copy_uri">Copiar URI</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copiar nome do pacote</string>
     <string name="copy_password">Copiar senha</string>
     <string name="copy_username">Copiar nome de usuário</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Carregar ícones dos aplicativos</string>
     <string name="pref_item_load_website_icons_title">Carregar ícones de sites</string>
     <string name="pref_item_load_website_icons_text">A consulta pelo ícone do site pode vazar o endereço do site para o provedor de Internet</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Formatação de texto rica</string>
     <string name="pref_item_markdown_text">Use Markdown para formatar notas</string>
     <string name="pref_item_locale_title">Idioma</string>

@@ -364,6 +364,7 @@
     <string name="copy_value">Kopieer waarde</string>
     <string name="copy_url">URL kopiëren</string>
     <string name="copy_uri">URI kopiëren</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Pakketnaam kopiëren</string>
     <string name="copy_password">Wachtwoord kopiëren</string>
     <string name="copy_username">Gebruikersnaam kopiëren</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Laad app pictogrammen</string>
     <string name="pref_item_load_website_icons_title">Laad website iconen</string>
     <string name="pref_item_load_website_icons_text">Website iconen tonen kan het adres van de website lekken naar uw internetprovider</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rijke tekst opmaak</string>
     <string name="pref_item_markdown_text">Gebruik Markdown om notities te formatteren</string>
     <string name="pref_item_locale_title">Taal</string>

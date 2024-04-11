@@ -27,7 +27,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Maximale Anzahl der Zugriffe</string>
     <string name="learn_more">Mehr Informationen</string>
     <string name="phone_number">Telefonnummer</string>
     <string name="passport_number">Ausweisnummer</string>
@@ -68,11 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Notiz</string>
     <string name="notes">Notizen</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Datum</string>
+    <string name="time">Zeit</string>
     <string name="attachments">Anhänge</string>
     <string name="attachments_empty_label">Keine Anhänge</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">Deaktiviert</string>
     <string name="expired">Abgelaufen</string>
     <string name="expiring_soon">Läuft bald ab</string>
     <string name="item_incomplete_title">Unvollständige Daten</string>
@@ -82,7 +82,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> Elemente</string>
     <string name="items_all">Alle Einträge</string>
     <string name="items_empty_label">Keine Einträge vorhanden</string>
-    <string name="sends">Sendet</string>
+    <string name="sends">Senden</string>
     <string name="folder_none">Kein Ordner</string>
     <string name="folder_new">Neuer Ordner</string>
     <string name="folder">Ordner</string>
@@ -97,7 +97,7 @@
     <string name="organizations">Organisationen</string>
     <string name="organizations_empty_label">Keine Organisationen vorhanden</string>
     <string name="misc">Diverses</string>
-    <string name="category">Category</string>
+    <string name="category">Kategorie</string>
     <string name="command">Aktion</string>
     <string name="execute_command">Ausführen</string>
     <!-- Add (something) -->
@@ -123,11 +123,11 @@
     <string name="address2">Adresszeile 2</string>
     <string name="address3">Adresszeile 3</string>
     <string name="rename">Umbenennen</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Löschdatum</string>
+    <string name="deletion_date_custom">Benutzerdefiniert</string>
+    <string name="expiration_date">Verfallsdatum</string>
+    <string name="expiration_date_custom">Benutzerdefiniert</string>
+    <string name="expiration_date_never">Niemals</string>
     <string name="select_linked_type">Typ auswählen</string>
     <string name="select_file">Datei wählen</string>
     <string name="autofill">Automatisches Ausfüllen</string>
@@ -135,7 +135,7 @@
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Passkey erstellen</string>
     <string name="passkey_unlock_header">Keyguard entsperren</string>
-    <string name="passkey_auth_via_header">Bestätigung der Autorisierungsanfrage…</string>
+    <string name="passkey_auth_via_header">Authentifizierungsanfrage bestätigen…</string>
     <string name="passkeys">Passkeys</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
@@ -178,15 +178,15 @@
     <string name="verification_code">Bestätigungscode</string>
     <string name="resend_verification_code">Bestätigungs-Code erneut senden</string>
     <string name="requested_verification_email">Bestätigungs E-Mail angefordert</string>
-    <string name="web_vault">Web-Tresor</string>
-    <string name="launch_web_vault">Web-Tresor starten</string>
+    <string name="web_vault">Web Tresor</string>
+    <string name="launch_web_vault">Web Tresor starten</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Anmeldedaten speichern</string>
     <!-- A Trash screen -->
     <string name="trash">Papierkorb</string>
     <!-- To download something -->
     <string name="download">Herunterladen</string>
-    <string name="downloads">Heruntergeladenes</string>
+    <string name="downloads">Downloads</string>
     <string name="downloads_empty_label">Keine Downloads vorhanden</string>
     <string name="duplicates_empty_label">Keine Duplikate vorhanden</string>
     <string name="duplicate">Duplikat</string>
@@ -212,7 +212,7 @@
     <string name="filter_pending_items">Ausstehend</string>
     <string name="filter_failed_items">Fehlgeschlagen</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Benötigt Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Inoffizieller Bitwarden-Server</string>
     <string name="account_last_synced_at">Zuletzt synchronisiert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Name ändern</string>
@@ -224,7 +224,7 @@
     <string name="account_action_export_individual_vault_title">Individuellen Tresor exportieren</string>
     <string name="account_action_hide_title">Element ausblenden</string>
     <string name="account_action_hide_text">Elemente auf den Hauptbildschirmen der App ausblenden</string>
-    <string name="account_action_email_verify_instructions_title">Besuchen Sie den Web-Tresor, um Ihre E-Mail-Adresse zu verifizieren</string>
+    <string name="account_action_email_verify_instructions_title">Besuchen Sie den Web Tresor, um Ihre E-Mail-Adresse zu verifizieren</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade dein Konto auf eine Premium-Mitgliedschaft, um zusätzliche, großartige Funktionen freizuschalten</string>
     <string name="account_action_tfa_title">Zwei-Faktor-Authentifizierung</string>
     <string name="account_action_tfa_text">Erfordert die Überprüfung der Anmeldung mit einem anderen Gerät wie einem Sicherheitsschlüssel, einer Authentifizierungs-App, einer SMS oder einer E-Mail</string>
@@ -237,7 +237,7 @@
     <string name="folder_action_change_names_title">Namen ändern</string>
     <string name="folder_delete_one_confirmation_title">Ordner löschen?</string>
     <string name="folder_delete_many_confirmation_title">Ordner löschen?</string>
-    <string name="folder_delete_confirmation_text">Diese Elemente werden sofort gelöscht. Sie können diese Aktion nicht rückgängig machen.</string>
+    <string name="folder_delete_confirmation_text">Diese Elemente werden sofort gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="ciphers_recently_opened">Kürzlich geöffnet</string>
     <string name="ciphers_often_opened">Oft geöffnet</string>
     <string name="ciphers_view_details">Details anzeigen</string>
@@ -286,7 +286,7 @@
     <string name="sends_action_disable_title">Deaktivieren</string>
     <string name="sends_action_disable_text">Inaktives Senden ist über eine öffentliche URL unzugänglich</string>
     <string name="sends_action_disable_confirmation_title">Deaktivieren?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disabled_note">Dieser Versand ist deaktiviert, niemand kann darauf zugreifen.</string>
     <string name="sends_action_delete_title">Endgültig löschen</string>
     <string name="sends_action_delete_confirmation_title">Endgültig löschen?</string>
     <string name="file_action_open_with_title">Öffnen mit…</string>
@@ -358,12 +358,13 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> mit dem vollständigen Namen verknüpft</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> mit einem unbekannten Feld verknüpft</string>
     <string name="text_action_share_with_title">Teilen mit…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Senden erstellen</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> ausgewählt</string>
     <string name="copy">Kopieren</string>
     <string name="copy_value">Inhalt kopieren</string>
     <string name="copy_url">URL kopieren</string>
     <string name="copy_uri">URI kopieren</string>
+    <string name="copy_send">Senden kopieren</string>
     <string name="copy_package_name">Paketname kopieren</string>
     <string name="copy_password">Passwort kopieren</string>
     <string name="copy_username">Benutzername kopieren</string>
@@ -424,7 +425,7 @@
     <string name="fido2webauthn_action_go_title">WebAuthn authentifizieren</string>
     <string name="fido2webauthn_action_return_title">Zurück zur App</string>
     <string name="expiry_tips_item_line1">Dieses Element läuft am <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> ab.</string>
-    <string name="expiry_tips_card_line1">Diese Karte läuft auf <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>ab. Es gibt ein paar Dinge, die Sie tun können, um einen reibungslosen Übergang zu gewährleisten:</string>
+    <string name="expiry_tips_card_line1">Diese Karte läuft am <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>ab. Es gibt ein paar Dinge, die Sie tun können, um einen reibungslosen Übergang zu gewährleisten:</string>
     <string name="expiry_tips_card_line2">1. Erhalten Sie eine neue Karte: Ihr Kartenaussteller hat Ihnen möglicherweise bereits eine Ersatzkarte mit einem neuen Ablaufdatum geschickt. Wenn nicht, wenden Sie sich an Ihren Kartenaussteller, um zu sehen, ob er plant, Ihnen eine neue Karte zu senden und wann sie zu erwarten.</string>
     <string name="expiry_tips_card_line3">2. Automatische Zahlungen aktualisieren: Wenn Sie automatische Zahlungen mit Ihrer Karte haben B. eine monatliche Fitness-Mitgliedschaft oder ein Netflix-Abonnement, stellen Sie sicher, dass die Informationen mit der neuen Kartennummer und dem Ablaufdatum aktualisiert werden.</string>
     <string name="expiry_tips_card_line4">3. Zerstören Sie die alte Karte: Sobald Ihre neue Karte eintrifft und Sie alle notwendigen Informationen aktualisiert haben Achten Sie darauf, die alte abgelaufene Karte sicher zu entsorgen, um Identitätsdiebstahl zu verhindern.</string>
@@ -438,8 +439,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Darf nicht leer sein</string>
     <string name="error_must_be_custom_domain">Muss eine eigene Domain sein</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_number">Muss eine Zahl sein</string>
+    <string name="error_must_be_less_than_days">Muss kleiner als <xliff:g id="days" example="15">%1$d</xliff:g> Tage von der aktuellen Zeit sein</string>
     <string name="error_must_contain_only_us_ascii_chars">Darf nur US-ASCII-Zeichen enthalten</string>
     <string name="error_must_have_at_least_n_symbols">Muss mindestens <xliff:g id="length" example="15">%1$d</xliff:g> Zeichen lang sein</string>
     <string name="error_must_have_exactly_n_symbols">Muss <xliff:g id="length" example="15">%1$d</xliff:g> Zeichen lang sein</string>
@@ -449,16 +450,16 @@
     <string name="error_invalid_uri">Ungültige URI</string>
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
-    <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfen Sie Ihre KDF-Server-Einstellungen.</string>
+    <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des OTP-Codes</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">Fehler beim Öffnen einer URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Als Barcode anzeigen</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Kopieren Sie diesen Authentifikator auf ein anderes Gerät, indem Sie den QR-Code scannen.</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Kopiert diesen Authentifikator auf ein anderes Gerät, indem dieser QR-Code gescannt wird.</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">Datumsauswahl</string>
     <!-- Title of the 'Color picker' dialog -->
@@ -481,7 +482,7 @@
     <string name="justdeleteme_empty_label">Keine Anweisungen</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justgetmydata_title">Wie erhalte ich meine Daten?</string>
-    <string name="justgetmydata_subtitle">Eine Sammlung von Informationen, wie Sie das von Ihrem Konto von Web-Diensten erhalten</string>
+    <string name="justgetmydata_subtitle">Eine Sammlung von Informationen, wie Sie das von Ihrem Konto von Webdiensten erhalten</string>
     <!-- Simple process -->
     <string name="justgetmydata_difficulty_easy_label">Einfach</string>
     <!-- Some extra steps involved -->
@@ -507,9 +508,9 @@
     <string name="emailleak_breach_not_found_title">Keine Datenlecks gefunden</string>
     <string name="emailleak_breach_found_title">Betroffene Konten gefunden</string>
     <string name="emailleak_breach_section">Datenlecks</string>
-    <string name="emailleak_breach_occurred_at">Am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g> passiert</string>
+    <string name="emailleak_breach_occurred_at">Aufgetreten am <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Gemeldet am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Fehler beim Prüfen von Datenbruchs. Möglicherweise sind Sie derzeit offline</string>
+    <string name="emailleak_failed_to_load_status_text">Konnte nicht auf Datenlecks überprüfen. Möglicherweise sind Sie derzeit Offline</string>
     <string name="passwordleak_title">Datenleck</string>
     <string name="passwordleak_note">Ein Passwort, das in den Datenlecks gefunden wird, dauert deutlich weniger Zeit zum Brechen und wird nicht empfohlen zu verwenden.</string>
     <string name="passwordleak_occurrences_found_title">Gebrochene Passwörter gefunden</string>
@@ -519,7 +520,7 @@
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Großer Typ</string>
     <string name="largetype_action_show_in_large_type_title">Im großen Typ anzeigen</string>
-    <string name="largetype_action_show_in_large_type_and_lock_title">Im großen Typ anzeigen und Tresor verschließen</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">In großer Schrift anzeigen und Tresor sperren</string>
     <string name="largetype_unicode_surrogate_note">Text enthält zusammengesetzte Unicode Symbole!</string>
     <string name="apppicker_header_title">App Auswahl</string>
     <string name="apppicker_search_placeholder">Installierte Apps durchsuchen</string>
@@ -564,12 +565,12 @@
     <string name="setup_button_create_vault">Tresor erstellen</string>
     <string name="setup_action_erase_data_title">App-Daten löschen</string>
     <string name="setup_action_erase_data_text">App schließen und alle lokalen App-Daten löschen</string>
-    <string name="unlock_header_text">Der Tresor ist gesperrt. Geben Sie Ihr App-Passwort ein, um fortzufahren.</string>
+    <string name="unlock_header_text">Der Tresor ist gesperrt. Gebe das App-Passwort ein, um fortzufahren.</string>
     <string name="unlock_button_unlock">Entsperren</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_title">Tresor freischalten</string>
+    <string name="unlock_biometric_auth_confirm_title">Tresor entsperren</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_text">Verwenden Sie biometrische Authentifizierung, um den Tresor zu entsperren.</string>
+    <string name="unlock_biometric_auth_confirm_text">Biometrische Authentifizierung verwenden, um den Tresor zu entsperren.</string>
     <string name="userverification_header_text">Benutzerverifizierung erforderlich. Geben Sie Ihr App-Passwort ein, um fortzufahren.</string>
     <string name="userverification_button_go">Überprüfen</string>
     <string name="syncstatus_header_title">Synchronisationsstatus</string>
@@ -582,7 +583,7 @@
     <string name="additem_header_merge_title">Elemente zusammenführen</string>
     <string name="additem_merge_remove_origin_ciphers_title">Ursprüngliche Elemente in den Papierkorb verschieben</string>
     <string name="additem_merge_attachments_note">Beim Zusammenführen von Elementen werden deren Anhänge nicht zusammengeführt! Dem erstellten Element werden keine Anhänge hinzugefügt.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">Notizen zu diesem Element hinzufügen</string>
     <string name="additem_markdown_note">Text mit <xliff:g id="italic" example="italic">%1$s</xliff:g> oder <xliff:g id="bold" example="bold">%2$s</xliff:g> und mehr visuell aufarbeiten. Limitierter Markdown-Syntax wird unterstützt.</string>
     <string name="additem_markdown_note_italic">kursiv</string>
     <string name="additem_markdown_note_bold">fett</string>
@@ -591,16 +592,16 @@
     <string name="additem_auth_reprompt_text">Nach erneuter Authentifizierung fragen, wenn du eine Chiffre ansiehst oder automatisch Einfügst</string>
     <string name="addsend_header_new_title">Neues Element</string>
     <string name="addsend_header_edit_title">Element bearbeiten</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_text_hide_by_default_title">Beim Zugriff auf dieses Element, den Text standardmäßig ausblenden</string>
+    <string name="addsend_hide_text_by_default_title">Beim Zugriff auf dieses Element, den Text standardmäßig ausblenden</string>
+    <string name="addsend_hide_email_title">E-Mail-Adresse ausblenden</string>
+    <string name="addsend_max_access_count_note">Wenn aktiviert, können Benutzer nach Erreichen der maximalen Zugriffsanzahl nicht mehr auf dieses Element zugreifen.</string>
     <string name="addaccount_header_title">Bitwarden Account hinzufügen</string>
     <string name="addaccount_disclaimer_bitwarden_label">Wir sind nicht verbunden, verknüpft, autorisiert, unterstützt oder in irgendeiner Weise offiziell verbunden mit der Bitwarden, Inc. oder einer ihrer Tochtergesellschaften oder ihrer verbundenen Unternehmen.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">Um die Captcha-Verifizierung auf einem inoffiziellen Bitwarden-Client zu bestehen, müssen Sie das Client-Geheimnis angeben. Um es zu finden, besuchen Sie den Web-Tresor / Einstellungen / API-Schlüssel.</string>
+    <string name="addaccount_captcha_need_client_secret_note">Um die Captcha Verifizierung auf einem inoffiziellen Bitwarden Client zu bestehen, muss das Client-Geheimnis angeben werden. Um es zu finden, rufe Web Tresor / Einstellungen / API-Schlüssel auf.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client-Geheimnis</string>
     <string name="addaccount_sign_in_button">Anmelden</string>
@@ -618,7 +619,7 @@
     <string name="addaccount_base_env_note">Geben Sie die Basis-URL Ihrer selbst gehosteten Bitwarden Installation an.</string>
     <string name="addaccount_custom_env_section">Benutzerdefinierte Umgebung</string>
     <string name="addaccount_custom_env_note">Sie können die Basis-URL jedes Dienstes unabhängig voneinander angeben.</string>
-    <string name="addaccount_custom_env_web_vault_url_label">Web-Tresor Server URL</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Web Tresor Server URL</string>
     <string name="addaccount_custom_env_api_url_label">API Server URL</string>
     <string name="addaccount_custom_env_icons_url_label">Icons Server URL</string>
     <string name="addaccount_custom_env_identity_url_label">Identitätsserver-URL</string>
@@ -807,17 +808,17 @@
     <string name="watchtower_item_inactive_passkey_title">Verfügbare Passkeys</string>
     <string name="watchtower_item_inactive_passkey_text">Sites, die Passkeys haben, die Sie aber noch nicht eingerichtet haben.</string>
     <string name="watchtower_item_incomplete_items_title">Unvollständige Elemente</string>
-    <string name="watchtower_item_incomplete_items_text">Hilft Ihnen, fehlende oder unvollständige Daten in Ihrem Tresor zu identifizieren. Dies kann sich auf Identitäten mit fehlenden Namen oder Logins ohne Benutzernamen beziehen.</string>
+    <string name="watchtower_item_incomplete_items_text">Hilft dabei, fehlende oder unvollständige Daten im Tresor zu identifizieren. Dies kann sich auf Identitäten mit fehlenden Namen oder Anmeldungen ohne Benutzernamen beziehen.</string>
     <string name="watchtower_item_expiring_items_title">Abgelaufene Elemente</string>
     <string name="watchtower_item_expiring_items_text">Elemente, die abgelaufen sind oder bald ablaufen.</string>
     <string name="watchtower_item_duplicate_websites_title">Duplizierte URIs</string>
     <string name="watchtower_item_duplicate_websites_text">Elemente, die eine oder mehrere URIs haben, die die gleiche Website abdecken, nachdem die Match-Erkennung angewendet wurde.</string>
     <string name="watchtower_item_trashed_items_title">Gelöschte Elemente</string>
-    <string name="watchtower_item_trashed_items_text">Elemente, die in den Papierkorb verschoben wurden. Zu viele Gegenstände im Papierkorb können die Operationen mit Ihrem Tresor verlangsamen.</string>
+    <string name="watchtower_item_trashed_items_text">Elemente, die in den Papierkorb verschoben wurden. Wenn sich zu viele Elemente im Papierkorb befinden, kann dies den Betrieb des Tresors verlangsamen.</string>
     <string name="watchtower_item_empty_folders_title">Leere Ordner</string>
     <string name="watchtower_item_empty_folders_text">Ordner, in denen keine Elemente enthalten sind.</string>
     <string name="watchtower_item_duplicate_items_title">Duplizierte Elemente</string>
-    <string name="watchtower_item_duplicate_items_text">Hilft Ihnen, identische Elemente in deinem Tresor zu identifizieren und zu entfernen.</string>
+    <string name="watchtower_item_duplicate_items_text">Hilft dabei, identische Elemente in deinem Tresor zu identifizieren und zu entfernen.</string>
     <string name="watchtower_item_compromised_accounts_title">Komprimierte Konten</string>
     <string name="watchtower_item_compromised_accounts_text">Datenlecks nach Nutzernamen oder E-Mail-Adressen überprüfen.</string>
     <string name="changepassword_header_title">App-Passwort ändern</string>
@@ -850,7 +851,7 @@
     <string name="settings_experimental_header_title">Experimentell</string>
     <string name="settings_main_header_title">Einstellungen</string>
     <string name="settings_notifications_header_title">Benachrichtigungen</string>
-    <string name="settings_other_header_title">Anderes</string>
+    <string name="settings_other_header_title">Sonstiges</string>
     <string name="settings_permissions_header_title">Berechtigungen</string>
     <string name="settings_security_header_title">Sicherheit</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
@@ -861,7 +862,7 @@
     <string name="pref_item_autofill_title">Autofill</string>
     <string name="pref_item_autofill_text">Android Autofill Service</string>
     <string name="pref_item_security_title">Sicherheit</string>
-    <string name="pref_item_security_text">Biometrie, Passwort ändern, Tresor Timeout</string>
+    <string name="pref_item_security_text">Biometrie, Passwort ändern, Tresor Zeitüberschreitung</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Funktionen freischalten &amp; App-Entwicklung unterstützen</string>
     <string name="pref_item_watchtower_title">Wachturm</string>
@@ -872,7 +873,7 @@
     <string name="pref_item_appearance_text">Sprache, Theme und Animationen</string>
     <string name="pref_item_dev_title">Entwicklung</string>
     <string name="pref_item_dev_text">Test-Einstellungen für die Entwicklung</string>
-    <string name="pref_item_other_title">Anderes</string>
+    <string name="pref_item_other_title">Sonstiges</string>
     <string name="pref_item_other_text">Community-Webseiten, App-Info</string>
     <string name="pref_item_nav_label_title">Zeige Beschriftungen unter Navigationstasten</string>
     <string name="pref_item_app_version_title">App-Version</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">App-Symbole laden</string>
     <string name="pref_item_load_website_icons_title">Website-Symbole laden</string>
     <string name="pref_item_load_website_icons_text">Nachfragen der Icons könnte die Adresse der Webseite an den Internetprovider preisgeben</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rich-Text-Formatierung</string>
     <string name="pref_item_markdown_text">Markdown verwenden, um Notizen zu formatieren</string>
     <string name="pref_item_locale_title">Sprache</string>
@@ -924,8 +926,8 @@
     <string name="pref_item_erase_data_title">App-Daten löschen</string>
     <string name="pref_item_erase_data_text">App schließen und alle lokalen App-Daten löschen</string>
     <string name="pref_item_allow_screenshots_title">Screenshots erlauben</string>
-    <string name="pref_item_allow_screenshots_text_on">Zeige den Inhalt der App beim Wechsel zwischen den letzten Apps und erlaube das Erfassen eines Bildschirms</string>
-    <string name="pref_item_allow_screenshots_text_off">Den Inhalt der App ausblenden, wenn zwischen den letzten Apps gewechselt wird und das Erfassen eines Bildschirms verbietet</string>
+    <string name="pref_item_allow_screenshots_text_on">Zeige den Inhalt der App beim Wechsel zwischen den letzten Apps und erlaubt das Erfassen des Bildschirms</string>
+    <string name="pref_item_allow_screenshots_text_off">Den Inhalt der App ausblenden, wenn zwischen den letzten Apps gewechselt wird und verbietet das Erfassen des Bildschirms</string>
     <string name="pref_item_data_safety_title">Datensicherheit</string>
     <string name="pref_item_lock_vault_title">Tresor sperren</string>
     <string name="pref_item_lock_vault_after_reboot_title">Nach einem Neustart sperren</string>
@@ -935,23 +937,23 @@
     <string name="pref_item_lock_vault_after_delay_title">Nach Verzögerung sperren</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Sofort</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Nie</string>
-    <string name="pref_item_persist_vault_key_title">Tresor Schlüssel auf der Festplatte beibehalten</string>
+    <string name="pref_item_persist_vault_key_title">Tresor Schlüssel auf einem Datenträger beibehalten</string>
     <string name="pref_item_persist_vault_key_text_on">Tresor Schlüssel ist auf einem internen Speicher vorhanden</string>
     <string name="pref_item_persist_vault_key_text_off">Tresor ist gesperrt, nachdem die App aus dem Arbeitsspeicher entfernt wurde</string>
-    <string name="pref_item_persist_vault_key_note">Die Speicherung eines Tresorschlüssels auf dem internen Speicher ist ein Sicherheitsrisiko. Wenn der interne Speicher des Geräts kompromittiert ist, erhält der Angreifer Zugriff auf die lokalen Tresor-Daten.</string>
+    <string name="pref_item_persist_vault_key_note">Die Speicherung eines Tresorschlüssels auf dem internen Speicher ist ein Sicherheitsrisiko. Wenn der interne Speicher des Geräts kompromittiert ist, erhält der Angreifer Zugriff auf die lokalen Tresor Daten.</string>
     <string name="pref_item_permissions_title">Berechtigungen</string>
     <string name="pref_item_features_overview_title">Feature-Überblick</string>
     <string name="pref_item_url_override_title">URL Überschreibungen</string>
     <string name="pref_item_biometric_unlock_title">Biometrisches Entsperren</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Bestätigung erforderlich</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Erfordert eine zusätzliche Bestätigung nach erfolgreicher biometrischer Authentifizierung</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
     <string name="pref_item_biometric_unlock_confirm_title">Biometrisches Entsperren</string>
     <string name="pref_item_keep_screen_on_title">Bildschirm während der Anzeige von Elementen nicht ausschalten</string>
-    <string name="pref_item_autofill_service_title">AutoFill-Dienst</string>
-    <string name="pref_item_autofill_service_text">Verwenden Sie das Android Autofill Framework um Login-Informationen in anderen Apps des Geräts zu füllen</string>
+    <string name="pref_item_autofill_service_title">Autofill Dienst</string>
+    <string name="pref_item_autofill_service_text">Android Autofill Framework verwenden, um Login-Informationen in anderen Apps des Geräts zu füllen</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Einige Xiaomi Geräte verlangen, dass Sie manuell die Berechtigung \"Popup-Fenster während Sie im Hintergrund laufen\" erlauben. Bitte öffnen Sie die Einstellungen und stellen Sie sicher, dass sie gewährt werden.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Einmalpasswörter automatisch kopieren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Beim Ausfüllen von Login-Informationen, automatisch Einmalpasswörter kopieren</string>
@@ -962,8 +964,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_title">Autofill deaktiviert Markierung respektieren</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Deaktiviert Autofill für Browserfelder, in denen Autofill deaktiviert ist</string>
     <string name="pref_item_autofill_respect_autofill_disabled_note">Beachten Sie, dass einige Webseiten dafür berüchtigt sind, Autofill für ein Passwortfeld zu deaktivieren sowie einige Browser dafür berüchtigt sind, die Deaktiviert-Markierung für Autofill zu ignorieren</string>
-    <string name="pref_item_autofill_save_request_title">Fragen Daten zu speichern</string>
-    <string name="pref_item_autofill_save_request_text">Fragt nach Aktualisierung des Tresors beim Ausfüllen eines Formulars</string>
+    <string name="pref_item_autofill_save_request_title">Anfrage zum Speichern von Daten</string>
+    <string name="pref_item_autofill_save_request_text">Fragt nach der Aktualisierung des Tresors, wenn das Ausfüllen eines Formulars abgeschlossen ist</string>
     <string name="pref_item_autofill_auto_save_source_title">App oder Website-Info automatisch speichern</string>
     <string name="pref_item_clipboard_auto_clear_title">Zwischenablage automatisch löschen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Sofort</string>
@@ -1037,14 +1039,14 @@
     <string name="feat_item_generator_text">Erstelle Passwörter oder Benutzernamen.</string>
     <string name="datasafety_header_title">Datensicherheit</string>
     <string name="datasafety_local_section">Lokale Daten</string>
-    <string name="datasafety_local_text">Lokale Daten bestehen aus Downloads, Benutzereinstellungen und Tresor. Sie werden im internen Speicher eines Geräts gespeichert, auf das nur das Android-System oder der Keyguard zugreifen kann.</string>
+    <string name="datasafety_local_text">Lokale Daten bestehen aus Downloads, Benutzereinstellungen und dem Tresor. Diese werden im internen Speicher eines Geräts gespeichert, auf das nur das Android-System oder der die Keyguard App zugreifen kann.</string>
     <string name="datasafety_local_downloads_section">Downloads</string>
     <string name="datasafety_local_settings_section">Benutzereinstellungen</string>
     <string name="datasafety_local_settings_note">Die Benutzereinstellungen werden mittels eines gerätespezifischen Schlüssels verschlüsselt.</string>
     <string name="datasafety_local_vault_section">Benutzereinstellungen</string>
-    <string name="datasafety_local_encryption_algorithm_intro">Der Tresor wird mit einem Schlüssel verschlüsselt, abgeleitet vom App-Passwort mit folgenden Schritten:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">Der Salt und der Hash werden lokal auf einem Gerät gespeichert, um später einen Masterschlüssel zum Entsperren des Tresors zu generieren.</string>
-    <string name="datasafety_local_unlocking_vault">Das Entsperren eines Tresors bedeutet die Speicherung eines korrekten Schlüssels auf dem Arbeitsspeicher eines Geräts, das die Möglichkeit erhält, verschlüsselte Tresore zu lesen und zu modifizieren.</string>
+    <string name="datasafety_local_encryption_algorithm_intro">Der Tresor wird mit einem Schlüssel verschlüsselt, der in den folgenden Schritten aus dem App Passwort abgeleitet wird:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">Der Salt und der Hash werden dann lokal auf einem Gerät gespeichert, um später einen Masterschlüssel zum Entsperren des Tresors zu generieren.</string>
+    <string name="datasafety_local_unlocking_vault">Das Entsperren eines Tresors bedeutet, dass ein korrekter Schlüssel im Arbeitsspeicher eines Geräts gespeichert wird, wodurch die Fähigkeit erlangt wird, verschlüsselte Tresore zu lesen und zu ändern.</string>
     <string name="datasafety_remote_section">Externe Daten</string>
     <string name="datasafety_remote_text">Externe Daten werden auf Bitwarden Servern mit Null-Kenntnis-Verschlüsselung gespeichert.</string>
 </resources>

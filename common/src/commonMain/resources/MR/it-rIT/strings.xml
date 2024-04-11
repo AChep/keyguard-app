@@ -364,6 +364,7 @@
     <string name="copy_value">Copia valore</string>
     <string name="copy_url">Copia URL</string>
     <string name="copy_uri">Copia URI</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copia nome pacchetto</string>
     <string name="copy_password">Copia password</string>
     <string name="copy_username">Copia nome utente</string>
@@ -589,8 +590,8 @@
     <string name="additem_markdown_render_preview">Anteprima</string>
     <string name="additem_auth_reprompt_title">Richiesta autorizzazione</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New item</string>
-    <string name="addsend_header_edit_title">Edit item</string>
+    <string name="addsend_header_new_title">New send</string>
+    <string name="addsend_header_edit_title">Edit send</string>
     <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_email_title">Hide email address</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Carica icone App</string>
     <string name="pref_item_load_website_icons_title">Carica icone Siti Web</string>
     <string name="pref_item_load_website_icons_text">Queuing website icon might leak the website address to internet provider</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rich text formatting</string>
     <string name="pref_item_markdown_text">Usa Markdown per formattare le note</string>
     <string name="pref_item_locale_title">Lingua</string>

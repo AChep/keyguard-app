@@ -364,6 +364,7 @@
     <string name="copy_value">Değeri kopyala</string>
     <string name="copy_url">URL\'yi kopyala</string>
     <string name="copy_uri">URI\'yi kopyala</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Paket adını kopyala</string>
     <string name="copy_password">Şifreyi kopyala</string>
     <string name="copy_username">Kullanıcı adını kopyala</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Uygulama simgelerini yükle</string>
     <string name="pref_item_load_website_icons_title">Web sitesi simgelerini yükle</string>
     <string name="pref_item_load_website_icons_text">Sıraya giren web sitesi simgesi, web sitesi adresini internet sağlayıcısına sızdırabilir</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Zengin metin biçimlendirme</string>
     <string name="pref_item_markdown_text">Notları biçimlendirmek için Markdown kullanın</string>
     <string name="pref_item_locale_title">Dil</string>

@@ -68,8 +68,8 @@
     <string name="uris">URIs</string>
     <string name="note">Anteckning</string>
     <string name="notes">Anteckningar</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Datum</string>
+    <string name="time">Tid</string>
     <string name="attachments">Bilagor</string>
     <string name="attachments_empty_label">Inga bilagor</string>
     <string name="deactivated">Deactivated</string>
@@ -97,7 +97,7 @@
     <string name="organizations">Organisationer</string>
     <string name="organizations_empty_label">Inga organisationer</string>
     <string name="misc">Miscellaneous</string>
-    <string name="category">Category</string>
+    <string name="category">Kategori</string>
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
     <!-- Add (something) -->
@@ -127,7 +127,7 @@
     <string name="deletion_date_custom">Custom</string>
     <string name="expiration_date">Expiration date</string>
     <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="expiration_date_never">Aldrig</string>
     <string name="select_linked_type">Välj en typ</string>
     <string name="select_file">Välj en fil</string>
     <string name="autofill">Autofyll</string>
@@ -164,7 +164,7 @@
     <string name="remove_from_history">Remove from the history</string>
     <string name="reused_password">Reused password</string>
     <string name="reused_passwords">Reused passwords</string>
-    <string name="one_time_password">One-time password</string>
+    <string name="one_time_password">Engångslösenord</string>
     <string name="one_time_password_authenticator_key">Autentiseringsnyckel</string>
     <string name="passkey_use_short">Use</string>
     <string name="passkey_save">Save passkey</string>
@@ -364,6 +364,7 @@
     <string name="copy_value">Kopiera värde</string>
     <string name="copy_url">Kopiera URL</string>
     <string name="copy_uri">Kopiera URI</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copy package name</string>
     <string name="copy_password">Kopiera lösenord</string>
     <string name="copy_username">Kopiera användarnamn</string>
@@ -376,7 +377,7 @@
     <string name="copy_expiration_year">Copy expiration year</string>
     <string name="copy_expiration_month">Copy expiration month</string>
     <string name="copy_cvv_code">Kopiera CVV-kod</string>
-    <string name="copy_otp_code">Copy one-time password</string>
+    <string name="copy_otp_code">Kopiera engångslösenord</string>
     <string name="copy_otp_secret_code">Copy secret key</string>
     <string name="copied_value">Copied a value</string>
     <string name="copied_url">Copied a URL</string>
@@ -478,7 +479,7 @@
     <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
     <string name="justdeleteme_send_email_title">Send email</string>
     <string name="justdeleteme_search_placeholder">Search websites</string>
-    <string name="justdeleteme_empty_label">No instructions</string>
+    <string name="justdeleteme_empty_label">Inga instruktioner</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justgetmydata_title">How to get my data?</string>
     <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
@@ -589,11 +590,11 @@
     <string name="additem_markdown_render_preview">Render preview</string>
     <string name="additem_auth_reprompt_title">Auth re-prompt</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New item</string>
+    <string name="addsend_header_new_title">New send</string>
     <string name="addsend_header_edit_title">Redigera objekt</string>
     <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_hide_email_title">Dölj e-postadress</string>
     <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Lägg till Bitwarden-konto</string>
     <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Load App icons</string>
     <string name="pref_item_load_website_icons_title">Ladda webbplatsikoner</string>
     <string name="pref_item_load_website_icons_text">Queuing website icon might leak the website address to internet provider</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rich text formatting</string>
     <string name="pref_item_markdown_text">Använd Markdown för att formatera anteckningar</string>
     <string name="pref_item_locale_title">Språk</string>

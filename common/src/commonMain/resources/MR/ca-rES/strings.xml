@@ -27,7 +27,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Recompte màxim d\'accessos</string>
     <string name="learn_more">Més informació</string>
     <string name="phone_number">Número de telèfon</string>
     <string name="passport_number">Número de passaport</string>
@@ -68,11 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
     <string name="notes">Notes</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Data</string>
+    <string name="time">Hora</string>
     <string name="attachments">Adjunts</string>
     <string name="attachments_empty_label">Sense adjunts</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">Desactivat</string>
     <string name="expired">Expirat</string>
     <string name="expiring_soon">Expira prompte</string>
     <string name="item_incomplete_title">Dades incompletes</string>
@@ -123,11 +123,11 @@
     <string name="address2">Línia 2 de l\'adreça</string>
     <string name="address3">Línia 3 de l\'adreça</string>
     <string name="rename">Reanomenar</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Data d\'eliminació</string>
+    <string name="deletion_date_custom">Personalitzat</string>
+    <string name="expiration_date">Data de caducitat</string>
+    <string name="expiration_date_custom">Personalitzat</string>
+    <string name="expiration_date_never">Mai</string>
     <string name="select_linked_type">Seleccioneu tipus</string>
     <string name="select_file">Seleccionar fitxer</string>
     <string name="autofill">Emplenament automàtic</string>
@@ -212,7 +212,7 @@
     <string name="filter_pending_items">Pendent</string>
     <string name="filter_failed_items">Ha fallat</string>
     <string name="bitwarden_premium">Bitwarden Premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Necessita Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor de Bitwarden no oficial</string>
     <string name="account_last_synced_at">Última sincronització <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Canvia el nom</string>
@@ -286,7 +286,7 @@
     <string name="sends_action_disable_title">Desactivar</string>
     <string name="sends_action_disable_text">Opció d\'enviament a través d\'una URL pública desactivada</string>
     <string name="sends_action_disable_confirmation_title">Desactivar?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disabled_note">L\'enviament està desactivat, ningú hi pot accedir.</string>
     <string name="sends_action_delete_title">Eliminar per sempre</string>
     <string name="sends_action_delete_confirmation_title">Eliminar per sempre?</string>
     <string name="file_action_open_with_title">Obre amb…</string>
@@ -358,12 +358,13 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços al nom complet</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a un camp desconegut</string>
     <string name="text_action_share_with_title">Comparteix amb…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Crea un enviament</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seleccionats</string>
     <string name="copy">Copia</string>
     <string name="copy_value">Copia el valor</string>
     <string name="copy_url">Copia l\'URL</string>
     <string name="copy_uri">Copia l\'URI</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copia el nom de paquet</string>
     <string name="copy_password">Copia la contrasenya</string>
     <string name="copy_username">Copia el nom d\'usuari</string>
@@ -438,8 +439,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">No pot estar en blanc</string>
     <string name="error_must_be_custom_domain">Ha de ser un domini personalitzat</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_number">Ha de ser un número</string>
+    <string name="error_must_be_less_than_days">Han de ser menys de <xliff:g id="days" example="15">%1$d</xliff:g> dies des d\'ara mateix</string>
     <string name="error_must_contain_only_us_ascii_chars">Només pot contenir caràcters US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Ha de tenir com a mínim <xliff:g id="length" example="15">%1$d</xliff:g> símbols</string>
     <string name="error_must_have_exactly_n_symbols">Ha de tenir <xliff:g id="length" example="15">%1$d</xliff:g> símbols</string>
@@ -582,7 +583,7 @@
     <string name="additem_header_merge_title">Combina els elements</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mou els elements d\'origen a la paperera</string>
     <string name="additem_merge_attachments_note">Combinar elements no combina els seus adjunts! L\'element creat no tindrà cap adjunt.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">Afegeix notes sobre aquest element ací</string>
     <string name="additem_markdown_note">Estilitza el text amb <xliff:g id="italic" example="italic">%1$s</xliff:g> o <xliff:g id="bold" example="bold">%2$s</xliff:g> i més. Suport per a Markdown limitat.</string>
     <string name="additem_markdown_note_italic">cursiva</string>
     <string name="additem_markdown_note_bold">negreta</string>
@@ -591,10 +592,10 @@
     <string name="additem_auth_reprompt_text">Demana autenticar-se altre vegada quan visualitzes o emplenes automàticament</string>
     <string name="addsend_header_new_title">Nou element</string>
     <string name="addsend_header_edit_title">Editar element</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_text_hide_by_default_title">Quan accediu a l\'element, amaga el text per defecte</string>
+    <string name="addsend_hide_text_by_default_title">Quan accediu a l\'element, amaga el text per defecte</string>
+    <string name="addsend_hide_email_title">Amaga l\'adreça de correu electrònic</string>
+    <string name="addsend_max_access_count_note">Si s’estableix, els usuaris ja no podran accedir a aquest element una vegada s’assoleixi el nombre màxim d’accessos.</string>
     <string name="addaccount_header_title">Afegir un compte de Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">No estem afiliats, associats, autoritzats, finançats, ni relacionats de cap manera oficial amb Bitwarden, Inc., o qualsevol dels seus afiliats o subsidiàries.</string>
     <!--
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Carrega icones d\'App</string>
     <string name="pref_item_load_website_icons_title">Carrega icones Web</string>
     <string name="pref_item_load_website_icons_text">Sol·licitar la icona del lloc web pot filtrar la direcció al proveïdor d\'Internet</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Format de text enriquit</string>
     <string name="pref_item_markdown_text">Fes servir Markdown per a prendre notes</string>
     <string name="pref_item_locale_title">Idioma</string>

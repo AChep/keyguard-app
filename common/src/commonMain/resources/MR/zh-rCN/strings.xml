@@ -364,6 +364,7 @@
     <string name="copy_value">复制值</string>
     <string name="copy_url">复制 URL</string>
     <string name="copy_uri">复制 URI</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">复制包名</string>
     <string name="copy_password">复制密码</string>
     <string name="copy_username">复制用户名</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">加载应用图标</string>
     <string name="pref_item_load_website_icons_title">加载网站图标</string>
     <string name="pref_item_load_website_icons_text">获取网站图标时可能会向运营商泄露网站地址</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">富文本格式</string>
     <string name="pref_item_markdown_text">使用 Markdown 格式化备注</string>
     <string name="pref_item_locale_title">语言</string>

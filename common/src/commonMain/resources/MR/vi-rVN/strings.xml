@@ -364,6 +364,7 @@
     <string name="copy_value">Sao chép</string>
     <string name="copy_url">Sao chép đường dẫn</string>
     <string name="copy_uri">Sao chép đường dẫn</string>
+    <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Sao chép tên gói</string>
     <string name="copy_password">Sao chép mật khẩu</string>
     <string name="copy_username">Sao chép tên người dùng</string>
@@ -892,6 +893,7 @@
     <string name="pref_item_load_app_icons_title">Tải các biểu tượng ứng dụng</string>
     <string name="pref_item_load_website_icons_title">Tải các biểu tượng trang web</string>
     <string name="pref_item_load_website_icons_text">Xếp hàng biểu tượng trang web có thể rò rỉ địa chỉ trang web cho nhà cung cấp internet</string>
+    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Định dạng văn bản phong phú</string>
     <string name="pref_item_markdown_text">Sử dụng Markdown để định dạng ghi chú</string>
     <string name="pref_item_locale_title">Ngôn ngữ</string>

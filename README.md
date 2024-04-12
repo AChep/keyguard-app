@@ -49,7 +49,8 @@ you can find artifacts for your platform on the [releases](https://github.com/AC
 
 ## Localisation
 
-You can help me translate the app by going to [Crowdin](https://crowdin.com/project/keyguard).
+ [Help us to translate the app](https://crowdin.com/project/keyguard). Even a short glance is helpful. 
+ If you do not see the language you want to translate to, do not hesitate to [open an issue](https://github.com/AChep/AcDisplay/issues/new) with a request to add it.
 
 ## License
 

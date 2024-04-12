@@ -620,6 +620,18 @@
     "notes": "Click the setup link and sign in with your email address and password, then follow the steps to set up passwordless login using biometrics to create a passkey. \n\nSign out, then sign back in with your email address and choose Log in Without Password to use your passkey."
   },
   {
+    "id": "d6908e62451d80590bb572f3a4c0c4fa",
+    "name": "Duke",
+    "domain": "duke.edu",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://idms-mfa.oit.duke.edu/mfa/unlock/help",
+    "setup": "https://unlock.duke.edu/",
+    "category": "Science & Engineering",
+    "created_at": "2024-04-09T17:12:10.014867+00:00"
+  },
+  {
     "id": "46b3a3590420f56f8e70139980f7c953",
     "name": "eBay",
     "domain": "ebay.com",
@@ -1114,7 +1126,7 @@
     "setup": "https://account.live.com/proofs/manage/additional",
     "category": "Information Technology",
     "created_at": "2022-11-17T00:00:00+00:00",
-    "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nNot available using Safari right now and passkeys cannot be added to Microsoft 365 Business or Education accounts at this time."
+    "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nPasskeys cannot be added to Microsoft 365 Business or Education accounts at this time."
   },
   {
     "id": "dbca0b5781a9d4f79129eb89fb1daf87",
@@ -1794,8 +1806,8 @@
     "notes": "Available only to WhatsApp (beta) for Android\n\nhttps://www.androidpolice.com/passkey-support-whatsapp-goes-live-beta-channel"
   },
   {
-    "id": "b5d2c9bfa99b8a457e14c621bebaac51",
-    "name": "X (formerly Twitter)",
+    "id": "f79b57de78dae66da5c6bb0ccbb46228",
+    "name": "X (Twitter) iOS",
     "domain": "x.com",
     "features": [
       "signin"
@@ -1804,7 +1816,7 @@
     "setup": "https://x.com/settings/security",
     "category": "Social Networking",
     "created_at": "2024-01-23T11:26:41+00:00",
-    "notes": "X (formerly Twitter) is rolling out signing in with passkeys support to existing US-based accounts on iOS. No other platforms or locations are able to save a passkey to their accounts at this time.\n\n**To set up a passkey on your X account:**\n1. Log in to the X app with the account you wish to enable passkey for.\n2. Select Your account in the navigation bar.\n3. Select Settings and privacy, select Security and account access, then Security.\n4. Under Additional password protection, select Passkey.\n5. Enter your password when prompted.\n6. Select Add a passkey and follow the on-screen prompts."
+    "notes": "X (formerly Twitter) is rolling out signing in with passkeys support to all accounts on iOS. No other platforms are able to save a passkey to their accounts at this time.\n\n**To set up a passkey on your X account:**\n1. Log in to the X app with the account you wish to enable passkey for.\n2. Select Your account in the navigation bar.\n3. Select Settings and privacy, select Security and account access, then Security.\n4. Under Additional password protection, select Passkey.\n5. Enter your password when prompted.\n6. Select Add a passkey and follow the on-screen prompts."
   },
   {
     "id": "e530fa6fa3831727debb154a6dd4ff58",

@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -39,6 +40,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.vault.component.VaultItemIcon2
@@ -62,6 +65,7 @@ import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.icons.OfflineIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
+import com.artemchep.keyguard.ui.text.AutoSizeText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import dev.icerock.moko.resources.compose.stringResource
@@ -317,9 +321,11 @@ private fun VaultViewTitle(
             val title = state.content.data.name
                 .takeUnless { it.isEmpty() }
             if (title != null) {
-                Text(
+                AutoSizeText(
                     text = title,
                     maxLines = 2,
+                    minTextSize = MaterialTheme.typography.titleSmall.fontSize,
+                    maxTextSize = LocalTextStyle.current.fontSize,
                     overflow = TextOverflow.Ellipsis,
                 )
             } else {

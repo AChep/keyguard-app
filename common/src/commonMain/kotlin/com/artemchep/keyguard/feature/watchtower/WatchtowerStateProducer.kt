@@ -11,6 +11,10 @@ import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.formatH2
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
+import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
+import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
+import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
@@ -44,6 +48,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
@@ -66,6 +71,10 @@ fun produceWatchtowerState(
         getFolders = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
+        getCheckPwnedPasswords = instance(),
+        getCheckPwnedServices = instance(),
+        getCheckTwoFA = instance(),
+        getCheckPasskeys = instance(),
         cipherDuplicatesCheck = instance(),
     )
 }
@@ -90,6 +99,10 @@ fun produceWatchtowerState(
     getFolders: GetFolders,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
+    getCheckPwnedPasswords: GetCheckPwnedPasswords,
+    getCheckPwnedServices: GetCheckPwnedServices,
+    getCheckTwoFA: GetCheckTwoFA,
+    getCheckPasskeys: GetCheckPasskeys,
     cipherDuplicatesCheck: CipherDuplicatesCheck,
 ): WatchtowerState = produceScreenState(
     initial = WatchtowerState(),
@@ -248,6 +261,7 @@ fun produceWatchtowerState(
     fun <S, T> boose(
         source: Flow<FilteredBoo<S>>,
         key: String,
+        enabledFlow: Flow<Boolean>,
         counterFlow: (FilteredBoo<S>) -> Flow<Int>,
         onCreate: (FilteredBoo<S>?, Int) -> T,
     ): StateFlow<Loadable<T?>> {
@@ -265,18 +279,31 @@ fun produceWatchtowerState(
                 Loadable.Loading
             }
         }
-        return source
-            .flatMapLatest { holder ->
-                counterFlow(holder)
-                    .onEach {
-                        val revision = holder.filterConfig?.id
-                        if (revision == null || revision == 0) {
-                            cachedCounterSink.value = it
-                        }
-                    }
-                    .map { count ->
-                        val state = onCreate(holder, count)
-                        Loadable.Ok(state)
+        return enabledFlow
+            .distinctUntilChanged()
+            .flatMapLatest { enabled ->
+                if (!enabled) {
+                    // Reset the cache when the feature is
+                    // not enabled.
+                    cachedCounterSink.value = -1
+
+                    val result = Loadable.Ok(null)
+                    return@flatMapLatest flowOf(result)
+                }
+
+                source
+                    .flatMapLatest { holder ->
+                        counterFlow(holder)
+                            .onEach {
+                                val revision = holder.filterConfig?.id
+                                if (revision == null || revision == 0) {
+                                    cachedCounterSink.value = it
+                                }
+                            }
+                            .map { count ->
+                                val state = onCreate(holder, count)
+                                Loadable.Ok(state)
+                            }
                     }
             }
             .crashlyticsMap(
@@ -296,11 +323,13 @@ fun produceWatchtowerState(
     fun <S, T> booseBlock(
         source: Flow<FilteredBoo<S>>,
         key: String,
+        enabledFlow: Flow<Boolean> = flowOf(true),
         counterBlock: suspend (FilteredBoo<S>) -> Int,
         onCreate: (FilteredBoo<S>?, Int) -> T,
     ) = boose(
         source = source,
         key = key,
+        enabledFlow = enabledFlow,
         counterFlow = { holder ->
             flow {
                 val count = counterBlock(holder)
@@ -414,6 +443,7 @@ fun produceWatchtowerState(
     val passwordPwnedFlow = booseBlock(
         source = filteredCiphersFlow,
         key = DFilter.ByPasswordPwned.key,
+        enabledFlow = getCheckPwnedPasswords(),
         counterBlock = { holder ->
             val count = DFilter.ByPasswordPwned.count(directDI, holder.list)
             count
@@ -543,6 +573,7 @@ fun produceWatchtowerState(
     val inactiveTwoFactorAuthFlow = booseBlock(
         source = filteredCiphersFlow,
         key = DFilter.ByTfaWebsites.key,
+        enabledFlow = getCheckTwoFA(),
         counterBlock = { holder ->
             val count = DFilter.ByTfaWebsites.count(directDI, holder.list)
             count
@@ -586,6 +617,7 @@ fun produceWatchtowerState(
     val inactivePasskeyFlow = booseBlock(
         source = filteredCiphersFlow,
         key = DFilter.ByPasskeyWebsites.key,
+        enabledFlow = getCheckPasskeys(),
         counterBlock = { holder ->
             val count = DFilter.ByPasskeyWebsites.count(directDI, holder.list)
             count
@@ -673,6 +705,7 @@ fun produceWatchtowerState(
     val websitePwnedFlow = booseBlock(
         source = filteredCiphersFlow,
         key = DFilter.ByWebsitePwned.key,
+        enabledFlow = getCheckPwnedServices(),
         counterBlock = { holder ->
             val count = DFilter.ByWebsitePwned.count(directDI, holder.list)
             count
@@ -965,28 +998,38 @@ fun produceWatchtowerState(
         emptyItems = emptyItemsFlow,
         strength = passwordStrengthFlow,
     )
-    val actions = buildContextItems {
-        section {
-            this += TwoFaServicesRoute.actionOrNull(
-                translator = this@produceScreenState,
-                navigate = ::navigate,
-            )
-            this += PasskeysServicesRoute.actionOrNull(
-                translator = this@produceScreenState,
-                navigate = ::navigate,
-            )
-            this += JustGetMyDataServicesRoute.actionOrNull(
-                translator = this@produceScreenState,
-                navigate = ::navigate,
-            )
-            this += JustDeleteMeServicesRoute.actionOrNull(
-                translator = this@produceScreenState,
-                navigate = ::navigate,
-            )
+    val actionsFlow = combine(
+        getCheckTwoFA(),
+        getCheckPasskeys(),
+    ) { checkTwoFa, checkPasskeys ->
+        val actions = buildContextItems {
+            section {
+                if (checkTwoFa) {
+                    this += TwoFaServicesRoute.actionOrNull(
+                        translator = this@produceScreenState,
+                        navigate = ::navigate,
+                    )
+                }
+                if (checkPasskeys) {
+                    this += PasskeysServicesRoute.actionOrNull(
+                        translator = this@produceScreenState,
+                        navigate = ::navigate,
+                    )
+                }
+                this += JustGetMyDataServicesRoute.actionOrNull(
+                    translator = this@produceScreenState,
+                    navigate = ::navigate,
+                )
+                this += JustDeleteMeServicesRoute.actionOrNull(
+                    translator = this@produceScreenState,
+                    navigate = ::navigate,
+                )
+            }
         }
+        actions
     }
     filterFlow
-        .map { filterState ->
+        .combine(actionsFlow) { filterState, actions ->
             WatchtowerState(
                 revision = filterState.rev,
                 content = Loadable.Ok(content),

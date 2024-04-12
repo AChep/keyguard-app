@@ -11,6 +11,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
+import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
@@ -36,13 +37,13 @@ private class PasskeysServiceListUiException(
 fun producePasskeysListState(
 ) = with(localDI().direct) {
     producePasskeysListState(
-        passKeyService = instance(),
+        getPasskeys = instance(),
     )
 }
 
 @Composable
 fun producePasskeysListState(
-    passKeyService: PassKeyService,
+    getPasskeys: GetPasskeys,
 ): Loadable<PasskeysServiceListState> = produceScreenState(
     key = "passkeys_service_list",
     initial = Loadable.Loading,
@@ -112,7 +113,7 @@ fun producePasskeysListState(
             }
     }
 
-    val itemsFlow = passKeyService.get()
+    val itemsFlow = getPasskeys()
         .asFlow()
         .map { apps ->
             apps

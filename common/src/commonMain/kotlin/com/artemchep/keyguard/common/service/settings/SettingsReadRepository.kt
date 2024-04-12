@@ -53,6 +53,8 @@ interface SettingsReadRepository {
 
     fun getCheckTwoFA(): Flow<Boolean>
 
+    fun getCheckPasskeys(): Flow<Boolean>
+
     fun getWriteAccess(): Flow<Boolean>
 
     fun getDebugPremium(): Flow<Boolean>

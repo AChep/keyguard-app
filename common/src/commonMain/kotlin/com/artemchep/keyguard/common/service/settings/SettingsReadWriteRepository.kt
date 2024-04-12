@@ -89,6 +89,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         checkTwoFA: Boolean,
     ): IO<Unit>
 
+    fun setCheckPasskeys(
+        checkPasskeys: Boolean,
+    ): IO<Unit>
+
     fun setWriteAccess(
         writeAccess: Boolean,
     ): IO<Unit>

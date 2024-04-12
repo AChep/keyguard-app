@@ -35,6 +35,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSav
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsRequireConfirmationProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCheckPasskeysProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckPwnedPasswordsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckPwnedServicesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckTwoFAProvider
@@ -179,6 +180,7 @@ object Setting {
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
     const val CHECK_PWNED_SERVICES = "check_pwned_services"
     const val CHECK_TWO_FA = "check_two_fa"
+    const val CHECK_PASSKEYS = "check_passkeys"
     const val CLEAR_CACHE = "clear_cache"
     const val APK = "apk"
     const val SUBSCRIPTIONS = "subscriptions"
@@ -263,6 +265,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,
     Setting.CHECK_PWNED_SERVICES to ::settingCheckPwnedServicesProvider,
     Setting.CHECK_TWO_FA to ::settingCheckTwoFAProvider,
+    Setting.CHECK_PASSKEYS to ::settingCheckPasskeysProvider,
     Setting.CLEAR_CACHE to ::settingClearCache,
     Setting.APK to ::settingApkProvider,
     Setting.SUBSCRIPTIONS to ::settingSubscriptionsProvider,

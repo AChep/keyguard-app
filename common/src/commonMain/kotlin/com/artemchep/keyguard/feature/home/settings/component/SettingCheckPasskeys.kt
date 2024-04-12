@@ -10,47 +10,47 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
-import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
+import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
+import com.artemchep.keyguard.common.usecase.PutCheckPasskeys
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.FlatItem
-import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
+import com.artemchep.keyguard.ui.poweredby.PoweredByPasskeys
 import com.artemchep.keyguard.ui.theme.Dimens
 import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-fun settingCheckPwnedServicesProvider(
+fun settingCheckPasskeysProvider(
     directDI: DirectDI,
-) = settingCheckPwnedServicesProvider(
-    getCheckPwnedServices = directDI.instance(),
-    putCheckPwnedServices = directDI.instance(),
+) = settingCheckPasskeysProvider(
+    getCheckPasskeys = directDI.instance(),
+    putCheckPasskeys = directDI.instance(),
     windowCoroutineScope = directDI.instance(),
 )
 
-fun settingCheckPwnedServicesProvider(
-    getCheckPwnedServices: GetCheckPwnedServices,
-    putCheckPwnedServices: PutCheckPwnedServices,
+fun settingCheckPasskeysProvider(
+    getCheckPasskeys: GetCheckPasskeys,
+    putCheckPasskeys: PutCheckPasskeys,
     windowCoroutineScope: WindowCoroutineScope,
-): SettingComponent = getCheckPwnedServices().map { checkPwnedServices ->
-    val onCheckedChange = { shouldCheckPwnedServices: Boolean ->
-        putCheckPwnedServices(shouldCheckPwnedServices)
+): SettingComponent = getCheckPasskeys().map { checkPasskeys ->
+    val onCheckedChange = { shouldCheckPasskeys: Boolean ->
+        putCheckPasskeys(shouldCheckPasskeys)
             .launchIn(windowCoroutineScope)
         Unit
     }
 
     SettingIi {
-        SettingCheckPwnedServices(
-            checked = checkPwnedServices,
+        SettingCheckPasskeys(
+            checked = checkPasskeys,
             onCheckedChange = onCheckedChange,
         )
     }
 }
 
 @Composable
-private fun SettingCheckPwnedServices(
+private fun SettingCheckPasskeys(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
@@ -69,16 +69,16 @@ private fun SettingCheckPwnedServices(
             },
             title = {
                 Text(
-                    text = stringResource(Res.strings.pref_item_check_pwned_services_title),
+                    text = stringResource(Res.strings.pref_item_check_inactive_passkeys_title),
                 )
             },
             text = {
-                val text = stringResource(Res.strings.watchtower_item_vulnerable_accounts_text)
+                val text = stringResource(Res.strings.watchtower_item_inactive_passkey_text)
                 Text(text)
             },
             onClick = onCheckedChange?.partially1(!checked),
         )
-        PoweredByHaveibeenpwned(
+        PoweredByPasskeys(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
         )

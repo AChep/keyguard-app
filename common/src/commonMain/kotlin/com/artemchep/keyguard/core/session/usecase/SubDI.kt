@@ -73,6 +73,7 @@ import com.artemchep.keyguard.common.usecase.GetAccountHasError
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAccountsHasError
+import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetCanAddAccount
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedCount
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedHistory
@@ -132,6 +133,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
@@ -552,6 +554,11 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<BreachesRepository> {
         BreachesRepositoryImpl(this)
+    }
+    bindSingleton<GetBreaches> {
+        GetBreachesImpl(
+            directDI = this,
+        )
     }
     bindSingleton<AddUriCipher> {
         AddUriCipherImpl(this)

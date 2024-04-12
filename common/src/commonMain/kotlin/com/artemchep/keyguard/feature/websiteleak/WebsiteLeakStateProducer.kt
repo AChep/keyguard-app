@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
 import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.collections.immutable.toImmutableList
@@ -25,7 +26,7 @@ fun produceWebsiteLeakState(
 ) = with(localDI().direct) {
     produceWebsiteLeakState(
         args = args,
-        breachesRepository = instance(),
+        getBreaches = instance(),
         dateFormatter = instance(),
     )
 }
@@ -33,14 +34,14 @@ fun produceWebsiteLeakState(
 @Composable
 fun produceWebsiteLeakState(
     args: WebsiteLeakRoute.Args,
-    breachesRepository: BreachesRepository,
+    getBreaches: GetBreaches,
     dateFormatter: DateFormatter,
 ): Loadable<WebsiteLeakState> = produceScreenState(
     key = "website_leak",
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
-    val breaches2 = breachesRepository.get()
+    val breaches2 = getBreaches()
         .attempt()
         .bind()
     val breach3 = breaches2

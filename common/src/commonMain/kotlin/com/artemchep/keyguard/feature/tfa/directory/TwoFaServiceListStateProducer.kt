@@ -11,6 +11,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
+import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
@@ -36,13 +37,13 @@ private class TwoFaServiceListUiException(
 fun produceTwoFaServiceListState(
 ) = with(localDI().direct) {
     produceTwoFaServiceListState(
-        twoFaService = instance(),
+        getTwoFa = instance(),
     )
 }
 
 @Composable
 fun produceTwoFaServiceListState(
-    twoFaService: TwoFaService,
+    getTwoFa: GetTwoFa,
 ): Loadable<TwoFaServiceListState> = produceScreenState(
     key = "tfa_service_list",
     initial = Loadable.Loading,
@@ -111,7 +112,7 @@ fun produceTwoFaServiceListState(
             }
     }
 
-    val itemsFlow = twoFaService.get()
+    val itemsFlow = getTwoFa()
         .asFlow()
         .map { apps ->
             apps

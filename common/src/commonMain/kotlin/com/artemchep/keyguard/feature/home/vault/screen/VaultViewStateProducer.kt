@@ -112,8 +112,10 @@ import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
 import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
 import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.GetOrganizations
+import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
@@ -235,6 +237,8 @@ fun vaultViewScreenState(
         getMarkdown = instance(),
         getAppIcons = instance(),
         getWebsiteIcons = instance(),
+        getPasskeys = instance(),
+        getTwoFa = instance(),
         getTotpCode = instance(),
         getPasswordStrength = instance(),
         getUrlOverrides = instance(),
@@ -261,8 +265,6 @@ fun vaultViewScreenState(
         cipherExpiringCheck = instance(),
         cipherIncompleteCheck = instance(),
         cipherUrlCheck = instance(),
-        passKeyService = instance(),
-        tfaService = instance(),
         clipboardService = instance(),
         getGravatarUrl = instance(),
         dateFormatter = instance(),
@@ -312,6 +314,8 @@ fun vaultViewScreenState(
     getMarkdown: GetMarkdown,
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
+    getPasskeys: GetPasskeys,
+    getTwoFa: GetTwoFa,
     getTotpCode: GetTotpCode,
     getPasswordStrength: GetPasswordStrength,
     getUrlOverrides: GetUrlOverrides,
@@ -338,8 +342,6 @@ fun vaultViewScreenState(
     cipherExpiringCheck: CipherExpiringCheck,
     cipherIncompleteCheck: CipherIncompleteCheck,
     cipherUrlCheck: CipherUrlCheck,
-    passKeyService: PassKeyService,
-    tfaService: TwoFaService,
     clipboardService: ClipboardService,
     getGravatarUrl: GetGravatarUrl,
     dateFormatter: DateFormatter,
@@ -732,8 +734,8 @@ fun vaultViewScreenState(
                         downloadManager = downloadManager,
                         downloadAttachment = downloadAttachment,
                         removeAttachment = removeAttachment,
-                        passKeyService = passKeyService,
-                        tfaService = tfaService,
+                        getPasskeys = getPasskeys,
+                        getTwoFa = getTwoFa,
                         getTotpCode = getTotpCode,
                         getPasswordStrength = getPasswordStrength,
                         passkeyTargetCheck = passkeyTargetCheck,
@@ -785,8 +787,8 @@ private fun RememberStateFlowScope.oh(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
-    passKeyService: PassKeyService,
-    tfaService: TwoFaService,
+    getPasskeys: GetPasskeys,
+    getTwoFa: GetTwoFa,
     getTotpCode: GetTotpCode,
     getPasswordStrength: GetPasswordStrength,
     passkeyTargetCheck: PasskeyTargetCheck,
@@ -1114,7 +1116,7 @@ private fun RememberStateFlowScope.oh(
                     return@run
                 }
 
-                val tfa = tfaService.get()
+                val tfa = getTwoFa()
                     .crashlyticsTap()
                     .attempt()
                     .bind()
@@ -1144,7 +1146,7 @@ private fun RememberStateFlowScope.oh(
             cipher.login.fido2Credentials.isEmpty() &&
             !cipher.ignores(DWatchtowerAlert.PASSKEY_WEBSITE)
         ) {
-            val tfa = passKeyService.get()
+            val tfa = getPasskeys()
                 .crashlyticsTap()
                 .attempt()
                 .bind()

@@ -185,7 +185,7 @@ private val items = listOfNotNull<SettingsItem2>(
         text = TextHolder.Res(Res.strings.pref_item_watchtower_text),
         icon = Icons.Outlined.Security,
         route = WatchtowerSettingsRoute,
-    ).takeIf { !isRelease },
+    ),
     SettingsItem(
         id = "notifications",
         title = TextHolder.Res(Res.strings.pref_item_notifications_title),

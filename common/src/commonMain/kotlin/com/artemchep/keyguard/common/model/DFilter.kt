@@ -24,6 +24,9 @@ import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
+import com.artemchep.keyguard.common.usecase.GetBreaches
+import com.artemchep.keyguard.common.usecase.GetPasskeys
+import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
@@ -768,9 +771,9 @@ sealed interface DFilter {
             ciphers: List<DSecret>,
         ): Set<String> = ioEffect {
             val check: CipherBreachCheck = directDI.instance()
-            val repo: BreachesRepository = directDI.instance()
+            val getBreaches: GetBreaches = directDI.instance()
 
-            val breaches = repo.get()
+            val breaches = getBreaches()
                 .handleError {
                     HibpBreachGroup(emptyList())
                 }
@@ -1020,8 +1023,8 @@ sealed interface DFilter {
             directDI: DirectDI,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val tfaService = directDI.instance<TwoFaService>()
-            val tfa = tfaService.get()
+            val tfaService = directDI.instance<GetTwoFa>()
+            val tfa = tfaService()
                 .crashlyticsTap()
                 .attempt()
                 .bind()
@@ -1125,8 +1128,8 @@ sealed interface DFilter {
             directDI: DirectDI,
             ciphers: List<DSecret>,
         ) = kotlin.run {
-            val passkeyService = directDI.instance<PassKeyService>()
-            val tfa = passkeyService.get()
+            val getPasskeys = directDI.instance<GetPasskeys>()
+            val tfa = getPasskeys()
                 .crashlyticsTap()
                 .attempt()
                 .bind()

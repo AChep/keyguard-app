@@ -103,8 +103,10 @@ import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
+import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetCanWrite
+import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
@@ -131,6 +133,7 @@ import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.common.usecase.GetNavAnimationVariants
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.GetOnboardingLastVisitInstant
+import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -141,6 +144,7 @@ import com.artemchep.keyguard.common.usecase.GetTheme
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterScreenOff
@@ -167,6 +171,7 @@ import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.PutBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.PutBiometricTimeout
 import com.artemchep.keyguard.common.usecase.PutCachePremium
+import com.artemchep.keyguard.common.usecase.PutCheckPasskeys
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
@@ -229,8 +234,10 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveUriImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricRequireConfirmationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCachePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanWriteImpl
+import com.artemchep.keyguard.common.usecase.impl.GetCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPwnedPasswordsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckTwoFAImpl
@@ -257,6 +264,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.GetOnboardingLastVisitInstantImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasswordImpl
 import com.artemchep.keyguard.common.usecase.impl.GetProductsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetScreenStateImpl
@@ -265,6 +273,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeImpl
+import com.artemchep.keyguard.common.usecase.impl.GetTwoFaImpl
 import com.artemchep.keyguard.common.usecase.impl.GetUseExternalBrowserImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterRebootImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterScreenOffImpl
@@ -290,6 +299,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutofillSaveUriImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBiometricRequireConfirmationImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBiometricTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCachePremiumImpl
+import com.artemchep.keyguard.common.usecase.impl.PutCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedPasswordsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckTwoFAImpl
@@ -440,6 +450,16 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetTwoFa> {
+        GetTwoFaImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetPasskeys> {
+        GetPasskeysImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetPassword> {
         GetPasswordImpl(
             directDI = this,
@@ -540,6 +560,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetCheckPasskeys> {
+        GetCheckPasskeysImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutCheckPwnedPasswords> {
         PutCheckPwnedPasswordsImpl(
             directDI = this,
@@ -552,6 +577,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutCheckTwoFA> {
         PutCheckTwoFAImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutCheckPasskeys> {
+        PutCheckPasskeysImpl(
             directDI = this,
         )
     }

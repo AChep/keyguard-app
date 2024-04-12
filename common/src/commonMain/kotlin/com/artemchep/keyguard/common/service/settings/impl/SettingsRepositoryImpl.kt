@@ -52,9 +52,10 @@ class SettingsRepositoryImpl(
         private const val KEY_CLIPBOARD_UPDATE_DURATION = "clipboard_update_duration"
         private const val KEY_CONCEAL_FIELDS = "conceal_fields"
         private const val KEY_ALLOW_SCREENSHOTS = "allow_screenshots"
-        private const val KEY_CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
-        private const val KEY_CHECK_PWNED_SERVICES = "check_pwned_services"
-        private const val KEY_CHECK_TWO_FA = "check_two_fa"
+        private const val KEY_CHECK_PWNED_PASSWORDS = "watchtower_check_pwned_passwords"
+        private const val KEY_CHECK_PWNED_SERVICES = "watchtower_check_pwned_services"
+        private const val KEY_CHECK_TWO_FA = "watchtower_check_two_fa"
+        private const val KEY_CHECK_PASSKEYS = "watchtower_check_passkeys"
         private const val KEY_WRITE_ACCESS = "exp.22.write_access"
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         private const val KEY_DEBUG_SCREEN_DELAY = "debug_screen_delay"
@@ -124,13 +125,16 @@ class SettingsRepositoryImpl(
         store.getBoolean(KEY_ALLOW_SCREENSHOTS, false)
 
     private val checkPwnedPasswordsPref =
-        store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, false)
+        store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, true)
 
     private val checkPwnedServicesPref =
-        store.getBoolean(KEY_CHECK_PWNED_SERVICES, false)
+        store.getBoolean(KEY_CHECK_PWNED_SERVICES, true)
 
     private val checkTwoFAPref =
-        store.getBoolean(KEY_CHECK_TWO_FA, false)
+        store.getBoolean(KEY_CHECK_TWO_FA, true)
+
+    private val checkPasskeysPref =
+        store.getBoolean(KEY_CHECK_PASSKEYS, true)
 
     private val writeAccessPref =
         store.getBoolean(KEY_WRITE_ACCESS, true)
@@ -327,6 +331,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(checkTwoFA)
 
     override fun getCheckTwoFA() = checkTwoFAPref
+
+    override fun setCheckPasskeys(checkPasskeys: Boolean) = checkPasskeysPref
+        .setAndCommit(checkPasskeys)
+
+    override fun getCheckPasskeys() = checkPasskeysPref
 
     override fun setDebugPremium(premium: Boolean) = debugPremiumPref
         .setAndCommit(premium)

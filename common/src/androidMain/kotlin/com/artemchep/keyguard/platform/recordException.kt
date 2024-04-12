@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.platform
 
+import com.artemchep.keyguard.common.model.NoAnalytics
 import com.artemchep.keyguard.platform.util.isRelease
 import com.google.firebase.crashlytics.isEnabled
 import com.google.firebase.crashlytics.isEnabledFlow
@@ -12,6 +13,7 @@ import java.net.UnknownHostException
 
 actual fun recordException(e: Throwable) {
     if (
+        e is NoAnalytics ||
         e is UnknownHostException ||
         e is SocketException
     ) {

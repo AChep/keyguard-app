@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.exception.GravatarDisabledException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -18,8 +19,6 @@ class GetGravatarUrlImpl(
     private val getGravatar: GetGravatar,
 ) : GetGravatarUrl {
     private val emailPlusAddressingRegex = "\\+.+(?=@)".toRegex()
-
-    class GravatarDisabledException : RuntimeException()
 
     constructor(directDI: DirectDI) : this(
         cryptoGenerator = directDI.instance(),

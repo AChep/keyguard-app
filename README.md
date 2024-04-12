@@ -12,13 +12,14 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 </a>
 
 #### Highlights
-- a beautiful rich **Material You** user interface;
+- a beautiful rich and responsive **Material You** user interface;
 - a **powerful** and **fast search**;
 - a support for creating & using **passkeys** - a modern alternative to passwords.
 - a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
-- add items 🌠, modify 🌠, and view your vault **offline**.
+- add items 🌠 and sends 🌠, modify 🌠, and view your vault **offline**.
 - beautiful **Light**/**Dark theme**;
+- a generator with **Email forwarders**, **Custom wordlists** support and many other features; 
 - a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!
 

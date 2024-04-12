@@ -65,6 +65,7 @@ import com.artemchep.keyguard.ui.surface.color
 import com.artemchep.keyguard.ui.surface.splitHigh
 import com.artemchep.keyguard.ui.surface.splitLow
 import com.artemchep.keyguard.ui.surface.surfaceElevationColor
+import com.artemchep.keyguard.ui.text.AutoSizeText
 import com.artemchep.keyguard.ui.util.VerticalDivider
 import org.kodein.di.compose.rememberInstance
 
@@ -232,12 +233,14 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onBackground,
                                     )
-                                    Text(
+                                    val textStyle = MaterialTheme.typography.displayLarge
+                                    AutoSizeText(
                                         text = remember {
                                             keyguardSpan()
                                         },
-                                        textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.displayLarge,
+                                        minTextSize = MaterialTheme.typography.displayMedium.fontSize,
+                                        maxTextSize = textStyle.fontSize,
+                                        style = textStyle,
                                         color = MaterialTheme.colorScheme.onBackground,
                                         maxLines = 1,
                                     )

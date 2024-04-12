@@ -1878,6 +1878,15 @@
     "notes": "First you have to empty your account from all cryptocurrencies, then go to the website linked, scroll down and click on \"delete account\", then follow the steps."
   },
   {
+    "name": "BingX",
+    "domains": [
+      "bingx.com"
+    ],
+    "url": "https://bingx.com/removeAccount/",
+    "difficulty": "medium",
+    "notes": "Once you open the url and accept the terms and services your account goes into review. The account is deleted within 1 to 5 business days."
+  },
+  {
     "name": "Bitdefender Central",
     "domains": [
       "account.bitdefender.com",
@@ -4259,6 +4268,15 @@
     "url": "https://user.disroot.org/pwm/private/",
     "difficulty": "easy",
     "notes": "Go to the home page, click the user icon then press 'Delete my Account', nobody will be able to use the same username after deletion."
+  },
+  {
+    "name": "distill.io",
+    "domains": [
+      "distill.io"
+    ],
+    "url": "distill.io",
+    "difficulty": "easy",
+    "notes": "Click the button to delete the account."
   },
   {
     "name": "Divize",
@@ -12808,8 +12826,8 @@
       "www.pixiv.net"
     ],
     "url": "https://www.pixiv.net/leave_pixiv.php",
-    "difficulty": "easy",
-    "notes": "It takes 2 weeks to delete an account. You will be unable to re-use the same e-mail during that period. They won't delete \"pixiv ID\"."
+    "difficulty": "medium",
+    "notes": "It takes 2 weeks to delete an account. You will be unable to re-use the same e-mail during that period. They won't delete \"pixiv ID\". If you have other accounts created from your Pixiv account, you have to delete them before you can delete your Pixiv account"
   },
   {
     "name": "Pixlr",

@@ -4380,6 +4380,16 @@
     "name": "Digitec"
   },
   {
+    "domain": "dinero.dk",
+    "tfa": [
+      "sms",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://dinero.dk/support/to-faktor-login",
+    "name": "Dinero"
+  },
+  {
     "domain": "directadmin.com",
     "url": "https://www.directadmin.com",
     "tfa": [
@@ -8881,6 +8891,14 @@
     "name": "Malwarebytes (Personal)"
   },
   {
+    "domain": "mangadex.org",
+    "tfa": [
+      "totp",
+      "u2f"
+    ],
+    "name": "MangaDex"
+  },
+  {
     "domain": "mapbox.com",
     "url": "https://www.mapbox.com",
     "tfa": [
@@ -10722,8 +10740,8 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.openai.com/en/articles/7967234",
-    "name": "OpenAI"
+    "documentation": "https://help.openai.com/articles/7967234",
+    "name": "OpenAI (ChatGPT)"
   },
   {
     "domain": "openbank.es",
@@ -16393,6 +16411,14 @@
     "name": "WageWorks"
   },
   {
+    "domain": "walmart.ca",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://www.walmart.ca/en/help/article/managing-profile/7942aa05313d4fcb9ca491a78d463349",
+    "name": "Walmart Canada"
+  },
+  {
     "domain": "warframe.com",
     "url": "https://www.warframe.com/",
     "tfa": [
@@ -17172,6 +17198,14 @@
     ],
     "documentation": "https://support.zendesk.com/hc/en-us/articles/4408829277466",
     "name": "Zendesk"
+  },
+  {
+    "domain": "zeplin.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.zeplin.io/en/articles/7189128",
+    "name": "Zeplin"
   },
   {
     "domain": "zerodha.com",

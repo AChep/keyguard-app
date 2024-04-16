@@ -17,19 +17,19 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> sonuçlar</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> saniye</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> saniyeler</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> dakika</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dakikalar</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> saat</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> saatler</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> gün</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> günler</item>
     </plurals>
 </resources>

@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">高コントラストの黒いテーマを使用</string>
     <string name="pref_item_open_links_in_external_browser_title">外部ブラウザでリンクを開く</string>
     <string name="pref_item_close_to_tray_title">Close to system tray</string>
+    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
+    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
+    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
+    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
     <string name="pref_item_conceal_fields_title">フィールドを隠す</string>
     <string name="pref_item_conceal_fields_text">パスワードやクレジットカード番号などの機密情報を隠します</string>
     <!--

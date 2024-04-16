@@ -27,7 +27,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">最大访问次数</string>
     <string name="learn_more">了解详情</string>
     <string name="phone_number">电话号码</string>
     <string name="passport_number">护照号码</string>
@@ -35,7 +35,7 @@
     <string name="card_number">卡号</string>
     <string name="card_number_empty_label">无卡号</string>
     <string name="card_type">品牌</string>
-    <string name="card_cvv">安全码</string>
+    <string name="card_cvv">安全码（CVV）</string>
     <string name="card_valid_from">有效期自</string>
     <string name="card_valid_to">有效期至</string>
     <string name="card_expiry_month">卡过期月份</string>
@@ -68,11 +68,11 @@
     <string name="uris">URI</string>
     <string name="note">备注</string>
     <string name="notes">备注</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">日期</string>
+    <string name="time">时间</string>
     <string name="attachments">附件</string>
     <string name="attachments_empty_label">暂无附件</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">已停用</string>
     <string name="expired">已过期</string>
     <string name="expiring_soon">即将过期</string>
     <string name="item_incomplete_title">不完整的数据</string>
@@ -123,11 +123,11 @@
     <string name="address2">地址行 2</string>
     <string name="address3">地址行 3</string>
     <string name="rename">重命名</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">删除日期</string>
+    <string name="deletion_date_custom">自定义</string>
+    <string name="expiration_date">过期时间</string>
+    <string name="expiration_date_custom">自定义</string>
+    <string name="expiration_date_never">从不</string>
     <string name="select_linked_type">选择类型</string>
     <string name="select_file">选择文件</string>
     <string name="autofill">自动填充</string>
@@ -168,13 +168,13 @@
     <string name="one_time_password_authenticator_key">验证器密钥</string>
     <string name="passkey_use_short">使用</string>
     <string name="passkey_save">保存通行密钥</string>
-    <string name="passkey_available">可用通行密钥</string>
+    <string name="passkey_available">通行密钥可用</string>
     <string name="twofa_available">双因素认证可用</string>
     <string name="custom">自定义</string>
     <string name="follow_system_settings">跟随系统设置</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">即将上线</string>
-    <string name="powered_by">技术支持：</string>
+    <string name="powered_by">技术支持</string>
     <string name="verification_code">验证码</string>
     <string name="resend_verification_code">重新发送验证码</string>
     <string name="requested_verification_email">已请求验证电子邮件</string>
@@ -200,7 +200,7 @@
     <string name="encryption_random_bits_data">随机的 <xliff:g id="length" example="64">%1$d</xliff:g> 位数据</string>
     <string name="none">无</string>
     <string name="text">文本</string>
-    <string name="linked_apps">关联应用</string>
+    <string name="linked_apps">关联的应用</string>
     <string name="linked_uris">关联的 URI</string>
     <string name="custom_fields">自定义字段</string>
     <string name="reveal_secure_note">显示安全笔记</string>
@@ -212,7 +212,7 @@
     <string name="filter_pending_items">等待中</string>
     <string name="filter_failed_items">失败</string>
     <string name="bitwarden_premium">Bitwarden 高级版</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">需要 Bitwarden 高级版</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 服务器</string>
     <string name="account_last_synced_at">最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">修改名称</string>
@@ -286,7 +286,7 @@
     <string name="sends_action_disable_title">停用</string>
     <string name="sends_action_disable_text">未激活的 Send 无法通过公共网址访问</string>
     <string name="sends_action_disable_confirmation_title">停用?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disabled_note">此 Send 已被停用，没有人能够访问它。</string>
     <string name="sends_action_delete_title">永久删除</string>
     <string name="sends_action_delete_confirmation_title">永久删除?</string>
     <string name="file_action_open_with_title">打开方式…</string>
@@ -358,13 +358,13 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至全名</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至一个未知字段</string>
     <string name="text_action_share_with_title">分享</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">创建 Send</string>
     <string name="selection_n_selected">已选择 <xliff:g id="size" example="15">%1$d</xliff:g> 项</string>
     <string name="copy">复制</string>
     <string name="copy_value">复制值</string>
     <string name="copy_url">复制 URL</string>
     <string name="copy_uri">复制 URI</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">复制 Send</string>
     <string name="copy_package_name">复制包名</string>
     <string name="copy_password">复制密码</string>
     <string name="copy_username">复制用户名</string>
@@ -376,7 +376,7 @@
     <string name="copy_cardholder_name">复制持卡人姓名</string>
     <string name="copy_expiration_year">复制过期年份</string>
     <string name="copy_expiration_month">复制过期月份</string>
-    <string name="copy_cvv_code">复制 CVV 安全码</string>
+    <string name="copy_cvv_code">复制安全码（CVV）</string>
     <string name="copy_otp_code">复制动态密码</string>
     <string name="copy_otp_secret_code">复制私钥</string>
     <string name="copied_value">已复制值</string>
@@ -422,7 +422,7 @@
     <string name="list_remove_confirmation_title">确定删除此项吗？</string>
     <string name="list_add">添加更多</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">验证 WebAuthn</string>
+    <string name="fido2webauthn_action_go_title">认证 WebAuthn</string>
     <string name="fido2webauthn_action_return_title">返回应用</string>
     <string name="expiry_tips_item_line1">该项目于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。</string>
     <string name="expiry_tips_card_line1">此卡于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。您可以做几件事情来确保平稳过渡：</string>
@@ -439,8 +439,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">不可为空</string>
     <string name="error_must_be_custom_domain">必须为第三方域名</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_number">必须为数字</string>
+    <string name="error_must_be_less_than_days">从当前时间起必须小于 <xliff:g id="days" example="15">%1$d</xliff:g> 天</string>
     <string name="error_must_contain_only_us_ascii_chars">必须只包含 US-ASCII 字符</string>
     <string name="error_must_have_at_least_n_symbols">长度须至少为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
     <string name="error_must_have_exactly_n_symbols">长度必须为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符</string>
@@ -570,7 +570,7 @@
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">解锁密码库</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_text">通过生物识别验证来解锁密码库</string>
+    <string name="unlock_biometric_auth_confirm_text">通过生物识别认证来解锁密码库</string>
     <string name="userverification_header_text">需要验证，输入应用专用密码以继续。</string>
     <string name="userverification_button_go">验证</string>
     <string name="syncstatus_header_title">同步状态</string>
@@ -583,7 +583,7 @@
     <string name="additem_header_merge_title">合并项目</string>
     <string name="additem_merge_remove_origin_ciphers_title">移动源项目到回收站</string>
     <string name="additem_merge_attachments_note">合并项目不会合并其附件！创建的项目将不会添加任何附件。</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">在此处添加关于此项目的备注</string>
     <string name="additem_markdown_note">包括 <xliff:g id="italic" example="italic">%1$s</xliff:g> 或 <xliff:g id="bold" example="bold">%2$s</xliff:g> 等样式的文本。支持有限的 Markdown 语法。</string>
     <string name="additem_markdown_note_italic">斜体</string>
     <string name="additem_markdown_note_bold">粗体</string>
@@ -592,16 +592,16 @@
     <string name="additem_auth_reprompt_text">当您查看或自动填充密码时要求再次验证</string>
     <string name="addsend_header_new_title">新项目</string>
     <string name="addsend_header_edit_title">编辑项目</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_text_hide_by_default_title">访问 Send 时，默认将隐藏文本</string>
+    <string name="addsend_hide_text_by_default_title">访问 Send 时，默认将隐藏文本</string>
+    <string name="addsend_hide_email_title">隐藏电子邮件地址</string>
+    <string name="addsend_max_access_count_note">设置后，当达到最大访问次数时用户将不再能够访问此 Send。</string>
     <string name="addaccount_header_title">添加 Bitwarden 账户</string>
     <string name="addaccount_disclaimer_bitwarden_label">我们与 Bitwarden, Inc. 其任何子公司或附属机构均无隶属、关联、授权、许可关系，或任何形式的官方联系。</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">要通过非官方的Bitwarden客户端上的验证码验证，您必须指定客户端密钥。 要找到它，请访问 Web vault / Settings / API Key。</string>
+    <string name="addaccount_captcha_need_client_secret_note">要通过非官方 Bitwarden 客户端上的验证码验证，您必须指定客户端密钥。 要找到它，请访问 网页密码库 / 设置 / 安全 / API 密钥。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">客户端密钥</string>
     <string name="addaccount_sign_in_button">登录</string>
@@ -630,7 +630,7 @@
     <string name="addaccount2fa_yubikey_manual_text">手动输入 YubiKey 验证码，将光标放在下方输入框并按下 YubiKey 的按钮。</string>
     <string name="provider_2fa_authenticator">身份验证器</string>
     <string name="provider_2fa_duo_organization">Duo（组织）</string>
-    <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份验证</string>
+    <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份认证</string>
     <string name="provider_2fa_email">电子邮件</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
     <string name="yubikey_usb_title">通过 USB 连接 YubiKey</string>
@@ -645,7 +645,7 @@
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_title">确认访问</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_text">使用生物识别验证来确认您的访问权限并解锁这些数据。</string>
+    <string name="elevatedaccess_biometric_auth_confirm_text">使用生物识别认证来确认您的访问权限并解锁这些数据。</string>
     <string name="home_vault_label">密码库</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">生成器</string>
@@ -803,10 +803,10 @@
     <string name="watchtower_item_vulnerable_accounts_text">自您上次修改密码以来受数据泄露影响的站点，更改您的密码以保证账户安全。</string>
     <string name="watchtower_item_unsecure_websites_title">不安全的网站</string>
     <string name="watchtower_item_unsecure_websites_text">更改 HTTP 为 HTTPS 协议，因为后者更为安全</string>
-    <string name="watchtower_item_inactive_2fa_title">启用双重验证</string>
+    <string name="watchtower_item_inactive_2fa_title">未启用双因素身份认证</string>
     <string name="watchtower_item_inactive_2fa_text">站点可用 2FA，但您没有启用它</string>
     <string name="watchtower_item_inactive_passkey_title">可用通行密钥</string>
-    <string name="watchtower_item_inactive_passkey_text">可用通行密钥但并未启用的站点，通行密钥比密码更简单和安全。</string>
+    <string name="watchtower_item_inactive_passkey_text">有可用通行密钥但并未设置的站点，它比密码更简单、更安全。</string>
     <string name="watchtower_item_incomplete_items_title">不完整的项目</string>
     <string name="watchtower_item_incomplete_items_text">帮助您识别密码库中丢失或不完整的数据，可能是没有名字或没有用户名的项目。</string>
     <string name="watchtower_item_expiring_items_title">过期项目</string>
@@ -893,7 +893,7 @@
     <string name="pref_item_load_app_icons_title">加载应用图标</string>
     <string name="pref_item_load_website_icons_title">加载网站图标</string>
     <string name="pref_item_load_website_icons_text">获取网站图标时可能会向运营商泄露网站地址</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">加载 Gravatar 图标</string>
     <string name="pref_item_markdown_title">富文本格式</string>
     <string name="pref_item_markdown_text">使用 Markdown 格式化备注</string>
     <string name="pref_item_locale_title">语言</string>
@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">使用纯黑主题</string>
     <string name="pref_item_open_links_in_external_browser_title">在外部浏览器中打开链接</string>
     <string name="pref_item_close_to_tray_title">关闭至系统托盘</string>
+    <string name="pref_item_check_pwned_passwords_title">查看被泄露的密码</string>
+    <string name="pref_item_check_pwned_services_title">查看数据破坏情况</string>
+    <string name="pref_item_check_inactive_2fa_title">查看未启用双因素身份认证的项目</string>
+    <string name="pref_item_check_inactive_passkeys_title">查看未启用通行密钥的项目</string>
     <string name="pref_item_conceal_fields_title">隐藏字段</string>
     <string name="pref_item_conceal_fields_text">隐藏敏感信息，例如密码和信用卡号码</string>
     <!--

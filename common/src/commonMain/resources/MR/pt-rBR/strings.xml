@@ -27,7 +27,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Número máximo de acessos</string>
     <string name="learn_more">Saiba mais</string>
     <string name="phone_number">Telefone</string>
     <string name="passport_number">Número do passaporte</string>
@@ -68,11 +68,11 @@
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
     <string name="notes">Notas</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Data</string>
+    <string name="time">Hora</string>
     <string name="attachments">Anexos</string>
     <string name="attachments_empty_label">Sem anexos</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">Desativado</string>
     <string name="expired">Vencido</string>
     <string name="expiring_soon">Expira em breve</string>
     <string name="item_incomplete_title">Dados incompletos</string>
@@ -123,11 +123,11 @@
     <string name="address2">Endereço 2</string>
     <string name="address3">Endereço 3</string>
     <string name="rename">Renomear</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Data de exclusão</string>
+    <string name="deletion_date_custom">Customizado</string>
+    <string name="expiration_date">Data de expiração</string>
+    <string name="expiration_date_custom">Customizado</string>
+    <string name="expiration_date_never">Nunca</string>
     <string name="select_linked_type">Selecione um tipo</string>
     <string name="select_file">Selecione um arquivo</string>
     <string name="autofill">Preenchimento Automático</string>
@@ -212,7 +212,7 @@
     <string name="filter_pending_items">Pendente</string>
     <string name="filter_failed_items">Falhou</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Precisa do Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial do Bitwarden</string>
     <string name="account_last_synced_at">Última sincronização em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Renomear</string>
@@ -281,12 +281,12 @@
     <string name="sends_action_hide_email_title">Esconder email</string>
     <string name="sends_action_show_email_title">Mostrar email</string>
     <string name="sends_action_enable_title">Ativar</string>
-    <string name="sends_action_enable_text">Envio ativo é acessível por uma URL pública</string>
+    <string name="sends_action_enable_text">Send ativo está acessível por uma URL pública</string>
     <string name="sends_action_enable_confirmation_title">Ativar?</string>
     <string name="sends_action_disable_title">Desativar</string>
-    <string name="sends_action_disable_text">O envio inativo não está acessível por uma URL pública</string>
+    <string name="sends_action_disable_text">O send inativo não está acessível por uma URL pública</string>
     <string name="sends_action_disable_confirmation_title">Desativar?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disabled_note">Este envio está desativado, ninguém pode acessá-lo.</string>
     <string name="sends_action_delete_title">Excluir para sempre</string>
     <string name="sends_action_delete_confirmation_title">Excluir para sempre?</string>
     <string name="file_action_open_with_title">Abrir com…</string>
@@ -358,13 +358,13 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado ao nome completo</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a um campo desconhecido</string>
     <string name="text_action_share_with_title">Compartilhar com…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Criar um send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="copy">Copiar</string>
     <string name="copy_value">Copiar valor</string>
     <string name="copy_url">Copiar URL</string>
     <string name="copy_uri">Copiar URI</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">Copiar envio</string>
     <string name="copy_package_name">Copiar nome do pacote</string>
     <string name="copy_password">Copiar senha</string>
     <string name="copy_username">Copiar nome de usuário</string>
@@ -439,8 +439,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Não pode estar vazio</string>
     <string name="error_must_be_custom_domain">Deve ser um domínio personalizado</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_number">Deve ser um número</string>
+    <string name="error_must_be_less_than_days">Deve ser menos que <xliff:g id="days" example="15">%1$d</xliff:g> dias do tempo atual</string>
     <string name="error_must_contain_only_us_ascii_chars">Deve conter apenas caracteres US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Deve ter no mínimo <xliff:g id="length" example="15">%1$d</xliff:g> símbolos</string>
     <string name="error_must_have_exactly_n_symbols">Deve ter <xliff:g id="length" example="15">%1$d</xliff:g> símbolos</string>
@@ -583,19 +583,19 @@
     <string name="additem_header_merge_title">Mesclar itens</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mover itens de origem para a lixeira</string>
     <string name="additem_merge_attachments_note">Mesclar itens não faz com que seus anexos sejam mesclados! O item criado não terá nenhum anexo adicionado.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">Adicione qualquer nota a este item</string>
     <string name="additem_markdown_note">Estilize o texto com <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> e muito mais. Suporte à sintaxe Markdown limitada.</string>
     <string name="additem_markdown_note_italic">itálico</string>
     <string name="additem_markdown_note_bold">negrito</string>
     <string name="additem_markdown_render_preview">Renderizar pré-visualização</string>
     <string name="additem_auth_reprompt_title">Confirmação de autenticação</string>
     <string name="additem_auth_reprompt_text">Pedir para autenticar novamente quando você visualizar ou preencher automaticamente uma cifra</string>
-    <string name="addsend_header_new_title">Item novo</string>
-    <string name="addsend_header_edit_title">Editar item</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_header_new_title">Send novo</string>
+    <string name="addsend_header_edit_title">Editar send</string>
+    <string name="addsend_text_hide_by_default_title">Ao acessar o item, ocultar o texto por padrão</string>
+    <string name="addsend_hide_text_by_default_title">Ao acessar o item, ocultar o texto por padrão</string>
+    <string name="addsend_hide_email_title">Ocultar endereço de e-mail</string>
+    <string name="addsend_max_access_count_note">Se configurado, usuários não poderão mais acessar este item se o número máximo de acessos for atingido.</string>
     <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Não somos afiliados, associados, autorizados, endossados ou de qualquer forma oficialmente conectados à Bitwarden, Inc., nem a nenhuma de suas subsidiárias ou afiliadas.</string>
     <!--
@@ -893,7 +893,7 @@
     <string name="pref_item_load_app_icons_title">Carregar ícones dos aplicativos</string>
     <string name="pref_item_load_website_icons_title">Carregar ícones de sites</string>
     <string name="pref_item_load_website_icons_text">A consulta pelo ícone do site pode vazar o endereço do site para o provedor de Internet</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">Carregar ícones do Gravatar</string>
     <string name="pref_item_markdown_title">Formatação de texto rica</string>
     <string name="pref_item_markdown_text">Use Markdown para formatar notas</string>
     <string name="pref_item_locale_title">Idioma</string>
@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Use o tema preto contrastante</string>
     <string name="pref_item_open_links_in_external_browser_title">Abrir links em um navegador externo</string>
     <string name="pref_item_close_to_tray_title">Fechar para a bandeja do sistema</string>
+    <string name="pref_item_check_pwned_passwords_title">Verificar se senhas foram vazadas</string>
+    <string name="pref_item_check_pwned_services_title">Verificar por vazamentos de dados</string>
+    <string name="pref_item_check_inactive_2fa_title">Verificar por autenticação de dois fatores inativa</string>
+    <string name="pref_item_check_inactive_passkeys_title">Verificar por chaves de acesso inativas</string>
     <string name="pref_item_conceal_fields_title">Ocultar campos</string>
     <string name="pref_item_conceal_fields_text">Oculte informações confidenciais, como senhas e números de cartão de crédito</string>
     <!--

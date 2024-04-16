@@ -63,13 +63,13 @@
     <string name="postal_code">우편 번호</string>
     <string name="pull_to_search">아래로 당겨 검색</string>
     <string name="save">저장</string>
-    <string name="save_to">Save to</string>
+    <string name="save_to">이 항목에 저장</string>
     <string name="uri">URI</string>
     <string name="uris">URI</string>
     <string name="note">메모</string>
     <string name="notes">메모</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">날짜</string>
+    <string name="time">시간</string>
     <string name="attachments">첨부 파일</string>
     <string name="attachments_empty_label">첨부 파일 없음</string>
     <string name="deactivated">Deactivated</string>
@@ -123,10 +123,10 @@
     <string name="address2">주소 2</string>
     <string name="address3">주소 3</string>
     <string name="rename">이름 바꾸기</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
+    <string name="deletion_date">삭제 날짜</string>
+    <string name="deletion_date_custom">사용자 지정</string>
+    <string name="expiration_date">만료 날짜</string>
+    <string name="expiration_date_custom">사용자 지정</string>
     <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
@@ -212,7 +212,7 @@
     <string name="filter_pending_items">보류 중</string>
     <string name="filter_failed_items">실패</string>
     <string name="bitwarden_premium">Bitwarden 프리미엄</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Bitwarden 프리미엄 필요</string>
     <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
     <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
     <string name="account_action_change_name_title">이름 바꾸기</string>
@@ -279,11 +279,11 @@
     <string name="sends_action_remove_passwords_confirmation_title">비밀번호를 제거하시겠습니까?</string>
     <string name="sends_action_remove_password_confirmation_message">이 항목에 접근하기 전에 비밀번호를 요청하지 않음</string>
     <string name="sends_action_hide_email_title">이메일 숨기기</string>
-    <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
+    <string name="sends_action_show_email_title">이메일 표시</string>
+    <string name="sends_action_enable_title">활성화</string>
     <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
     <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
+    <string name="sends_action_disable_title">비활성화</string>
     <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
     <string name="sends_action_disable_confirmation_title">Deactivate?</string>
     <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
@@ -454,7 +454,7 @@
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">URI를 열지 못했습니다.</string>
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
@@ -594,7 +594,7 @@
     <string name="addsend_header_edit_title">항목 편집</string>
     <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_hide_email_title">이메일 주소 숨기기</string>
     <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_header_title">Bitwarden 계정 추가</string>
     <string name="addaccount_disclaimer_bitwarden_label">Keyguard 팀은 Bitwarden, Inc. 또는 그 계열사와 제휴, 연관, 승인, 보증 또는 공식적으로 어떤 식으로든 연결되어 있지 않습니다.</string>
@@ -893,7 +893,7 @@
     <string name="pref_item_load_app_icons_title">앱 아이콘 불러오기</string>
     <string name="pref_item_load_website_icons_title">웹사이트 아이콘 불러오기</string>
     <string name="pref_item_load_website_icons_text">웹사이트 아이콘을 불러오면 인터넷 제공사에 웹사이트 주소가 노출될 수 있습니다.</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">Gravatar 아이콘 불러오기</string>
     <string name="pref_item_markdown_title">리치 텍스트 포맷</string>
     <string name="pref_item_markdown_text">메모에 마크다운 문법을 사용합니다.</string>
     <string name="pref_item_locale_title">언어</string>
@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">다크 테마에 검정색 사용</string>
     <string name="pref_item_open_links_in_external_browser_title">외부 브라우저에서 열기</string>
     <string name="pref_item_close_to_tray_title">시스템 트레이로 닫기</string>
+    <string name="pref_item_check_pwned_passwords_title">유출된 비밀번호 확인</string>
+    <string name="pref_item_check_pwned_services_title">유출된 데이터 확인</string>
+    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
+    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
     <string name="pref_item_conceal_fields_title">필드 감추기</string>
     <string name="pref_item_conceal_fields_text">비밀번호, 신용 카드 번호 등 민감한 정보를 숨깁니다.</string>
     <!--

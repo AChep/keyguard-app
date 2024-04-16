@@ -893,7 +893,7 @@
     <string name="pref_item_load_app_icons_title">Загрузить значки приложений</string>
     <string name="pref_item_load_website_icons_title">Загрузить значки веб-сайтов</string>
     <string name="pref_item_load_website_icons_text">Запрос значка сайта может привести к утечке адреса сайта к интернет-провайдеру</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">Загружать значки Gravatar</string>
     <string name="pref_item_markdown_title">Форматирование текста</string>
     <string name="pref_item_markdown_text">Использовать Markdown для форматирования заметок</string>
     <string name="pref_item_locale_title">Язык</string>
@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Использовать черную контрастную тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Открывать ссылки во внешнем браузере</string>
     <string name="pref_item_close_to_tray_title">Свернуть в трей</string>
+    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
+    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
+    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
+    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
     <string name="pref_item_conceal_fields_title">Скрыть поля</string>
     <string name="pref_item_conceal_fields_text">Скрыть конфиденциальную информацию, например пароли и номера кредитных карт</string>
     <!--
@@ -945,8 +949,8 @@
     <string name="pref_item_features_overview_title">Обзор возможностей</string>
     <string name="pref_item_url_override_title">Переопределение URL-адреса</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Требовать подтверждение</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Запрашивать дополнительное подтверждение после успешного входа по биометрии</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

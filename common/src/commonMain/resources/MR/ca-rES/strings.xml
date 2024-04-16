@@ -364,7 +364,7 @@
     <string name="copy_value">Copia el valor</string>
     <string name="copy_url">Copia l\'URL</string>
     <string name="copy_uri">Copia l\'URI</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">Copia l\'enviament</string>
     <string name="copy_package_name">Copia el nom de paquet</string>
     <string name="copy_password">Copia la contrasenya</string>
     <string name="copy_username">Copia el nom d\'usuari</string>
@@ -893,7 +893,7 @@
     <string name="pref_item_load_app_icons_title">Carrega icones d\'App</string>
     <string name="pref_item_load_website_icons_title">Carrega icones Web</string>
     <string name="pref_item_load_website_icons_text">Sol·licitar la icona del lloc web pot filtrar la direcció al proveïdor d\'Internet</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">Carrega icones de Gravatar</string>
     <string name="pref_item_markdown_title">Format de text enriquit</string>
     <string name="pref_item_markdown_text">Fes servir Markdown per a prendre notes</string>
     <string name="pref_item_locale_title">Idioma</string>
@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Fes servir el tema negre contrastrant</string>
     <string name="pref_item_open_links_in_external_browser_title">Obre els enllaços a un navegador extern</string>
     <string name="pref_item_close_to_tray_title">Tanca a la safata</string>
+    <string name="pref_item_check_pwned_passwords_title">Comprova contrasenyes filtrades</string>
+    <string name="pref_item_check_pwned_services_title">Comprova filtracions de dades</string>
+    <string name="pref_item_check_inactive_2fa_title">Comprova autenticacions en dues passes inactives</string>
+    <string name="pref_item_check_inactive_passkeys_title">Comprova passkeys inactives</string>
     <string name="pref_item_conceal_fields_title">Amaga camps</string>
     <string name="pref_item_conceal_fields_text">Amaga informació sensible, tal com contrasenyes i números de targeta de crèdit</string>
     <!--

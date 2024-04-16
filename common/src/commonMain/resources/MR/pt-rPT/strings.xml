@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Usar tema preto puro</string>
     <string name="pref_item_open_links_in_external_browser_title">Abrir links num browser externo</string>
     <string name="pref_item_close_to_tray_title">Fechar para a bandeja do sistema</string>
+    <string name="pref_item_check_pwned_passwords_title">Verificar por palavras-passe comprometidas</string>
+    <string name="pref_item_check_pwned_services_title">Verificar se existe violação de dados</string>
+    <string name="pref_item_check_inactive_2fa_title">Verificar por autenticações de 2 fatores inativas</string>
+    <string name="pref_item_check_inactive_passkeys_title">Verificar por chaves de acesso inativas</string>
     <string name="pref_item_conceal_fields_title">Ofuscar campos</string>
     <string name="pref_item_conceal_fields_text">Ocultar informações confidenciais, como senhas e números de cartão de crédito</string>
     <!--

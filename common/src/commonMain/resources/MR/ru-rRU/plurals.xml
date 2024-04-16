@@ -25,27 +25,27 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> результатов</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> секунда</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> секунды</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> секунд</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> секунды</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> минута</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> минуты</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> минут</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> минуты</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> час</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> часа</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> часов</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> часа</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> день</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> дня</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> дней</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> дня</item>
     </plurals>
 </resources>

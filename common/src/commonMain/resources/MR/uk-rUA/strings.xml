@@ -905,6 +905,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Використовувати контрастну чорну тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Відкривати посилання у зовнішньому браузері</string>
     <string name="pref_item_close_to_tray_title">При закритті згортати до системного трею</string>
+    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
+    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
+    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
+    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
     <string name="pref_item_conceal_fields_title">Скрити значення полів</string>
     <string name="pref_item_conceal_fields_text">Приховувати конфіденційну інформацію, таку як паролі або номера кредитних карток</string>
     <!--

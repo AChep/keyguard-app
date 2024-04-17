@@ -440,11 +440,15 @@ fun produceAddScreenState(
         initialType = { "attachment" },
         factories = attachmentsFactories,
         afterList = {
-//            val header = AddStateItem.Section(
-//                id = "attachment.section",
-//                text = "Attachments",
-//            )
-//            add(0, header)
+            if (this.isEmpty()) {
+                return@foo3
+            }
+
+            val header = AddStateItem.Section(
+                id = "attachment.section",
+                text = translate(Res.strings.attachments),
+            )
+            add(0, header)
         },
         extra = {
             val action = FlatItemAction(

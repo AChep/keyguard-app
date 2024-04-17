@@ -108,7 +108,7 @@ okHttp = "4.12.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.1"
 # https://developers.google.com/android/guides/setup
-playServicesBase = "18.3.0"
+playServicesBase = "18.4.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha01"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr

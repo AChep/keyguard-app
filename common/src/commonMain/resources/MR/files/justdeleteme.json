@@ -2258,6 +2258,15 @@
     "notes": "Visit the linked page and confirm the deletion."
   },
   {
+    "name": "BOOTH",
+    "domains": [
+      "booth.pm"
+    ],
+    "url": "https://accounts.booth.pm/settings/delete",
+    "difficulty": "easy",
+    "notes": "Go to your profile page and the \"Delete Account\" button. If you did not set a password, it will ask you to create one before you can delete your account."
+  },
+  {
     "name": "Boots Viewpoint",
     "domains": [
       "bootsviewpoint.co.uk"
@@ -2946,6 +2955,19 @@
     "notes": "Fill out the provided [privacy web form](https://privacyportal.onetrust.com/webform/63dc78c7-5612-4181-beae-47dead0569ee/01252c81-82df-4db5-9cb8-bf23a62a9a55), send an email to mailto:privacy@chick-fil-a.com, or call 1-866-232-2040."
   },
   {
+    "name": "Chocolatey",
+    "domains": [
+      "chocolatey.org",
+      "community.chocolatey.org",
+      "docs.chocolatey.org",
+      "blog.chocolatey.org",
+      "status.chocolatey.org"
+    ],
+    "url": "https://chocolatey.org/contact/general",
+    "difficulty": "hard",
+    "notes": "Visit the link, select the section \"General\" and fill out the form, in which request the deletion of your account."
+  },
+  {
     "name": "Cineplex",
     "domains": [
       "cineplex.com"
@@ -3454,7 +3476,7 @@
     "domains": [
       "coursera.org"
     ],
-    "url": "https://www.coursera.org",
+    "url": "https://www.coursera.org/account-settings",
     "difficulty": "easy",
     "notes": "Delete acccount button is at the bottom of the account settings page."
   },
@@ -6732,6 +6754,7 @@
   {
     "name": "Google",
     "domains": [
+      "ai.google",
       "blogger.com",
       "domains.google",
       "google.ac",
@@ -6849,6 +6872,7 @@
       "google.cv",
       "google.cz",
       "google.de",
+      "google.dev",
       "google.dj",
       "google.dk",
       "google.dm",
@@ -6935,16 +6959,21 @@
       "accounts.google.com",
       "admob.google.com",
       "ads.google.com",
+      "ai.google.dev",
       "artsandculture.google.com",
       "books.google.com",
       "chat.google.com",
       "classroom.google.com",
       "consent.google.com",
       "contacts.google.com",
+      "deepmind.google",
+      "developers.google.com",
       "docs.google.com",
       "duo.google.com",
       "drive.google.com",
       "earth.google.com",
+      "edu.google.com",
+      "gemini.google.com",
       "hangouts.google.com",
       "jamboard.google.com",
       "keep.google.com",
@@ -6955,11 +6984,14 @@
       "news.google.com",
       "play.google.com",
       "photos.google.com",
+      "policies.google.com",
+      "safety.google",
       "sites.google.com",
       "stadia.google.com",
       "support.google.com",
       "takeout.google.com",
-      "translate.google.com"
+      "translate.google.com",
+      "workspace.google.com"
     ],
     "url": "https://security.google.com/settings/security/deleteaccount",
     "difficulty": "easy"
@@ -16235,6 +16267,15 @@
     "url": "https://tempo.eu.com",
     "difficulty": "impossible",
     "notes": "No options to delete the account on website or app. Customer service asks for validation (phone number) but account is not actually deleted."
+  },
+  {
+    "name": "Temu",
+    "domains": [
+      "temu.com"
+    ],
+    "url": "https://www.temu.com/bgp_close_account.html",
+    "difficulty": "easy",
+    "notes": "Log into Temu and open your profile. Click on \"Account security\" and then select \"Delete my account\"."
   },
   {
     "name": "Ten Percent Happier",

@@ -13,6 +13,18 @@
     "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
   },
   {
+    "id": "ffcd2cbbb98452d49c4fe9c1ce1d61f6",
+    "name": "Affirm",
+    "domain": "affirm.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://helpcenter.affirm.com/s/article/Set-up-a-Passkey",
+    "setup": "https://www.affirm.com/u/settings/security-center",
+    "category": "Finance",
+    "created_at": "2023-08-16T14:29:52.423203+00:00"
+  },
+  {
     "id": "61a3e313d61080750cd23d799aeda103",
     "name": "Albert Heijn",
     "domain": "ah.nl",
@@ -810,6 +822,18 @@
     "created_at": "2024-03-27T10:38:36.26944+00:00"
   },
   {
+    "id": "8c2e6f0179e0d9260161b085980761e2",
+    "name": "My Helsana (App only)",
+    "domain": "helsana.ch",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.helsana.ch/en/helsana-group/about-us/legal/terms-of-use/myhelsana.html",
+    "category": "Health & Wellness",
+    "created_at": "2024-04-16T13:32:34.685184+00:00",
+    "notes": "Users must sign in for the first time using their username, password and mTAN (security code sent by SMS) to access their data. They can then carry out the passkey registration in the mobile app in order to be able to log in with FaceID or TouchID. If they do not carry out the passkey registration, they can continue to log in with their username, password and mTAN."
+  },
+  {
     "id": "fe83d2c9b996786f5c26a2bc4789d902",
     "name": "Visma",
     "domain": "home.visma.com",
@@ -1043,6 +1067,17 @@
     "setup": "https://secure.login.gov/account",
     "category": "Government",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "2a2917c1fb4dc789b98d3d14fd5b0f24",
+    "name": "LuxID",
+    "domain": "luxid.lu",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://account.luxid.lu/web/methods/devices/webauthn",
+    "category": "Identity Provider",
+    "created_at": "2024-04-15T10:44:10.535434+00:00"
   },
   {
     "id": "45700e3826c053a111f62c063cd660a7",
@@ -1357,6 +1392,18 @@
     "notes": "Go password-free with your account for PlayStation Network. Passkeys offer a faster and more secure account sign-in experience by letting you sign in through your mobile device or computer using the same convenient device unlocking method, like a fingerprint, face scan or PIN. Visit www.playstation.com/passkey to learn more. \n\n[Watch: Introducing Passkey for PlayStation on Youtube](https://www.youtube.com/watch?v=uKfQrqMS9s8 )\n"
   },
   {
+    "id": "71f0bbc2a1844dce91fc9080f99a3e80",
+    "name": "Poloniex",
+    "domain": "poloniex.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://poloniex.com/profile/security",
+    "category": "Finance",
+    "created_at": "2024-04-15T10:31:24.419723+00:00"
+  },
+  {
     "id": "b050f03bbce82cc95753897ca0c5353e",
     "name": "Porkbun",
     "domain": "porkbun.com",
@@ -1582,6 +1629,18 @@
     "setup": "https://www.target.com/account/settings/signinsecurity",
     "category": "eCommerce",
     "created_at": "2024-02-13T17:48:19+00:00"
+  },
+  {
+    "id": "04114ec1ed821090f4a47772a1125857",
+    "name": "Telstra",
+    "domain": "telstra.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.telstra.com.au/support/account-payment/set-up-and-manage-a-passkey",
+    "setup": "http://myid.telstra.com/security/",
+    "category": "Telecommunications ",
+    "created_at": "2024-04-15T10:36:31.383532+00:00"
   },
   {
     "id": "95dcfb4174733c6176889e6b5985dfae",
@@ -1817,6 +1876,19 @@
     "category": "Social Networking",
     "created_at": "2024-01-23T11:26:41+00:00",
     "notes": "X (formerly Twitter) is rolling out signing in with passkeys support to all accounts on iOS. No other platforms are able to save a passkey to their accounts at this time.\n\n**To set up a passkey on your X account:**\n1. Log in to the X app with the account you wish to enable passkey for.\n2. Select Your account in the navigation bar.\n3. Select Settings and privacy, select Security and account access, then Security.\n4. Under Additional password protection, select Passkey.\n5. Enter your password when prompted.\n6. Select Add a passkey and follow the on-screen prompts."
+  },
+  {
+    "id": "ce4ecc4b8d61f1e16c64a43a3e60d383",
+    "name": "XenForo (Community)",
+    "domain": "xenforo.com/community",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://xenforo.com/community/threads/passwordless-logins-with-passkeys.220458/",
+    "setup": "https://xenforo.com/community/account/security",
+    "category": "Information Technology",
+    "created_at": "2024-04-15T10:27:35.782705+00:00"
   },
   {
     "id": "e530fa6fa3831727debb154a6dd4ff58",

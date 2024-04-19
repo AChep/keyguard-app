@@ -4,7 +4,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.101domain.com/account-management/account-security/enabling-disabling-two-factor-verification",
+    "documentation": "https://help.101domain.com/kb/setup-two-factor-authentication",
     "name": "101domain"
   },
   {
@@ -139,6 +139,14 @@
     ],
     "documentation": "https://www.accelo.com/resources/help/faq/user-permissions-and-settings/two-factor-authentication/",
     "name": "Accelo"
+  },
+  {
+    "domain": "accountable.eu",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.accountable.eu/en/articles/6976966",
+    "name": "Accountable"
   },
   {
     "domain": "accounts.firefox.com",
@@ -1416,6 +1424,15 @@
     "name": "Bendigo Bank"
   },
   {
+    "domain": "benefitscal.com",
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://www.calsaws.org/wp-content/uploads/2024/02/BenefitsCal-Quick-Guide-Two-Step-Verification-1.pdf",
+    "name": "BenefitsCal"
+  },
+  {
     "domain": "berkeley.edu",
     "tfa": [
       "sms",
@@ -2081,7 +2098,7 @@
       "sms",
       "totp"
     ],
-    "documentation": "https://www.brex.com/support/how-do-i-use-two-factor-authentication-to-log-in",
+    "documentation": "https://www.brex.com/support/two-factor-authentication",
     "name": "Brex"
   },
   {
@@ -7064,6 +7081,17 @@
     "name": "HSBC [UK]"
   },
   {
+    "domain": "hsbc.com.au",
+    "tfa": [
+      "custom-software"
+    ],
+    "custom-software": [
+      "HSBC Australia"
+    ],
+    "documentation": "https://www.hsbc.com.au/ways-to-bank/support/digital-secure-key/",
+    "name": "HSBC [AU]"
+  },
+  {
     "domain": "huaweicloud.com",
     "tfa": [
       "sms",
@@ -9256,9 +9284,9 @@
   },
   {
     "domain": "minds.com",
-    "url": "https://www.minds.com/",
     "tfa": [
-      "sms"
+      "email",
+      "totp"
     ],
     "name": "Minds"
   },

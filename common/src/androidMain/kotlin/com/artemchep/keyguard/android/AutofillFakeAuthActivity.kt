@@ -12,8 +12,10 @@ import arrow.core.toOption
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
 import com.artemchep.keyguard.android.clipboard.KeyguardClipboardService
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.handleErrorWith
+import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
@@ -24,6 +26,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 import com.artemchep.keyguard.common.usecase.AddUriCipher
+import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -108,18 +111,37 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
 
     private fun launchCopyTotpService() {
         val windowCoroutineScope: WindowCoroutineScope by instance()
-        args?.cipherTotpRaw
-            .toOption()
-            .toEither {
-                NullPointerException()
-            }
-            .flatMap { url ->
-                TotpToken.parse(url)
-            }
+        val getVaultSession: GetVaultSession by instance()
+
+        getVaultSession()
             .toIO()
-            .effectMap(Dispatchers.Main) {
-                val intent = KeyguardClipboardService.getIntent(this, args?.cipherName, it)
-                startForegroundService(intent)
+            .effectMap { session ->
+                val a = session as? MasterSession.Key
+                    ?: return@effectMap io(false)
+
+                val getAutofillCopyTotp: GetAutofillCopyTotp by a.di.instance()
+                getAutofillCopyTotp()
+                    .toIO()
+            }
+            .flatten()
+            .flatMap { enabled ->
+                if (!enabled) {
+                    return@flatMap ioUnit()
+                }
+
+                args?.cipherTotpRaw
+                    .toOption()
+                    .toEither {
+                        NullPointerException()
+                    }
+                    .flatMap { url ->
+                        TotpToken.parse(url)
+                    }
+                    .toIO()
+                    .effectMap(Dispatchers.Main) {
+                        val intent = KeyguardClipboardService.getIntent(this, args?.cipherName, it)
+                        startForegroundService(intent)
+                    }
             }
             .handleErrorWith {
                 ioUnit()

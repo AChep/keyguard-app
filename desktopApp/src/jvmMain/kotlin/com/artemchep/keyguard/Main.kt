@@ -204,6 +204,12 @@ fun main() {
             val isWindowOpenState = remember {
                 mutableStateOf(true)
             }
+            val onWindowOpen = remember(isWindowOpenState) {
+                // lambda
+                {
+                    isWindowOpenState.value = true
+                }
+            }
 
             // Show a tray icon and allow the app to be collapsed into
             // the tray on supported platforms.
@@ -222,12 +228,14 @@ fun main() {
                 Tray(
                     icon = painterResource(Res.images.ic_keyguard),
                     state = trayState,
-                    onAction = {
-                        isWindowOpenState.value = true
-                    },
+                    onAction = onWindowOpen,
                     menu = {
                         Item(
-                            stringResource(Res.strings.close),
+                            stringResource(Res.strings.show_keyguard),
+                            onClick = onWindowOpen,
+                        )
+                        Item(
+                            stringResource(Res.strings.quit),
                             onClick = ::exitApplication,
                         )
                     },

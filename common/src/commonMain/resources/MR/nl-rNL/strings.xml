@@ -2,8 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">Ok</string>
     <string name="close">Sluiten</string>
+    <string name="quit">Quit</string>
     <string name="yes">Ja</string>
     <string name="no">No</string>
+    <!-- On click brings Keyguard app to the front -->
+    <string name="show_keyguard">Show Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Naam</string>
     <string name="account_name">Accountnaam</string>
@@ -27,7 +30,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Maximaal aantal toegangen</string>
     <string name="learn_more">Lees meer</string>
     <string name="phone_number">Telefoonnummer</string>
     <string name="passport_number">Paspoortnummer</string>
@@ -68,11 +71,11 @@
     <string name="uris">URIs</string>
     <string name="note">Notitie</string>
     <string name="notes">Notities</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Datum</string>
+    <string name="time">Tijd</string>
     <string name="attachments">Bijlagen</string>
     <string name="attachments_empty_label">Geen bijlagen</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">Uitgeschakeld</string>
     <string name="expired">Verlopen</string>
     <string name="expiring_soon">Verloopt binnenkort</string>
     <string name="item_incomplete_title">Onvolledige gegevens</string>
@@ -97,7 +100,7 @@
     <string name="organizations">Organisaties</string>
     <string name="organizations_empty_label">Geen organisaties</string>
     <string name="misc">Overige</string>
-    <string name="category">Category</string>
+    <string name="category">Categorie</string>
     <string name="command">Opdracht</string>
     <string name="execute_command">Uitvoeren</string>
     <!-- Add (something) -->
@@ -123,20 +126,20 @@
     <string name="address2">Adresregel 2</string>
     <string name="address3">Adresregel 3</string>
     <string name="rename">Hernoemen</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Datum van verwijdering</string>
+    <string name="deletion_date_custom">Aangepast</string>
+    <string name="expiration_date">Verloopdatum</string>
+    <string name="expiration_date_custom">Aangepast</string>
+    <string name="expiration_date_never">Nooit</string>
     <string name="select_linked_type">Selecteer type</string>
     <string name="select_file">Bestand selecteren</string>
     <string name="autofill">Automatisch aanvullen</string>
     <string name="autofill_and_save_uri">Automatisch aanvullen en opslaan van app of website informatie</string>
-    <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Maak een passkey</string>
+    <string name="passkey">Toegangssleutel</string>
+    <string name="passkey_create_header">Maak een toegangssleutel</string>
     <string name="passkey_unlock_header">Keyguard ontgrendelen</string>
     <string name="passkey_auth_via_header">Bevestig autorisatieverzoek…</string>
-    <string name="passkeys">Passkeys</string>
+    <string name="passkeys">Toegangssleutels</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
@@ -167,8 +170,8 @@
     <string name="one_time_password">Verificatie code</string>
     <string name="one_time_password_authenticator_key">Verificatie sleutel</string>
     <string name="passkey_use_short">Gebruik</string>
-    <string name="passkey_save">Passkey opslaan</string>
-    <string name="passkey_available">Passkey beschikbaar</string>
+    <string name="passkey_save">Toegangssleutel opslaan</string>
+    <string name="passkey_available">Toegangssleutel beschikbaar</string>
     <string name="twofa_available">Tweestapsverificatie beschikbaar</string>
     <string name="custom">Aangepast</string>
     <string name="follow_system_settings">Gebruik systeeminstellingen</string>
@@ -212,7 +215,7 @@
     <string name="filter_pending_items">In behandeling</string>
     <string name="filter_failed_items">Mislukt</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Vereist Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Onofficiële Bitwarden server</string>
     <string name="account_last_synced_at">Laatst gesynchroniseerd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Naam wijzigen</string>
@@ -286,7 +289,7 @@
     <string name="sends_action_disable_title">Deactiveren</string>
     <string name="sends_action_disable_text">Inactieve send is niet toegankelijk via een openbare URL</string>
     <string name="sends_action_disable_confirmation_title">Deactiveren?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disabled_note">Deze send is gedeactiveerd, niemand heeft er meer toegang tot.</string>
     <string name="sends_action_delete_title">Definitief verwijderen</string>
     <string name="sends_action_delete_confirmation_title">Definitief verwijderen?</string>
     <string name="file_action_open_with_title">Open met…</string>
@@ -358,13 +361,13 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan de volledige naam</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan een onbekend veld</string>
     <string name="text_action_share_with_title">Delen met…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Send aanmaken</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> geselecteerd</string>
     <string name="copy">Kopiëren</string>
     <string name="copy_value">Kopieer waarde</string>
     <string name="copy_url">URL kopiëren</string>
     <string name="copy_uri">URI kopiëren</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">Send kopiëren</string>
     <string name="copy_package_name">Pakketnaam kopiëren</string>
     <string name="copy_password">Wachtwoord kopiëren</string>
     <string name="copy_username">Gebruikersnaam kopiëren</string>
@@ -439,8 +442,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Veld mag niet leeg zijn</string>
     <string name="error_must_be_custom_domain">Moet een aangepast domein zijn</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_number">Moet een getal zijn</string>
+    <string name="error_must_be_less_than_days">Moet kleiner zijn dan <xliff:g id="days" example="15">%1$d</xliff:g> dagen vanaf de huidige tijd</string>
     <string name="error_must_contain_only_us_ascii_chars">Mag alleen US-ASCII tekens bevatten</string>
     <string name="error_must_have_at_least_n_symbols">Moet minstens <xliff:g id="length" example="15">%1$d</xliff:g> symbolen lang zijn</string>
     <string name="error_must_have_exactly_n_symbols">Moet exact <xliff:g id="length" example="15">%1$d</xliff:g> symbolen lang zijn</string>
@@ -452,10 +455,12 @@
     <string name="error_incorrect_password">Onjuist wachtwoord</string>
     <string name="error_failed_generate_kdf_hash_oom">Het maken van een sleutel is mislukt, er is niet genoeg geheugen. Controleer de KDF server instellingen.</string>
     <string name="error_failed_generate_otp_code">Genereren van verificatie code mislukt</string>
-    <string name="error_failed_create_passkey">Het maken van een passkey is mislukt</string>
+    <string name="error_failed_create_passkey">Het maken van een toegangssleutel is mislukt</string>
     <string name="error_failed_use_passkey">Autoriseren van een aanvraag mislukt</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">Kan URI niet openen</string>
     <string name="error_failed_format_placeholder">Formatteren van de placeholder is mislukt</string>
+    <string name="scanqr_title">Scan QR code</string>
+    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Toon als barcode</string>
@@ -499,8 +504,8 @@
     <string name="tfa_directory_title">Tweestapsverificatie</string>
     <string name="tfa_directory_text">Lijst van websites met ondersteuning voor tweestapsverificatie</string>
     <string name="tfa_directory_search_placeholder">Zoek websites</string>
-    <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">Lijst van websites met ondersteuning voor passkeys</string>
+    <string name="passkeys_directory_title">Toegangssleutels</string>
+    <string name="passkeys_directory_text">Lijst van websites met ondersteuning voor toegangssleutels</string>
     <string name="passkeys_directory_search_placeholder">Zoek websites</string>
     <!-- Title of the 'Email data breach' dialog -->
     <string name="emailleak_title">Datalek</string>
@@ -583,7 +588,7 @@
     <string name="additem_header_merge_title">Items samenvoegen</string>
     <string name="additem_merge_remove_origin_ciphers_title">Verplaats originele item(s) naar de prullenbak</string>
     <string name="additem_merge_attachments_note">Bijlagen worden niet automatisch samengevoegd! Het nieuwe item zal geen bijlagen gekoppeld hebben.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">Voeg hier notities toe over dit item</string>
     <string name="additem_markdown_note">Stijl tekst met <xliff:g id="italic" example="italic">%1$s</xliff:g> of <xliff:g id="bold" example="bold">%2$s</xliff:g> en meer. Beperkte Markdown syntax wordt ondersteund.</string>
     <string name="additem_markdown_note_italic">cursief</string>
     <string name="additem_markdown_note_bold">dikgedrukt</string>
@@ -592,10 +597,10 @@
     <string name="additem_auth_reprompt_text">Vraag om opnieuw te verifiëren wanneer je een item wilt bekijken of automatisch wilt aanvullen</string>
     <string name="addsend_header_new_title">Nieuw item</string>
     <string name="addsend_header_edit_title">Item bewerken</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_text_hide_by_default_title">Verberg de tekst automatisch wanneer je dit item bekijkt</string>
+    <string name="addsend_hide_text_by_default_title">Verberg de tekst automatisch wanneer je dit item bekijkt</string>
+    <string name="addsend_hide_email_title">Verberg e-mailadres</string>
+    <string name="addsend_max_access_count_note">Als dit is ingesteld kunnen gebruikers deze Send niet meer bekijken zodra het maximale aantal bezoekers is bereikt.</string>
     <string name="addaccount_header_title">Bitwarden account toevoegen</string>
     <string name="addaccount_disclaimer_bitwarden_label">We zijn niet geaffilieerd, geassocieerd, geautoriseerd, goedgekeurd door of op enige manier officieel verbonden met Bitwarden, Inc. of een van zijn filialen of medewerkers.</string>
     <!--
@@ -658,7 +663,7 @@
     <string name="cipher_type_card">Kaart</string>
     <string name="cipher_type_identity">Identiteit</string>
     <string name="cipher_type_note">Notitie</string>
-    <string name="cipher_type_passkey">Passkey</string>
+    <string name="cipher_type_passkey">Toegangssleutel</string>
     <string name="field_type_text">Tekst</string>
     <string name="field_type_boolean">Boolean</string>
     <string name="field_type_linked">Gekoppeld</string>
@@ -718,7 +723,7 @@
     <string name="vault_view_card_cvv_label">Veiligheidscode</string>
     <string name="vault_view_saved_to_label">Opgeslagen in <xliff:g id="email" example="username@example.com">%1$s</xliff:g> bij <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Wachtwoord laatst gewijzigd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Passkey aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Toegangssleutel aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Laatst gewijzigd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Verwijderd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -805,8 +810,8 @@
     <string name="watchtower_item_unsecure_websites_text">Wijzig de URL\'s die het HTTP-protocol gebruiken om het HTTPS-protocol te gebruiken, dit zorgt ervoor dat de meest geavanceerde beschikbare versleuteling wordt gebruikt.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactieve tweestapsverificatie</string>
     <string name="watchtower_item_inactive_2fa_text">Websites met tweestapsverificatie beschikbaar, maar u hebt deze nog niet ingesteld.</string>
-    <string name="watchtower_item_inactive_passkey_title">Beschikbare Passkeys</string>
-    <string name="watchtower_item_inactive_passkey_text">Websites die passkeys ondersteunen, maar waar je deze nog niet hebt ingesteld. Het is eenvoudiger en veiliger dan een wachtwoord.</string>
+    <string name="watchtower_item_inactive_passkey_title">Beschikbare Toegangssleutels</string>
+    <string name="watchtower_item_inactive_passkey_text">Websites die toegangssleutels ondersteunen, maar waar je deze nog niet hebt ingesteld. Toegangssleutels zijn makkelijker en veiliger dan een wachtwoord.</string>
     <string name="watchtower_item_incomplete_items_title">Onvolledige items</string>
     <string name="watchtower_item_incomplete_items_text">Helpt u ontbrekende of onvolledige gegevens in uw kluis te identificeren. Dit kan verwijzen naar identiteiten met ontbrekende namen of logins zonder gebruikersnamen.</string>
     <string name="watchtower_item_expiring_items_title">Verlopende items</string>
@@ -893,7 +898,7 @@
     <string name="pref_item_load_app_icons_title">Laad app pictogrammen</string>
     <string name="pref_item_load_website_icons_title">Laad website iconen</string>
     <string name="pref_item_load_website_icons_text">Website iconen tonen kan het adres van de website lekken naar uw internetprovider</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">Gebruik Gravatar iconen</string>
     <string name="pref_item_markdown_title">Rijke tekst opmaak</string>
     <string name="pref_item_markdown_text">Gebruik Markdown om notities te formatteren</string>
     <string name="pref_item_locale_title">Taal</string>
@@ -905,10 +910,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Gebruik zwart contrast thema</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in externe browser</string>
     <string name="pref_item_close_to_tray_title">Sluiten naar systeemvak</string>
-    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
-    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
-    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
-    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
+    <string name="pref_item_check_pwned_passwords_title">Controleer op gelekte wachtwoorden</string>
+    <string name="pref_item_check_pwned_services_title">Controleer op datalekken</string>
+    <string name="pref_item_check_inactive_2fa_title">Controleer op inactieve tweestapsverificatie</string>
+    <string name="pref_item_check_inactive_passkeys_title">Controleer op inactieve toegangssleutels</string>
     <string name="pref_item_conceal_fields_title">Verberg velden</string>
     <string name="pref_item_conceal_fields_text">Verberg gevoelige informatie, zoals wachtwoorden en creditcardnummers</string>
     <!--
@@ -916,7 +921,7 @@
         regular users. -->
     <string name="pref_item_crash_title">Crash</string>
     <string name="pref_item_credential_provider_title">Credential provider</string>
-    <string name="pref_item_credential_provider_text">Passkeys, wachtwoorden en datadiensten</string>
+    <string name="pref_item_credential_provider_text">Toegangssleutels, wachtwoorden en datadiensten</string>
     <string name="pref_item_privacy_policy_title">Privacybeleid</string>
     <string name="pref_item_contact_us_title">Contacteer ons</string>
     <string name="pref_item_experimental_title">Experimenteel</string>
@@ -949,8 +954,8 @@
     <string name="pref_item_features_overview_title">Overzicht van functies</string>
     <string name="pref_item_url_override_title">URL overrides</string>
     <string name="pref_item_biometric_unlock_title">Biometrische ontgrendeling</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Bevestiging vereisen</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Vereis een extra druk op de bevestigingsknop na geslaagde biometrische verificatie</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

@@ -2,8 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">확인</string>
     <string name="close">닫기</string>
+    <string name="quit">Quit</string>
     <string name="yes">예</string>
     <string name="no">아니오</string>
+    <!-- On click brings Keyguard app to the front -->
+    <string name="show_keyguard">Show Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">이름</string>
     <string name="account_name">계정 이름</string>
@@ -456,6 +459,8 @@
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
     <string name="error_failed_open_uri">URI를 열지 못했습니다.</string>
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
+    <string name="scanqr_title">Scan QR code</string>
+    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>

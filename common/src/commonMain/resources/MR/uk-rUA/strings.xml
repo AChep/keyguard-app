@@ -2,8 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Закрити</string>
+    <string name="quit">Quit</string>
     <string name="yes">Так</string>
     <string name="no">Ні</string>
+    <!-- On click brings Keyguard app to the front -->
+    <string name="show_keyguard">Show Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Назва</string>
     <string name="account_name">Назва облікового запису</string>
@@ -456,6 +459,8 @@
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>
     <string name="error_failed_open_uri">Не вдалося відкрити посилання</string>
     <string name="error_failed_format_placeholder">Не вдалося відформатувати поле</string>
+    <string name="scanqr_title">Scan QR code</string>
+    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Штрих-код</string>

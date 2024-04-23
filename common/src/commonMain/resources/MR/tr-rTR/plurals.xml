@@ -2,34 +2,34 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hesap</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hesaplar</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hesap</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> olay</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> olaylar</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> olay</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> kelime</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> kelimeler</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> kelime</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> sonuç</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> sonuçlar</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> sonuç</item>
     </plurals>
     <plurals name="seconds_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> saniye</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> saniyeler</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> saniye</item>
     </plurals>
     <plurals name="minutes_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> dakika</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dakikalar</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dakika</item>
     </plurals>
     <plurals name="hours_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> saat</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> saatler</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> saat</item>
     </plurals>
     <plurals name="days_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> gün</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> günler</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> gün</item>
     </plurals>
 </resources>

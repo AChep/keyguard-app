@@ -55,7 +55,7 @@ jobs:
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:
-          arguments: "-PexcludeAppImage=true :desktopApp:packageDmg :desktopApp:notarizeDmg"
+          arguments: ":desktopApp:packageDmg :desktopApp:notarizeDmg"
       - name: 'Upload logs'
         uses: actions/upload-artifact@v4
         if: always()

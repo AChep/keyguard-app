@@ -1,3 +1,4 @@
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -22,15 +23,6 @@ kotlin {
             }
         }
     }
-}
-
-// Because of this bug you can not build for macOS and
-// have the app image distribution format enabled.
-// See:
-// https://github.com/JetBrains/compose-multiplatform/issues/3814
-val excludeAppImage = kotlin.run {
-    val excludeAppImage: String? by project
-    excludeAppImage == "true"
 }
 
 val appId = "com.artemchep.keyguard"
@@ -101,7 +93,11 @@ compose.desktop {
                 TargetFormat.Dmg,
                 TargetFormat.Msi,
                 TargetFormat.Deb,
-                TargetFormat.AppImage.takeUnless { excludeAppImage },
+                // Because of this bug you can not build for macOS and
+                // have the app image distribution format enabled.
+                // See:
+                // https://github.com/JetBrains/compose-multiplatform/issues/3814
+                TargetFormat.AppImage.takeUnless { Os.isFamily(Os.FAMILY_MAC) },
             ).toTypedArray()
             targetFormats(*formats)
 

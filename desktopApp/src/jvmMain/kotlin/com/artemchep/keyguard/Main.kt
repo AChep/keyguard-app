@@ -43,6 +43,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.LocalComposeWindow
@@ -226,7 +228,10 @@ fun main() {
             if (getCloseToTrayState.value) {
                 val trayState = rememberTrayState()
                 Tray(
-                    icon = painterResource(Res.images.ic_keyguard),
+                    icon = when (CurrentPlatform) {
+                        is Platform.Desktop.MacOS -> painterResource(Res.images.ic_tray_macos)
+                        else -> painterResource(Res.images.ic_keyguard)
+                    },
                     state = trayState,
                     onAction = onWindowOpen,
                     menu = {

@@ -6,7 +6,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.desktop.util.showFilePicker
+import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.LocalLeContext
 import com.artemchep.keyguard.platform.leParseUri
+import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.LocalComposeWindow
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +26,7 @@ actual fun FilePickerEffect(
     }
 
     val composeWindow by rememberUpdatedState(LocalComposeWindow.current)
+    val context by rememberUpdatedState(LocalLeContext)
     val showMessage: ShowMessage by rememberInstance()
 
     CollectedEffect(flow) { intent ->
@@ -41,9 +45,10 @@ actual fun FilePickerEffect(
                         }
                     }
                 val filters = if (extensions.isNotEmpty()) {
+                    val title = textResource(Res.strings.select_file, context)
                     listOf(
                         FileDialog.Filter(
-                            title = "Select a file",
+                            title = title,
                             extensions = extensions,
                         ),
                     )

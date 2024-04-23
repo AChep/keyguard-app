@@ -481,6 +481,9 @@
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
 
+    <string name="scanqr_title">Scan QR code</string>
+    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
+
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>

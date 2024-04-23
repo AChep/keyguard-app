@@ -41,6 +41,8 @@ actual fun FilePickerEffect(
                         when {
                             mimeType == "text/plain" -> "txt"
                             mimeType == "text/wordlist" -> "wordlist"
+                            mimeType == "image/png" -> "png"
+                            mimeType == "image/jpg" -> "jpg"
                             else -> null
                         }
                     }

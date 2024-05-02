@@ -4,7 +4,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.101domain.com/account-management/account-security/enabling-disabling-two-factor-verification",
+    "documentation": "https://help.101domain.com/kb/setup-two-factor-authentication",
     "name": "101domain"
   },
   {
@@ -139,6 +139,14 @@
     ],
     "documentation": "https://www.accelo.com/resources/help/faq/user-permissions-and-settings/two-factor-authentication/",
     "name": "Accelo"
+  },
+  {
+    "domain": "accountable.eu",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.accountable.eu/en/articles/6976966",
+    "name": "Accountable"
   },
   {
     "domain": "accounts.firefox.com",
@@ -1416,6 +1424,15 @@
     "name": "Bendigo Bank"
   },
   {
+    "domain": "benefitscal.com",
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://www.calsaws.org/wp-content/uploads/2024/02/BenefitsCal-Quick-Guide-Two-Step-Verification-1.pdf",
+    "name": "BenefitsCal"
+  },
+  {
     "domain": "berkeley.edu",
     "tfa": [
       "sms",
@@ -1828,6 +1845,15 @@
     "name": "BKEX"
   },
   {
+    "domain": "blackbaud.com",
+    "tfa": [
+      "totp",
+      "sms"
+    ],
+    "documentation": "https://docs.blackbaud.com/bbid-docs/get-started/multi-factor-auth",
+    "name": "Blackbaud"
+  },
+  {
     "domain": "blacknight.com",
     "tfa": [
       "totp"
@@ -2081,8 +2107,19 @@
       "sms",
       "totp"
     ],
-    "documentation": "https://www.brex.com/support/how-do-i-use-two-factor-authentication-to-log-in",
+    "documentation": "https://www.brex.com/support/two-factor-authentication",
     "name": "Brex"
+  },
+  {
+    "domain": "bsky.app",
+    "additional-domains": [
+      "bsky.social",
+      "blueskyweb.xyz"
+    ],
+    "tfa": [
+      "email"
+    ],
+    "name": "Bluesky"
   },
   {
     "domain": "bt.com",
@@ -4576,22 +4613,6 @@
     "name": "Domain"
   },
   {
-    "domain": "domains.google.com",
-    "tfa": [
-      "sms",
-      "call",
-      "custom-software",
-      "totp",
-      "u2f"
-    ],
-    "custom-software": [
-      "Google Prompts",
-      "Google Smart Lock"
-    ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
-    "name": "Google Domains"
-  },
-  {
     "domain": "domeneshop.no",
     "tfa": [
       "sms",
@@ -5534,12 +5555,11 @@
   },
   {
     "domain": "fax.plus",
-    "url": "https://www.fax.plus",
     "tfa": [
       "totp"
     ],
-    "documentation": "https://www.fax.plus/de/help/enable-disable-2fa",
-    "name": "FAX.PLUS"
+    "documentation": "https://help.alohi.com/hc/en-us/articles/10305460302876#h_01HQNATZ23QZDS1ZD727628RP7",
+    "name": "Fax.Plus"
   },
   {
     "domain": "fedex.com",
@@ -6412,6 +6432,9 @@
   },
   {
     "domain": "groupme.com",
+    "additional-domains": [
+      "group.me"
+    ],
     "tfa": [
       "sms"
     ],
@@ -7062,6 +7085,17 @@
     ],
     "documentation": "https://www.hsbc.co.uk/help/security-centre/secure-key/secure-key-help/",
     "name": "HSBC [UK]"
+  },
+  {
+    "domain": "hsbc.com.au",
+    "tfa": [
+      "custom-software"
+    ],
+    "custom-software": [
+      "HSBC Australia"
+    ],
+    "documentation": "https://www.hsbc.com.au/ways-to-bank/support/digital-secure-key/",
+    "name": "HSBC [AU]"
   },
   {
     "domain": "huaweicloud.com",
@@ -8664,15 +8698,14 @@
   },
   {
     "domain": "macquarie.com.au",
-    "url": "https://www.macquarie.com.au/",
     "tfa": [
       "custom-software"
     ],
     "custom-software": [
       "Macquarie Authenticator"
     ],
-    "documentation": "https://help.macquarie.com/s/article/How-do-I-set-up-two-factor-authentication",
-    "notes": "2FA is only available when 'Ultimate' security is enabled and an SMS-capable phone is required for initial setup.",
+    "documentation": "https://www.macquarie.com.au/help/personal/accessing-online-and-mobile-banking/macquarie-authenticator-and-multi-factor-authentication/set-up-macquarie-authenticator",
+    "notes": "An SMS-capable phone is required for initial setup.",
     "name": "Macquarie Bank"
   },
   {
@@ -8946,6 +8979,16 @@
     ],
     "documentation": "https://support.maropost.com/hc/en-us/articles/360015708033",
     "name": "Maropost Marketing Cloud"
+  },
+  {
+    "domain": "marriott.com",
+    "url": "https://www.marriott.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://help.marriott.com/s/article/Article-34205",
+    "name": "Marriott"
   },
   {
     "domain": "mathworks.com",
@@ -9256,9 +9299,9 @@
   },
   {
     "domain": "minds.com",
-    "url": "https://www.minds.com/",
     "tfa": [
-      "sms"
+      "email",
+      "totp"
     ],
     "name": "Minds"
   },
@@ -10714,6 +10757,7 @@
     "tfa": [
       "email"
     ],
+    "documentation": "https://support.onlydomains.com/hc/articles/15889679813789",
     "name": "OnlyDomains"
   },
   {
@@ -13379,6 +13423,14 @@
     ],
     "documentation": "https://tech-shu-edu.refined.site/space/PUBLICKBA/2096431118/Guide%20to%20Enrolling%20a%20Device%20in%20Duo",
     "name": "Seton Hall University"
+  },
+  {
+    "domain": "sign.plus",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.alohi.com/hc/en-us/articles/10305460302876#h_01HQND8H36NDF3HTF1Y7WEBFGP",
+    "name": "Sign.Plus"
   },
   {
     "domain": "signal.org",

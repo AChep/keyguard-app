@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.text.url
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
@@ -97,6 +98,7 @@ private suspend fun internalLogin(
         // which is just a base-64 string of an email.
         val emailBase64 = base64Service
             .encodeToString(email)
+            .let(base64Service::url)
         header("Auth-Email", emailBase64)
         val passwordBase64 = base64Service
             .encodeToString(passwordKey)

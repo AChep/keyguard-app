@@ -1181,6 +1181,14 @@
     "notes": "Visit the linked page and under 'Account Settings', click the link next to 'If you wish to delete your Arduino account'. You will be sent an email with a link to delete your account."
   },
   {
+    "name": "AREX (Airport Railway Company)",
+    "domains": [
+      "arex.or.kr"
+    ],
+    "url": "https://www.arex.or.kr/user/leaveSite.do",
+    "difficulty": "easy"
+  },
+  {
     "name": "Arlo",
     "domains": [
       "arlo.com",
@@ -1341,6 +1349,18 @@
     "url": "https://id.atlassian.com/manage/close-account",
     "difficulty": "medium",
     "notes": "You need to visit my.atlassian.com and designate a different user as a billing and technical contact if your account is the primary billing contact for one or more products"
+  },
+  {
+    "name": "Auchan",
+    "domains": [
+      "auchan.fr"
+    ],
+    "url": "https://www.auchan.fr/faq/section/mon-compte-client/mon-compte-auchan-fr?parentNodeId=adf9b2fc-cd05-49df-9833-70766279aea3#anchor_3bea6236-a7b1-4c98-a754-fb04d325831c",
+    "difficulty": "hard",
+    "notes": "Send an email to the address given here. It's not listed on the FAQ page.",
+    "email": "relationclient@auchan.fr",
+    "email_subject": "Suppression de mon compte Auchan",
+    "email_body": "Bonjour, veuillez supprimer mon compte Auchan et les donn\u00e9es personelles associ\u00e9es avec cette adresse e-mail."
   },
   {
     "name": "Audiomack",
@@ -2258,6 +2278,15 @@
     "notes": "Visit the linked page and confirm the deletion."
   },
   {
+    "name": "BOOTH",
+    "domains": [
+      "booth.pm"
+    ],
+    "url": "https://accounts.booth.pm/settings/delete",
+    "difficulty": "easy",
+    "notes": "Go to your profile page and the \"Delete Account\" button. If you did not set a password, it will ask you to create one before you can delete your account."
+  },
+  {
     "name": "Boots Viewpoint",
     "domains": [
       "bootsviewpoint.co.uk"
@@ -2946,6 +2975,19 @@
     "notes": "Fill out the provided [privacy web form](https://privacyportal.onetrust.com/webform/63dc78c7-5612-4181-beae-47dead0569ee/01252c81-82df-4db5-9cb8-bf23a62a9a55), send an email to mailto:privacy@chick-fil-a.com, or call 1-866-232-2040."
   },
   {
+    "name": "Chocolatey",
+    "domains": [
+      "chocolatey.org",
+      "community.chocolatey.org",
+      "docs.chocolatey.org",
+      "blog.chocolatey.org",
+      "status.chocolatey.org"
+    ],
+    "url": "https://chocolatey.org/contact/general",
+    "difficulty": "hard",
+    "notes": "Visit the link, select the section \"General\" and fill out the form, in which request the deletion of your account."
+  },
+  {
     "name": "Cineplex",
     "domains": [
       "cineplex.com"
@@ -3257,6 +3299,16 @@
     "notes": "Go to your 'Settings' and scroll to the bottom to find the 'Danger Zone' section. However, the source code one has published will be kept in the system with a GPLv3 license."
   },
   {
+    "name": "Cohost",
+    "domains": [
+      "cohost.org"
+    ],
+    "url": "https://help.antisoftware.club/support/solutions/articles/62000225460-how-do-i-delete-a-page-my-account-",
+    "difficulty": "hard",
+    "notes": "Contact support from the email associated with your account and ask for your account to be deleted.",
+    "email": "support@cohost.org"
+  },
+  {
     "name": "Coin",
     "domains": [
       "coinapp.co",
@@ -3454,7 +3506,7 @@
     "domains": [
       "coursera.org"
     ],
-    "url": "https://www.coursera.org",
+    "url": "https://www.coursera.org/account-settings",
     "difficulty": "easy",
     "notes": "Delete acccount button is at the bottom of the account settings page."
   },
@@ -6116,9 +6168,9 @@
     "domains": [
       "galaxy.click"
     ],
-    "url": "https://galaxy.click",
-    "difficulty": "hard",
-    "notes": "Send an email to them requesting for your account's deletion.",
+    "url": "https://galaxy.click/settings#danger",
+    "difficulty": "medium",
+    "notes": "Navigate to the \"delete your account\" section of the \"danger zone\" in your account settings and follow the instructions. If you have published any games, you must delete them before you can proceed with account deletion. Games can be deleted within their edit page.",
     "email": "privacy@galaxy.click"
   },
   {
@@ -6270,6 +6322,14 @@
       "gbatemp.net"
     ],
     "url": "https://gbatemp.net/account/delete",
+    "difficulty": "easy"
+  },
+  {
+    "name": "Gdeposylka",
+    "domains": [
+      "gdeposylka.ru"
+    ],
+    "url": "https://gdeposylka.ru/auth/remove",
     "difficulty": "easy"
   },
   {
@@ -6607,6 +6667,15 @@
     "notes": "You can delete your account, by following the steps provided here: 'https://hilfe.gmx.net/account/verwalten/loeschen.html'"
   },
   {
+    "name": "GNC",
+    "domains": [
+      "gnc.com"
+    ],
+    "url": "https://www.gnc.com/help/contact-us.html#chat",
+    "difficulty": "hard",
+    "notes": "Open a live chat \u2b95 Ask for agent \u2b95 Request account deletion. Put a random phone number if you need to. It will take 7-10 days for it to be processed."
+  },
+  {
     "name": "GNOME",
     "domains": [
       "gnome.org"
@@ -6732,6 +6801,7 @@
   {
     "name": "Google",
     "domains": [
+      "ai.google",
       "blogger.com",
       "domains.google",
       "google.ac",
@@ -6849,6 +6919,7 @@
       "google.cv",
       "google.cz",
       "google.de",
+      "google.dev",
       "google.dj",
       "google.dk",
       "google.dm",
@@ -6935,16 +7006,21 @@
       "accounts.google.com",
       "admob.google.com",
       "ads.google.com",
+      "ai.google.dev",
       "artsandculture.google.com",
       "books.google.com",
       "chat.google.com",
       "classroom.google.com",
       "consent.google.com",
       "contacts.google.com",
+      "deepmind.google",
+      "developers.google.com",
       "docs.google.com",
       "duo.google.com",
       "drive.google.com",
       "earth.google.com",
+      "edu.google.com",
+      "gemini.google.com",
       "hangouts.google.com",
       "jamboard.google.com",
       "keep.google.com",
@@ -6955,11 +7031,14 @@
       "news.google.com",
       "play.google.com",
       "photos.google.com",
+      "policies.google.com",
+      "safety.google",
       "sites.google.com",
       "stadia.google.com",
       "support.google.com",
       "takeout.google.com",
-      "translate.google.com"
+      "translate.google.com",
+      "workspace.google.com"
     ],
     "url": "https://security.google.com/settings/security/deleteaccount",
     "difficulty": "easy"
@@ -9102,6 +9181,20 @@
     "notes": "Click in the gear on left upper corner \u2b95 Account security \u2b95 \"Delete my account\" at the bottom \u2b95 Select the reason and press the \"Delete my account\" button. The deleting process will occur in 72 hours. Your account may be removed if you haven't used it for 6 months."
   },
   {
+    "name": "Kyun!",
+    "domains": [
+      "kyun.host",
+      "kyun.li",
+      "kyun.network",
+      "blog.kyun.host",
+      "files.kyun.host",
+      "status.kyun.host"
+    ],
+    "url": "https://kyun.host/dashboard",
+    "difficulty": "easy",
+    "notes": "In the 'Disaster Zone' field, click on the 'Nuke account' button."
+  },
+  {
     "name": "Lampyre",
     "domains": [
       "lampyre.io"
@@ -10956,6 +11049,15 @@
     "notes": "Login to your account, click in the account icon \u2b95 Settings \u2b95 Delete Account and write the password and a note (optionally)."
   },
   {
+    "name": "Multiplayer Game Hacking MPGH",
+    "domains": [
+      "mpgh.net"
+    ],
+    "url": "https://www.mpgh.net/",
+    "difficulty": "impossible",
+    "notes": "Accounts can not be deleted, but admins offer an 'account purge' per request. It is wise to manually strip your account from any personal data."
+  },
+  {
     "name": "MuniMobile (San Francisco Municipal Transportation Agency)",
     "domains": [
       "sfmta.transitsherpa.com",
@@ -12286,15 +12388,6 @@
     "email": "subscription.support@packtpub.com"
   },
   {
-    "name": "Padrim",
-    "domains": [
-      "padrim.com.br"
-    ],
-    "url": "https://padrim.zendesk.com/hc/pt-br/articles/360015115254-Como-excluo-minha-conta-do-Padrim-",
-    "difficulty": "impossible",
-    "notes": "At the moment, it's not possible to exclude the account, but you can change the profile to the \"private\" mode."
-  },
-  {
     "name": "PAGBET",
     "domains": [
       "pagbet.com"
@@ -12349,6 +12442,16 @@
     "difficulty": "hard",
     "notes": "Send an email to human@paperkarma.com requesting deletion. If you have a subscription plan through the App Store or Google Play, be sure to cancel your subscription in the proper store.",
     "email": "human@paperkarma.com"
+  },
+  {
+    "name": "PaperNodes",
+    "domains": [
+      "papernodes.com",
+      "billing.papernodes.com"
+    ],
+    "url": "https://papernodes.com",
+    "difficulty": "easy",
+    "notes": "Hover over 'More Pages' then click on 'login' \u2b95'account settings' and scroll down to see 'Delete my account' and press it. After confirming your password, all the data asociated to your account will be deleted in 48 hours."
   },
   {
     "name": "Paradox Plaza",
@@ -12660,6 +12763,15 @@
     "url": "https://account.meethue.com/account",
     "difficulty": "easy",
     "notes": "Click 'Delete Account' on your account page."
+  },
+  {
+    "name": "Phind",
+    "domains": [
+      "phind.com"
+    ],
+    "url": "https://www.phind.com/",
+    "difficulty": "easy",
+    "notes": "\u0421lick on your email at the top of the page, then in the \"Danger zone\" field select delete acccount"
   },
   {
     "name": "PhishTank",
@@ -14004,11 +14116,14 @@
   {
     "name": "Revolut",
     "domains": [
-      "revolut.com"
+      "revolut.com",
+      "help.revolut.com",
+      "community.revolut.com",
+      "developer.revolut.com"
     ],
-    "url": "https://www.revolut.com/help/profile/i-want-to-close-my-revolut-account",
-    "difficulty": "easy",
-    "notes": "Open the Revolut app on your phone, go to the Settings tab, press 'Close account' button and follow the instructions."
+    "url": "https://help.revolut.com/en-US/help/profile-and-plan/closing-account/",
+    "difficulty": "medium",
+    "notes": "Open the Revolut app on your phone, go to the profile icon, then press on \"Account\", \"Close account\", and follow the instructions.\nIn order to close your account you must meet the requirements written in the linked page."
   },
   {
     "name": "Rideindego",
@@ -15347,6 +15462,15 @@
     "notes": "You can delete using the provided link, but then you have to [submit an Erase my account request](https://stackoverflow.com/legal/gdpr/request) to have the profile fully deleted and the data removed or anonymized in the network."
   },
   {
+    "name": "Stackhero",
+    "domains": [
+      "stackhero.io"
+    ],
+    "url": "https://www.stackhero.io/",
+    "difficulty": "hard",
+    "notes": "Click the lower right position messenger to request for account deletion."
+  },
+  {
     "name": "Stan",
     "domains": [
       "stan.com.au"
@@ -16237,6 +16361,15 @@
     "notes": "No options to delete the account on website or app. Customer service asks for validation (phone number) but account is not actually deleted."
   },
   {
+    "name": "Temu",
+    "domains": [
+      "temu.com"
+    ],
+    "url": "https://www.temu.com/bgp_close_account.html",
+    "difficulty": "easy",
+    "notes": "Log into Temu and open your profile. Click on \"Account security\" and then select \"Delete my account\"."
+  },
+  {
     "name": "Ten Percent Happier",
     "domains": [
       "tenpercent.com",
@@ -16688,6 +16821,15 @@
     "url": "https://help.trademe.co.nz/hc/en-us/articles/360007000092#h_01GBNRBS8NG0QNNRWXCV7RVWDS",
     "difficulty": "hard",
     "notes": "Click on the link and ask the staff to delete your account"
+  },
+  {
+    "name": "Trading 212",
+    "domains": [
+      "app.trading212.com"
+    ],
+    "url": "https://app.trading212.com",
+    "difficulty": "easy",
+    "notes": "Go to Settings \u2b95 My Account \u2b95 Account Details then click 'Close Account'"
   },
   {
     "name": "TradingView",
@@ -17342,6 +17484,17 @@
     "url": "https://www.uxpin.com/docs/account/closing-your-account/",
     "difficulty": "hard",
     "notes": "You must call them to close your account."
+  },
+  {
+    "name": "V.PS Hosting",
+    "domains": [
+      "v.ps",
+      "status.v.ps",
+      "vps.hosting"
+    ],
+    "url": "https://vps.hosting/clientarea/delete",
+    "difficulty": "easy",
+    "notes": " Go to the page and click the delete account button."
   },
   {
     "name": "Valorant",

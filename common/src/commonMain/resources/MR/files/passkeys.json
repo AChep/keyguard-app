@@ -13,6 +13,18 @@
     "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
   },
   {
+    "id": "ffcd2cbbb98452d49c4fe9c1ce1d61f6",
+    "name": "Affirm",
+    "domain": "affirm.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://helpcenter.affirm.com/s/article/Set-up-a-Passkey",
+    "setup": "https://www.affirm.com/u/settings/security-center",
+    "category": "Finance",
+    "created_at": "2023-08-16T14:29:52.423203+00:00"
+  },
+  {
     "id": "61a3e313d61080750cd23d799aeda103",
     "name": "Albert Heijn",
     "domain": "ah.nl",
@@ -239,6 +251,17 @@
     "created_at": "2023-10-08T16:41:31.0696+00:00"
   },
   {
+    "id": "0e84e4a39f5edab99543f16ba26ceb22",
+    "name": "Uninbox",
+    "domain": "app.uninbox.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.uninbox.com/join/secure",
+    "category": "Email",
+    "created_at": "2024-05-02T10:17:40.653235+00:00"
+  },
+  {
     "id": "d3b7268e890129afb066640102955714",
     "name": "Apple",
     "domain": "apple.com",
@@ -352,6 +375,17 @@
     ],
     "category": "Information Technology",
     "created_at": "2023-03-27T09:11:32.900538+00:00"
+  },
+  {
+    "id": "fe803e01d281292cc378fdda402d1884",
+    "name": "BMW",
+    "domain": "bmw.com",
+    "features": [
+      "signin"
+    ],
+    "category": "Automotive",
+    "created_at": "2024-04-24T23:01:49+00:00",
+    "notes": "BMW now supports signing in to your BMW ID with a passkey. Instructions on saving a passkey to your BMW ID may vary from region to region but more information can be found in the Account Data section of your BMW ID profile."
   },
   {
     "id": "d8915fbe73b57587b57193fbbea2e541",
@@ -606,6 +640,17 @@
     "notes": "Passkeys can be setup within members account preferences > security"
   },
   {
+    "id": "5f0509ce69d55c259c4bcc6c9bc651ad",
+    "name": "Documenso",
+    "domain": "documenso.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.documenso.com/settings/security/passkeys",
+    "category": "Productivity",
+    "created_at": "2024-04-30T12:01:52.247731+00:00"
+  },
+  {
     "id": "1aeda7b0cf0214eddd1eaeb8a2ea1a85",
     "name": "DocuSign",
     "domain": "docusign.com",
@@ -644,6 +689,17 @@
     "notes": "Select the setup link above and sign in with your email address and password, then select \"Turn on\" next to \"Passkeys\" or \"Face/fingerprint/PIN sign in\" section and follow the steps to create a passkey.\n\nSign out, then sign back in. 1Password will sign in with your passkey automatically."
   },
   {
+    "id": "baf9c3bf35911171a96c31a7bb6cb78c",
+    "name": "Fairfax County, Virginia (MyFairfax)",
+    "domain": "fairfaxcounty.gov",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.fairfaxcounty.gov/myfairfax/portal/ffx-index.jsp",
+    "category": "Government",
+    "created_at": "2024-04-25T10:16:01.030988+00:00"
+  },
+  {
     "id": "ffedf5be9581c59c6692beadc6bd3353",
     "name": "Finom",
     "domain": "finom.co",
@@ -678,6 +734,17 @@
     "notes": "Uses AuthGear. Setup on register or at https://auth.formextractorai.com/settings"
   },
   {
+    "id": "5bc74064a56d06901233422c48bf2f61",
+    "name": "Anki Forums",
+    "domain": "forums.ankiweb.net",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://forums.ankiweb.net/u/username/preferences/security",
+    "category": "Education",
+    "created_at": "2024-04-30T12:19:24.941951+00:00"
+  },
+  {
     "id": "d2945c826aa478ef27fe3481d9c50df6",
     "name": "FreePrints",
     "domain": "freeprints.com",
@@ -687,7 +754,7 @@
     "setup": "https://www.freeprints.com/apps",
     "category": "eCommerce",
     "created_at": "2024-01-15T10:10:34.96516+00:00",
-    "notes": "Only available within app. \n\nPasskey is offered when signing up instead of password prompt. Also available in settings > Personal Information, tap \"Save a passkey\"."
+    "notes": "Available within app.\n\nPasskey is offered when signing up instead of password prompt. Also available in settings > Personal Information, tap \"Save a passkey\"."
   },
   {
     "id": "ed7a8f1028a94bb8b250c90d4e4a84a0",
@@ -700,6 +767,19 @@
     "setup": "https://fusionauth.io/",
     "category": "Authentication Provider",
     "created_at": "2023-05-31T18:40:28.37621+00:00"
+  },
+  {
+    "id": "02a88051c948d2723fbdc1820f2e9597",
+    "name": "Gemini Exchange",
+    "domain": "gemini.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.gemini.com/blog/passkeys-add-security-feature-to-gemini-account",
+    "setup": "https://exchange.gemini.com/settings/security",
+    "category": "Finance",
+    "created_at": "2023-07-22T17:05:06.970546+00:00",
+    "notes": "Passkeys can be setup within iOS and available to use on desktop after.\nNo Android support yet.\n"
   },
   {
     "id": "e93364eb16b037a4163f0506d1826e09",
@@ -810,6 +890,18 @@
     "created_at": "2024-03-27T10:38:36.26944+00:00"
   },
   {
+    "id": "8c2e6f0179e0d9260161b085980761e2",
+    "name": "My Helsana (App only)",
+    "domain": "helsana.ch",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.helsana.ch/en/helsana-group/about-us/legal/terms-of-use/myhelsana.html",
+    "category": "Health & Wellness",
+    "created_at": "2024-04-16T13:32:34.685184+00:00",
+    "notes": "Users must sign in for the first time using their username, password and mTAN (security code sent by SMS) to access their data. They can then carry out the passkey registration in the mobile app in order to be able to log in with FaceID or TouchID. If they do not carry out the passkey registration, they can continue to log in with their username, password and mTAN."
+  },
+  {
     "id": "fe83d2c9b996786f5c26a2bc4789d902",
     "name": "Visma",
     "domain": "home.visma.com",
@@ -826,7 +918,8 @@
     "name": "Home Depot",
     "domain": "homedepot.com",
     "features": [
-      "mfa"
+      "mfa",
+      "signin"
     ],
     "setup": "https://www.homedepot.com/myaccount/security",
     "category": "E-Commerce",
@@ -997,6 +1090,17 @@
     "notes": "Link by Stripe offers a quick checkout solution, ensuring the secure storage of credit card information. By default, it sends 2FA codes to the customer's phone number.  However, users also have the option to create passkeys, either after signing in or from the user account menu when they are logged in."
   },
   {
+    "id": "1386b4ffa3264b2c2f3cc5dfeb0fbeec",
+    "name": "Link3",
+    "domain": "link3.to",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://link3.to/me/settings",
+    "category": "Information Technology",
+    "created_at": "2024-04-30T21:05:38.363714+00:00"
+  },
+  {
     "id": "195fcc970db462f85bb3313851d273aa",
     "name": "LinkedIn",
     "domain": "linkedin.com",
@@ -1043,6 +1147,28 @@
     "setup": "https://secure.login.gov/account",
     "category": "Government",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "59adda5b36339479297d50d7b3ef4403",
+    "name": "Lowe's",
+    "domain": "lowes.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.lowes.com/security/settings",
+    "category": "eCommerce",
+    "created_at": "2023-03-22T20:31:28.756285+00:00"
+  },
+  {
+    "id": "2a2917c1fb4dc789b98d3d14fd5b0f24",
+    "name": "LuxID",
+    "domain": "luxid.lu",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://account.luxid.lu/web/methods/devices/webauthn",
+    "category": "Identity Provider",
+    "created_at": "2024-04-15T10:44:10.535434+00:00"
   },
   {
     "id": "45700e3826c053a111f62c063cd660a7",
@@ -1115,8 +1241,8 @@
     "created_at": "2024-01-05T12:56:56.072443+00:00"
   },
   {
-    "id": "0bcc7209268a5a87c723ec114350b7b1",
-    "name": "Microsoft (Personal)",
+    "id": "3ea243c9e72868c6471466346b02c6ac",
+    "name": "Microsoft (Personal & Education)",
     "domain": "microsoft.com",
     "features": [
       "mfa",
@@ -1126,7 +1252,18 @@
     "setup": "https://account.live.com/proofs/manage/additional",
     "category": "Information Technology",
     "created_at": "2022-11-17T00:00:00+00:00",
-    "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nPasskeys cannot be added to Microsoft 365 Business or Education accounts at this time."
+    "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+  },
+  {
+    "id": "50053011478a6a0a760f49b9e67b5d21",
+    "name": "MINI",
+    "domain": "mini.com",
+    "features": [
+      "signin"
+    ],
+    "category": "Automotive",
+    "created_at": "2024-04-25T21:49:21+00:00",
+    "notes": "MINI now supports signing in to your MINI ID with a passkey. Instructions on saving a passkey to your MINI ID may vary from region to region but more information can be found in the Account Data section of your MINI ID profile."
   },
   {
     "id": "dbca0b5781a9d4f79129eb89fb1daf87",
@@ -1163,6 +1300,17 @@
     "setup": "https://my.kemba.org/settings/security",
     "category": "Finance",
     "created_at": "2023-09-11T14:25:05.900516+00:00"
+  },
+  {
+    "id": "27e1e1e530e95f7e89613a1a74d80c1a",
+    "name": "mySites.guru",
+    "domain": "mysites.guru",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://manage.mysites.guru/en/your-account",
+    "category": "Information Technology",
+    "created_at": "2024-04-30T12:35:33.250893+00:00"
   },
   {
     "id": "2e36fdd9c82f7fd7294fb3b10618c2db",
@@ -1357,6 +1505,18 @@
     "notes": "Go password-free with your account for PlayStation Network. Passkeys offer a faster and more secure account sign-in experience by letting you sign in through your mobile device or computer using the same convenient device unlocking method, like a fingerprint, face scan or PIN. Visit www.playstation.com/passkey to learn more. \n\n[Watch: Introducing Passkey for PlayStation on Youtube](https://www.youtube.com/watch?v=uKfQrqMS9s8 )\n"
   },
   {
+    "id": "71f0bbc2a1844dce91fc9080f99a3e80",
+    "name": "Poloniex",
+    "domain": "poloniex.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://poloniex.com/profile/security",
+    "category": "Finance",
+    "created_at": "2024-04-15T10:31:24.419723+00:00"
+  },
+  {
     "id": "b050f03bbce82cc95753897ca0c5353e",
     "name": "Porkbun",
     "domain": "porkbun.com",
@@ -1428,6 +1588,17 @@
     "setup": "https://scrooge.games/login/",
     "category": "Lifestyle & Leisure",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "0b59bf6880c20085078d54774e3b49a8",
+    "name": "First Financial Bank",
+    "domain": "secure.bankatfirst.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://secure.bankatfirst.com/settings/security",
+    "category": "Finance",
+    "created_at": "2024-04-30T12:52:08.211861+00:00"
   },
   {
     "id": "51fdc1ce2f2c3895140dd5e7b767a676",
@@ -1582,6 +1753,18 @@
     "setup": "https://www.target.com/account/settings/signinsecurity",
     "category": "eCommerce",
     "created_at": "2024-02-13T17:48:19+00:00"
+  },
+  {
+    "id": "04114ec1ed821090f4a47772a1125857",
+    "name": "Telstra",
+    "domain": "telstra.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.telstra.com.au/support/account-payment/set-up-and-manage-a-passkey",
+    "setup": "http://myid.telstra.com/security/",
+    "category": "Telecommunications ",
+    "created_at": "2024-04-15T10:36:31.383532+00:00"
   },
   {
     "id": "95dcfb4174733c6176889e6b5985dfae",
@@ -1795,15 +1978,16 @@
     "created_at": "2022-11-17T00:00:00+00:00"
   },
   {
-    "id": "faf4f532290505c2788cd00cdba74527",
-    "name": "WhatsApp (Android beta)",
+    "id": "984539bebc8e61742dd9cc0856041d91",
+    "name": "WhatsApp (iOS and Android)",
     "domain": "whatsapp.com",
     "features": [
       "signin"
     ],
+    "documentation": "https://faq.whatsapp.com/1850567238795036/",
     "category": "Information Technology",
     "created_at": "2023-04-09T07:00:20.568068+00:00",
-    "notes": "Available only to WhatsApp (beta) for Android\n\nhttps://www.androidpolice.com/passkey-support-whatsapp-goes-live-beta-channel"
+    "notes": "Saving and signing in with a passkey on Whatsapp is currently limited to the iOS and Android apps. Signing in to the Mac desktop version or on the web browser version of Whatsapp still requires using the \"Linked Devices\" feature or scanning the QR code using your mobile device.\n\n#### To set up a passkey on your Whatsapp account:\n1. Go to your WhatsApp settings.\n2. Tap Passkeys > Create a passkey.\n3. Tap Continue.\n- You may be asked to tap Use screen lock to create your passkey."
   },
   {
     "id": "f79b57de78dae66da5c6bb0ccbb46228",
@@ -1817,6 +2001,19 @@
     "category": "Social Networking",
     "created_at": "2024-01-23T11:26:41+00:00",
     "notes": "X (formerly Twitter) is rolling out signing in with passkeys support to all accounts on iOS. No other platforms are able to save a passkey to their accounts at this time.\n\n**To set up a passkey on your X account:**\n1. Log in to the X app with the account you wish to enable passkey for.\n2. Select Your account in the navigation bar.\n3. Select Settings and privacy, select Security and account access, then Security.\n4. Under Additional password protection, select Passkey.\n5. Enter your password when prompted.\n6. Select Add a passkey and follow the on-screen prompts."
+  },
+  {
+    "id": "ce4ecc4b8d61f1e16c64a43a3e60d383",
+    "name": "XenForo (Community)",
+    "domain": "xenforo.com/community",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://xenforo.com/community/threads/passwordless-logins-with-passkeys.220458/",
+    "setup": "https://xenforo.com/community/account/security",
+    "category": "Information Technology",
+    "created_at": "2024-04-15T10:27:35.782705+00:00"
   },
   {
     "id": "e530fa6fa3831727debb154a6dd4ff58",

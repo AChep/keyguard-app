@@ -56,6 +56,7 @@ val Browsers = setOf(
     "net.slions.fulguris.full.download.debug",
     "net.slions.fulguris.full.playstore",
     "net.slions.fulguris.full.playstore.debug",
+    "net.quetta.browser",
     "org.adblockplus.browser",
     "org.adblockplus.browser.beta",
     "org.bromite.bromite",

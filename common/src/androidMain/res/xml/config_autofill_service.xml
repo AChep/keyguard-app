@@ -167,6 +167,9 @@
         android:name="net.slions.fulguris.full.playstore.debug"
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package
+        android:name="net.quetta.browser"
+        android:maxLongVersionCode="@string/version_code_max" />
+    <compatibility-package
         android:name="org.adblockplus.browser"
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package

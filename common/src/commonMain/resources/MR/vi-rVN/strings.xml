@@ -2,8 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">ỪA</string>
     <string name="close">Đóng</string>
+    <string name="quit">Thoát</string>
     <string name="yes">Đúng</string>
     <string name="no">Không</string>
+    <!-- On click brings Keyguard app to the front -->
+    <string name="show_keyguard">Hiện Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Tên</string>
     <string name="account_name">Tên tài khoản</string>
@@ -456,6 +459,8 @@
     <string name="error_failed_use_passkey">Không thể cấp phép cho yêu cầu</string>
     <string name="error_failed_open_uri">Không mở được URI</string>
     <string name="error_failed_format_placeholder">Không thể định dạng phần thay thế</string>
+    <string name="scanqr_title">Quét mã QR</string>
+    <string name="scanqr_load_from_image_note">Tải và phân tích mã QR từ tệp hình ảnh.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Mã vạch</string>
     <string name="barcodetype_action_show_in_barcode_title">Hiển thị dưới dạng mã vạch</string>

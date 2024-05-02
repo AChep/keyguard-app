@@ -2,8 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Bezárás</string>
+    <string name="quit">Quit</string>
     <string name="yes">Igen</string>
     <string name="no">Nem</string>
+    <!-- On click brings Keyguard app to the front -->
+    <string name="show_keyguard">Show Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Név</string>
     <string name="account_name">Fiók neve</string>
@@ -456,6 +459,8 @@
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="scanqr_title">Scan QR code</string>
+    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>

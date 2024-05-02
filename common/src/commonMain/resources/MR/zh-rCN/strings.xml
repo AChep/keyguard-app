@@ -2,8 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">确定</string>
     <string name="close">关闭</string>
+    <string name="quit">退出</string>
     <string name="yes">是</string>
     <string name="no">否</string>
+    <!-- On click brings Keyguard app to the front -->
+    <string name="show_keyguard">回到Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名称</string>
     <string name="account_name">账户名</string>
@@ -456,6 +459,8 @@
     <string name="error_failed_use_passkey">授权请求失败</string>
     <string name="error_failed_open_uri">无法打开 URI</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
+    <string name="scanqr_title">扫描二维码</string>
+    <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">条形码</string>
     <string name="barcodetype_action_show_in_barcode_title">显示为条形码</string>

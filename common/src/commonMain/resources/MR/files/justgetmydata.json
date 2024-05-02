@@ -458,6 +458,13 @@
     "email": "contato@pagbet.com"
   },
   {
+    "name": "Papernodes",
+    "domains": [],
+    "url": "https://papernodes.com",
+    "difficulty": "easy",
+    "notes": "Hover over More Pages then click on login, then go to account settings scroll down and u see Download my data then just press the download button then enter your password and all the data asociated to your account will be downloaded."
+  },
+  {
     "name": "Patreon",
     "domains": [],
     "url": "https://privacy.patreon.com/?action=ACCESS&modal=take-control",
@@ -512,6 +519,13 @@
     "url": "https://www.reddit.com/settings/data-request",
     "difficulty": "easy",
     "notes": "Click on getting the data from a range of time or all. Then, wait for the private message in reddit, click in \"Download here\" and we are done. WARNING: you can only do a data request once every 30 days. You must use the [ticket form](https://www.reddithelp.com/hc/requests/new?ticket_form_id=360001370251) if you do not have access to your account."
+  },
+  {
+    "name": "Revolut",
+    "domains": [],
+    "url": "https://www.revolut.com/privacy-policy/",
+    "difficulty": "easy",
+    "notes": "From the app, go to the profile icon, then to \"Account\" -> \"Documents\" -> \"General\" -> \"Subject access request\". You will get a PDF document with your data."
   },
   {
     "name": "Riot Games",

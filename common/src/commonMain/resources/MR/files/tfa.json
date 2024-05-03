@@ -5922,14 +5922,13 @@
   },
   {
     "domain": "frame.io",
-    "url": "https://www.frame.io/",
     "tfa": [
       "totp",
       "sms"
     ],
     "documentation": "https://support.frame.io/en/articles/4766302",
     "notes": "2FA is only available for Enterprise users with mandated 2FA.",
-    "name": "Frame"
+    "name": "Frame.io"
   },
   {
     "domain": "freeagent.com",
@@ -13889,21 +13888,6 @@
       "totp"
     ],
     "name": "SpaceHey"
-  },
-  {
-    "domain": "spaceship.com.au",
-    "additional-domains": [
-      "spaceshipinvest.com.au"
-    ],
-    "tfa": [
-      "sms",
-      "custom-software"
-    ],
-    "custom-software": [
-      "WhatsApp"
-    ],
-    "documentation": "https://help.spaceship.com.au/en/articles/8695426",
-    "name": "Spaceship"
   },
   {
     "domain": "sparda.de",

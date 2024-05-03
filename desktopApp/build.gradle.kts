@@ -78,6 +78,12 @@ compose.desktop {
             }
             windows {
                 iconFile.set(project.file("icon.ico"))
+
+                // The UUID is used with `Windows Installer` to identify
+                // products, components, upgrades, and other key elements of the installation process.
+                // See:
+                // https://wixtoolset.org/docs/v3/howtos/general/generate_guids/
+                upgradeUuid = "846C6281-F349-4833-9E0E-AAE1C06006A0"
             }
             linux {
                 iconFile.set(project.file("icon.png"))

@@ -16,10 +16,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
       - id: vars
         run: |
-          echo ::set-output name=tag::${GITHUB_REF:11}
+          echo name=tag::${GITHUB_REF:11} >> $GITHUB_OUTPUT
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
@@ -31,7 +30,7 @@ jobs:
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Check and Build licenses"
-        uses: eskatos/gradle-command-action@v3
+        uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:
@@ -40,7 +39,7 @@ jobs:
         run: |
           mv -f androidApp/build/reports/licensee/androidPlayStoreRelease/artifacts.json common/src/commonMain/resources/MR/files/licenses.json
       - name: "Build release bundle"
-        uses: eskatos/gradle-command-action@v3
+        uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:

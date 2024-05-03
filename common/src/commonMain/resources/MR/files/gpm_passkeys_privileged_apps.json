@@ -475,6 +475,62 @@
           }
         ]
       }
+    },
+    {
+      "type": "android",
+      "info": {
+        "package_name": "com.talonsec.talon",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "A3:66:03:44:A6:F6:AF:CA:81:8C:BF:43:96:A2:3C:CF:D5:ED:7A:78:1B:B4:A3:D1:85:03:01:E2:F4:6D:23:83"
+          },
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "E2:A5:64:74:EA:23:7B:06:67:B6:F5:2C:DC:E9:04:5E:24:88:3B:AE:D0:82:59:9A:A2:DF:0B:60:3A:CF:6A:3B"
+          }
+        ]
+      }
+    },
+    {
+      "type": "android",
+      "info": {
+        "package_name": "com.talonsec.talon_beta",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "F5:86:62:7A:32:C8:9F:E6:7E:00:6D:B1:8C:34:31:9E:01:7F:B3:B2:BE:D6:9D:01:01:B7:F9:43:E7:7C:48:AE"
+          },
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "9A:A1:25:D5:E5:5E:3F:B0:DE:96:72:D9:A9:5D:04:65:3F:49:4A:1E:C3:EE:76:1E:94:C4:4E:5D:2F:65:8E:2F"
+          }
+        ]
+      }
+    },
+    {
+      "type": "android",
+      "info": {
+        "package_name": "com.duckduckgo.mobile.android.debug",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "17:D4:1F:7A:97:25:A8:75:72:D8:6A:42:7F:A1:3B:4A:D4:11:EA:A4:C8:A7:8E:E3:1D:64:EF:F6:26:09:32:3F"
+          }
+        ]
+      }
+    },
+    {
+      "type": "android",
+      "info": {
+        "package_name": "com.duckduckgo.mobile.android",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "BB:7B:B3:1C:57:3C:46:A1:DA:7F:C5:C5:28:A6:AC:F4:32:10:84:56:FE:EC:50:81:0C:7F:33:69:4E:B3:D2:D4"
+          }
+        ]
+      }
     }
   ]
 }

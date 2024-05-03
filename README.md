@@ -11,6 +11,13 @@ _Can be used with any Bitwarden® installation. This product is not associated w
        src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height="60" />
 </a>
 
+<a href="https://gh.artemchep.com/keyguard-repo-fdroid/repo">
+  <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+       alt="Get Keyguard on F-Droid"
+       vspace="20"
+       height="60">
+</a>
+
 #### Highlights
 - a beautiful rich and responsive **Material You** user interface;
 - a **powerful** and **fast search**;

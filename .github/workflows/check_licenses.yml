@@ -27,9 +27,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
       - name: "Check licenses"
-        uses: eskatos/gradle-command-action@v3
+        uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:

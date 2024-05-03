@@ -78,6 +78,9 @@ compose.desktop {
             }
             windows {
                 iconFile.set(project.file("icon.ico"))
+                // Automatically add a shortcut to the desktop:
+                // https://github.com/JetBrains/compose-multiplatform/issues/1974
+                shortcut = true
 
                 // The UUID is used with `Windows Installer` to identify
                 // products, components, upgrades, and other key elements of the installation process.

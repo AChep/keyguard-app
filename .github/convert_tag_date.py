@@ -10,7 +10,7 @@ args = parser.parse_args()
 tag = args.tag
 # A format of the tag is r+yyyyMMdd, we
 # strip out any non digit symbols here.
-date_str = re.sub(r'[^\d]', '', tag)
+date_str = re.match(r'[^\d]*(\d+).*', tag).group(1)
 date = datetime.strptime(date_str, '%Y%m%d')
 
 # Release date.

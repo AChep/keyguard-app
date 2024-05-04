@@ -30,13 +30,10 @@ jobs:
         with:
           p12-filepath: desktopApp/macos-dev.cer
           p12-password: ${{ secrets.CERT_PASSWD }}
-      - id: vars
-        run: |
-          echo name=tag::${GITHUB_REF:11} >> $GITHUB_OUTPUT
       - name: "Setup build env"
         run: |
           echo "" >> gradle.properties
-          echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
+          echo versionDate=${{ github.ref_name }} >> gradle.properties
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "Setup signing config"
@@ -93,13 +90,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - id: vars
-        run: |
-          echo name=tag::${GITHUB_REF:11} >> $GITHUB_OUTPUT
       - name: "Setup build env"
         run: |
           echo "" >> gradle.properties
-          echo versionDate=${{ steps.vars.outputs.tag }} >> gradle.properties
+          echo versionDate=${{ github.ref_name }} >> gradle.properties
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
       - name: "./gradlew :desktopApp:bundleFlatpak"
@@ -132,9 +126,6 @@ jobs:
           java-version: |
             11
             17
-      - id: vars
-        run: |
-          echo name=tag::${GITHUB_REF:11} >> $GITHUB_OUTPUT
       - name: "Setup build env"
         run: |
           echo "" >> gradle.properties
@@ -164,9 +155,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - id: vars
-        run: |
-          echo name=tag::${GITHUB_REF:11} >> $GITHUB_OUTPUT
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
@@ -237,14 +225,11 @@ jobs:
         with:
           name: app-android
           path: artifacts
-      - id: vars
-        run: |
-          echo name=tag::${GITHUB_REF:11} >> $GITHUB_OUTPUT
       - name: "Create release"
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: Release ${{ steps.vars.outputs.tag }}
+          name: Release ${{ github.ref_name }}
           body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |

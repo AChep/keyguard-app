@@ -32,10 +32,7 @@ jobs:
           p12-password: ${{ secrets.CERT_PASSWD }}
       - name: "Setup build env"
         run: |
-          echo "" >> gradle.properties
-          echo "versionDate=$(python .github/convert_tag_date.py tag=${{ github.ref_name }})" >> gradle.properties
-          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
-          echo buildkonfig.flavor=release >> gradle.properties
+          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Setup signing config"
         run: |
           echo "" >> gradle.properties
@@ -84,6 +81,10 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
       - name: "Set up JDK 17"
         id: setup-java
         uses: actions/setup-java@v4
@@ -92,10 +93,7 @@ jobs:
           java-version: '17'
       - name: "Setup build env"
         run: |
-          echo "" >> gradle.properties
-          echo "versionDate=$(python .github/convert_tag_date.py tag=${{ github.ref_name }})" >> gradle.properties
-          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
-          echo buildkonfig.flavor=release >> gradle.properties
+          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "./gradlew :desktopApp:bundleFlatpak"
         uses: gradle/actions/setup-gradle@v3
         env:
@@ -128,10 +126,7 @@ jobs:
             17
       - name: "Setup build env"
         run: |
-          echo "" >> gradle.properties
-          echo "versionDate=$(python .github/convert_tag_date.py tag=${{ github.ref_name }})" >> gradle.properties
-          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
-          echo buildkonfig.flavor=release >> gradle.properties
+          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "./gradlew :desktopApp:packageMsi"
         uses: gradle/actions/setup-gradle@v3
         env:
@@ -161,10 +156,7 @@ jobs:
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
-          echo "" >> gradle.properties
-          echo "versionDate=$(python .github/convert_tag_date.py tag=${{ github.ref_name }})" >> gradle.properties
-          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
-          echo buildkonfig.flavor=release >> gradle.properties
+          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Check and Build licenses"
         uses: gradle/actions/setup-gradle@v3
         env:

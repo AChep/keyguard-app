@@ -22,10 +22,7 @@ jobs:
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat >> service-account-google.json
-          echo "" >> gradle.properties
-          echo "versionDate=$(python .github/convert_tag_date.py tag=${{ github.ref_name }})" >> gradle.properties
-          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
-          echo buildkonfig.flavor=release >> gradle.properties
+          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Check and Build licenses"
         uses: gradle/actions/setup-gradle@v3
         env:

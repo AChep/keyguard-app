@@ -93,6 +93,8 @@ jobs:
           java-version: '17'
       - name: "Setup build env"
         run: |
+          pwd
+          git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "./gradlew :desktopApp:bundleFlatpak"
         uses: gradle/actions/setup-gradle@v3

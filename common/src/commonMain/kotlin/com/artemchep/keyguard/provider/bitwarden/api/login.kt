@@ -9,6 +9,8 @@ import com.artemchep.keyguard.common.service.text.url
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
@@ -41,8 +43,52 @@ import java.util.Locale
 
 private const val PBKDF2_KEY_LENGTH = 32
 
-private const val CLIENT_ID = "web"
-private const val DEVICE_TYPE = "9"
+data class BitwardenPersona(
+    val clientId: String,
+    val clientName: String,
+    val clientVersion: String,
+    val deviceType: String,
+    val deviceName: String,
+) {
+    companion object {
+        private const val CLIENT_VERSION = "2024.4.0"
+
+        fun of(platform: Platform) = when (platform) {
+            is Platform.Mobile -> desktopLinux()
+            is Platform.Desktop -> when (platform) {
+                is Platform.Desktop.Windows -> desktopWindows()
+                is Platform.Desktop.MacOS -> desktopMacOs()
+                is Platform.Desktop.Other,
+                is Platform.Desktop.Linux,
+                -> desktopLinux()
+            }
+        }
+
+        private fun desktopLinux() = BitwardenPersona(
+            clientId = "desktop",
+            clientName = "desktop",
+            clientVersion = CLIENT_VERSION,
+            deviceType = "8",
+            deviceName = "linux",
+        )
+
+        private fun desktopMacOs() = BitwardenPersona(
+            clientId = "desktop",
+            clientName = "desktop",
+            clientVersion = CLIENT_VERSION,
+            deviceType = "7",
+            deviceName = "macos",
+        )
+
+        private fun desktopWindows() = BitwardenPersona(
+            clientId = "desktop",
+            clientName = "desktop",
+            clientVersion = CLIENT_VERSION,
+            deviceType = "6",
+            deviceName = "windows",
+        )
+    }
+}
 
 suspend fun login(
     deviceIdUseCase: DeviceIdUseCase,
@@ -91,9 +137,12 @@ private suspend fun internalLogin(
     passwordKey: ByteArray,
 ): Login = httpClient
     .post(env.identity.connect.token) {
+        val persona = CurrentPlatform
+            .let(BitwardenPersona::of)
+
         headers(env)
-        header("device-type", DEVICE_TYPE)
-        header("dnt", "1")
+        header("device-type", persona.deviceType)
+        header("cache-control", "no-store")
         // Official Bitwarden backend specifically checks for this header,
         // which is just a base-64 string of an email.
         val emailBase64 = base64Service
@@ -108,7 +157,7 @@ private suspend fun internalLogin(
                 append("username", email)
                 append("password", passwordBase64)
                 append("scope", "api offline_access")
-                append("client_id", CLIENT_ID)
+                append("client_id", persona.clientId)
                 // As per
                 // https://github.com/bitwarden/cli/issues/383#issuecomment-937819752
                 // the backdoor to a captcha is a client secret.
@@ -116,8 +165,8 @@ private suspend fun internalLogin(
                     append("captchaResponse", clientSecret)
                 }
                 append("deviceIdentifier", deviceId)
-                append("deviceType", DEVICE_TYPE)
-                append("deviceName", "chrome")
+                append("deviceType", persona.deviceType)
+                append("deviceName", persona.deviceName)
 
                 if (twoFactorToken != null) {
                     val providerEntity = TwoFactorProviderTypeEntity.of(twoFactorToken.provider)
@@ -150,10 +199,12 @@ suspend fun refresh(
     token: BitwardenToken.Token,
 ): Login = httpClient
     .post(env.identity.connect.token) {
-        headers(env)
-        header("device-type", DEVICE_TYPE)
-        header("dnt", "1")
+        val persona = CurrentPlatform
+            .let(BitwardenPersona::of)
 
+        headers(env)
+        header("device-type", persona.deviceType)
+        header("cache-control", "no-store")
         val clientId = kotlin.runCatching {
             val jwtData = parseAccessTokenData(
                 base64Service = base64Service,
@@ -162,7 +213,7 @@ suspend fun refresh(
             )
             jwtData["client_id"]?.jsonPrimitive?.content
         }.getOrNull()
-            ?: CLIENT_ID
+            ?: persona.clientId
         body = FormDataContent(
             Parameters.build {
                 append("grant_type", "refresh_token")

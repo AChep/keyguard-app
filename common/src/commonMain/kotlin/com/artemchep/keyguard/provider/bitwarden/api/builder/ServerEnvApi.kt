@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
+import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.api.entity.SyncResponse
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
@@ -551,10 +553,14 @@ private suspend inline fun String.delete(
     .bodyOrApiException<HttpResponse>()
 
 fun HttpRequestBuilder.headers(env: ServerEnv) {
+    // Let Bitwarden know who we are.
+    header("Keyguard-Client", "1")
     // Seems like now Bitwarden now requires you to specify
     // the client name and version.
-    header("Bitwarden-Client-Name", "web")
-    header("Bitwarden-Client-Version", "2024.03.0")
+    val persona = CurrentPlatform
+        .let(BitwardenPersona::of)
+    header("Bitwarden-Client-Name", persona.clientName)
+    header("Bitwarden-Client-Version", persona.clientVersion)
     // App does not work if hidden behind reverse-proxy under
     // a subdirectory. We should specify the 'referer' so the server
     // generates correct urls for us.

@@ -523,11 +523,22 @@ class AutofillStructureParser {
                 )
                 items += item
             }
+
+        // It it is a web view that renders localhost,
+        // then ignore the webview hint -- a user is probably
+        // not supposed to know that anyway.
+        val isInSelfHostedServer = kotlin.run {
+            val webDomain = autofillStructure?.webDomain
+            val webView = autofillStructure?.webView == true
+            webView &&
+                    (webDomain == "127.0.0.1" ||
+                            webDomain == "localhost")
+        }
         return AutofillStructure2(
             applicationId = applicationId,
-            webDomain = autofillStructure?.webDomain,
-            webScheme = autofillStructure?.webScheme,
-            webView = autofillStructure?.webView,
+            webDomain = autofillStructure?.webDomain.takeUnless { isInSelfHostedServer },
+            webScheme = autofillStructure?.webScheme.takeUnless { isInSelfHostedServer },
+            webView = autofillStructure?.webView.takeUnless { isInSelfHostedServer },
             items = items,
         )
     }

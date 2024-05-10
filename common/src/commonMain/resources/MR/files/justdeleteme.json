@@ -950,6 +950,15 @@
     "notes": "We do not 'delete' or 'terminate' accounts on ACC. If you no longer wish to use the site, you may delete all personal information from your profile and then stop logging in."
   },
   {
+    "name": "Anime News Network",
+    "domains": [
+      "animenewsnetwork.com"
+    ],
+    "url": "https://www.animenewsnetwork.com/account/edit",
+    "difficulty": "easy",
+    "notes": "Visit the linked page and click the delete button, click the confirmation url that sent via email."
+  },
+  {
     "name": "Anime-Planet",
     "domains": [
       "anime-planet.com"
@@ -8828,6 +8837,14 @@
     "notes": "Go to your profile, at the bottom there will be a 'click here' to delete account. Retype your password and after 14 days the account gets deleted."
   },
   {
+    "name": "KanbanFlow",
+    "domains": [
+      "kanbanflow.com"
+    ],
+    "url": "https://kanbanflow.com/settings/delete-account",
+    "difficulty": "easy"
+  },
+  {
     "name": "Kanji Koohii",
     "domains": [
       "kanji.koohii.com"
@@ -15959,6 +15976,15 @@
     "difficulty": "hard",
     "notes": "Use the contact form. If you prefer, you can also request deletion of the account via email.",
     "email": "suporte@superdominios.org"
+  },
+  {
+    "name": "Super Tux Kart",
+    "domains": [
+      "supertuxkart.net"
+    ],
+    "url": "https://online.supertuxkart.net/users.php",
+    "difficulty": "easy",
+    "notes": "Enter your passwords in the account deletion page."
   },
   {
     "name": "Supercell ID",

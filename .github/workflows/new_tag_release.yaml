@@ -26,7 +26,7 @@ jobs:
         run: |
           echo ${{ secrets.CERT_B64 }} | base64 -d | zcat > desktopApp/macos-dev.cer
       - name: "Import signing certificate"
-        uses: apple-actions/import-codesign-certs@v2
+        uses: apple-actions/import-codesign-certs@v3
         with:
           p12-filepath: desktopApp/macos-dev.cer
           p12-password: ${{ secrets.CERT_PASSWD }}

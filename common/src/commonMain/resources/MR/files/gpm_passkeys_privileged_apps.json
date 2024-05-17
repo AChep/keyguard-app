@@ -515,7 +515,7 @@
         "signatures": [
           {
             "build": "release",
-            "cert_fingerprint_sha256": "17:D4:1F:7A:97:25:A8:75:72:D8:6A:42:7F:A1:3B:4A:D4:11:EA:A4:C8:A7:8E:E3:1D:64:EF:F6:26:09:32:3F"
+            "cert_fingerprint_sha256": "C4:F0:9E:2B:D7:25:AD:F5:AD:92:0B:A2:80:27:66:AC:16:4A:C1:53:B3:EA:9E:08:48:B0:57:98:37:F7:6A:29"
           }
         ]
       }

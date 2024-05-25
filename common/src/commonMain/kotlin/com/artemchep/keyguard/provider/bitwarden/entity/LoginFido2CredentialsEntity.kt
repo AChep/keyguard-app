@@ -27,7 +27,7 @@ data class LoginFido2CredentialsEntity(
     val rpId: String,
     @JsonNames("rpName")
     @SerialName("RpName")
-    val rpName: String,
+    val rpName: String?,
     @JsonNames("counter")
     @SerialName("Counter")
     val counter: String,

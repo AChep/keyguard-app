@@ -20,7 +20,7 @@ data class LoginFido2CredentialsRequest(
     @SerialName("rpId")
     val rpId: String,
     @SerialName("rpName")
-    val rpName: String,
+    val rpName: String?,
     @SerialName("counter")
     val counter: String,
     @SerialName("userHandle")

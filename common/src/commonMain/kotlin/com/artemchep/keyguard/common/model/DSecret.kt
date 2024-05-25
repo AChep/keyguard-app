@@ -323,7 +323,7 @@ data class DSecret(
             val keyCurve: String, // P-256
             val keyValue: String,
             val rpId: String,
-            val rpName: String,
+            val rpName: String?,
             val counter: Int?,
             val userHandle: String,
             val userName: String?,

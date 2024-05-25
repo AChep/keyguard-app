@@ -762,7 +762,7 @@ private fun PasskeyField(
                     },
                     text = {
                         Text(
-                            text = passkey.rpName,
+                            text = passkey.rpName ?: "",
                         )
                     },
                 )

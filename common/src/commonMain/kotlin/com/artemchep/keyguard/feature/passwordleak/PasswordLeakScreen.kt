@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -32,7 +33,8 @@ import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 @Composable
@@ -45,14 +47,14 @@ fun PasswordLeakScreen(
     Dialog(
         icon = icon(Icons.Outlined.FactCheck),
         title = {
-            Text(stringResource(Res.strings.passwordleak_title))
+            Text(stringResource(Res.string.passwordleak_title))
         },
         content = {
             Column {
                 Text(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
-                    text = stringResource(Res.strings.passwordleak_note),
+                    text = stringResource(Res.string.passwordleak_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),
@@ -95,7 +97,7 @@ fun PasswordLeakScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
         },
     )
@@ -129,7 +131,7 @@ private fun ColumnScope.Content(
     if (leaks == null) {
         FlatSimpleNote(
             type = SimpleNote.Type.WARNING,
-            text = stringResource(Res.strings.passwordleak_failed_to_load_status_text),
+            text = stringResource(Res.string.passwordleak_failed_to_load_status_text),
         )
         return
     }
@@ -137,8 +139,8 @@ private fun ColumnScope.Content(
     if (leaks > 0) {
         FlatSimpleNote(
             type = SimpleNote.Type.WARNING,
-            title = stringResource(Res.strings.passwordleak_occurrences_found_title),
-            text = stringResource(Res.strings.passwordleak_occurrences_found_text),
+            title = stringResource(Res.string.passwordleak_occurrences_found_title),
+            text = stringResource(Res.string.passwordleak_occurrences_found_text),
         )
         Spacer(
             modifier = Modifier
@@ -148,7 +150,7 @@ private fun ColumnScope.Content(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(
+            text = pluralStringResource(
                 Res.plurals.passwordleak_occurrences_count_plural,
                 leaks,
                 numberFormatter.formatNumber(leaks),
@@ -159,7 +161,7 @@ private fun ColumnScope.Content(
     } else {
         FlatSimpleNote(
             type = SimpleNote.Type.OK,
-            title = stringResource(Res.strings.passwordleak_occurrences_not_found_title),
+            title = stringResource(Res.string.passwordleak_occurrences_not_found_title),
         )
     }
 }

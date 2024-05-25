@@ -22,7 +22,7 @@ class LoadingTask(
      * Exception handler that's responsible for parsing the
      * error messages as user-readable messages.
      */
-    private val exceptionHandler: (Throwable) -> ReadableExceptionMessage = { e ->
+    private val exceptionHandler: suspend (Throwable) -> ReadableExceptionMessage = { e ->
         getErrorReadableMessage(e, translator)
     },
 ) {
@@ -82,11 +82,11 @@ data class ReadableExceptionMessage(
     val text: String? = null,
 )
 
-fun getErrorReadableMessage(e: Throwable, translator: TranslatorScope) =
+suspend fun getErrorReadableMessage(e: Throwable, translator: TranslatorScope) =
     when (e) {
         is Readable -> {
-            val title = e.title.let(translator::translate)
-            val text = e.text?.let(translator::translate)
+            val title = e.title.let { translator.translate(it) }
+            val text = e.text?.let { translator.translate(it) }
             ReadableExceptionMessage(
                 title = title,
                 text = text,

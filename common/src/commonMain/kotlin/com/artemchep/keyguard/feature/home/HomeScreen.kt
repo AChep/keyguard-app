@@ -115,6 +115,7 @@ import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -126,7 +127,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.ok
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -178,31 +179,31 @@ fun HomeScreen(
                 route = vaultRoute,
                 icon = Icons.Outlined.Home,
                 iconSelected = Icons.Filled.Home,
-                label = TextHolder.Res(Res.strings.home_vault_label),
+                label = TextHolder.Res(Res.string.home_vault_label),
             ),
             Rail(
                 route = sendsRoute,
                 icon = Icons.Outlined.Send,
                 iconSelected = Icons.Filled.Send,
-                label = TextHolder.Res(Res.strings.home_send_label),
+                label = TextHolder.Res(Res.string.home_send_label),
             ),
             Rail(
                 route = generatorRoute,
                 icon = Icons.Outlined.Password,
                 iconSelected = Icons.Filled.Password,
-                label = TextHolder.Res(Res.strings.home_generator_label),
+                label = TextHolder.Res(Res.string.home_generator_label),
             ),
             Rail(
                 route = watchtowerRoute,
                 icon = Icons.Outlined.Security,
                 iconSelected = Icons.Filled.Security,
-                label = TextHolder.Res(Res.strings.home_watchtower_label),
+                label = TextHolder.Res(Res.string.home_watchtower_label),
             ),
             Rail(
                 route = SettingsRoute,
                 icon = Icons.Outlined.Settings,
                 iconSelected = Icons.Filled.Settings,
-                label = TextHolder.Res(Res.strings.home_settings_label),
+                label = TextHolder.Res(Res.string.home_settings_label),
             ),
         )
     }
@@ -465,7 +466,7 @@ private fun BannerStatusBadge(
                 error != null -> {
                     BannerStatusBadgeContentModel(
                         count = error.count,
-                        title = TextHolder.Res(Res.strings.syncstatus_status_failed),
+                        title = TextHolder.Res(Res.string.syncstatus_status_failed),
                         error = true,
                         onClick = {
                             navigateSyncStatus(updatedNavController)
@@ -645,7 +646,7 @@ private fun RailStatusBadge(
                     badge = status.error.count
                         .takeIf { it > 0 }
                         ?.toString(),
-                    text = stringResource(Res.strings.syncstatus_status_failed),
+                    text = stringResource(Res.string.syncstatus_status_failed),
                 )
             }
 
@@ -662,7 +663,7 @@ private fun RailStatusBadge(
                     badge = status.pending.count
                         .takeIf { it > 0 }
                         ?.toString(),
-                    text = stringResource(Res.strings.syncstatus_status_syncing),
+                    text = stringResource(Res.string.syncstatus_status_syncing),
                 )
             }
 
@@ -688,7 +689,7 @@ private fun RailStatusBadge(
                             contentDescription = null,
                         )
                     },
-                    text = stringResource(Res.strings.syncstatus_status_up_to_date),
+                    text = stringResource(Res.string.syncstatus_status_up_to_date),
                 )
             }
         }

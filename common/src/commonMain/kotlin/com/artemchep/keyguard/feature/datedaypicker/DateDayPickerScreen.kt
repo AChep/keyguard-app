@@ -17,7 +17,8 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.datetime.Instant
@@ -55,7 +56,7 @@ fun DatePickerScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             TextButton(
                 enabled = updatedOnOk != null,
@@ -63,7 +64,7 @@ fun DatePickerScreen(
                     updatedOnOk?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )

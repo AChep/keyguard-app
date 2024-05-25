@@ -3,7 +3,8 @@ package com.artemchep.keyguard.feature.home.settings.component
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -41,7 +42,7 @@ private fun SettingAboutAppBuildDate(
     buildDate: String,
 ) {
     SettingListItem(
-        title = stringResource(Res.strings.pref_item_app_build_date_title),
+        title = stringResource(Res.string.pref_item_app_build_date_title),
         text = buildDate,
     )
 }

@@ -33,6 +33,7 @@ import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -42,7 +43,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
@@ -58,7 +59,7 @@ fun FolderConfirmationScreen(
     Dialog(
         icon = icon(Icons.Outlined.Folder),
         title = {
-            Text(stringResource(Res.strings.folderpicker_header_title))
+            Text(stringResource(Res.string.folderpicker_header_title))
         },
         content = {
             val data = state.content.getOrNull()
@@ -110,7 +111,7 @@ fun FolderConfirmationScreen(
                     updatedOnDeny?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             TextButton(
                 enabled = state.onConfirm != null,
@@ -118,7 +119,7 @@ fun FolderConfirmationScreen(
                     updatedOnConfirm?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )
@@ -145,7 +146,7 @@ fun CreateNewFolder(
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
-                text = stringResource(Res.strings.folderpicker_create_new_folder),
+                text = stringResource(Res.string.folderpicker_create_new_folder),
                 style = MaterialTheme.typography.bodyMedium,
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
@@ -157,7 +158,7 @@ fun CreateNewFolder(
                 fieldModifier = Modifier
                     .focusRequester2(requester),
                 value = it,
-                label = stringResource(Res.strings.generic_name),
+                label = stringResource(Res.string.generic_name),
             )
 
             LaunchedEffect(requester) {

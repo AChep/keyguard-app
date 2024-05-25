@@ -6,7 +6,8 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.StringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
 import kotlinx.datetime.Clock
@@ -102,18 +103,18 @@ fun produceDatePickerState(
 }
 
 fun getMonthTitleStringRes(month: Int): StringResource = when (month) {
-    1 -> Res.strings.january
-    2 -> Res.strings.february
-    3 -> Res.strings.march
-    4 -> Res.strings.april
-    5 -> Res.strings.may
-    6 -> Res.strings.june
-    7 -> Res.strings.july
-    8 -> Res.strings.august
-    9 -> Res.strings.september
-    10 -> Res.strings.october
-    11 -> Res.strings.november
-    12 -> Res.strings.december
+    1 -> Res.string.january
+    2 -> Res.string.february
+    3 -> Res.string.march
+    4 -> Res.string.april
+    5 -> Res.string.may
+    6 -> Res.string.june
+    7 -> Res.string.july
+    8 -> Res.string.august
+    9 -> Res.string.september
+    10 -> Res.string.october
+    11 -> Res.string.november
+    12 -> Res.string.december
     else -> throw IllegalArgumentException("Number of the month should be in 1..12 range, got $month instead!")
 }
 

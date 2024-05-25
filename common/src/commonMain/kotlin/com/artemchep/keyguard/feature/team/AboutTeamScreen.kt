@@ -29,6 +29,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -41,9 +42,9 @@ import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Github
 import compose.icons.feathericons.Instagram
-import dev.icerock.moko.resources.compose.painterResource
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.toPersistentList
+import org.jetbrains.compose.resources.painterResource
 
 private data class SocialNetwork(
     val title: String,
@@ -81,7 +82,7 @@ fun AboutTeamScreen() {
                         modifier = Modifier
                             .size(24.dp)
                             .padding(1.dp),
-                        painter = painterResource(Res.images.ic_mastodon),
+                        painter = painterResource(Res.drawable.ic_mastodon),
                         contentDescription = null,
                     )
                 },
@@ -134,7 +135,7 @@ fun AboutTeamScreen() {
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.team_header_title),
+                        text = stringResource(Res.string.team_header_title),
                     )
                 },
                 navigationIcon = {
@@ -155,10 +156,10 @@ fun AboutTeamScreen() {
         Text(
             modifier = Modifier
                 .padding(horizontal = 16.dp),
-            text = stringResource(Res.strings.team_artem_whoami_text),
+            text = stringResource(Res.string.team_artem_whoami_text),
         )
         Section(
-            text = stringResource(Res.strings.team_follow_me_section),
+            text = stringResource(Res.string.team_follow_me_section),
         )
         socialNetworks.forEach { item ->
             FlatItem(

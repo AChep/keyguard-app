@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.auth.common.util
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -36,10 +37,10 @@ fun validateEmail(email: String?): ValidationEmail {
  * @return human-readable variant of [validateEmail] result, or `null` if
  * there's no validation error.
  */
-fun ValidationEmail.format(scope: TranslatorScope): String? =
+suspend fun ValidationEmail.format(scope: TranslatorScope): String? =
     when (this) {
-        ValidationEmail.ERROR_EMPTY -> scope.translate(Res.strings.error_must_not_be_blank)
-        ValidationEmail.ERROR_INVALID -> scope.translate(Res.strings.error_invalid_email)
+        ValidationEmail.ERROR_EMPTY -> scope.translate(Res.string.error_must_not_be_blank)
+        ValidationEmail.ERROR_INVALID -> scope.translate(Res.string.error_invalid_email)
         else -> null
     }
 

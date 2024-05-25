@@ -54,6 +54,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -69,7 +70,7 @@ import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.withIndex
@@ -125,7 +126,7 @@ fun WordlistListScreen(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.wordlist_list_header_title))
+                    Text(stringResource(Res.string.wordlist_list_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -204,7 +205,7 @@ fun WordlistListScreen(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.add),
+                        text = stringResource(Res.string.add),
                     )
                 },
             )
@@ -267,7 +268,7 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.wordlist_empty_label),
+                text = stringResource(Res.string.wordlist_empty_label),
             )
         },
     )

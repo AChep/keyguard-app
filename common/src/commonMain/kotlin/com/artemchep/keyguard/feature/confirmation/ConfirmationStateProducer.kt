@@ -16,6 +16,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
@@ -88,7 +89,7 @@ fun confirmationState(
                             val error = if (item.canBeEmpty || fixed.isNotBlank()) {
                                 null
                             } else {
-                                translate(Res.strings.error_must_not_be_blank)
+                                translate(Res.string.error_must_not_be_blank)
                             }
                             val sensitive =
                                 item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||

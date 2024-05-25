@@ -1,26 +1,28 @@
 package com.artemchep.keyguard.feature.home.settings.display
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.artemchep.keyguard.feature.home.settings.Setting
 import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun UiSettingsScreen() {
-    SettingPaneContent(
-        title = stringResource(Res.strings.settings_appearance_header_title),
-        items = listOf(
+    val items = remember {
+        persistentListOf(
             SettingPaneItem.Group(
                 key = "locale",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.LOCALE),
                 ),
             ),
             SettingPaneItem.Group(
                 key = "color_scheme",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.COLOR_SCHEME),
                     SettingPaneItem.Item(Setting.COLOR_SCHEME_AMOLED_DARK),
                     SettingPaneItem.Item(Setting.COLOR_ACCENT),
@@ -32,7 +34,7 @@ fun UiSettingsScreen() {
             ),
             SettingPaneItem.Group(
                 key = "icons",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.APP_ICONS),
                     SettingPaneItem.Item(Setting.WEBSITE_ICONS),
                     SettingPaneItem.Item(Setting.GRAVATAR),
@@ -40,7 +42,7 @@ fun UiSettingsScreen() {
             ),
             SettingPaneItem.Group(
                 key = "experience",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.USE_EXTERNAL_BROWSER),
                     SettingPaneItem.Item(Setting.KEEP_SCREEN_ON),
                     SettingPaneItem.Item(Setting.CLOSE_TO_TRAY),
@@ -48,11 +50,15 @@ fun UiSettingsScreen() {
             ),
             SettingPaneItem.Group(
                 key = "layout",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.TWO_PANEL_LAYOUT_PORTRAIT),
                     SettingPaneItem.Item(Setting.TWO_PANEL_LAYOUT_LANDSCAPE),
                 ),
             ),
-        ),
+        )
+    }
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_appearance_header_title),
+        items = items,
     )
 }

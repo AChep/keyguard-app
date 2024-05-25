@@ -29,6 +29,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.tfa.directory.FlatLaunchBrowserItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
@@ -40,7 +41,7 @@ import com.artemchep.keyguard.ui.poweredby.PoweredByJustDeleteMe
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun JustDeleteMeDialogScreen(
@@ -57,7 +58,7 @@ fun JustDeleteMeDialogScreen(
                 text = title,
             )
             Text(
-                text = stringResource(Res.strings.justdeleteme_title),
+                text = stringResource(Res.string.justdeleteme_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
@@ -84,7 +85,7 @@ fun JustDeleteMeDialogScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
         },
     )
@@ -160,7 +161,7 @@ fun ColumnScope.Content(
             },
             title = {
                 Text(
-                    text = stringResource(Res.strings.justdeleteme_send_email_title),
+                    text = stringResource(Res.string.justdeleteme_send_email_title),
                 )
             },
             trailing = {
@@ -184,7 +185,7 @@ fun ColumnScope.Content(
     val websiteUrl = args.justDeleteMe.url
     if (websiteUrl != null) {
         FlatLaunchBrowserItem(
-            title = stringResource(Res.strings.uri_action_launch_website_title),
+            title = stringResource(Res.string.uri_action_launch_website_title),
             url = websiteUrl,
         )
     }

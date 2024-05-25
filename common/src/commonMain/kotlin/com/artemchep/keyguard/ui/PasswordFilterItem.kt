@@ -67,6 +67,8 @@ import com.artemchep.keyguard.feature.home.vault.component.VaultItemIcon2
 import com.artemchep.keyguard.feature.home.vault.component.localSurfaceColorAtElevation
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.surface.ProvideSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -104,8 +106,8 @@ data class FlatItemAction(
     val icon: ImageVector? = null,
     val leading: (@Composable () -> Unit)? = null,
     val trailing: (@Composable () -> Unit)? = null,
-    val title: String,
-    val text: String? = null,
+    val title: TextHolder,
+    val text: TextHolder? = null,
     val type: Type? = null,
     val onClick: (() -> Unit)? = {},
 ) : ContextItem {
@@ -143,7 +145,7 @@ class ContextItemBuilder(
         out
     }
 
-    fun section(
+    inline fun section(
         title: String? = null,
         block: ContextItemBuilder.() -> Unit,
     ) {
@@ -152,13 +154,17 @@ class ContextItemBuilder(
             return
         }
 
-        items += ContextItem.Section(title = title)
-        items += sectionItems
+        this += ContextItem.Section(title = title)
+        this += sectionItems
     }
 
     operator fun plusAssign(item: ContextItem?) {
         items += item
             ?: return
+    }
+
+    operator fun plusAssign(item: Collection<ContextItem>) {
+        items += item
     }
 
     fun build(): PersistentList<ContextItem> = sequence<ContextItem> {
@@ -180,7 +186,7 @@ class ContextItemBuilder(
 
 @JvmName("FlatItemActionNullable")
 fun CopyText.FlatItemAction(
-    title: String,
+    title: TextHolder,
     value: String?,
     hidden: Boolean = false,
     type: CopyText.Type = CopyText.Type.VALUE,
@@ -195,7 +201,7 @@ fun CopyText.FlatItemAction(
 
 fun CopyText.FlatItemAction(
     leading: (@Composable () -> Unit)? = null,
-    title: String,
+    title: TextHolder,
     value: String,
     hidden: Boolean = false,
     type: CopyText.Type = CopyText.Type.VALUE,
@@ -203,7 +209,8 @@ fun CopyText.FlatItemAction(
     leading = leading,
     icon = Icons.Outlined.ContentCopy,
     title = title,
-    text = value.takeUnless { hidden },
+    text = value.takeUnless { hidden }
+        ?.let(TextHolder::Value),
     type = FlatItemAction.Type.COPY,
     onClick = {
         copy(
@@ -627,7 +634,7 @@ fun RowScope.FlatItemActionContent(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = action.title,
+                        text = textResource(action.title),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -636,7 +643,7 @@ fun RowScope.FlatItemActionContent(
                     // composable
                     {
                         Text(
-                            text = action.text,
+                            text = textResource(action.text),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             fontSize = 13.sp,

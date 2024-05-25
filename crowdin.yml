@@ -21,13 +21,13 @@ files: [
       # Source files filter
       # e.g. "/resources/en/*.json"
       #
-        "source" : "/common/src/commonMain/resources/MR/base/*.xml",
+        "source" : "/common/src/commonMain/composeResources/values/*.xml",
 
       #
       # Where translations will be placed
       # e.g. "/resources/%two_letters_code%/%original_file_name%"
       #
-        "translation" : "/common/src/commonMain/resources/MR/%android_code%/%original_file_name%",
+        "translation" : "/common/src/commonMain/composeResources/values-%android_code%/%original_file_name%",
 
       #
       # File type

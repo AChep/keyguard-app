@@ -14,9 +14,10 @@ import com.artemchep.keyguard.common.usecase.GetGravatar
 import com.artemchep.keyguard.common.usecase.PutGravatar
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import compose.icons.FeatherIcons
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -80,7 +81,7 @@ private fun SettingGravatar(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_load_gravatar_icons_title),
+                text = stringResource(Res.string.pref_item_load_gravatar_icons_title),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

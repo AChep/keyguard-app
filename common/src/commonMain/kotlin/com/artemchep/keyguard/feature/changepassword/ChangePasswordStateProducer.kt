@@ -20,6 +20,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -192,7 +193,7 @@ private fun RememberStateFlowScope.ah(
                     ifRight = ::identity,
                 )
             val prompt = BiometricAuthPrompt(
-                title = TextHolder.Res(Res.strings.changepassword_biometric_auth_confirm_title),
+                title = TextHolder.Res(Res.string.changepassword_biometric_auth_confirm_title),
                 cipher = cipher,
                 requireConfirmation = requireConfirmation,
                 onComplete = { result ->

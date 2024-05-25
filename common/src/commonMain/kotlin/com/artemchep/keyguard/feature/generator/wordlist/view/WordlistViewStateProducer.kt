@@ -14,12 +14,15 @@ import com.artemchep.keyguard.common.usecase.RemoveWordlistById
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
+import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
@@ -78,22 +81,26 @@ fun produceWordlistViewState(
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
-                            title = translate(Res.strings.edit),
-                            onClick = WordlistUtil::onRename
-                                .partially1(this@produceScreenState)
-                                .partially1(editWordlist)
-                                .partially1(wordlist),
+                            title = Res.string.edit.wrap(),
+                            onClick = onClick {
+                                WordlistUtil.onRename(
+                                    editWordlist = editWordlist,
+                                    entity = wordlist,
+                                )
+                            },
                         )
                     }
                     section {
                         val wordlistAsItems = listOf(wordlist)
                         this += FlatItemAction(
                             icon = Icons.Outlined.Delete,
-                            title = translate(Res.strings.delete),
-                            onClick = WordlistUtil::onDeleteByItems
-                                .partially1(this@produceScreenState)
-                                .partially1(removeWordlistById)
-                                .partially1(wordlistAsItems),
+                            title = Res.string.delete.wrap(),
+                            onClick = onClick {
+                                WordlistUtil.onDeleteByItems(
+                                    removeWordlistById = removeWordlistById,
+                                    items = wordlistAsItems,
+                                )
+                            },
                         )
                     }
                 }

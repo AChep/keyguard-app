@@ -36,6 +36,7 @@ import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
@@ -49,7 +50,8 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 @Composable
@@ -62,14 +64,14 @@ fun WebsiteLeakScreen(
     Dialog(
         icon = icon(Icons.Outlined.FactCheck),
         title = {
-            Text(stringResource(Res.strings.emailleak_title))
+            Text(stringResource(Res.string.emailleak_title))
         },
         content = {
             Column {
                 Text(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
-                    text = stringResource(Res.strings.emailleak_note),
+                    text = stringResource(Res.string.emailleak_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),
@@ -112,7 +114,7 @@ fun WebsiteLeakScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
         },
     )
@@ -146,15 +148,15 @@ private fun ColumnScope.Content(
     if (leaks.isNotEmpty()) {
         FlatSimpleNote(
             type = SimpleNote.Type.WARNING,
-            title = stringResource(Res.strings.emailleak_breach_found_title),
+            title = stringResource(Res.string.emailleak_breach_found_title),
         )
         Section(
-            text = stringResource(Res.strings.emailleak_breach_section),
+            text = stringResource(Res.string.emailleak_breach_section),
         )
     } else {
         FlatSimpleNote(
             type = SimpleNote.Type.OK,
-            title = stringResource(Res.strings.emailleak_breach_not_found_title),
+            title = stringResource(Res.string.emailleak_breach_not_found_title),
         )
     }
     leaks.forEachIndexed { index, item ->
@@ -231,7 +233,7 @@ private fun BreachItem(
             if (item.count != null) {
                 val numberFormatter: NumberFormatter by rememberInstance()
                 Text(
-                    text = stringResource(
+                    text = pluralStringResource(
                         Res.plurals.emailleak_breach_accounts_count_plural,
                         item.count,
                         numberFormatter.formatNumber(item.count.toInt()),
@@ -243,7 +245,7 @@ private fun BreachItem(
             if (item.occurredAt != null) {
                 Text(
                     text = stringResource(
-                        Res.strings.emailleak_breach_occurred_at,
+                        Res.string.emailleak_breach_occurred_at,
                         item.occurredAt,
                     ),
                     style = MaterialTheme.typography.labelSmall,
@@ -254,7 +256,7 @@ private fun BreachItem(
             if (item.reportedAt != null) {
                 Text(
                     text = stringResource(
-                        Res.strings.emailleak_breach_reported_at,
+                        Res.string.emailleak_breach_reported_at,
                         item.reportedAt,
                     ),
                     style = MaterialTheme.typography.labelSmall,

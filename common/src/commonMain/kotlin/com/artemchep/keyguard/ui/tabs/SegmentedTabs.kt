@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.util.DividerColor
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable

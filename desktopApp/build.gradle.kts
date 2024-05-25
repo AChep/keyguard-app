@@ -2,8 +2,9 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.plugin.compose)
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
@@ -19,6 +20,7 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
                 implementation(compose.desktop.currentOs)
+                implementation(compose.components.resources)
                 implementation(project(":common"))
             }
         }

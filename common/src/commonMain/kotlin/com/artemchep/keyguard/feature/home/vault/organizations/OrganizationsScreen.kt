@@ -28,6 +28,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AhLayout
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -42,7 +43,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FoldersScreen(
@@ -71,7 +72,7 @@ fun FoldersScreenContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(Res.strings.account),
+                            text = stringResource(Res.string.account),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -79,7 +80,7 @@ fun FoldersScreenContent(
                             maxLines = 2,
                         )
                         Text(
-                            text = stringResource(Res.strings.organizations),
+                            text = stringResource(Res.string.organizations),
                             style = MaterialTheme.typography.titleMedium,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
@@ -139,7 +140,7 @@ fun FoldersScreenContent(
                         EmptyView(
                             text = {
                                 Text(
-                                    text = stringResource(Res.strings.organizations_empty_label),
+                                    text = stringResource(Res.string.organizations_empty_label),
                                 )
                             },
                         )

@@ -7,8 +7,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import dev.icerock.moko.resources.StringResource
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 import java.util.UUID
 
 @Composable
@@ -32,7 +32,7 @@ fun annotatedResource(
     }
 }
 
-fun TranslatorScope.annotate(
+suspend fun TranslatorScope.annotate(
     resource: StringResource,
     vararg args: Pair<Any, SpanStyle>,
 ): AnnotatedString {

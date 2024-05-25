@@ -49,6 +49,7 @@ import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasDynamicShortcuts
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -65,7 +66,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -148,7 +149,7 @@ fun CipherFiltersListScreen(
             ) {
                 Column {
                     CustomToolbarContent(
-                        title = stringResource(Res.strings.customfilters_header_title),
+                        title = stringResource(Res.string.customfilters_header_title),
                         icon = {
                             NavigationIcon()
                         },
@@ -168,7 +169,7 @@ fun CipherFiltersListScreen(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = queryText,
-                        placeholder = stringResource(Res.strings.customfilters_search_placeholder),
+                        placeholder = stringResource(Res.string.customfilters_search_placeholder),
                         searchIcon = false,
                         count = count,
                         leading = {},
@@ -273,7 +274,7 @@ fun CipherFiltersListScreen(
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
-                text = stringResource(Res.strings.customfilters_dynamic_shortcut_tip),
+                text = stringResource(Res.string.customfilters_dynamic_shortcut_tip),
                 style = MaterialTheme.typography.bodyMedium,
                 color = LocalContentColor.current
                     .combineAlpha(alpha = MediumEmphasisAlpha),

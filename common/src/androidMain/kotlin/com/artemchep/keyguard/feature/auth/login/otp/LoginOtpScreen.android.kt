@@ -29,10 +29,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.DividerColor
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -105,7 +106,7 @@ actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser(
             updatedOnClick?.invoke()
         },
     ) {
-        Text(stringResource(Res.strings.fido2webauthn_action_go_title))
+        Text(stringResource(Res.string.fido2webauthn_action_go_title))
     }
     ExpandedIfNotEmpty(state.error) { error ->
         Column {
@@ -141,7 +142,7 @@ actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser(
 //        modifier = Modifier
 //            .padding(horizontal = Dimens.horizontalPadding),
 //        text = stringResource(
-//            Res.strings.fido2webauthn_bitwarden_web_vault_version_warning_note,
+//            Res.string.fido2webauthn_bitwarden_web_vault_version_warning_note,
 //            "2023.7.1",
 //        ),
 //        style = MaterialTheme.typography.bodyMedium,

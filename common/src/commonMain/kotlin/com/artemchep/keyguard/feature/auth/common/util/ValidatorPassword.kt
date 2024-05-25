@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.auth.common.util
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -29,10 +30,10 @@ fun validatePassword(
     }
 }
 
-fun ValidationPassword.format(scope: TranslatorScope): String? =
+suspend fun ValidationPassword.format(scope: TranslatorScope): String? =
     when (this) {
         ValidationPassword.ERROR_MIN_LENGTH -> scope.translate(
-            res = Res.strings.error_must_have_at_least_n_symbols,
+            res = Res.string.error_must_have_at_least_n_symbols,
             ValidationPassword.Const.MIN_LENGTH,
         )
 

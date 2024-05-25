@@ -21,6 +21,7 @@ import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canDelete
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.generateAccentColors
@@ -400,50 +401,50 @@ fun DSecret.Type.iconImageVector() = when (this) {
 }
 
 fun DSecret.Type.titleH() = when (this) {
-    DSecret.Type.Login -> Res.strings.cipher_type_login
-    DSecret.Type.Card -> Res.strings.cipher_type_card
-    DSecret.Type.Identity -> Res.strings.cipher_type_identity
-    DSecret.Type.SecureNote -> Res.strings.cipher_type_note
-    DSecret.Type.None -> Res.strings.cipher_type_unknown
+    DSecret.Type.Login -> Res.string.cipher_type_login
+    DSecret.Type.Card -> Res.string.cipher_type_card
+    DSecret.Type.Identity -> Res.string.cipher_type_identity
+    DSecret.Type.SecureNote -> Res.string.cipher_type_note
+    DSecret.Type.None -> Res.string.cipher_type_unknown
 }
 
 fun DSecret.Uri.MatchType.titleH() = when (this) {
-    DSecret.Uri.MatchType.Domain -> Res.strings.uri_match_detection_domain_title
-    DSecret.Uri.MatchType.Host -> Res.strings.uri_match_detection_host_title
-    DSecret.Uri.MatchType.StartsWith -> Res.strings.uri_match_detection_startswith_title
-    DSecret.Uri.MatchType.Exact -> Res.strings.uri_match_detection_exact_title
-    DSecret.Uri.MatchType.RegularExpression -> Res.strings.uri_match_detection_regex_title
-    DSecret.Uri.MatchType.Never -> Res.strings.uri_match_detection_never_title
+    DSecret.Uri.MatchType.Domain -> Res.string.uri_match_detection_domain_title
+    DSecret.Uri.MatchType.Host -> Res.string.uri_match_detection_host_title
+    DSecret.Uri.MatchType.StartsWith -> Res.string.uri_match_detection_startswith_title
+    DSecret.Uri.MatchType.Exact -> Res.string.uri_match_detection_exact_title
+    DSecret.Uri.MatchType.RegularExpression -> Res.string.uri_match_detection_regex_title
+    DSecret.Uri.MatchType.Never -> Res.string.uri_match_detection_never_title
 }
 
 fun DSecret.Field.LinkedId.titleH() = when (this) {
-    DSecret.Field.LinkedId.Login_Username -> Res.strings.username
-    DSecret.Field.LinkedId.Login_Password -> Res.strings.password
-    DSecret.Field.LinkedId.Card_CardholderName -> Res.strings.cardholder_name
-    DSecret.Field.LinkedId.Card_ExpMonth -> Res.strings.card_expiry_month
-    DSecret.Field.LinkedId.Card_ExpYear -> Res.strings.card_expiry_year
-    DSecret.Field.LinkedId.Card_Code -> Res.strings.card_cvv
-    DSecret.Field.LinkedId.Card_Brand -> Res.strings.card_type
-    DSecret.Field.LinkedId.Card_Number -> Res.strings.card_number
-    DSecret.Field.LinkedId.Identity_Title -> Res.strings.identity_first_name
-    DSecret.Field.LinkedId.Identity_MiddleName -> Res.strings.identity_middle_name
-    DSecret.Field.LinkedId.Identity_Address1 -> Res.strings.address1
-    DSecret.Field.LinkedId.Identity_Address2 -> Res.strings.address2
-    DSecret.Field.LinkedId.Identity_Address3 -> Res.strings.address3
-    DSecret.Field.LinkedId.Identity_City -> Res.strings.city
-    DSecret.Field.LinkedId.Identity_State -> Res.strings.state
-    DSecret.Field.LinkedId.Identity_PostalCode -> Res.strings.postal_code
-    DSecret.Field.LinkedId.Identity_Country -> Res.strings.country
-    DSecret.Field.LinkedId.Identity_Company -> Res.strings.company
-    DSecret.Field.LinkedId.Identity_Email -> Res.strings.email
-    DSecret.Field.LinkedId.Identity_Phone -> Res.strings.phone_number
-    DSecret.Field.LinkedId.Identity_Ssn -> Res.strings.ssn
-    DSecret.Field.LinkedId.Identity_Username -> Res.strings.username
-    DSecret.Field.LinkedId.Identity_PassportNumber -> Res.strings.passport_number
-    DSecret.Field.LinkedId.Identity_LicenseNumber -> Res.strings.license_number
-    DSecret.Field.LinkedId.Identity_FirstName -> Res.strings.identity_first_name
-    DSecret.Field.LinkedId.Identity_LastName -> Res.strings.identity_last_name
-    DSecret.Field.LinkedId.Identity_FullName -> Res.strings.identity_full_name
+    DSecret.Field.LinkedId.Login_Username -> Res.string.username
+    DSecret.Field.LinkedId.Login_Password -> Res.string.password
+    DSecret.Field.LinkedId.Card_CardholderName -> Res.string.cardholder_name
+    DSecret.Field.LinkedId.Card_ExpMonth -> Res.string.card_expiry_month
+    DSecret.Field.LinkedId.Card_ExpYear -> Res.string.card_expiry_year
+    DSecret.Field.LinkedId.Card_Code -> Res.string.card_cvv
+    DSecret.Field.LinkedId.Card_Brand -> Res.string.card_type
+    DSecret.Field.LinkedId.Card_Number -> Res.string.card_number
+    DSecret.Field.LinkedId.Identity_Title -> Res.string.identity_first_name
+    DSecret.Field.LinkedId.Identity_MiddleName -> Res.string.identity_middle_name
+    DSecret.Field.LinkedId.Identity_Address1 -> Res.string.address1
+    DSecret.Field.LinkedId.Identity_Address2 -> Res.string.address2
+    DSecret.Field.LinkedId.Identity_Address3 -> Res.string.address3
+    DSecret.Field.LinkedId.Identity_City -> Res.string.city
+    DSecret.Field.LinkedId.Identity_State -> Res.string.state
+    DSecret.Field.LinkedId.Identity_PostalCode -> Res.string.postal_code
+    DSecret.Field.LinkedId.Identity_Country -> Res.string.country
+    DSecret.Field.LinkedId.Identity_Company -> Res.string.company
+    DSecret.Field.LinkedId.Identity_Email -> Res.string.email
+    DSecret.Field.LinkedId.Identity_Phone -> Res.string.phone_number
+    DSecret.Field.LinkedId.Identity_Ssn -> Res.string.ssn
+    DSecret.Field.LinkedId.Identity_Username -> Res.string.username
+    DSecret.Field.LinkedId.Identity_PassportNumber -> Res.string.passport_number
+    DSecret.Field.LinkedId.Identity_LicenseNumber -> Res.string.license_number
+    DSecret.Field.LinkedId.Identity_FirstName -> Res.string.identity_first_name
+    DSecret.Field.LinkedId.Identity_LastName -> Res.string.identity_last_name
+    DSecret.Field.LinkedId.Identity_FullName -> Res.string.identity_full_name
 }
 
 fun DSecret.contains(hint: AutofillHint) = when (hint) {

@@ -5,11 +5,13 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
@@ -75,7 +77,7 @@ private suspend fun loadTld(
     textService: TextService,
 ) = withContext(Dispatchers.IO) {
     textService
-        .readFromResources(Res.files.public_suffix_list).use {
+        .readFromResources(FileResource.publicSuffixList).use {
             it
                 .bufferedReader()
                 .useLines { lines ->

@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Compose
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
@@ -51,7 +52,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -107,7 +108,7 @@ fun DuplicatesListScreen(
                 title = {
                     Column() {
                         Text(
-                            text = stringResource(Res.strings.watchtower_header_title),
+                            text = stringResource(Res.string.watchtower_header_title),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -115,7 +116,7 @@ fun DuplicatesListScreen(
                             maxLines = 2,
                         )
                         Text(
-                            text = stringResource(Res.strings.watchtower_item_duplicate_items_title),
+                            text = stringResource(Res.string.watchtower_item_duplicate_items_title),
                             style = MaterialTheme.typography.titleMedium,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
@@ -137,7 +138,7 @@ fun DuplicatesListScreen(
                     ) {
                         Column {
                             Text(
-                                text = stringResource(Res.strings.tolerance),
+                                text = stringResource(Res.string.tolerance),
                             )
                             val textResOrNull =
                                 loadableState.getOrNull()?.sensitivity?.title
@@ -229,7 +230,7 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.duplicates_empty_label),
+                text = stringResource(Res.string.duplicates_empty_label),
             )
         },
     )

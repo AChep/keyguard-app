@@ -23,10 +23,12 @@ import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.LeCipher
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
@@ -90,8 +92,8 @@ fun unlockScreenState(
     val actions = persistentListOf(
         FlatItemAction(
             icon = Icons.Outlined.Delete,
-            title = translate(Res.strings.pref_item_erase_data_title),
-            text = translate(Res.strings.pref_item_erase_data_text),
+            title = Res.string.pref_item_erase_data_title.wrap(),
+            text = Res.string.pref_item_erase_data_text.wrap(),
             onClick = {
                 clearData()
                     .effectTap {
@@ -198,8 +200,8 @@ private fun createPromptOrNull(
             ifRight = ::identity,
         )
     BiometricAuthPrompt(
-        title = TextHolder.Res(Res.strings.unlock_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.strings.unlock_biometric_auth_confirm_text),
+        title = TextHolder.Res(Res.string.unlock_biometric_auth_confirm_title),
+        text = TextHolder.Res(Res.string.unlock_biometric_auth_confirm_text),
         cipher = cipher,
         requireConfirmation = fn.requireConfirmation,
         onComplete = { result ->

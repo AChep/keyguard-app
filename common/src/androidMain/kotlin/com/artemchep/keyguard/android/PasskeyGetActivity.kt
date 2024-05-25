@@ -31,6 +31,7 @@ import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
 import arrow.optics.optics
+import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
@@ -73,13 +74,14 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -215,8 +217,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
                 // Show the error to a user
                 val uiState = Ahhehe.Error(
-                    title = Res.strings.error_failed_use_passkey
-                        .getString(this@PasskeyGetActivity),
+                    title = org.jetbrains.compose.resources.getString(Res.string.error_failed_use_passkey),
                     message = it.localizedMessage
                         ?: it.message
                         ?: "Something went wrong",
@@ -271,7 +272,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                             .align(Alignment.CenterVertically),
                     ) {
                         Text(
-                            text = stringResource(Res.strings.passkey_auth_via_header),
+                            text = stringResource(Res.string.passkey_auth_via_header),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -310,7 +311,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                                 .width(Dimens.buttonIconPadding),
                         )
                         Text(
-                            text = stringResource(Res.strings.cancel),
+                            text = stringResource(Res.string.cancel),
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -426,7 +427,7 @@ fun UserVerificationScreen(
             top = {
                 Text(
                     textAlign = TextAlign.Center,
-                    text = stringResource(Res.strings.userverification_header_text),
+                    text = stringResource(Res.string.userverification_header_text),
                     style = MaterialTheme.typography.bodyLarge,
                 )
             },
@@ -469,7 +470,7 @@ fun UserVerificationScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(Res.strings.userverification_button_go),
+                        text = stringResource(Res.string.userverification_button_go),
                     )
                 }
                 val onBiometricButtonClick by rememberUpdatedState(
@@ -638,7 +639,7 @@ fun produceUserVerificationState(
                                 onAuthenticated()
                             } else {
                                 val message = ToastMessage(
-                                    title = translate(Res.strings.error_incorrect_password),
+                                    title = translate(Res.string.error_incorrect_password),
                                     type = ToastMessage.Type.ERROR,
                                 )
                                 message(message)
@@ -662,8 +663,8 @@ private fun createPromptOrNull(
     fn: () -> Unit,
 ): PureBiometricAuthPrompt = run {
     BiometricAuthPromptSimple(
-        title = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_text),
+        title = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_title),
+        text = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_text),
         requireConfirmation = requireConfirmation,
         onComplete = { result ->
             result.fold(

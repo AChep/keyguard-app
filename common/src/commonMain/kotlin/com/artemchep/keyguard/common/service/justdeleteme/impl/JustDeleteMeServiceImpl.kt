@@ -3,11 +3,13 @@ package com.artemchep.keyguard.common.service.justdeleteme.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -67,4 +69,4 @@ class JustDeleteMeServiceImpl(
 
 private suspend fun loadJustDeleteMeRawData(
     textService: TextService,
-) = textService.readFromResourcesAsText(Res.files.justdeleteme)
+) = textService.readFromResourcesAsText(FileResource.justDeleteMe)

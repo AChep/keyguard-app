@@ -33,6 +33,7 @@ import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatDropdown
@@ -45,7 +46,7 @@ import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun GeneratorHistoryScreen() {
@@ -73,7 +74,7 @@ private fun GeneratorPaneMaster(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.generatorhistory_header_title))
+                    Text(stringResource(Res.string.generatorhistory_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()

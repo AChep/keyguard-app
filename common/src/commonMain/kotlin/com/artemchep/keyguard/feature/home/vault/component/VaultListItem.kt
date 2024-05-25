@@ -75,6 +75,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -94,9 +95,9 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.painterResource
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.painterResource
 import kotlin.math.ln
 
 @Composable
@@ -114,7 +115,7 @@ fun VaultListItem(
             },
             text = {
                 Text(
-                    text = stringResource(Res.strings.vault_main_no_suggested_items),
+                    text = stringResource(Res.string.vault_main_no_suggested_items),
                 )
             },
         )
@@ -127,7 +128,7 @@ fun VaultListItem(
             },
             text = {
                 Text(
-                    text = stringResource(Res.strings.items_empty_label),
+                    text = stringResource(Res.string.items_empty_label),
                 )
             },
         )
@@ -312,7 +313,7 @@ fun VaultListItemText(
                         )
                     } else {
                         Text(
-                            text = stringResource(Res.strings.empty_value),
+                            text = stringResource(Res.string.empty_value),
                             color = LocalContentColor.current
                                 .combineAlpha(DisabledEmphasisAlpha),
                             overflow = TextOverflow.Ellipsis,
@@ -588,7 +589,7 @@ private fun SmartBadge(
                 .widthIn(max = 128.dp)
                 .alignByBaseline(),
             text = title
-                ?: stringResource(Res.strings.empty_value),
+                ?: stringResource(Res.string.empty_value),
             color = if (title != null) {
                 LocalContentColor.current
             } else {

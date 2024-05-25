@@ -86,6 +86,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.qr.ScanQrButton
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.BiFlatContainer
 import com.artemchep.keyguard.ui.BiFlatTextField
@@ -136,7 +137,7 @@ import com.artemchep.keyguard.ui.theme.isDark
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 
 private val paddingValues = PaddingValues(
@@ -327,7 +328,7 @@ private fun TitleTextField(
             .padding(horizontal = Dimens.horizontalPadding),
         fieldModifier = Modifier
             .focusRequester2(focusRequester),
-        label = stringResource(Res.strings.generic_name),
+        label = stringResource(Res.string.generic_name),
         singleLine = true,
         value = field,
         keyboardOptions = KeyboardOptions(
@@ -350,7 +351,7 @@ private fun UsernameTextField(
     EmailFlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        label = stringResource(Res.strings.username),
+        label = stringResource(Res.string.username),
         value = field,
         leading = {
             Crossfade(
@@ -428,7 +429,7 @@ private fun PasswordTextField(
                 bottom = Dimens.topPaddingCaption,
             ),
         style = MaterialTheme.typography.bodyMedium,
-        text = stringResource(Res.strings.generator_password_note, 16),
+        text = stringResource(Res.string.generator_password_note, 16),
         color = LocalContentColor.current
             .combineAlpha(alpha = MediumEmphasisAlpha),
     )
@@ -445,7 +446,7 @@ private fun TotpTextField(
     FlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        label = stringResource(Res.strings.one_time_password_authenticator_key),
+        label = stringResource(Res.string.one_time_password_authenticator_key),
         value = field,
         textStyle = LocalTextStyle.current.copy(
             fontFamily = monoFontFamily,
@@ -501,7 +502,7 @@ private fun NoteTextField(
     FlatTextField(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        label = stringResource(Res.strings.note),
+        label = stringResource(Res.string.note),
         value = field,
         content = if (markdown) {
             // composable
@@ -515,7 +516,7 @@ private fun NoteTextField(
                         },
                     ) {
                         Text(
-                            text = stringResource(Res.strings.additem_markdown_render_preview),
+                            text = stringResource(Res.string.additem_markdown_render_preview),
                         )
                     }
                 }
@@ -530,12 +531,12 @@ private fun NoteTextField(
     )
     if (markdown) {
         val description = annotatedResource(
-            Res.strings.additem_markdown_note,
-            stringResource(Res.strings.additem_markdown_note_italic)
+            Res.string.additem_markdown_note,
+            stringResource(Res.string.additem_markdown_note_italic)
                 .let { "*$it*" } to SpanStyle(
                 fontStyle = FontStyle.Italic,
             ),
-            stringResource(Res.strings.additem_markdown_note_bold)
+            stringResource(Res.string.additem_markdown_note_bold)
                 .let { "**$it**" } to SpanStyle(
                 fontWeight = FontWeight.Bold,
             ),
@@ -566,7 +567,7 @@ private fun NoteTextField(
                 },
             ) {
                 Text(
-                    text = stringResource(Res.strings.learn_more),
+                    text = stringResource(Res.string.learn_more),
                 )
             }
         }
@@ -621,7 +622,7 @@ private fun UrlTextField(
     UrlFlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        label = stringResource(Res.strings.uri),
+        label = stringResource(Res.string.uri),
         value = field,
         leading = {
             IconBox(
@@ -770,7 +771,7 @@ private fun PasskeyField(
                 FlatItemTextContent(
                     title = {
                         Text(
-                            text = stringResource(Res.strings.passkey),
+                            text = stringResource(Res.string.passkey),
                         )
                     },
                 )
@@ -1003,7 +1004,7 @@ private fun FieldLinkedIdField(
                     modifier = Modifier
                         .heightIn(min = BiFlatValueHeightMin)
                         .weight(1f, fill = false),
-                    text = (state.value?.titleH() ?: Res.strings.select_linked_type)
+                    text = (state.value?.titleH() ?: Res.string.select_linked_type)
                         .let { stringResource(it) },
                     color = textColor,
                 )
@@ -1152,7 +1153,7 @@ private fun DateTimeField(
                 FlatItemTextContent2(
                     title = {
                         Text(
-                            text = stringResource(Res.strings.date),
+                            text = stringResource(Res.string.date),
                         )
                     },
                     text = {
@@ -1177,7 +1178,7 @@ private fun DateTimeField(
                 FlatItemTextContent2(
                     title = {
                         Text(
-                            text = stringResource(Res.strings.time),
+                            text = stringResource(Res.string.time),
                         )
                     },
                     text = {

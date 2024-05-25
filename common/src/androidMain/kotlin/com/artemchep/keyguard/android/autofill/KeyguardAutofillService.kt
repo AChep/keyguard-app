@@ -29,6 +29,8 @@ import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.*
 import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.feature.home.vault.component.FormatCardGroupLength
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -408,7 +410,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         SELECT,
     }
 
-    private fun FillResponse.Builder.buildAuthentication(
+    private suspend fun FillResponse.Builder.buildAuthentication(
         type: FooBar,
         result2: AutofillStructure2,
         request: FillRequest,
@@ -469,12 +471,12 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         }
     }
 
-    private fun tryBuildDataset(
+    private suspend fun tryBuildDataset(
         index: Int,
         context: Context,
         secret: DSecret,
         struct: AutofillStructure2,
-        onComplete: (Dataset.Builder.() -> Unit)? = null,
+        onComplete: (suspend Dataset.Builder.() -> Unit)? = null,
     ): Dataset? {
         val title = secret.name
         val text = kotlin.run {
@@ -491,10 +493,10 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             text = text,
         )
 
-        fun createDatasetBuilder(): Dataset.Builder {
+        suspend fun createDatasetBuilder(): Dataset.Builder {
             val builder = Dataset.Builder(views)
             builder.setId(secret.id)
-            val fields = runBlocking {
+            val fields = run {
                 val hints = struct.items
                     .asSequence()
                     .map { it.hint }
@@ -556,7 +558,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("RestrictedApi")
-    private fun tryBuildSecretInlinePresentation(
+    private suspend fun tryBuildSecretInlinePresentation(
         request: FillRequest,
         index: Int,
         secret: DSecret,
@@ -606,7 +608,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("RestrictedApi")
-    private fun tryBuildManualSelectionInlinePresentation(
+    private suspend fun tryBuildManualSelectionInlinePresentation(
         request: FillRequest,
         index: Int,
         intent: Intent,
@@ -618,7 +620,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             PendingIntent.getActivity(this, 1010, intent, flags)
         },
         content = {
-            val title = getString(R.string.autofill_open_keyguard)
+            val title = org.jetbrains.compose.resources.getString(Res.string.autofill_open_keyguard)
             setContentDescription(title)
             setTitle(title)
             setStartIcon(createAppIcon())
@@ -627,7 +629,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.R)
-    private fun tryCreateAuthenticationInlinePresentation(
+    private suspend fun tryCreateAuthenticationInlinePresentation(
         type: FooBar,
         request: FillRequest,
         index: Int,
@@ -641,8 +643,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         },
         content = {
             val text = when (type) {
-                FooBar.UNLOCK -> getString(R.string.autofill_unlock_keyguard)
-                FooBar.SELECT -> getString(R.string.autofill_open_keyguard)
+                FooBar.UNLOCK -> org.jetbrains.compose.resources.getString(Res.string.autofill_unlock_keyguard)
+                FooBar.SELECT -> org.jetbrains.compose.resources.getString(Res.string.autofill_open_keyguard)
             }
             setContentDescription(text)
             setTitle(text)
@@ -652,7 +654,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.R)
-    private inline fun tryCreateInlinePresentation(
+    private suspend inline fun tryCreateInlinePresentation(
         request: FillRequest,
         index: Int,
         createPendingIntent: () -> PendingIntent,
@@ -668,7 +670,9 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             return InlinePresentation(
                 InlineSuggestionUi
                     .newContentBuilder(pi)
-                    .apply(content)
+                    .apply {
+                        content(this)
+                    }
                     .build().slice,
                 spec,
                 false,

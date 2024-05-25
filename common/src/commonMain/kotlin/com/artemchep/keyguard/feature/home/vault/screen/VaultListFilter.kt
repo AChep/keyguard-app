@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
@@ -98,31 +99,31 @@ enum class FilterSection(
 ) {
     CUSTOM(
         id = "custom",
-        title = TextHolder.Res(Res.strings.custom),
+        title = TextHolder.Res(Res.string.custom),
     ),
     ACCOUNT(
         id = "account",
-        title = TextHolder.Res(Res.strings.account),
+        title = TextHolder.Res(Res.string.account),
     ),
     ORGANIZATION(
         id = "organization",
-        title = TextHolder.Res(Res.strings.organization),
+        title = TextHolder.Res(Res.string.organization),
     ),
     TYPE(
         id = "type",
-        title = TextHolder.Res(Res.strings.type),
+        title = TextHolder.Res(Res.string.type),
     ),
     FOLDER(
         id = "folder",
-        title = TextHolder.Res(Res.strings.folder),
+        title = TextHolder.Res(Res.string.folder),
     ),
     COLLECTION(
         id = "collection",
-        title = TextHolder.Res(Res.strings.collection),
+        title = TextHolder.Res(Res.string.collection),
     ),
     MISC(
         id = "misc",
-        title = TextHolder.Res(Res.strings.misc),
+        title = TextHolder.Res(Res.string.misc),
     ),
 }
 
@@ -152,23 +153,25 @@ suspend fun RememberStateFlowScope.createFilter(
         filterSink.value = emptyState
     }
     val onSave = { state: Map<String, Set<DFilter.Primitive>> ->
-        val intent = createConfirmationDialogIntent(
-            item = ConfirmationRoute.Args.Item.StringItem(
-                key = "name",
-                title = translate(Res.strings.generic_name),
-                canBeEmpty = false,
-            ),
-            icon = icon(Icons.Outlined.KeyguardCipherFilter, Icons.Outlined.Add),
-            title = translate(Res.strings.customfilters_add_filter_title),
-        ) { name ->
-            val request = AddCipherFilterRequest(
-                name = name,
-                filter = state,
-            )
-            addCipherFilter(request)
-                .launchIn(appScope)
+        action {
+            val intent = createConfirmationDialogIntent(
+                item = ConfirmationRoute.Args.Item.StringItem(
+                    key = "name",
+                    title = translate(Res.string.generic_name),
+                    canBeEmpty = false,
+                ),
+                icon = icon(Icons.Outlined.KeyguardCipherFilter, Icons.Outlined.Add),
+                title = translate(Res.string.customfilters_add_filter_title),
+            ) { name ->
+                val request = AddCipherFilterRequest(
+                    name = name,
+                    filter = state,
+                )
+                addCipherFilter(request)
+                    .launchIn(appScope)
+            }
+            navigate(intent)
         }
-        navigate(intent)
     }
     val onToggle = { sectionId: String, filters: Set<DFilter.Primitive> ->
         filterSink.update { holder ->
@@ -468,7 +471,7 @@ suspend fun <
         icon = icon,
     )
 
-    fun createTypeFilterAction(
+    suspend fun createTypeFilterAction(
         type: DSecret.Type,
         sectionId: String = FilterSection.TYPE.id,
     ) = createFilterAction(
@@ -650,7 +653,7 @@ suspend fun <
                 .toList() +
                     createFolderFilterAction(
                         folderIds = setOfNull,
-                        title = translate(Res.strings.folder_none),
+                        title = translate(Res.string.folder_none),
                         icon = Icons.Outlined.FolderOff,
                         fill = false,
                         indent = 0,
@@ -696,7 +699,7 @@ suspend fun <
                 .toList() +
                     createCollectionFilterAction(
                         collectionIds = setOfNull,
-                        title = translate(Res.strings.collection_none),
+                        title = translate(Res.string.collection_none),
                     )
         }
         .combine(filterCollectionsWithCiphers) { items, collectionIds ->
@@ -739,7 +742,7 @@ suspend fun <
                 .toList() +
                     createOrganizationFilterAction(
                         organizationIds = setOfNull,
-                        title = translate(Res.strings.organization_none),
+                        title = translate(Res.string.organization_none),
                     )
         }
         .combine(filterOrganizationsWithCiphers) { items, organizationIds ->
@@ -794,7 +797,7 @@ suspend fun <
                 DFilter.ByReprompt(reprompt = true),
             ),
             filterSectionId = "${FilterSection.MISC.id}.reprompt",
-            title = translate(Res.strings.filter_auth_reprompt_items),
+            title = translate(Res.string.filter_auth_reprompt_items),
             icon = Icons.Outlined.KeyguardAuthReprompt,
         ),
         createFilterAction(
@@ -803,7 +806,7 @@ suspend fun <
                 DFilter.BySync(synced = false),
             ),
             filterSectionId = "${FilterSection.MISC.id}.sync",
-            title = translate(Res.strings.filter_pending_items),
+            title = translate(Res.string.filter_pending_items),
             icon = Icons.Outlined.KeyguardPendingSyncItems,
         ),
         createFilterAction(
@@ -812,7 +815,7 @@ suspend fun <
                 DFilter.ByError(error = true),
             ),
             filterSectionId = "${FilterSection.MISC.id}.error",
-            title = translate(Res.strings.filter_failed_items),
+            title = translate(Res.string.filter_failed_items),
             icon = Icons.Outlined.KeyguardFailedItems,
         ),
         createFilterAction(
@@ -821,7 +824,7 @@ suspend fun <
                 DFilter.ByIgnoredAlerts,
             ),
             filterSectionId = "${FilterSection.MISC.id}.watchtower_alerts",
-            title = translate(Res.strings.ignored_alerts),
+            title = translate(Res.string.ignored_alerts),
             icon = Icons.Outlined.KeyguardIgnoredAlerts,
         ),
     )

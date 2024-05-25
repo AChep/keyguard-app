@@ -31,6 +31,7 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AhLayout
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -45,7 +46,7 @@ import com.artemchep.keyguard.ui.icons.OfflineIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FoldersScreen(
@@ -74,7 +75,7 @@ fun FoldersScreenContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(Res.strings.account),
+                            text = stringResource(Res.string.account),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -82,7 +83,7 @@ fun FoldersScreenContent(
                             maxLines = 2,
                         )
                         Text(
-                            text = stringResource(Res.strings.folders),
+                            text = stringResource(Res.string.folders),
                             style = MaterialTheme.typography.titleMedium,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
@@ -117,7 +118,7 @@ fun FoldersScreenContent(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.folder_new),
+                        text = stringResource(Res.string.folder_new),
                     )
                 },
             )
@@ -147,7 +148,7 @@ fun FoldersScreenContent(
                             },
                             text = {
                                 Text(
-                                    text = stringResource(Res.strings.folders_empty_label),
+                                    text = stringResource(Res.string.folders_empty_label),
                                 )
                             },
                         )

@@ -11,10 +11,11 @@ import com.artemchep.keyguard.feature.feedback.FeedbackRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
 
@@ -59,7 +60,7 @@ fun SettingFeedbackAppItem(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_contact_us_title),
+                text = stringResource(Res.string.pref_item_contact_us_title),
             )
         },
         onClick = onClick,

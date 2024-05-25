@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.search.filter.SendFilterItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.generateAccentColorsByAccountId
@@ -290,7 +291,7 @@ suspend fun <
         icon = icon,
     )
 
-    fun createTypeFilterAction(
+    suspend fun createTypeFilterAction(
         type: DSend.Type,
     ) = createFilterAction(
         sectionId = typeSectionId,
@@ -328,7 +329,7 @@ suspend fun <
         }
         .aaa(
             sectionId = accountSectionId,
-            sectionTitle = translate(Res.strings.account),
+            sectionTitle = translate(Res.string.account),
         )
         .filterSection(params.section.account)
 
@@ -349,7 +350,7 @@ suspend fun <
         }
         .aaa(
             sectionId = typeSectionId,
-            sectionTitle = translate(Res.strings.type),
+            sectionTitle = translate(Res.string.type),
         )
         .filterSection(params.section.type)
 
@@ -362,7 +363,7 @@ suspend fun <
         }
         .aaa(
             sectionId = miscSectionId,
-            sectionTitle = translate(Res.strings.misc),
+            sectionTitle = translate(Res.string.misc),
             collapse = false,
         )
         .filterSection(params.section.misc)

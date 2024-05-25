@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -74,7 +75,7 @@ fun VaultViewIdentityItem(
                                 Icon(action.icon, null)
                             }
                         },
-                        title = action.title,
+                        title = textResource(action.title),
                         onClick = action.onClick,
                     )
                 }

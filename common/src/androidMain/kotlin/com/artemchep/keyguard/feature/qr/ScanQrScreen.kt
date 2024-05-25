@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -38,7 +39,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import java.util.concurrent.Executors
 
 @Composable
@@ -73,7 +74,7 @@ fun ScanQrScreen(
                 modifier = Modifier
                     .statusBarsPadding(),
                 title = {
-                    Text(stringResource(Res.strings.scanqr_title))
+                    Text(stringResource(Res.string.scanqr_title))
                 },
                 navigationIcon = {
                     NavigationIcon()

@@ -2,7 +2,8 @@ package com.artemchep.keyguard.feature.auth.login
 
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.StringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 
@@ -59,6 +60,6 @@ sealed interface LoginRegion {
             get() = ServerEnv.Region.selfhosted
 
         override val title: StringResource
-            get() = Res.strings.addaccount_region_custom_type
+            get() = Res.string.addaccount_region_custom_type
     }
 }

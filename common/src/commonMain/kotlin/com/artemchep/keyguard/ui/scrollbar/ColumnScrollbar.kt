@@ -212,8 +212,8 @@ fun InternalColumnScrollbar(
                     },
             ) {
                 indicatorContent(
-                    normalizedOffset = offsetCorrectionInverse(normalizedOffsetPosition),
-                    isThumbSelected = isSelected,
+                    offsetCorrectionInverse(normalizedOffsetPosition),
+                    isSelected,
                 )
             }
         }

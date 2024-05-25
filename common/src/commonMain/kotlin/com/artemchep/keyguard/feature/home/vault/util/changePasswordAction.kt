@@ -56,10 +56,14 @@ import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.onClick
+import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -74,7 +78,7 @@ fun RememberStateFlowScope.cipherEnableConfirmAccessAction(
 ) = kotlin.run {
     FlatItemAction(
         icon = Icons.Filled.Lock,
-        title = translate(Res.strings.ciphers_action_enable_auth_reprompt_title),
+        title = Res.string.ciphers_action_enable_auth_reprompt_title.wrap(),
         onClick = {
             before?.invoke()
 
@@ -106,7 +110,7 @@ fun RememberStateFlowScope.cipherDisableConfirmAccessAction(
 ) = kotlin.run {
     FlatItemAction(
         icon = Icons.Outlined.LockOpen,
-        title = translate(Res.strings.ciphers_action_disable_auth_reprompt_title),
+        title = Res.string.ciphers_action_disable_auth_reprompt_title.wrap(),
         onClick = {
             before?.invoke()
 
@@ -145,7 +149,7 @@ fun RememberStateFlowScope.cipherEditAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.Edit)
-    val title = translate(Res.strings.ciphers_action_edit_title)
+    val title = Res.string.ciphers_action_edit_title.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
@@ -173,7 +177,7 @@ fun RememberStateFlowScope.cipherMergeIntoAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.Merge)
-    val title = translate(Res.strings.ciphers_action_merge_title)
+    val title = Res.string.ciphers_action_merge_title.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
@@ -217,7 +221,7 @@ fun RememberStateFlowScope.cipherExportAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val iconImageVector = Icons.Outlined.SaveAlt
-    val title = translate(Res.strings.ciphers_action_export_title)
+    val title = Res.string.ciphers_action_export_title.wrap()
     FlatItemAction(
         icon = iconImageVector,
         title = title,
@@ -253,11 +257,11 @@ fun RememberStateFlowScope.cipherCopyToAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val iconImageVector = Icons.Outlined.FileCopy
-    val title = translate(Res.strings.ciphers_action_copy_title)
+    val title = Res.string.ciphers_action_copy_title.wrap()
     FlatItemAction(
         icon = iconImageVector,
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val ciphersHaveAttachments = ciphers.any { it.attachments.isNotEmpty() }
@@ -277,7 +281,7 @@ fun RememberStateFlowScope.cipherCopyToAction(
                 route = OrganizationConfirmationRoute(
                     args = OrganizationConfirmationRoute.Args(
                         decor = OrganizationConfirmationRoute.Args.Decor(
-                            title = title,
+                            title = translate(title),
                             note = note,
                             icon = iconImageVector,
                         ),
@@ -322,7 +326,7 @@ fun RememberStateFlowScope.cipherMoveToFolderAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.Folder)
-    val title = translate(Res.strings.ciphers_action_change_folder_title)
+    val title = Res.string.ciphers_action_change_folder_title.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
@@ -406,14 +410,14 @@ fun RememberStateFlowScope.cipherChangeNameAction(
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.Edit)
     val title = if (ciphers.size > 1) {
-        translate(Res.strings.ciphers_action_change_names_title)
+        Res.string.ciphers_action_change_names_title
     } else {
-        translate(Res.strings.ciphers_action_change_name_title)
-    }
+        Res.string.ciphers_action_change_name_title
+    }.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val items = ciphers
@@ -431,7 +435,7 @@ fun RememberStateFlowScope.cipherChangeNameAction(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon,
-                        title = title,
+                        title = translate(title),
                         items = items,
                     ),
                 ),
@@ -470,22 +474,22 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
         val hasPasswords = ciphers.any { !it.login?.password.isNullOrEmpty() }
         if (hasPasswords) {
             if (ciphers.size > 1) {
-                translate(Res.strings.ciphers_action_change_passwords_title)
+                Res.string.ciphers_action_change_passwords_title
             } else {
-                translate(Res.strings.ciphers_action_change_password_title)
+                Res.string.ciphers_action_change_password_title
             }
         } else {
             if (ciphers.size > 1) {
-                translate(Res.strings.ciphers_action_add_passwords_title)
+                Res.string.ciphers_action_add_passwords_title
             } else {
-                translate(Res.strings.ciphers_action_add_password_title)
+                Res.string.ciphers_action_add_password_title
             }
-        }
+        }.wrap()
     }
     FlatItemAction(
         leading = icon,
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val items = ciphers
@@ -504,8 +508,8 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon,
-                        title = title,
-                        message = translate(Res.strings.generator_password_note, 16),
+                        title = translate(title),
+                        message = translate(Res.string.generator_password_note, 16),
                         items = items,
                     ),
                 ),
@@ -538,7 +542,7 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
     cipher: DSecret,
     before: (() -> Unit)? = null,
 ) = kotlin.run {
-    val title = translate(Res.strings.ciphers_action_view_password_history_title)
+    val title = Res.string.ciphers_action_view_password_history_title.wrap()
     FlatItemAction(
         leading = {
             BadgedBox(
@@ -579,7 +583,7 @@ fun RememberStateFlowScope.cipherTrashAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.Delete)
-    val title = translate(Res.strings.ciphers_action_trash_title)
+    val title = Res.string.ciphers_action_trash_title.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
@@ -625,7 +629,7 @@ fun RememberStateFlowScope.cipherRestoreAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.RestoreFromTrash)
-    val title = translate(Res.strings.ciphers_action_restore_title)
+    val title = Res.string.ciphers_action_restore_title.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
@@ -670,18 +674,18 @@ fun RememberStateFlowScope.cipherDeleteAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     val icon = icon(Icons.Outlined.DeleteForever)
-    val title = translate(Res.strings.ciphers_action_delete_title)
+    val title = Res.string.ciphers_action_delete_title.wrap()
     FlatItemAction(
         leading = icon,
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val route = registerRouteResultReceiver(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon(Icons.Outlined.DeleteForever),
-                        title = translate(Res.strings.ciphers_action_delete_confirmation_title),
+                        title = translate(Res.string.ciphers_action_delete_confirmation_title),
                     ),
                 ),
             ) { result ->
@@ -719,7 +723,7 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
         .flatMap { cipher -> cipher.ignoredAlerts.keys }
         .toSet()
         .count()
-    val title = translate(Res.strings.ciphers_action_configure_watchtower_alerts_title)
+    val title = Res.string.ciphers_action_configure_watchtower_alerts_title.wrap()
     FlatItemAction(
         leading = {
             BadgedBox(
@@ -740,7 +744,7 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
             }
         },
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val items = DWatchtowerAlert.entries
@@ -760,7 +764,7 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon(Icons.Outlined.EditNotifications),
-                        title = title,
+                        title = translate(title),
                         items = items,
                     ),
                 ),

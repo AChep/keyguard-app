@@ -6,11 +6,11 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.monthsUntil
 
 interface ItemDecorator<out Generic, in Value> {
-    fun getOrNull(item: Value): Generic?
+    suspend fun getOrNull(item: Value): Generic?
 }
 
 object ItemDecoratorNone : ItemDecorator<Nothing, Any> {
-    override fun getOrNull(item: Any) = null
+    override suspend fun getOrNull(item: Any) = null
 }
 
 class ItemDecoratorDate<Generic, Value>(
@@ -26,7 +26,7 @@ class ItemDecoratorDate<Generic, Value>(
      */
     private var lastMonths: Int? = null
 
-    override fun getOrNull(item: Value): Generic? {
+    override suspend fun getOrNull(item: Value): Generic? {
         val instant = selector(item) ?: return null
         val months = instant
             .monthsUntil(past, TimeZone.UTC)
@@ -54,7 +54,7 @@ class ItemDecoratorTitle<Generic, Value>(
      */
     private var lastChar: Char? = null
 
-    override fun getOrNull(item: Value): Generic? {
+    override suspend fun getOrNull(item: Value): Generic? {
         val char = selector(item)
             ?.firstOrNull()
             ?.uppercaseChar()

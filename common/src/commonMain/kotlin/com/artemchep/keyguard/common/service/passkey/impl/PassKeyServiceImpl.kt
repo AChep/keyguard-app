@@ -3,11 +3,13 @@ package com.artemchep.keyguard.common.service.passkey.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -71,4 +73,4 @@ class PassKeyServiceImpl(
 
 private suspend fun loadPassKeyRawData(
     textService: TextService,
-) = textService.readFromResourcesAsText(Res.files.passkeys)
+) = textService.readFromResourcesAsText(FileResource.passkeys)

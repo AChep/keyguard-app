@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import org.kodein.di.compose.localDI
@@ -83,7 +84,7 @@ fun producePasskeysCredentialViewState(
             }
 
             val createdAt = translate(
-                Res.strings.vault_view_passkey_created_at_label,
+                Res.string.vault_view_passkey_created_at_label,
                 dateFormatter.formatDateTime(credential.creationDate),
             )
             val content = PasskeysCredentialViewState.Content(

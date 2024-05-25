@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AhLayout
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -40,7 +41,7 @@ import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CollectionsScreen(
@@ -68,7 +69,7 @@ fun CollectionsScreenContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(Res.strings.account),
+                            text = stringResource(Res.string.account),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -76,7 +77,7 @@ fun CollectionsScreenContent(
                             maxLines = 2,
                         )
                         Text(
-                            text = stringResource(Res.strings.collections),
+                            text = stringResource(Res.string.collections),
                             style = MaterialTheme.typography.titleMedium,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
@@ -136,7 +137,7 @@ fun CollectionsScreenContent(
                         EmptyView(
                             text = {
                                 Text(
-                                    text = stringResource(Res.strings.collections_empty_label),
+                                    text = stringResource(Res.string.collections_empty_label),
                                 )
                             },
                         )

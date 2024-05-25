@@ -8,6 +8,7 @@ import arrow.optics.optics
 import com.artemchep.keyguard.common.util.flowOfTime
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.Stub
@@ -101,9 +102,9 @@ fun DSend.Type.iconImageVector() = when (this) {
 }
 
 fun DSend.Type.titleH() = when (this) {
-    DSend.Type.Text -> Res.strings.send_type_text
-    DSend.Type.File -> Res.strings.send_type_file
-    DSend.Type.None -> Res.strings.send_type_unknown
+    DSend.Type.Text -> Res.string.send_type_text
+    DSend.Type.File -> Res.string.send_type_file
+    DSend.Type.None -> Res.string.send_type_unknown
 }
 
 fun DSend.Companion.requiresPremium(type: DSend.Type) = when (type) {

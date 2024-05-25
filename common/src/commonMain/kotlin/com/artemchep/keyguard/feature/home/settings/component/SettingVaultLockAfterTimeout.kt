@@ -10,15 +10,17 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeoutVariants
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -49,7 +51,7 @@ fun settingVaultLockAfterTimeoutProvider(
         .map { duration ->
             val title = getLockAfterDurationTitle(duration, context)
             FlatItemAction(
-                title = title,
+                title = TextHolder.Value(title),
                 onClick = {
                     putVaultLockAfterTimeout(duration)
                         .launchIn(windowCoroutineScope)
@@ -74,14 +76,14 @@ fun settingVaultLockAfterTimeoutProvider(
     }
 }
 
-private fun getLockAfterDurationTitle(duration: Duration, context: LeContext) = when (duration) {
+private suspend fun getLockAfterDurationTitle(duration: Duration, context: LeContext) = when (duration) {
     Duration.ZERO -> textResource(
-        Res.strings.pref_item_lock_vault_after_delay_immediately_text,
+        Res.string.pref_item_lock_vault_after_delay_immediately_text,
         context,
     )
 
     Duration.INFINITE -> textResource(
-        Res.strings.pref_item_lock_vault_after_delay_never_text,
+        Res.string.pref_item_lock_vault_after_delay_never_text,
         context,
     )
 
@@ -99,7 +101,7 @@ fun SettingLockAfterTimeout(
         content = {
             FlatItemTextContent(
                 title = {
-                    Text(stringResource(Res.strings.pref_item_lock_vault_after_delay_title))
+                    Text(stringResource(Res.string.pref_item_lock_vault_after_delay_title))
                 },
                 text = {
                     Text(text)

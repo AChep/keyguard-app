@@ -16,10 +16,12 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
@@ -28,7 +30,7 @@ import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -59,7 +61,7 @@ fun settingClipboardAutoRefreshProvider(
         .map { duration ->
             val title = getAutoRefreshDurationTitle(duration, context)
             FlatItemAction(
-                title = title,
+                title = TextHolder.Value(title),
                 onClick = {
                     putClipboardAutoRefresh(duration)
                         .launchIn(windowCoroutineScope)
@@ -77,9 +79,9 @@ fun settingClipboardAutoRefreshProvider(
     }
 }
 
-private fun getAutoRefreshDurationTitle(duration: Duration, context: LeContext) = when (duration) {
+private suspend fun getAutoRefreshDurationTitle(duration: Duration, context: LeContext) = when (duration) {
     Duration.ZERO -> textResource(
-        Res.strings.pref_item_clipboard_auto_refresh_otp_duration_never_text,
+        Res.string.pref_item_clipboard_auto_refresh_otp_duration_never_text,
         context,
     )
 
@@ -97,7 +99,7 @@ private fun SettingClipboardAutoRefresh(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_clipboard_auto_refresh_otp_duration_title),
+                        text = stringResource(Res.string.pref_item_clipboard_auto_refresh_otp_duration_title),
                     )
                 },
                 text = {
@@ -110,7 +112,7 @@ private fun SettingClipboardAutoRefresh(
                         color = LocalContentColor.current
                             .combineAlpha(MediumEmphasisAlpha),
                         style = MaterialTheme.typography.bodySmall,
-                        text = stringResource(Res.strings.pref_item_clipboard_auto_refresh_otp_duration_note),
+                        text = stringResource(Res.string.pref_item_clipboard_auto_refresh_otp_duration_note),
                     )
                 },
             )

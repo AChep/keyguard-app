@@ -36,8 +36,9 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
@@ -129,7 +130,7 @@ class PasskeyGetUnlockActivity : BaseActivity(), DIAware {
                         modifier = Modifier
                             .weight(1f)
                             .align(Alignment.CenterVertically),
-                        text = stringResource(Res.strings.autofill_unlock_keyguard),
+                        text = stringResource(Res.string.autofill_unlock_keyguard),
                         style = MaterialTheme.typography.titleMedium,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1,
@@ -147,7 +148,7 @@ class PasskeyGetUnlockActivity : BaseActivity(), DIAware {
                                 .width(Dimens.buttonIconPadding),
                         )
                         Text(
-                            text = stringResource(Res.strings.cancel),
+                            text = stringResource(Res.string.cancel),
                             textAlign = TextAlign.Center,
                         )
                     }

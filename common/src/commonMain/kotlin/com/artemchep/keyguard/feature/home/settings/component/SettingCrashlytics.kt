@@ -12,10 +12,11 @@ import arrow.core.partially1
 import com.artemchep.keyguard.platform.crashlyticsIsEnabledFlow
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.IconBox
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 
@@ -74,7 +75,7 @@ private fun SettingCrashlytics(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_send_crash_reports_title),
+                text = stringResource(Res.string.pref_item_send_crash_reports_title),
             )
         },
         onClick = onCheckedChange?.partially1(checked != true),

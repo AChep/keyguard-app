@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
@@ -19,7 +20,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.onInfoContainer
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VaultViewInactivePasskeyItem(
@@ -46,7 +47,7 @@ fun VaultViewInactivePasskeyItem(
                 FlatItemTextContent(
                     title = {
                         Text(
-                            stringResource(Res.strings.passkey_available),
+                            stringResource(Res.string.passkey_available),
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },

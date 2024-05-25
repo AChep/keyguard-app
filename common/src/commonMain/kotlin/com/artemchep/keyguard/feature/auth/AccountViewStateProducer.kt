@@ -77,15 +77,18 @@ import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
@@ -208,11 +211,11 @@ fun accountState(
             .launchIn(appScope)
     }
 
-    fun doRemoveAccountById(accountId: AccountId) {
+    suspend fun doRemoveAccountById(accountId: AccountId) {
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Logout),
-            title = translate(Res.strings.account_log_out_confirmation_title),
-            message = translate(Res.strings.account_log_out_confirmation_text),
+            title = translate(Res.string.account_log_out_confirmation_title),
+            message = translate(Res.string.account_log_out_confirmation_text),
         ) {
             removeAccountById(setOf(accountId))
                 .launchIn(appScope)
@@ -313,7 +316,7 @@ fun accountState(
                         val email = t.user.email
                         val env = t.env.back()
                         AccountViewState.Content.Data.PrimaryAction(
-                            text = translate(Res.strings.account_action_sign_in_title),
+                            text = translate(Res.string.account_action_sign_in_title),
                             icon = Icons.Outlined.Login,
                             onClick = ::doReLogin
                                 .partially1(accountId)
@@ -366,7 +369,7 @@ fun accountState(
                     leading = {
                         SyncIcon(rotating = syncing)
                     },
-                    title = translate(Res.strings.sync),
+                    title = Res.string.sync.wrap(),
                     onClick = if (busy) {
                         null
                     } else {
@@ -409,8 +412,8 @@ fun accountState(
                             onCheckedChange = onCheckedChange,
                         )
                     },
-                    title = translate(Res.strings.account_action_hide_title),
-                    text = translate(Res.strings.account_action_hide_text),
+                    title = Res.string.account_action_hide_title.wrap(),
+                    text = Res.string.account_action_hide_text.wrap(),
                     onClick = onCheckedChange.partially1(!hidden),
                 )
             }
@@ -421,12 +424,14 @@ fun accountState(
 
                 this += FlatItemAction(
                     icon = Icons.Outlined.Logout,
-                    title = translate(Res.strings.account_action_sign_out_title),
+                    title = Res.string.account_action_sign_out_title.wrap(),
                     onClick = if (busy) {
                         null
                     } else {
                         // on click listener
-                        ::doRemoveAccountById.partially1(accountOrNull.id)
+                        onClick {
+                            doRemoveAccountById(accountId)
+                        }
                     },
                 )
             }
@@ -537,7 +542,7 @@ private fun buildItemsFlow(
         val syncTimestamp = meta.lastSyncTimestamp
         if (syncTimestamp != null) {
             val syncDate = dateFormatter.formatDateTime(syncTimestamp)
-            val syncInfoText = scope.translate(Res.strings.account_last_synced_at, syncDate)
+            val syncInfoText = scope.translate(Res.string.account_last_synced_at, syncDate)
             val syncInfoItem = VaultViewItem.Label(
                 id = "sync.timestamp",
                 text = AnnotatedString(syncInfoText),
@@ -549,7 +554,7 @@ private fun buildItemsFlow(
     if (account != null) {
         val ff0 = VaultViewItem.Action(
             id = "ciphers",
-            title = scope.translate(Res.strings.items),
+            title = scope.translate(Res.string.items),
             leading = {
                 BadgedBox(
                     badge = {
@@ -576,7 +581,7 @@ private fun buildItemsFlow(
         emit(ff0)
         val sendsItem = VaultViewItem.Action(
             id = "sends",
-            title = scope.translate(Res.strings.sends),
+            title = scope.translate(Res.string.sends),
             leading = {
                 BadgedBox(
                     badge = {
@@ -604,7 +609,7 @@ private fun buildItemsFlow(
     }
     val ff = VaultViewItem.Action(
         id = "folders",
-        title = scope.translate(Res.strings.folders),
+        title = scope.translate(Res.string.folders),
         leading = {
             BadgedBox(
                 badge = {
@@ -635,7 +640,7 @@ private fun buildItemsFlow(
     emit(ff)
     val ff2 = VaultViewItem.Action(
         id = "collections",
-        title = scope.translate(Res.strings.collections),
+        title = scope.translate(Res.string.collections),
         leading = {
             BadgedBox(
                 badge = {
@@ -667,7 +672,7 @@ private fun buildItemsFlow(
     emit(ff2)
     val ff3 = VaultViewItem.Action(
         id = "organizations",
-        title = scope.translate(Res.strings.organizations),
+        title = scope.translate(Res.string.organizations),
         leading = {
             BadgedBox(
                 badge = {
@@ -702,7 +707,7 @@ private fun buildItemsFlow(
     emit(watchtowerSectionItem)
     val watchtowerItem = VaultViewItem.Action(
         id = "watchtower",
-        title = scope.translate(Res.strings.watchtower_header_title),
+        title = scope.translate(Res.string.watchtower_header_title),
         leading = {
             Icon(Icons.Outlined.Security, null)
         },
@@ -725,7 +730,7 @@ private fun buildItemsFlow(
     emit(watchtowerItem)
     val ff4 = VaultViewItem.Section(
         id = "section",
-        text = scope.translate(Res.strings.security),
+        text = scope.translate(Res.string.security),
     )
     emit(ff4)
     if (profile != null) {
@@ -743,7 +748,7 @@ private fun buildItemsFlow(
         )
         val ff5 = VaultViewItem.Section(
             id = "section2",
-            text = scope.translate(Res.strings.info),
+            text = scope.translate(Res.string.info),
         )
         emit(ff5)
     }
@@ -756,7 +761,7 @@ private fun buildItemsFlow(
         )
         val unofficialServer = profile.unofficialServer
         if (unofficialServer) {
-            val unofficialServerText = scope.translate(Res.strings.bitwarden_unofficial_server)
+            val unofficialServerText = scope.translate(Res.string.bitwarden_unofficial_server)
             val unofficialServerItem = VaultViewItem.Label(
                 id = "unofficial_server",
                 text = AnnotatedString(unofficialServerText),
@@ -779,17 +784,17 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
 ) {
     val name = profile.name
 
-    fun onClick() {
+    suspend fun onClick() {
         val intent = scope.createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Edit),
             item = ConfirmationRoute.Args.Item.StringItem(
                 key = "name",
-                title = scope.translate(Res.strings.account_name),
+                title = scope.translate(Res.string.account_name),
                 value = name,
                 // You can have an empty account name.
                 canBeEmpty = true,
             ),
-            title = scope.translate(Res.strings.account_action_change_name_title),
+            title = scope.translate(Res.string.account_action_change_name_title),
         ) { name ->
             val profileIdsToNames = mapOf(
                 AccountId(profile.accountId) to name,
@@ -818,8 +823,10 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
     val id = "name"
     val nameEditActionItem = FlatItemAction(
         icon = Icons.Outlined.Edit,
-        title = scope.translate(Res.strings.account_action_change_name_title),
-        onClick = ::onClick,
+        title = Res.string.account_action_change_name_title.wrap(),
+        onClick = scope.onClick {
+            onClick()
+        },
     )
     val colorEditActionItem = FlatItemAction(
         leading = iconSmall(Icons.Outlined.Edit, Icons.Outlined.ColorLens),
@@ -835,7 +842,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
                     .size(24.dp),
             )
         },
-        title = scope.translate(Res.strings.account_action_change_color_title),
+        title = Res.string.account_action_change_color_title.wrap(),
         onClick = ::onEditColor,
     )
     val leading: @Composable RowScope.() -> Unit = {
@@ -855,7 +862,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
         VaultViewItem.Value(
             id = id,
             elevation = 1.dp,
-            title = scope.translate(Res.strings.account_name),
+            title = scope.translate(Res.string.account_name),
             value = "",
             leading = leading,
             dropdown = listOfNotNull(
@@ -868,13 +875,13 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
         VaultViewItem.Value(
             id = id,
             elevation = 1.dp,
-            title = scope.translate(Res.strings.account_name),
+            title = scope.translate(Res.string.account_name),
             value = name,
             leading = leading,
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
-                        title = scope.translate(Res.strings.copy),
+                        title = Res.string.copy.wrap(),
                         value = name,
                     )
                 }
@@ -918,19 +925,19 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
             // Account email verification badge
             list += if (profile.emailVerified) {
                 VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.strings.email_verified),
+                    text = scope.translate(Res.string.email_verified),
                     score = 1f,
                 )
             } else {
                 VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.strings.email_not_verified),
+                    text = scope.translate(Res.string.email_not_verified),
                     score = 0.5f,
                 )
             }.let(::MutableStateFlow)
             // Account two-factor authentication badge
             if (profile.twoFactorEnabled) {
                 list += VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.strings.account_action_tfa_title),
+                    text = scope.translate(Res.string.account_action_tfa_title),
                     score = 1f,
                 ).let(::MutableStateFlow)
             }
@@ -939,7 +946,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
         val emailItem = VaultViewItem.Value(
             id = id,
             elevation = 1.dp,
-            title = scope.translate(Res.strings.email),
+            title = scope.translate(Res.string.email),
             value = email,
             leading = {
                 EmailIcon(
@@ -952,7 +959,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
-                        title = scope.translate(Res.strings.copy),
+                        title = Res.string.copy.wrap(),
                         value = email,
                         type = CopyText.Type.EMAIL,
                     )
@@ -973,7 +980,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
                     section {
                         this += FlatItemAction(
                             leading = icon(Icons.Outlined.VerifiedUser),
-                            title = scope.translate(Res.strings.account_action_email_verify_instructions_title),
+                            title = Res.string.account_action_email_verify_instructions_title.wrap(),
                             onClick = null,
                         )
                     }
@@ -1002,7 +1009,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitPremium(
     val premiumItem = if (profile.premium) {
         VaultViewItem.Action(
             id = id,
-            title = scope.translate(Res.strings.bitwarden_premium),
+            title = scope.translate(Res.string.bitwarden_premium),
             leading = {
                 Icon(Icons.Outlined.KeyguardPremium, null)
             },
@@ -1010,7 +1017,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitPremium(
                 ChevronIcon()
             },
             badge = VaultViewItem.Action.Badge(
-                text = scope.translate(Res.strings.pref_item_premium_status_active),
+                text = scope.translate(Res.string.pref_item_premium_status_active),
                 score = 1f,
             ),
             onClick = {
@@ -1021,8 +1028,8 @@ private suspend fun FlowCollector<VaultViewItem>.emitPremium(
     } else {
         VaultViewItem.Action(
             id = id,
-            title = scope.translate(Res.strings.bitwarden_premium),
-            text = scope.translate(Res.strings.account_action_premium_purchase_instructions_title),
+            title = scope.translate(Res.string.bitwarden_premium),
+            text = scope.translate(Res.string.account_action_premium_purchase_instructions_title),
             leading = {
                 Icon(Icons.Outlined.KeyguardPremium, null)
             },
@@ -1046,17 +1053,17 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
 ) {
     val hint = profile.masterPasswordHint
 
-    fun onClick() {
+    suspend fun onClick() {
         val intent = scope.createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Edit),
             item = ConfirmationRoute.Args.Item.StringItem(
                 key = "name",
-                title = scope.translate(Res.strings.master_password_hint),
+                title = scope.translate(Res.string.master_password_hint),
                 value = hint.orEmpty(),
                 // You can have an empty password hint.
                 canBeEmpty = true,
             ),
-            title = scope.translate(Res.strings.account_action_change_master_password_hint_title),
+            title = scope.translate(Res.string.account_action_change_master_password_hint_title),
         ) { newHint ->
             val profileIdsToNames = mapOf(
                 AccountId(profile.accountId) to newHint,
@@ -1070,13 +1077,15 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
     val id = "master_password_hint"
     val hintEditActionItem = FlatItemAction(
         icon = Icons.Outlined.Edit,
-        title = scope.translate(Res.strings.account_action_change_master_password_hint_title),
-        onClick = ::onClick,
+        title = Res.string.account_action_change_master_password_hint_title.wrap(),
+        onClick = scope.onClick {
+            onClick()
+        },
     )
     val hintItem =
         VaultViewItem.Value(
             id = id,
-            title = scope.translate(Res.strings.master_password_hint),
+            title = scope.translate(Res.string.master_password_hint),
             value = hint.orEmpty(),
             private = true,
             leading = {
@@ -1086,7 +1095,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
                 if (!hint.isNullOrBlank()) {
                     section {
                         this += copyText.FlatItemAction(
-                            title = scope.translate(Res.strings.copy),
+                            title = Res.string.copy.wrap(),
                             value = hint,
                         )
                     }
@@ -1115,7 +1124,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
     if (fingerprint.isNotBlank()) {
         val item = VaultViewItem.Value(
             id = id,
-            title = scope.translate(Res.strings.fingerprint_phrase),
+            title = scope.translate(Res.string.fingerprint_phrase),
             value = fingerprint,
             monospace = true,
             colorize = true,
@@ -1125,7 +1134,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
-                        title = scope.translate(Res.strings.copy),
+                        title = Res.string.copy.wrap(),
                         value = fingerprint,
                     )
                 }
@@ -1146,7 +1155,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
                 section {
                     this += FlatItemAction(
                         icon = Icons.Outlined.HelpOutline,
-                        title = scope.translate(Res.strings.fingerprint_phrase_help_title),
+                        title = Res.string.fingerprint_phrase_help_title.wrap(),
                         trailing = {
                             ChevronIcon()
                         },

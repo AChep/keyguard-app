@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemArgs
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
@@ -22,7 +24,7 @@ fun settingSectionProvider(): SettingComponent = kotlin.run {
 
         if (title != null) {
             Section(
-                text = title,
+                text = textResource(title),
             )
         } else {
             HorizontalDivider(
@@ -35,5 +37,5 @@ fun settingSectionProvider(): SettingComponent = kotlin.run {
 }
 
 data class SettingSectionArgs(
-    val title: String? = null,
+    val title: TextHolder? = null,
 )

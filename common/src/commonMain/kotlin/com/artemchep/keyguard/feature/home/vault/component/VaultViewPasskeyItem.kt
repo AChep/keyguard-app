@@ -23,12 +23,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VaultViewPasskeyItem(
@@ -93,7 +94,7 @@ fun VaultViewPasskeyItem(
                             .width(Dimens.buttonIconPadding),
                     )
                     Text(
-                        text = stringResource(Res.strings.passkey_use_short),
+                        text = stringResource(Res.string.passkey_use_short),
                         textAlign = TextAlign.Center,
                     )
                 }

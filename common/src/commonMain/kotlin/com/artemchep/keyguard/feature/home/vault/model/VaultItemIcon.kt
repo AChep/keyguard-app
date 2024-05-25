@@ -2,11 +2,10 @@ package com.artemchep.keyguard.feature.home.vault.model
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.artemchep.keyguard.common.util.asCodePointsSequence
 import com.artemchep.keyguard.common.util.nextSymbol
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
-import dev.icerock.moko.resources.ImageResource
+import org.jetbrains.compose.resources.DrawableResource
 
 @Immutable
 sealed interface VaultItemIcon {
@@ -29,7 +28,7 @@ sealed interface VaultItemIcon {
 
     @Immutable
     data class ImageIcon(
-        val imageRes: ImageResource,
+        val imageRes: DrawableResource,
     ) : VaultItemIcon
 
     @Immutable

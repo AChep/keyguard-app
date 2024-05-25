@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LocalLeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.halilibo.richtext.commonmark.Markdown
 import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.markdown.node.AstNode
@@ -20,6 +21,8 @@ import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.material3.RichText
 import com.halilibo.richtext.ui.resolveDefaults
 import com.halilibo.richtext.ui.string.RichTextStringStyle
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.kodein.di.compose.rememberInstance
 
 @Composable
@@ -63,13 +66,15 @@ private fun rememberGracefulLinkClickHandler(): LinkClickHandler {
             try {
                 updatedUriHandler.openUri(uri)
             } catch (e: Exception) {
-                val title = textResource(Res.strings.error_failed_open_uri, updatedContext)
-                val msg = ToastMessage(
-                    title = title,
-                    text = e.message,
-                    type = ToastMessage.Type.ERROR,
-                )
-                showMessage.copy(msg)
+                GlobalScope.launch {
+                    val title = textResource(Res.string.error_failed_open_uri, updatedContext)
+                    val msg = ToastMessage(
+                        title = title,
+                        text = e.message,
+                        type = ToastMessage.Type.ERROR,
+                    )
+                    showMessage.copy(msg)
+                }
             }
         }
     }

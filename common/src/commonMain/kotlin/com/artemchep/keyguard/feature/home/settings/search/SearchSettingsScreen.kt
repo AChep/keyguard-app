@@ -28,6 +28,7 @@ import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
@@ -36,7 +37,7 @@ import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 
 @Composable
@@ -92,7 +93,7 @@ fun SearchSettingsScreenContent(
                                 .align(Alignment.CenterVertically),
                         ) {
                             Text(
-                                text = stringResource(Res.strings.settingssearch_header_subtitle),
+                                text = stringResource(Res.string.settingssearch_header_subtitle),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = LocalContentColor.current
                                     .combineAlpha(MediumEmphasisAlpha),
@@ -100,7 +101,7 @@ fun SearchSettingsScreenContent(
                                 maxLines = 2,
                             )
                             Text(
-                                text = stringResource(Res.strings.settingssearch_header_title),
+                                text = stringResource(Res.string.settingssearch_header_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 overflow = TextOverflow.Ellipsis,
                                 maxLines = 1,
@@ -114,7 +115,7 @@ fun SearchSettingsScreenContent(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = state.query.state.value,
-                        placeholder = stringResource(Res.strings.settingssearch_search_placeholder),
+                        placeholder = stringResource(Res.string.settingssearch_search_placeholder),
                         searchIcon = false,
                         count = count,
                         leading = {},

@@ -19,9 +19,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Package
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun Placeholder(
@@ -47,7 +48,7 @@ fun Placeholder(
     Placeholder(
         modifier = modifier,
         icon = FeatherIcons.Package,
-        title = stringResource(Res.strings.coming_soon),
+        title = stringResource(Res.string.coming_soon),
     )
 }
 

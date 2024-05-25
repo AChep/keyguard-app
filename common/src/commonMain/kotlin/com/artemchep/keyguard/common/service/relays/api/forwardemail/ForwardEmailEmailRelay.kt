@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -47,13 +48,13 @@ class ForwardEmailEmailRelay(
 
     override val schema = persistentMapOf(
         KEY_API_KEY to EmailRelaySchema(
-            title = TextHolder.Res(Res.strings.api_key),
+            title = TextHolder.Res(Res.string.api_key),
             hint = TextHolder.Value(HINT_API_KEY),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Token,
             canBeEmpty = false,
         ),
         KEY_DOMAIN to EmailRelaySchema(
-            title = TextHolder.Res(Res.strings.domain),
+            title = TextHolder.Res(Res.string.domain),
             hint = TextHolder.Value(HINT_DOMAIN),
             canBeEmpty = false,
         ),

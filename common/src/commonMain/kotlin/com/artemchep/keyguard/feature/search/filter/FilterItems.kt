@@ -16,7 +16,8 @@ import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposab
 import com.artemchep.keyguard.feature.search.filter.component.FilterSectionComposable
 import com.artemchep.keyguard.feature.search.filter.model.FilterItemModel
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -26,7 +27,7 @@ fun ColumnScope.FilterItems(
 ) {
     if (items.isEmpty()) {
         EmptyItem(
-            text = stringResource(Res.strings.filter_empty_label),
+            text = stringResource(Res.string.filter_empty_label),
         )
     }
 

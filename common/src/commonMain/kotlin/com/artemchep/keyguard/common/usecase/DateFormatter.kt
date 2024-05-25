@@ -17,11 +17,11 @@ interface DateFormatter {
         instant: Instant,
     ): String
 
-    fun formatDateShort(
+    suspend fun formatDateShort(
         instant: Instant,
     ): String
 
-    fun formatDateShort(
+    suspend fun formatDateShort(
         date: LocalDate,
     ): String
 

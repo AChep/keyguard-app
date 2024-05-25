@@ -3,7 +3,8 @@ package com.artemchep.keyguard.common.usecase
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretDuplicateGroup
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.StringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.serialization.Serializable
 
 interface CipherDuplicatesCheck :
@@ -14,23 +15,23 @@ interface CipherDuplicatesCheck :
         val threshold: Float,
     ) {
         MAX(
-            title = Res.strings.tolerance_min,
+            title = Res.string.tolerance_min,
             threshold = 0.3f,
         ),
         HIGH(
-            title = Res.strings.tolerance_low,
+            title = Res.string.tolerance_low,
             threshold = 0.15f,
         ),
         NORMAL(
-            title = Res.strings.tolerance_normal,
+            title = Res.string.tolerance_normal,
             threshold = 0f,
         ),
         LOW(
-            title = Res.strings.tolerance_high,
+            title = Res.string.tolerance_high,
             threshold = -0.1f,
         ),
         MIN(
-            title = Res.strings.tolerance_max,
+            title = Res.string.tolerance_max,
             threshold = -0.15f,
         ),
     }

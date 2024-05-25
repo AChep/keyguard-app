@@ -40,6 +40,7 @@ import com.artemchep.keyguard.feature.onboarding.OnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
 import com.artemchep.keyguard.platform.LocalLeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Ah
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -50,7 +51,7 @@ import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -113,13 +114,13 @@ private fun SettingSubscriptions(
             .fillMaxWidth(),
     ) {
         Text(
-            stringResource(Res.strings.pref_item_premium_membership_title),
+            stringResource(Res.string.pref_item_premium_membership_title),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
         )
         Text(
-            stringResource(Res.strings.pref_item_premium_membership_text),
+            stringResource(Res.string.pref_item_premium_membership_text),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -143,7 +144,7 @@ private fun SettingSubscriptions(
                 )
             }
         }
-        Section(text = stringResource(Res.strings.pref_item_premium_membership_section_subscriptions_title))
+        Section(text = stringResource(Res.string.pref_item_premium_membership_section_subscriptions_title))
         loadableSubscriptions.fold(
             ifLoading = {
                 repeat(SubscriptionsCountDefault) {
@@ -153,7 +154,7 @@ private fun SettingSubscriptions(
             ifOk = { subscriptions ->
                 if (subscriptions == null) {
                     FlatSimpleNote(
-                        text = stringResource(Res.strings.pref_item_premium_membership_failed_to_load_subscriptions),
+                        text = stringResource(Res.string.pref_item_premium_membership_failed_to_load_subscriptions),
                         type = SimpleNote.Type.WARNING,
                     )
                     return@fold
@@ -165,7 +166,7 @@ private fun SettingSubscriptions(
                 }
             },
         )
-        Section(text = stringResource(Res.strings.pref_item_premium_membership_section_products_title))
+        Section(text = stringResource(Res.string.pref_item_premium_membership_section_products_title))
         loadableProducts.fold(
             ifLoading = {
                 repeat(ProductsCountDefault) {
@@ -175,7 +176,7 @@ private fun SettingSubscriptions(
             ifOk = { products ->
                 if (products == null) {
                     FlatSimpleNote(
-                        text = stringResource(Res.strings.pref_item_premium_membership_failed_to_load_products),
+                        text = stringResource(Res.string.pref_item_premium_membership_failed_to_load_products),
                         type = SimpleNote.Type.WARNING,
                     )
                     return@fold
@@ -276,7 +277,7 @@ private fun SettingSubscriptionItem(
                 ) {
                     Ah(
                         score = 1f,
-                        text = stringResource(Res.strings.pref_item_premium_status_active),
+                        text = stringResource(Res.string.pref_item_premium_status_active),
                     )
 
                     val isCancelled = !status.willRenew
@@ -287,7 +288,7 @@ private fun SettingSubscriptionItem(
                     ) {
                         Ah(
                             score = 0f,
-                            text = stringResource(Res.strings.pref_item_premium_status_will_not_renew),
+                            text = stringResource(Res.string.pref_item_premium_status_will_not_renew),
                         )
                     }
                 }
@@ -351,7 +352,7 @@ private fun SettingProductItem(
                 ) {
                     Ah(
                         score = 1f,
-                        text = stringResource(Res.strings.pref_item_premium_status_active),
+                        text = stringResource(Res.string.pref_item_premium_status_active),
                     )
                 }
             }

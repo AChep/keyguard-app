@@ -5,12 +5,12 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.common.service.tld.TldService
-import com.artemchep.keyguard.res.Res
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -97,4 +97,4 @@ class JustGetMyDataServiceImpl(
 
 private suspend fun loadJustGetMyDataRawData(
     textService: TextService,
-) = textService.readFromResourcesAsText(Res.files.justgetmydata)
+) = textService.readFromResourcesAsText(FileResource.justGetMyData)

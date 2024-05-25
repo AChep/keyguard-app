@@ -32,10 +32,11 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ColorPickerScreen(
@@ -49,7 +50,7 @@ fun ColorPickerScreen(
     Dialog(
         icon = icon(Icons.Outlined.ColorLens),
         title = {
-            Text(stringResource(Res.strings.colorpicker_title))
+            Text(stringResource(Res.string.colorpicker_title))
         },
         content = {
             Column {
@@ -72,7 +73,7 @@ fun ColorPickerScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             TextButton(
                 enabled = updatedOnOk != null,
@@ -80,7 +81,7 @@ fun ColorPickerScreen(
                     updatedOnOk?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )

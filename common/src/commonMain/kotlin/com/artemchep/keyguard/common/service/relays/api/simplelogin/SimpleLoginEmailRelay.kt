@@ -9,6 +9,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.provider.bitwarden.api.builder.ensureSuffix
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -47,15 +48,15 @@ class SimpleLoginEmailRelay(
 
     override val schema = persistentMapOf(
         KEY_API_KEY to EmailRelaySchema(
-            title = TextHolder.Res(Res.strings.api_key),
+            title = TextHolder.Res(Res.string.api_key),
             hint = TextHolder.Value(HINT_API_KEY),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Token,
             canBeEmpty = false,
         ),
         KEY_BASE_URL to EmailRelaySchema(
-            title = TextHolder.Res(Res.strings.emailrelay_base_env_server_url_label),
+            title = TextHolder.Res(Res.string.emailrelay_base_env_server_url_label),
             hint = TextHolder.Value(HINT_BASE_URL),
-            description = TextHolder.Res(Res.strings.emailrelay_base_env_note),
+            description = TextHolder.Res(Res.string.emailrelay_base_env_note),
             canBeEmpty = true,
         ),
     )

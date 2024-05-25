@@ -64,12 +64,13 @@ import com.artemchep.keyguard.platform.leDisplayCutout
 import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
 import com.artemchep.keyguard.ui.scrollbar.LazyColumnScrollbar
 import com.artemchep.keyguard.ui.selection.SelectionBar
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlin.math.log10
 
@@ -384,7 +385,7 @@ fun DefaultSelection(
     ) { selection ->
         SelectionBar(
             title = {
-                val text = stringResource(Res.strings.selection_n_selected, selection.count)
+                val text = stringResource(Res.string.selection_n_selected, selection.count)
                 Text(
                     text = text,
                     maxLines = 2,

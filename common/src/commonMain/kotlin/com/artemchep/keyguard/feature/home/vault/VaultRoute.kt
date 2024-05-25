@@ -10,6 +10,7 @@ import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 
 data class VaultRoute(
     val args: Args = Args(),
@@ -52,20 +53,20 @@ data class VaultRoute(
         // Organization
         //
 
-        fun by(translator: TranslatorScope, organization: DOrganization) = by(
+        suspend fun by(translator: TranslatorScope, organization: DOrganization) = by(
             translator = translator,
             organizations = listOf(organization),
         )
 
         @JvmName("byOrganizations")
-        fun by(translator: TranslatorScope, organizations: Collection<DOrganization>) = VaultRoute(
+        suspend fun by(translator: TranslatorScope, organizations: Collection<DOrganization>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = organizations.joinToString { it.name },
                     subtitle = if (organizations.size > 1) {
-                        translator.translate(Res.strings.organizations)
+                        translator.translate(Res.string.organizations)
                     } else {
-                        translator.translate(Res.strings.organization)
+                        translator.translate(Res.string.organization)
                     },
                 ),
                 filter = DFilter.Or(
@@ -94,20 +95,20 @@ data class VaultRoute(
         // Collection
         //
 
-        fun by(translator: TranslatorScope, collection: DCollection) = by(
+        suspend fun by(translator: TranslatorScope, collection: DCollection) = by(
             translator = translator,
             collections = listOf(collection),
         )
 
         @JvmName("byCollections")
-        fun by(translator: TranslatorScope, collections: Collection<DCollection>) = VaultRoute(
+        suspend fun by(translator: TranslatorScope, collections: Collection<DCollection>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = collections.joinToString { it.name },
                     subtitle = if (collections.size > 1) {
-                        translator.translate(Res.strings.collections)
+                        translator.translate(Res.string.collections)
                     } else {
-                        translator.translate(Res.strings.collection)
+                        translator.translate(Res.string.collection)
                     },
                 ),
                 filter = DFilter.Or(
@@ -136,20 +137,20 @@ data class VaultRoute(
         // Folder
         //
 
-        fun by(translator: TranslatorScope, folder: DFolder) = by(
+        suspend fun by(translator: TranslatorScope, folder: DFolder) = by(
             translator = translator,
             folders = listOf(folder),
         )
 
         @JvmName("byFolders")
-        fun by(translator: TranslatorScope, folders: Collection<DFolder>) = VaultRoute(
+        suspend fun by(translator: TranslatorScope, folders: Collection<DFolder>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = folders.joinToString { it.name },
                     subtitle = if (folders.size > 1) {
-                        translator.translate(Res.strings.folders)
+                        translator.translate(Res.string.folders)
                     } else {
-                        translator.translate(Res.strings.folder)
+                        translator.translate(Res.string.folder)
                     },
                 ),
                 filter = DFilter.Or(

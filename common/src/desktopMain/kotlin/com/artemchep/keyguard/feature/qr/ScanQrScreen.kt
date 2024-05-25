@@ -15,11 +15,12 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ScanQrScreen(
@@ -53,7 +54,7 @@ fun ScanQrScreen(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.scanqr_title))
+                    Text(stringResource(Res.string.scanqr_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -69,7 +70,7 @@ fun ScanQrScreen(
                 Text(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
-                    text = stringResource(Res.strings.scanqr_load_from_image_note),
+                    text = stringResource(Res.string.scanqr_load_from_image_note),
                 )
                 Spacer(
                     modifier = Modifier
@@ -83,7 +84,7 @@ fun ScanQrScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(Res.strings.select_file),
+                        text = stringResource(Res.string.select_file),
                     )
                 }
             }

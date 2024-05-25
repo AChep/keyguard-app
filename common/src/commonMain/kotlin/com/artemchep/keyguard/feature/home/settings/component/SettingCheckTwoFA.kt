@@ -14,11 +14,12 @@ import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -70,11 +71,11 @@ private fun SettingCheckTwoFA(
             },
             title = {
                 Text(
-                    text = stringResource(Res.strings.pref_item_check_inactive_2fa_title),
+                    text = stringResource(Res.string.pref_item_check_inactive_2fa_title),
                 )
             },
             text = {
-                val text = stringResource(Res.strings.watchtower_item_inactive_2fa_text)
+                val text = stringResource(Res.string.watchtower_item_inactive_2fa_text)
                 Text(text)
             },
             onClick = onCheckedChange?.partially1(!checked),

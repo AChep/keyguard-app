@@ -1,23 +1,25 @@
 package com.artemchep.keyguard.feature.localization
 
 import com.artemchep.keyguard.platform.LeContext
-import dev.icerock.moko.resources.PluralsResource
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.PluralStringResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
 
-expect fun textResource(
+suspend fun textResource(
     res: StringResource,
     context: LeContext,
-): String
+): String = getString(res)
 
-expect fun textResource(
+suspend fun textResource(
     res: StringResource,
     context: LeContext,
     vararg args: Any,
-): String
+): String = getString(res, *args)
 
-expect fun textResource(
-    res: PluralsResource,
+suspend fun textResource(
+    res: PluralStringResource,
     context: LeContext,
     quantity: Int,
     vararg args: Any,
-): String
+): String = getPluralString(res, quantity, *args)

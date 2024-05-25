@@ -40,6 +40,8 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.recordLog
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -188,7 +190,7 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
                 // Need to authenticate a user to unlock
                 // the database first.
                 is MasterSession.Empty -> {
-                    val title = getString(R.string.autofill_open_keyguard)
+                    val title = org.jetbrains.compose.resources.getString(Res.string.autofill_open_keyguard)
                     val pi = createGetUnlockPasskeyPendingIntent()
                     val actions = listOf(
                         AuthenticationAction(

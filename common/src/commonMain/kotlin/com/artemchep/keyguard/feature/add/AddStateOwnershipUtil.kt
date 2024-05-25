@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -123,7 +124,7 @@ fun <T : OwnershipState> OwnershipHandle<T>.accountFlow(
         if (accountId == null) {
             val item = AddStateOwnership.Element.Item(
                 key = "account.empty",
-                title = translate(Res.strings.account_none),
+                title = translate(Res.string.account_none),
                 stub = true,
             )
             val el = AddStateOwnership.Element(

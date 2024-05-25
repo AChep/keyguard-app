@@ -55,6 +55,7 @@ import com.artemchep.keyguard.feature.home.vault.search.find
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -78,6 +79,7 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -85,7 +87,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -103,6 +105,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.getString
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -297,7 +300,7 @@ fun sendListScreenState(
                             onCheckedChange = showKeyboardSink::value::set,
                         )
                     },
-                    title = translate(Res.strings.vault_action_always_show_keyboard_title),
+                    title = Res.string.vault_action_always_show_keyboard_title.wrap(),
                     onClick = showKeyboardSink::value::set.partially1(!showKeyboard),
                 )
             }
@@ -309,7 +312,7 @@ fun sendListScreenState(
                             rotating = syncing,
                         )
                     },
-                    title = translate(Res.strings.vault_action_sync_vault_title),
+                    title = Res.string.vault_action_sync_vault_title.wrap(),
                     onClick = if (!syncing) {
                         // lambda
                         {
@@ -325,7 +328,7 @@ fun sendListScreenState(
             leading = {
                 Icon(Icons.Outlined.Lock, null)
             },
-            title = translate(Res.strings.vault_action_lock_vault_title),
+            title = Res.string.vault_action_lock_vault_title.wrap(),
             onClick = {
                 clearVaultSession()
                     .launchIn(appScope)
@@ -470,7 +473,7 @@ fun sendListScreenState(
             item = createComparatorAction(
                 id = "title",
                 icon = Icons.Outlined.SortByAlpha,
-                title = Res.strings.sortby_title_title,
+                title = Res.string.sortby_title_title,
                 config = ComparatorHolder(
                     comparator = AlphabeticalSendSort,
                     favourites = true,
@@ -479,7 +482,7 @@ fun sendListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "title_normal",
-                    title = Res.strings.sortby_title_normal_mode,
+                    title = Res.string.sortby_title_normal_mode,
                     config = ComparatorHolder(
                         comparator = AlphabeticalSendSort,
                         favourites = true,
@@ -487,7 +490,7 @@ fun sendListScreenState(
                 ),
                 createComparatorAction(
                     id = "title_rev",
-                    title = Res.strings.sortby_title_reverse_mode,
+                    title = Res.string.sortby_title_reverse_mode,
                     config = ComparatorHolder(
                         comparator = AlphabeticalSendSort,
                         reversed = true,
@@ -500,7 +503,7 @@ fun sendListScreenState(
             item = createComparatorAction(
                 id = "access_count",
                 icon = Icons.Outlined.KeyguardView,
-                title = Res.strings.sortby_access_count_title,
+                title = Res.string.sortby_access_count_title,
                 config = ComparatorHolder(
                     comparator = AccessCountSendSort,
                 ),
@@ -508,14 +511,14 @@ fun sendListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "access_count_normal",
-                    title = Res.strings.sortby_access_count_normal_mode,
+                    title = Res.string.sortby_access_count_normal_mode,
                     config = ComparatorHolder(
                         comparator = AccessCountSendSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "access_count_rev",
-                    title = Res.strings.sortby_access_count_reverse_mode,
+                    title = Res.string.sortby_access_count_reverse_mode,
                     config = ComparatorHolder(
                         comparator = AccessCountSendSort,
                         reversed = true,
@@ -527,7 +530,7 @@ fun sendListScreenState(
             item = createComparatorAction(
                 id = "modify_date",
                 icon = Icons.Outlined.CalendarMonth,
-                title = Res.strings.sortby_modification_date_title,
+                title = Res.string.sortby_modification_date_title,
                 config = ComparatorHolder(
                     comparator = LastModifiedSendSort,
                 ),
@@ -535,14 +538,14 @@ fun sendListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "modify_date_normal",
-                    title = Res.strings.sortby_modification_date_normal_mode,
+                    title = Res.string.sortby_modification_date_normal_mode,
                     config = ComparatorHolder(
                         comparator = LastModifiedSendSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "modify_date_rev",
-                    title = Res.strings.sortby_modification_date_reverse_mode,
+                    title = Res.string.sortby_modification_date_reverse_mode,
                     config = ComparatorHolder(
                         comparator = LastModifiedSendSort,
                         reversed = true,
@@ -554,7 +557,7 @@ fun sendListScreenState(
             item = createComparatorAction(
                 id = "expiration_date",
                 icon = Icons.Outlined.CalendarMonth,
-                title = Res.strings.sortby_expiration_date_title,
+                title = Res.string.sortby_expiration_date_title,
                 config = ComparatorHolder(
                     comparator = LastExpiredSendSort,
                 ),
@@ -562,14 +565,14 @@ fun sendListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "expiration_date_normal",
-                    title = Res.strings.sortby_expiration_date_normal_mode,
+                    title = Res.string.sortby_expiration_date_normal_mode,
                     config = ComparatorHolder(
                         comparator = LastExpiredSendSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "expiration_date_rev",
-                    title = Res.strings.sortby_expiration_date_reverse_mode,
+                    title = Res.string.sortby_expiration_date_reverse_mode,
                     config = ComparatorHolder(
                         comparator = LastExpiredSendSort,
                         reversed = true,
@@ -581,7 +584,7 @@ fun sendListScreenState(
             item = createComparatorAction(
                 id = "deletion_date",
                 icon = Icons.Outlined.CalendarMonth,
-                title = Res.strings.sortby_deletion_date_title,
+                title = Res.string.sortby_deletion_date_title,
                 config = ComparatorHolder(
                     comparator = LastDeletedSendSort,
                 ),
@@ -589,14 +592,14 @@ fun sendListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "deletion_date_normal",
-                    title = Res.strings.sortby_deletion_date_normal_mode,
+                    title = Res.string.sortby_deletion_date_normal_mode,
                     config = ComparatorHolder(
                         comparator = LastDeletedSendSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "deletion_date_rev",
-                    title = Res.strings.sortby_deletion_date_reverse_mode,
+                    title = Res.string.sortby_deletion_date_reverse_mode,
                     config = ComparatorHolder(
                         comparator = LastDeletedSendSort,
                         reversed = true,
@@ -625,7 +628,7 @@ fun sendListScreenState(
             if (subItems.isNotEmpty()) {
                 out += SendSortItem.Section(
                     id = "sub_items_section",
-                    text = TextHolder.Res(Res.strings.options),
+                    text = TextHolder.Res(Res.string.options),
                 )
                 out += subItems
             }
@@ -688,11 +691,11 @@ fun sendListScreenState(
     )
         .stateIn(this, SharingStarted.WhileSubscribed(), OurFilterResult())
 
-    fun createTypeAction(
+    suspend fun createTypeAction(
         type: DSend.Type,
     ) = FlatItemAction(
         leading = icon(type.iconImageVector()),
-        title = translate(type.titleH()),
+        title = type.titleH().wrap(),
         onClick = {
             val route = SendAddRoute(
                 args = SendAddRoute.Args(
@@ -1094,31 +1097,30 @@ private fun hahah(
             else -> ItemDecoratorNone
         }
 
-        val items = sequence<SendItem> {
-            state.preferredList.forEach { item ->
-                yield(item)
-            }
-            if (
-                state.preferredList.isNotEmpty() &&
-                state.list.isNotEmpty()
-            ) {
-                val section = SendItem.Section(
-                    id = "preferred.end",
-                    text = "All items",
-                )
-                yield(section)
-            }
-            state.list.forEach { item ->
-                val section = decorator.getOrNull(item)
-                if (section != null) yield(section)
+        val out = mutableListOf<SendItem>()
+        state.preferredList.forEach { item ->
+            out += item
+        }
+        if (
+            state.preferredList.isNotEmpty() &&
+            state.list.isNotEmpty()
+        ) {
+            val section = SendItem.Section(
+                id = "preferred.end",
+                text = "All items",
+            )
+            out += section
+        }
+        state.list.forEach { item ->
+            val section = decorator.getOrNull(item)
+            if (section != null) out += section
 
-                yield(item)
-            }
-        }.toList()
+            out += item
+        }
         FilteredBoo(
             count = state.list.size,
-            list = items,
-            preferredList = items,
+            list = out,
+            preferredList = out,
             orderConfig = state.orderConfig,
             filterConfig = state.filterConfig,
             queryConfig = state.queryConfig,

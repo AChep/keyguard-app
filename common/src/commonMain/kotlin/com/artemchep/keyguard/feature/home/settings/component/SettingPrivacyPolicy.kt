@@ -10,12 +10,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
 import kotlinx.coroutines.flow.flowOf
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DirectDI
 
 fun settingPrivacyPolicyProvider(
@@ -56,7 +57,7 @@ private fun SettingPrivacyPolicy(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_privacy_policy_title),
+                text = stringResource(Res.string.pref_item_privacy_policy_title),
             )
         },
         onClick = onClick,

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.auth.common.util
 
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 
 enum class ValidationUri {
     OK,
@@ -49,7 +50,7 @@ fun validateUri(
     uri: String?,
     allowBlank: Boolean = false,
 ): ValidationUri {
-    return if (uri == null || uri.isBlank()) {
+    return if (uri.isNullOrBlank()) {
         if (allowBlank) {
             ValidationUri.OK
         } else {
@@ -62,9 +63,9 @@ fun validateUri(
     }
 }
 
-fun ValidationUri.format(scope: TranslatorScope): String? =
+suspend fun ValidationUri.format(scope: TranslatorScope): String? =
     when (this) {
-        ValidationUri.ERROR_EMPTY -> scope.translate(Res.strings.error_must_not_be_blank)
-        ValidationUri.ERROR_INVALID -> scope.translate(Res.strings.error_invalid_uri)
+        ValidationUri.ERROR_EMPTY -> scope.translate(Res.string.error_must_not_be_blank)
+        ValidationUri.ERROR_INVALID -> scope.translate(Res.string.error_invalid_uri)
         else -> null
     }

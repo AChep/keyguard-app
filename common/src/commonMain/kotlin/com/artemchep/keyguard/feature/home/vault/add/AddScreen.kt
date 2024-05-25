@@ -36,6 +36,7 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
@@ -47,7 +48,7 @@ import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AddScreen(
@@ -155,7 +156,7 @@ private fun AddScreenContent(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.save),
+                        text = stringResource(Res.string.save),
                     )
                 },
             )
@@ -332,7 +333,7 @@ private fun AddScreenMergeItem(
         },
         content = {
             Text(
-                text = stringResource(Res.strings.additem_merge_remove_origin_ciphers_title),
+                text = stringResource(Res.string.additem_merge_remove_origin_ciphers_title),
             )
         },
         onClick = {

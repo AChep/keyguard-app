@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.search.filter.FilterScreen
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.platform.LocalLeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -62,7 +63,7 @@ import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
@@ -74,7 +75,7 @@ fun ExportScreen(
     )
 
     val title = args.title
-        ?: stringResource(Res.strings.exportaccount_header_title)
+        ?: stringResource(Res.string.exportaccount_header_title)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     when (loadableState) {
         is Loadable.Ok -> {
@@ -307,7 +308,7 @@ private fun ExportScreen(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.exportaccount_export_button),
+                        text = stringResource(Res.string.exportaccount_export_button),
                     )
                 },
             )
@@ -354,7 +355,7 @@ private fun ExportScreen(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.exportaccount_no_attachments_note),
+            text = stringResource(Res.string.exportaccount_no_attachments_note),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(alpha = MediumEmphasisAlpha),
@@ -396,7 +397,7 @@ private fun ColumnScope.ExportContentOk(
                 leading = icon<RowScope>(Icons.Outlined.Storage, Icons.Outlined.Warning),
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_permission_write_external_storage_grant),
+                        text = stringResource(Res.string.pref_item_permission_write_external_storage_grant),
                     )
                 },
                 onClick = {
@@ -409,7 +410,7 @@ private fun ColumnScope.ExportContentOk(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.horizontalPadding),
-        label = stringResource(Res.strings.exportaccount_password_label),
+        label = stringResource(Res.string.exportaccount_password_label),
         value = password.model,
         trailing = {
             AutofillButton(
@@ -442,7 +443,7 @@ private fun ColumnScope.ExportContentOk(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.items),
+                text = stringResource(Res.string.items),
             )
         },
         trailing = {

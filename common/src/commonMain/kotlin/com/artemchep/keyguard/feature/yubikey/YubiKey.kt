@@ -36,12 +36,13 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 typealias OnYubiKeyListener = (Either<Throwable, String>) -> Unit
 
@@ -80,7 +81,7 @@ fun YubiKeyUsbCard(
             Text(
                 modifier = Modifier
                     .weight(1f),
-                text = stringResource(Res.strings.yubikey_usb_title),
+                text = stringResource(Res.string.yubikey_usb_title),
             )
             Spacer(
                 modifier = Modifier
@@ -101,7 +102,7 @@ fun YubiKeyUsbCard(
                     .width(8.dp),
             )
         },
-        text = stringResource(Res.strings.yubikey_usb_text),
+        text = stringResource(Res.string.yubikey_usb_text),
         content = {
             val isCapturing by remember(state) {
                 derivedStateOf {
@@ -120,7 +121,7 @@ fun YubiKeyUsbCard(
                     Text(
                         modifier = Modifier
                             .weight(1f),
-                        text = stringResource(Res.strings.yubikey_usb_touch_the_gold_sensor_note),
+                        text = stringResource(Res.string.yubikey_usb_touch_the_gold_sensor_note),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -169,7 +170,7 @@ fun YubiKeyNfcCard(
             Text(
                 modifier = Modifier
                     .weight(1f),
-                text = stringResource(Res.strings.yubikey_nfc_title),
+                text = stringResource(Res.string.yubikey_nfc_title),
             )
             Spacer(
                 modifier = Modifier
@@ -186,7 +187,7 @@ fun YubiKeyNfcCard(
                     .width(8.dp),
             )
         },
-        text = stringResource(Res.strings.yubikey_nfc_text),
+        text = stringResource(Res.string.yubikey_nfc_text),
     )
 }
 

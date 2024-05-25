@@ -6,31 +6,31 @@ import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
-import dev.icerock.moko.resources.PluralsResource
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
+import org.jetbrains.compose.resources.PluralStringResource
 
 interface TranslatorScope {
-    fun translate(
+    suspend fun translate(
         res: StringResource,
     ): String
 
-    fun translate(
+    suspend fun translate(
         res: StringResource,
         vararg args: Any,
     ): String
 
-    fun translate(
-        res: PluralsResource,
+    suspend fun translate(
+        res: PluralStringResource,
         quantity: Int,
         vararg args: Any,
     ): String
 }
 
-fun TranslatorScope.translate(text: TextHolder) = when (text) {
+suspend fun TranslatorScope.translate(text: TextHolder) = when (text) {
     is TextHolder.Res -> translate(text.data)
     is TextHolder.Value -> text.data
 }
@@ -90,6 +90,8 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
         block: CoroutineScope.() -> Unit,
     ): () -> Unit
 
+    fun action(block: suspend () -> Unit)
+
     //
     // Helpers
     //
@@ -107,6 +109,10 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
 
 interface RememberStateFlowScopeZygote : RememberStateFlowScope {
     val keepAliveFlow: Flow<Unit>
+}
+
+fun RememberStateFlowScope.onClick(block: suspend () -> Unit): () -> Unit = {
+    action(block)
 }
 
 fun RememberStateFlowScope.navigatePopSelf() {

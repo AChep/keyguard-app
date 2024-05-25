@@ -36,6 +36,7 @@ import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevati
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
@@ -45,7 +46,7 @@ import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -131,7 +132,7 @@ fun ChangePasswordScreen(
             ) {
                 Column {
                     CustomToolbarContent(
-                        title = stringResource(Res.strings.apppicker_header_title),
+                        title = stringResource(Res.string.apppicker_header_title),
                         icon = {
                             NavigationIcon()
                         },
@@ -151,7 +152,7 @@ fun ChangePasswordScreen(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = queryText,
-                        placeholder = stringResource(Res.strings.apppicker_search_placeholder),
+                        placeholder = stringResource(Res.string.apppicker_search_placeholder),
                         searchIcon = false,
                         count = count,
                         leading = {},
@@ -234,7 +235,7 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.apppicker_empty_label),
+                text = stringResource(Res.string.apppicker_empty_label),
             )
         },
     )
@@ -277,7 +278,7 @@ private fun AppItem(
                             horizontal = 6.dp,
                             vertical = 2.dp,
                         ),
-                    text = stringResource(Res.strings.apppicker_system_app_label),
+                    text = stringResource(Res.string.apppicker_system_app_label),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelMedium,

@@ -9,9 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AddAccountView(
@@ -23,7 +24,7 @@ fun AddAccountView(
         elevation = 1.dp,
         title = {
             Text(
-                text = stringResource(Res.strings.account_main_add_account_title),
+                text = stringResource(Res.string.account_main_add_account_title),
                 style = MaterialTheme.typography.titleMedium,
             )
         },

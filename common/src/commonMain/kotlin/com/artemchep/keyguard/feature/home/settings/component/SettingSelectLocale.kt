@@ -17,16 +17,18 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -70,7 +72,7 @@ fun settingSelectLocaleProvider(
         .map { item ->
             FlatItemAction(
                 // leading = if (item.locale != null) null else icon(Icons.Outlined.AutoAwesome),
-                title = item.title,
+                title = TextHolder.Value(item.title),
                 onClick = {
                     putLocale(item.locale)
                         .launchIn(windowCoroutineScope)
@@ -107,14 +109,14 @@ private data class LocaleItem(
     val title: String,
 )
 
-private fun getLocaleTitle(locale: String?, context: LeContext) = locale
+private suspend fun getLocaleTitle(locale: String?, context: LeContext) = locale
     ?.let {
         Locale.forLanguageTag(it).let { locale ->
             locale.getDisplayName(locale)
                 .capitalize(locale)
         }
     }
-    ?: textResource(Res.strings.follow_system_settings, context)
+    ?: textResource(Res.string.follow_system_settings, context)
 
 @Composable
 private fun SettingLocale(
@@ -129,7 +131,7 @@ private fun SettingLocale(
                 FlatItemTextContent(
                     title = {
                         Text(
-                            text = stringResource(Res.strings.pref_item_locale_title),
+                            text = stringResource(Res.string.pref_item_locale_title),
                         )
                     },
                     text = {
@@ -148,7 +150,7 @@ private fun SettingLocale(
             },
         ) {
             Text(
-                text = stringResource(Res.strings.pref_item_locale_help_translation_button),
+                text = stringResource(Res.string.pref_item_locale_help_translation_button),
             )
         }
     }

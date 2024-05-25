@@ -22,9 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.log10
 
 @Composable
@@ -76,7 +77,7 @@ fun PullToSearch(
                 tint = tint,
             )
             Text(
-                text = stringResource(Res.strings.pull_to_search),
+                text = stringResource(Res.string.pull_to_search),
                 color = tint,
                 style = MaterialTheme.typography.bodySmall,
             )

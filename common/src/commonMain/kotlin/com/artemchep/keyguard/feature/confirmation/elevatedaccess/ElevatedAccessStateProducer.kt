@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -155,7 +156,7 @@ fun produceElevatedAccessState(
                                 transmitter(ElevatedAccessResult.Allow)
                             } else {
                                 val message = ToastMessage(
-                                    title = translate(Res.strings.error_incorrect_password),
+                                    title = translate(Res.string.error_incorrect_password),
                                     type = ToastMessage.Type.ERROR,
                                 )
                                 message(message)
@@ -176,8 +177,8 @@ private fun createPromptOrNull(
     fn: () -> Unit,
 ): PureBiometricAuthPrompt = run {
     BiometricAuthPromptSimple(
-        title = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.strings.elevatedaccess_biometric_auth_confirm_text),
+        title = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_title),
+        text = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_text),
         requireConfirmation = requireConfirmation,
         onComplete = { result ->
             result.fold(

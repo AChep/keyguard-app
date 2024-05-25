@@ -10,6 +10,7 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LocalLeContext
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.LocalComposeWindow
 import kotlinx.coroutines.flow.Flow
@@ -47,7 +48,7 @@ actual fun FilePickerEffect(
                         }
                     }
                 val filters = if (extensions.isNotEmpty()) {
-                    val title = textResource(Res.strings.select_file, context)
+                    val title = textResource(Res.string.select_file, context)
                     listOf(
                         FileDialog.Filter(
                             title = title,

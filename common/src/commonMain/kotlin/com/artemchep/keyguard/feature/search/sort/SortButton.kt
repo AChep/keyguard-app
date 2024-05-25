@@ -13,7 +13,8 @@ import com.artemchep.keyguard.feature.search.sort.component.SortItemComposable
 import com.artemchep.keyguard.feature.search.sort.component.SortSectionComposable
 import com.artemchep.keyguard.feature.search.sort.model.SortItemModel
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SortButton(
@@ -24,7 +25,7 @@ fun SortButton(
     DropdownButton(
         modifier = modifier,
         icon = Icons.Outlined.SortByAlpha,
-        title = stringResource(Res.strings.sort_header_title),
+        title = stringResource(Res.string.sort_header_title),
         items = items,
         onClear = onClear,
     ) {
@@ -40,7 +41,7 @@ private fun ColumnScope.SortItems(
 ) {
     if (items.isEmpty()) {
         EmptyItem(
-            text = stringResource(Res.strings.sort_empty_label),
+            text = stringResource(Res.string.sort_empty_label),
         )
     }
 

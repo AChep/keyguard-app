@@ -23,8 +23,9 @@
 package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.ImageResource
+import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.DrawableResource
 
 // Thanks to
 // https://github.com/bendrucker/creditcards-types/
@@ -38,7 +39,7 @@ import kotlinx.collections.immutable.persistentListOf
 
 data class CreditCardType(
     val name: String,
-    val icon: ImageResource? = null,
+    val icon: DrawableResource? = null,
     val digits: IntRange = 16..16,
     val csc: IntRange = 3..3,
     /**
@@ -61,7 +62,7 @@ data class CreditCardType(
 
 val creditCardVisa = CreditCardType(
     name = "Visa",
-    icon = Res.images.ic_card_visa,
+    icon = Res.drawable.ic_card_visa,
     digits = 13..19,
     pattern = "^4\\d{12}(\\d{3}|\\d{6})?\$".toRegex(),
     eagerPattern = "^4".toRegex(),
@@ -70,7 +71,7 @@ val creditCardVisa = CreditCardType(
 
 val creditCardAmericanExpress = CreditCardType(
     name = "American Express",
-    icon = Res.images.ic_card_amex,
+    icon = Res.drawable.ic_card_amex,
     digits = 15..15,
     csc = 4..4,
     pattern = "^3[47]\\d{13}\$".toRegex(),
@@ -86,7 +87,7 @@ val creditCardDankort = CreditCardType(
 
 val creditCardDinersClub = CreditCardType(
     name = "Diners Club",
-    icon = Res.images.ic_card_diners,
+    icon = Res.drawable.ic_card_diners,
     digits = 14..19,
     pattern = "^3(0[0-5]|[68]\\d)\\d{11,16}\$".toRegex(),
     eagerPattern = "^3(0|[68])".toRegex(),
@@ -95,14 +96,14 @@ val creditCardDinersClub = CreditCardType(
 
 val creditCardDiscover = CreditCardType(
     name = "Discover",
-    icon = Res.images.ic_card_discover,
+    icon = Res.drawable.ic_card_discover,
     pattern = "^6(011(0[0-9]|[2-4]\\d|74|7[7-9]|8[6-9]|9[0-9])|4[4-9]\\d{3}|5\\d{4})\\d{10}\$".toRegex(),
     eagerPattern = "^6(011(0[0-9]|[2-4]|74|7[7-9]|8[6-9]|9[0-9])|4[4-9]|5)".toRegex(),
 )
 
 val creditCardElo = CreditCardType(
     name = "Elo",
-    icon = Res.images.ic_card_elo,
+    icon = Res.drawable.ic_card_elo,
     pattern = "^(4[035]|5[0]|6[235])(6[7263]|9[90]|1[2416]|7[736]|8[9]|0[04579]|5[0])([0-9])([0-9])\\d{10}\$".toRegex(),
     eagerPattern = "^(4[035]|5[0]|6[235])(6[7263]|9[90]|1[2416]|7[736]|8[9]|0[04579]|5[0])([0-9])([0-9])".toRegex(),
     groupPattern = "(\\d{1,4})(\\d{1,4})?(\\d{1,4})?(\\d{1,4})?(\\d{1,3})?".toRegex(),
@@ -116,7 +117,7 @@ val creditCardForbrugsforeningen = CreditCardType(
 
 val creditCardJCB = CreditCardType(
     name = "JCB",
-    icon = Res.images.ic_card_jcb,
+    icon = Res.drawable.ic_card_jcb,
     pattern = "^35\\d{14}\$".toRegex(),
     eagerPattern = "^35".toRegex(),
 )
@@ -130,7 +131,7 @@ val creditCardMada = CreditCardType(
 
 val creditCardMaestro = CreditCardType(
     name = "Maestro",
-    icon = Res.images.ic_card_maestro,
+    icon = Res.drawable.ic_card_maestro,
     digits = 12..19,
     pattern = "^(?:5[06789]\\d\\d|(?!6011[0234])(?!60117[4789])(?!60118[6789])(?!60119)(?!64[456789])(?!65)6\\d{3})\\d{8,15}\$".toRegex(),
     eagerPattern = "^(5(018|0[23]|[68])|6[37]|60111|60115|60117([56]|7[56])|60118[0-5]|64[0-3]|66)".toRegex(),
@@ -139,7 +140,7 @@ val creditCardMaestro = CreditCardType(
 
 val creditCardMastercard = CreditCardType(
     name = "Mastercard",
-    icon = Res.images.ic_card_mastercard,
+    icon = Res.drawable.ic_card_mastercard,
     pattern = "^(5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)\\d{12}\$".toRegex(),
     eagerPattern = "^(2[3-7]|22[2-9]|5[1-5])".toRegex(),
 )
@@ -153,7 +154,7 @@ val creditCardMeeza = CreditCardType(
 
 val creditCardMir = CreditCardType(
     name = "Mir",
-    icon = Res.images.ic_card_mir,
+    icon = Res.drawable.ic_card_mir,
     pattern = "^220[0-4]\\d{12}\$".toRegex(),
     eagerPattern = "^220[0-4]".toRegex(),
     groupPattern = "(\\d{1,4})(\\d{1,4})?(\\d{1,4})?(\\d{1,4})?(\\d{1,3})?".toRegex(),
@@ -175,7 +176,7 @@ val creditCardUATP = CreditCardType(
 
 val creditCardUnionPay = CreditCardType(
     name = "UnionPay",
-    icon = Res.images.ic_card_unionpay,
+    icon = Res.drawable.ic_card_unionpay,
     luhn = false,
     pattern = "^62[0-5]\\d{13,16}\$".toRegex(),
     eagerPattern = "^62".toRegex(),

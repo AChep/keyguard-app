@@ -28,6 +28,8 @@ import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.totp.formatCodeStr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -352,7 +354,7 @@ class KeyguardClipboardService : Service(), DIAware {
     // Notifications
     //
 
-    private fun createNotification(
+    private suspend fun createNotification(
         type: CopyValueEvent.Type,
         name: String?,
         text: String,
@@ -377,8 +379,8 @@ class KeyguardClipboardService : Service(), DIAware {
         }
 
         val contentTitle = when (type) {
-            CopyValueEvent.Type.TOTP -> getString(R.string.copied_otp_code)
-            CopyValueEvent.Type.VALUE -> getString(R.string.copied_value)
+            CopyValueEvent.Type.TOTP -> org.jetbrains.compose.resources.getString(Res.string.copied_otp_code)
+            CopyValueEvent.Type.VALUE -> org.jetbrains.compose.resources.getString(Res.string.copied_value)
         }
         val contentText = kotlin.run {
             val suffix = expiration
@@ -404,7 +406,7 @@ class KeyguardClipboardService : Service(), DIAware {
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
                 )
             }
-            val copyTitle = getString(R.string.copy)
+            val copyTitle = org.jetbrains.compose.resources.getString(Res.string.copy)
             NotificationCompat.Action.Builder(R.drawable.ic_copy, copyTitle, copyAction)
                 .build()
         }

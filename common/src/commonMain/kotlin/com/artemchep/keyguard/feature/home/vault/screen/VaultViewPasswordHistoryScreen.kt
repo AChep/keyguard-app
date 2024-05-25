@@ -19,6 +19,7 @@ import com.artemchep.keyguard.feature.home.vault.component.VaultPasswordHistoryI
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
@@ -27,7 +28,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 
 private const val SKELETON_ITEMS_COUNT = 2
@@ -163,7 +164,7 @@ private fun ToolbarTitle(
         }
     }
     Text(
-        text = stringResource(Res.strings.passwordhistory_header_title),
+        text = stringResource(Res.string.passwordhistory_header_title),
         style = MaterialTheme.typography.titleMedium,
         overflow = TextOverflow.Ellipsis,
         maxLines = 1,

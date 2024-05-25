@@ -29,12 +29,13 @@ import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 const val ObscureChar = '•'
@@ -205,7 +206,7 @@ fun VaultViewCardItem(
                                 .width(8.dp),
                         )
                         Text(
-                            text = stringResource(Res.strings.card_number_empty_label),
+                            text = stringResource(Res.string.card_number_empty_label),
                             color = contentColor,
                             style = MaterialTheme.typography.titleLarge,
                             fontSize = 18.sp,
@@ -226,12 +227,12 @@ fun VaultViewCardItem(
                 )
                 Row {
                     DateLabel(
-                        label = stringResource(Res.strings.card_valid_from),
+                        label = stringResource(Res.string.card_valid_from),
                         month = item.data.fromMonth,
                         year = item.data.fromYear,
                     )
                     DateLabel(
-                        label = stringResource(Res.strings.card_valid_to),
+                        label = stringResource(Res.string.card_valid_to),
                         month = item.data.expMonth,
                         year = item.data.expYear,
                     )

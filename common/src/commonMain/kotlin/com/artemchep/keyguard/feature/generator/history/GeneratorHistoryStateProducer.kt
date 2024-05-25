@@ -20,10 +20,14 @@ import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.copy
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -102,13 +106,13 @@ fun produceGeneratorHistoryState(
         .onEach { ids -> selectionHandle.setSelection(ids) }
         .launchIn(screenScope)
 
-    fun onDeleteByItems(
+    suspend fun onDeleteByItems(
         items: List<DGeneratorHistory>,
     ) {
         val title = if (items.size > 1) {
-            translate(Res.strings.generatorhistory_delete_many_confirmation_title)
+            translate(Res.string.generatorhistory_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.generatorhistory_delete_one_confirmation_title)
+            translate(Res.string.generatorhistory_delete_one_confirmation_title)
         }
         val message = items
             .joinToString(separator = "\n") { it.value }
@@ -126,11 +130,11 @@ fun produceGeneratorHistoryState(
         navigate(intent)
     }
 
-    fun onDeleteAll() {
+    suspend fun onDeleteAll() {
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Delete),
-            title = translate(Res.strings.generatorhistory_clear_history_confirmation_title),
-            message = translate(Res.strings.generatorhistory_clear_history_confirmation_text),
+            title = translate(Res.string.generatorhistory_clear_history_confirmation_title),
+            message = translate(Res.string.generatorhistory_clear_history_confirmation_text),
         ) {
             removeGeneratorHistory()
                 .launchIn(appScope)
@@ -155,9 +159,10 @@ fun produceGeneratorHistoryState(
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translate(Res.strings.remove_from_history),
-                        onClick = ::onDeleteByItems
-                            .partially1(selectedItems),
+                        title = Res.string.remove_from_history.wrap(),
+                        onClick = onClick {
+                            onDeleteByItems(selectedItems)
+                        },
                     )
                 }
             }
@@ -203,16 +208,20 @@ fun produceGeneratorHistoryState(
                     section {
                         val (copyTitle, copyType) = when (type) {
                             GeneratorHistoryItem.Value.Type.PASSWORD ->
-                                translate(Res.strings.copy_password) to CopyText.Type.PASSWORD
+                                translate(Res.string.copy_password) to CopyText.Type.PASSWORD
+
                             GeneratorHistoryItem.Value.Type.EMAIL,
-                            GeneratorHistoryItem.Value.Type.EMAIL_RELAY ->
-                                translate(Res.strings.copy_email) to CopyText.Type.EMAIL
+                            GeneratorHistoryItem.Value.Type.EMAIL_RELAY,
+                            ->
+                                translate(Res.string.copy_email) to CopyText.Type.EMAIL
+
                             GeneratorHistoryItem.Value.Type.USERNAME ->
-                                translate(Res.strings.copy_username) to CopyText.Type.USERNAME
-                            null -> translate(Res.strings.copy_value) to CopyText.Type.VALUE
+                                translate(Res.string.copy_username) to CopyText.Type.USERNAME
+
+                            null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
                         }
                         this += copyFactory.FlatItemAction(
-                            title = copyTitle,
+                            title = TextHolder.Value(copyTitle),
                             value = item.value,
                             hidden = item.isPassword,
                             type = copyType,
@@ -222,9 +231,10 @@ fun produceGeneratorHistoryState(
                         )
                         this += FlatItemAction(
                             leading = icon(Icons.Outlined.Delete),
-                            title = translate(Res.strings.remove_from_history),
-                            onClick = ::onDeleteByItems
-                                .partially1(items),
+                            title = Res.string.remove_from_history.wrap(),
+                            onClick = onClick {
+                                onDeleteByItems(items)
+                            },
                         )
                     }
                     section {
@@ -312,15 +322,15 @@ fun produceGeneratorHistoryState(
                     )
                 },
             )
-            sequence {
-                items.forEach { item ->
-                    val section = decorator.getOrNull(item)
-                    if (section != null) {
-                        yield(section)
-                    }
-                    yield(item)
+            val out = mutableListOf<GeneratorHistoryItem>()
+            items.forEach { item ->
+                val section = decorator.getOrNull(item)
+                if (section != null) {
+                    out += section
                 }
-            }.toPersistentList()
+                out += item
+            }
+            out.toPersistentList()
         }
     val optionsFlow = itemsRawFlow
         .map { items ->
@@ -333,8 +343,10 @@ fun produceGeneratorHistoryState(
             } else {
                 val action = FlatItemAction(
                     leading = icon(Icons.Outlined.Delete),
-                    title = translate(Res.strings.generatorhistory_clear_history_title),
-                    onClick = ::onDeleteAll,
+                    title = Res.string.generatorhistory_clear_history_title.wrap(),
+                    onClick = onClick {
+                        onDeleteAll()
+                    },
                 )
                 persistentListOf(action)
             }

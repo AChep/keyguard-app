@@ -28,12 +28,13 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 
 @Composable
@@ -48,7 +49,7 @@ fun DatePickerScreen(
     Dialog(
         icon = icon(Icons.Outlined.CalendarMonth),
         title = {
-            Text(stringResource(Res.strings.datepicker_title))
+            Text(stringResource(Res.string.datepicker_title))
         },
         content = {
             Column {
@@ -69,7 +70,7 @@ fun DatePickerScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             TextButton(
                 enabled = updatedOnOk != null,
@@ -77,7 +78,7 @@ fun DatePickerScreen(
                     updatedOnOk?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )

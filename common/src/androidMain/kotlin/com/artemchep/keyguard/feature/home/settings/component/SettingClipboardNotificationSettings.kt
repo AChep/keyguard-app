@@ -12,10 +12,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
 
@@ -40,7 +41,7 @@ fun SettingClipboardNotificationSettings(
         leading = icon<RowScope>(Icons.Outlined.EditNotifications),
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_clipboard_notification_settings_title),
+                text = stringResource(Res.string.pref_item_clipboard_notification_settings_title),
             )
         },
         trailing = {

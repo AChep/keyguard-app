@@ -25,10 +25,13 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -77,12 +80,12 @@ fun produceUrlOverrideListState(
 ) {
     val selectionHandle = selectionHandle("selection")
 
-    fun onEdit(entity: DGlobalUrlOverride?) {
+    suspend fun onEdit(entity: DGlobalUrlOverride?) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
             value = entity?.name.orEmpty(),
-            title = translate(Res.strings.generic_name),
+            title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
         )
@@ -91,18 +94,18 @@ fun produceUrlOverrideListState(
         val enabledItem = ConfirmationRoute.Args.Item.BooleanItem(
             key = enabledKey,
             value = entity?.enabled ?: true,
-            title = translate(Res.strings.enabled),
+            title = translate(Res.string.enabled),
         )
 
         val regexKey = "regex"
         val regexItem = ConfirmationRoute.Args.Item.StringItem(
             key = regexKey,
             value = entity?.regex?.toString().orEmpty(),
-            title = translate(Res.strings.regex),
+            title = translate(Res.string.regex),
             // A hint explains how would a user write a regex that
             // matches both HTTPS and HTTP schemes.
             hint = "^https?://.*",
-            description = translate(Res.strings.urloverride_regex_note),
+            description = translate(Res.string.urloverride_regex_note),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Regex,
             canBeEmpty = false,
         )
@@ -111,7 +114,7 @@ fun produceUrlOverrideListState(
         val commandItem = ConfirmationRoute.Args.Item.StringItem(
             key = commandKey,
             value = entity?.command.orEmpty(),
-            title = translate(Res.strings.command),
+            title = translate(Res.string.command),
             // A hint explains how would a user write a command that
             // converts all links to use the HTTPS scheme.
             hint = "https://{url:rmvscm}",
@@ -136,7 +139,7 @@ fun produceUrlOverrideListState(
                             Icons.Outlined.Add
                         },
                     ),
-                    title = translate(Res.strings.urloverride_header_title),
+                    title = translate(Res.string.urloverride_header_title),
                     items = items2,
                 ),
             ),
@@ -167,9 +170,9 @@ fun produceUrlOverrideListState(
         navigate(intent)
     }
 
-    fun onNew() = onEdit(null)
+    suspend fun onNew() = onEdit(null)
 
-    fun onDuplicate(entity: DGlobalUrlOverride) {
+    suspend fun onDuplicate(entity: DGlobalUrlOverride) {
         val createdAt = Clock.System.now()
         val model = entity.copy(
             id = null,
@@ -179,13 +182,13 @@ fun produceUrlOverrideListState(
             .launchIn(appScope)
     }
 
-    fun onDeleteByItems(
+    suspend fun onDeleteByItems(
         items: List<DGlobalUrlOverride>,
     ) {
         val title = if (items.size > 1) {
-            translate(Res.strings.urloverride_delete_many_confirmation_title)
+            translate(Res.string.urloverride_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.urloverride_delete_one_confirmation_title)
+            translate(Res.string.urloverride_delete_one_confirmation_title)
         }
         val message = items
             .joinToString(separator = "\n") { it.name }
@@ -238,9 +241,12 @@ fun produceUrlOverrideListState(
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translate(Res.strings.delete),
-                        onClick = ::onDeleteByItems
-                            .partially1(selectedItems),
+                        title = Res.string.delete.wrap(),
+                        onClick = onClick {
+                            onDeleteByItems(
+                                items = selectedItems,
+                            )
+                        },
                     )
                 }
             }
@@ -268,21 +274,30 @@ fun produceUrlOverrideListState(
                         section {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Edit,
-                                title = translate(Res.strings.edit),
-                                onClick = ::onEdit
-                                    .partially1(it),
+                                title = Res.string.edit.wrap(),
+                                onClick = onClick {
+                                    onEdit(
+                                        entity = it,
+                                    )
+                                },
                             )
                             this += FlatItemAction(
                                 icon = Icons.Outlined.CopyAll,
-                                title = translate(Res.strings.duplicate),
-                                onClick = ::onDuplicate
-                                    .partially1(it),
+                                title = Res.string.duplicate.wrap(),
+                                onClick = onClick {
+                                    onDuplicate(
+                                        entity = it,
+                                    )
+                                },
                             )
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Delete,
-                                title = translate(Res.strings.delete),
-                                onClick = ::onDeleteByItems
-                                    .partially1(listOf(it)),
+                                title = Res.string.delete.wrap(),
+                                onClick = onClick {
+                                    onDeleteByItems(
+                                        items = listOf(it),
+                                    )
+                                },
                             )
                         }
                     }
@@ -358,7 +373,9 @@ fun produceUrlOverrideListState(
                     revision = 0,
                     items = items,
                     selection = selection,
-                    primaryAction = ::onNew,
+                    primaryAction = onClick {
+                        onNew()
+                    },
                 )
             }
         Loadable.Ok(contentOrException)

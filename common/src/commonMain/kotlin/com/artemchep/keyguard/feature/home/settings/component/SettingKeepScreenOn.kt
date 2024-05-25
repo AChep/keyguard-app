@@ -11,8 +11,9 @@ import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -72,7 +73,7 @@ private fun SettingKeepScreenOn(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_keep_screen_on_title),
+                text = stringResource(Res.string.pref_item_keep_screen_on_title),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

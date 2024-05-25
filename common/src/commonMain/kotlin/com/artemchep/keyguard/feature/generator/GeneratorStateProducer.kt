@@ -61,6 +61,8 @@ import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -68,6 +70,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
@@ -441,7 +444,7 @@ fun produceGeneratorState(
         }
         .shareInScreenScope()
 
-    fun wordlistFilterItem(
+    suspend fun wordlistFilterItem(
         wordlistId: Long?,
         wordlists: List<DGeneratorWordlist>,
         onSelect: (Long) -> Unit,
@@ -459,8 +462,8 @@ fun produceGeneratorState(
                     numberFormatter.formatNumber(quantity),
                 )
                 this += FlatItemAction(
-                    title = defaultWordlistName,
-                    text = text,
+                    title = TextHolder.Value(defaultWordlistName),
+                    text = TextHolder.Value(text),
                     onClick = onSelect
                         .partially1(0),
                 )
@@ -474,7 +477,7 @@ fun produceGeneratorState(
                         numberFormatter.formatNumber(quantity),
                     )
                     this += FlatItemAction(
-                        title = wordlist.name,
+                        title = TextHolder.Value(wordlist.name),
                         leading = {
                             val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
                                 wordlist.accentColor.dark
@@ -487,7 +490,7 @@ fun produceGeneratorState(
                                     .background(backgroundColor, shape = CircleShape),
                             )
                         },
-                        text = text,
+                        text = TextHolder.Value(text),
                         onClick = onSelect
                             .partially1(wordlist.idRaw)
                             .takeIf { quantity > 0 },
@@ -667,7 +670,7 @@ fun produceGeneratorState(
     }
 
     val passphraseFilterTip = GeneratorState.Filter.Tip(
-        text = translate(Res.strings.generator_passphrase_note),
+        text = translate(Res.string.generator_passphrase_note),
         onLearnMore = {
             val url = "https://xkcd.com/936/"
             val intent = NavigationIntent.NavigateToBrowser(url)
@@ -676,13 +679,13 @@ fun produceGeneratorState(
         onHide = ::hideTip,
     )
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.Passphrase,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_PASSPHRASE.delimiter",
-                title = translate(Res.strings.generator_passphrase_delimiter_title),
+                title = translate(Res.string.generator_passphrase_delimiter_title),
                 model = TextFieldModel2(
                     state = passphraseDelimiterState,
                     text = config.delimiter,
@@ -691,7 +694,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSPHRASE.capitalize",
-                title = translate(Res.strings.generator_passphrase_capitalize_title),
+                title = translate(Res.string.generator_passphrase_capitalize_title),
                 model = SwitchFieldModel(
                     checked = config.capitalize,
                     onChange = passphraseCapitalizeSink::value::set,
@@ -699,7 +702,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSPHRASE.include_number",
-                title = translate(Res.strings.generator_passphrase_number_title),
+                title = translate(Res.string.generator_passphrase_number_title),
                 model = SwitchFieldModel(
                     checked = config.includeNumber,
                     onChange = passphraseIncludeNumberSink::value::set,
@@ -707,7 +710,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_PASSPHRASE.wordlist",
-                title = translate(Res.strings.generator_passphrase_wordlist_title),
+                title = translate(Res.string.generator_passphrase_wordlist_title),
                 model = wordlistFilterItem(
                     wordlistId = config.wordlistId,
                     wordlists = config.wordlists,
@@ -728,13 +731,13 @@ fun produceGeneratorState(
         )
     }
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.Username,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_PASSPHRASE.custom_word",
-                title = translate(Res.strings.generator_username_custom_word_title),
+                title = translate(Res.string.generator_username_custom_word_title),
                 model = TextFieldModel2(
                     state = usernameCustomWordState,
                     text = config.customWord,
@@ -743,7 +746,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_PASSPHRASE.delimiter",
-                title = translate(Res.strings.generator_username_delimiter_title),
+                title = translate(Res.string.generator_username_delimiter_title),
                 model = TextFieldModel2(
                     state = usernameDelimiterState,
                     text = config.delimiter,
@@ -752,7 +755,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_USERNAME.capitalize",
-                title = translate(Res.strings.generator_username_capitalize_title),
+                title = translate(Res.string.generator_username_capitalize_title),
                 model = SwitchFieldModel(
                     checked = config.capitalize,
                     onChange = usernameCapitalizeSink::value::set,
@@ -760,7 +763,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_USERNAME.include_number",
-                title = translate(Res.strings.generator_username_number_title),
+                title = translate(Res.string.generator_username_number_title),
                 model = SwitchFieldModel(
                     checked = config.includeNumber,
                     onChange = usernameIncludeNumberSink::value::set,
@@ -768,7 +771,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_USERNAME.wordlist",
-                title = translate(Res.strings.generator_username_wordlist_title),
+                title = translate(Res.string.generator_username_wordlist_title),
                 model = wordlistFilterItem(
                     wordlistId = config.wordlistId,
                     wordlists = config.wordlists,
@@ -790,17 +793,17 @@ fun produceGeneratorState(
     }
 
     val passwordFilterTip = GeneratorState.Filter.Tip(
-        text = translate(Res.strings.generator_password_note, 16),
+        text = translate(Res.string.generator_password_note, 16),
         onHide = ::hideTip,
     )
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.Password,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_numbers",
-                title = translate(Res.strings.generator_password_numbers_title),
+                title = translate(Res.string.generator_password_numbers_title),
                 model = SwitchFieldModel(
                     checked = config.includeNumbers,
                     onChange = passwordIncludeNumbersSink::value::set,
@@ -815,7 +818,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_symbols",
-                title = translate(Res.strings.generator_password_symbols_title),
+                title = translate(Res.string.generator_password_symbols_title),
                 text = """!"#$%&'()*+-./:;<=>?@[\]^_`{|}~""",
                 model = SwitchFieldModel(
                     checked = config.includeSymbols,
@@ -831,7 +834,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_uppercase_chars",
-                title = translate(Res.strings.generator_password_uppercase_letters_title),
+                title = translate(Res.string.generator_password_uppercase_letters_title),
                 model = SwitchFieldModel(
                     checked = config.includeUppercaseCharacters,
                     onChange = passwordIncludeUppercaseCharactersSink::value::set,
@@ -846,7 +849,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_lowercase_chars",
-                title = translate(Res.strings.generator_password_lowercase_letters_title),
+                title = translate(Res.string.generator_password_lowercase_letters_title),
                 model = SwitchFieldModel(
                     checked = config.includeLowercaseCharacters,
                     onChange = passwordIncludeLowercaseCharactersSink::value::set,
@@ -864,7 +867,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.exclude_similar_chars",
-                title = translate(Res.strings.generator_password_exclude_similar_symbols_title),
+                title = translate(Res.string.generator_password_exclude_similar_symbols_title),
                 text = "il1Lo0O",
                 model = SwitchFieldModel(
                     checked = config.excludeSimilarCharacters,
@@ -873,7 +876,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.exclude_ambiguous_chars",
-                title = translate(Res.strings.generator_password_exclude_ambiguous_symbols_title),
+                title = translate(Res.string.generator_password_exclude_ambiguous_symbols_title),
                 text = """{}[]()/\'"`~,;:.<>""",
                 model = SwitchFieldModel(
                     checked = config.excludeAmbiguousCharacters,
@@ -895,7 +898,7 @@ fun produceGeneratorState(
     }
 
     val catchAllEmailFilterTip = GeneratorState.Filter.Tip(
-        text = translate(Res.strings.generator_email_catch_all_note),
+        text = translate(Res.string.generator_email_catch_all_note),
         onHide = ::hideTip,
     )
 
@@ -905,26 +908,26 @@ fun produceGeneratorState(
         navigate(intent)
     }
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.EmailCatchAll,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_EMAIL_CATCH_ALL.domain",
-                title = translate(Res.strings.generator_email_catch_all_domain_title),
+                title = translate(Res.string.generator_email_catch_all_domain_title),
                 model = TextFieldModel2(
                     state = emailCatchAllDomainState,
                     text = config.domain,
                     hint = "example.com",
                     error = when {
                         config.domain.isEmpty() ->
-                            translate(Res.strings.error_must_not_be_empty)
+                            translate(Res.string.error_must_not_be_empty)
 
                         config.domain in popularEmailDomains ->
-                            translate(Res.strings.error_must_be_custom_domain)
+                            translate(Res.string.error_must_be_custom_domain)
 
                         !REGEX_DOMAIN.matches(config.domain.trim()) ->
-                            translate(Res.strings.error_invalid_domain)
+                            translate(Res.string.error_invalid_domain)
 
                         else -> null
                     },
@@ -947,29 +950,29 @@ fun produceGeneratorState(
 
     val emailPlusAddressingFilterTip = GeneratorState.Filter.Tip(
         text = translate(
-            Res.strings.generator_email_plus_addressing_note,
+            Res.string.generator_email_plus_addressing_note,
             "username+abc@example.com",
         ),
         onHide = ::hideTip,
     )
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.EmailPlusAddressing,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_EMAIL_PLUS_ADDRESSING.email",
-                title = translate(Res.strings.generator_email_plus_addressing_email_title),
+                title = translate(Res.string.generator_email_plus_addressing_email_title),
                 model = TextFieldModel2(
                     state = emailPlusAddressingEmailState,
                     text = config.email,
                     hint = "username@example.com",
                     error = when {
                         config.email.isEmpty() ->
-                            translate(Res.strings.error_must_not_be_empty)
+                            translate(Res.string.error_must_not_be_empty)
 
                         !REGEX_EMAIL.matches(config.email.trim()) ->
-                            translate(Res.strings.error_invalid_email)
+                            translate(Res.string.error_invalid_email)
 
                         else -> null
                     },
@@ -992,32 +995,32 @@ fun produceGeneratorState(
 
     val emailSubdomainAddressingFilterTip = GeneratorState.Filter.Tip(
         text = translate(
-            Res.strings.generator_email_subdomain_addressing_note,
+            Res.string.generator_email_subdomain_addressing_note,
             "username@abc.example.com",
         ),
         onHide = ::hideTip,
     )
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.email",
-                title = translate(Res.strings.generator_email_subdomain_addressing_email_title),
+                title = translate(Res.string.generator_email_subdomain_addressing_email_title),
                 model = TextFieldModel2(
                     state = emailSubdomainAddressingEmailState,
                     text = config.email,
                     hint = "username@example.com",
                     error = when {
                         config.email.isEmpty() ->
-                            translate(Res.strings.error_must_not_be_empty)
+                            translate(Res.string.error_must_not_be_empty)
 
                         config.email.substringAfterLast('@', "") in popularEmailDomains ->
-                            translate(Res.strings.error_must_be_custom_domain)
+                            translate(Res.string.error_must_be_custom_domain)
 
                         !REGEX_EMAIL.matches(config.email.trim()) ->
-                            translate(Res.strings.error_invalid_email)
+                            translate(Res.string.error_invalid_email)
 
                         else -> null
                     },
@@ -1050,7 +1053,7 @@ fun produceGeneratorState(
         )
     }
 
-    fun createFilter(
+    suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2,
     ) = when (config) {
         is PasswordGeneratorConfigBuilder2.Password -> createFilter(config)
@@ -1244,7 +1247,7 @@ fun produceGeneratorState(
                         this += when (t.group) {
                             GENERATOR_TYPE_GROUP_INTEGRATION ->
                                 ContextItem.Section(
-                                    title = translate(Res.strings.emailrelay_list_section_title),
+                                    title = translate(Res.string.emailrelay_list_section_title),
                                 )
 
                             else -> ContextItem.Section()
@@ -1268,7 +1271,7 @@ fun produceGeneratorState(
                                         .background(backgroundColor, shape = CircleShape),
                                 )
                             },
-                            title = emailRelay.name,
+                            title = TextHolder.Value(emailRelay.name),
                             onClick = {
                                 typeSink.value = t.key
                             },
@@ -1282,7 +1285,7 @@ fun produceGeneratorState(
                             else -> Icons.Outlined.Mail
                         }
                         this += FlatItemAction(
-                            title = translate(t.title),
+                            title = t.title,
                             onClick = {
                                 typeSink.value = t.key
                             },
@@ -1390,7 +1393,7 @@ fun produceGeneratorState(
 
                 val dropdown = buildContextItems {
                     this += copyItemFactory.FlatItemAction(
-                        title = translate(Res.strings.copy),
+                        title = Res.string.copy.wrap(),
                         value = password,
                         type = CopyText.Type.PASSWORD,
                     )
@@ -1400,14 +1403,14 @@ fun produceGeneratorState(
                     if (canWrite && type.username) {
                         list += FlatItemAction(
                             leading = icon(Icons.Outlined.Add),
-                            title = translate(Res.strings.generator_create_item_with_username_title),
+                            title = Res.string.generator_create_item_with_username_title.wrap(),
                             onClick = ::createLoginWithUsername.partially1(password),
                         )
                     }
                     if (canWrite && type.password) {
                         list += FlatItemAction(
                             leading = icon(Icons.Outlined.Add),
-                            title = translate(Res.strings.generator_create_item_with_password_title),
+                            title = Res.string.generator_create_item_with_password_title.wrap(),
                             onClick = ::createLoginWithPassword.partially1(password),
                         )
                     }
@@ -1452,7 +1455,7 @@ fun produceGeneratorState(
     val optionsFlow = tipVisibleSink
         .map { tipVisible ->
             FlatItemAction(
-                title = translate(Res.strings.generator_show_tips_title),
+                title = Res.string.generator_show_tips_title.wrap(),
                 icon = Icons.Outlined.Info,
                 trailing = {
                     Checkbox(

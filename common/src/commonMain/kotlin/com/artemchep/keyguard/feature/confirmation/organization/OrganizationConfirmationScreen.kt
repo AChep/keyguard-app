@@ -27,11 +27,12 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OrganizationConfirmationScreen(
@@ -72,22 +73,22 @@ private fun OrganizationConfirmationScreen(
 
                 val accountsOrNull = state.content.getOrNull()?.accounts
                 FolderSection(
-                    title = stringResource(Res.strings.accounts),
+                    title = stringResource(Res.string.accounts),
                     section = accountsOrNull,
                 )
                 val organizationsOrNull = state.content.getOrNull()?.organizations
                 FolderSection(
-                    title = stringResource(Res.strings.organizations),
+                    title = stringResource(Res.string.organizations),
                     section = organizationsOrNull,
                 )
                 val collectionsOrNull = state.content.getOrNull()?.collections
                 FolderSection(
-                    title = stringResource(Res.strings.collections),
+                    title = stringResource(Res.string.collections),
                     section = collectionsOrNull,
                 )
                 val foldersOrNull = state.content.getOrNull()?.folders
                 FolderSection(
-                    title = stringResource(Res.strings.folders),
+                    title = stringResource(Res.string.folders),
                     section = foldersOrNull,
                 )
 
@@ -114,7 +115,7 @@ private fun OrganizationConfirmationScreen(
                     updatedOnDeny?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             TextButton(
                 enabled = state.onConfirm != null,
@@ -122,7 +123,7 @@ private fun OrganizationConfirmationScreen(
                     updatedOnConfirm?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )

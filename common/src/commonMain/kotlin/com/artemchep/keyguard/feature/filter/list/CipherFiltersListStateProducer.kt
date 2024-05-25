@@ -24,13 +24,16 @@ import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -221,22 +224,26 @@ fun produceCipherFiltersListState(
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
-                            title = translate(Res.strings.edit),
-                            onClick = CipherFilterUtil::onRename
-                                .partially1(this@produceScreenState)
-                                .partially1(renameCipherFilter)
-                                .partially1(selectedItem),
+                            title = Res.string.edit.wrap(),
+                            onClick = onClick {
+                                CipherFilterUtil.onRename(
+                                    renameCipherFilter = renameCipherFilter,
+                                    model = selectedItem,
+                                )
+                            },
                         )
                     }
                 }
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translate(Res.strings.delete),
-                        onClick = CipherFilterUtil::onDeleteByItems
-                            .partially1(this@produceScreenState)
-                            .partially1(removeCipherFilterById)
-                            .partially1(selectedItems),
+                        title = Res.string.delete.wrap(),
+                        onClick = onClick {
+                            CipherFilterUtil.onDeleteByItems(
+                                removeCipherFilterById = removeCipherFilterById,
+                                items = selectedItems,
+                            )
+                        },
                     )
                 }
             }

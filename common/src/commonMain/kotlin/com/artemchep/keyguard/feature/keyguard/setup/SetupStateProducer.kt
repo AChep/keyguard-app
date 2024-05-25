@@ -21,6 +21,7 @@ import com.artemchep.keyguard.platform.LeCipher
 import com.artemchep.keyguard.platform.crashlyticsIsEnabled
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -142,7 +143,7 @@ private fun createPromptOrNull(
             ifRight = ::identity,
         )
     BiometricAuthPrompt(
-        title = TextHolder.Res(Res.strings.setup_biometric_auth_confirm_title),
+        title = TextHolder.Res(Res.string.setup_biometric_auth_confirm_title),
         cipher = cipher,
         requireConfirmation = createVaultWithMasterPasswordAndBiometricFn.requireConfirmation,
         onComplete = { result ->

@@ -4,15 +4,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Share
 import com.artemchep.keyguard.common.model.DSend
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 
-fun createSendActionOrNull(
+suspend fun createSendActionOrNull(
     translator: TranslatorScope,
     name: String = "",
     text: String,
@@ -24,14 +26,14 @@ fun createSendActionOrNull(
     navigate = navigate,
 )
 
-fun createSendAction(
+suspend fun createSendAction(
     translator: TranslatorScope,
     name: String,
     text: String,
     navigate: (NavigationIntent) -> Unit,
 ) = FlatItemAction(
     leading = icon(Icons.AutoMirrored.Outlined.Send),
-    title = translator.translate(Res.strings.text_action_send_title),
+    title = Res.string.text_action_send_title.wrap(),
     onClick = {
         val args = SendAddRoute.Args(
             type = DSend.Type.Text,
@@ -44,7 +46,7 @@ fun createSendAction(
     },
 )
 
-fun createShareAction(
+suspend fun createShareAction(
     translator: TranslatorScope,
     text: String,
     navigate: (NavigationIntent) -> Unit,
@@ -53,7 +55,7 @@ fun createShareAction(
     trailing = {
         ChevronIcon()
     },
-    title = translator.translate(Res.strings.text_action_share_with_title),
+    title = Res.string.text_action_share_with_title.wrap(),
     onClick = {
         val intent = NavigationIntent.NavigateToShare(
             text = text,

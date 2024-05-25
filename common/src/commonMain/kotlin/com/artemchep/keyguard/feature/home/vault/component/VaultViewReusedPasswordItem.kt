@@ -11,12 +11,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VaultViewReusedPasswordItem(
@@ -43,7 +44,7 @@ fun VaultViewReusedPasswordItem(
                 FlatItemTextContent(
                     title = {
                         Text(
-                            stringResource(Res.strings.reused_password),
+                            stringResource(Res.string.reused_password),
                             style = MaterialTheme.typography.titleSmall,
                         )
                     },

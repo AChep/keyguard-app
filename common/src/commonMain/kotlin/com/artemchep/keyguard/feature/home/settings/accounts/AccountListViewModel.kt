@@ -28,9 +28,12 @@ import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SyncSupervisorImpl
 import com.artemchep.keyguard.ui.buildContextItems
@@ -135,13 +138,13 @@ fun accountListScreenState(
         queueSyncById(accountId).launchIn(windowCoroutineScope)
     }
 
-    fun onDelete(
+    suspend fun onDelete(
         accountIds: Set<AccountId>,
     ) {
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Logout),
-            title = translate(Res.strings.account_log_out_confirmation_title),
-            message = translate(Res.strings.account_log_out_confirmation_text),
+            title = translate(Res.string.account_log_out_confirmation_title),
+            message = translate(Res.string.account_log_out_confirmation_text),
         ) {
             removeAccountById(accountIds)
                 .launchIn(windowCoroutineScope)
@@ -181,8 +184,8 @@ fun accountListScreenState(
                 // to these folders.
                 this += FlatItemAction(
                     leading = icon(Icons.Outlined.KeyguardCipher),
-                    title = translate(Res.strings.items),
-                    onClick = {
+                    title = Res.string.items.wrap(),
+                    onClick = onClick {
                         val accounts = selectedAccounts.values
                         val route = VaultRoute.by(accounts = accounts)
                         val intent = NavigationIntent.NavigateToRoute(route)
@@ -193,9 +196,10 @@ fun accountListScreenState(
             section {
                 this += FlatItemAction(
                     icon = Icons.Outlined.Logout,
-                    title = translate(Res.strings.account_action_log_out_title),
-                    onClick = ::onDelete
-                        .partially1(f),
+                    title = Res.string.account_action_log_out_title.wrap(),
+                    onClick = onClick {
+                        onDelete(f)
+                    },
                 )
             }
         }

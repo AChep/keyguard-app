@@ -8,7 +8,8 @@ import com.artemchep.keyguard.feature.search.component.DropdownButton
 import com.artemchep.keyguard.feature.search.filter.component.VaultHomeScreenFilterPaneNumberOfItems
 import com.artemchep.keyguard.feature.search.filter.model.FilterItemModel
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterButton(
@@ -21,7 +22,7 @@ fun FilterButton(
     DropdownButton(
         modifier = modifier,
         icon = Icons.Outlined.FilterAlt,
-        title = stringResource(Res.strings.filter_header_title),
+        title = stringResource(Res.string.filter_header_title),
         items = items,
         onClear = onClear,
         onSave = onSave,

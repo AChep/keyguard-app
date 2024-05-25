@@ -14,8 +14,9 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.PutBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -110,12 +111,12 @@ private fun SettingBiometricsRequireConfirmation(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_biometric_unlock_require_confirmation_title),
+                text = stringResource(Res.string.pref_item_biometric_unlock_require_confirmation_title),
             )
         },
         text = {
             Text(
-                text = stringResource(Res.strings.pref_item_biometric_unlock_require_confirmation_text),
+                text = stringResource(Res.string.pref_item_biometric_unlock_require_confirmation_text),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

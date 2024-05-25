@@ -26,6 +26,7 @@ import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
+import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AddPasskeyCipherRequest
@@ -43,10 +44,11 @@ import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -155,8 +157,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
 
                 // Show the error to a user
                 val uiState = Ahhehe.Error(
-                    title = Res.strings.error_failed_create_passkey
-                        .getString(this@PasskeyCreateActivity),
+                    title = org.jetbrains.compose.resources.getString(Res.string.error_failed_create_passkey),
                     message = it.localizedMessage
                         ?: it.message
                         ?: "Something went wrong",
@@ -190,8 +191,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
 
                     // Show the error to a user
                     val uiState = Ahhehe.Error(
-                        title = Res.strings.error_failed_create_passkey
-                            .getString(this@PasskeyCreateActivity),
+                        title = org.jetbrains.compose.resources.getString(Res.string.error_failed_create_passkey),
                         message = it.localizedMessage
                             ?: it.message
                             ?: "Something went wrong",
@@ -235,7 +235,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                             .align(Alignment.CenterVertically),
                     ) {
                         Text(
-                            text = stringResource(Res.strings.passkey_create_header),
+                            text = stringResource(Res.string.passkey_create_header),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -284,7 +284,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                                 .width(Dimens.buttonIconPadding),
                         )
                         Text(
-                            text = stringResource(Res.strings.cancel),
+                            text = stringResource(Res.string.cancel),
                             textAlign = TextAlign.Center,
                         )
                     }

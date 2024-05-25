@@ -29,8 +29,10 @@ import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -96,7 +98,7 @@ fun produceExportScreenState(
         )
             .effectTap {
                 val msg = ToastMessage(
-                    title = translate(Res.strings.exportaccount_export_success),
+                    title = translate(Res.string.exportaccount_export_success),
                     type = ToastMessage.Type.SUCCESS,
                 )
                 message(msg)
@@ -202,12 +204,12 @@ fun produceExportScreenState(
                 revision = state.filterConfig?.id ?: 0,
                 list = state.list,
                 count = state.list.size,
-                onView = {
+                onView = onClick {
                     val filter = state.filterConfig?.filter
                     val route = VaultRoute(
                         args = VaultRoute.Args(
                             appBar = VaultRoute.Args.AppBar(
-                                title = translate(Res.strings.exportaccount_header_title),
+                                title = translate(Res.string.exportaccount_header_title),
                             ),
                             filter = filter,
                             trash = false,

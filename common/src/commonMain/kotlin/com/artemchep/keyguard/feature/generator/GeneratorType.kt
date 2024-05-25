@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.generator
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 
 const val GENERATOR_TYPE_GROUP_PASSWORD = "password"
 const val GENERATOR_TYPE_GROUP_USERNAME = "username"
@@ -18,7 +19,7 @@ sealed interface GeneratorType2 {
     data object Password : GeneratorType2 {
         override val key: String = "PASSWORD"
         override val group: String = GENERATOR_TYPE_GROUP_PASSWORD
-        override val title: TextHolder = TextHolder.Res(Res.strings.generator_password_type)
+        override val title: TextHolder = TextHolder.Res(Res.string.generator_password_type)
         override val username: Boolean = true
         override val password: Boolean = true
     }
@@ -26,7 +27,7 @@ sealed interface GeneratorType2 {
     data object Passphrase : GeneratorType2 {
         override val key: String = "PASSPHRASE"
         override val group: String = GENERATOR_TYPE_GROUP_PASSWORD
-        override val title: TextHolder = TextHolder.Res(Res.strings.generator_passphrase_type)
+        override val title: TextHolder = TextHolder.Res(Res.string.generator_passphrase_type)
         override val username: Boolean = false
         override val password: Boolean = true
     }
@@ -34,7 +35,7 @@ sealed interface GeneratorType2 {
     data object Username : GeneratorType2 {
         override val key: String = "USERNAME"
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME
-        override val title: TextHolder = TextHolder.Res(Res.strings.generator_username_type)
+        override val title: TextHolder = TextHolder.Res(Res.string.generator_username_type)
         override val username: Boolean = true
         override val password: Boolean = false
     }
@@ -42,7 +43,7 @@ sealed interface GeneratorType2 {
     data object EmailCatchAll : GeneratorType2 {
         override val key: String = "EMAIL_CATCH_ALL"
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME
-        override val title: TextHolder = TextHolder.Res(Res.strings.generator_email_catch_all_type)
+        override val title: TextHolder = TextHolder.Res(Res.string.generator_email_catch_all_type)
         override val username: Boolean = true
         override val password: Boolean = false
     }
@@ -51,7 +52,7 @@ sealed interface GeneratorType2 {
         override val key: String = "EMAIL_PLUS_ADDRESSING"
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME
         override val title: TextHolder =
-            TextHolder.Res(Res.strings.generator_email_plus_addressing_type)
+            TextHolder.Res(Res.string.generator_email_plus_addressing_type)
         override val username: Boolean = true
         override val password: Boolean = false
     }
@@ -60,7 +61,7 @@ sealed interface GeneratorType2 {
         override val key: String = "EMAIL_SUBDOMAIN_ADDRESSING"
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME
         override val title: TextHolder =
-            TextHolder.Res(Res.strings.generator_email_subdomain_addressing_type)
+            TextHolder.Res(Res.string.generator_email_subdomain_addressing_type)
         override val username: Boolean = true
         override val password: Boolean = false
     }

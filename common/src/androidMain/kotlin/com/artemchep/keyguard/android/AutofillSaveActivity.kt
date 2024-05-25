@@ -39,11 +39,12 @@ import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.of
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.parcelize.Parcelize
 import org.kodein.di.DIAware
 
@@ -129,7 +130,7 @@ class AutofillSaveActivity : BaseActivity(), DIAware {
                                         .width(Dimens.buttonIconPadding),
                                 )
                                 Text(
-                                    text = stringResource(Res.strings.close),
+                                    text = stringResource(Res.string.close),
                                     textAlign = TextAlign.Center,
                                 )
                             }
@@ -143,7 +144,7 @@ class AutofillSaveActivity : BaseActivity(), DIAware {
                             if (username != null) {
                                 key("username") {
                                     TwoColumnRow(
-                                        title = stringResource(Res.strings.username),
+                                        title = stringResource(Res.string.username),
                                         value = username,
                                     )
                                 }
@@ -156,7 +157,7 @@ class AutofillSaveActivity : BaseActivity(), DIAware {
                                         contentColor = LocalContentColor.current,
                                     )
                                     TwoColumnRow(
-                                        title = stringResource(Res.strings.password),
+                                        title = stringResource(Res.string.password),
                                         value = colorizedPassword,
                                     )
                                 }
@@ -167,7 +168,7 @@ class AutofillSaveActivity : BaseActivity(), DIAware {
                             if (email != null) {
                                 key("email") {
                                     TwoColumnRow(
-                                        title = stringResource(Res.strings.email),
+                                        title = stringResource(Res.string.email),
                                         value = email,
                                     )
                                 }
@@ -176,7 +177,7 @@ class AutofillSaveActivity : BaseActivity(), DIAware {
                             if (phone != null) {
                                 key("phone") {
                                     TwoColumnRow(
-                                        title = stringResource(Res.strings.phone_number),
+                                        title = stringResource(Res.string.phone_number),
                                         value = phone,
                                     )
                                 }

@@ -24,7 +24,7 @@ suspend fun <Request> AddStateItem.Switch.Companion.produceItemFlow(
     key: String,
     initialValue: Boolean,
     populator: Request.(SwitchFieldModel) -> Request,
-    factory: (String, LocalStateItem<SwitchFieldModel, Request>) -> AddStateItem.Switch<Request>,
+    factory: suspend (String, LocalStateItem<SwitchFieldModel, Request>) -> AddStateItem.Switch<Request>,
 ): AddStateItem.Switch<Request> {
     val sink = mutablePersistedFlow(key) { initialValue }
     val stateItem = LocalStateItem<SwitchFieldModel, Request>(

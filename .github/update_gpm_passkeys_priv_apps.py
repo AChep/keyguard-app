@@ -10,5 +10,5 @@ response = requests.get(
 json_obj = response.json()
 json_text = json.dumps(json_obj, indent=2)
 
-with open('common/src/commonMain/resources/MR/files/gpm_passkeys_privileged_apps.json', 'w') as f:
+with open('common/src/commonMain/composeResources/files/gpm_passkeys_privileged_apps.json', 'w') as f:
     f.write(json_text)

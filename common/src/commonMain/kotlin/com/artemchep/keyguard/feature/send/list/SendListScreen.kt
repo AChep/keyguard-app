@@ -77,6 +77,7 @@ import com.artemchep.keyguard.feature.send.view.SendViewRoute
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.CollectedEffect
@@ -107,7 +108,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SendListScreen(
@@ -192,9 +193,9 @@ fun SendListScreen(
                 searchFieldModifier = Modifier
                     .focusRequester2(focusRequester),
                 searchFieldModel = state.query,
-                searchFieldPlaceholder = stringResource(Res.strings.send_main_search_placeholder),
+                searchFieldPlaceholder = stringResource(Res.string.send_main_search_placeholder),
                 title = args.appBar?.title
-                    ?: stringResource(Res.strings.send_main_header_title),
+                    ?: stringResource(Res.string.send_main_header_title),
                 subtitle = args.appBar?.subtitle,
                 icon = {
                     NavigationIcon()
@@ -265,9 +266,9 @@ private fun SendScreenContent(
                     searchFieldModifier = Modifier
                         .focusRequester2(focusRequester),
                     searchFieldModel = state.query,
-                    searchFieldPlaceholder = stringResource(Res.strings.send_main_search_placeholder),
+                    searchFieldPlaceholder = stringResource(Res.string.send_main_search_placeholder),
                     title = title
-                        ?: stringResource(Res.strings.send_main_header_title),
+                        ?: stringResource(Res.string.send_main_header_title),
                     subtitle = subtitle,
                     icon = {
                         NavigationIcon()
@@ -345,7 +346,7 @@ private fun SendScreenContent(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.send_main_new_item_button),
+                        text = stringResource(Res.string.send_main_new_item_button),
                     )
                 },
             )
@@ -525,7 +526,7 @@ fun VaultSendItemText(
                         )
                     } else {
                         Text(
-                            text = stringResource(Res.strings.empty_value),
+                            text = stringResource(Res.string.empty_value),
                             color = LocalContentColor.current
                                 .combineAlpha(DisabledEmphasisAlpha),
                             overflow = TextOverflow.Ellipsis,
@@ -649,12 +650,12 @@ fun VaultSendItemText(
                 ) {
                     if (item.source.disabled) {
                         SmallInfoBadge(
-                            text = stringResource(Res.strings.deactivated),
+                            text = stringResource(Res.string.deactivated),
                         )
                     }
                     if (expiredState.value) {
                         SmallInfoBadge(
-                            text = stringResource(Res.strings.expired),
+                            text = stringResource(Res.string.expired),
                         )
                     }
                 }

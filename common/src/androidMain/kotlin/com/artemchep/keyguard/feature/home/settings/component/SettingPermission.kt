@@ -19,14 +19,15 @@ import com.artemchep.keyguard.feature.home.settings.permissions.PermissionsSetti
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import dev.icerock.moko.resources.StringResource
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
 
@@ -60,7 +61,7 @@ private fun SettingPermissionDetails(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_permissions_title),
+                text = stringResource(Res.string.pref_item_permissions_title),
             )
         },
         onClick = onClick,

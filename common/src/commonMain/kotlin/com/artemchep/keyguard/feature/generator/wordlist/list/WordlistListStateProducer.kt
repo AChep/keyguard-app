@@ -22,9 +22,12 @@ import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -127,22 +130,26 @@ fun produceWordlistListState(
                         val selectedItem = selectedItems.first()
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
-                            title = translate(Res.strings.edit),
-                            onClick = WordlistUtil::onRename
-                                .partially1(this@produceScreenState)
-                                .partially1(editWordlist)
-                                .partially1(selectedItem),
+                            title = Res.string.edit.wrap(),
+                            onClick = onClick {
+                                WordlistUtil.onRename(
+                                    editWordlist = editWordlist,
+                                    entity = selectedItem,
+                                )
+                            },
                         )
                     }
                 }
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translate(Res.strings.delete),
-                        onClick = WordlistUtil::onDeleteByItems
-                            .partially1(this@produceScreenState)
-                            .partially1(removeWordlistById)
-                            .partially1(selectedItems),
+                        title = Res.string.delete.wrap(),
+                        onClick = onClick {
+                            WordlistUtil.onDeleteByItems(
+                                removeWordlistById = removeWordlistById,
+                                items = selectedItems,
+                            )
+                        },
                     )
                 }
             }
@@ -236,17 +243,21 @@ fun produceWordlistListState(
         section {
             this += FlatItemAction(
                 leading = icon(Icons.Outlined.AttachFile),
-                title = translate(Res.strings.wordlist_add_wordlist_via_file_title),
-                onClick = WordlistUtil::onNewFromFile
-                    .partially1(this@produceScreenState)
-                    .partially1(addWordlist),
+                title = Res.string.wordlist_add_wordlist_via_file_title.wrap(),
+                onClick = onClick {
+                    WordlistUtil.onNewFromFile(
+                        addWordlist = addWordlist,
+                    )
+                },
             )
             this += FlatItemAction(
                 leading = icon(Icons.Outlined.KeyguardWebsite),
-                title = translate(Res.strings.wordlist_add_wordlist_via_url_title),
-                onClick = WordlistUtil::onNewFromUrl
-                    .partially1(this@produceScreenState)
-                    .partially1(addWordlist),
+                title = Res.string.wordlist_add_wordlist_via_url_title.wrap(),
+                onClick = onClick {
+                    WordlistUtil.onNewFromUrl(
+                        addWordlist = addWordlist,
+                    )
+                },
             )
         }
     }

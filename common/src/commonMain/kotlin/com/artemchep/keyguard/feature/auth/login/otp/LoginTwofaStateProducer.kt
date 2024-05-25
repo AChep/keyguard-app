@@ -25,6 +25,7 @@ import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLParserException
 import io.ktor.http.Url
@@ -274,7 +275,7 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
             if (code.length != 6) {
                 Validated.Failure(
                     model = code,
-                    error = translate(Res.strings.error_must_have_exactly_n_symbols, 6),
+                    error = translate(Res.string.error_must_have_exactly_n_symbols, 6),
                 )
             } else {
                 Validated.Success(
@@ -299,7 +300,7 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
         val canLogin = codeValidated is Validated.Success &&
                 !isLoading
         val primaryAction = LoginTwofaState.PrimaryAction(
-            text = translate(Res.strings.continue_),
+            text = translate(Res.string.continue_),
             icon = if (isLoading) {
                 LoginTwofaState.PrimaryAction.Icon.LOADING
             } else {
@@ -384,11 +385,13 @@ private fun RememberStateFlowScope.createStateFlowForYubiKey(
             onComplete = { event: Either<Throwable, String> ->
                 event.fold(
                     ifLeft = {
-                        val msg = ToastMessage(
-                            title = translate(Res.strings.yubikey_error_failed_to_read),
-                            type = ToastMessage.Type.ERROR,
-                        )
-                        message(msg)
+                        action {
+                            val msg = ToastMessage(
+                                title = translate(Res.string.yubikey_error_failed_to_read),
+                                type = ToastMessage.Type.ERROR,
+                            )
+                            message(msg)
+                        }
                     },
                     ifRight = { token ->
                         onComplete(
@@ -423,7 +426,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
             if (code.length != 6) {
                 Validated.Failure(
                     model = code,
-                    error = translate(Res.strings.error_must_have_exactly_n_symbols, 6),
+                    error = translate(Res.string.error_must_have_exactly_n_symbols, 6),
                 )
             } else {
                 Validated.Success(
@@ -443,7 +446,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
             args.password,
         ).effectTap {
             val model = ToastMessage(
-                title = translate(Res.strings.requested_verification_email),
+                title = translate(Res.string.requested_verification_email),
             )
             message(model)
         },
@@ -464,7 +467,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
         val canLogin = codeValidated is Validated.Success &&
                 !isLoading
         val primaryAction = LoginTwofaState.PrimaryAction(
-            text = translate(Res.strings.continue_),
+            text = translate(Res.string.continue_),
             icon = if (isLoading) {
                 LoginTwofaState.PrimaryAction.Icon.LOADING
             } else {
@@ -613,7 +616,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
     }
 }
 
-private fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
+private suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
     cryptoGenerator: CryptoGenerator,
     base64Service: Base64Service,
     deeplinkService: DeeplinkService,
@@ -643,9 +646,9 @@ private fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
                 put("data", responseData)
             }
             put("callbackUri", callbackUrl)
-            put("headerText", translate(Res.strings.fido2webauthn_web_title))
-            put("btnText", translate(Res.strings.fido2webauthn_action_go_title))
-            put("btnReturnText", translate(Res.strings.fido2webauthn_action_return_title))
+            put("headerText", translate(Res.string.fido2webauthn_web_title))
+            put("btnText", translate(Res.string.fido2webauthn_action_go_title))
+            put("btnReturnText", translate(Res.string.fido2webauthn_action_return_title))
         }
             .let { json.encodeToString(it) }
             .let { base64Service.encodeToString(it) }

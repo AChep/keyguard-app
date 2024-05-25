@@ -12,7 +12,7 @@
         android:layout_gravity="center"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:contentDescription="@string/autofill_open_keyguard"
+        android:contentDescription="@string/android_autofill_open_keyguard"
         android:src="@mipmap/ic_launcher" />
 
     <TextView
@@ -24,6 +24,6 @@
         android:paddingLeft="16dp"
         android:paddingEnd="16dp"
         android:paddingRight="16dp"
-        android:text="@string/autofill_open_keyguard"
+        android:text="@string/android_autofill_open_keyguard"
         android:textAppearance="?android:attr/textAppearanceListItemSmall" />
 </LinearLayout>

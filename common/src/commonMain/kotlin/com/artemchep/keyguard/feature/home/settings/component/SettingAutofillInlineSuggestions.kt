@@ -11,8 +11,9 @@ import com.artemchep.keyguard.common.usecase.GetAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.PutAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -71,12 +72,12 @@ private fun SettingAutofillInlineSuggestions(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_autofill_inline_suggestions_title),
+                text = stringResource(Res.string.pref_item_autofill_inline_suggestions_title),
             )
         },
         text = {
             Text(
-                text = stringResource(Res.strings.pref_item_autofill_inline_suggestions_text),
+                text = stringResource(Res.string.pref_item_autofill_inline_suggestions_text),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

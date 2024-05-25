@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -51,7 +52,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.onInfoContainer
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.ln
 
 @Composable
@@ -226,7 +227,7 @@ private fun LearnButton(
                 .width(Dimens.buttonIconPadding),
         )
         Text(
-            text = stringResource(Res.strings.learn_more),
+            text = stringResource(Res.string.learn_more),
             style = MaterialTheme.typography.labelLarge,
             color = color,
         )

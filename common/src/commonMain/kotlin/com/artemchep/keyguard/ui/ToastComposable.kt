@@ -40,11 +40,12 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.feature.navigation.navigationNodeStack
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.okContainer
 import com.artemchep.keyguard.ui.theme.onOkContainer
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -295,7 +296,7 @@ private fun ToastMessage(model: ToastMessage) {
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ContentCopy,
-                        contentDescription = stringResource(Res.strings.copy),
+                        contentDescription = stringResource(Res.string.copy),
                     )
                 }
             } else {

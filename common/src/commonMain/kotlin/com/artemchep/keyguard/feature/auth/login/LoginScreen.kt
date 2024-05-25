@@ -60,6 +60,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.BiFlatTextField
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.ConcealedFlatTextField
@@ -85,7 +86,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 
 @Composable
@@ -156,7 +157,7 @@ fun LoginContentSkeleton() {
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.addaccount_header_title),
+                        text = stringResource(Res.string.addaccount_header_title),
                     )
                 },
                 navigationIcon = {
@@ -220,7 +221,7 @@ fun LoginContent(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.addaccount_header_title),
+                        text = stringResource(Res.string.addaccount_header_title),
                     )
                 },
                 navigationIcon = {
@@ -259,7 +260,7 @@ fun LoginContent(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.addaccount_sign_in_button),
+                        text = stringResource(Res.string.addaccount_sign_in_button),
                     )
                 },
             )
@@ -289,7 +290,7 @@ fun LoginContent(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.addaccount_disclaimer_bitwarden_label),
+            text = stringResource(Res.string.addaccount_disclaimer_bitwarden_label),
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(16.dp))
@@ -348,7 +349,7 @@ fun LoginContent(
                 Text(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
-                    text = stringResource(Res.strings.addaccount_captcha_need_client_secret_note),
+                    text = stringResource(Res.string.addaccount_captcha_need_client_secret_note),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Box(Modifier.height(16.dp))
@@ -356,7 +357,7 @@ fun LoginContent(
                 ConcealedFlatTextField(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
-                    label = stringResource(Res.strings.addaccount_captcha_need_client_secret_label),
+                    label = stringResource(Res.string.addaccount_captcha_need_client_secret_label),
                     value = clientSecret,
                     keyboardOptions = KeyboardOptions(
                         imeAction = when {

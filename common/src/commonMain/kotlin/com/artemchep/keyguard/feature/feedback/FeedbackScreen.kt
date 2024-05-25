@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatTextField
@@ -35,7 +36,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FeedbackScreen() {
@@ -59,7 +60,7 @@ private fun FeedbackContent(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.contactus_header_title),
+                        text = stringResource(Res.string.contactus_header_title),
                     )
                 },
                 navigationIcon = {
@@ -87,7 +88,7 @@ private fun FeedbackContent(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.send),
+                        text = stringResource(Res.string.send),
                     )
                 },
             )
@@ -105,7 +106,7 @@ private fun FeedbackContent(
             ifOk = { state ->
                 FlatTextField(
                     modifier = contentModifier,
-                    label = stringResource(Res.strings.contactus_message_label),
+                    label = stringResource(Res.string.contactus_message_label),
                     value = state.message,
                     keyboardOptions = KeyboardOptions(
                         autoCorrect = true,
@@ -132,7 +133,7 @@ private fun FeedbackContent(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.contactus_english_note),
+            text = stringResource(Res.string.contactus_english_note),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
@@ -144,7 +145,7 @@ private fun FeedbackContent(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.contactus_thanks_note),
+            text = stringResource(Res.string.contactus_thanks_note),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
         )

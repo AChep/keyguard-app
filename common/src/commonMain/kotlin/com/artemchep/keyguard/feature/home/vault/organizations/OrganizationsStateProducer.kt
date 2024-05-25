@@ -16,9 +16,12 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -176,11 +179,11 @@ fun organizationsScreenState(
                         if (ciphers.isNotEmpty()) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.KeyguardCipher,
-                                title = translate(Res.strings.items),
+                                title = Res.string.items.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
-                                onClick = {
+                                onClick = onClick {
                                     val route = VaultRoute.by(
                                         translator = this@produceScreenState,
                                         organization = organization,
@@ -195,7 +198,7 @@ fun organizationsScreenState(
                         if (collections.isNotEmpty()) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.KeyguardCollection,
-                                title = translate(Res.strings.collections),
+                                title = Res.string.collections.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
@@ -216,7 +219,7 @@ fun organizationsScreenState(
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Info,
-                            title = translate(Res.strings.info),
+                            title = Res.string.info.wrap(),
                             onClick = {
                                 val intent = NavigationIntent.NavigateToRoute(
                                     OrganizationRoute(

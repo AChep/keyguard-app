@@ -31,6 +31,7 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.lifecycle.toCommon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
@@ -165,14 +166,15 @@ class Main : BaseApp(), DIAware {
                         delay(duration)
                         duration
                     }
-                    .flatMap {
+                    .effectMap {
                         // Clear the current session.
                         val context = LeContext(this)
                         val session = MasterSession.Empty(
-                            reason = textResource(Res.strings.lock_reason_inactivity, context),
+                            reason = textResource(Res.string.lock_reason_inactivity, context),
                         )
                         putVaultSession(session)
                     }
+                    .flatten()
                     .attempt()
                     .launchIn(GlobalScope)
             }

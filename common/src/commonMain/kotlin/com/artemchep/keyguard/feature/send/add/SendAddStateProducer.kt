@@ -63,14 +63,18 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
 import com.artemchep.keyguard.feature.home.vault.add.createItem
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.view.SendViewRoute
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
@@ -174,9 +178,9 @@ fun produceSendAddScreenState(
     val markdown = getMarkdown().first()
 
     val title = if (args.ownershipRo) {
-        translate(Res.strings.addsend_header_edit_title)
+        translate(Res.string.addsend_header_edit_title)
     } else {
-        translate(Res.strings.addsend_header_new_title)
+        translate(Res.string.addsend_header_new_title)
     }
 
     val ownershipFlow = produceOwnershipFlow(
@@ -254,8 +258,8 @@ fun produceSendAddScreenState(
     val deactivate =
         AddStateItem.Switch(
             id = "deactivate",
-            title = translate(Res.strings.sends_action_disable_title),
-            text = translate(Res.strings.sends_action_disable_text),
+            title = translate(Res.string.sends_action_disable_title),
+            text = translate(Res.string.sends_action_disable_text),
             state = LocalStateItem<SwitchFieldModel, CreateSendRequest>(
                 flow = kotlin.run {
                     val sink = mutablePersistedFlow("deactivate") {
@@ -288,8 +292,8 @@ fun produceSendAddScreenState(
                         .map { model ->
                             FlatItemAction(
                                 id = item.id,
-                                title = item.title,
-                                text = item.text,
+                                title = TextHolder.Value(item.title),
+                                text = item.text?.let(TextHolder::Value),
                                 trailing = {
                                     Switch(
                                         checked = model.checked,
@@ -477,16 +481,16 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             account = account.element,
             onClick = if (!readOnly) {
                 // lambda
-                {
+                onClick {
                     val route = registerRouteResultReceiver(
                         route = OrganizationConfirmationRoute(
                             args = OrganizationConfirmationRoute.Args(
                                 decor = OrganizationConfirmationRoute.Args.Decor(
-                                    title = translate(Res.strings.save_to),
+                                    title = translate(Res.string.save_to),
                                     icon = Icons.Outlined.AccountBox,
                                     note = if (requiresPremium) {
                                         SimpleNote(
-                                            text = translate(Res.strings.bitwarden_premium_required),
+                                            text = translate(Res.string.bitwarden_premium_required),
                                             type = SimpleNote.Type.INFO,
                                         )
                                     } else {
@@ -548,7 +552,7 @@ private suspend fun RememberStateFlowScope.produceTextState(
     val txt = args.initialValue?.text
     val text = createItem(
         key = "text",
-        label = translate(Res.strings.text),
+        label = translate(Res.string.text),
         initialValue = args.text ?: txt?.text,
         lens = CreateSendRequest.text.text,
     )
@@ -564,7 +568,7 @@ private suspend fun RememberStateFlowScope.produceTextState(
             factory = { id, state ->
                 AddStateItem.Switch(
                     id = id,
-                    title = translate(Res.strings.addsend_text_hide_by_default_title),
+                    title = translate(Res.string.addsend_text_hide_by_default_title),
                     state = state,
                 )
             },
@@ -615,7 +619,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                             onChange = state::value::set,
                         )
                         AddStateItem.Text.State(
-                            label = translate(Res.strings.max_access_count),
+                            label = translate(Res.string.max_access_count),
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Number,
                             ),
@@ -635,7 +639,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         AddStateItem.Text(
             id = id,
             leading = icon<RowScope>(Icons.Outlined.Visibility),
-            note = translate(Res.strings.addsend_max_access_count_note),
+            note = translate(Res.string.addsend_max_access_count_note),
             state = state,
         )
     }
@@ -644,7 +648,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         val label = kotlin.run {
             val hasPassword = args.initialValue?.hasPassword == true
             if (hasPassword) {
-                translate(Res.strings.new_password)
+                translate(Res.string.new_password)
             } else null
         }
         val state = LocalStateItem<TextFieldModel2, CreateSendRequest>(
@@ -687,17 +691,19 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                 .takeIf { args.initialValue?.deletedDate == null }
         }
         val dropdown = buildContextItems {
+            val durationItems = opts.map { duration ->
+                val durationFormatted = duration.format(context)
+                FlatItemAction(
+                    title = TextHolder.Value(durationFormatted),
+                    onClick = sink::value::set.partially1(duration),
+                )
+            }
             section {
-                opts.forEach { duration ->
-                    this += FlatItemAction(
-                        title = duration.format(context),
-                        onClick = sink::value::set.partially1(duration),
-                    )
-                }
+                this += durationItems
             }
             section {
                 this += FlatItemAction(
-                    title = translate(Res.strings.deletion_date_custom),
+                    title = Res.string.deletion_date_custom.wrap(),
                     onClick = sink::value::set.partially1(null),
                 )
             }
@@ -706,7 +712,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             flow = sink
                 .map { duration ->
                     val value = duration?.format(context)
-                        ?: translate(Res.strings.deletion_date_custom)
+                        ?: translate(Res.string.deletion_date_custom)
                     AddStateItem.Enum.State(
                         data = duration,
                         value = value,
@@ -722,7 +728,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         AddStateItem.Enum(
             id = id,
             leading = icon<RowScope>(Icons.Outlined.AutoDelete),
-            label = translate(Res.strings.deletion_date),
+            label = translate(Res.string.deletion_date),
             state = state,
         )
     }
@@ -736,11 +742,11 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             date = now.date.plus(deletionDateUpperLimitDays, DateTimeUnit.DAY),
             time = now.time,
         )
-        val deletionDateWarning by lazy {
+        val deletionDateWarning = run {
             TextFieldModel2.Vl(
                 type = TextFieldModel2.Vl.Type.ERROR,
                 text = translate(
-                    res = Res.strings.error_must_be_less_than_days,
+                    res = Res.string.error_must_be_less_than_days,
                     deletionDateUpperLimitDays,
                 ),
             )
@@ -779,22 +785,27 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                 .takeIf { args.initialValue?.expirationDate == null }
         }
         val dropdown = buildContextItems {
-            section {
-                opts.forEach { duration ->
-                    this += FlatItemAction(
-                        title = duration.format(context),
-                        onClick = sink::value::set.partially1(duration),
-                    )
-                }
+            val durationItems = opts.map { duration ->
+                val durationFormatted = duration.format(context)
+                FlatItemAction(
+                    title = TextHolder.Value(durationFormatted),
+                    onClick = sink::value::set.partially1(duration),
+                )
+            }
+            val durationInfinite = run {
                 val duration = with(Duration) { INFINITE }
-                this += FlatItemAction(
-                    title = duration.format(context),
+                FlatItemAction(
+                    title = TextHolder.Value(duration.format(context)),
                     onClick = sink::value::set.partially1(duration),
                 )
             }
             section {
+                this += durationItems
+                this += durationInfinite
+            }
+            section {
                 this += FlatItemAction(
-                    title = translate(Res.strings.expiration_date_custom),
+                    title = Res.string.expiration_date_custom.wrap(),
                     onClick = sink::value::set.partially1(null),
                 )
             }
@@ -803,7 +814,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             flow = sink
                 .map { duration ->
                     val value = duration?.format(context)
-                        ?: translate(Res.strings.expiration_date_custom)
+                        ?: translate(Res.string.expiration_date_custom)
                     AddStateItem.Enum.State(
                         data = duration,
                         value = value,
@@ -819,7 +830,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         AddStateItem.Enum(
             id = id,
             leading = icon<RowScope>(Icons.Outlined.AccessTime),
-            label = translate(Res.strings.expiration_date),
+            label = translate(Res.string.expiration_date),
             state = state,
         )
     }
@@ -854,7 +865,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             factory = { id, state ->
                 AddStateItem.Switch(
                     id = id,
-                    title = translate(Res.strings.addsend_hide_email_title),
+                    title = translate(Res.string.addsend_hide_email_title),
                     state = state,
                 )
             },
@@ -873,7 +884,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                     val model = TextFieldModel2(
                         state = state,
                         text = value,
-                        hint = translate(Res.strings.additem_note_placeholder),
+                        hint = translate(Res.string.additem_note_placeholder),
                         onChange = state::value::set,
                     )
                     model

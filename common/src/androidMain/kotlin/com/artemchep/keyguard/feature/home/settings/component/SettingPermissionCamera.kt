@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.icon
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.kodein.di.DirectDI
@@ -17,8 +18,8 @@ actual fun settingPermissionCameraProvider(
 @OptIn(ExperimentalPermissionsApi::class)
 fun settingPermissionCameraProvider2(): SettingComponent = settingPermissionProvider(
     leading = icon<RowScope>(Icons.Outlined.CameraAlt),
-    title = Res.strings.pref_item_permission_camera_title,
-    text = Res.strings.pref_item_permission_camera_text,
+    title = Res.string.pref_item_permission_camera_title,
+    text = Res.string.pref_item_permission_camera_text,
     minSdk = Build.VERSION_CODES.M,
     permissionProvider = {
         Manifest.permission.CAMERA

@@ -31,7 +31,7 @@ jobs:
           arguments: :androidApp:licenseeAndroidPlayStoreRelease
       - name: "Move licenses"
         run: |
-          mv -f androidApp/build/reports/licensee/androidPlayStoreRelease/artifacts.json common/src/commonMain/resources/MR/files/licenses.json
+          mv -f androidApp/build/reports/licensee/androidPlayStoreRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build release bundle"
         uses: gradle/actions/setup-gradle@v3
         env:

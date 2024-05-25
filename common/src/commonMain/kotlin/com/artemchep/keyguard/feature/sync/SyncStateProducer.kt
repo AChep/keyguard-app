@@ -19,9 +19,12 @@ import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
 import kotlinx.coroutines.flow.combine
@@ -135,7 +138,7 @@ fun produceSyncState(
                     val timestamp = c.meta?.lastSyncTimestamp
                     if (timestamp != null) {
                         val date = dateFormatter.formatDateTime(timestamp)
-                        translate(Res.strings.account_last_synced_at, date)
+                        translate(Res.string.account_last_synced_at, date)
                     } else {
                         null
                     }
@@ -160,8 +163,8 @@ fun produceSyncState(
                 val items = buildContextItems {
                     if (c.failedCiphersCount > 0) {
                         this += FlatItemAction(
-                            title = translate(Res.strings.items),
-                            onClick = {
+                            title = Res.string.items.wrap(),
+                            onClick = onClick {
                                 val filter = DFilter.And(
                                     listOf(
                                         DFilter.ById(
@@ -176,8 +179,8 @@ fun produceSyncState(
                                 val route = VaultListRoute(
                                     args = VaultRoute.Args(
                                         appBar = VaultRoute.Args.AppBar(
-                                            title = translate(Res.strings.items),
-                                            subtitle = translate(Res.strings.syncstatus_header_title),
+                                            title = translate(Res.string.items),
+                                            subtitle = translate(Res.string.syncstatus_header_title),
                                         ),
                                         filter = filter,
                                         trash = null,
@@ -192,7 +195,7 @@ fun produceSyncState(
                     }
                     if (c.failedFoldersCount > 0) {
                         this += FlatItemAction(
-                            title = translate(Res.strings.folders),
+                            title = Res.string.folders.wrap(),
                             onClick = {
                                 val filter = DFilter.And(
                                     listOf(

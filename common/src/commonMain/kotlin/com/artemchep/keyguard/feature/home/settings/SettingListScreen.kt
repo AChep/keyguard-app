@@ -63,6 +63,7 @@ import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -70,7 +71,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 sealed interface SettingsItem2 {
@@ -96,8 +97,8 @@ data class SettingsSectionItem(
 private val items = listOfNotNull<SettingsItem2>(
     SettingsItem(
         id = "accounts",
-        title = TextHolder.Res(Res.strings.pref_item_accounts_title),
-        text = TextHolder.Res(Res.strings.pref_item_accounts_text),
+        title = TextHolder.Res(Res.string.pref_item_accounts_title),
+        text = TextHolder.Res(Res.string.pref_item_accounts_text),
         icon = Icons.Outlined.AccountBox,
         trailing = {
             val getAccountsHasError: GetAccountsHasError by rememberInstance()
@@ -125,8 +126,8 @@ private val items = listOfNotNull<SettingsItem2>(
     ),
     SettingsItem(
         id = "subscription",
-        title = TextHolder.Res(Res.strings.pref_item_subscription_title),
-        text = TextHolder.Res(Res.strings.pref_item_subscription_text),
+        title = TextHolder.Res(Res.string.pref_item_subscription_title),
+        text = TextHolder.Res(Res.string.pref_item_subscription_text),
         leading = {
             val getPurchased by rememberInstance<GetPurchased>()
             val isPurchased by remember(getPurchased) {
@@ -167,50 +168,50 @@ private val items = listOfNotNull<SettingsItem2>(
 //    ),
     SettingsItem(
         id = "autofill",
-        title = TextHolder.Res(Res.strings.pref_item_autofill_title),
-        text = TextHolder.Res(Res.strings.pref_item_autofill_text),
+        title = TextHolder.Res(Res.string.pref_item_autofill_title),
+        text = TextHolder.Res(Res.string.pref_item_autofill_text),
         icon = Icons.Outlined.AutoAwesome,
         route = AutofillSettingsRoute,
     ).takeIf { CurrentPlatform.hasAutofill() },
     SettingsItem(
         id = "security",
-        title = TextHolder.Res(Res.strings.pref_item_security_title),
-        text = TextHolder.Res(Res.strings.pref_item_security_text),
+        title = TextHolder.Res(Res.string.pref_item_security_title),
+        text = TextHolder.Res(Res.string.pref_item_security_text),
         icon = Icons.Outlined.Lock,
         route = SecuritySettingsRoute,
     ),
     SettingsItem(
         id = "watchtower",
-        title = TextHolder.Res(Res.strings.pref_item_watchtower_title),
-        text = TextHolder.Res(Res.strings.pref_item_watchtower_text),
+        title = TextHolder.Res(Res.string.pref_item_watchtower_title),
+        text = TextHolder.Res(Res.string.pref_item_watchtower_text),
         icon = Icons.Outlined.Security,
         route = WatchtowerSettingsRoute,
     ),
     SettingsItem(
         id = "notifications",
-        title = TextHolder.Res(Res.strings.pref_item_notifications_title),
-        text = TextHolder.Res(Res.strings.pref_item_notifications_text),
+        title = TextHolder.Res(Res.string.pref_item_notifications_title),
+        text = TextHolder.Res(Res.string.pref_item_notifications_text),
         icon = Icons.Outlined.Notifications,
         route = NotificationsSettingsRoute,
     ).takeIf { !isRelease },
     SettingsItem(
         id = "display",
-        title = TextHolder.Res(Res.strings.pref_item_appearance_title),
-        text = TextHolder.Res(Res.strings.pref_item_appearance_text),
+        title = TextHolder.Res(Res.string.pref_item_appearance_title),
+        text = TextHolder.Res(Res.string.pref_item_appearance_text),
         icon = Icons.Outlined.ColorLens,
         route = UiSettingsRoute,
     ),
     SettingsItem(
         id = "debug",
-        title = TextHolder.Res(Res.strings.pref_item_dev_title),
-        text = TextHolder.Res(Res.strings.pref_item_dev_text),
+        title = TextHolder.Res(Res.string.pref_item_dev_title),
+        text = TextHolder.Res(Res.string.pref_item_dev_text),
         icon = Icons.Outlined.Code,
         route = DebugSettingsRoute,
     ).takeIf { !isRelease },
     SettingsItem(
         id = "about",
-        title = TextHolder.Res(Res.strings.pref_item_other_title),
-        text = TextHolder.Res(Res.strings.pref_item_other_text),
+        title = TextHolder.Res(Res.string.pref_item_other_title),
+        text = TextHolder.Res(Res.string.pref_item_other_text),
         icon = Icons.Outlined.Info,
         route = OtherSettingsRoute,
     ),
@@ -252,7 +253,7 @@ private fun SettingListScreenContent(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.settings_main_header_title),
+                        text = stringResource(Res.string.settings_main_header_title),
                     )
                 },
                 navigationIcon = {

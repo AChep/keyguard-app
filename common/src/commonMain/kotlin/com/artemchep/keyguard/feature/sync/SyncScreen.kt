@@ -31,8 +31,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Ah
 import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.FlatItem
@@ -49,7 +51,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SyncScreen() {
@@ -83,7 +85,7 @@ private fun SyncContent(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.syncstatus_header_title),
+                        text = stringResource(Res.string.syncstatus_header_title),
                     )
                 },
                 navigationIcon = {
@@ -209,7 +211,9 @@ private fun TestK(
                             ChevronIcon()
                         },
                         title = {
-                            Text(action.title)
+                            Text(
+                                text = textResource(action.title),
+                            )
                         },
                         elevation = 1.dp,
                         onClick = action.onClick,
@@ -234,7 +238,7 @@ private fun BadgeStatusUpToDate(
     Ah(
         modifier = modifier,
         score = 1f,
-        text = stringResource(Res.strings.syncstatus_status_up_to_date),
+        text = stringResource(Res.string.syncstatus_status_up_to_date),
     )
 }
 
@@ -300,6 +304,6 @@ private fun BadgeStatusFailed(
     Ah(
         modifier = modifier,
         score = 0f,
-        text = stringResource(Res.strings.syncstatus_status_failed),
+        text = stringResource(Res.string.syncstatus_status_failed),
     )
 }

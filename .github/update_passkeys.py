@@ -61,5 +61,5 @@ aggr.sort(key=lambda x: x['domain'])
 
 aggr_text = json.dumps(aggr, indent=2)
 
-with open('common/src/commonMain/resources/MR/files/passkeys.json', 'w') as f:
+with open('common/src/commonMain/composeResources/files/passkeys.json', 'w') as f:
     f.write(aggr_text)

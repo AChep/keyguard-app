@@ -18,7 +18,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 private data class PasswordPwnedBadgeState(
@@ -62,7 +63,7 @@ fun PasswordPwnedBadge(
             Text(
                 modifier = Modifier
                     .padding(horizontal = 4.dp),
-                text = stringResource(Res.strings.password_pwned_label),
+                text = stringResource(Res.string.password_pwned_label),
             )
         }
     }

@@ -21,12 +21,13 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AttachmentsScreen() {
@@ -38,7 +39,7 @@ fun AttachmentsScreen() {
                 modifier = modifier,
                 title = {
                     Text(
-                        text = stringResource(Res.strings.downloads),
+                        text = stringResource(Res.string.downloads),
                     )
                 },
                 navigationIcon = {
@@ -93,7 +94,7 @@ fun AttachmentsScreen(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.downloads),
+                        text = stringResource(Res.string.downloads),
                     )
                 },
                 navigationIcon = {
@@ -154,7 +155,7 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.downloads_empty_label),
+                text = stringResource(Res.string.downloads_empty_label),
             )
         },
     )

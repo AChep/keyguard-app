@@ -89,6 +89,7 @@ import com.artemchep.keyguard.feature.search.filter.FilterButton
 import com.artemchep.keyguard.feature.search.filter.FilterScreen
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Ah
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -124,7 +125,7 @@ import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
@@ -155,7 +156,7 @@ fun WatchtowerScreen(
                 containerColor = Color.Transparent,
                 title = {
                     Text(
-                        text = stringResource(Res.strings.watchtower_header_title),
+                        text = stringResource(Res.string.watchtower_header_title),
                     )
                 },
                 navigationIcon = {
@@ -242,7 +243,7 @@ fun WatchtowerScreen2(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.watchtower_header_title),
+                        text = stringResource(Res.string.watchtower_header_title),
                     )
                 },
                 navigationIcon = {
@@ -474,7 +475,7 @@ private fun ColumnScope.DashboardContentData(
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPaddingHalf),
-                text = stringResource(Res.strings.watchtower_section_password_strength_label),
+                text = stringResource(Res.string.watchtower_section_password_strength_label),
             )
         }
         Spacer(
@@ -706,10 +707,10 @@ private fun CardPwnedPassword(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_pwned_passwords_title),
+                title = stringResource(Res.string.watchtower_item_pwned_passwords_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_pwned_passwords_text),
+        text = stringResource(Res.string.watchtower_item_pwned_passwords_text),
         imageVector = Icons.Outlined.KeyguardPwnedPassword,
         onClick = state.onClick,
         content = {
@@ -732,10 +733,10 @@ private fun CardReusedPassword(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_reused_passwords_title),
+                title = stringResource(Res.string.watchtower_item_reused_passwords_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_reused_passwords_text),
+        text = stringResource(Res.string.watchtower_item_reused_passwords_text),
         imageVector = Icons.Outlined.KeyguardReusedPassword,
         onClick = state.onClick,
     )
@@ -751,10 +752,10 @@ private fun CardVulnerableAccounts(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_vulnerable_accounts_title),
+                title = stringResource(Res.string.watchtower_item_vulnerable_accounts_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_vulnerable_accounts_text),
+        text = stringResource(Res.string.watchtower_item_vulnerable_accounts_text),
         imageVector = Icons.Outlined.KeyguardPwnedWebsites,
         onClick = state.onClick,
         content = {
@@ -777,10 +778,10 @@ private fun CardUnsecureWebsites(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_unsecure_websites_title),
+                title = stringResource(Res.string.watchtower_item_unsecure_websites_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_unsecure_websites_text),
+        text = stringResource(Res.string.watchtower_item_unsecure_websites_text),
         imageVector = Icons.Outlined.KeyguardUnsecureWebsites,
         onClick = state.onClick,
     )
@@ -796,10 +797,10 @@ private fun CardCompromisedAccount(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_compromised_accounts_title),
+                title = stringResource(Res.string.watchtower_item_compromised_accounts_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_compromised_accounts_text),
+        text = stringResource(Res.string.watchtower_item_compromised_accounts_text),
         imageVector = Icons.Outlined.AccountTree,
         onClick = state.onClick,
         content = {
@@ -822,10 +823,10 @@ private fun CardInactiveTwoFactorAuth(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_inactive_2fa_title),
+                title = stringResource(Res.string.watchtower_item_inactive_2fa_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_inactive_2fa_text),
+        text = stringResource(Res.string.watchtower_item_inactive_2fa_text),
         imageVector = Icons.Outlined.KeyguardTwoFa,
         onClick = state.onClick,
         content = {
@@ -848,10 +849,10 @@ private fun CardInactivePasskey(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_inactive_passkey_title),
+                title = stringResource(Res.string.watchtower_item_inactive_passkey_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_inactive_passkey_text),
+        text = stringResource(Res.string.watchtower_item_inactive_passkey_text),
         imageVector = Icons.Outlined.KeyguardPasskey,
         onClick = state.onClick,
         content = {
@@ -874,10 +875,10 @@ private fun CardIncompleteItems(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_incomplete_items_title),
+                title = stringResource(Res.string.watchtower_item_incomplete_items_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_incomplete_items_text),
+        text = stringResource(Res.string.watchtower_item_incomplete_items_text),
         imageVector = Icons.Outlined.KeyguardIncompleteItems,
         onClick = state.onClick,
     )
@@ -893,10 +894,10 @@ private fun CardExpiringItems(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_expiring_items_title),
+                title = stringResource(Res.string.watchtower_item_expiring_items_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_expiring_items_text),
+        text = stringResource(Res.string.watchtower_item_expiring_items_text),
         imageVector = Icons.Outlined.KeyguardExpiringItems,
         onClick = state.onClick,
     )
@@ -912,10 +913,10 @@ private fun CardDuplicateWebsites(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_duplicate_websites_title),
+                title = stringResource(Res.string.watchtower_item_duplicate_websites_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_duplicate_websites_text),
+        text = stringResource(Res.string.watchtower_item_duplicate_websites_text),
         imageVector = Icons.Outlined.KeyguardDuplicateWebsites,
         onClick = state.onClick,
     )
@@ -939,10 +940,10 @@ private fun CardTrashedItems(
             }
             ContentCardsContentTitle(
                 icon = icon,
-                title = stringResource(Res.strings.watchtower_item_trashed_items_title),
+                title = stringResource(Res.string.watchtower_item_trashed_items_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_trashed_items_text),
+        text = stringResource(Res.string.watchtower_item_trashed_items_text),
         imageVector = Icons.Outlined.KeyguardTrashedItems,
         onClick = state.onClick,
     )
@@ -963,10 +964,10 @@ private fun CardEmptyItems(
             }
             ContentCardsContentTitle(
                 icon = icon,
-                title = stringResource(Res.strings.watchtower_item_empty_folders_title),
+                title = stringResource(Res.string.watchtower_item_empty_folders_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_empty_folders_text),
+        text = stringResource(Res.string.watchtower_item_empty_folders_text),
         imageVector = Icons.Outlined.FolderOff,
         onClick = state.onClick,
     )
@@ -982,10 +983,10 @@ private fun CardDuplicateItems(
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
-                title = stringResource(Res.strings.watchtower_item_duplicate_items_title),
+                title = stringResource(Res.string.watchtower_item_duplicate_items_title),
             )
         },
-        text = stringResource(Res.strings.watchtower_item_duplicate_items_text),
+        text = stringResource(Res.string.watchtower_item_duplicate_items_text),
         imageVector = Icons.Outlined.KeyguardDuplicateItems,
         onClick = state.onClick,
     )
@@ -1096,7 +1097,7 @@ private fun ContentLayout(
                     dashboardContent()
                 }
                 Section(
-                    text = stringResource(Res.strings.watchtower_section_security_label),
+                    text = stringResource(Res.string.watchtower_section_security_label),
                 )
                 GridLayout(
                     modifier = Modifier
@@ -1108,7 +1109,7 @@ private fun ContentLayout(
                     cardsContent()
                 }
                 Section(
-                    text = stringResource(Res.strings.watchtower_section_maintenance_label),
+                    text = stringResource(Res.string.watchtower_section_maintenance_label),
                 )
                 GridLayout(
                     modifier = Modifier

@@ -3,14 +3,17 @@ package com.artemchep.keyguard.ui
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import kotlin.time.Duration
 
-fun Duration.format(context: LeContext): String {
+suspend fun Duration.format(context: LeContext): String {
     if (this == Duration.INFINITE) {
-        return textResource(Res.strings.expiration_date_never, context)
+        return textResource(Res.string.expiration_date_never, context)
     }
 
-    return sequence<String> {
+    return flow<String> {
         val days = inWholeDays
         if (days > 0) {
             val daysFormatted = textResource(
@@ -19,7 +22,7 @@ fun Duration.format(context: LeContext): String {
                 quantity = days.toInt(),
                 days.toString(),
             )
-            yield(daysFormatted)
+            emit(daysFormatted)
         }
         val hours = inWholeHours - daysToHours(days)
         if (hours > 0) {
@@ -29,7 +32,7 @@ fun Duration.format(context: LeContext): String {
                 quantity = hours.toInt(),
                 hours.toString(),
             )
-            yield(hoursFormatted)
+            emit(hoursFormatted)
         }
         val minutes = inWholeMinutes - hoursToMinutes(daysToHours(days) + hours)
         if (minutes > 0) {
@@ -39,7 +42,7 @@ fun Duration.format(context: LeContext): String {
                 quantity = minutes.toInt(),
                 minutes.toString(),
             )
-            yield(minutesFormatted)
+            emit(minutesFormatted)
         }
         val seconds =
             inWholeSeconds - minutesToSeconds(hoursToMinutes(daysToHours(days) + hours) + minutes)
@@ -50,9 +53,10 @@ fun Duration.format(context: LeContext): String {
                 quantity = seconds.toInt(),
                 seconds.toString(),
             )
-            yield(secondsFormatted)
+            emit(secondsFormatted)
         }
     }
+        .toList()
         .joinToString(separator = " ")
         .takeIf { it.isNotEmpty() }
         ?: toString()

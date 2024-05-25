@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.kapt) apply false
+    alias(libs.plugins.kotlin.plugin.compose) apply false
     alias(libs.plugins.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.kotlin.plugin.serialization) apply false
     alias(libs.plugins.compose) apply false
@@ -27,7 +28,6 @@ plugins {
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.sqldelight) apply false
     alias(libs.plugins.buildkonfig) apply false
-    alias(libs.plugins.moko) apply false
     alias(libs.plugins.license.check) apply false
     alias(libs.plugins.versions) apply true
     alias(libs.plugins.version.catalog.update) apply true

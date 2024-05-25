@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.common.model.BarcodeImageRequest
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -60,7 +61,7 @@ fun produceBarcodeTypeScreenState(
     val formatActions = formatList
         .map { format ->
             FlatItemAction(
-                title = format.formatTitle(),
+                title = TextHolder.Value(format.formatTitle()),
                 onClick = {
                     formatSink.value = format.name
                 },

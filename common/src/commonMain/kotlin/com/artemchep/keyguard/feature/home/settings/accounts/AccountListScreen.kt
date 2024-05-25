@@ -25,6 +25,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
@@ -34,7 +35,7 @@ import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.selection.SelectionBar
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AccountListScreen() {
@@ -72,7 +73,7 @@ fun AccountListScreenContent(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.account_main_header_title))
+                    Text(stringResource(Res.string.account_main_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -98,7 +99,7 @@ fun AccountListScreenContent(
                     Icon(Icons.Outlined.Add, null)
                 },
                 text = {
-                    Text(stringResource(Res.strings.account_main_add_account_title))
+                    Text(stringResource(Res.string.account_main_add_account_title))
                 },
             )
         },
@@ -108,7 +109,7 @@ fun AccountListScreenContent(
             ) { selection ->
                 SelectionBar(
                     title = {
-                        val text = stringResource(Res.strings.selection_n_selected, selection.count)
+                        val text = stringResource(Res.string.selection_n_selected, selection.count)
                         Text(text)
                     },
                     trailing = {
@@ -152,7 +153,7 @@ fun AccountListScreenContent(
                         },
                         text = {
                             Text(
-                                text = stringResource(Res.strings.accounts_empty_label),
+                                text = stringResource(Res.string.accounts_empty_label),
                             )
                         },
                     )

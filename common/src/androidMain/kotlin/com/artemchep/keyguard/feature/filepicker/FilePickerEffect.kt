@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.platform.LeUriImpl
 import com.artemchep.keyguard.ui.CollectedEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,7 +46,7 @@ actual fun FilePickerEffect(
 
             val info = uri?.let {
                 FilePickerIntent.OpenDocument.Ifo(
-                    uri = it,
+                    uri = LeUriImpl(it),
                     name = getFileName(context, it),
                     size = getFileSize(context, it),
                 )

@@ -25,12 +25,16 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canDelete
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -177,7 +181,7 @@ fun foldersScreenState(
         navigate(intent)
     }
 
-    fun onRename(
+    suspend fun onRename(
         folders: List<DFolder>,
     ) {
         val route = registerRouteResultReceiver(
@@ -185,9 +189,9 @@ fun foldersScreenState(
                 args = ConfirmationRoute.Args(
                     icon = icon(Icons.Outlined.Edit),
                     title = if (folders.size > 1) {
-                        translate(Res.strings.folder_action_change_names_title)
+                        translate(Res.string.folder_action_change_names_title)
                     } else {
-                        translate(Res.strings.folder_action_change_name_title)
+                        translate(Res.string.folder_action_change_name_title)
                     },
                     items = folders
                         .sortedWith(StringComparatorIgnoreCase { it.name })
@@ -250,7 +254,7 @@ fun foldersScreenState(
         navigate(intent)
     }
 
-    fun onDelete(
+    suspend fun onDelete(
         folderIds: Set<String>,
         /**
          * `true` if any of the folders contain ciphers in it,
@@ -262,7 +266,7 @@ fun foldersScreenState(
         val cascadeRemoveItem = if (hasCiphers) {
             ConfirmationRoute.Args.Item.BooleanItem(
                 key = cascadeRemoveKey,
-                title = translate(Res.strings.ciphers_action_cascade_trash_associated_items_title),
+                title = translate(Res.string.ciphers_action_cascade_trash_associated_items_title),
             )
         } else {
             null
@@ -273,11 +277,11 @@ fun foldersScreenState(
                 args = ConfirmationRoute.Args(
                     icon = icon(Icons.Outlined.Delete),
                     title = if (folderIds.size > 1) {
-                        translate(Res.strings.folder_delete_many_confirmation_title)
+                        translate(Res.string.folder_delete_many_confirmation_title)
                     } else {
-                        translate(Res.strings.folder_delete_one_confirmation_title)
+                        translate(Res.string.folder_delete_one_confirmation_title)
                     },
-                    message = translate(Res.strings.folder_delete_confirmation_text),
+                    message = translate(Res.string.folder_delete_confirmation_text),
                     items = listOfNotNull(
                         cascadeRemoveItem,
                     ),
@@ -340,11 +344,11 @@ fun foldersScreenState(
                 if (ciphersCount > 0) {
                     this += FlatItemAction(
                         icon = Icons.Outlined.KeyguardCipher,
-                        title = translate(Res.strings.items),
+                        title = Res.string.items.wrap(),
                         trailing = {
                             ChevronIcon()
                         },
-                        onClick = {
+                        onClick = onClick {
                             val folders = selectedFolders.values
                                 .map { it.folder }
                             val route = VaultRoute.by(
@@ -361,8 +365,8 @@ fun foldersScreenState(
                 if (canEdit) {
                     this += FlatItemAction(
                         icon = Icons.Outlined.Edit,
-                        title = translate(Res.strings.rename),
-                        onClick = {
+                        title = Res.string.rename.wrap(),
+                        onClick = onClick {
                             val folders = selectedFolders.values
                                 .map { it.folder }
                             onRename(folders)
@@ -377,7 +381,7 @@ fun foldersScreenState(
                                 selectedFolders.values.maxBy { it.ciphers.size }.folder.name
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Merge,
-                                title = "Merge into…",
+                                title = TextHolder.Value("Merge into…"),
                                 onClick = ::onMerge
                                     .partially1(folderName)
                                     .partially1(selectedFolderIds),
@@ -389,10 +393,10 @@ fun foldersScreenState(
                     val hasCiphers = selectedFolders.any { it.value.ciphers.isNotEmpty() }
                     this += FlatItemAction(
                         icon = Icons.Outlined.Delete,
-                        title = translate(Res.strings.delete),
-                        onClick = ::onDelete
-                            .partially1(selectedFolderIds)
-                            .partially1(hasCiphers),
+                        title = Res.string.delete.wrap(),
+                        onClick = onClick {
+                            onDelete(selectedFolderIds, hasCiphers)
+                        },
                     )
                 }
             }
@@ -431,11 +435,11 @@ fun foldersScreenState(
                         if (!folder.deleted && ciphers.isNotEmpty()) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.KeyguardCipher,
-                                title = translate(Res.strings.items),
+                                title = Res.string.items.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
-                                onClick = {
+                                onClick = onClick {
                                     val route = VaultRoute.by(
                                         translator = this@produceScreenState,
                                         folder = folder,
@@ -450,18 +454,24 @@ fun foldersScreenState(
                         if (!folder.deleted && canEdit) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Edit,
-                                title = translate(Res.strings.rename),
-                                onClick = ::onRename
-                                    .partially1(listOf(folder)),
+                                title = Res.string.rename.wrap(),
+                                onClick = onClick {
+                                    onRename(
+                                        folders = listOf(folder),
+                                    )
+                                },
                             )
                         }
                         if (!folder.deleted && canDelete) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Delete,
-                                title = translate(Res.strings.delete),
-                                onClick = ::onDelete
-                                    .partially1(setOf(folder.id))
-                                    .partially1(folderWithCiphers.ciphers.isNotEmpty()),
+                                title = Res.string.delete.wrap(),
+                                onClick = onClick {
+                                    onDelete(
+                                        folderIds = setOf(folder.id),
+                                        hasCiphers = folderWithCiphers.ciphers.isNotEmpty(),
+                                    )
+                                },
                             )
                         }
                     }

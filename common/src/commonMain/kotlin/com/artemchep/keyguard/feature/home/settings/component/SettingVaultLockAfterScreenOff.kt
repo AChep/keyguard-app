@@ -16,9 +16,10 @@ import com.artemchep.keyguard.common.usecase.PutVaultLockAfterScreenOff
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -84,10 +85,10 @@ private fun SettingLockAfterScreenOff(
             }
         },
         title = {
-            Text(stringResource(Res.strings.pref_item_lock_vault_after_screen_off_title))
+            Text(stringResource(Res.string.pref_item_lock_vault_after_screen_off_title))
         },
         text = {
-            val text = stringResource(Res.strings.pref_item_lock_vault_after_screen_off_text)
+            val text = stringResource(Res.string.pref_item_lock_vault_after_screen_off_text)
             Text(text)
         },
         onClick = onCheckedChange?.partially1(!checked),

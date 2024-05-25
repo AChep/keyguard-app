@@ -5,7 +5,8 @@ package com.artemchep.keyguard.common.model
 import androidx.compose.runtime.Composable
 import arrow.optics.optics
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.stringResource
 
 @optics
 data class PasswordStrength(
@@ -39,19 +40,19 @@ fun PasswordStrength.Score.alertScore() = when (this) {
 }
 
 fun PasswordStrength.Score.formatH2() = when (this) {
-    PasswordStrength.Score.Weak -> Res.strings.passwords_weak_label
-    PasswordStrength.Score.Fair -> Res.strings.passwords_fair_label
-    PasswordStrength.Score.Good -> Res.strings.passwords_good_label
-    PasswordStrength.Score.Strong -> Res.strings.passwords_strong_label
-    PasswordStrength.Score.VeryStrong -> Res.strings.passwords_very_strong_label
+    PasswordStrength.Score.Weak -> Res.string.passwords_weak_label
+    PasswordStrength.Score.Fair -> Res.string.passwords_fair_label
+    PasswordStrength.Score.Good -> Res.string.passwords_good_label
+    PasswordStrength.Score.Strong -> Res.string.passwords_strong_label
+    PasswordStrength.Score.VeryStrong -> Res.string.passwords_very_strong_label
 }
 
 fun PasswordStrength.Score.formatH() = when (this) {
-    PasswordStrength.Score.Weak -> Res.strings.password_strength_weak_label
-    PasswordStrength.Score.Fair -> Res.strings.password_strength_fair_label
-    PasswordStrength.Score.Good -> Res.strings.password_strength_good_label
-    PasswordStrength.Score.Strong -> Res.strings.password_strength_strong_label
-    PasswordStrength.Score.VeryStrong -> Res.strings.password_strength_very_strong_label
+    PasswordStrength.Score.Weak -> Res.string.password_strength_weak_label
+    PasswordStrength.Score.Fair -> Res.string.password_strength_fair_label
+    PasswordStrength.Score.Good -> Res.string.password_strength_good_label
+    PasswordStrength.Score.Strong -> Res.string.password_strength_strong_label
+    PasswordStrength.Score.VeryStrong -> Res.string.password_strength_very_strong_label
 }
 
 @Composable

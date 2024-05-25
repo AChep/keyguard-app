@@ -52,6 +52,7 @@ import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
@@ -64,27 +65,27 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.util.DividerColor
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.GlobalScope
 import kotlinx.datetime.Clock
 import org.kodein.di.compose.rememberInstance
 
 val onboardingItemsPremium = listOf(
     OnboardingItem(
-        title = Res.strings.feat_item_multiple_accounts_title,
-        text = Res.strings.feat_item_multiple_accounts_text,
+        title = Res.string.feat_item_multiple_accounts_title,
+        text = Res.string.feat_item_multiple_accounts_text,
         premium = true,
         icon = Icons.Outlined.AccountBox,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_two_way_sync_title,
-        text = Res.strings.feat_item_two_way_sync_text,
+        title = Res.string.feat_item_two_way_sync_title,
+        text = Res.string.feat_item_two_way_sync_text,
         premium = true,
         icon = Icons.Outlined.Sync,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_offline_editing_title,
-        text = Res.strings.feat_item_offline_editing_text,
+        title = Res.string.feat_item_offline_editing_title,
+        text = Res.string.feat_item_offline_editing_text,
         premium = true,
         icon = Icons.Outlined.OfflineBolt,
     ),
@@ -92,78 +93,78 @@ val onboardingItemsPremium = listOf(
 
 val onboardingItemsSearch = listOf(
     OnboardingItem(
-        title = Res.strings.feat_item_search_by_anything_title,
-        text = Res.strings.feat_item_search_by_anything_text,
+        title = Res.string.feat_item_search_by_anything_title,
+        text = Res.string.feat_item_search_by_anything_text,
         icon = Icons.Outlined.Search,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_filter_title,
-        text = Res.strings.feat_item_filter_text,
+        title = Res.string.feat_item_filter_title,
+        text = Res.string.feat_item_filter_text,
         icon = Icons.Outlined.FilterAlt,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_multiple_keywords_title,
-        text = Res.strings.feat_item_multiple_keywords_text,
+        title = Res.string.feat_item_multiple_keywords_title,
+        text = Res.string.feat_item_multiple_keywords_text,
     ),
 )
 
 val onboardingItemsWatchtower = listOf(
     OnboardingItem(
-        title = Res.strings.feat_item_pwned_passwords_title,
-        text = Res.strings.feat_item_pwned_passwords_text,
+        title = Res.string.feat_item_pwned_passwords_title,
+        text = Res.string.feat_item_pwned_passwords_text,
         icon = Icons.Outlined.DataArray,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_password_strength_title,
-        text = Res.strings.feat_item_password_strength_text,
+        title = Res.string.feat_item_password_strength_title,
+        text = Res.string.feat_item_password_strength_text,
         icon = Icons.Outlined.Password,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_reused_passwords_title,
-        text = Res.strings.feat_item_reused_passwords_text,
+        title = Res.string.feat_item_reused_passwords_title,
+        text = Res.string.feat_item_reused_passwords_text,
         icon = Icons.Outlined.Recycling,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_inactive_totp_title,
-        text = Res.strings.feat_item_inactive_totp_text,
+        title = Res.string.feat_item_inactive_totp_title,
+        text = Res.string.feat_item_inactive_totp_text,
         icon = Icons.Outlined.KeyguardTwoFa,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_unsecure_websites_title,
-        text = Res.strings.feat_item_unsecure_websites_text,
+        title = Res.string.feat_item_unsecure_websites_title,
+        text = Res.string.feat_item_unsecure_websites_text,
         icon = Icons.Outlined.KeyguardWebsite,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_incomplete_items_title,
-        text = Res.strings.feat_item_incomplete_items_text,
+        title = Res.string.feat_item_incomplete_items_title,
+        text = Res.string.feat_item_incomplete_items_text,
         icon = Icons.Outlined.ShortText,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_expiring_items_title,
-        text = Res.strings.feat_item_expiring_items_text,
+        title = Res.string.feat_item_expiring_items_title,
+        text = Res.string.feat_item_expiring_items_text,
         icon = Icons.Outlined.Timer,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_duplicate_items_title,
-        text = Res.strings.feat_item_duplicate_items_text,
+        title = Res.string.feat_item_duplicate_items_title,
+        text = Res.string.feat_item_duplicate_items_text,
         icon = Icons.Outlined.CopyAll,
     ),
 )
 
 val onboardingItemsOther = listOf(
     OnboardingItem(
-        title = Res.strings.feat_item_multi_selection_title,
-        text = Res.strings.feat_item_multi_selection_text,
+        title = Res.string.feat_item_multi_selection_title,
+        text = Res.string.feat_item_multi_selection_text,
         icon = Icons.Outlined.SelectAll,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_show_barcode_title,
-        text = Res.strings.feat_item_show_barcode_text,
+        title = Res.string.feat_item_show_barcode_title,
+        text = Res.string.feat_item_show_barcode_text,
         icon = Icons.Outlined.QrCode,
     ),
     OnboardingItem(
-        title = Res.strings.feat_item_generator_title,
-        text = Res.strings.feat_item_generator_text,
+        title = Res.string.feat_item_generator_title,
+        text = Res.string.feat_item_generator_text,
     ),
 )
 
@@ -184,7 +185,7 @@ fun OnboardingScreen() {
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.feat_header_title))
+                    Text(stringResource(Res.string.feat_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -206,7 +207,7 @@ private fun ColumnScope.OnboardingScreenContent() {
         items = onboardingItemsPremium,
     )
     Section(
-        text = stringResource(Res.strings.feat_section_search_title),
+        text = stringResource(Res.string.feat_section_search_title),
     )
     OnboardingContainer(
         modifier = Modifier
@@ -215,7 +216,7 @@ private fun ColumnScope.OnboardingScreenContent() {
         items = onboardingItemsSearch,
     )
     Section(
-        text = stringResource(Res.strings.feat_section_watchtower_title),
+        text = stringResource(Res.string.feat_section_watchtower_title),
     )
     OnboardingContainer(
         modifier = Modifier
@@ -224,7 +225,7 @@ private fun ColumnScope.OnboardingScreenContent() {
         items = onboardingItemsWatchtower,
     )
     Section(
-        text = stringResource(Res.strings.feat_section_misc_title),
+        text = stringResource(Res.string.feat_section_misc_title),
     )
     OnboardingContainer(
         modifier = Modifier
@@ -321,7 +322,7 @@ fun OnboardingCard(
                         tint = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        text = stringResource(Res.strings.feat_keyguard_premium_label),
+                        text = stringResource(Res.string.feat_keyguard_premium_label),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.labelSmall,
                     )

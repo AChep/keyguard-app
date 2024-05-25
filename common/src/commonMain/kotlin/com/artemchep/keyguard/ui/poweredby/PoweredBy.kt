@@ -22,9 +22,10 @@ import com.artemchep.keyguard.URL_PASSKEYS
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PoweredByJustDeleteMe(
@@ -106,7 +107,7 @@ fun PoweredByLabel(
             modifier = Modifier
                 .weight(1f, fill = fill)
                 .padding(top = 4.dp),
-            text = stringResource(Res.strings.powered_by),
+            text = stringResource(Res.string.powered_by),
             maxLines = 2,
             style = MaterialTheme.typography.labelSmall,
             color = LocalContentColor.current

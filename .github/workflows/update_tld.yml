@@ -14,7 +14,7 @@ jobs:
       - name: "Update data"
         run: |
           wget https://publicsuffix.org/list/public_suffix_list.dat
-          mv -f public_suffix_list.dat common/src/commonMain/resources/MR/files/public_suffix_list.txt
+          mv -f public_suffix_list.dat common/src/commonMain/composeResources/files/public_suffix_list.txt
       - name: "Check if any changes"
         id: check-changes
         run: |

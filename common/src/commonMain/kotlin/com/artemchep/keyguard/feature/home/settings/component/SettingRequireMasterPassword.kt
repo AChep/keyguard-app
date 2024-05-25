@@ -17,16 +17,18 @@ import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
 import com.artemchep.keyguard.common.usecase.PutBiometricTimeout
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.format
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -75,7 +77,7 @@ fun settingRequireMasterPasswordProvider(
         }
     }
 
-private fun ah(
+private suspend fun ah(
     fingerprintReadRepository: FingerprintReadRepository,
     getBiometricTimeout: GetBiometricTimeout,
     getBiometricTimeoutVariants: GetBiometricTimeoutVariants,
@@ -99,7 +101,7 @@ private fun ah(
         .map { duration ->
             val title = getRequirePasswordDurationTitle(duration, context)
             FlatItemAction(
-                title = title,
+                title = TextHolder.Value(title),
                 onClick = {
                     putBiometricTimeout(duration)
                         .launchIn(windowCoroutineScope)
@@ -123,15 +125,15 @@ private fun ah(
     }
 }
 
-private fun getRequirePasswordDurationTitle(duration: Duration, context: LeContext) =
+private suspend fun getRequirePasswordDurationTitle(duration: Duration, context: LeContext) =
     when (duration) {
         Duration.ZERO -> textResource(
-            Res.strings.pref_item_require_app_password_immediately_text,
+            Res.string.pref_item_require_app_password_immediately_text,
             context,
         )
 
         Duration.INFINITE -> textResource(
-            Res.strings.pref_item_require_app_password_never_text,
+            Res.string.pref_item_require_app_password_never_text,
             context,
         )
 
@@ -160,7 +162,7 @@ private fun ColumnScope.SettingRequireMasterPasswordContent(
     FlatItemTextContent(
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_require_app_password_title),
+                text = stringResource(Res.string.pref_item_require_app_password_title),
             )
         },
         text = {
@@ -173,7 +175,7 @@ private fun ColumnScope.SettingRequireMasterPasswordContent(
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
                 style = MaterialTheme.typography.bodySmall,
-                text = stringResource(Res.strings.pref_item_require_app_password_note),
+                text = stringResource(Res.string.pref_item_require_app_password_note),
             )
         },
     )

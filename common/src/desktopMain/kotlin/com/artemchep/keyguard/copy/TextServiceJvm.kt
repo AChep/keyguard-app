@@ -1,7 +1,10 @@
 package com.artemchep.keyguard.copy
 
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.text.TextService
-import dev.icerock.moko.resources.FileResource
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.kodein.di.DirectDI
 import java.io.File
 import java.io.InputStream
@@ -12,12 +15,11 @@ class TextServiceJvm() : TextService {
         directDI: DirectDI,
     ) : this()
 
-    override fun readFromResources(
+    @OptIn(ExperimentalResourceApi::class)
+    override suspend fun readFromResources(
         fileResource: FileResource,
-    ): InputStream = fileResource.inputStream()
-
-    private fun FileResource.inputStream() = resourcesClassLoader
-        .getResourceAsStream(filePath)!!
+    ): InputStream = Res.readBytes(fileResource.name)
+        .inputStream()
 
     override fun readFromFile(uri: String): InputStream {
         val parsedUri = URI.create(uri)

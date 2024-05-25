@@ -54,13 +54,13 @@ class DateFormatterAndroid(
         return formatterDate.format(date)
     }
 
-    override fun formatDateShort(instant: Instant): String {
+    override suspend fun formatDateShort(instant: Instant): String {
         val tz = TimeZone.currentSystemDefault()
         val dt = instant.toLocalDateTime(tz)
         return formatDateShort(dt.date)
     }
 
-    override fun formatDateShort(date: LocalDate): String {
+    override suspend fun formatDateShort(date: LocalDate): String {
         // Manually format the date. Using the "MMMM yyyy" format
         // doesn't work correctly for some locales.
         val year = date.year.toString()

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.auth.common.util
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,9 +20,9 @@ fun validateTitle(title: String?): ValidationTitle {
     }
 }
 
-fun ValidationTitle.format(scope: TranslatorScope): String? =
+suspend fun ValidationTitle.format(scope: TranslatorScope): String? =
     when (this) {
-        ValidationTitle.ERROR_EMPTY -> scope.translate(Res.strings.error_must_not_be_blank)
+        ValidationTitle.ERROR_EMPTY -> scope.translate(Res.string.error_must_not_be_blank)
         else -> null
     }
 

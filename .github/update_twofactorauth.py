@@ -45,5 +45,5 @@ for file in archive.namelist():
 
 aggr_text = json.dumps(aggr, indent=2)
 
-with open('common/src/commonMain/resources/MR/files/tfa.json', 'w') as f:
+with open('common/src/commonMain/composeResources/files/tfa.json', 'w') as f:
     f.write(aggr_text)

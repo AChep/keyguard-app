@@ -42,8 +42,9 @@ import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.runBlocking
 import kotlinx.parcelize.Parcelize
 import org.kodein.di.DIAware
@@ -271,7 +272,7 @@ class AutofillActivity : BaseActivity(), DIAware {
                                         .width(Dimens.buttonIconPadding),
                                 )
                                 Text(
-                                    text = stringResource(Res.strings.cancel),
+                                    text = stringResource(Res.string.cancel),
                                     textAlign = TextAlign.Center,
                                 )
                             }

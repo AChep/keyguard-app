@@ -14,9 +14,10 @@ import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.PutNavLabel
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -76,7 +77,7 @@ private fun SettingNavLabel(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_nav_label_title),
+                text = stringResource(Res.string.pref_item_nav_label_title),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

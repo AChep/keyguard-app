@@ -17,6 +17,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
@@ -26,7 +27,7 @@ import com.artemchep.keyguard.ui.icons.iconSmall
 
 object CipherFilterUtil {
     context(RememberStateFlowScope)
-    fun onRename(
+    suspend fun onRename(
         renameCipherFilter: RenameCipherFilter,
         model: DCipherFilter,
     ) {
@@ -34,7 +35,7 @@ object CipherFilterUtil {
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
             value = model.name,
-            title = translate(Res.strings.generic_name),
+            title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
         )
@@ -49,7 +50,7 @@ object CipherFilterUtil {
                         main = Icons.Outlined.KeyguardCipherFilter,
                         secondary = Icons.Outlined.Edit,
                     ),
-                    title = translate(Res.strings.customfilters_edit_filter_title),
+                    title = translate(Res.string.customfilters_edit_filter_title),
                     items = items,
                     docUrl = null,
                 ),
@@ -72,14 +73,14 @@ object CipherFilterUtil {
     }
 
     context(RememberStateFlowScope)
-    fun onDeleteByItems(
+    suspend fun onDeleteByItems(
         removeCipherFilterById: RemoveCipherFilterById,
         items: List<DCipherFilter>,
     ) {
         val title = if (items.size > 1) {
-            translate(Res.strings.customfilters_delete_many_confirmation_title)
+            translate(Res.string.customfilters_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.customfilters_delete_one_confirmation_title)
+            translate(Res.string.customfilters_delete_one_confirmation_title)
         }
         val message = items
             .joinToString(separator = "\n") { it.name }

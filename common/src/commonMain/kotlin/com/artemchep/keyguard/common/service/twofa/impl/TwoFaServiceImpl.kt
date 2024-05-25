@@ -3,11 +3,13 @@ package com.artemchep.keyguard.common.service.twofa.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -63,4 +65,4 @@ class TwoFaServiceImpl(
 
 private suspend fun loadTfaRawData(
     textService: TextService,
-) = textService.readFromResourcesAsText(Res.files.tfa)
+) = textService.readFromResourcesAsText(FileResource.tfa)

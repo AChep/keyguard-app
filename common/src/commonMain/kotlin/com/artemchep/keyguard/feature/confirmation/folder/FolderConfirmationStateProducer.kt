@@ -21,6 +21,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -151,7 +152,7 @@ fun folderConfirmationState(
                 items += FolderVariant(
                     accountId = args.accountId.id,
                     folder = FolderVariant.FolderInfo.None,
-                    name = translate(Res.strings.folder_none),
+                    name = translate(Res.string.folder_none),
                     enabled = enabled,
                 )
             }
@@ -160,7 +161,7 @@ fun folderConfirmationState(
                 items += FolderVariant(
                     accountId = args.accountId.id,
                     folder = FolderVariant.FolderInfo.New,
-                    name = translate(Res.strings.folder_new),
+                    name = translate(Res.string.folder_new),
                     enabled = true,
                 )
             }

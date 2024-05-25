@@ -31,13 +31,14 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +52,7 @@ fun DataSafetyScreen() {
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.datasafety_header_title),
+                        text = stringResource(Res.string.datasafety_header_title),
                     )
                 },
                 navigationIcon = {
@@ -76,39 +77,39 @@ private fun ColumnScope.DataSafetyScreenContent() {
         )
 
     LargeSection(
-        text = stringResource(Res.strings.datasafety_local_section),
+        text = stringResource(Res.string.datasafety_local_section),
     )
     Text(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.strings.datasafety_local_text),
+        text = stringResource(Res.string.datasafety_local_text),
     )
     Spacer(
         modifier = Modifier
             .height(16.dp),
     )
     Section(
-        text = stringResource(Res.strings.datasafety_local_downloads_section),
+        text = stringResource(Res.string.datasafety_local_downloads_section),
     )
     TwoColumnRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.horizontalPadding),
-        title = stringResource(Res.strings.encryption),
-        value = stringResource(Res.strings.none),
+        title = stringResource(Res.string.encryption),
+        value = stringResource(Res.string.none),
     )
     Spacer(
         modifier = Modifier
             .height(16.dp),
     )
     Section(
-        text = stringResource(Res.strings.datasafety_local_settings_section),
+        text = stringResource(Res.string.datasafety_local_settings_section),
     )
     TwoColumnRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.horizontalPadding),
-        title = stringResource(Res.strings.encryption),
+        title = stringResource(Res.string.encryption),
         value = "256-bit AES",
     )
     Spacer(
@@ -122,7 +123,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
-                text = stringResource(Res.strings.datasafety_local_settings_note),
+                text = stringResource(Res.string.datasafety_local_settings_note),
             )
         }
     }
@@ -131,14 +132,14 @@ private fun ColumnScope.DataSafetyScreenContent() {
             .height(16.dp),
     )
     Section(
-        text = stringResource(Res.strings.datasafety_local_vault_section),
+        text = stringResource(Res.string.datasafety_local_vault_section),
     )
     TwoColumnRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.horizontalPadding),
-        title = stringResource(Res.strings.encryption),
-        value = stringResource(Res.strings.encryption_algorithm_256bit_aes),
+        title = stringResource(Res.string.encryption),
+        value = stringResource(Res.string.encryption_algorithm_256bit_aes),
     )
     Spacer(
         modifier = Modifier
@@ -148,15 +149,15 @@ private fun ColumnScope.DataSafetyScreenContent() {
         LocalTextStyle provides secondaryTextStyle,
     ) {
         Column {
-            val labelAppPassword = stringResource(Res.strings.app_password)
-            val labelHash = stringResource(Res.strings.encryption_hash)
-            val labelSalt = stringResource(Res.strings.encryption_salt)
-            val labelKey = stringResource(Res.strings.encryption_key)
+            val labelAppPassword = stringResource(Res.string.app_password)
+            val labelHash = stringResource(Res.string.encryption_hash)
+            val labelSalt = stringResource(Res.string.encryption_salt)
+            val labelKey = stringResource(Res.string.encryption_key)
             Text(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
                 text = stringResource(
-                    Res.strings.datasafety_local_encryption_algorithm_intro,
+                    Res.string.datasafety_local_encryption_algorithm_intro,
                 ),
             )
             Spacer(
@@ -168,7 +169,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.horizontalPadding),
                 title = labelSalt,
-                value = stringResource(Res.strings.encryption_random_bits_data, 64),
+                value = stringResource(Res.string.encryption_random_bits_data, 64),
             )
             HorizontalDivider(
                 modifier = Modifier
@@ -202,7 +203,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
                 text = stringResource(
-                    Res.strings.datasafety_local_encryption_algorithm_outro,
+                    Res.string.datasafety_local_encryption_algorithm_outro,
                 ),
             )
         }
@@ -215,17 +216,17 @@ private fun ColumnScope.DataSafetyScreenContent() {
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
         text = stringResource(
-            Res.strings.datasafety_local_unlocking_vault,
-            stringResource(Res.strings.encryption_key),
+            Res.string.datasafety_local_unlocking_vault,
+            stringResource(Res.string.encryption_key),
         ),
     )
     LargeSection(
-        text = stringResource(Res.strings.datasafety_remote_section),
+        text = stringResource(Res.string.datasafety_remote_section),
     )
     Text(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.strings.datasafety_remote_text),
+        text = stringResource(Res.string.datasafety_remote_text),
     )
     TextButton(
         modifier = Modifier
@@ -241,7 +242,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
         },
     ) {
         Text(
-            text = stringResource(Res.strings.learn_more),
+            text = stringResource(Res.string.learn_more),
         )
     }
 }

@@ -37,6 +37,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -48,7 +49,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.theme.selectedContainer
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LargeTypeScreen(
@@ -70,7 +71,7 @@ private fun LargeTypeDialog(
     Dialog(
         icon = icon(Icons.Outlined.KeyguardLargeType),
         title = {
-            Text(stringResource(Res.strings.largetype_title))
+            Text(stringResource(Res.string.largetype_title))
         },
         content = {
             val state = loadableState.getOrNull()
@@ -88,7 +89,7 @@ private fun LargeTypeDialog(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
         },
     )

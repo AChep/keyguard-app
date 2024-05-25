@@ -86,6 +86,7 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -113,7 +114,7 @@ import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import com.artemchep.keyguard.ui.util.VerticalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,7 +144,7 @@ fun GeneratorScreen(
                 containerColor = Color.Transparent,
                 title = {
                     Text(
-                        text = stringResource(Res.strings.generator_header_title),
+                        text = stringResource(Res.string.generator_header_title),
                     )
                 },
                 navigationIcon = {
@@ -264,7 +265,7 @@ private fun GeneratorPaneMaster(
 
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.generator_header_title))
+                    Text(stringResource(Res.string.generator_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -328,9 +329,9 @@ private fun GeneratorPaneMaster(
                     modifier = Modifier
                         .animateContentSize(),
                     text = if (valueExists) {
-                        stringResource(Res.strings.generator_regenerate_button)
+                        stringResource(Res.string.generator_regenerate_button)
                     } else {
-                        stringResource(Res.strings.generator_generate_button)
+                        stringResource(Res.string.generator_generate_button)
                     },
                 )
             }
@@ -434,7 +435,7 @@ fun ColumnScope.GeneratorValue(
                         text = if (password.isEmpty()) {
                             val color = LocalContentColor.current
                                 .combineAlpha(DisabledEmphasisAlpha)
-                            val text = stringResource(Res.strings.empty_value)
+                            val text = stringResource(Res.string.empty_value)
                             buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(color = color),
@@ -536,7 +537,7 @@ private fun ColumnScope.GeneratorFilterTip(
                         },
                     ) {
                         Text(
-                            text = stringResource(Res.strings.learn_more),
+                            text = stringResource(Res.string.learn_more),
                         )
                     }
                 }
@@ -560,7 +561,7 @@ private fun ColumnScope.GeneratorFilterItems(
         Unit.takeIf { showSection },
     ) {
         Section(
-            text = stringResource(Res.strings.filter_header_title),
+            text = stringResource(Res.string.filter_header_title),
         )
     }
 
@@ -883,7 +884,7 @@ private fun ColumnScope.DecoratedSliderLayout(
             modifier = Modifier
                 .weight(1f),
             style = MaterialTheme.typography.bodyLarge,
-            text = stringResource(Res.strings.length),
+            text = stringResource(Res.string.length),
         )
         length(
             Modifier
@@ -946,7 +947,7 @@ fun ColumnScope.DecoratedSlider(
             modifier = Modifier
                 .weight(1f),
             style = MaterialTheme.typography.bodyLarge,
-            text = stringResource(Res.strings.length),
+            text = stringResource(Res.string.length),
         )
         FilterSwitchItemCounter(
             counter = counter,

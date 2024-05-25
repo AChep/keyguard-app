@@ -18,13 +18,14 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
 import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.icon
 
 object WordlistUtil {
     context(RememberStateFlowScope)
-    fun onRename(
+    suspend fun onRename(
         editWordlist: EditWordlist,
         entity: DGeneratorWordlist,
     ) {
@@ -32,7 +33,7 @@ object WordlistUtil {
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
             value = entity.name,
-            title = translate(Res.strings.generic_name),
+            title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
         )
@@ -47,7 +48,7 @@ object WordlistUtil {
                         main = Icons.Outlined.KeyguardCipherFilter,
                         secondary = Icons.Outlined.Edit,
                     ),
-                    title = translate(Res.strings.wordlist_edit_wordlist_title),
+                    title = translate(Res.string.wordlist_edit_wordlist_title),
                     items = items,
                     docUrl = null,
                 ),
@@ -70,14 +71,14 @@ object WordlistUtil {
     }
 
     context(RememberStateFlowScope)
-    fun onNewFromFile(
+    suspend fun onNewFromFile(
         addWordlist: AddWordlist,
     ) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
             value = "",
-            title = translate(Res.strings.generic_name),
+            title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
         )
@@ -86,7 +87,7 @@ object WordlistUtil {
         val fileItem = ConfirmationRoute.Args.Item.FileItem(
             key = fileKey,
             value = null,
-            title = translate(Res.strings.wordlist),
+            title = translate(Res.string.wordlist),
         )
 
         val items = listOfNotNull(
@@ -100,7 +101,7 @@ object WordlistUtil {
                         main = Icons.Outlined.KeyguardWordlist,
                         secondary = Icons.Outlined.Add,
                     ),
-                    title = translate(Res.strings.wordlist_add_wordlist_title),
+                    title = translate(Res.string.wordlist_add_wordlist_title),
                     items = items,
                     docUrl = null,
                 ),
@@ -128,14 +129,14 @@ object WordlistUtil {
     }
 
     context(RememberStateFlowScope)
-    fun onNewFromUrl(
+    suspend fun onNewFromUrl(
         addWordlist: AddWordlist,
     ) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
             value = "",
-            title = translate(Res.strings.generic_name),
+            title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
         )
@@ -144,7 +145,7 @@ object WordlistUtil {
         val urlItem = ConfirmationRoute.Args.Item.StringItem(
             key = urlKey,
             value = "",
-            title = translate(Res.strings.url),
+            title = translate(Res.string.url),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Command,
             canBeEmpty = false,
         )
@@ -160,7 +161,7 @@ object WordlistUtil {
                         main = Icons.Outlined.KeyguardWordlist,
                         secondary = Icons.Outlined.Add,
                     ),
-                    title = translate(Res.strings.wordlist_add_wordlist_title),
+                    title = translate(Res.string.wordlist_add_wordlist_title),
                     items = items,
                     docUrl = null,
                 ),
@@ -188,14 +189,14 @@ object WordlistUtil {
     }
 
     context(RememberStateFlowScope)
-    fun onDeleteByItems(
+    suspend fun onDeleteByItems(
         removeWordlistById: RemoveWordlistById,
         items: List<DGeneratorWordlist>,
     ) {
         val title = if (items.size > 1) {
-            translate(Res.strings.wordlist_delete_many_confirmation_title)
+            translate(Res.string.wordlist_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.wordlist_delete_one_confirmation_title)
+            translate(Res.string.wordlist_delete_one_confirmation_title)
         }
         val message = items
             .joinToString(separator = "\n") { it.name }

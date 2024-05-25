@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.icon
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.kodein.di.DirectDI
@@ -17,8 +18,8 @@ actual fun settingPermissionPostNotificationsProvider(
 @OptIn(ExperimentalPermissionsApi::class)
 fun settingPermissionPostNotificationsProvider2(): SettingComponent = settingPermissionProvider(
     leading = icon<RowScope>(Icons.Outlined.Notifications),
-    title = Res.strings.pref_item_permission_post_notifications_title,
-    text = Res.strings.pref_item_permission_post_notifications_text,
+    title = Res.string.pref_item_permission_post_notifications_title,
+    text = Res.string.pref_item_permission_post_notifications_text,
     minSdk = Build.VERSION_CODES.TIRAMISU,
     permissionProvider = {
         Manifest.permission.POST_NOTIFICATIONS

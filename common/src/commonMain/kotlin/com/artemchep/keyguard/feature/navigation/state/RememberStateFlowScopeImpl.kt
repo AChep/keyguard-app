@@ -24,8 +24,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.contains
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
-import dev.icerock.moko.resources.PluralsResource
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,8 +38,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.PluralStringResource
 
 class RememberStateFlowScopeImpl(
     private val key: String,
@@ -137,23 +138,25 @@ class RememberStateFlowScopeImpl(
     override fun message(
         exception: Throwable,
     ) {
-        val parsedMessage = getErrorReadableMessage(exception, this)
-        val message = ToastMessage(
-            type = ToastMessage.Type.ERROR,
-            title = parsedMessage.title,
-            text = parsedMessage.text,
-        )
-        message(message)
+        action {
+            val parsedMessage = getErrorReadableMessage(exception, this)
+            val message = ToastMessage(
+                type = ToastMessage.Type.ERROR,
+                title = parsedMessage.title,
+                text = parsedMessage.text,
+            )
+            message(message)
+        }
     }
 
-    override fun translate(res: StringResource): String =
+    override suspend fun translate(res: StringResource): String =
         textResource(res, context)
 
-    override fun translate(res: StringResource, vararg args: Any): String =
+    override suspend fun translate(res: StringResource, vararg args: Any): String =
         textResource(res, context, *args)
 
-    override fun translate(
-        res: PluralsResource,
+    override suspend fun translate(
+        res: PluralStringResource,
         quantity: Int,
         vararg args: Any,
     ): String = textResource(res, context, quantity, *args)
@@ -209,6 +212,12 @@ class RememberStateFlowScopeImpl(
             .launchIn(scope)
         return {
             job.cancel()
+        }
+    }
+
+    override fun action(block: suspend () -> Unit) {
+        appScope.launch {
+            block()
         }
     }
 

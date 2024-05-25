@@ -3,8 +3,11 @@ package com.artemchep.keyguard.copy
 import android.app.Application
 import android.content.Context
 import android.net.Uri
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.text.TextService
-import dev.icerock.moko.resources.FileResource
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.InputStream
@@ -18,12 +21,11 @@ class TextServiceAndroid(
         context = directDI.instance<Application>(),
     )
 
-    override fun readFromResources(
+    @OptIn(ExperimentalResourceApi::class)
+    override suspend fun readFromResources(
         fileResource: FileResource,
-    ): InputStream = fileResource.inputStream()
-
-    private fun FileResource.inputStream() = context.resources
-        .openRawResource(rawResId)
+    ): InputStream = Res.readBytes(fileResource.name)
+        .inputStream()
 
     override fun readFromFile(uri: String): InputStream {
         val parsedUri = Uri.parse(uri)

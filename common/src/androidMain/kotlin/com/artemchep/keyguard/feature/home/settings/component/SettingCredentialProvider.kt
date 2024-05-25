@@ -14,10 +14,11 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
@@ -79,12 +80,12 @@ private fun SettingCredentialProvider(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_credential_provider_title),
+                text = stringResource(Res.string.pref_item_credential_provider_title),
             )
         },
         text = {
             Text(
-                text = stringResource(Res.strings.pref_item_credential_provider_text),
+                text = stringResource(Res.string.pref_item_credential_provider_text),
             )
         },
         onClick = onClick,

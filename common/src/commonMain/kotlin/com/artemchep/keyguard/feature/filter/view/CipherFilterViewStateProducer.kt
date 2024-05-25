@@ -23,10 +23,13 @@ import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
 import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
@@ -198,7 +201,7 @@ fun produceCipherFilterViewState(
                                         l += createFilterItem(
                                             filter = f,
                                             leading = iconSmall(Icons.Outlined.FolderOff),
-                                            title = translate(Res.strings.folder_none),
+                                            title = translate(Res.string.folder_none),
                                         ).let(::flowOf)
                                         return@forEach
                                     }
@@ -211,7 +214,7 @@ fun produceCipherFilterViewState(
                                         l += createFilterItem(
                                             filter = f,
                                             leading = null,
-                                            title = translate(Res.strings.collection_none),
+                                            title = translate(Res.string.collection_none),
                                         ).let(::flowOf)
                                         return@forEach
                                     }
@@ -224,7 +227,7 @@ fun produceCipherFilterViewState(
                                         l += createFilterItem(
                                             filter = f,
                                             leading = null,
-                                            title = translate(Res.strings.organization_none),
+                                            title = translate(Res.string.organization_none),
                                         ).let(::flowOf)
                                         return@forEach
                                     }
@@ -273,11 +276,13 @@ fun produceCipherFilterViewState(
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Edit,
-                            title = translate(Res.strings.edit),
-                            onClick = CipherFilterUtil::onRename
-                                .partially1(this@produceScreenState)
-                                .partially1(renameCipherFilter)
-                                .partially1(filter),
+                            title = Res.string.edit.wrap(),
+                            onClick = onClick {
+                                CipherFilterUtil.onRename(
+                                    renameCipherFilter = renameCipherFilter,
+                                    model = filter,
+                                )
+                            },
                         )
                     }
                     section {
@@ -286,11 +291,13 @@ fun produceCipherFilterViewState(
                         )
                         this += FlatItemAction(
                             icon = Icons.Outlined.Delete,
-                            title = translate(Res.strings.delete),
-                            onClick = CipherFilterUtil::onDeleteByItems
-                                .partially1(this@produceScreenState)
-                                .partially1(removeCipherFilterById)
-                                .partially1(filterAsItems),
+                            title = Res.string.delete.wrap(),
+                            onClick = onClick {
+                                CipherFilterUtil.onDeleteByItems(
+                                    removeCipherFilterById = removeCipherFilterById,
+                                    items = filterAsItems,
+                                )
+                            },
                         )
                     }
                 }

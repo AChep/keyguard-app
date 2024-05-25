@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.auth.common.util
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -32,10 +33,10 @@ fun validateInteger(
     }
 }
 
-fun ValidationInteger.format(scope: TranslatorScope): String? =
+suspend fun ValidationInteger.format(scope: TranslatorScope): String? =
     when (this) {
-        ValidationInteger.ERROR_EMPTY -> scope.translate(Res.strings.error_must_not_be_blank)
-        ValidationInteger.ERROR_INVALID -> scope.translate(Res.strings.error_must_be_number)
+        ValidationInteger.ERROR_EMPTY -> scope.translate(Res.string.error_must_not_be_blank)
+        ValidationInteger.ERROR_INVALID -> scope.translate(Res.string.error_must_be_number)
         else -> null
     }
 

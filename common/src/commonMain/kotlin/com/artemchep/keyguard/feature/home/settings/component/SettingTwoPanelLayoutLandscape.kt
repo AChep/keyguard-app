@@ -14,9 +14,10 @@ import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -78,7 +79,7 @@ private fun SettingTwoPanelLayoutLandscape(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_allow_two_panel_layout_in_landscape_title),
+                text = stringResource(Res.string.pref_item_allow_two_panel_layout_in_landscape_title),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -56,7 +57,7 @@ import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
 import com.artemchep.keyguard.ui.util.DividerColor
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.withIndex
@@ -120,7 +121,7 @@ fun EmailRelayListScreen(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.emailrelay_list_header_title))
+                    Text(stringResource(Res.string.emailrelay_list_header_title))
                 },
                 navigationIcon = {
                     NavigationIcon()
@@ -180,7 +181,7 @@ fun EmailRelayListScreen(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.add_integration),
+                        text = stringResource(Res.string.add_integration),
                     )
                 },
             )
@@ -243,7 +244,7 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.emailrelay_empty_label),
+                text = stringResource(Res.string.emailrelay_empty_label),
             )
         },
     )

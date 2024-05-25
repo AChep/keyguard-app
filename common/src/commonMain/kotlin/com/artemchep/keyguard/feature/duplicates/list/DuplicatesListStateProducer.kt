@@ -53,11 +53,13 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
@@ -322,7 +324,7 @@ fun produceDuplicatesListState(
                     allItems += groupedItems
                     allItems += VaultItem2.Button(
                         id = "merge." + group.id,
-                        title = translate(Res.strings.ciphers_action_merge_title),
+                        title = translate(Res.string.ciphers_action_merge_title),
                         leading = icon(Icons.Outlined.Merge, Icons.Outlined.Add),
                         onClick = {
                             val ciphers = groupedItems
@@ -358,7 +360,7 @@ fun produceDuplicatesListState(
                     .entries
                     .map { s ->
                         FlatItemAction(
-                            title = translate(s.title),
+                            title = s.title.wrap(),
                             onClick = {
                                 sensitivitySink.value = s
                             },
@@ -437,7 +439,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     if (canEdit && selectedCiphers.any { !it.favorite }) {
         actions += FlatItemAction(
             icon = Icons.Outlined.KeyguardFavourite,
-            title = translate(Res.strings.ciphers_action_add_to_favorites_title),
+            title = Res.string.ciphers_action_add_to_favorites_title.wrap(),
             onClick = {
                 val filteredCipherIds = selectedCiphers
                     .asSequence()
@@ -464,7 +466,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     if (canEdit && selectedCiphers.any { it.favorite }) {
         actions += FlatItemAction(
             icon = Icons.Outlined.KeyguardFavouriteOutline,
-            title = translate(Res.strings.ciphers_action_remove_from_favorites_title),
+            title = Res.string.ciphers_action_remove_from_favorites_title.wrap(),
             onClick = {
                 val filteredCipherIds = selectedCiphers
                     .asSequence()

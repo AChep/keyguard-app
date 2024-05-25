@@ -19,9 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PasskeyError(
@@ -84,7 +85,7 @@ fun PasskeyError(
                     .width(Dimens.buttonIconPadding),
             )
             Text(
-                text = stringResource(Res.strings.close),
+                text = stringResource(Res.string.close),
             )
         }
     }

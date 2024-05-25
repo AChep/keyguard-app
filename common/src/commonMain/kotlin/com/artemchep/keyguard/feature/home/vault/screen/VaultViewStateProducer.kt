@@ -164,9 +164,12 @@ import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeService
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewDialogRoute
@@ -177,6 +180,7 @@ import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -211,6 +215,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.allInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -597,7 +602,7 @@ fun vaultViewScreenState(
                     is AppMode.Main -> null
                     is AppMode.Pick -> {
                         FlatItemAction(
-                            title = translate(Res.strings.autofill),
+                            title = Res.string.autofill.wrap(),
                             leading = icon(Icons.Outlined.AutoAwesome),
                             onClick = {
                                 val cipher = secretOrNull
@@ -610,7 +615,7 @@ fun vaultViewScreenState(
                     is AppMode.Save -> null
                     is AppMode.SavePasskey -> {
                         FlatItemAction(
-                            title = translate(Res.strings.passkey_save),
+                            title = Res.string.passkey_save.wrap(),
                             leading = icon(Icons.Outlined.Save),
                             onClick = {
                                 val cipher = secretOrNull
@@ -862,8 +867,8 @@ private fun RememberStateFlowScope.oh(
     ) {
         val model = VaultViewItem.Info(
             id = "info.incomplete",
-            name = translate(Res.strings.item_incomplete_title),
-            message = translate(Res.strings.item_incomplete_text),
+            name = translate(Res.string.item_incomplete_title),
+            message = translate(Res.string.item_incomplete_text),
         )
         emit(model)
     }
@@ -876,21 +881,21 @@ private fun RememberStateFlowScope.oh(
     ) {
         val expired = expiring <= now
         val expiringTitle = if (expired) {
-            translate(Res.strings.expired)
+            translate(Res.string.expired)
         } else {
-            translate(Res.strings.expiring_soon)
+            translate(Res.string.expiring_soon)
         }
 
         val expiringDate = dateFormatter.formatDate(expiring)
         val expiringMessage = when (cipher.type) {
             DSecret.Type.Card -> listOf(
-                translate(Res.strings.expiry_tips_card_line1, expiringDate),
-                translate(Res.strings.expiry_tips_card_line2, expiringDate),
-                translate(Res.strings.expiry_tips_card_line3, expiringDate),
-                translate(Res.strings.expiry_tips_card_line4, expiringDate),
+                translate(Res.string.expiry_tips_card_line1, expiringDate),
+                translate(Res.string.expiry_tips_card_line2, expiringDate),
+                translate(Res.string.expiry_tips_card_line3, expiringDate),
+                translate(Res.string.expiry_tips_card_line4, expiringDate),
             ).joinToString(separator = "\n")
 
-            else -> translate(Res.strings.expiry_tips_item_line1, expiringDate)
+            else -> translate(Res.string.expiry_tips_item_line1, expiringDate)
         }
         val model = VaultViewItem.Info(
             id = "info.expiring",
@@ -917,7 +922,7 @@ private fun RememberStateFlowScope.oh(
                 copy = copy,
                 id = "card.cvv",
                 accountId = account.id,
-                title = translate(Res.strings.vault_view_card_cvv_label),
+                title = translate(Res.string.vault_view_card_cvv_label),
                 value = cipherCardCode,
                 verify = verify.takeIf { concealFields },
                 private = concealFields,
@@ -939,7 +944,7 @@ private fun RememberStateFlowScope.oh(
                 copy = copy,
                 id = "login.username",
                 accountId = account.id,
-                title = translate(Res.strings.username),
+                title = translate(Res.string.username),
                 value = cipherLoginUsername,
                 username = true,
                 elevated = true,
@@ -964,7 +969,7 @@ private fun RememberStateFlowScope.oh(
                         !cipher.ignores(DWatchtowerAlert.PWNED_PASSWORD)
                     )
                         VaultViewItem.Value.Badge(
-                            text = translate(Res.strings.password_pwned_label),
+                            text = translate(Res.string.password_pwned_label),
                             score = 0f,
                         )
                     else null
@@ -974,7 +979,7 @@ private fun RememberStateFlowScope.oh(
                 copy = copy,
                 id = "login.password",
                 accountId = account.id,
-                title = translate(Res.strings.password),
+                title = translate(Res.string.password),
                 value = cipherLoginPassword,
                 verify = verify.takeIf { concealFields },
                 private = concealFields,
@@ -1013,11 +1018,11 @@ private fun RememberStateFlowScope.oh(
                 val reusedPasswordsModel = VaultViewItem.ReusedPassword(
                     id = "login.password.reused",
                     count = reusedPasswords,
-                    onClick = {
+                    onClick = onClick {
                         val intent = NavigationIntent.NavigateToRoute(
                             VaultRoute.watchtower(
-                                title = translate(Res.strings.reused_passwords),
-                                subtitle = translate(Res.strings.watchtower_header_title),
+                                title = translate(Res.string.reused_passwords),
+                                subtitle = translate(Res.string.watchtower_header_title),
                                 filter = DFilter.ByPasswordValue(cipherLoginPassword),
                                 sort = PasswordSort,
                             ),
@@ -1035,7 +1040,7 @@ private fun RememberStateFlowScope.oh(
                     id = "login.password.revision",
                     text = AnnotatedString(
                         translate(
-                            Res.strings.vault_view_password_revision_label,
+                            Res.string.vault_view_password_revision_label,
                             dateFormatter.formatDateTime(passwordDate),
                         ),
                     ),
@@ -1054,12 +1059,12 @@ private fun RememberStateFlowScope.oh(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
-                                title = translate(Res.strings.copy_otp_code),
+                                title = Res.string.copy_otp_code.wrap(),
                                 value = it.code,
                             )
                             this += copy.FlatItemAction(
                                 leading = iconSmall(Icons.Outlined.ContentCopy, Icons.Outlined.Key),
-                                title = translate(Res.strings.copy_otp_secret_code),
+                                title = Res.string.copy_otp_secret_code.wrap(),
                                 value = cipherLoginTotp.token.raw,
                                 hidden = true,
                             ).verify(verify)
@@ -1068,7 +1073,7 @@ private fun RememberStateFlowScope.oh(
                             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                                 translator = this@oh,
                                 data = cipherLoginTotp.token.raw,
-                                text = translate(Res.strings.barcodetype_copy_otp_secret_code_note),
+                                text = translate(Res.string.barcodetype_copy_otp_secret_code_note),
                                 single = true,
                                 navigate = ::navigate,
                             )
@@ -1099,7 +1104,7 @@ private fun RememberStateFlowScope.oh(
             val model = VaultViewItem.Totp(
                 id = "login.totp",
                 elevation = 1.dp,
-                title = translate(Res.strings.one_time_password),
+                title = translate(Res.string.one_time_password),
                 copy = copy,
                 totp = cipherLoginTotp.token,
                 verify = verify,
@@ -1175,7 +1180,7 @@ private fun RememberStateFlowScope.oh(
         if (fido2Credentials.isNotEmpty()) {
             val loginPasskeysItem = VaultViewItem.Section(
                 id = "login.passkey.header",
-                text = translate(Res.strings.passkeys),
+                text = translate(Res.string.passkeys),
             )
             emit(loginPasskeysItem)
             fido2Credentials.forEachIndexed { index, item ->
@@ -1227,7 +1232,7 @@ private fun RememberStateFlowScope.oh(
             if (cipherIdentity.phone != null) {
                 actions += FlatItemAction(
                     icon = Icons.Outlined.Call,
-                    title = translate(Res.strings.vault_view_call_phone_action),
+                    title = Res.string.vault_view_call_phone_action.wrap(),
                     onClick = {
                         val intent = NavigationIntent.NavigateToPhone(
                             phoneNumber = cipherIdentity.phone,
@@ -1237,7 +1242,7 @@ private fun RememberStateFlowScope.oh(
                 )
                 actions += FlatItemAction(
                     icon = Icons.Outlined.Textsms,
-                    title = translate(Res.strings.vault_view_text_phone_action),
+                    title = Res.string.vault_view_text_phone_action.wrap(),
                     onClick = {
                         val intent = NavigationIntent.NavigateToSms(
                             phoneNumber = cipherIdentity.phone,
@@ -1249,7 +1254,7 @@ private fun RememberStateFlowScope.oh(
             if (cipherIdentity.email != null) {
                 actions += FlatItemAction(
                     icon = Icons.Outlined.Email,
-                    title = translate(Res.strings.vault_view_email_action),
+                    title = Res.string.vault_view_email_action.wrap(),
                     onClick = {
                         val intent = NavigationIntent.NavigateToEmail(
                             email = cipherIdentity.email,
@@ -1269,7 +1274,7 @@ private fun RememberStateFlowScope.oh(
             ) {
                 actions += FlatItemAction(
                     icon = Icons.Outlined.Directions,
-                    title = translate(Res.strings.vault_view_navigate_action),
+                    title = Res.string.vault_view_navigate_action.wrap(),
                     onClick = {
                         val intent = NavigationIntent.NavigateToMaps(
                             address1 = cipherIdentity.address1,
@@ -1324,17 +1329,17 @@ private fun RememberStateFlowScope.oh(
         ) {
             val contactHeaderItem = VaultViewItem.Section(
                 id = "identity.contact.header",
-                text = translate(Res.strings.contact_info),
+                text = translate(Res.string.contact_info),
             )
             emit(contactHeaderItem)
         }
 
-        yieldContactField("phone", cipherIdentity.phone, translate(Res.strings.phone_number))
-        yieldContactField("email", cipherIdentity.email, translate(Res.strings.email))
+        yieldContactField("phone", cipherIdentity.phone, translate(Res.string.phone_number))
+        yieldContactField("email", cipherIdentity.email, translate(Res.string.email))
         yieldContactField(
             "username",
             value = cipherIdentity.username,
-            title = translate(Res.strings.username),
+            title = translate(Res.string.username),
             username = true,
         )
 
@@ -1370,28 +1375,28 @@ private fun RememberStateFlowScope.oh(
         ) {
             val miscHeaderItem = VaultViewItem.Section(
                 id = "identity.misc.header",
-                text = translate(Res.strings.misc),
+                text = translate(Res.string.misc),
             )
             emit(miscHeaderItem)
         }
 
-        yieldMiscField("company", cipherIdentity.company, translate(Res.strings.company))
+        yieldMiscField("company", cipherIdentity.company, translate(Res.string.company))
         yieldMiscField(
             "ssn",
             cipherIdentity.ssn,
-            title = translate(Res.strings.ssn),
+            title = translate(Res.string.ssn),
             conceal = concealFields,
         )
         yieldMiscField(
             "passportNumber",
             cipherIdentity.passportNumber,
-            title = translate(Res.strings.passport_number),
+            title = translate(Res.string.passport_number),
             conceal = concealFields,
         )
         yieldMiscField(
             "licenseNumber",
             cipherIdentity.licenseNumber,
-            title = translate(Res.strings.license_number),
+            title = translate(Res.string.license_number),
             conceal = concealFields,
         )
 
@@ -1428,7 +1433,7 @@ private fun RememberStateFlowScope.oh(
         ) {
             val addressSectionModel = VaultViewItem.Section(
                 id = "identity.address.header",
-                text = translate(Res.strings.address),
+                text = translate(Res.string.address),
             )
             emit(addressSectionModel)
         }
@@ -1436,14 +1441,14 @@ private fun RememberStateFlowScope.oh(
         yieldAddressField("address1", cipherIdentity.address1)
         yieldAddressField("address2", cipherIdentity.address2)
         yieldAddressField("address3", cipherIdentity.address3)
-        yieldAddressField("city", cipherIdentity.city, translate(Res.strings.city))
-        yieldAddressField("state", cipherIdentity.state, translate(Res.strings.state))
+        yieldAddressField("city", cipherIdentity.city, translate(Res.string.city))
+        yieldAddressField("state", cipherIdentity.state, translate(Res.string.state))
         yieldAddressField(
             "postalCode",
             cipherIdentity.postalCode,
-            translate(Res.strings.postal_code),
+            translate(Res.string.postal_code),
         )
-        yieldAddressField("country", cipherIdentity.country, translate(Res.strings.country))
+        yieldAddressField("country", cipherIdentity.country, translate(Res.string.country))
     }
 
     if (cipher.type == DSecret.Type.SecureNote && cipher.notes.isNotEmpty()) {
@@ -1473,7 +1478,7 @@ private fun RememberStateFlowScope.oh(
     if (linkedApps.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "link.app",
-            text = translate(Res.strings.linked_apps),
+            text = translate(Res.string.linked_apps),
         )
         emit(section)
         // items
@@ -1515,7 +1520,7 @@ private fun RememberStateFlowScope.oh(
     if (linkedWebsites.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "link.website",
-            text = translate(Res.strings.linked_uris),
+            text = translate(Res.string.linked_uris),
         )
         emit(section)
         // items
@@ -1547,7 +1552,7 @@ private fun RememberStateFlowScope.oh(
     if (cipher.fields.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "custom",
-            text = translate(Res.strings.custom_fields),
+            text = translate(Res.string.custom_fields),
         )
         emit(section)
         // items
@@ -1556,7 +1561,7 @@ private fun RememberStateFlowScope.oh(
                 fun createAction(
                     value: Boolean,
                 ) = FlatItemAction(
-                    title = "Toggle value",
+                    title = TextHolder.Value("Toggle value"),
                     trailing = {
                         Switch(
                             checked = !value,
@@ -1600,34 +1605,34 @@ private fun RememberStateFlowScope.oh(
             if (field.type == DSecret.Field.Type.Linked) {
                 val t = annotate(
                     when (field.linkedId) {
-                        DSecret.Field.LinkedId.Login_Username -> Res.strings.field_linked_to_username
-                        DSecret.Field.LinkedId.Login_Password -> Res.strings.field_linked_to_password
-                        DSecret.Field.LinkedId.Card_CardholderName -> Res.strings.field_linked_to_card_cardholdername
-                        DSecret.Field.LinkedId.Card_ExpMonth -> Res.strings.field_linked_to_card_expmonth
-                        DSecret.Field.LinkedId.Card_ExpYear -> Res.strings.field_linked_to_card_expyear
-                        DSecret.Field.LinkedId.Card_Code -> Res.strings.field_linked_to_card_code
-                        DSecret.Field.LinkedId.Card_Brand -> Res.strings.field_linked_to_card_brand
-                        DSecret.Field.LinkedId.Card_Number -> Res.strings.field_linked_to_card_number
-                        DSecret.Field.LinkedId.Identity_Title -> Res.strings.field_linked_to_identity_title
-                        DSecret.Field.LinkedId.Identity_MiddleName -> Res.strings.field_linked_to_identity_middlename
-                        DSecret.Field.LinkedId.Identity_Address1 -> Res.strings.field_linked_to_identity_address1
-                        DSecret.Field.LinkedId.Identity_Address2 -> Res.strings.field_linked_to_identity_address2
-                        DSecret.Field.LinkedId.Identity_Address3 -> Res.strings.field_linked_to_identity_address3
-                        DSecret.Field.LinkedId.Identity_City -> Res.strings.field_linked_to_identity_city
-                        DSecret.Field.LinkedId.Identity_State -> Res.strings.field_linked_to_identity_state
-                        DSecret.Field.LinkedId.Identity_PostalCode -> Res.strings.field_linked_to_identity_postalcode
-                        DSecret.Field.LinkedId.Identity_Country -> Res.strings.field_linked_to_identity_country
-                        DSecret.Field.LinkedId.Identity_Company -> Res.strings.field_linked_to_identity_company
-                        DSecret.Field.LinkedId.Identity_Email -> Res.strings.field_linked_to_identity_email
-                        DSecret.Field.LinkedId.Identity_Phone -> Res.strings.field_linked_to_identity_phone
-                        DSecret.Field.LinkedId.Identity_Ssn -> Res.strings.field_linked_to_identity_ssn
-                        DSecret.Field.LinkedId.Identity_Username -> Res.strings.field_linked_to_identity_username
-                        DSecret.Field.LinkedId.Identity_PassportNumber -> Res.strings.field_linked_to_identity_passportnumber
-                        DSecret.Field.LinkedId.Identity_LicenseNumber -> Res.strings.field_linked_to_identity_licensenumber
-                        DSecret.Field.LinkedId.Identity_FirstName -> Res.strings.field_linked_to_identity_firstname
-                        DSecret.Field.LinkedId.Identity_LastName -> Res.strings.field_linked_to_identity_lastname
-                        DSecret.Field.LinkedId.Identity_FullName -> Res.strings.field_linked_to_identity_fullname
-                        null -> Res.strings.field_linked_to_unknown_field
+                        DSecret.Field.LinkedId.Login_Username -> Res.string.field_linked_to_username
+                        DSecret.Field.LinkedId.Login_Password -> Res.string.field_linked_to_password
+                        DSecret.Field.LinkedId.Card_CardholderName -> Res.string.field_linked_to_card_cardholdername
+                        DSecret.Field.LinkedId.Card_ExpMonth -> Res.string.field_linked_to_card_expmonth
+                        DSecret.Field.LinkedId.Card_ExpYear -> Res.string.field_linked_to_card_expyear
+                        DSecret.Field.LinkedId.Card_Code -> Res.string.field_linked_to_card_code
+                        DSecret.Field.LinkedId.Card_Brand -> Res.string.field_linked_to_card_brand
+                        DSecret.Field.LinkedId.Card_Number -> Res.string.field_linked_to_card_number
+                        DSecret.Field.LinkedId.Identity_Title -> Res.string.field_linked_to_identity_title
+                        DSecret.Field.LinkedId.Identity_MiddleName -> Res.string.field_linked_to_identity_middlename
+                        DSecret.Field.LinkedId.Identity_Address1 -> Res.string.field_linked_to_identity_address1
+                        DSecret.Field.LinkedId.Identity_Address2 -> Res.string.field_linked_to_identity_address2
+                        DSecret.Field.LinkedId.Identity_Address3 -> Res.string.field_linked_to_identity_address3
+                        DSecret.Field.LinkedId.Identity_City -> Res.string.field_linked_to_identity_city
+                        DSecret.Field.LinkedId.Identity_State -> Res.string.field_linked_to_identity_state
+                        DSecret.Field.LinkedId.Identity_PostalCode -> Res.string.field_linked_to_identity_postalcode
+                        DSecret.Field.LinkedId.Identity_Country -> Res.string.field_linked_to_identity_country
+                        DSecret.Field.LinkedId.Identity_Company -> Res.string.field_linked_to_identity_company
+                        DSecret.Field.LinkedId.Identity_Email -> Res.string.field_linked_to_identity_email
+                        DSecret.Field.LinkedId.Identity_Phone -> Res.string.field_linked_to_identity_phone
+                        DSecret.Field.LinkedId.Identity_Ssn -> Res.string.field_linked_to_identity_ssn
+                        DSecret.Field.LinkedId.Identity_Username -> Res.string.field_linked_to_identity_username
+                        DSecret.Field.LinkedId.Identity_PassportNumber -> Res.string.field_linked_to_identity_passportnumber
+                        DSecret.Field.LinkedId.Identity_LicenseNumber -> Res.string.field_linked_to_identity_licensenumber
+                        DSecret.Field.LinkedId.Identity_FirstName -> Res.string.field_linked_to_identity_firstname
+                        DSecret.Field.LinkedId.Identity_LastName -> Res.string.field_linked_to_identity_lastname
+                        DSecret.Field.LinkedId.Identity_FullName -> Res.string.field_linked_to_identity_fullname
+                        null -> Res.string.field_linked_to_unknown_field
                     },
                     field.name.orEmpty() to SpanStyle(
                         fontFamily = FontFamily.Monospace,
@@ -1658,7 +1663,7 @@ private fun RememberStateFlowScope.oh(
     if (cipher.type != DSecret.Type.SecureNote && cipher.notes.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "note",
-            text = translate(Res.strings.notes),
+            text = translate(Res.string.notes),
         )
         emit(section)
         val content = VaultViewItem.Note.Content.of(
@@ -1677,7 +1682,7 @@ private fun RememberStateFlowScope.oh(
     if (cipher.attachments.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "attachment",
-            text = translate(Res.strings.attachments),
+            text = translate(Res.string.attachments),
         )
         emit(section)
         // items
@@ -1731,7 +1736,7 @@ private fun RememberStateFlowScope.oh(
     if (folder != null) {
         val section = VaultViewItem.Section(
             id = "folder",
-            text = translate(Res.strings.folder),
+            text = translate(Res.string.folder),
         )
         emit(section)
 
@@ -1741,7 +1746,7 @@ private fun RememberStateFlowScope.oh(
                 .map {
                     VaultViewItem.Folder.FolderNode(
                         name = it.name,
-                        onClick = {
+                        onClick = onClick {
                             val route = VaultRoute.by(
                                 translator = this@oh,
                                 folder = it.folder,
@@ -1751,7 +1756,7 @@ private fun RememberStateFlowScope.oh(
                         },
                     )
                 },
-            onClick = {
+            onClick = onClick {
                 val route = VaultRoute.by(
                     translator = this@oh,
                     folder = folder.folder,
@@ -1768,9 +1773,9 @@ private fun RememberStateFlowScope.oh(
             id = "collection",
             text =
             if (collections.size == 1) {
-                translate(Res.strings.collection)
+                translate(Res.string.collection)
             } else {
-                translate(Res.strings.collections)
+                translate(Res.string.collections)
             },
         )
         emit(section)
@@ -1778,7 +1783,7 @@ private fun RememberStateFlowScope.oh(
             val f = VaultViewItem.Collection(
                 id = "collection.${collection.id}",
                 title = collection.name,
-                onClick = {
+                onClick = onClick {
                     val route = VaultRoute.by(
                         translator = this@oh,
                         collection = collection,
@@ -1794,7 +1799,7 @@ private fun RememberStateFlowScope.oh(
     if (organization != null) {
         val section = VaultViewItem.Section(
             id = "organization",
-            text = translate(Res.strings.organization),
+            text = translate(Res.string.organization),
         )
         emit(section)
         val f = VaultViewItem.Organization(
@@ -1823,7 +1828,7 @@ private fun RememberStateFlowScope.oh(
     val x = VaultViewItem.Label(
         id = "account",
         text = annotate(
-            Res.strings.vault_view_saved_to_label,
+            Res.string.vault_view_saved_to_label,
             account.username to SpanStyle(
                 color = contentColor,
             ),
@@ -1839,7 +1844,7 @@ private fun RememberStateFlowScope.oh(
             id = "created",
             text = AnnotatedString(
                 translate(
-                    Res.strings.vault_view_created_at_label,
+                    Res.string.vault_view_created_at_label,
                     dateFormatter.formatDateTime(createdDate),
                 ),
             ),
@@ -1851,7 +1856,7 @@ private fun RememberStateFlowScope.oh(
         id = "revision",
         text = AnnotatedString(
             translate(
-                Res.strings.vault_view_revision_label,
+                Res.string.vault_view_revision_label,
                 dateFormatter.formatDateTime(cipher.revisionDate),
             ),
         ),
@@ -1863,7 +1868,7 @@ private fun RememberStateFlowScope.oh(
             id = "deleted",
             text = AnnotatedString(
                 translate(
-                    Res.strings.vault_view_deleted_at_label,
+                    Res.string.vault_view_deleted_at_label,
                     dateFormatter.formatDateTime(deletedDate),
                 ),
             ),
@@ -1961,7 +1966,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                                         .height(12.dp),
                                 )
                                 Text(
-                                    text = translate(Res.strings.error_failed_format_placeholder),
+                                    text = stringResource(Res.string.error_failed_format_placeholder),
                                     style = MaterialTheme.typography.labelLarge,
                                 )
                                 Text(
@@ -2095,7 +2100,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                 serverId = accountId,
                 url = url,
             ).takeIf { websiteIcons }
-            val warningTitle = translate(Res.strings.uri_unsecure)
+            val warningTitle = translate(Res.string.uri_unsecure)
                 .takeIf { isUnsecure }
             return VaultViewItem.Uri(
                 id = id,
@@ -2251,7 +2256,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
-                                title = translate(Res.strings.copy_package_name),
+                                title = Res.string.copy_package_name.wrap(),
                                 value = platformMarker.packageName,
                             )
                         }
@@ -2266,7 +2271,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                                         contentDescription = null,
                                     )
                                 },
-                                title = translate(Res.strings.uri_action_launch_app_title),
+                                title = Res.string.uri_action_launch_app_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
@@ -2278,7 +2283,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             )
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Launch,
-                                title = translate(Res.strings.uri_action_launch_play_store_title),
+                                title = Res.string.uri_action_launch_play_store_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
@@ -2310,14 +2315,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
-                                title = translate(Res.strings.copy_package_name),
+                                title = Res.string.copy_package_name.wrap(),
                                 value = platformMarker.packageName,
                             )
                         }
                         section {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Launch,
-                                title = translate(Res.strings.uri_action_launch_play_store_title),
+                                title = Res.string.uri_action_launch_play_store_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
@@ -2351,7 +2356,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
-                        title = translate(Res.strings.copy_package_name),
+                        title = Res.string.copy_package_name.wrap(),
                         value = platformMarker.packageName,
                     )
                 }
@@ -2375,15 +2380,15 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
-                        title = translate(Res.strings.copy_url),
+                        title = Res.string.copy_url.wrap(),
                         value = url,
                     )
                 }
                 section {
                     this += FlatItemAction(
                         icon = Icons.Outlined.Launch,
-                        title = translate(Res.strings.uri_action_launch_browser_title),
-                        text = url,
+                        title = Res.string.uri_action_launch_browser_title.wrap(),
+                        text = TextHolder.Value(url),
                         trailing = {
                             ChevronIcon()
                         },
@@ -2399,8 +2404,8 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         val launchUrl = platformMarker.frontPageUrl.toString()
                         this += FlatItemAction(
                             icon = Icons.Outlined.Launch,
-                            title = translate(Res.strings.uri_action_launch_browser_main_page_title),
-                            text = launchUrl,
+                            title = Res.string.uri_action_launch_browser_main_page_title.wrap(),
+                            text = TextHolder.Value(launchUrl),
                             trailing = {
                                 ChevronIcon()
                             },
@@ -2415,8 +2420,8 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.AutoAwesome,
-                            title = translate(Res.strings.uri_action_autofix_unsecure_title),
-                            text = translate(Res.strings.uri_action_autofix_unsecure_text),
+                            title = Res.string.uri_action_autofix_unsecure_title.wrap(),
+                            text = Res.string.uri_action_autofix_unsecure_text.wrap(),
                             onClick = {
                                 val ff = mapOf(
                                     cipherId to setOf(uri),
@@ -2473,7 +2478,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
-                        title = translate(Res.strings.copy),
+                        title = Res.string.copy.wrap(),
                         value = uri,
                     )
                 }
@@ -2481,7 +2486,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     if (canExecute != null) {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Terminal,
-                            title = translate(Res.strings.execute_command),
+                            title = Res.string.execute_command.wrap(),
                             trailing = {
                                 ChevronIcon()
                             },
@@ -2495,7 +2500,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         if (canLuanch.apps.size > 1) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Launch,
-                                title = translate(Res.strings.uri_action_launch_in_smth_title),
+                                title = Res.string.uri_action_launch_in_smth_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
                                 },
@@ -2521,9 +2526,9 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                                     }
                                 },
                                 title = translate(
-                                    Res.strings.uri_action_launch_in_app_title,
+                                    Res.string.uri_action_launch_in_app_title,
                                     canLuanch.apps.first().label,
-                                ),
+                                ).let(TextHolder::Value),
                                 trailing = {
                                     ChevronIcon()
                                 },
@@ -2566,7 +2571,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
     }
 }
 
-fun RememberStateFlowScope.create(
+suspend fun RememberStateFlowScope.create(
     copy: CopyText,
     id: String,
     accountId: AccountId,
@@ -2588,7 +2593,7 @@ fun RememberStateFlowScope.create(
         buildContextItems {
             section {
                 this += copy.FlatItemAction(
-                    title = translate(Res.strings.copy),
+                    title = Res.string.copy.wrap(),
                     value = value,
                     hidden = private,
                 )
@@ -2668,7 +2673,7 @@ fun RememberStateFlowScope.create(
     )
 }
 
-private fun RememberStateFlowScope.create(
+private suspend fun RememberStateFlowScope.create(
     copy: CopyText,
     id: String,
     verify: ((() -> Unit) -> Unit)? = null,
@@ -2679,23 +2684,23 @@ private fun RememberStateFlowScope.create(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
-                title = translate(Res.strings.copy_card_number),
+                title = Res.string.copy_card_number.wrap(),
                 value = data.number,
                 hidden = concealFields,
                 type = CopyText.Type.CARD_NUMBER,
             )?.verify(verify)
             this += copy.FlatItemAction(
-                title = translate(Res.strings.copy_cardholder_name),
+                title = Res.string.copy_cardholder_name.wrap(),
                 value = data.cardholderName,
                 type = CopyText.Type.CARD_CARDHOLDER_NAME,
             )
             this += copy.FlatItemAction(
-                title = translate(Res.strings.copy_expiration_month),
+                title = Res.string.copy_expiration_month.wrap(),
                 value = data.expMonth,
                 type = CopyText.Type.CARD_EXP_MONTH,
             )
             this += copy.FlatItemAction(
-                title = translate(Res.strings.copy_expiration_year),
+                title = Res.string.copy_expiration_year.wrap(),
                 value = data.expYear,
                 type = CopyText.Type.CARD_EXP_YEAR,
             )

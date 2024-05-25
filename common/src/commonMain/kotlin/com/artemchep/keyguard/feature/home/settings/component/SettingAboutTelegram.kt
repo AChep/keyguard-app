@@ -10,11 +10,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
 
@@ -60,7 +61,7 @@ private fun SettingAboutTelegram(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_reddit_community_title),
+                text = stringResource(Res.string.pref_item_reddit_community_title),
             )
         },
         onClick = onClick,

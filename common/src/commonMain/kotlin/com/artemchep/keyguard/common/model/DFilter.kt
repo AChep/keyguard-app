@@ -33,6 +33,7 @@ import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
 import com.artemchep.keyguard.ui.icons.KeyguardDuplicateWebsites
@@ -463,7 +464,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.one_time_password
+            title = Res.string.one_time_password
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardTwoFa,
         )
@@ -486,7 +487,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.attachments
+            title = Res.string.attachments
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardAttachment,
         )
@@ -509,7 +510,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.passkeys
+            title = Res.string.passkeys
                 .let(TextHolder::Res),
             icon = Icons.Outlined.Key,
         )
@@ -560,11 +561,11 @@ sealed interface DFilter {
         @Transient
         override val content = PrimitiveSimple.Content(
             title = when (score) {
-                PasswordStrength.Score.Weak -> Res.strings.passwords_weak_label
-                PasswordStrength.Score.Fair -> Res.strings.passwords_fair_label
-                PasswordStrength.Score.Good -> Res.strings.passwords_good_label
-                PasswordStrength.Score.Strong -> Res.strings.passwords_strong_label
-                PasswordStrength.Score.VeryStrong -> Res.strings.passwords_very_strong_label
+                PasswordStrength.Score.Weak -> Res.string.passwords_weak_label
+                PasswordStrength.Score.Fair -> Res.string.passwords_fair_label
+                PasswordStrength.Score.Good -> Res.string.passwords_good_label
+                PasswordStrength.Score.Strong -> Res.string.passwords_strong_label
+                PasswordStrength.Score.VeryStrong -> Res.string.passwords_very_strong_label
             }
                 .let(TextHolder::Res),
             icon = Icons.Outlined.Password,
@@ -588,7 +589,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_reused_passwords_title
+            title = Res.string.watchtower_item_reused_passwords_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardReusedPassword,
         )
@@ -670,7 +671,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_pwned_passwords_title
+            title = Res.string.watchtower_item_pwned_passwords_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardPwnedPassword,
         )
@@ -746,7 +747,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_vulnerable_accounts_title
+            title = Res.string.watchtower_item_vulnerable_accounts_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardPwnedWebsites,
         )
@@ -816,7 +817,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_incomplete_items_title
+            title = Res.string.watchtower_item_incomplete_items_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardIncompleteItems,
         )
@@ -873,7 +874,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_expiring_items_title
+            title = Res.string.watchtower_item_expiring_items_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardExpiringItems,
         )
@@ -931,7 +932,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_unsecure_websites_title
+            title = Res.string.watchtower_item_unsecure_websites_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardUnsecureWebsites,
         )
@@ -990,7 +991,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_inactive_2fa_title
+            title = Res.string.watchtower_item_inactive_2fa_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardTwoFa,
         )
@@ -1095,7 +1096,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_inactive_passkey_title
+            title = Res.string.watchtower_item_inactive_passkey_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardPasskey,
         )
@@ -1212,7 +1213,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.watchtower_item_duplicate_websites_title
+            title = Res.string.watchtower_item_duplicate_websites_title
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardDuplicateWebsites,
         )
@@ -1286,7 +1287,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.filter_pending_items
+            title = Res.string.filter_pending_items
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardPendingSyncItems,
         )
@@ -1320,7 +1321,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.filter_auth_reprompt_items
+            title = Res.string.filter_auth_reprompt_items
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardAuthReprompt,
         )
@@ -1345,7 +1346,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.filter_failed_items
+            title = Res.string.filter_failed_items
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardFailedItems,
         )
@@ -1377,7 +1378,7 @@ sealed interface DFilter {
 
         @Transient
         override val content = PrimitiveSimple.Content(
-            title = Res.strings.ignored_alerts
+            title = Res.string.ignored_alerts
                 .let(TextHolder::Res),
             icon = Icons.Outlined.KeyguardIgnoredAlerts,
         )

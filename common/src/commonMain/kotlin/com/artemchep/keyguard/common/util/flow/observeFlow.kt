@@ -14,7 +14,7 @@ inline fun <T> observerFlow(
     var unregister: (() -> Unit)? = null
     try {
         unregister = withContext(Dispatchers.Main) {
-            val setter = { value: T ->
+            val setter: (T) -> Unit = { value: T ->
                 trySend(value)
             }
             register(setter)

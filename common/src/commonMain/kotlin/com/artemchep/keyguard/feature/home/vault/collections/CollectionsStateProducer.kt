@@ -14,9 +14,12 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collection.CollectionRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -200,11 +203,11 @@ fun collectionsScreenState(
         if (ciphersCount > 0) {
             actions += FlatItemAction(
                 icon = Icons.Outlined.KeyguardCipher,
-                title = translate(Res.strings.items),
+                title = Res.string.items.wrap(),
                 trailing = {
                     ChevronIcon()
                 },
-                onClick = {
+                onClick = onClick {
                     val collections = selectedCollections.values
                         .map { it.collection }
                     val route = VaultRoute.by(
@@ -254,8 +257,8 @@ fun collectionsScreenState(
                         if (ciphers.isNotEmpty()) {
                             this += FlatItemAction(
                                 icon = Icons.Outlined.KeyguardCipher,
-                                title = translate(Res.strings.items),
-                                onClick = {
+                                title = Res.string.items.wrap(),
+                                onClick = onClick {
                                     val route = VaultRoute.by(
                                         translator = this@produceScreenState,
                                         collection = collection,
@@ -269,7 +272,7 @@ fun collectionsScreenState(
                     section {
                         this += FlatItemAction(
                             icon = Icons.Outlined.Info,
-                            title = translate(Res.strings.info),
+                            title = Res.string.info.wrap(),
                             onClick = {
                                 val intent = NavigationIntent.NavigateToRoute(
                                     CollectionRoute(

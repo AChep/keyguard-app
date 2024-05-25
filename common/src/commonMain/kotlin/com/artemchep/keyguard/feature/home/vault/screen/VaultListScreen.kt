@@ -67,6 +67,7 @@ import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposab
 import com.artemchep.keyguard.feature.search.sort.SortButton
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.Compose
 import com.artemchep.keyguard.ui.DefaultFab
@@ -92,7 +93,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -173,7 +174,7 @@ fun VaultListScreen(
                 searchFieldModifier = Modifier
                     .focusRequester2(focusRequester),
                 searchFieldModel = state.query,
-                searchFieldPlaceholder = stringResource(Res.strings.vault_main_search_placeholder),
+                searchFieldPlaceholder = stringResource(Res.string.vault_main_search_placeholder),
                 title = args.appBar?.title,
                 subtitle = args.appBar?.subtitle,
                 icon = {
@@ -374,7 +375,7 @@ fun VaultHomeScreenListPane(
                     searchFieldModifier = Modifier
                         .focusRequester2(focusRequester),
                     searchFieldModel = state.query,
-                    searchFieldPlaceholder = stringResource(Res.strings.vault_main_search_placeholder),
+                    searchFieldPlaceholder = stringResource(Res.string.vault_main_search_placeholder),
                     title = title,
                     subtitle = subtitle,
                     icon = {
@@ -475,7 +476,7 @@ fun VaultHomeScreenListPane(
                     },
                     text = {
                         Text(
-                            text = stringResource(Res.strings.vault_main_new_item_button),
+                            text = stringResource(Res.string.vault_main_new_item_button),
                         )
                     },
                 )

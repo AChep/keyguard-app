@@ -47,13 +47,11 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
-import dev.icerock.moko.resources.compose.painterResource
-import dev.icerock.moko.resources.compose.stringResource
-import dev.icerock.moko.resources.desc.StringDesc
 import io.kamel.core.config.KamelConfig
 import io.kamel.core.config.takeFrom
 import io.kamel.core.mapper.Mapper
@@ -71,6 +69,8 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.compose.rememberInstance
@@ -130,10 +130,6 @@ fun main() {
                 }
             }
             Locale.setDefault(newLocale)
-            StringDesc.localeType = when (locale) {
-                null -> StringDesc.LocaleType.System
-                else -> StringDesc.LocaleType.Custom(locale)
-            }
         }
         .launchIn(GlobalScope)
 
@@ -229,18 +225,18 @@ fun main() {
                 val trayState = rememberTrayState()
                 Tray(
                     icon = when (CurrentPlatform) {
-                        is Platform.Desktop.MacOS -> painterResource(Res.images.ic_tray_macos)
-                        else -> painterResource(Res.images.ic_keyguard)
+                        is Platform.Desktop.MacOS -> painterResource(Res.drawable.ic_tray_macos)
+                        else -> painterResource(Res.drawable.ic_keyguard)
                     },
                     state = trayState,
                     onAction = onWindowOpen,
                     menu = {
                         Item(
-                            stringResource(Res.strings.show_keyguard),
+                            stringResource(Res.string.show_keyguard),
                             onClick = onWindowOpen,
                         )
                         Item(
-                            stringResource(Res.strings.quit),
+                            stringResource(Res.string.quit),
                             onClick = ::exitApplication,
                         )
                     },
@@ -271,7 +267,7 @@ private fun ApplicationScope.KeyguardWindow(
     val windowState = rememberWindowState()
     Window(
         onCloseRequest = onCloseRequest,
-        icon = painterResource(Res.images.ic_keyguard),
+        icon = painterResource(Res.drawable.ic_keyguard),
         state = windowState,
         title = "Keyguard",
     ) {

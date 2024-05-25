@@ -9,9 +9,10 @@ import com.artemchep.keyguard.common.usecase.GetVersionLog
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -60,7 +61,7 @@ private fun SettingAboutAppChangelog(
     FlatItem(
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_app_changelog_title),
+                text = stringResource(Res.string.pref_item_app_changelog_title),
             )
         },
         text = {

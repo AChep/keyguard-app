@@ -4,7 +4,10 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.StringResource
+import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 
 /**
  * @author Artem Chepurnyi
@@ -17,23 +20,23 @@ class CopyText(
     enum class Type(
        val res: StringResource,
     ) {
-        VALUE(Res.strings.copied_value),
-        URL(Res.strings.copied_url),
-        URI(Res.strings.copied_uri),
-        PACKAGE_NAME(Res.strings.copied_package_name),
-        PASSWORD(Res.strings.copied_password),
-        USERNAME(Res.strings.copied_username),
-        EMAIL(Res.strings.copied_email),
-        PHONE_NUMBER(Res.strings.copied_phone_number),
-        PASSPORT_NUMBER(Res.strings.copied_passport_number),
-        LICENSE_NUMBER(Res.strings.copied_license_number),
-        CARD_NUMBER(Res.strings.copied_card_number),
-        CARD_CARDHOLDER_NAME(Res.strings.copied_cardholder_name),
-        CARD_EXP_YEAR(Res.strings.copied_expiration_year),
-        CARD_EXP_MONTH(Res.strings.copied_expiration_month),
-        CARD_CVV(Res.strings.copied_cvv_code),
-        OTP(Res.strings.copied_otp_code),
-        OTP_SECRET(Res.strings.copied_otp_secret_code),
+        VALUE(Res.string.copied_value),
+        URL(Res.string.copied_url),
+        URI(Res.string.copied_uri),
+        PACKAGE_NAME(Res.string.copied_package_name),
+        PASSWORD(Res.string.copied_password),
+        USERNAME(Res.string.copied_username),
+        EMAIL(Res.string.copied_email),
+        PHONE_NUMBER(Res.string.copied_phone_number),
+        PASSPORT_NUMBER(Res.string.copied_passport_number),
+        LICENSE_NUMBER(Res.string.copied_license_number),
+        CARD_NUMBER(Res.string.copied_card_number),
+        CARD_CARDHOLDER_NAME(Res.string.copied_cardholder_name),
+        CARD_EXP_YEAR(Res.string.copied_expiration_year),
+        CARD_EXP_MONTH(Res.string.copied_expiration_month),
+        CARD_CVV(Res.string.copied_cvv_code),
+        OTP(Res.string.copied_otp_code),
+        OTP_SECRET(Res.string.copied_otp_secret_code),
     }
 
     fun copy(
@@ -43,11 +46,13 @@ class CopyText(
     ) {
         clipboardService.setPrimaryClip(text, concealed = hidden)
         if (!clipboardService.hasCopyNotification()) {
-            val message = ToastMessage(
-                title = translator.translate(type.res),
-                text = text.takeUnless { hidden },
-            )
-            onMessage(message)
+            GlobalScope.launch {
+                val message = ToastMessage(
+                    title = translator.translate(type.res),
+                    text = text.takeUnless { hidden },
+                )
+                onMessage(message)
+            }
         }
     }
 }

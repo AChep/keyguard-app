@@ -39,6 +39,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
@@ -50,7 +51,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -217,7 +218,7 @@ private fun UnlockScreen(
                             .width(Dimens.buttonIconPadding),
                     )
                     Text(
-                        text = stringResource(Res.strings.unlock_button_unlock),
+                        text = stringResource(Res.string.unlock_button_unlock),
                     )
                 }
                 val onBiometricButtonClick by rememberUpdatedState(unlockState.biometric?.onClick)
@@ -248,7 +249,7 @@ private fun UnlockScreen(
 private fun UnlockScreenTheVaultIsLockedTitle() {
     Text(
         textAlign = TextAlign.Center,
-        text = stringResource(Res.strings.unlock_header_text),
+        text = stringResource(Res.string.unlock_header_text),
         style = MaterialTheme.typography.bodyLarge,
     )
 }

@@ -47,6 +47,7 @@ import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenActionPadding
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
 import com.artemchep.keyguard.platform.isStandalone
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -58,7 +59,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SetupScreen(
@@ -182,7 +183,7 @@ fun ColumnScope.SetupContent(
                 onFill = setupState.password.onChange,
             ),
         testTag = "field:password",
-        label = stringResource(Res.strings.setup_field_app_password_label),
+        label = stringResource(Res.string.setup_field_app_password_label),
         value = setupState.password,
         keyboardOptions = KeyboardOptions(
             imeAction = when {
@@ -217,7 +218,7 @@ fun ColumnScope.SetupContent(
             },
             content = {
                 Text(
-                    text = stringResource(Res.strings.setup_checkbox_biometric_auth),
+                    text = stringResource(Res.string.setup_checkbox_biometric_auth),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -240,7 +241,7 @@ fun ColumnScope.SetupContent(
         },
         content = {
             Text(
-                text = stringResource(Res.strings.setup_button_send_crash_reports),
+                text = stringResource(Res.string.setup_button_send_crash_reports),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -282,7 +283,7 @@ fun ColumnScope.SetupContent(
                 .width(Dimens.buttonIconPadding),
         )
         Text(
-            text = stringResource(Res.strings.setup_button_create_vault),
+            text = stringResource(Res.string.setup_button_create_vault),
         )
     }
 }
@@ -300,7 +301,7 @@ private fun ColumnScope.SetupScreenCreateVaultTitle() {
     Text(
         modifier = Modifier
             .fillMaxWidth(),
-        text = stringResource(Res.strings.setup_header_text),
+        text = stringResource(Res.string.setup_header_text),
         style = MaterialTheme.typography.bodyLarge,
     )
     if (isStandalone) {

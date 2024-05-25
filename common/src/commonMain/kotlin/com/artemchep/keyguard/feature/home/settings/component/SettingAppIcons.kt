@@ -13,11 +13,12 @@ import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.PutAppIcons
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -79,7 +80,7 @@ private fun SettingAppIcons(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_load_app_icons_title),
+                        text = stringResource(Res.string.pref_item_load_app_icons_title),
                     )
                 },
             )

@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.yubikey.YubiKeyManual
@@ -64,6 +65,7 @@ import com.artemchep.keyguard.feature.yubikey.rememberYubiKey
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -87,7 +89,7 @@ import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LoginTwofaScreen(
@@ -120,7 +122,7 @@ fun LoginTwofaScreenContent(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.addaccount2fa_header_title),
+                        text = stringResource(Res.string.addaccount2fa_header_title),
                     )
                 },
                 navigationIcon = {
@@ -246,7 +248,7 @@ private fun TwoFactorProviderSelector(
             .map { type ->
                 FlatItemAction(
                     id = type.key,
-                    title = type.title,
+                    title = TextHolder.Value(type.title),
                     onClick = type.onClick,
                 )
             }
@@ -349,7 +351,7 @@ private fun ColumnScope.LoginOtpScreenContentUnsupported(
     Text(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.strings.addaccount2fa_unsupported_note),
+        text = stringResource(Res.string.addaccount2fa_unsupported_note),
         style = MaterialTheme.typography.bodyMedium,
         color = contentColor,
     )
@@ -369,7 +371,7 @@ private fun ColumnScope.LoginOtpScreenContentUnsupported(
             },
         ) {
             Text(
-                text = stringResource(Res.strings.launch_web_vault),
+                text = stringResource(Res.string.launch_web_vault),
             )
         }
     }
@@ -396,7 +398,7 @@ private fun ColumnScope.LoginOtpScreenContentAuthenticator(
     Text(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.strings.addaccount2fa_otp_note),
+        text = stringResource(Res.string.addaccount2fa_otp_note),
         style = MaterialTheme.typography.bodyMedium,
     )
     Spacer(Modifier.height(16.dp))
@@ -407,7 +409,7 @@ private fun ColumnScope.LoginOtpScreenContentAuthenticator(
         //  adds a support for that.
         fieldModifier = Modifier
             .focusRequester(focusRequester),
-        label = stringResource(Res.strings.verification_code),
+        label = stringResource(Res.string.verification_code),
         value = state.code,
         textStyle = TextStyle(
             fontFamily = monoFontFamily,
@@ -442,7 +444,7 @@ private fun ColumnScope.LoginOtpScreenContentAuthenticator(
         },
         content = {
             Text(
-                text = stringResource(Res.strings.remember_me),
+                text = stringResource(Res.string.remember_me),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -471,7 +473,7 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
     Text(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.strings.addaccount2fa_email_note, state.email.orEmpty()),
+        text = stringResource(Res.string.addaccount2fa_email_note, state.email.orEmpty()),
         style = MaterialTheme.typography.bodyMedium,
     )
     Spacer(Modifier.height(16.dp))
@@ -482,7 +484,7 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
         //  adds a support for that.
         fieldModifier = Modifier
             .focusRequester(focusRequester),
-        label = stringResource(Res.strings.verification_code),
+        label = stringResource(Res.string.verification_code),
         value = state.code,
         textStyle = TextStyle(
             fontFamily = monoFontFamily,
@@ -531,7 +533,7 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
             },
             content = {
                 Text(
-                    text = stringResource(Res.strings.resend_verification_code),
+                    text = stringResource(Res.string.resend_verification_code),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             },
@@ -548,7 +550,7 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
         },
         content = {
             Text(
-                text = stringResource(Res.strings.remember_me),
+                text = stringResource(Res.string.remember_me),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -645,7 +647,7 @@ private fun ColumnScope.LoginOtpScreenContentYubiKey(
         },
         content = {
             Text(
-                text = stringResource(Res.strings.remember_me),
+                text = stringResource(Res.string.remember_me),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },

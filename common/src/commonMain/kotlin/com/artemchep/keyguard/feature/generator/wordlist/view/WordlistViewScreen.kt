@@ -53,6 +53,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceListState
 import com.artemchep.keyguard.feature.tfa.directory.produceTwoFaServiceListState
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultProgressBar
@@ -72,7 +73,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -193,7 +194,7 @@ fun WordlistViewScreen(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = queryText,
-                        placeholder = stringResource(Res.strings.wordlist_word_search_placeholder),
+                        placeholder = stringResource(Res.string.wordlist_word_search_placeholder),
                         searchIcon = searchIcon,
                         count = count,
                         leading = {},

@@ -7,9 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.animatedNumberText
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VaultHomeScreenFilterPaneNumberOfItems(
@@ -29,7 +30,7 @@ fun VaultHomeScreenFilterPaneNumberOfItems(
                     top = 8.dp,
                     bottom = 8.dp,
                 ),
-            text = stringResource(Res.strings.items_n, animatedCount),
+            text = stringResource(Res.string.items_n, animatedCount),
             style = MaterialTheme.typography.titleSmall,
         )
     }

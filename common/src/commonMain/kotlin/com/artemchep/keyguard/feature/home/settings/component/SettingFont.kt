@@ -11,14 +11,16 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.PutFont
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -49,8 +51,8 @@ fun settingFontProvider(
             val actionTitle = getAppFontTitle(fontVariant, context)
             val actionText = getAppFontText(fontVariant, context)
             FlatItemAction(
-                title = actionTitle,
-                text = actionText,
+                title = TextHolder.Value(actionTitle),
+                text = actionText?.let(TextHolder::Value),
                 onClick = {
                     putFont(fontVariant)
                         .launchIn(windowCoroutineScope)
@@ -74,19 +76,19 @@ fun settingFontProvider(
     }
 }
 
-private fun getAppFontTitle(appFont: AppFont?, context: LeContext) = when (appFont) {
-    null -> textResource(Res.strings.follow_system_settings, context)
+private suspend fun getAppFontTitle(appFont: AppFont?, context: LeContext) = when (appFont) {
+    null -> textResource(Res.string.follow_system_settings, context)
     AppFont.ROBOTO -> "Roboto"
     AppFont.NOTO -> "Noto"
     AppFont.ATKINSON_HYPERLEGIBLE -> "Atkinson Hyperlegible"
 }
 
-private fun getAppFontText(appFont: AppFont?, context: LeContext) = when (appFont) {
+private suspend fun getAppFontText(appFont: AppFont?, context: LeContext) = when (appFont) {
     null -> null
     AppFont.ROBOTO -> null
     AppFont.NOTO -> null
     AppFont.ATKINSON_HYPERLEGIBLE -> textResource(
-        Res.strings.font_atkinson_hyperlegible_text,
+        Res.string.font_atkinson_hyperlegible_text,
         context,
     )
 }
@@ -102,7 +104,7 @@ private fun SettingFont(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_font_title),
+                        text = stringResource(Res.string.pref_item_font_title),
                     )
                 },
                 text = {

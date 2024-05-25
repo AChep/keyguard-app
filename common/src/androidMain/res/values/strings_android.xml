@@ -18,10 +18,14 @@
     <string name="notification_sync_vault_title">Syncing vault</string>
 
     <string name="about">About</string>
+    <string name="home_generator_label">Generator</string>
     <string name="autofill_service_name">Keyguard form autofilling</string>
     <string name="autofill_sign_in_prompt">Unlock Keyguard</string>
     <string name="autofill_explanation_summary">Enable autofilling to quickly fill out forms in other apps</string>
     <string name="autofill_select_entry">Open Keyguard</string>
     <string name="set_autofill_service_title">Set default autofill service</string>
     <string name="autofill_preference_title">Autofill settings</string>
+
+    <string name="android_autofill_open_keyguard">Open Keyguard</string>
+    <string name="android_autofill_unlock_keyguard">Unlock Keyguard</string>
 </resources>

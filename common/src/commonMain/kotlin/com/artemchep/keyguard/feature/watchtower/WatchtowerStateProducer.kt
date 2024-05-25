@@ -36,10 +36,12 @@ import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeService
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
 import com.artemchep.keyguard.feature.tfa.directory.TwoFaServicesRoute
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.buildContextItems
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -343,14 +345,14 @@ fun produceWatchtowerState(
     // Password strength
     //
 
-    fun onClickPasswordStrength(
+    suspend fun onClickPasswordStrength(
         filter: DFilter,
         score: PasswordStrength.Score,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
                 title = translate(score.formatH2()),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByPasswordStrength(score),
@@ -385,9 +387,12 @@ fun produceWatchtowerState(
                     val onClick = if (it.value > 0) {
                         val filter = holder.filterConfig?.filter
                             ?: DFilter.All
-                        ::onClickPasswordStrength
-                            .partially1(filter)
-                            .partially1(it.key)
+                        onClick {
+                            onClickPasswordStrength(
+                                filter = filter,
+                                score = it.key,
+                            )
+                        }
                     } else {
                         null
                     }
@@ -421,13 +426,13 @@ fun produceWatchtowerState(
     // Security
     //
 
-    fun onClickPasswordPwned(
+    suspend fun onClickPasswordPwned(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_pwned_passwords_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_pwned_passwords_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByPasswordPwned,
@@ -452,8 +457,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickPasswordPwned
-                    .partially1(filter)
+                onClick {
+                    onClickPasswordPwned(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -465,13 +473,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickUnsecureWebsites(
+    suspend fun onClickUnsecureWebsites(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_unsecure_websites_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_unsecure_websites_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByUnsecureWebsites,
@@ -495,8 +503,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickUnsecureWebsites
-                    .partially1(filter)
+                onClick {
+                    onClickUnsecureWebsites(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -508,13 +519,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickDuplicateWebsites(
+    suspend fun onClickDuplicateWebsites(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_duplicate_websites_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_duplicate_websites_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByDuplicateWebsites,
@@ -538,8 +549,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickDuplicateWebsites
-                    .partially1(filter)
+                onClick {
+                    onClickDuplicateWebsites(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -551,13 +565,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickTfaWebsites(
+    suspend fun onClickTfaWebsites(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_inactive_2fa_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_inactive_2fa_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByTfaWebsites,
@@ -582,8 +596,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickTfaWebsites
-                    .partially1(filter)
+                onClick {
+                    onClickTfaWebsites(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -595,13 +612,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickPasskeyWebsites(
+    suspend fun onClickPasskeyWebsites(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_inactive_passkey_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_inactive_passkey_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByPasskeyWebsites,
@@ -626,8 +643,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickPasskeyWebsites
-                    .partially1(filter)
+                onClick {
+                    onClickPasskeyWebsites(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -639,13 +659,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickPasswordReused(
+    suspend fun onClickPasswordReused(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_reused_passwords_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_reused_passwords_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByPasswordDuplicates,
@@ -670,8 +690,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickPasswordReused
-                    .partially1(filter)
+                onClick {
+                    onClickPasswordReused(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -683,13 +706,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickWebsitePwned(
+    suspend fun onClickWebsitePwned(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_vulnerable_accounts_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_vulnerable_accounts_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByWebsitePwned,
@@ -714,8 +737,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickWebsitePwned
-                    .partially1(filter)
+                onClick {
+                    onClickWebsitePwned(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -737,8 +763,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickWebsitePwned
-                    .partially1(filter)
+                onClick {
+                    onClickWebsitePwned(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -793,13 +822,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickIncomplete(
+    suspend fun onClickIncomplete(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_incomplete_items_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_incomplete_items_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByIncomplete,
@@ -823,8 +852,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickIncomplete
-                    .partially1(filter)
+                onClick {
+                    onClickIncomplete(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -836,13 +868,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickExpiring(
+    suspend fun onClickExpiring(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_expiring_items_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_expiring_items_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         DFilter.ByExpiring,
@@ -866,8 +898,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickExpiring
-                    .partially1(filter)
+                onClick {
+                    onClickExpiring(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }
@@ -879,13 +914,13 @@ fun produceWatchtowerState(
         },
     )
 
-    fun onClickTrash(
+    suspend fun onClickTrash(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
             VaultRoute.watchtower(
-                title = translate(Res.strings.watchtower_item_trashed_items_title),
-                subtitle = translate(Res.strings.watchtower_header_title),
+                title = translate(Res.string.watchtower_item_trashed_items_title),
+                subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
                     filters = listOfNotNull(
                         filter,
@@ -909,8 +944,11 @@ fun produceWatchtowerState(
             val onClick = if (count > 0) {
                 val filter = holder?.filterConfig?.filter
                     ?: DFilter.All
-                ::onClickTrash
-                    .partially1(filter)
+                onClick {
+                    onClickTrash(
+                        filter = filter,
+                    )
+                }
             } else {
                 null
             }

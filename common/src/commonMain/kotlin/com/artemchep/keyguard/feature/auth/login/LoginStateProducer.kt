@@ -27,7 +27,10 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedEmail
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.auth.login.otp.LoginTwofaRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
@@ -35,6 +38,7 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.persistentListOf
@@ -200,7 +204,7 @@ fun produceLoginScreenState(
             .map { region ->
                 FlatItemAction(
                     id = region.key,
-                    title = translate(region.title),
+                    title = region.title.wrap(),
                     onClick = {
                         regionSink.value = region.key
                     },
@@ -243,7 +247,7 @@ fun produceLoginScreenState(
                     if (isUnsecure) {
                         return@run TextFieldModel2.Vl(
                             type = TextFieldModel2.Vl.Type.WARNING,
-                            text = translate(Res.strings.uri_unsecure),
+                            text = translate(Res.string.uri_unsecure),
                         )
                     }
 
@@ -287,7 +291,7 @@ fun produceLoginScreenState(
     val globalItems = listOf(
         LoginStateItem.Section(
             id = KEY_SERVER_REGION_SECTION,
-            text = translate(Res.strings.addaccount_region_section),
+            text = translate(Res.string.addaccount_region_section),
         ),
         LoginStateItem.Dropdown(
             id = KEY_SERVER_REGION,
@@ -314,13 +318,13 @@ fun produceLoginScreenState(
     val envServerBaseUrlItem =
         createEnvUrlItem(
             key = KEY_SERVER_BASE_URL,
-            label = translate(Res.strings.addaccount_base_env_server_url_label),
+            label = translate(Res.string.addaccount_base_env_server_url_label),
             initialValue = { args.env.baseUrl },
         ) { copy(baseUrl = it) }
     val envServerCustomIdentityUrlItem =
         createEnvUrlItem(
             key = KEY_SERVER_CUSTOM_IDENTITY_URL,
-            label = translate(Res.strings.addaccount_custom_env_identity_url_label),
+            label = translate(Res.string.addaccount_custom_env_identity_url_label),
             initialValue = { args.env.identityUrl },
         ) { copy(identityUrl = it) }
 
@@ -329,32 +333,32 @@ fun produceLoginScreenState(
         envServerBaseUrlItem,
         LoginStateItem.Label(
             id = KEY_SERVER_BASE_URL_DESCRIPTION,
-            text = translate(Res.strings.addaccount_base_env_note),
+            text = translate(Res.string.addaccount_base_env_note),
         ),
         // custom
         LoginStateItem.Section(
             id = KEY_SERVER_CUSTOM_SECTION,
-            text = translate(Res.strings.addaccount_custom_env_section),
+            text = translate(Res.string.addaccount_custom_env_section),
         ),
         createEnvUrlItem(
             key = KEY_SERVER_CUSTOM_WEB_VAULT_URL,
-            label = translate(Res.strings.addaccount_custom_env_web_vault_url_label),
+            label = translate(Res.string.addaccount_custom_env_web_vault_url_label),
             initialValue = { args.env.webVaultUrl },
         ) { copy(webVaultUrl = it) },
         createEnvUrlItem(
             key = KEY_SERVER_CUSTOM_API_URL,
-            label = translate(Res.strings.addaccount_custom_env_api_url_label),
+            label = translate(Res.string.addaccount_custom_env_api_url_label),
             initialValue = { args.env.apiUrl },
         ) { copy(apiUrl = it) },
         envServerCustomIdentityUrlItem,
         createEnvUrlItem(
             key = KEY_SERVER_CUSTOM_ICONS_URL,
-            label = translate(Res.strings.addaccount_custom_env_icons_url_label),
+            label = translate(Res.string.addaccount_custom_env_icons_url_label),
             initialValue = { args.env.iconsUrl },
         ) { copy(iconsUrl = it) },
         LoginStateItem.Label(
             id = KEY_SERVER_CUSTOM_DESCRIPTION,
-            text = translate(Res.strings.addaccount_custom_env_note),
+            text = translate(Res.string.addaccount_custom_env_note),
         ),
     )
 
@@ -410,7 +414,7 @@ fun produceLoginScreenState(
         clientSecretSink,
         clientSecretRequiredFlow,
     ) { clientSecret, clientSecretRequired ->
-        val error = translate(Res.strings.error_must_not_be_blank)
+        val error = translate(Res.string.error_must_not_be_blank)
             .takeIf { clientSecretRequired && clientSecret.isBlank() }
         if (error != null) {
             Validated.Failure(clientSecret, error)
@@ -454,7 +458,7 @@ fun produceLoginScreenState(
         listOf(
             Foo2Type(
                 type = "header",
-                name = translate(Res.strings.addaccount_http_header_type),
+                name = translate(Res.string.addaccount_http_header_type),
             ),
         ),
     )
@@ -466,19 +470,19 @@ fun produceLoginScreenState(
         afterList = {
             val header = LoginStateItem.Section(
                 id = "header.section",
-                text = translate(Res.strings.addaccount_http_header_section),
+                text = translate(Res.string.addaccount_http_header_section),
             )
             add(0, header)
         },
         extra = {
             typeBasedAddItem(
                 scope = "header",
-                addText = translate(Res.strings.addaccount_http_header_add_more_button),
+                addText = translate(Res.string.addaccount_http_header_add_more_button),
                 typesFlow = envHeadersTypesFlow,
             ).map { items ->
                 val info = LoginStateItem.Label(
                     id = "header.info",
-                    text = translate(Res.strings.addaccount_http_header_note),
+                    text = translate(Res.string.addaccount_http_header_note),
                 )
                 items + info
             }
@@ -713,13 +717,13 @@ class AddStateItemFieldFactory(
         val labelFlow = labelSink
             .map { label ->
                 val error = if (label.isBlank()) {
-                    translate(Res.strings.error_must_not_be_blank)
+                    translate(Res.string.error_must_not_be_blank)
                 } else {
                     null
                 }
                 TextFieldModel2(
                     text = label,
-                    hint = translate(Res.strings.addaccount_http_header_key_label),
+                    hint = translate(Res.string.addaccount_http_header_key_label),
                     error = error,
                     state = labelMutableState,
                     onChange = labelMutableState::value::set,
@@ -734,13 +738,13 @@ class AddStateItemFieldFactory(
         val textFlow = textSink
             .map { text ->
                 val error = if (!REGEX_US_ASCII.matches(text)) {
-                    translate(Res.strings.error_must_contain_only_us_ascii_chars)
+                    translate(Res.string.error_must_contain_only_us_ascii_chars)
                 } else {
                     null
                 }
                 TextFieldModel2(
                     text = text,
-                    hint = translate(Res.strings.addaccount_http_header_value_label),
+                    hint = translate(Res.string.addaccount_http_header_value_label),
                     error = error,
                     state = textMutableState,
                     onChange = textMutableState::value::set,
@@ -814,13 +818,13 @@ data class Foo2InitialState<Argument>(
     )
 }
 
-fun <T, Argument> RememberStateFlowScope.foo3(
+suspend fun <T, Argument> RememberStateFlowScope.foo3(
     scope: String,
     initial: List<Argument>,
     initialType: (Argument) -> String,
     factories: List<Foo2Factory<T, Argument>>,
-    afterList: MutableList<LoginStateItem>.() -> Unit,
-    extra: FieldBakeryScope<Argument>.() -> Flow<List<LoginStateItem>> = {
+    afterList: suspend MutableList<LoginStateItem>.() -> Unit,
+    extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<LoginStateItem>> = {
         flowOf(emptyList())
     },
 ): Flow<List<LoginStateItem>> where T : LoginStateItem, T : LoginStateItem.HasOptions<T> {
@@ -880,7 +884,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
         val actions = types
             .map { type ->
                 FlatItemAction(
-                    title = type.name,
+                    title = TextHolder.Value(type.name),
                     onClick = {
                         add(type.type, null)
                     },
@@ -894,14 +898,14 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
     }
     .map { listOfNotNull(it) }
 
-fun <T, Argument> RememberStateFlowScope.foo(
+suspend fun <T, Argument> RememberStateFlowScope.foo(
     // scope name,
     scope: String,
     initialState: Foo2InitialState<Argument>,
     entryAdd: suspend RememberStateFlowScope.(CoroutineScope, Foo2Persistable, Argument?) -> T,
     entryRelease: RememberStateFlowScope.(Foo2Persistable) -> Unit,
-    afterList: MutableList<LoginStateItem>.() -> Unit,
-    extra: FieldBakeryScope<Argument>.() -> Flow<List<LoginStateItem>> = {
+    afterList: suspend MutableList<LoginStateItem>.() -> Unit,
+    extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<LoginStateItem>> = {
         flowOf(emptyList())
     },
 ): Flow<List<LoginStateItem>> where T : LoginStateItem, T : LoginStateItem.HasOptions<T> {
@@ -1051,24 +1055,24 @@ fun <T, Argument> RememberStateFlowScope.foo(
                 if (index > 0) {
                     options += FlatItemAction(
                         icon = Icons.Outlined.ArrowUpward,
-                        title = translate(Res.strings.list_move_up),
+                        title = Res.string.list_move_up.wrap(),
                         onClick = ::moveUp.partially1(entry.perst.key),
                     )
                 }
                 if (index < state.size - 1) {
                     options += FlatItemAction(
                         icon = Icons.Outlined.ArrowDownward,
-                        title = translate(Res.strings.list_move_down),
+                        title = Res.string.list_move_down.wrap(),
                         onClick = ::moveDown.partially1(entry.perst.key),
                     )
                 }
                 options += FlatItemAction(
                     icon = Icons.Outlined.DeleteForever,
-                    title = translate(Res.strings.list_remove),
-                    onClick = {
+                    title = Res.string.list_remove.wrap(),
+                    onClick = onClick {
                         val intent = createConfirmationDialogIntent(
                             icon = icon(Icons.Outlined.DeleteForever),
-                            title = translate(Res.strings.list_remove_confirmation_title),
+                            title = translate(Res.string.list_remove_confirmation_title),
                         ) {
                             delete(entry.perst.key)
                         }
@@ -1088,7 +1092,8 @@ fun <T, Argument> RememberStateFlowScope.foo(
             .widen<LoginStateItem, T>()
             .toMutableList()
         out += customItems
-        out.apply(afterList)
+        afterList(out)
+        out
     }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L), replay = 1)
 }

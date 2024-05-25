@@ -11,13 +11,15 @@ import com.artemchep.keyguard.common.usecase.GetNavAnimationVariants
 import com.artemchep.keyguard.common.usecase.PutNavAnimation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -45,9 +47,8 @@ fun settingNavAnimationProvider(
     val text = textResource(navAnimation.title, context)
     val dropdown = variants
         .map { navAnimationVariant ->
-            val title = textResource(navAnimationVariant.title, context)
             FlatItemAction(
-                title = title,
+                title = navAnimationVariant.title.wrap(),
                 onClick = {
                     putNavAnimation(navAnimationVariant)
                         .launchIn(windowCoroutineScope)
@@ -83,7 +84,7 @@ private fun SettingNavAnimation(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_nav_animation_title),
+                        text = stringResource(Res.string.pref_item_nav_animation_title),
                     )
                 },
                 text = {

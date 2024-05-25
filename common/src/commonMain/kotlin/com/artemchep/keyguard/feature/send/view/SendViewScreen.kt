@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevati
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -63,7 +64,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.text.AutoSizeText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SendViewScreen(
@@ -146,7 +147,7 @@ fun SendViewScreen(
                     },
                     text = {
                         Text(
-                            text = stringResource(Res.strings.copy_send),
+                            text = stringResource(Res.string.copy_send),
                         )
                     },
                 )
@@ -326,7 +327,7 @@ private fun VaultViewTitle(
                 )
             } else {
                 Text(
-                    text = stringResource(Res.strings.empty_value),
+                    text = stringResource(Res.string.empty_value),
                     color = LocalContentColor.current
                         .combineAlpha(DisabledEmphasisAlpha),
                     maxLines = 1,

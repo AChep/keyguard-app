@@ -74,6 +74,8 @@ import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -84,6 +86,7 @@ import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.feature.send.toVaultItemIcon
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
@@ -357,8 +360,8 @@ private fun RememberStateFlowScope.oh(
     if (send.disabled) {
         val model = VaultViewItem.Info(
             id = "disabled",
-            name = translate(Res.strings.deactivated),
-            message = translate(Res.strings.sends_action_disabled_note),
+            name = translate(Res.string.deactivated),
+            message = translate(Res.string.sends_action_disabled_note),
         )
         emit(model)
     }
@@ -368,7 +371,7 @@ private fun RememberStateFlowScope.oh(
         val model = create(
             copy = copy,
             id = "text.text",
-            title = translate(Res.strings.text),
+            title = translate(Res.string.text),
             send = send.name,
             value = text.text.orEmpty(),
             elevated = true,
@@ -400,7 +403,7 @@ private fun RememberStateFlowScope.oh(
     if (url != null) {
         val section = VaultViewItem.Section(
             id = "url",
-            text = translate(Res.strings.public_url),
+            text = translate(Res.string.public_url),
         )
         emit(section)
         emit(url)
@@ -409,7 +412,7 @@ private fun RememberStateFlowScope.oh(
             val w = VaultViewItem.Label(
                 id = "url.password",
                 text = AnnotatedString(
-                    text = translate(Res.strings.send_password_is_required_to_access_label),
+                    text = translate(Res.string.send_password_is_required_to_access_label),
                 ),
             )
             emit(w)
@@ -418,14 +421,14 @@ private fun RememberStateFlowScope.oh(
 
     val section = VaultViewItem.Section(
         id = "iiinfo",
-        text = translate(Res.strings.info),
+        text = translate(Res.string.info),
     )
     emit(section)
 
     val accessCount = send.accessCount
     val w = VaultViewItem.Value(
         id = "info",
-        title = translate(Res.strings.access_count),
+        title = translate(Res.string.access_count),
         value = "$accessCount" + send.maxAccessCount?.let { " / $it" }.orEmpty(),
         leading = {
             IconBox(Icons.Outlined.KeyguardView)
@@ -435,11 +438,11 @@ private fun RememberStateFlowScope.oh(
 
     val w22 = VaultViewItem.Value(
         id = "info.email",
-        title = translate(Res.strings.email_visibility),
+        title = translate(Res.string.email_visibility),
         value = if (send.hideEmail) {
-            translate(Res.strings.hidden)
+            translate(Res.string.hidden)
         } else {
-            translate(Res.strings.visible)
+            translate(Res.string.visible)
         },
         leading = {
             IconBox(Icons.Outlined.Email)
@@ -450,7 +453,7 @@ private fun RememberStateFlowScope.oh(
     if (send.notes.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "note",
-            text = translate(Res.strings.notes),
+            text = translate(Res.string.notes),
         )
         emit(section)
         val content = VaultViewItem.Note.Content.of(
@@ -473,7 +476,7 @@ private fun RememberStateFlowScope.oh(
     val x = VaultViewItem.Label(
         id = "account",
         text = annotate(
-            Res.strings.vault_view_saved_to_label,
+            Res.string.vault_view_saved_to_label,
             account.username to SpanStyle(
                 color = contentColor,
             ),
@@ -489,7 +492,7 @@ private fun RememberStateFlowScope.oh(
             id = "created",
             text = AnnotatedString(
                 translate(
-                    Res.strings.vault_view_created_at_label,
+                    Res.string.vault_view_created_at_label,
                     dateFormatter.formatDateTime(createdDate),
                 ),
             ),
@@ -501,7 +504,7 @@ private fun RememberStateFlowScope.oh(
         id = "revision",
         text = AnnotatedString(
             translate(
-                Res.strings.vault_view_revision_label,
+                Res.string.vault_view_revision_label,
                 dateFormatter.formatDateTime(send.revisionDate),
             ),
         ),
@@ -513,7 +516,7 @@ private fun RememberStateFlowScope.oh(
             id = "expiration",
             text = AnnotatedString(
                 translate(
-                    Res.strings.vault_view_expiration_scheduled_at_label,
+                    Res.string.vault_view_expiration_scheduled_at_label,
                     dateFormatter.formatDateTime(expirationDate),
                 ),
             ),
@@ -526,7 +529,7 @@ private fun RememberStateFlowScope.oh(
             id = "deleted",
             text = AnnotatedString(
                 translate(
-                    Res.strings.vault_view_deletion_scheduled_at_label,
+                    Res.string.vault_view_deletion_scheduled_at_label,
                     dateFormatter.formatDateTime(deletedDate),
                 ),
             ),
@@ -535,7 +538,7 @@ private fun RememberStateFlowScope.oh(
     }
 }
 
-fun RememberStateFlowScope.create(
+suspend fun RememberStateFlowScope.create(
     copy: CopyText,
     id: String,
     title: String?,
@@ -553,7 +556,7 @@ fun RememberStateFlowScope.create(
         buildContextItems {
             section {
                 this += copy.FlatItemAction(
-                    title = translate(Res.strings.copy),
+                    title = Res.string.copy.wrap(),
                     value = value,
                     hidden = private,
                 )
@@ -625,15 +628,15 @@ private suspend fun RememberStateFlowScope.aaaa(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
-                title = translate(Res.strings.copy_url),
+                title = Res.string.copy_url.wrap(),
                 value = url,
             )
         }
         section {
             this += FlatItemAction(
                 icon = Icons.Outlined.Launch,
-                title = translate(Res.strings.uri_action_launch_browser_title),
-                text = url,
+                title = Res.string.uri_action_launch_browser_title.wrap(),
+                text = TextHolder.Value(url),
                 trailing = {
                     ChevronIcon()
                 },

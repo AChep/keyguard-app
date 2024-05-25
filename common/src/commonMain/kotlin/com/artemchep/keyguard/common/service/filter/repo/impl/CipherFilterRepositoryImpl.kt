@@ -22,8 +22,9 @@ import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -49,7 +50,7 @@ class CipherFilterRepositoryImpl(
     }
 
     private interface FilterEntityMapper {
-        fun map(
+        suspend fun map(
             context: LeContext,
             entity: CipherFilter,
         ): DCipherFilter
@@ -60,7 +61,7 @@ class CipherFilterRepositoryImpl(
         private val name: StringResource,
         private val state: Map<String, Set<DFilter.Primitive>>,
     ) : FilterEntityMapper {
-        override fun map(
+        override suspend fun map(
             context: LeContext,
             entity: CipherFilter,
         ): DCipherFilter {
@@ -83,7 +84,7 @@ class CipherFilterRepositoryImpl(
     private val filterEntityMappers = mapOf(
         TYPE_LOGIN to BaseFilterEntityMapper(
             icon = DSecret.Type.Login.iconImageVector(),
-            name = Res.strings.cipher_type_login,
+            name = Res.string.cipher_type_login,
             state = mapOf(
                 FilterSection.TYPE.id to setOf(
                     DFilter.ByType(DSecret.Type.Login),
@@ -92,7 +93,7 @@ class CipherFilterRepositoryImpl(
         ),
         TYPE_CARD to BaseFilterEntityMapper(
             icon = DSecret.Type.Card.iconImageVector(),
-            name = Res.strings.cipher_type_card,
+            name = Res.string.cipher_type_card,
             state = mapOf(
                 FilterSection.TYPE.id to setOf(
                     DFilter.ByType(DSecret.Type.Card),
@@ -101,7 +102,7 @@ class CipherFilterRepositoryImpl(
         ),
         TYPE_IDENTITY to BaseFilterEntityMapper(
             icon = DSecret.Type.Identity.iconImageVector(),
-            name = Res.strings.cipher_type_identity,
+            name = Res.string.cipher_type_identity,
             state = mapOf(
                 FilterSection.TYPE.id to setOf(
                     DFilter.ByType(DSecret.Type.Identity),
@@ -110,7 +111,7 @@ class CipherFilterRepositoryImpl(
         ),
         TYPE_NOTE to BaseFilterEntityMapper(
             icon = DSecret.Type.SecureNote.iconImageVector(),
-            name = Res.strings.cipher_type_note,
+            name = Res.string.cipher_type_note,
             state = mapOf(
                 FilterSection.TYPE.id to setOf(
                     DFilter.ByType(DSecret.Type.SecureNote),
@@ -119,7 +120,7 @@ class CipherFilterRepositoryImpl(
         ),
         TYPE_OTP to BaseFilterEntityMapper(
             icon = Icons.Outlined.KeyguardTwoFa,
-            name = Res.strings.one_time_password,
+            name = Res.string.one_time_password,
             state = mapOf(
                 FilterSection.MISC.id to setOf(
                     DFilter.ByOtp,

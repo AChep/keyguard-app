@@ -40,12 +40,13 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 @Composable
@@ -69,7 +70,7 @@ private fun BarcodeTypeContent(
     Dialog(
         icon = icon(Icons.Outlined.QrCode),
         title = {
-            Text(stringResource(Res.strings.barcodetype_title))
+            Text(stringResource(Res.string.barcodetype_title))
         },
         content = {
             Column {
@@ -153,7 +154,7 @@ private fun BarcodeTypeContent(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
         },
     )

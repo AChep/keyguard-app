@@ -320,7 +320,7 @@ fun SettingPaneContent(
                     val shouldAddDivider =
                     // Do not add a divider on top of the
                         // blank list.
-                        componentFlows.isNotEmpty() || !item.title.isNullOrBlank()
+                        componentFlows.isNotEmpty() || item.title != null
                     if (shouldAddDivider) {
                         val divider = create(
                             item = SettingPaneItem.Item(componentDivider),

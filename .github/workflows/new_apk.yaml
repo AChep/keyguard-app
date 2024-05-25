@@ -32,7 +32,7 @@ jobs:
           arguments: :androidApp:licenseeAndroidNoneRelease
       - name: "Move licenses"
         run: |
-          mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/resources/MR/files/licenses.json
+          mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "./gradlew :androidApp:assembleNoneRelease"
         uses: gradle/actions/setup-gradle@v3
         env:

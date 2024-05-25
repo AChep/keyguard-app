@@ -24,6 +24,6 @@
         android:paddingLeft="16dp"
         android:paddingEnd="16dp"
         android:paddingRight="16dp"
-        android:text="@string/autofill_unlock_keyguard"
+        android:text="@string/android_autofill_unlock_keyguard"
         android:textAppearance="?android:attr/textAppearanceListItemSmall" />
 </LinearLayout>

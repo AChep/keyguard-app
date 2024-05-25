@@ -97,10 +97,12 @@ import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordStrengthSor
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
@@ -108,6 +110,7 @@ import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -115,7 +118,7 @@ import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.selectionHandle
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -281,15 +284,15 @@ fun vaultListScreenState(
 
     fun onRename(
         folders: List<DFolder>,
-    ) {
+    ) = action {
         val route = registerRouteResultReceiver(
             route = ConfirmationRoute(
                 args = ConfirmationRoute.Args(
                     icon = icon(Icons.Outlined.Edit),
                     title = if (folders.size > 1) {
-                        translate(Res.strings.folder_action_change_names_title)
+                        translate(Res.string.folder_action_change_names_title)
                     } else {
-                        translate(Res.strings.folder_action_change_name_title)
+                        translate(Res.string.folder_action_change_name_title)
                     },
                     items = folders
                         .sortedWith(StringComparatorIgnoreCase { it.name })
@@ -395,16 +398,16 @@ fun vaultListScreenState(
             leading = {
                 Icon(Icons.Outlined.Delete, null)
             },
-            title = translate(Res.strings.trash),
+            title = Res.string.trash.wrap(),
             trailing = {
                 ChevronIcon()
             },
-            onClick = {
+            onClick = onClick {
                 val newArgs = args.copy(
                     appBar = VaultRoute.Args.AppBar(
                         subtitle = args.appBar?.subtitle
-                            ?: translate(Res.strings.home_vault_label),
-                        title = translate(Res.strings.trash),
+                            ?: translate(Res.string.home_vault_label),
+                        title = translate(Res.string.trash),
                     ),
                     trash = true,
                     preselect = false,
@@ -420,7 +423,7 @@ fun vaultListScreenState(
             leading = {
                 Icon(Icons.Outlined.Download, null)
             },
-            title = translate(Res.strings.downloads),
+            title = Res.string.downloads.wrap(),
             trailing = {
                 ChevronIcon()
             },
@@ -463,7 +466,7 @@ fun vaultListScreenState(
                             onCheckedChange = showKeyboardSink::value::set,
                         )
                     },
-                    title = translate(Res.strings.vault_action_always_show_keyboard_title),
+                    title = Res.string.vault_action_always_show_keyboard_title.wrap(),
                     onClick = showKeyboardSink::value::set.partially1(!showKeyboard),
                 )
             }
@@ -484,7 +487,7 @@ fun vaultListScreenState(
                             rotating = syncing,
                         )
                     },
-                    title = translate(Res.strings.vault_action_sync_vault_title),
+                    title = Res.string.vault_action_sync_vault_title.wrap(),
                     onClick = if (!syncing) {
                         // lambda
                         {
@@ -500,7 +503,7 @@ fun vaultListScreenState(
             leading = {
                 Icon(Icons.Outlined.Lock, null)
             },
-            title = translate(Res.strings.vault_action_lock_vault_title),
+            title = Res.string.vault_action_lock_vault_title.wrap(),
             onClick = {
                 clearVaultSession()
                     .launchIn(appScope)
@@ -525,7 +528,7 @@ fun vaultListScreenState(
                         leading = {
                             Icon(Icons.Outlined.Edit, null)
                         },
-                        title = translate(Res.strings.vault_action_rename_folder_title),
+                        title = Res.string.vault_action_rename_folder_title.wrap(),
                         onClick = {
                             onRename(listOf(folder))
                         },
@@ -704,7 +707,7 @@ fun vaultListScreenState(
                                     section {
                                         this += FlatItemAction(
                                             icon = Icons.Outlined.AutoAwesome,
-                                            title = translate(Res.strings.autofill),
+                                            title = Res.string.autofill.wrap(),
                                             onClick = {
                                                 val extra = AppMode.Pick.Extra()
                                                 mode.onAutofill(secret, extra)
@@ -716,7 +719,7 @@ fun vaultListScreenState(
                                                     Icons.Outlined.AutoAwesome,
                                                     Icons.Outlined.Save,
                                                 ),
-                                                title = translate(Res.strings.autofill_and_save_uri),
+                                                title = Res.string.autofill_and_save_uri.wrap(),
                                                 onClick = {
                                                     val extra = AppMode.Pick.Extra(
                                                         forceAddUri = true,
@@ -734,7 +737,7 @@ fun vaultListScreenState(
                                     section {
                                         this += FlatItemAction(
                                             icon = Icons.Outlined.Info,
-                                            title = translate(Res.strings.ciphers_view_details),
+                                            title = Res.string.ciphers_view_details.wrap(),
                                             trailing = {
                                                 ChevronIcon()
                                             },
@@ -749,7 +752,7 @@ fun vaultListScreenState(
                                     section {
                                         this += FlatItemAction(
                                             icon = Icons.Outlined.Save,
-                                            title = translate(Res.strings.ciphers_save_to),
+                                            title = Res.string.ciphers_save_to.wrap(),
                                             onClick = {
                                                 val route = LeAddRoute(
                                                     args = AddRoute.Args(
@@ -771,7 +774,7 @@ fun vaultListScreenState(
                                     section {
                                         this += FlatItemAction(
                                             icon = Icons.Outlined.Info,
-                                            title = translate(Res.strings.ciphers_view_details),
+                                            title = Res.string.ciphers_view_details.wrap(),
                                             trailing = {
                                                 ChevronIcon()
                                             },
@@ -786,7 +789,7 @@ fun vaultListScreenState(
                                     section {
                                         this += FlatItemAction(
                                             icon = Icons.Outlined.Save,
-                                            title = translate(Res.strings.ciphers_save_to),
+                                            title = Res.string.ciphers_save_to.wrap(),
                                             onClick = {
                                                 mode.onComplete(secret)
                                             },
@@ -795,7 +798,7 @@ fun vaultListScreenState(
                                     section {
                                         this += FlatItemAction(
                                             icon = Icons.Outlined.Info,
-                                            title = translate(Res.strings.ciphers_view_details),
+                                            title = Res.string.ciphers_view_details.wrap(),
                                             trailing = {
                                                 ChevronIcon()
                                             },
@@ -1036,7 +1039,7 @@ fun vaultListScreenState(
             item = createComparatorAction(
                 id = "title",
                 icon = Icons.Outlined.SortByAlpha,
-                title = Res.strings.sortby_title_title,
+                title = Res.string.sortby_title_title,
                 config = ComparatorHolder(
                     comparator = AlphabeticalSort,
                     favourites = true,
@@ -1045,7 +1048,7 @@ fun vaultListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "title_normal",
-                    title = Res.strings.sortby_title_normal_mode,
+                    title = Res.string.sortby_title_normal_mode,
                     config = ComparatorHolder(
                         comparator = AlphabeticalSort,
                         favourites = true,
@@ -1053,7 +1056,7 @@ fun vaultListScreenState(
                 ),
                 createComparatorAction(
                     id = "title_rev",
-                    title = Res.strings.sortby_title_reverse_mode,
+                    title = Res.string.sortby_title_reverse_mode,
                     config = ComparatorHolder(
                         comparator = AlphabeticalSort,
                         reversed = true,
@@ -1066,7 +1069,7 @@ fun vaultListScreenState(
             item = createComparatorAction(
                 id = "modify_date",
                 icon = Icons.Outlined.CalendarMonth,
-                title = Res.strings.sortby_modification_date_title,
+                title = Res.string.sortby_modification_date_title,
                 config = ComparatorHolder(
                     comparator = LastModifiedSort,
                 ),
@@ -1074,14 +1077,14 @@ fun vaultListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "modify_date_normal",
-                    title = Res.strings.sortby_modification_date_normal_mode,
+                    title = Res.string.sortby_modification_date_normal_mode,
                     config = ComparatorHolder(
                         comparator = LastModifiedSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "modify_date_rev",
-                    title = Res.strings.sortby_modification_date_reverse_mode,
+                    title = Res.string.sortby_modification_date_reverse_mode,
                     config = ComparatorHolder(
                         comparator = LastModifiedSort,
                         reversed = true,
@@ -1093,7 +1096,7 @@ fun vaultListScreenState(
             item = createComparatorAction(
                 id = "password",
                 icon = Icons.Outlined.Password,
-                title = Res.strings.sortby_password_title,
+                title = Res.string.sortby_password_title,
                 config = ComparatorHolder(
                     comparator = PasswordSort,
                 ),
@@ -1101,14 +1104,14 @@ fun vaultListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "password_normal",
-                    title = Res.strings.sortby_password_normal_mode,
+                    title = Res.string.sortby_password_normal_mode,
                     config = ComparatorHolder(
                         comparator = PasswordSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "password_rev",
-                    title = Res.strings.sortby_password_reverse_mode,
+                    title = Res.string.sortby_password_reverse_mode,
                     config = ComparatorHolder(
                         comparator = PasswordSort,
                         reversed = true,
@@ -1120,7 +1123,7 @@ fun vaultListScreenState(
             item = createComparatorAction(
                 id = "password_last_modified_strength",
                 icon = Icons.Outlined.CalendarMonth,
-                title = Res.strings.sortby_password_modification_date_title,
+                title = Res.string.sortby_password_modification_date_title,
                 config = ComparatorHolder(
                     comparator = PasswordLastModifiedSort,
                 ),
@@ -1128,14 +1131,14 @@ fun vaultListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "password_last_modified_normal",
-                    title = Res.strings.sortby_password_modification_date_normal_mode,
+                    title = Res.string.sortby_password_modification_date_normal_mode,
                     config = ComparatorHolder(
                         comparator = PasswordLastModifiedSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "password_last_modified_rev",
-                    title = Res.strings.sortby_password_modification_date_reverse_mode,
+                    title = Res.string.sortby_password_modification_date_reverse_mode,
                     config = ComparatorHolder(
                         comparator = PasswordLastModifiedSort,
                         reversed = true,
@@ -1147,7 +1150,7 @@ fun vaultListScreenState(
             item = createComparatorAction(
                 id = "password_strength",
                 icon = Icons.Outlined.Security,
-                title = Res.strings.sortby_password_strength_title,
+                title = Res.string.sortby_password_strength_title,
                 config = ComparatorHolder(
                     comparator = PasswordStrengthSort,
                 ),
@@ -1155,14 +1158,14 @@ fun vaultListScreenState(
             subItems = listOf(
                 createComparatorAction(
                     id = "password_strength_normal",
-                    title = Res.strings.sortby_password_strength_normal_mode,
+                    title = Res.string.sortby_password_strength_normal_mode,
                     config = ComparatorHolder(
                         comparator = PasswordStrengthSort,
                     ),
                 ),
                 createComparatorAction(
                     id = "password_strength_rev",
-                    title = Res.strings.sortby_password_strength_reverse_mode,
+                    title = Res.string.sortby_password_strength_reverse_mode,
                     config = ComparatorHolder(
                         comparator = PasswordStrengthSort,
                         reversed = true,
@@ -1191,7 +1194,7 @@ fun vaultListScreenState(
             if (subItems.isNotEmpty()) {
                 out += SortItem.Section(
                     id = "sub_items_section",
-                    text = TextHolder.Res(Res.strings.options),
+                    text = TextHolder.Res(Res.string.options),
                 )
                 out += subItems
             }
@@ -1458,7 +1461,7 @@ fun vaultListScreenState(
             type: DSecret.Type,
         ) = FlatItemAction(
             leading = icon(type.iconImageVector()),
-            title = translate(type.titleH()),
+            title = type.titleH().wrap(),
             onClick = {
                 val autofill = when (mode) {
                     is AppMode.Main -> null
@@ -1808,35 +1811,37 @@ private fun hahah(
             else -> ItemDecoratorNone
         }
 
-        val items = sequence<VaultItem2> {
+        val items = run {
+            val out = mutableListOf<VaultItem2>()
             if (state.preferredList != null) {
                 // We want to show the 'No suggestions' text if the suggestions
                 // target does exist, but searching for suggestions returns no
                 // items.
                 if (state.preferredList.isEmpty()) {
-                    yield(VaultItem2.NoSuggestions)
+                    out += VaultItem2.NoSuggestions
                 }
                 state.preferredList.forEach { item ->
-                    yield(item)
+                    out += item
                 }
 
                 // A section item for all items.
                 if (state.list.isNotEmpty()) {
                     val section = VaultItem2.Section(
                         id = "preferred.end",
-                        text = TextHolder.Res(Res.strings.items_all),
+                        text = TextHolder.Res(Res.string.items_all),
                     )
-                    yield(section)
+                    out += section
                 }
             }
             state.list.forEach { item ->
                 if (!item.favourite || orderConfig?.favourites != true) {
                     val section = decorator.getOrNull(item)
-                    if (section != null) yield(section)
+                    if (section != null) out += section
                 }
-                yield(item)
+                out += item
             }
-        }.toList().ifEmpty {
+            out
+        }.ifEmpty {
             listOf(VaultItem2.NoItems)
         }
         FilteredBoo(
@@ -1858,7 +1863,7 @@ private class PasswordDecorator : Decorator {
      */
     private var lastPassword: Any? = Any()
 
-    override fun getOrNull(item: VaultItem2.Item): VaultItem2? {
+    override suspend fun getOrNull(item: VaultItem2.Item): VaultItem2? {
         val pw = item.password
         if (pw == lastPassword) {
             return null
@@ -1887,7 +1892,7 @@ private class PasswordStrengthDecorator : Decorator {
      */
     private var lastScore: Any? = Any()
 
-    override fun getOrNull(item: VaultItem2.Item): VaultItem2? {
+    override suspend fun getOrNull(item: VaultItem2.Item): VaultItem2? {
         val score = item.score?.score
         if (score == lastScore) {
             return null

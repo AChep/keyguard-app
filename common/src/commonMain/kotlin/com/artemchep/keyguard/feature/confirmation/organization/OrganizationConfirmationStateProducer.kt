@@ -33,6 +33,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.isDark
@@ -254,7 +255,7 @@ fun organizationConfirmationState(
                 OrganizationVariant(
                     accountId = account.accountId,
                     organizationId = null,
-                    name = translate(Res.strings.organization_none),
+                    name = translate(Res.string.organization_none),
                     enabled = enabled,
                 )
             }
@@ -302,7 +303,7 @@ fun organizationConfirmationState(
                     items += FolderVariant(
                         accountId = account.accountId,
                         folder = FolderVariant.FolderInfo.None,
-                        name = translate(Res.strings.folder_none),
+                        name = translate(Res.string.folder_none),
                         enabled = enabled,
                     )
                 }
@@ -312,7 +313,7 @@ fun organizationConfirmationState(
                     items += FolderVariant(
                         accountId = account.accountId,
                         folder = FolderVariant.FolderInfo.New,
-                        name = translate(Res.strings.folder_new),
+                        name = translate(Res.string.folder_new),
                         enabled = enabled,
                     )
                 }
@@ -535,7 +536,7 @@ fun organizationConfirmationState(
             .toList()
         OrganizationConfirmationState.Content.Section(
             items = items,
-            text = translate(Res.strings.destinationpicker_organization_ownership_note)
+            text = translate(Res.string.destinationpicker_organization_ownership_note)
                 .takeIf { selectedOrganizationId != null },
         )
     }

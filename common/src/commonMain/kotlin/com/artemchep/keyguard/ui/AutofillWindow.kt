@@ -48,11 +48,13 @@ import com.artemchep.keyguard.feature.generator.GeneratorState
 import com.artemchep.keyguard.feature.generator.GeneratorType
 import com.artemchep.keyguard.feature.generator.produceGeneratorState
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable
@@ -147,10 +149,10 @@ fun ColumnScope.AutofillWindow(
         },
         ifOk = { state ->
             val text = when {
-                username && password -> stringResource(Res.strings.generator_header_title)
-                username -> stringResource(Res.strings.generator_header_username_title)
-                password -> stringResource(Res.strings.generator_header_password_title)
-                else -> stringResource(Res.strings.generator_header_title)
+                username && password -> stringResource(Res.string.generator_header_title)
+                username -> stringResource(Res.string.generator_header_username_title)
+                password -> stringResource(Res.string.generator_header_password_title)
+                else -> stringResource(Res.string.generator_header_title)
             }
             Text(
                 modifier = Modifier
@@ -206,7 +208,7 @@ fun ColumnScope.AutofillWindowContent(
         Unit.takeIf { showSection },
     ) {
         Section(
-            text = stringResource(Res.strings.filter_header_title),
+            text = stringResource(Res.string.filter_header_title),
         )
     }
 
@@ -245,8 +247,6 @@ private fun ColumnScope.GeneratorValue2(
     ) { value ->
         val updatedOnRefresh by rememberUpdatedState(value.onRefresh)
 
-        val generateTitle = stringResource(Res.strings.generator_generate_button)
-        val regenerateTitle = stringResource(Res.strings.generator_regenerate_button)
         val actions by remember(valueState) {
             derivedStateOf {
                 val valueExists = !valueState.value?.password.isNullOrEmpty()
@@ -254,7 +254,7 @@ private fun ColumnScope.GeneratorValue2(
                     listOf(
                         FlatItemAction(
                             leading = icon(Icons.Outlined.Refresh),
-                            title = regenerateTitle,
+                            title = Res.string.generator_regenerate_button.wrap(),
                             onClick = {
                                 updatedOnRefresh?.invoke()
                             },
@@ -264,7 +264,7 @@ private fun ColumnScope.GeneratorValue2(
                     listOf(
                         FlatItemAction(
                             leading = icon(Icons.Outlined.Refresh),
-                            title = generateTitle,
+                            title = Res.string.generator_generate_button.wrap(),
                             onClick = {
                                 updatedOnRefresh?.invoke()
                             },
@@ -288,7 +288,7 @@ private fun ColumnScope.GeneratorValue2(
                         text = if (password.isEmpty()) {
                             val color = LocalContentColor.current
                                 .combineAlpha(DisabledEmphasisAlpha)
-                            val text = stringResource(Res.strings.empty_value)
+                            val text = stringResource(Res.string.empty_value)
                             buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(color = color),

@@ -269,8 +269,8 @@ fun InternalLazyColumnScrollbar(
                     ),
             ) {
                 indicatorContent(
-                    index = firstVisibleItemIndex.value,
-                    isThumbSelected = isSelected,
+                    firstVisibleItemIndex.value,
+                    isSelected,
                 )
             }
         }

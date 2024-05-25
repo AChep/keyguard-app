@@ -24,13 +24,14 @@ import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -107,12 +108,12 @@ private fun SettingAutofill(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_autofill_service_title),
+                text = stringResource(Res.string.pref_item_autofill_service_title),
             )
         },
         text = {
             Text(
-                text = stringResource(Res.strings.pref_item_autofill_service_text),
+                text = stringResource(Res.string.pref_item_autofill_service_text),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),
@@ -150,7 +151,7 @@ private fun SettingAutofillPlatformWarningMiui(
                 start = Dimens.horizontalPadding * 1 + 24.dp,
             ),
         type = SimpleNote.Type.INFO,
-        text = stringResource(Res.strings.pref_item_autofill_service_xiaomi_permission_note),
+        text = stringResource(Res.string.pref_item_autofill_service_xiaomi_permission_note),
         trailing = {
             val updatedContext by rememberUpdatedState(LocalContext.current)
             IconButton(

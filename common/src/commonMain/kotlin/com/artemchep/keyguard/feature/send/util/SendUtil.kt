@@ -20,11 +20,15 @@ import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.onClick
+import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -55,14 +59,14 @@ object SendUtil {
 
         val icon = icon(Icons.Outlined.Edit)
         val title = if (sends.size > 1) {
-            translate(Res.strings.sends_action_change_names_title)
+            Res.string.sends_action_change_names_title.wrap()
         } else {
-            translate(Res.strings.sends_action_change_name_title)
+            Res.string.sends_action_change_name_title.wrap()
         }
         FlatItemAction(
             leading = icon,
             title = title,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val items = sends
@@ -80,7 +84,7 @@ object SendUtil {
                     route = ConfirmationRoute(
                         args = ConfirmationRoute.Args(
                             icon = icon,
-                            title = title,
+                            title = translate(title),
                             items = items,
                         ),
                     ),
@@ -127,14 +131,14 @@ object SendUtil {
 
         val icon = iconSmall(Icons.Outlined.Attachment, Icons.Outlined.Edit)
         val title = if (sends.size > 1) {
-            translate(Res.strings.sends_action_change_filenames_title)
+            Res.string.sends_action_change_filenames_title
         } else {
-            translate(Res.strings.sends_action_change_filename_title)
-        }
+            Res.string.sends_action_change_filename_title
+        }.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val items = sends
@@ -152,7 +156,7 @@ object SendUtil {
                     route = ConfirmationRoute(
                         args = ConfirmationRoute.Args(
                             icon = icon,
-                            title = title,
+                            title = translate(title),
                             items = items,
                         ),
                     ),
@@ -178,7 +182,7 @@ object SendUtil {
     }
 
     context(RememberStateFlowScope)
-    fun changePasswordActionOrNull(
+    suspend fun changePasswordActionOrNull(
         patchSendById: PatchSendById,
         sends: List<DSend>,
         canEdit: Boolean,
@@ -194,21 +198,21 @@ object SendUtil {
         val icon = iconSmall(Icons.Outlined.Password)
         val title = if (hasPasswords) {
             if (sends.size > 1) {
-                translate(Res.strings.sends_action_change_passwords_title)
+                Res.string.sends_action_change_passwords_title
             } else {
-                translate(Res.strings.sends_action_change_password_title)
+                Res.string.sends_action_change_password_title
             }
         } else {
             if (sends.size > 1) {
-                translate(Res.strings.sends_action_set_passwords_title)
+                Res.string.sends_action_set_passwords_title
             } else {
-                translate(Res.strings.sends_action_set_password_title)
+                Res.string.sends_action_set_password_title
             }
-        }
+        }.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val items = sends
@@ -226,11 +230,11 @@ object SendUtil {
                     route = ConfirmationRoute(
                         args = ConfirmationRoute.Args(
                             icon = icon,
-                            title = title,
+                            title = translate(title),
                             message = if (hasPasswords) {
                                 null
                             } else {
-                                translate(Res.strings.sends_action_set_password_confirmation_message)
+                                translate(Res.string.sends_action_set_password_confirmation_message)
                             },
                             items = items,
                         ),
@@ -276,14 +280,14 @@ object SendUtil {
 
         val icon = iconSmall(Icons.Outlined.Password, Icons.Outlined.Remove)
         val title = if (sends.size > 1) {
-            translate(Res.strings.sends_action_remove_passwords_title)
+            Res.string.sends_action_remove_passwords_title
         } else {
-            translate(Res.strings.sends_action_remove_password_title)
-        }
+            Res.string.sends_action_remove_password_title
+        }.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val route = registerRouteResultReceiver(
@@ -291,11 +295,11 @@ object SendUtil {
                         args = ConfirmationRoute.Args(
                             icon = icon(Icons.Outlined.Password, Icons.Outlined.Remove),
                             title = if (sends.size > 1) {
-                                translate(Res.strings.sends_action_remove_passwords_confirmation_title)
+                                translate(Res.string.sends_action_remove_passwords_confirmation_title)
                             } else {
-                                translate(Res.strings.sends_action_remove_password_confirmation_title)
+                                translate(Res.string.sends_action_remove_password_confirmation_title)
                             },
-                            message = translate(Res.strings.sends_action_remove_password_confirmation_message),
+                            message = translate(Res.string.sends_action_remove_password_confirmation_message),
                         ),
                     ),
                 ) { result ->
@@ -349,7 +353,7 @@ object SendUtil {
         after: ((Boolean) -> Unit)? = null,
     ) = kotlin.run {
         val icon = iconSmall(Icons.Outlined.Email, Icons.Outlined.Visibility)
-        val title = translate(Res.strings.sends_action_show_email_title)
+        val title = Res.string.sends_action_show_email_title.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
@@ -398,7 +402,7 @@ object SendUtil {
         after: ((Boolean) -> Unit)? = null,
     ) = kotlin.run {
         val icon = iconSmall(Icons.Outlined.Email, Icons.Outlined.VisibilityOff)
-        val title = translate(Res.strings.sends_action_hide_email_title)
+        val title = Res.string.sends_action_hide_email_title.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
@@ -447,19 +451,19 @@ object SendUtil {
         after: ((Boolean) -> Unit)? = null,
     ) = kotlin.run {
         val icon = icon(Icons.Stub)
-        val title = translate(Res.strings.sends_action_enable_title)
-        val text = translate(Res.strings.sends_action_enable_text)
+        val title = Res.string.sends_action_enable_title.wrap()
+        val text = Res.string.sends_action_enable_text.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
             text = text,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val route = registerRouteResultReceiver(
                     route = ConfirmationRoute(
                         args = ConfirmationRoute.Args(
-                            title = translate(Res.strings.sends_action_enable_confirmation_title),
+                            title = translate(Res.string.sends_action_enable_confirmation_title),
                         ),
                     ),
                 ) { result ->
@@ -513,19 +517,19 @@ object SendUtil {
         after: ((Boolean) -> Unit)? = null,
     ) = kotlin.run {
         val icon = icon(Icons.Stub)
-        val title = translate(Res.strings.sends_action_disable_title)
-        val text = translate(Res.strings.sends_action_disable_text)
+        val title = Res.string.sends_action_disable_title.wrap()
+        val text = Res.string.sends_action_disable_text.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
             text = text,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val route = registerRouteResultReceiver(
                     route = ConfirmationRoute(
                         args = ConfirmationRoute.Args(
-                            title = translate(Res.strings.sends_action_disable_confirmation_title),
+                            title = translate(Res.string.sends_action_disable_confirmation_title),
                         ),
                     ),
                 ) { result ->
@@ -575,18 +579,18 @@ object SendUtil {
         after: ((Boolean) -> Unit)? = null,
     ) = kotlin.run {
         val icon = icon(Icons.Outlined.DeleteForever)
-        val title = translate(Res.strings.sends_action_delete_title)
+        val title = Res.string.sends_action_delete_title.wrap()
         FlatItemAction(
             leading = icon,
             title = title,
-            onClick = {
+            onClick = onClick {
                 before?.invoke()
 
                 val route = registerRouteResultReceiver(
                     route = ConfirmationRoute(
                         args = ConfirmationRoute.Args(
                             icon = icon(Icons.Outlined.DeleteForever),
-                            title = translate(Res.strings.sends_action_delete_confirmation_title),
+                            title = translate(Res.string.sends_action_delete_confirmation_title),
                         ),
                     ),
                 ) { result ->
@@ -638,7 +642,7 @@ object SendUtil {
     }
 
     context(RememberStateFlowScope)
-    fun actions(
+    suspend fun actions(
         toolbox: SendToolbox,
         sends: List<DSend>,
         canEdit: Boolean,

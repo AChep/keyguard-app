@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.common.service.text
 
-import dev.icerock.moko.resources.FileResource
+import com.artemchep.keyguard.common.model.FileResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 
 interface TextService {
-    fun readFromResources(
+    suspend fun readFromResources(
         fileResource: FileResource,
     ): InputStream
 

@@ -5,8 +5,11 @@ import androidx.compose.material.icons.automirrored.outlined.AddToHomeScreen
 import androidx.core.content.pm.ShortcutManagerCompat
 import com.artemchep.keyguard.android.util.ShortcutInfo
 import com.artemchep.keyguard.common.model.DCipherFilter
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.iconSmall
 
@@ -25,7 +28,7 @@ actual fun CipherFilterUtil.addShortcutActionOrNull(
     )
     return FlatItemAction(
         leading = iconSmall(Icons.AutoMirrored.Outlined.AddToHomeScreen),
-        title = translate(Res.strings.add_to_home_screen),
+        title = Res.string.add_to_home_screen.wrap(),
         onClick = {
             ShortcutManagerCompat.requestPinShortcut(androidContext, shortcut, null)
         },

@@ -14,12 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.VisibilityIcon
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.theme.Dimens
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VaultViewNoteItem(
@@ -43,9 +44,9 @@ fun VaultViewNoteItem(
                 },
                 title = {
                     val text = if (visibilityState.value) {
-                        stringResource(Res.strings.hide_secure_note)
+                        stringResource(Res.string.hide_secure_note)
                     } else {
-                        stringResource(Res.strings.reveal_secure_note)
+                        stringResource(Res.string.reveal_secure_note)
                     }
                     Text(
                         text = text,

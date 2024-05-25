@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.onboarding
 
 import androidx.compose.ui.graphics.vector.ImageVector
-import dev.icerock.moko.resources.StringResource
+import org.jetbrains.compose.resources.StringResource
 
 data class OnboardingItem(
     val title: StringResource,

@@ -17,11 +17,12 @@ import com.artemchep.keyguard.common.usecase.GetAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.PutAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -82,12 +83,12 @@ private fun SettingAutofillRespectAutofillOff(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_autofill_respect_autofill_disabled_title),
+                        text = stringResource(Res.string.pref_item_autofill_respect_autofill_disabled_title),
                     )
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_autofill_respect_autofill_disabled_text),
+                        text = stringResource(Res.string.pref_item_autofill_respect_autofill_disabled_text),
                     )
                     Spacer(
                         modifier = Modifier
@@ -97,7 +98,7 @@ private fun SettingAutofillRespectAutofillOff(
                         color = LocalContentColor.current
                             .combineAlpha(MediumEmphasisAlpha),
                         style = MaterialTheme.typography.bodySmall,
-                        text = stringResource(Res.strings.pref_item_autofill_respect_autofill_disabled_note),
+                        text = stringResource(Res.string.pref_item_autofill_respect_autofill_disabled_note),
                     )
                 },
             )

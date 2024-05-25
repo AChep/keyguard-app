@@ -17,10 +17,13 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.copy
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
@@ -116,13 +119,13 @@ fun vaultViewPasswordHistoryScreenState(
         .onEach { ids -> selectionHandle.setSelection(ids) }
         .launchIn(screenScope)
 
-    fun onDeleteByItems(
+    suspend fun onDeleteByItems(
         items: List<DSecret.Login.PasswordHistory>,
     ) {
         val title = if (items.size > 1) {
-            translate(Res.strings.passwordhistory_delete_many_confirmation_title)
+            translate(Res.string.passwordhistory_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.passwordhistory_delete_one_confirmation_title)
+            translate(Res.string.passwordhistory_delete_one_confirmation_title)
         }
         val message = items
             .joinToString(separator = "\n") { it.password }
@@ -141,11 +144,11 @@ fun vaultViewPasswordHistoryScreenState(
         navigate(intent)
     }
 
-    fun onDeleteAll() {
+    suspend fun onDeleteAll() {
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Delete),
-            title = translate(Res.strings.passwordhistory_clear_history_confirmation_title),
-            message = translate(Res.strings.passwordhistory_clear_history_confirmation_text),
+            title = translate(Res.string.passwordhistory_clear_history_confirmation_title),
+            message = translate(Res.string.passwordhistory_clear_history_confirmation_text),
         ) {
             cipherRemovePasswordHistory(
                 itemId,
@@ -171,9 +174,10 @@ fun vaultViewPasswordHistoryScreenState(
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translate(Res.strings.remove_from_history),
-                        onClick = ::onDeleteByItems
-                            .partially1(selectedItems),
+                        title = Res.string.remove_from_history.wrap(),
+                        onClick = onClick {
+                            onDeleteByItems(selectedItems)
+                        },
                     )
                 }
             }
@@ -207,7 +211,7 @@ fun vaultViewPasswordHistoryScreenState(
                         actions = buildContextItems {
                             section {
                                 this += copyFactory.FlatItemAction(
-                                    title = translate(Res.strings.copy_password),
+                                    title = Res.string.copy_password.wrap(),
                                     value = password.password,
                                     type = CopyText.Type.PASSWORD,
                                 )
@@ -216,9 +220,10 @@ fun vaultViewPasswordHistoryScreenState(
                                 )
                                 this += FlatItemAction(
                                     leading = icon(Icons.Outlined.Delete),
-                                    title = translate(Res.strings.remove_from_history),
-                                    onClick = ::onDeleteByItems
-                                        .partially1(items),
+                                    title = Res.string.remove_from_history.wrap(),
+                                    onClick = onClick {
+                                        onDeleteByItems(items)
+                                    },
                                 )
                             }
                             section {
@@ -274,8 +279,10 @@ fun vaultViewPasswordHistoryScreenState(
         persistentListOf(
             FlatItemAction(
                 icon = Icons.Outlined.Delete,
-                title = translate(Res.strings.passwordhistory_clear_history_title),
-                onClick = ::onDeleteAll,
+                title = Res.string.passwordhistory_clear_history_title.wrap(),
+                onClick = onClick {
+                    onDeleteAll()
+                },
             ),
         ),
     )

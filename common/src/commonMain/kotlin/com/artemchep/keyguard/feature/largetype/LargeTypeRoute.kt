@@ -3,12 +3,14 @@ package com.artemchep.keyguard.feature.largetype
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.DialogRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.KeyguardLargeType
 import com.artemchep.keyguard.ui.icons.icon
@@ -44,7 +46,7 @@ data class LargeTypeRoute(
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
             leading = icon(Icons.Outlined.KeyguardLargeType),
-            title = translator.translate(Res.strings.largetype_action_show_in_large_type_title),
+            title = Res.string.largetype_action_show_in_large_type_title.wrap(),
             onClick = {
                 val route = LargeTypeRoute(
                     args = Args(
@@ -83,7 +85,7 @@ data class LargeTypeRoute(
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
             leading = iconSmall(Icons.Outlined.KeyguardLargeType, Icons.Filled.Lock),
-            title = translator.translate(Res.strings.largetype_action_show_in_large_type_and_lock_title),
+            title = Res.string.largetype_action_show_in_large_type_and_lock_title.wrap(),
             onClick = {
                 val intent = NavigationIntent.NavigateToLargeType(
                     phrases = if (split) text.split(" ") else listOf(text),

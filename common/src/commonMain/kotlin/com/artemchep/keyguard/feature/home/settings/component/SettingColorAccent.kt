@@ -19,15 +19,17 @@ import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.PutColors
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.composable
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -57,7 +59,7 @@ fun settingColorAccentProvider(
         .map { colorsVariant ->
             val actionTitle = getAppColorsTitle(colorsVariant, context)
             FlatItemAction(
-                title = actionTitle,
+                title = TextHolder.Value(actionTitle),
                 onClick = {
                     putColors(colorsVariant)
                         .launchIn(windowCoroutineScope)
@@ -95,8 +97,8 @@ fun settingColorAccentProvider(
     }
 }
 
-private fun getAppColorsTitle(appColors: AppColors?, context: LeContext) = when (appColors) {
-    null -> textResource(Res.strings.follow_system_settings, context)
+private suspend fun getAppColorsTitle(appColors: AppColors?, context: LeContext) = when (appColors) {
+    null -> textResource(Res.string.follow_system_settings, context)
     else -> appColors.title
 }
 
@@ -111,7 +113,7 @@ private fun SettingFont(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.pref_item_color_accent_title),
+                        text = stringResource(Res.string.pref_item_color_accent_title),
                     )
                 },
                 text = {

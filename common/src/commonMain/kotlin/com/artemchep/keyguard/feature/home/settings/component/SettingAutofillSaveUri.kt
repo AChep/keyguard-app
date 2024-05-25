@@ -12,8 +12,9 @@ import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -79,7 +80,7 @@ private fun SettingAutofillSaveUri(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_autofill_auto_save_source_title),
+                text = stringResource(Res.string.pref_item_autofill_auto_save_source_title),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

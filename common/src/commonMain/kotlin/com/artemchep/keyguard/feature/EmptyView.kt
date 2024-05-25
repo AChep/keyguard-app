@@ -21,10 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun EmptySearchView(
@@ -91,6 +92,6 @@ private fun DefaultEmptyViewText(
 ) {
     Text(
         modifier = modifier,
-        text = stringResource(Res.strings.items_empty_label),
+        text = stringResource(Res.string.items_empty_label),
     )
 }

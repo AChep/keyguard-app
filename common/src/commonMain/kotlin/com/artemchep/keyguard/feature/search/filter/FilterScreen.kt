@@ -18,12 +18,13 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.search.filter.component.VaultHomeScreenFilterPaneNumberOfItems
 import com.artemchep.keyguard.feature.search.filter.model.FilterItemModel
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.SmallFab
 import com.artemchep.keyguard.ui.icons.IconBox
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FilterScreen(
@@ -69,7 +70,7 @@ fun FilterScreen(
                     },
                     text = {
                         Text(
-                            text = stringResource(Res.strings.reset),
+                            text = stringResource(Res.string.reset),
                         )
                     },
                     color = MaterialTheme.colorScheme.secondaryContainer,

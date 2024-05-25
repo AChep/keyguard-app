@@ -6,7 +6,7 @@ on:
     branches:
       - master
     paths:
-      - 'common/src/commonMain/resources/MR/base/*.xml'
+      - 'common/src/commonMain/composeResources/values/*.xml'
       - 'listing/google/base/*.html'
       - 'listing/google/base/*.xml'
       # Configuration.

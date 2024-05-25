@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.grid.SimpleGridLayout
@@ -32,7 +33,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,7 +131,7 @@ fun YubiKeyManual(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.addaccount2fa_yubikey_manual_text),
+            text = stringResource(Res.string.addaccount2fa_yubikey_manual_text),
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(
@@ -140,7 +141,7 @@ fun YubiKeyManual(
         FlatTextField(
             modifier = Modifier
                 .padding(horizontal = 16.dp),
-            label = stringResource(Res.strings.verification_code),
+            label = stringResource(Res.string.verification_code),
             value = fieldState.value,
             keyboardOptions = KeyboardOptions(
                 autoCorrect = true,
@@ -165,7 +166,7 @@ fun YubiKeyManual(
                 updatedOnSend(textState.value)
             },
         ) {
-            Text(stringResource(Res.strings.send))
+            Text(stringResource(Res.string.send))
         }
     }
 }

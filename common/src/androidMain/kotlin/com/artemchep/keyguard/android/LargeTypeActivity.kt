@@ -25,10 +25,11 @@ import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -119,7 +120,7 @@ private fun LargeTypeScreen(
         topBar = {
             LargeToolbar(
                 title = {
-                    Text(stringResource(Res.strings.largetype_title))
+                    Text(stringResource(Res.string.largetype_title))
                 },
                 navigationIcon = {
                     IconButton(

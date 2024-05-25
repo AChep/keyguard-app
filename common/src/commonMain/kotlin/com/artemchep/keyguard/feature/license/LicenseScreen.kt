@@ -26,6 +26,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
@@ -37,7 +38,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +54,7 @@ fun LicenseScreen() {
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.settings_open_source_licenses_header_title),
+                        text = stringResource(Res.string.settings_open_source_licenses_header_title),
                     )
                 },
                 navigationIcon = {
@@ -114,7 +115,7 @@ private fun LicenseItem(
                 title = {
                     Text(
                         text = item.name
-                            ?: stringResource(Res.strings.empty_value),
+                            ?: stringResource(Res.string.empty_value),
                         color = LocalContentColor.current
                             .let { color ->
                                 // If the name doesn't exist, then show it with

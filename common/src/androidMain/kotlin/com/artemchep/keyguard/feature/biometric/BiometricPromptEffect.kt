@@ -7,7 +7,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.withResumed
+import androidx.lifecycle.whenResumed
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.android.closestActivityOrNull
@@ -28,7 +28,7 @@ actual fun BiometricPromptEffect(
     CollectedEffect(flow) { event ->
         // We want the screen to be visible and on front, when the biometric
         // prompt is popping up.
-        lifecycle.lifecycle.withResumed {
+        lifecycle.lifecycle.whenResumed {
             val activity = context.closestActivityOrNull as FragmentActivity
             when (event) {
                 is BiometricAuthPrompt -> activity.launchPrompt(event)
@@ -38,7 +38,7 @@ actual fun BiometricPromptEffect(
     }
 }
 
-private fun FragmentActivity.launchPrompt(
+private suspend fun FragmentActivity.launchPrompt(
     event: BiometricAuthPrompt,
 ) {
     val promptTitle = textResource(event.title, this)
@@ -77,7 +77,7 @@ private fun FragmentActivity.launchPrompt(
     prompt.authenticate(promptInfo, crypto)
 }
 
-private fun FragmentActivity.launchPrompt(
+private suspend fun FragmentActivity.launchPrompt(
     event: BiometricAuthPromptSimple,
 ) {
     val promptTitle = textResource(event.title, this)

@@ -127,18 +127,22 @@ import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachme
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.copy
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.provider.bitwarden.usecase.autofill
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
@@ -261,7 +265,7 @@ fun produceAddScreenState(
         val ciphersHaveAttachments = args.merge.ciphers.any { it.attachments.isNotEmpty() }
         val note = when {
             ciphersHaveAttachments -> {
-                val text = translate(Res.strings.additem_merge_attachments_note)
+                val text = translate(Res.string.additem_merge_attachments_note)
                 SimpleNote(
                     text = text,
                     type = SimpleNote.Type.INFO,
@@ -346,7 +350,7 @@ fun produceAddScreenState(
 
             val header = AddStateItem.Section(
                 id = "passkey.section",
-                text = translate(Res.strings.passkeys),
+                text = translate(Res.string.passkeys),
             )
             add(0, header)
         },
@@ -377,7 +381,7 @@ fun produceAddScreenState(
         afterList = {
             val header = AddStateItem.Section(
                 id = "uri.section",
-                text = translate(Res.strings.uris),
+                text = translate(Res.string.uris),
             )
             add(0, header)
         },
@@ -389,7 +393,7 @@ fun produceAddScreenState(
                     listOf(
                         Foo2Type(
                             type = "uri",
-                            name = translate(Res.strings.uri),
+                            name = translate(Res.string.uri),
                         ),
                     ),
                 ),
@@ -446,13 +450,13 @@ fun produceAddScreenState(
 
             val header = AddStateItem.Section(
                 id = "attachment.section",
-                text = translate(Res.strings.attachments),
+                text = translate(Res.string.attachments),
             )
             add(0, header)
         },
         extra = {
             val action = FlatItemAction(
-                title = "Attachment",
+                title = TextHolder.Value("Attachment"),
                 onClick = {
                     val intent = FilePickerIntent.OpenDocument { info ->
                         val msg = ToastMessage(
@@ -479,7 +483,7 @@ fun produceAddScreenState(
             )
             val item = AddStateItem.Add(
                 id = "attachment.add",
-                text = translate(Res.strings.list_add),
+                text = translate(Res.string.list_add),
                 actions = persistentListOf(action),
             )
             flowOf(emptyList())
@@ -542,8 +546,8 @@ fun produceAddScreenState(
     val reprompt =
         AddStateItem.Switch(
             id = "reprompt",
-            title = translate(Res.strings.additem_auth_reprompt_title),
-            text = translate(Res.strings.additem_auth_reprompt_text),
+            title = translate(Res.string.additem_auth_reprompt_title),
+            text = translate(Res.string.additem_auth_reprompt_text),
             state = LocalStateItem<SwitchFieldModel, CreateRequest>(
                 flow = kotlin.run {
                     val sink = mutablePersistedFlow("reprompt") {
@@ -578,8 +582,8 @@ fun produceAddScreenState(
                         .map { model ->
                             FlatItemAction(
                                 id = item.id,
-                                title = item.title,
-                                text = item.text,
+                                title = item.title.let(TextHolder::Value),
+                                text = item.text?.let(TextHolder::Value),
                                 leading = icon(Icons.Outlined.Password),
                                 trailing = {
                                     Switch(
@@ -628,7 +632,7 @@ fun produceAddScreenState(
         afterList = {
             val header = AddStateItem.Section(
                 id = "field.section",
-                text = translate(Res.strings.custom_fields),
+                text = translate(Res.string.custom_fields),
             )
             add(0, header)
         },
@@ -640,15 +644,15 @@ fun produceAddScreenState(
                     .map { type ->
                         val textType = Foo2Type(
                             type = "field.text",
-                            name = translate(Res.strings.field_type_text),
+                            name = translate(Res.string.field_type_text),
                         )
                         val booleanType = Foo2Type(
                             type = "field.boolean",
-                            name = translate(Res.strings.field_type_boolean),
+                            name = translate(Res.string.field_type_boolean),
                         )
                         val linkedIdType = Foo2Type(
                             type = "field.linked_id",
-                            name = translate(Res.strings.field_type_linked),
+                            name = translate(Res.string.field_type_linked),
                         )
                         when (type) {
                             DSecret.Type.Login,
@@ -743,11 +747,11 @@ fun produceAddScreenState(
         }
 
     val title = if (args.merge != null) {
-        translate(Res.strings.additem_header_merge_title)
+        translate(Res.string.additem_header_merge_title)
     } else if (args.ownershipRo) {
-        translate(Res.strings.additem_header_edit_title)
+        translate(Res.string.additem_header_edit_title)
     } else {
-        translate(Res.strings.additem_header_new_title)
+        translate(Res.string.additem_header_new_title)
     }
     val itfff = combine(
         typeItemsFlow,
@@ -962,7 +966,7 @@ class AddStateItemUriFactory(
 
         val actionsAppPickerItem = FlatItemAction(
             leading = icon(Icons.Outlined.Apps),
-            title = translate(Res.strings.uri_match_app_title),
+            title = Res.string.uri_match_app_title.wrap(),
             trailing = {
                 ChevronIcon()
             },
@@ -983,12 +987,11 @@ class AddStateItemUriFactory(
         // match type via an option.
         val actionsMatchTypeItemFlow = matchTypeSink
             .map { selectedMatchType ->
-                val text = translate(selectedMatchType.titleH())
                 FlatItemAction(
                     leading = icon(Icons.Stub),
-                    title = translate(Res.strings.uri_match_detection_title),
-                    text = text,
-                    onClick = {
+                    title = Res.string.uri_match_detection_title.wrap(),
+                    text = selectedMatchType.titleH().wrap(),
+                    onClick = onClick {
                         val items = DSecret.Uri.MatchType.entries
                             .map { type ->
                                 val typeTitle = translate(type.titleH())
@@ -1004,32 +1007,32 @@ class AddStateItemUriFactory(
                                 items = items,
                                 docs = mapOf(
                                     DSecret.Uri.MatchType.Domain.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.strings.uri_match_detection_domain_note),
+                                        text = translate(Res.string.uri_match_detection_domain_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#base-domain",
                                     ),
                                     DSecret.Uri.MatchType.Host.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.strings.uri_match_detection_host_note),
+                                        text = translate(Res.string.uri_match_detection_host_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#host",
                                     ),
                                     DSecret.Uri.MatchType.StartsWith.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.strings.uri_match_detection_startswith_note),
+                                        text = translate(Res.string.uri_match_detection_startswith_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#starts-with",
                                     ),
                                     DSecret.Uri.MatchType.Exact.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.strings.uri_match_detection_exact_note),
+                                        text = translate(Res.string.uri_match_detection_exact_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
                                     ),
                                     DSecret.Uri.MatchType.RegularExpression.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.strings.uri_match_detection_regex_note),
+                                        text = translate(Res.string.uri_match_detection_regex_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
                                     ),
                                     DSecret.Uri.MatchType.Never.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.strings.uri_match_detection_never_note),
+                                        text = translate(Res.string.uri_match_detection_never_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#exact",
                                     ),
                                 ),
                             ),
-                            title = translate(Res.strings.uri_match_detection_title),
+                            title = translate(Res.string.uri_match_detection_title),
                         ) { newMatchTypeKey ->
                             matchTypeSink.value =
                                 DSecret.Uri.MatchType.valueOf(newMatchTypeKey)
@@ -1075,7 +1078,7 @@ class AddStateItemUriFactory(
                         if (isUnsecure) {
                             TextFieldModel2.Vl(
                                 type = TextFieldModel2.Vl.Type.WARNING,
-                                text = translate(Res.strings.uri_unsecure),
+                                text = translate(Res.string.uri_unsecure),
                             )
                         } else {
                             null
@@ -1353,7 +1356,7 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
                             )
                         }
                     },
-                    title = "Conceal value",
+                    title = TextHolder.Value("Conceal value"),
                     trailing = {
                         Checkbox(
                             checked = conceal,
@@ -1505,7 +1508,7 @@ class AddStateItemFieldLinkedIdFactory(
                             onClick = null,
                         )
                     },
-                    title = translate(actionLinkedId.titleH()),
+                    title = actionLinkedId.titleH().wrap(),
                     onClick = {
                         valueSink.value = actionLinkedId
                     },
@@ -1576,14 +1579,14 @@ data class Foo2InitialState<Argument>(
     )
 }
 
-fun <T, Argument> RememberStateFlowScope.foo3(
+suspend fun <T, Argument> RememberStateFlowScope.foo3(
     logRepository: LogRepository,
     scope: String,
     initial: List<Argument>,
     initialType: (Argument) -> String,
     factories: List<Foo2Factory<T, Argument>>,
-    afterList: MutableList<AddStateItem>.() -> Unit,
-    extra: FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
+    afterList: suspend MutableList<AddStateItem>.() -> Unit,
+    extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
         flowOf(emptyList())
     },
 ): Flow<List<AddStateItem>> where T : AddStateItem, T : AddStateItem.HasOptions<T> {
@@ -1624,12 +1627,12 @@ fun <T, Argument> RememberStateFlowScope.foo3(
         }
 }
 
-fun <T, Argument> RememberStateFlowScope.foo2(
+suspend fun <T, Argument> RememberStateFlowScope.foo2(
     scope: String,
     initialState: Foo2InitialState<Argument>,
     factories: List<Foo2Factory<T, Argument>>,
-    afterList: MutableList<AddStateItem>.() -> Unit,
-    extra: FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
+    afterList: suspend MutableList<AddStateItem>.() -> Unit,
+    extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
         flowOf(emptyList())
     },
 ): Flow<List<AddStateItem>> where T : AddStateItem, T : AddStateItem.HasOptions<T> {
@@ -1676,7 +1679,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
         val actions = buildContextItems {
             types.forEach { type ->
                 this += FlatItemAction(
-                    title = type.name,
+                    title = TextHolder.Value(type.name),
                     onClick = ::add
                         .partially1(type.type)
                         .partially1(null),
@@ -1685,20 +1688,20 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
         }
         AddStateItem.Add(
             id = "$scope.add",
-            text = translator.translate(Res.strings.list_add),
+            text = translator.translate(Res.string.list_add),
             actions = actions,
         )
     }
     .map { listOfNotNull(it) }
 
-fun <T, Argument> RememberStateFlowScope.foo(
+suspend fun <T, Argument> RememberStateFlowScope.foo(
     // scope name,
     scope: String,
     initialState: Foo2InitialState<Argument>,
     entryAdd: RememberStateFlowScope.(Foo2Persistable, Argument?) -> T,
     entryRelease: RememberStateFlowScope.(Foo2Persistable) -> Unit,
-    afterList: MutableList<AddStateItem>.() -> Unit,
-    extra: FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
+    afterList: suspend MutableList<AddStateItem>.() -> Unit,
+    extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
         flowOf(emptyList())
     },
 ): Flow<List<AddStateItem>> where T : AddStateItem, T : AddStateItem.HasOptions<T> {
@@ -1827,24 +1830,24 @@ fun <T, Argument> RememberStateFlowScope.foo(
                     if (index > 0) {
                         this += FlatItemAction(
                             icon = Icons.Outlined.ArrowUpward,
-                            title = translate(Res.strings.list_move_up),
+                            title = Res.string.list_move_up.wrap(),
                             onClick = ::moveUp.partially1(entry.key),
                         )
                     }
                     if (index < state.size - 1) {
                         this += FlatItemAction(
                             icon = Icons.Outlined.ArrowDownward,
-                            title = translate(Res.strings.list_move_down),
+                            title = Res.string.list_move_down.wrap(),
                             onClick = ::moveDown.partially1(entry.key),
                         )
                     }
                     this += FlatItemAction(
                         icon = Icons.Outlined.DeleteForever,
-                        title = translate(Res.strings.list_remove),
-                        onClick = {
+                        title = Res.string.list_remove.wrap(),
+                        onClick = onClick {
                             val intent = createConfirmationDialogIntent(
                                 icon = icon(Icons.Outlined.DeleteForever),
-                                title = translate(Res.strings.list_remove_confirmation_title),
+                                title = translate(Res.string.list_remove_confirmation_title),
                             ) {
                                 delete(entry.key)
                             }
@@ -1864,7 +1867,8 @@ fun <T, Argument> RememberStateFlowScope.foo(
             .widen<AddStateItem, T>()
             .toMutableList()
         out += customItems
-        out.apply(afterList)
+        afterList(out)
+        out
     }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L), replay = 1)
 }
@@ -1920,7 +1924,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         if (organizationId == null) {
             val item = AddStateOwnership.Element.Item(
                 key = "organization.empty",
-                title = translate(Res.strings.organization_none),
+                title = translate(Res.string.organization_none),
                 stub = true,
             )
             val el = AddStateOwnership.Element(
@@ -1994,7 +1998,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             is FolderInfo.None -> {
                 val item = AddStateOwnership.Element.Item(
                     key = "folder.empty",
-                    title = translate(Res.strings.folder_none),
+                    title = translate(Res.string.folder_none),
                     stub = true,
                 )
                 val el = AddStateOwnership.Element(
@@ -2069,12 +2073,12 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             organization = organization.element.takeIf { account.value != null },
             collection = collection.element.takeIf { account.value != null },
             folder = folder.element,
-            onClick = {
+            onClick = onClick {
                 val route = registerRouteResultReceiver(
                     route = OrganizationConfirmationRoute(
                         args = OrganizationConfirmationRoute.Args(
                             decor = OrganizationConfirmationRoute.Args.Decor(
-                                title = translate(Res.strings.save_to),
+                                title = translate(Res.string.save_to),
                                 icon = Icons.Outlined.AccountBox,
                             ),
                             flags = flags,
@@ -2570,7 +2574,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
                     val badge = if (!isValid) {
                         TextFieldModel2.Vl(
                             type = TextFieldModel2.Vl.Type.WARNING,
-                            text = translate(Res.strings.error_invalid_card_number),
+                            text = translate(Res.string.error_invalid_card_number),
                         )
                     } else {
                         null
@@ -2613,7 +2617,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
     val card = args.initialValue?.card
     val number = createItem4(
         key = "number",
-        label = translate(Res.strings.card_number),
+        label = translate(Res.string.card_number),
         initialValue = card?.number,
         keyboardOptions = KeyboardOptions(
             autoCorrect = false,
@@ -2657,7 +2661,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
     )
     val cardholderName = createItem(
         key = "cardholderName",
-        label = translate(Res.strings.cardholder_name),
+        label = translate(Res.string.cardholder_name),
         initialValue = card?.cardholderName,
         singleLine = true,
         lens = CreateRequest.card.cardholderName,
@@ -2675,7 +2679,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         .toPersistentList()
     val brand = createItem(
         key = "brand",
-        label = translate(Res.strings.card_type),
+        label = translate(Res.string.card_type),
         initialValue = card?.brand,
         singleLine = true,
         hint = brandAutocompleteVariants
@@ -2693,7 +2697,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
     val fromDate = createItem2(
         prefix = prefix,
         key = "from",
-        label = translate(Res.strings.valid_from),
+        label = translate(Res.string.valid_from),
         initialMonth = card?.fromMonth,
         initialYear = card?.fromYear,
         populator = {
@@ -2732,7 +2736,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
     val expDate = createItem2(
         prefix = prefix,
         key = "exp",
-        label = translate(Res.strings.expiry_date),
+        label = translate(Res.string.expiry_date),
         initialMonth = card?.expMonth,
         initialYear = card?.expYear,
         populator = {
@@ -2770,7 +2774,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
 //    )
     val code = createItem(
         key = "code",
-        label = translate(Res.strings.card_cvv),
+        label = translate(Res.string.card_cvv),
         hint = "111",
         initialValue = card?.code,
         singleLine = true,
@@ -2861,7 +2865,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     val identity = args.initialValue?.identity
     val title = createItem(
         key = "title",
-        label = translate(Res.strings.identity_title),
+        label = translate(Res.string.identity_title),
         initialValue = identity?.title,
         singleLine = true,
         lens = CreateRequest.identity.title,
@@ -2875,7 +2879,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val firstName = createItem(
         key = "firstName",
-        label = translate(Res.strings.identity_first_name),
+        label = translate(Res.string.identity_first_name),
         initialValue = identity?.firstName ?: args.autofill?.personName,
         singleLine = true,
         lens = CreateRequest.identity.firstName,
@@ -2889,7 +2893,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val middleName = createItem(
         key = "middleName",
-        label = translate(Res.strings.identity_middle_name),
+        label = translate(Res.string.identity_middle_name),
         initialValue = identity?.middleName,
         singleLine = true,
         lens = CreateRequest.identity.middleName,
@@ -2903,7 +2907,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val lastName = createItem(
         key = "lastName",
-        label = translate(Res.strings.identity_last_name),
+        label = translate(Res.string.identity_last_name),
         initialValue = identity?.lastName,
         singleLine = true,
         lens = CreateRequest.identity.lastName,
@@ -2917,7 +2921,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val address1 = createItem(
         key = "address1",
-        label = translate(Res.strings.address1),
+        label = translate(Res.string.address1),
         initialValue = identity?.address1,
         singleLine = true,
         lens = CreateRequest.identity.address1,
@@ -2931,7 +2935,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val address2 = createItem(
         key = "address2",
-        label = translate(Res.strings.address2),
+        label = translate(Res.string.address2),
         initialValue = identity?.address2,
         singleLine = true,
         lens = CreateRequest.identity.address2,
@@ -2945,7 +2949,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val address3 = createItem(
         key = "address3",
-        label = translate(Res.strings.address3),
+        label = translate(Res.string.address3),
         initialValue = identity?.address3,
         singleLine = true,
         lens = CreateRequest.identity.address3,
@@ -2959,7 +2963,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val city = createItem(
         key = "city",
-        label = translate(Res.strings.city),
+        label = translate(Res.string.city),
         initialValue = identity?.city,
         singleLine = true,
         lens = CreateRequest.identity.city,
@@ -2973,7 +2977,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val state = createItem(
         key = "state",
-        label = translate(Res.strings.state),
+        label = translate(Res.string.state),
         initialValue = identity?.state,
         singleLine = true,
         lens = CreateRequest.identity.state,
@@ -2987,7 +2991,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val postalCode = createItem(
         key = "postalCode",
-        label = translate(Res.strings.postal_code),
+        label = translate(Res.string.postal_code),
         initialValue = identity?.postalCode,
         singleLine = true,
         lens = CreateRequest.identity.postalCode,
@@ -3001,7 +3005,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val country = createItem(
         key = "country",
-        label = translate(Res.strings.country),
+        label = translate(Res.string.country),
         initialValue = identity?.country,
         singleLine = true,
         lens = CreateRequest.identity.country,
@@ -3015,7 +3019,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val company = createItem(
         key = "company",
-        label = translate(Res.strings.company),
+        label = translate(Res.string.company),
         initialValue = identity?.company,
         singleLine = true,
         lens = CreateRequest.identity.company,
@@ -3029,7 +3033,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val email = createItem(
         key = "email",
-        label = translate(Res.strings.email),
+        label = translate(Res.string.email),
         initialValue = args.autofill?.email ?: identity?.email,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -3047,7 +3051,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val phone = createItem(
         key = "phone",
-        label = translate(Res.strings.phone_number),
+        label = translate(Res.string.phone_number),
         initialValue = args.autofill?.phone ?: identity?.phone,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -3065,7 +3069,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val ssn = createItem(
         key = "ssn",
-        label = translate(Res.strings.ssn),
+        label = translate(Res.string.ssn),
         initialValue = identity?.ssn,
         singleLine = true,
         lens = CreateRequest.identity.ssn,
@@ -3079,7 +3083,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val username = createItem(
         key = "username",
-        label = translate(Res.strings.username),
+        label = translate(Res.string.username),
         initialValue = args.autofill?.username ?: identity?.username,
         singleLine = true,
         lens = CreateRequest.identity.username,
@@ -3093,7 +3097,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val passportNumber = createItem(
         key = "passportNumber",
-        label = translate(Res.strings.passport_number),
+        label = translate(Res.string.passport_number),
         initialValue = identity?.passportNumber,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -3110,7 +3114,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val licenseNumber = createItem(
         key = "licenseNumber",
-        label = translate(Res.strings.license_number),
+        label = translate(Res.string.license_number),
         initialValue = identity?.licenseNumber,
         singleLine = true,
         lens = CreateRequest.identity.licenseNumber,
@@ -3207,7 +3211,7 @@ private suspend fun RememberStateFlowScope.produceNoteState(
                     val model = TextFieldModel2(
                         state = state,
                         text = value,
-                        hint = translate(Res.strings.additem_note_placeholder),
+                        hint = translate(Res.string.additem_note_placeholder),
                         onChange = state::value::set,
                     )
                     model

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -36,7 +37,7 @@ import com.artemchep.keyguard.ui.animatedConcealedText
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -97,7 +98,7 @@ fun VaultViewValueItem(
                             modifier = Modifier
                                 .animateContentSize()
                                 .alpha(MediumEmphasisAlpha),
-                            text = stringResource(Res.strings.empty_value),
+                            text = stringResource(Res.string.empty_value),
                             fontFamily = if (item.monospace) monoFontFamily else null,
                         )
                     }

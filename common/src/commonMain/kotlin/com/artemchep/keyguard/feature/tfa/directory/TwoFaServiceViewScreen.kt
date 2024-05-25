@@ -35,6 +35,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -49,7 +50,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TwoFaServiceViewDialogScreen(
@@ -90,7 +91,7 @@ fun TwoFaServiceViewDialogScreen(
             }
 
             Text(
-                text = stringResource(Res.strings.tfa_directory_title),
+                text = stringResource(Res.string.tfa_directory_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
@@ -118,7 +119,7 @@ fun TwoFaServiceViewDialogScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
         },
     )
@@ -211,7 +212,7 @@ fun ColumnScope.Content(
     val websiteUrl = state?.model?.url
     if (websiteUrl != null) {
         FlatLaunchBrowserItem(
-            title = stringResource(Res.strings.uri_action_launch_website_title),
+            title = stringResource(Res.string.uri_action_launch_website_title),
             url = websiteUrl,
         )
     }
@@ -219,7 +220,7 @@ fun ColumnScope.Content(
     val documentationUrl = state?.model?.documentation
     if (documentationUrl != null) {
         FlatLaunchBrowserItem(
-            title = stringResource(Res.strings.uri_action_launch_docs_title),
+            title = stringResource(Res.string.uri_action_launch_docs_title),
             url = documentationUrl,
         )
     }

@@ -15,9 +15,10 @@ import com.artemchep.keyguard.common.usecase.GetConcealFields
 import com.artemchep.keyguard.common.usecase.PutConcealFields
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.IconBox
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -82,12 +83,12 @@ private fun SettingScreenshotsFields(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_conceal_fields_title),
+                text = stringResource(Res.string.pref_item_conceal_fields_title),
             )
         },
         text = {
             Text(
-                text = stringResource(Res.strings.pref_item_conceal_fields_text),
+                text = stringResource(Res.string.pref_item_conceal_fields_text),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

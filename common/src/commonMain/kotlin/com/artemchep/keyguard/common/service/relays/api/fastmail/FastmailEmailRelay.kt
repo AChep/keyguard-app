@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelaySchema
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import io.ktor.client.HttpClient
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -34,7 +35,7 @@ class FastmailEmailRelay(
 
     override val schema = persistentMapOf(
         KEY_API_KEY to EmailRelaySchema(
-            title = TextHolder.Res(Res.strings.api_key),
+            title = TextHolder.Res(Res.string.api_key),
             hint = TextHolder.Value(HINT_API_KEY),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Token,
             canBeEmpty = false,

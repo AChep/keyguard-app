@@ -23,11 +23,12 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetTheme
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.monet.ColorSchemeFactory
 import com.artemchep.keyguard.ui.theme.monet.darkMonetCompatScheme
 import com.artemchep.keyguard.ui.theme.monet.lightMonetCompatScheme
-import dev.icerock.moko.resources.compose.fontFamilyResource
 import dev.kdrag0n.colorkt.rgb.LinearSrgb
+import org.jetbrains.compose.resources.Font
 import org.kodein.di.compose.rememberInstance
 
 val ColorScheme.selectedContainer
@@ -237,7 +238,7 @@ val sansFontFamily: FontFamily
 
 val robotoMonoFontFamily: FontFamily
     @Composable
-    get() = fontFamilyResource(Res.fonts.RobotoMono.robotoMono)
+    get() = FontFamily(Font(Res.font.RobotoMono))
 
 val robotoSansFontFamily: FontFamily
     @Composable
@@ -247,12 +248,12 @@ val robotoSansFontFamily: FontFamily
             getFont()
         }.collectAsState(null)
         val res = when (font.value) {
-            AppFont.ROBOTO -> Res.fonts.Roboto.regular
-            AppFont.NOTO -> Res.fonts.NotoSans.regular
-            AppFont.ATKINSON_HYPERLEGIBLE -> Res.fonts.AtkinsonHyperlegible.regular
-            null -> Res.fonts.Roboto.regular
+            AppFont.ROBOTO -> Res.font.Roboto_Regular
+            AppFont.NOTO -> Res.font.NotoSans_Regular
+            AppFont.ATKINSON_HYPERLEGIBLE -> Res.font.AtkinsonHyperlegible_Regular
+            null -> Res.font.Roboto_Regular
         }
-        return fontFamilyResource(res)
+        return FontFamily(Font(res))
     }
 
 @Composable

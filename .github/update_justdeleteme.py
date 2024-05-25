@@ -31,5 +31,5 @@ for site in response.json():
 
 aggr_text = json.dumps(aggr, indent=2)
 
-with open('common/src/commonMain/resources/MR/files/justdeleteme.json', 'w') as f:
+with open('common/src/commonMain/composeResources/files/justdeleteme.json', 'w') as f:
     f.write(aggr_text)

@@ -25,11 +25,15 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
@@ -81,7 +85,7 @@ fun produceEmailRelayListState(
 ) {
     val selectionHandle = selectionHandle("selection")
 
-    fun onEdit(model: EmailRelay, entity: DGeneratorEmailRelay?) {
+    suspend fun onEdit(model: EmailRelay, entity: DGeneratorEmailRelay?) {
         val keyName = "name"
 
         val items2 = model
@@ -105,7 +109,7 @@ fun produceEmailRelayListState(
                     key = keyName,
                     value = entity?.name
                         ?: model.name,
-                    title = translate(Res.strings.generic_name),
+                    title = translate(Res.string.generic_name),
                 )
                 out += it
                 out
@@ -122,7 +126,7 @@ fun produceEmailRelayListState(
                         },
                     ),
                     title = model.name,
-                    subtitle = translate(Res.strings.emailrelay_integration_title),
+                    subtitle = translate(Res.string.emailrelay_integration_title),
                     items = items2,
                     docUrl = model.docUrl,
                 ),
@@ -156,9 +160,9 @@ fun produceEmailRelayListState(
         navigate(intent)
     }
 
-    fun onNew(model: EmailRelay) = onEdit(model, null)
+    suspend fun onNew(model: EmailRelay) = onEdit(model, null)
 
-    fun onDuplicate(entity: DGeneratorEmailRelay) {
+    suspend fun onDuplicate(entity: DGeneratorEmailRelay) {
         val createdAt = Clock.System.now()
         val model = entity.copy(
             id = null,
@@ -168,13 +172,13 @@ fun produceEmailRelayListState(
             .launchIn(appScope)
     }
 
-    fun onDeleteByItems(
+    suspend fun onDeleteByItems(
         items: List<DGeneratorEmailRelay>,
     ) {
         val title = if (items.size > 1) {
-            translate(Res.strings.emailrelay_delete_many_confirmation_title)
+            translate(Res.string.emailrelay_delete_many_confirmation_title)
         } else {
-            translate(Res.strings.emailrelay_delete_one_confirmation_title)
+            translate(Res.string.emailrelay_delete_one_confirmation_title)
         }
         val message = items
             .joinToString(separator = "\n") { it.name }
@@ -197,12 +201,13 @@ fun produceEmailRelayListState(
             val key = emailRelay.type
             FlatItemAction(
                 id = key,
-                title = emailRelay.name,
-                onClick = ::onNew
-                    .partially1(emailRelay),
+                title = TextHolder.Value(emailRelay.name),
+                onClick = onClick {
+                    onNew(emailRelay)
+                },
             )
         }
-        .sortedWith(StringComparatorIgnoreCase { it.title })
+        .sortedWith(StringComparatorIgnoreCase { it.let { it.title as TextHolder.Value }.data })
         .toImmutableList()
 
     val itemsRawFlow = getEmailRelays()
@@ -240,9 +245,10 @@ fun produceEmailRelayListState(
                 section {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translate(Res.strings.delete),
-                        onClick = ::onDeleteByItems
-                            .partially1(selectedItems),
+                        title = Res.string.delete.wrap(),
+                        onClick = onClick {
+                            onDeleteByItems(selectedItems)
+                        },
                     )
                 }
             }
@@ -273,23 +279,28 @@ fun produceEmailRelayListState(
                             if (relay != null) {
                                 this += FlatItemAction(
                                     icon = Icons.Outlined.Edit,
-                                    title = translate(Res.strings.edit),
-                                    onClick = ::onEdit
-                                        .partially1(relay)
-                                        .partially1(it),
+                                    title = Res.string.edit.wrap(),
+                                    onClick = onClick {
+                                        onEdit(
+                                            model = relay,
+                                            entity = it,
+                                        )
+                                    },
                                 )
                             }
                             this += FlatItemAction(
                                 icon = Icons.Outlined.CopyAll,
-                                title = translate(Res.strings.duplicate),
-                                onClick = ::onDuplicate
-                                    .partially1(it),
+                                title = Res.string.duplicate.wrap(),
+                                onClick = onClick {
+                                    onDuplicate(it)
+                                },
                             )
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Delete,
-                                title = translate(Res.strings.delete),
-                                onClick = ::onDeleteByItems
-                                    .partially1(listOf(it)),
+                                title = Res.string.delete.wrap(),
+                                onClick = onClick {
+                                    onDeleteByItems(listOf(it))
+                                },
                             )
                         }
                     }

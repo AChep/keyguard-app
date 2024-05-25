@@ -49,6 +49,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
@@ -61,7 +62,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConfirmationScreen(
@@ -149,7 +150,7 @@ fun ConfirmationScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(Res.strings.uri_action_launch_docs_title),
+                        text = stringResource(Res.string.uri_action_launch_docs_title),
                     )
                 }
                 Spacer(
@@ -166,7 +167,7 @@ fun ConfirmationScreen(
                     updatedOnDeny?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.cancel))
+                Text(stringResource(Res.string.cancel))
             }
             TextButton(
                 enabled = state.onConfirm != null,
@@ -174,7 +175,7 @@ fun ConfirmationScreen(
                     updatedOnConfirm?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )
@@ -398,7 +399,7 @@ private fun ConfirmationEnumItem(
                     },
                 ) {
                     Text(
-                        text = stringResource(Res.strings.learn_more),
+                        text = stringResource(Res.string.learn_more),
                     )
                 }
             }
@@ -485,7 +486,7 @@ private fun ConfirmationFileItem(
                 }
             } else {
                 Text(
-                    text = stringResource(Res.strings.select_file),
+                    text = stringResource(Res.string.select_file),
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalContentColor.current
                         .combineAlpha(MediumEmphasisAlpha),

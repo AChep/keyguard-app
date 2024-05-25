@@ -23,8 +23,10 @@ import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.concealedText
 import kotlinx.collections.immutable.toImmutableList
@@ -214,18 +216,18 @@ private suspend fun DSecret.createLogin(
 ): TypeSpecific {
     val actions = listOfNotNull(
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_username),
+            title = Res.string.copy_username.wrap(),
             value = login?.username,
         ),
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_password),
+            title = Res.string.copy_password.wrap(),
             value = login?.password,
             hidden = concealFields,
         ),
         login?.totp?.run {
             FlatItemAction(
                 icon = Icons.Outlined.ContentCopy,
-                title = translator.translate(Res.strings.copy_otp_code),
+                title = Res.string.copy_otp_code.wrap(),
                 trailing = {
                     Row {
                         VaultViewTotpBadge(
@@ -265,12 +267,12 @@ private fun DSecret.createCard(
 ): TypeSpecific {
     val actions = listOfNotNull(
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_card_number),
+            title = Res.string.copy_card_number.wrap(),
             value = card?.number,
             hidden = concealFields,
         ),
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_cvv_code),
+            title = Res.string.copy_cvv_code.wrap(),
             value = card?.code,
             hidden = concealFields,
         ),
@@ -292,20 +294,20 @@ private fun DSecret.createIdentity(
 ): TypeSpecific {
     val actions = listOfNotNull(
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_phone_number),
+            title = Res.string.copy_phone_number.wrap(),
             value = identity?.phone,
         ),
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_email),
+            title = Res.string.copy_email.wrap(),
             value = identity?.email,
         ),
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_passport_number),
+            title = Res.string.copy_passport_number.wrap(),
             value = identity?.passportNumber,
             hidden = concealFields,
         ),
         copy.FlatItemAction(
-            title = translator.translate(Res.strings.copy_license_number),
+            title = Res.string.copy_license_number.wrap(),
             value = identity?.licenseNumber,
             hidden = concealFields,
         ),

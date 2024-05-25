@@ -1,46 +1,42 @@
 package com.artemchep.keyguard.feature.home.settings.other
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.artemchep.keyguard.feature.home.settings.Setting
 import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.compose.stringResource
+import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OtherSettingsScreen() {
-    SettingPaneContent(
-        title = stringResource(Res.strings.settings_other_header_title),
-        items = listOf(
+    val items = remember {
+        persistentListOf(
             SettingPaneItem.Group(
                 key = "features",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.FEATURES_OVERVIEW),
                 ),
             ),
             SettingPaneItem.Group(
                 key = "other",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.URL_OVERRIDE),
                 ),
             ),
             SettingPaneItem.Group(
                 key = "security",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.CRASHLYTICS),
                     SettingPaneItem.Item(Setting.DATA_SAFETY),
                     SettingPaneItem.Item(Setting.PERMISSION_DETAILS),
                 ),
             ),
-//            SettingPaneItem.Group(
-//                key = "exp",
-//                list = listOf(
-//                    SettingPaneItem.Item(Setting.EXPERIMENTAL),
-//                ),
-//            ),
             SettingPaneItem.Group(
                 key = "social",
-                list = listOf(
+                list = persistentListOf(
                     SettingPaneItem.Item(Setting.RATE_APP),
                     SettingPaneItem.Item(Setting.ABOUT_TEAM),
                     SettingPaneItem.Item(Setting.REDDIT),
@@ -55,6 +51,10 @@ fun OtherSettingsScreen() {
             SettingPaneItem.Item(Setting.ABOUT_APP_BUILD_DATE),
             SettingPaneItem.Item(Setting.ABOUT_APP_BUILD_REF),
             SettingPaneItem.Item(Setting.ABOUT_APP_CHANGELOG),
-        ),
+        )
+    }
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_other_header_title),
+        items = items,
     )
 }

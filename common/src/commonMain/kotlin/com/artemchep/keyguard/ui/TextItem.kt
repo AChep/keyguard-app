@@ -90,6 +90,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.bringIntoView
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -103,7 +104,7 @@ import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import com.artemchep.keyguard.ui.util.VerticalDivider
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -140,7 +141,7 @@ fun UrlFlatTextField(
         modifier = modifier,
         testTag = testTag,
         label = label
-            ?: stringResource(Res.strings.url),
+            ?: stringResource(Res.string.url),
         placeholder = placeholder,
         value = value,
         keyboardOptions = keyboardOptions.copy(
@@ -183,7 +184,7 @@ fun EmailFlatTextField(
         boxModifier = boxModifier,
         testTag = testTag,
         label = label
-            ?: stringResource(Res.strings.email),
+            ?: stringResource(Res.string.email),
         placeholder = placeholder,
         value = value,
         keyboardOptions = keyboardOptions.copy(
@@ -226,7 +227,7 @@ fun PasswordFlatTextField(
         boxModifier = boxModifier,
         testTag = testTag,
         label = label
-            ?: stringResource(Res.strings.password),
+            ?: stringResource(Res.string.password),
         placeholder = placeholder,
         value = value,
         keyboardOptions = keyboardOptions.copy(

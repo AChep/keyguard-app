@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
@@ -40,7 +41,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ChangePasswordScreen() {
@@ -69,7 +70,7 @@ fun ChangePasswordSkeleton() {
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.changepassword_header_title),
+                        text = stringResource(Res.string.changepassword_header_title),
                     )
                 },
                 navigationIcon = {
@@ -158,7 +159,7 @@ fun ChangePasswordScreen(
             LargeToolbar(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.changepassword_header_title),
+                        text = stringResource(Res.string.changepassword_header_title),
                     )
                 },
                 navigationIcon = {
@@ -199,7 +200,7 @@ fun ChangePasswordScreen(
                 },
                 text = {
                     Text(
-                        text = stringResource(Res.strings.changepassword_change_password_button),
+                        text = stringResource(Res.string.changepassword_change_password_button),
                     )
                 },
             )
@@ -209,14 +210,14 @@ fun ChangePasswordScreen(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
             value = state.password.current,
-            label = stringResource(Res.strings.current_password),
+            label = stringResource(Res.string.current_password),
         )
         Spacer(Modifier.height(8.dp))
         PasswordFlatTextField(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
             value = state.password.new,
-            label = stringResource(Res.strings.new_password),
+            label = stringResource(Res.string.new_password),
             trailing = {
                 AutofillButton(
                     key = "password",
@@ -239,7 +240,7 @@ fun ChangePasswordScreen(
                 },
                 content = {
                     Text(
-                        text = stringResource(Res.strings.changepassword_biometric_auth_checkbox),
+                        text = stringResource(Res.string.changepassword_biometric_auth_checkbox),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 },
@@ -265,7 +266,7 @@ fun ChangePasswordScreen(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.changepassword_disclaimer_local_note),
+            text = stringResource(Res.string.changepassword_disclaimer_local_note),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),
@@ -277,7 +278,7 @@ fun ChangePasswordScreen(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.strings.changepassword_disclaimer_abuse_note),
+            text = stringResource(Res.string.changepassword_disclaimer_abuse_note),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),

@@ -7,11 +7,14 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.ElevatedAccessResult
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.ElevatedAccessRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
@@ -20,7 +23,7 @@ data class ExportRoute(
     val args: Args,
 ) : Route {
     companion object {
-        fun actionOrNull(
+        suspend fun actionOrNull(
             translator: TranslatorScope,
             accountId: AccountId,
             individual: Boolean,
@@ -32,7 +35,7 @@ data class ExportRoute(
             navigate = navigate,
         )
 
-        fun action(
+        suspend fun action(
             translator: TranslatorScope,
             accountId: AccountId,
             individual: Boolean,
@@ -40,9 +43,9 @@ data class ExportRoute(
         ): FlatItemAction {
             val title = kotlin.run {
                 val res = if (individual) {
-                    Res.strings.account_action_export_individual_vault_title
+                    Res.string.account_action_export_individual_vault_title
                 } else {
-                    Res.strings.account_action_export_vault_title
+                    Res.string.account_action_export_vault_title
                 }
                 translator.translate(res)
             }
@@ -55,7 +58,7 @@ data class ExportRoute(
                     }
                     icon(res)
                 },
-                title = title,
+                title = TextHolder.Value(title),
                 onClick = {
                     val accountFilter = DFilter.ById(
                         id = accountId.id,

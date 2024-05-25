@@ -23,10 +23,11 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -98,12 +99,12 @@ private fun SettingMarkdown(
                 FlatItemTextContent(
                     title = {
                         Text(
-                            text = stringResource(Res.strings.pref_item_markdown_title),
+                            text = stringResource(Res.string.pref_item_markdown_title),
                         )
                     },
                     text = {
                         Text(
-                            text = stringResource(Res.strings.pref_item_markdown_text),
+                            text = stringResource(Res.string.pref_item_markdown_text),
                         )
                     },
                 )
@@ -119,7 +120,7 @@ private fun SettingMarkdown(
             },
         ) {
             Text(
-                text = stringResource(Res.strings.learn_more),
+                text = stringResource(Res.string.learn_more),
             )
         }
     }

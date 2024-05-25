@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
@@ -49,7 +50,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -132,7 +133,7 @@ fun JustDeleteMeListScreen(
             ) {
                 Column {
                     CustomToolbarContent(
-                        title = stringResource(Res.strings.justdeleteme_title),
+                        title = stringResource(Res.string.justdeleteme_title),
                         icon = {
                             NavigationIcon()
                         },
@@ -166,7 +167,7 @@ fun JustDeleteMeListScreen(
                         modifier = Modifier
                             .focusRequester2(focusRequester),
                         text = queryText,
-                        placeholder = stringResource(Res.strings.justdeleteme_search_placeholder),
+                        placeholder = stringResource(Res.string.justdeleteme_search_placeholder),
                         searchIcon = false,
                         count = count,
                         leading = {},
@@ -249,7 +250,7 @@ private fun NoItemsPlaceholder(
         modifier = modifier,
         text = {
             Text(
-                text = stringResource(Res.strings.justdeleteme_empty_label),
+                text = stringResource(Res.string.justdeleteme_empty_label),
             )
         },
     )

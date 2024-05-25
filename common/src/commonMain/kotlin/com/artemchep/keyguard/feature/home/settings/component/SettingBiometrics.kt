@@ -24,9 +24,10 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -104,7 +105,7 @@ private fun createSettingComponentFlow(
                         .map { d ->
                             val cipher = d.getCipher()
                             val prompt = BiometricAuthPrompt(
-                                title = TextHolder.Res(Res.strings.pref_item_biometric_unlock_confirm_title),
+                                title = TextHolder.Res(Res.string.pref_item_biometric_unlock_confirm_title),
                                 cipher = cipher,
                                 requireConfirmation = requireConfirmation,
                                 onComplete = { result ->
@@ -154,7 +155,7 @@ private fun SettingBiometrics(
         },
         title = {
             Text(
-                text = stringResource(Res.strings.pref_item_biometric_unlock_title),
+                text = stringResource(Res.string.pref_item_biometric_unlock_title),
             )
         },
         onClick = onCheckedChange?.partially1(!checked),

@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
@@ -43,7 +44,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.DividerColor
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 
 @Composable
@@ -63,7 +64,7 @@ fun ElevatedAccessScreen(
     Dialog(
         icon = icon(Icons.Outlined.Security),
         title = {
-            Text(stringResource(Res.strings.elevatedaccess_header_title))
+            Text(stringResource(Res.string.elevatedaccess_header_title))
         },
         content = {
             Column(
@@ -94,7 +95,7 @@ fun ElevatedAccessScreen(
                     updatedOnDeny?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             TextButton(
                 modifier = Modifier
@@ -104,7 +105,7 @@ fun ElevatedAccessScreen(
                     updatedOnConfirm?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.ok))
+                Text(stringResource(Res.string.ok))
             }
         },
     )
@@ -151,7 +152,7 @@ private fun ColumnScope.ElevatedAccessContent(
     Text(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.strings.elevatedaccess_header_text),
+        text = stringResource(Res.string.elevatedaccess_header_text),
     )
     Spacer(modifier = Modifier.height(16.dp))
     PasswordFlatTextField(

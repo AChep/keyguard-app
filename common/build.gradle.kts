@@ -1,6 +1,5 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import java.text.SimpleDateFormat
 import java.util.*
 
 plugins {
@@ -11,9 +10,9 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.buildkonfig)
-    alias(libs.plugins.moko)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.plugin.compose)
 }
 
 //
@@ -49,8 +48,7 @@ kotlin {
                 implementation(compose.material)
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-                implementation(compose.components.resources)
+                api(compose.components.resources)
 
                 api(libs.kdrag0n.colorkt)
                 api(libs.kotlinx.coroutines.core)
@@ -176,6 +174,12 @@ kotlin {
     }
 }
 
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "com.artemchep.keyguard.res"
+    generateResClass = always
+}
+
 android {
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
     namespace = "com.artemchep.keyguard.common"
@@ -227,6 +231,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
 kotlin.compilerOptions {
     freeCompilerArgs.add("-Xcontext-receivers")
 }
+kotlin.compilerOptions.freeCompilerArgs.addAll(
+    "-P",
+    "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.artemchep.keyguard.platform.parcelize.LeParcelize",
+)
 kotlin.sourceSets.commonMain {
     kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 }
@@ -244,15 +252,6 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspAndroid", libs.glide.ksp)
     add("coreLibraryDesugaring", libs.android.desugarjdklibs)
-
-    commonMainApi(libs.moko.resources)
-    commonMainApi(libs.moko.resources.compose)
-    commonTestImplementation(libs.moko.resources.test)
-}
-
-multiplatformResources {
-    multiplatformResourcesPackage = "com.artemchep.keyguard.res"
-    multiplatformResourcesClassName = "Res" // optional, default MR
 }
 
 enum class BuildType {

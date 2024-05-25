@@ -3,11 +3,13 @@ package com.artemchep.keyguard.common.service.license.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.license.LicenseService
 import com.artemchep.keyguard.common.service.license.model.License
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
@@ -76,4 +78,4 @@ class LicenseServiceImpl(
 
 private suspend fun loadLicensesRawData(
     textService: TextService,
-) = textService.readFromResourcesAsText(Res.files.licenses)
+) = textService.readFromResourcesAsText(FileResource.licenses)

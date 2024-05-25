@@ -2,7 +2,8 @@ package com.artemchep.keyguard.provider.bitwarden
 
 import arrow.optics.optics
 import com.artemchep.keyguard.res.Res
-import dev.icerock.moko.resources.StringResource
+import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.StringResource
 
 @optics
 data class ServerEnv(
@@ -21,8 +22,8 @@ data class ServerEnv(
         val title: StringResource,
         val text: String,
     ) {
-        US(Res.strings.addaccount_region_us_type, "bitwarden.com"),
-        EU(Res.strings.addaccount_region_eu_type, "bitwarden.eu"),
+        US(Res.string.addaccount_region_us_type, "bitwarden.com"),
+        EU(Res.string.addaccount_region_eu_type, "bitwarden.eu"),
         ;
 
         companion object {

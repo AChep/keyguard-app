@@ -37,6 +37,7 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -48,7 +49,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import dev.icerock.moko.resources.compose.stringResource
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PasskeysCredentialViewScreen(
@@ -72,7 +73,7 @@ fun PasskeysCredentialViewScreen(
         icon = icon(Icons.Outlined.Key),
         title = {
             Text(
-                text = stringResource(Res.strings.passkey),
+                text = stringResource(Res.string.passkey),
             )
         },
         content = {
@@ -108,7 +109,7 @@ fun PasskeysCredentialViewScreen(
                     updatedOnClose?.invoke()
                 },
             ) {
-                Text(stringResource(Res.strings.close))
+                Text(stringResource(Res.string.close))
             }
             val onUse = loadableState.getOrNull()?.content?.getOrNull()?.onUse
             if (onUse != null) {
@@ -118,7 +119,7 @@ fun PasskeysCredentialViewScreen(
                         updatedOnUse.invoke()
                     },
                 ) {
-                    Text(stringResource(Res.strings.passkey_use_short))
+                    Text(stringResource(Res.string.passkey_use_short))
                 }
             }
         },
@@ -141,14 +142,14 @@ private fun ColumnScope.ContentOk(
             FlatItemTextContent2(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.passkey_user_display_name),
+                        text = stringResource(Res.string.passkey_user_display_name),
                     )
                 },
                 text = {
                     val userDisplayName = state.model.userDisplayName
                     Text(
                         text = userDisplayName
-                            ?: stringResource(Res.strings.empty_value),
+                            ?: stringResource(Res.string.empty_value),
                         color = if (userDisplayName != null) {
                             LocalContentColor.current
                         } else {
@@ -172,14 +173,14 @@ private fun ColumnScope.ContentOk(
             FlatItemTextContent2(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.passkey_user_username),
+                        text = stringResource(Res.string.passkey_user_username),
                     )
                 },
                 text = {
                     val userName = state.model.userName
                     Text(
                         text = userName
-                            ?: stringResource(Res.strings.empty_value),
+                            ?: stringResource(Res.string.empty_value),
                         color = if (userName != null) {
                             LocalContentColor.current
                         } else {
@@ -193,7 +194,7 @@ private fun ColumnScope.ContentOk(
         enabled = true,
     )
     Section(
-        text = stringResource(Res.strings.info),
+        text = stringResource(Res.string.info),
     )
     FlatItemLayout(
         leading = {
@@ -203,7 +204,7 @@ private fun ColumnScope.ContentOk(
             FlatItemTextContent2(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.passkey_relying_party),
+                        text = stringResource(Res.string.passkey_relying_party),
                     )
                 },
                 text = {
@@ -243,14 +244,14 @@ private fun ColumnScope.ContentOk(
             FlatItemTextContent2(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.passkey_signature_counter),
+                        text = stringResource(Res.string.passkey_signature_counter),
                     )
                 },
                 text = {
                     val counter = state.model.counter?.toString()
                     Text(
                         text = counter
-                            ?: stringResource(Res.strings.empty_value),
+                            ?: stringResource(Res.string.empty_value),
                         color = if (counter != null) {
                             LocalContentColor.current
                         } else {
@@ -282,15 +283,15 @@ private fun ColumnScope.ContentOk(
             FlatItemTextContent2(
                 title = {
                     Text(
-                        text = stringResource(Res.strings.passkey_discoverable),
+                        text = stringResource(Res.string.passkey_discoverable),
                     )
                 },
                 text = {
                     val discoverable = state.model.discoverable
                         .let { discoverable ->
                             if (discoverable) {
-                                stringResource(Res.strings.yes)
-                            } else stringResource(Res.strings.no)
+                                stringResource(Res.string.yes)
+                            } else stringResource(Res.string.no)
                         }
                     Text(
                         text = discoverable,

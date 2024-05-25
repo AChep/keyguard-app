@@ -44,12 +44,15 @@ import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
@@ -330,7 +333,7 @@ fun produceAttachmentsScreenState(
             if (selectedItemsAllCancelable) {
                 actions += FlatItemAction(
                     leading = icon(Icons.Outlined.Cancel),
-                    title = translate(Res.strings.cancel),
+                    title = Res.string.cancel.wrap(),
                     onClick = {
                         removeIo.launchIn(appScope)
                     },
@@ -339,7 +342,7 @@ fun produceAttachmentsScreenState(
             if (selectedItemsAllDownloadable) {
                 actions += FlatItemAction(
                     leading = icon(Icons.Outlined.Download),
-                    title = "Download",
+                    title = TextHolder.Value("Download"),
                     onClick = {
                         downloadIo.launchIn(appScope)
                     },
@@ -348,7 +351,7 @@ fun produceAttachmentsScreenState(
             if (selectedItemsAllDownloaded) {
                 actions += FlatItemAction(
                     leading = icon(Icons.Outlined.Delete),
-                    title = "Delete local files",
+                    title = TextHolder.Value("Delete local files"),
                     onClick = {
                         removeIo.launchIn(appScope)
                     },
@@ -450,21 +453,20 @@ fun produceAttachmentsScreenState(
                                 as ItemDecorator<AttachmentsState.Item, AttachmentItem>
                 }
 
-            val items = sequence<AttachmentsState.Item> {
-                state.list.forEach { item ->
-                    val section = decorator.getOrNull(item.item)
-                    if (section != null) yield(section)
+            val out = mutableListOf<AttachmentsState.Item>()
+            state.list.forEach { item ->
+                val section = decorator.getOrNull(item.item)
+                if (section != null) out += section
 
-                    val wrappedItem = AttachmentsState.Item.Attachment(
-                        key = item.item.key,
-                        item = item.item,
-                    )
-                    yield(wrappedItem)
-                }
-            }.toList()
+                val wrappedItem = AttachmentsState.Item.Attachment(
+                    key = item.item.key,
+                    item = item.item,
+                )
+                out += wrappedItem
+            }
             FilteredBoo(
                 count = state.list.size,
-                list = items,
+                list = out,
                 filterConfig = state.filterConfig,
             )
         }
@@ -553,7 +555,7 @@ fun foo(
                 is FooStatus.None -> {
                     this += FlatItemAction(
                         icon = Icons.Outlined.Download,
-                        title = translatorScope.translate(Res.strings.download),
+                        title = Res.string.download.wrap(),
                         onClick = ::performDownload,
                         type = FlatItemAction.Type.DOWNLOAD,
                     )
@@ -562,7 +564,7 @@ fun foo(
                 is FooStatus.Loading -> {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Cancel),
-                        title = translatorScope.translate(Res.strings.cancel),
+                        title = Res.string.cancel.wrap(),
                         onClick = ::performRemove,
                     )
                 }
@@ -570,12 +572,12 @@ fun foo(
                 is FooStatus.Failed -> {
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Cancel),
-                        title = translatorScope.translate(Res.strings.cancel),
+                        title = Res.string.cancel.wrap(),
                         onClick = ::performRemove,
                     )
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Refresh),
-                        title = translatorScope.translate(Res.strings.download),
+                        title = Res.string.download.wrap(),
                         onClick = ::performDownload,
                         type = FlatItemAction.Type.DOWNLOAD,
                     )
@@ -588,7 +590,7 @@ fun foo(
                         trailing = {
                             ChevronIcon()
                         },
-                        title = translatorScope.translate(Res.strings.file_action_open_with_title),
+                        title = Res.string.file_action_open_with_title.wrap(),
                         onClick = {
                             val intent = NavigationIntent.NavigateToPreview(
                                 uri = fileUrl,
@@ -604,7 +606,7 @@ fun foo(
                             trailing = {
                                 ChevronIcon()
                             },
-                            title = translatorScope.translate(Res.strings.file_action_open_in_file_manager_title),
+                            title = Res.string.file_action_open_in_file_manager_title.wrap(),
                             onClick = {
                                 val intent = NavigationIntent.NavigateToPreviewInFileManager(
                                     uri = fileUrl,
@@ -620,7 +622,7 @@ fun foo(
                             trailing = {
                                 ChevronIcon()
                             },
-                            title = translatorScope.translate(Res.strings.file_action_send_with_title),
+                            title = Res.string.file_action_send_with_title.wrap(),
                             onClick = {
                                 val intent = NavigationIntent.NavigateToSend(
                                     uri = fileUrl,
@@ -632,7 +634,7 @@ fun foo(
                     }
                     this += FlatItemAction(
                         leading = icon(Icons.Outlined.Delete),
-                        title = translatorScope.translate(Res.strings.file_action_delete_local_title),
+                        title = Res.string.file_action_delete_local_title.wrap(),
                         onClick = ::performRemove,
                     )
                 }
@@ -645,7 +647,7 @@ fun foo(
                     trailing = {
                         ChevronIcon()
                     },
-                    title = translatorScope.translate(Res.strings.file_action_view_cipher_title),
+                    title = Res.string.file_action_view_cipher_title.wrap(),
                     onClick = {
                         val route = VaultViewRoute(
                             itemId = launchViewCipherData.cipherId,

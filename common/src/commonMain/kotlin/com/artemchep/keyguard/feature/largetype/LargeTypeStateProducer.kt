@@ -7,6 +7,7 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.common.util.asCodePointsSequence
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.map
 
 @Composable
@@ -36,7 +37,7 @@ fun produceLargeTypeScreenState(
             phrase.any { it.isSurrogate() }
         }
     val text = if (hasUnicodeSurrogates) {
-        translate(Res.strings.largetype_unicode_surrogate_note)
+        translate(Res.string.largetype_unicode_surrogate_note)
     } else {
         null
     }

@@ -297,6 +297,17 @@
     "created_at": "2023-11-30T12:20:32.631731+00:00"
   },
   {
+    "id": "ed96f601445602c9ef9d452429e4f4d5",
+    "name": "Armstrong Bank",
+    "domain": "armstrong.bank",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://my.armstrong.bank/login",
+    "category": "Finance",
+    "created_at": "2024-05-13T12:41:57.501621+00:00"
+  },
+  {
     "id": "87c784094420055521967a05d62a3d24",
     "name": "Arpari",
     "domain": "arpari.com",
@@ -318,6 +329,19 @@
     "setup": "https://authgear.com",
     "category": "Authentication Provider",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "bdcfe0ce40dbcdec203e83030f0ad3fa",
+    "name": "Authsignal",
+    "domain": "authsignal.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://docs.authsignal.com/passkeys/configuration",
+    "setup": "https://portal.authsignal.com/organisations/tenants/authenticators",
+    "category": "Information Technology",
+    "created_at": "2024-05-21T11:17:09.6873+00:00"
   },
   {
     "id": "5064fd8452a1c75542f5b536c2997078",
@@ -357,7 +381,6 @@
     "name": "Binance",
     "domain": "binance.com",
     "features": [
-      "mfa",
       "signin"
     ],
     "documentation": "https://www.binance.com/en/support/faq/how-to-create-a-passkey-for-my-binance-account-2aec8fe0437242f2a5fbef9cdb71d4c2",
@@ -386,6 +409,18 @@
     "category": "Automotive",
     "created_at": "2024-04-24T23:01:49+00:00",
     "notes": "BMW now supports signing in to your BMW ID with a passkey. Instructions on saving a passkey to your BMW ID may vary from region to region but more information can be found in the Account Data section of your BMW ID profile."
+  },
+  {
+    "id": "a88448d2114c562ff401db2abd66ef8e",
+    "name": "Bolt",
+    "domain": "bolt.eu",
+    "features": [
+      "signin"
+    ],
+    "setup": "bolt://action/profile/subscreen?id=login-and-security",
+    "category": "Travel & Tourism",
+    "created_at": "2024-05-07T10:53:38.864994+00:00",
+    "notes": "This feature is currently in a testing phase. As a result, it may not be available to all users at this time."
   },
   {
     "id": "d8915fbe73b57587b57193fbbea2e541",
@@ -673,7 +708,7 @@
     ],
     "documentation": "https://idms-mfa.oit.duke.edu/mfa/unlock/help",
     "setup": "https://unlock.duke.edu/",
-    "category": "Science & Engineering",
+    "category": "Education",
     "created_at": "2024-04-09T17:12:10.014867+00:00"
   },
   {
@@ -687,6 +722,30 @@
     "category": "E-Commerce",
     "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Select the setup link above and sign in with your email address and password, then select \"Turn on\" next to \"Passkeys\" or \"Face/fingerprint/PIN sign in\" section and follow the steps to create a passkey.\n\nSign out, then sign back in. 1Password will sign in with your passkey automatically."
+  },
+  {
+    "id": "fcf117da9fef5a41c0a622d60f412453",
+    "name": "SWITCH edu-ID",
+    "domain": "eduid.ch",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.switch.ch/eduid/faqs/#passkeys",
+    "setup": "https://eduid.ch/web/edit-passkey/",
+    "category": "Education",
+    "created_at": "2024-05-09T11:28:44.354265+00:00"
+  },
+  {
+    "id": "493e539072cc378649c3b2363ba03409",
+    "name": "Esl Gaming",
+    "domain": "eslgaming.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "Gaming",
+    "setup": "https://account.eslgaming.com/mfa",
+    "created_at": "2024-05-20T10:53:54.047042+00:00",
+    "notes": "Passkeys are available after successfully creating backup codes"
   },
   {
     "id": "baf9c3bf35911171a96c31a7bb6cb78c",
@@ -743,6 +802,18 @@
     "setup": "https://forums.ankiweb.net/u/username/preferences/security",
     "category": "Education",
     "created_at": "2024-04-30T12:19:24.941951+00:00"
+  },
+  {
+    "id": "8e114203d166df6e9e0734c3ad8cc500",
+    "name": "ForwardEmail",
+    "domain": "forwardemail.net",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://forwardemail.net/en/faq#do-you-support-passkeys-and-webauthn",
+    "setup": "https://forwardemail.net/en/my-account/security",
+    "category": "Information Technology",
+    "created_at": "2024-05-15T17:07:17.242327+00:00"
   },
   {
     "id": "d2945c826aa478ef27fe3481d9c50df6",
@@ -998,6 +1069,18 @@
     "created_at": "2023-04-24T11:37:28.076064+00:00"
   },
   {
+    "id": "5d2b8f356088b905318e5add2c4753c7",
+    "name": "TOKYU",
+    "domain": "id.tokyu.co.jp",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.id.tokyu.co.jp/hc/ja/articles/27513786973337",
+    "setup": "https://id.tokyu.co.jp/user/passkey/me",
+    "category": "Information Technology",
+    "created_at": "2024-05-13T12:46:24.529221+00:00"
+  },
+  {
     "id": "b0b7851d81b36c34280be5ab4ad0a5bc",
     "name": "Instacart",
     "domain": "instacart.com",
@@ -1241,18 +1324,18 @@
     "created_at": "2024-01-05T12:56:56.072443+00:00"
   },
   {
-    "id": "3ea243c9e72868c6471466346b02c6ac",
-    "name": "Microsoft (Personal & Education)",
+    "id": "113160fdb63798c69be2641c1ec28905",
+    "name": "Microsoft account",
     "domain": "microsoft.com",
     "features": [
       "mfa",
       "signin"
     ],
-    "documentation": "https://support.microsoft.com/en-us/windows/sign-in-to-your-microsoft-account-with-windows-hello-or-a-security-key-800a8c01-6b61-49f5-0660-c2159bea4d84",
-    "setup": "https://account.live.com/proofs/manage/additional",
+    "documentation": "https://support.microsoft.com/en-us/account-billing/signing-in-with-a-passkey-09a49a86-ca47-406c-8acc-ed0e3c852c6d",
+    "setup": "https://go.microsoft.com/fwlink/?linkid=2250685",
     "category": "Information Technology",
-    "created_at": "2022-11-17T00:00:00+00:00",
-    "notes": "Click the setup link and sign in with your email address and password, then click \"Add a new way to sign in or verify\", choose Use your Windows PC, and follow the steps to create a passkey.\n\nSign out, then choose \"Sign in with Windows Hello or a security key\" when you sign back in to use your passkey.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+    "created_at": "2024-05-02T13:41:20+00:00",
+    "notes": "### Creating a passkey\nTo create a passkey for your Microsoft account, follow these steps on the device for which you\u2019d like to create a passkey:\n\n\n1. [Sign in to your Microsoft account Advanced Security Options](https://go.microsoft.com/fwlink/?linkid=2250685) for personal accounts, or [MyAccount Security info](https://mysignins.microsoft.com/security-info) for work or school accounts.\n2. Choose Add a new way to sign in or verify.\n3. Select Face, fingerprint, PIN, or security key.\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<br>\n\n---\n\n<br>\n\n### Using your passkey to sign in\nTo sign into your Microsoft account with a passkey, follow these steps whenever you get a sign-in prompt. \n\n\n1. Choose Sign-in options, or Other ways to sign in.\n2. Select Face, Fingerprint, PIN, or security key.\n3. Select your passkey from the list available.\n\nYour device will open a security window where you can use your face, fingerprint, PIN, or security key.\n\n<br>\n\n---\n\n<br>\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\n<br>\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
   },
   {
     "id": "50053011478a6a0a760f49b9e67b5d21",
@@ -1419,6 +1502,18 @@
     "notes": "Setup 'passwordless login' through Account Settings. "
   },
   {
+    "id": "c75fb20fb0c253faa8697724c8542dd5",
+    "name": "Stuudium",
+    "domain": "ope.ee",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://abi.stuudium.com/turvavoti",
+    "setup": "https://ope.ee/user/passkey",
+    "category": "Education",
+    "created_at": "2024-05-13T12:38:32.552995+00:00"
+  },
+  {
     "id": "af97abd5ad298fb6170be7985252a455",
     "name": "Passage Authentication Demo",
     "domain": "passage.1password.com",
@@ -1485,11 +1580,11 @@
     "features": [
       "signin"
     ],
-    "documentation": "https://www.paypal.com/us/cshelp/article/what-are-paypal-passkeys-help997",
+    "documentation": "https://www.paypal.com/us/cshelp/article/how-to-log-in-to-paypal-with-a-passkey-help997",
     "setup": "https://www.paypal.com/myaccount/security/",
     "category": "Finance",
     "created_at": "2022-11-17T00:00:00+00:00",
-    "notes": "Passkeys on PayPal can only be created on mobile devices in Chrome on Android or iOS and in Safari on iOS.\n\n#### To set up a passkey on your PayPal account:\n1. On your mobile device, navigate to PayPal's settings > Security or use the setup link above.\n2.  Select \"Passkeys.\"\n3. Select \"Create a passkey.\"\n4. Follow the instructions provided to complete setting up a passkey.\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
+    "notes": "Passkeys on PayPal can be created on mobile devices in Chrome on Android or iOS and in Safari on iOS.\n\n- [How to log in to PayPal with a passkey](https://www.paypal.com/us/cshelp/article/how-to-log-in-to-paypal-with-a-passkey-help997)\n- [What is a passkey and how do I use it to log in to my PayPal account?](https://www.paypal.com/us/cshelp/article/what-is-a-passkey-and-how-do-i-use-it-to-log-in-to-my-paypal-account-help997)\n\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
   },
   {
     "id": "867af8aa7bf57d42dd3f185fc89bb0be",
@@ -1552,6 +1647,18 @@
     "category": "Information Technology",
     "created_at": "2023-06-05T11:10:13.364756+00:00",
     "notes": "Powered by Passage by 1Password."
+  },
+  {
+    "id": "36255c78c7acc899f15f0b992cce4d50",
+    "name": "Miniflux",
+    "domain": "reader.miniflux.app",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://miniflux.app/docs/howto.html#webauthn",
+    "setup": "https://reader.miniflux.app/settings",
+    "category": "Information Technology",
+    "created_at": "2024-05-19T10:40:00.923041+00:00"
   },
   {
     "id": "59e0672f73f2c88fd2440c79f7f601b8",
@@ -1719,6 +1826,40 @@
     "created_at": "2023-12-13T17:47:06.128025+00:00"
   },
   {
+    "id": "4f5473878884954e2525ce74a3b49a51",
+    "name": "Station-Drivers",
+    "domain": "station-drivers.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.station-drivers.com/index.php/en/component/users/?task=profile.edit&user_id=13698&Itemid=101",
+    "category": "Information Technology",
+    "created_at": "2024-05-15T09:57:37.677367+00:00"
+  },
+  {
+    "id": "c1fe922157a83a7a02995657f8a521d9",
+    "name": "Stripe",
+    "domain": "stripe.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://dashboard.stripe.com/settings/user",
+    "category": "Finance",
+    "created_at": "2023-03-23T15:33:32.087637+00:00"
+  },
+  {
+    "id": "83b25ca26b08b4ca5ac9a2662ffdf0f7",
+    "name": "SumUp",
+    "domain": "sumup.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://me.sumup.com/security/passkeys",
+    "category": "eCommerce",
+    "created_at": "2023-05-05T00:48:02.28105+00:00"
+  },
+  {
     "id": "bc1adb391ba58d1668e3a883e7fcdf4f",
     "name": "Synology",
     "domain": "synology.com",
@@ -1789,6 +1930,18 @@
     "setup": "https://apply.thehendrixjc.com/new-application",
     "category": "Real Estate",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "5bf0046e6219b9631a1b056e9015616c",
+    "name": "Thunder",
+    "domain": "thunder.gg",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "setup": "https://thunder.gg/account",
+    "category": "Finance",
+    "created_at": "2024-05-07T16:43:26.618806+00:00"
   },
   {
     "id": "612bd0e58e15286297be5e907f906288",

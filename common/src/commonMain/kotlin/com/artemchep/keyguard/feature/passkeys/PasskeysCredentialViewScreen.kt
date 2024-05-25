@@ -212,7 +212,7 @@ private fun ColumnScope.ContentOk(
                     val rpId = state.model.rpId
                     Column {
                         Text(
-                            text = rpName,
+                            text = rpName ?: "",
                         )
                         Text(
                             text = rpId,

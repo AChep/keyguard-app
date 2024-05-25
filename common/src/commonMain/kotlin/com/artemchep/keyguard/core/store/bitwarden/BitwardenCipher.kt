@@ -232,7 +232,7 @@ data class BitwardenCipher(
             val keyCurve: String,
             val keyValue: String,
             val rpId: String,
-            val rpName: String,
+            val rpName: String?,
             val counter: String,
             val userHandle: String,
             val userName: String? = null,

@@ -300,6 +300,14 @@
     "notes": "Log in to your HUAWEI ID and then click Privacy Centre > Request Your Data. When you request a copy of your data, Huawei will prepare the data you have requested. After the data is ready, you can download it to your device and will be available for 21 days. If you need to download the data after the expiry date, you need to submit a new request."
   },
   {
+    "name": "Hype",
+    "domains": [],
+    "url": "https://www.hype.it/privacy",
+    "difficulty": "hard",
+    "notes": "Contact the customer support via email and request a copy of your data.",
+    "email": "dpo@hype.it"
+  },
+  {
     "name": "ING",
     "domains": [],
     "url": "https://www.ing.com/Privacy-Statement.htm",
@@ -689,6 +697,14 @@
     "url": "https://account.ubisoft.com/en-US/privacy-settings",
     "difficulty": "medium",
     "notes": "Scroll down to the bottom of the page and request your data. They will send an email to you once your data download is ready. Emails take up to 24 hours to be sent."
+  },
+  {
+    "name": "UniCredit",
+    "domains": [],
+    "url": "https://www.unicreditgroup.eu/en/info/privacy.html",
+    "difficulty": "hard",
+    "notes": "Contact the customer support via email and request a copy of your data.",
+    "email": "diritti.privacy@unicredit.eu"
   },
   {
     "name": "Universidad Complutense de Madrid",

@@ -202,7 +202,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://actionstep.freshdesk.com/support/solutions/articles/150000019975",
+    "documentation": "https://support.actionstep.com/support/solutions/articles/150000019975",
     "name": "Actionstep"
   },
   {
@@ -2102,6 +2102,18 @@
     "name": "Braze"
   },
   {
+    "domain": "brevo.com",
+    "additional-domains": [
+      "sendinblue.com"
+    ],
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://help.brevo.com/hc/articles/360021203440",
+    "name": "Brevo"
+  },
+  {
     "domain": "brex.com",
     "tfa": [
       "sms",
@@ -2982,7 +2994,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Cloud Platform"
   },
   {
@@ -3837,6 +3849,7 @@
     "tfa": [
       "totp"
     ],
+    "documentation": "https://support.credly.com/hc/articles/10479287806107",
     "notes": "Password reset also disables 2FA.",
     "name": "Credly"
   },
@@ -4650,12 +4663,12 @@
   },
   {
     "domain": "doppler.com",
-    "url": "https://www.doppler.com/",
     "tfa": [
+      "email",
       "totp",
       "u2f"
     ],
-    "documentation": "https://docs.doppler.com/docs/security-fact-sheet#user-authentication",
+    "documentation": "https://docs.doppler.com/docs/multi-factor-authentication",
     "name": "Doppler"
   },
   {
@@ -4720,7 +4733,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Drive"
   },
   {
@@ -5035,6 +5048,14 @@
     ],
     "documentation": "https://help.elderscrollsonline.com/app/answers/detail/a_id/8611",
     "name": "Elder Scrolls Online"
+  },
+  {
+    "domain": "element.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://ems-docs.element.io/link/6#bkmrk-how-do-i-enable-2fa-",
+    "name": "Element"
   },
   {
     "domain": "elmah.io",
@@ -5582,7 +5603,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Fi"
   },
   {
@@ -5598,7 +5619,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Fiber"
   },
   {
@@ -5780,7 +5801,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Fit"
   },
   {
@@ -5874,7 +5895,6 @@
   },
   {
     "domain": "formstack.com",
-    "url": "https://www.formstack.com/",
     "tfa": [
       "sms",
       "totp"
@@ -5922,14 +5942,13 @@
   },
   {
     "domain": "frame.io",
-    "url": "https://www.frame.io/",
     "tfa": [
       "totp",
       "sms"
     ],
     "documentation": "https://support.frame.io/en/articles/4766302",
     "notes": "2FA is only available for Enterprise users with mandated 2FA.",
-    "name": "Frame"
+    "name": "Frame.io"
   },
   {
     "domain": "freeagent.com",
@@ -7501,13 +7520,14 @@
   },
   {
     "domain": "instagram.com",
-    "url": "https://www.instagram.com",
+    "additional-domains": [
+      "threads.net"
+    ],
     "tfa": [
       "sms",
       "totp"
     ],
     "documentation": "https://help.instagram.com/566810106808145",
-    "notes": "TOTP can only be activated through the mobile app",
     "name": "Instagram"
   },
   {
@@ -7865,6 +7885,14 @@
     ],
     "documentation": "https://joker.com/faq/content/52/480/en/what-is-two_factor_authentication.html",
     "name": "Joker.com"
+  },
+  {
+    "domain": "jotform.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.jotform.com/help/how-to-enable-two-factor-authentication/",
+    "name": "Jotform"
   },
   {
     "domain": "jottacloud.com",
@@ -8802,7 +8830,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Gmail"
   },
   {
@@ -9079,7 +9107,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Meet"
   },
   {
@@ -9230,6 +9258,7 @@
       "sms",
       "totp"
     ],
+    "documentation": "https://www.meta.com/help/quest/articles/accounts/account-settings-and-management/two-factor-meta-account/",
     "name": "Meta"
   },
   {
@@ -10552,7 +10581,9 @@
       "login.microsoftonline.com",
       "office.microsoft.com",
       "microsoft365.com",
-      "office365.com"
+      "office365.com",
+      "cloud.microsoft",
+      "yammer.com"
     ],
     "tfa": [
       "sms",
@@ -10781,6 +10812,9 @@
   },
   {
     "domain": "openai.com",
+    "additional-domains": [
+      "chatgpt.com"
+    ],
     "tfa": [
       "totp"
     ],
@@ -11173,7 +11207,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Pay"
   },
   {
@@ -11253,14 +11287,11 @@
     "additional-domains": [
       "paypal-search.com"
     ],
-    "url": "https://www.paypal.com/",
     "tfa": [
-      "sms",
-      "totp",
-      "u2f"
+      "totp"
     ],
-    "notes": "Some methods of 2FA are only available in a few countries. Contact PayPal for more information.",
-    "documentation": "https://www.paypal.com/us/smarthelp/article/faq4057",
+    "notes": "2FA can only be setup in web browser and not through the PayPal App.",
+    "documentation": "https://www.paypal.com/us/cshelp/article/help167",
     "name": "PayPal"
   },
   {
@@ -11578,7 +11609,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "Google Play"
   },
   {
@@ -11796,6 +11827,18 @@
     ],
     "documentation": "https://www.postbank.de/privatkunden/sicherheitsverfahren.html",
     "name": "Postbank"
+  },
+  {
+    "domain": "poste.it",
+    "tfa": [
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "PosteItaliane App"
+    ],
+    "documentation": "https://www.poste.it/cosa-fare-sicurezza.html",
+    "name": "PosteItaliane"
   },
   {
     "domain": "posteo.de",
@@ -12047,6 +12090,13 @@
     "name": "put.io"
   },
   {
+    "domain": "puter.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Puter"
+  },
+  {
     "domain": "putler.com",
     "tfa": [
       "totp"
@@ -12168,6 +12218,13 @@
     ],
     "documentation": "https://support.quidax.com/hc/en-us/articles/360016734491",
     "name": "Quidax"
+  },
+  {
+    "domain": "quora.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "Quora"
   },
   {
     "domain": "rabobank.nl",
@@ -13211,15 +13268,6 @@
     "name": "SendGrid"
   },
   {
-    "domain": "sendinblue.com",
-    "tfa": [
-      "sms",
-      "totp"
-    ],
-    "documentation": "https://help.sendinblue.com/hc/en-us/articles/360021203440",
-    "name": "Sendinblue"
-  },
-  {
     "domain": "sendowl.com",
     "tfa": [
       "totp"
@@ -13724,12 +13772,11 @@
   },
   {
     "domain": "smartthings.com",
-    "url": "https://www.smartthings.com/",
     "tfa": [
       "sms",
       "totp"
     ],
-    "documentation": "https://account.samsung.com/membership/guide/2step/",
+    "documentation": "https://account.samsung.com/membership/guide/setup-2step-verification",
     "name": "Samsung SmartThings"
   },
   {
@@ -13757,7 +13804,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://www.smspool.net/article/how-to-enable-2fa-for-your-smspool-account",
+    "documentation": "https://www.smspool.net/article/eb7a182841",
     "name": "SMSPool"
   },
   {
@@ -13891,18 +13938,11 @@
     "name": "SpaceHey"
   },
   {
-    "domain": "spaceship.com.au",
-    "additional-domains": [
-      "spaceshipinvest.com.au"
-    ],
+    "domain": "spaceship.com",
     "tfa": [
-      "sms",
-      "custom-software"
+      "totp",
+      "u2f"
     ],
-    "custom-software": [
-      "WhatsApp"
-    ],
-    "documentation": "https://help.spaceship.com.au/en/articles/8695426",
     "name": "Spaceship"
   },
   {
@@ -14116,11 +14156,10 @@
   },
   {
     "domain": "starbucks.com",
-    "url": "https://www.starbucks.com/",
     "tfa": [
       "sms"
     ],
-    "documentation": "https://customerservice.starbucks.com/app/answers/detail/a_id/6180",
+    "documentation": "https://customerservice.starbucks.com/sbux?id=topics&article=KB0013186",
     "name": "Starbucks"
   },
   {
@@ -14408,7 +14447,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://support.swyftx.com/hc/en-au/articles/12807078449305",
+    "documentation": "https://support.swyftx.com/hc/articles/12807078449305",
     "name": "Swyftx"
   },
   {
@@ -14642,12 +14681,12 @@
   },
   {
     "domain": "tebex.io",
-    "url": "https://www.tebex.io/",
     "tfa": [
+      "sms",
       "email",
       "totp"
     ],
-    "documentation": "https://help.tebex.io/en/articles/2319372",
+    "notes": "SMS is only a backup for TOTP 2FA.",
     "name": "Tebex"
   },
   {
@@ -15410,20 +15449,6 @@
     "documentation": "https://help.twitch.tv/s/article/two-factor-authentication",
     "notes": "To activate two factor authentication, you must provide a mobile phone number.",
     "name": "Twitch"
-  },
-  {
-    "domain": "twitter.com",
-    "additional-domains": [
-      "x.com"
-    ],
-    "tfa": [
-      "sms",
-      "totp",
-      "u2f"
-    ],
-    "documentation": "https://help.twitter.com/en/managing-your-account/two-factor-authentication",
-    "notes": "SMS only available on select providers and for Twitter Blue members only.",
-    "name": "X (Twitter)"
   },
   {
     "domain": "typeform.com",
@@ -17062,6 +17087,20 @@
     "name": "Wyze"
   },
   {
+    "domain": "x.com",
+    "additional-domains": [
+      "twitter.com"
+    ],
+    "tfa": [
+      "sms",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://help.x.com/en/managing-your-account/two-factor-authentication",
+    "notes": "SMS only available on select providers and for X Premium members only.",
+    "name": "X (Twitter)"
+  },
+  {
     "domain": "xapo.com",
     "tfa": [
       "sms"
@@ -17218,7 +17257,7 @@
       "Google Prompts",
       "Google Smart Lock"
     ],
-    "documentation": "https://www.google.com/intl/en-US/landing/2step/features.html",
+    "documentation": "https://safety.google/authentication/",
     "name": "YouTube"
   },
   {

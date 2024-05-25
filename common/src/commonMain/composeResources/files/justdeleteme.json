@@ -950,6 +950,15 @@
     "notes": "We do not 'delete' or 'terminate' accounts on ACC. If you no longer wish to use the site, you may delete all personal information from your profile and then stop logging in."
   },
   {
+    "name": "Anime News Network",
+    "domains": [
+      "animenewsnetwork.com"
+    ],
+    "url": "https://www.animenewsnetwork.com/account/edit",
+    "difficulty": "easy",
+    "notes": "Visit the linked page and click the delete button, click the confirmation url that sent via email."
+  },
+  {
     "name": "Anime-Planet",
     "domains": [
       "anime-planet.com"
@@ -2440,6 +2449,15 @@
     "email_subject": "Account Delection Request"
   },
   {
+    "name": "BuiltByBit",
+    "domains": [
+      "builtbybit.com"
+    ],
+    "url": "https://builtbybit.com/account/removal",
+    "difficulty": "easy",
+    "notes": "Login \u2b95 Account Details \u2b95 Settings \u2b95 Account Removal \u2b95 Delete account"
+  },
+  {
     "name": "Bukalapak",
     "domains": [
       "bukalapak.com"
@@ -2964,6 +2982,15 @@
     ],
     "url": "https://chesspuzzle.net/Manage/RequestDeletion",
     "difficulty": "easy"
+  },
+  {
+    "name": "Chewy",
+    "domains": [
+      "chewy.com"
+    ],
+    "url": "https://www.chewy.com/app/account/privacy",
+    "difficulty": "easy",
+    "notes": "Login \u2b95 Account \u2b95 Settings \u2b95 Privacy Preferences \u2b95 Continue to Delete"
   },
   {
     "name": "Chick-fil-A",
@@ -3511,6 +3538,15 @@
     "notes": "Delete acccount button is at the bottom of the account settings page."
   },
   {
+    "name": "Cracker Barrel",
+    "domains": [
+      "crackerbarrel.com"
+    ],
+    "url": "http://www.crackerbarrel.com/privacy",
+    "difficulty": "hard",
+    "notes": "Visit their Privacy Policy website \u2b95 Section E, number 9, PRIVACY PORTAL link \u2b95 Click URL \u2b95 Fill out form (includes filling out personal info) \u2b95 Verify your email \u2b95 Wait for a response"
+  },
+  {
     "name": "Craigslist",
     "domains": [
       "craigslist.org"
@@ -3566,6 +3602,15 @@
     ],
     "url": "https://crevado.com/admin/account/cancel",
     "difficulty": "easy"
+  },
+  {
+    "name": "Cronometer",
+    "domains": [
+      "cronometer.com"
+    ],
+    "url": "https://support.cronometer.com/hc/en-us/articles/360018760151-Account-Settings#h_440005960211545174984655",
+    "difficulty": "easy",
+    "notes": "Login \u2b95 More \u2b95 Account \u2b95 Delete Account"
   },
   {
     "name": "Crowdcast.io",
@@ -5499,6 +5544,19 @@
     "difficulty": "hard",
     "notes": "Send an email to them.",
     "email": "DPO@FDMGroup.com"
+  },
+  {
+    "name": "Featurebase",
+    "domains": [
+      "featurebase.app",
+      "auth.featurebase.app",
+      "developers.featurebase.app",
+      "docs.featurebase.app",
+      "help.featurebase.app",
+      "status.featurebase.app"
+    ],
+    "url": "https://help.featurebase.app/en/articles/8033192-how-to-delete-my-featurebase-account-organization-and-data",
+    "difficulty": "easy"
   },
   {
     "name": "FedEx",
@@ -8828,6 +8886,14 @@
     "notes": "Go to your profile, at the bottom there will be a 'click here' to delete account. Retype your password and after 14 days the account gets deleted."
   },
   {
+    "name": "KanbanFlow",
+    "domains": [
+      "kanbanflow.com"
+    ],
+    "url": "https://kanbanflow.com/settings/delete-account",
+    "difficulty": "easy"
+  },
+  {
     "name": "Kanji Koohii",
     "domains": [
       "kanji.koohii.com"
@@ -10712,6 +10778,17 @@
     "difficulty": "impossible",
     "notes": "The only way to contact them is by email, but no one responds.",
     "email": "contact@minecraft.tools"
+  },
+  {
+    "name": "Minehut",
+    "domains": [
+      "minehut.com",
+      "app.minehut.com",
+      "support.minehut.com"
+    ],
+    "url": "https://app.minehut.com/support/form",
+    "difficulty": "hard",
+    "notes": "The only way to contact them is at the linked form or through [here](https://support.minehut.com/hc/en-us/requests/new)."
   },
   {
     "name": "Miniclip",
@@ -12880,6 +12957,15 @@
     "url": "https://pinterest.com/settings/account-settings/",
     "difficulty": "medium",
     "notes": "On the Account Settings, click 'Delete Account', state reason and click 'Next', then 'Send email'. You need to check the e-mail and confirm the deletion."
+  },
+  {
+    "name": "Pionex",
+    "domains": [
+      "pionex.com"
+    ],
+    "url": "https://www.pionex.com/en/my-account/security",
+    "difficulty": "easy",
+    "notes": "Inside your account (at the top), within the user space go to the 'Security' option, scroll to the bottom where you will find the 'Account Management' option. Under it, there is a 'Delete Account' button."
   },
   {
     "name": "Pivot Interactives",
@@ -15961,6 +16047,15 @@
     "email": "suporte@superdominios.org"
   },
   {
+    "name": "Super Tux Kart",
+    "domains": [
+      "supertuxkart.net"
+    ],
+    "url": "https://online.supertuxkart.net/users.php",
+    "difficulty": "easy",
+    "notes": "Enter your passwords in the account deletion page."
+  },
+  {
     "name": "Supercell ID",
     "domains": [
       "boombeach.com",
@@ -17817,6 +17912,15 @@
     "difficulty": "hard",
     "notes": "Send an email to them to request account deletion.",
     "email": "privacy@vouchercodes.co.uk"
+  },
+  {
+    "name": "Vox Media",
+    "domains": [
+      "voxmedia.com"
+    ],
+    "url": "https://www.voxmedia.com/contact",
+    "difficulty": "hard",
+    "notes": "Account can only be deleted by a contact form."
   },
   {
     "name": "Voxer",

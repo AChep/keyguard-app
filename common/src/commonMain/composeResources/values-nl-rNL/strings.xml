@@ -895,9 +895,9 @@
     <string name="pref_item_crowdin_title">Crowdin project</string>
     <string name="pref_item_open_source_licenses_title">Open-source licenties</string>
     <string name="pref_item_download_apk_title">APK-bestand downloaden</string>
-    <string name="pref_item_load_app_icons_title">Laad app pictogrammen</string>
+    <string name="pref_item_load_app_icons_title">Laad app iconen</string>
     <string name="pref_item_load_website_icons_title">Laad website iconen</string>
-    <string name="pref_item_load_website_icons_text">Website iconen tonen kan het adres van de website lekken naar uw internetprovider</string>
+    <string name="pref_item_load_website_icons_text">Het tonen van website iconen kan het adres van de website lekken naar uw internetprovider</string>
     <string name="pref_item_load_gravatar_icons_title">Laad Gravatar iconen</string>
     <string name="pref_item_markdown_title">Rijke tekst opmaak</string>
     <string name="pref_item_markdown_text">Gebruik Markdown om notities te formatteren</string>
@@ -935,7 +935,7 @@
     <string name="pref_item_erase_data_title">Verwijder app gegevens</string>
     <string name="pref_item_erase_data_text">Sluit de app en wis alle lokale app gegevens</string>
     <string name="pref_item_allow_screenshots_title">Schermafbeeldingen toestaan</string>
-    <string name="pref_item_allow_screenshots_text_on">Laat de inhoud van de app zien wanneer u schakelt tussen recente apps en laat het maken van een schermopnames toe</string>
+    <string name="pref_item_allow_screenshots_text_on">Laat de inhoud van de app zien wanneer u schakelt tussen recente apps en sta het maken van schermopnames toe</string>
     <string name="pref_item_allow_screenshots_text_off">Verberg de inhoud van de app wanneer u schakelt tussen recente apps en verbied het maken van schermopnames</string>
     <string name="pref_item_data_safety_title">Veiligheid van gegevens</string>
     <string name="pref_item_lock_vault_title">Kluis vergrendelen</string>
@@ -979,10 +979,10 @@
     <string name="pref_item_clipboard_auto_clear_title">Klembord automatisch wissen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Onmiddelijk</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nooit</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Eenmalige wachtwoord notificatie duur</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Wanneer u een item met een eenmalig verificatiecode automatisch laat invullen zal er een notificatie met de verificatiecode verschijnen voor tenminste de gedefinieerde duur</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Eenmalige verificatiecode notificatie duur</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Wanneer u een item met een eenmalige verificatiecode automatisch laat invullen zal er een notificatie met de verificatiecode verschijnen voor tenminste de ingestelde duur</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Nooit</string>
-    <string name="pref_item_clipboard_notification_settings_title">Eenmalige wachtwoord notificatie duur</string>
+    <string name="pref_item_clipboard_notification_settings_title">Eenmalige verificatiecode notificatie instellingen</string>
     <string name="pref_item_premium_membership_title">Over het Keyguard lidmaatschap</string>
     <string name="pref_item_premium_membership_text">De premium versie ontgrendelt extra functionaliteiten en financiert de ontwikkeling van de app. Bedankt voor uw steun! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonnementen</string>

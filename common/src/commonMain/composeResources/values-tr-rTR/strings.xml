@@ -198,7 +198,7 @@
     <!-- Encryption key -->
     <string name="encryption_key">Anahtar</string>
     <string name="encryption_hash">Karma</string>
-    <string name="encryption_salt">Tuz</string>
+    <string name="encryption_salt">Salt</string>
     <string name="encryption_algorithm_256bit_aes">256 bit AES</string>
     <string name="encryption_random_bits_data">Rastgele <xliff:g id="length" example="64">%1$d</xliff:g>- veri bitleri</string>
     <string name="none">Yok</string>

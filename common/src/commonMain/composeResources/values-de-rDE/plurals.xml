@@ -17,19 +17,19 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Ergebnisse</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Sekunde</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Sekunden</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Minute</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Minuten</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Strunde</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Stunden</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Tag</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Tage</item>
     </plurals>
 </resources>

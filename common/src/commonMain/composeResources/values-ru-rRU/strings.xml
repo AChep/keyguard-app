@@ -2,11 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Закрыть</string>
-    <string name="quit">Quit</string>
+    <string name="quit">Выйти</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Show Keyguard</string>
+    <string name="show_keyguard">Показать Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Название</string>
     <string name="account_name">Название учетной записи</string>
@@ -459,8 +459,8 @@
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
     <string name="error_failed_open_uri">Не удалось открыть URI</string>
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
-    <string name="scanqr_title">Scan QR code</string>
-    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
+    <string name="scanqr_title">Сканировать QR-код</string>
+    <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>

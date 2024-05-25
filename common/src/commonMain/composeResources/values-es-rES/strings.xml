@@ -2,17 +2,17 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">Ok</string>
     <string name="close">Cerrar</string>
-    <string name="quit">Quit</string>
+    <string name="quit">Salir</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Show Keyguard</string>
+    <string name="show_keyguard">Mostar Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nombre</string>
     <string name="account_name">Nombre de cuenta</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="wordlist">Wordlist</string>
+    <string name="enabled">Habilitado</string>
+    <string name="disabled">Deshabilitado</string>
+    <string name="wordlist">Lista de palabras</string>
     <string name="username">Nombre de usuario</string>
     <string name="password">Contraseña</string>
     <string name="app_password">Contraseña de aplicación</string>
@@ -30,7 +30,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Número máximo de acceso</string>
     <string name="learn_more">Conozca más</string>
     <string name="phone_number">Teléfono</string>
     <string name="passport_number">Número de pasaporte</string>
@@ -66,17 +66,17 @@
     <string name="postal_code">Código postal</string>
     <string name="pull_to_search">Tira para buscar</string>
     <string name="save">Guardar</string>
-    <string name="save_to">Save to</string>
+    <string name="save_to">Guardar en</string>
     <string name="uri">URI</string>
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
     <string name="notes">Notas</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Fecha</string>
+    <string name="time">Hora</string>
     <string name="attachments">Adjuntos</string>
     <string name="attachments_empty_label">Sin adjuntos</string>
-    <string name="deactivated">Deactivated</string>
-    <string name="expired">Expired</string>
+    <string name="deactivated">Desactivado</string>
+    <string name="expired">Expirado</string>
     <string name="expiring_soon">Expira pronto</string>
     <string name="item_incomplete_title">Datos incompletos</string>
     <string name="item_incomplete_text">A este elemento le falta información importante.</string>
@@ -100,11 +100,11 @@
     <string name="organizations">Organizaciones</string>
     <string name="organizations_empty_label">Sin organizaciones</string>
     <string name="misc">Varios</string>
-    <string name="category">Category</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="category">Categoría</string>
+    <string name="command">Comando</string>
+    <string name="execute_command">Ejecutar</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Añadir</string>
     <string name="add_integration">Añadir Integración</string>
     <string name="account">Cuenta</string>
     <string name="accounts">Cuentas</string>
@@ -126,15 +126,15 @@
     <string name="address2">Dirección (línea 2)</string>
     <string name="address3">Dirección (línea 3)</string>
     <string name="rename">Renombrar</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Fecha de eliminación</string>
+    <string name="deletion_date_custom">Personalizado</string>
+    <string name="expiration_date">Fecha de expiración</string>
+    <string name="expiration_date_custom">Personalizado</string>
+    <string name="expiration_date_never">Nunca</string>
     <string name="select_linked_type">Seleccionar tipo</string>
-    <string name="select_file">Select a file</string>
+    <string name="select_file">Selecciona un archivo</string>
     <string name="autofill">Autocompletar</string>
-    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
+    <string name="autofill_and_save_uri">Enlace web para autocompletar y guardar</string>
     <string name="passkey">Llave de acceso</string>
     <string name="passkey_create_header">Crear una llave de acceso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
@@ -157,10 +157,10 @@
     <string name="passkey_discoverable">Detección</string>
     <string name="passkey_user_username">Nombre de usuario</string>
     <string name="passkey_user_display_name">Nombre a mostrar</string>
-    <string name="ignored_alerts">Ignored alerts</string>
+    <string name="ignored_alerts">Alertas ignoradas</string>
     <string name="api_key">Clave API</string>
     <string name="domain">Dominio</string>
-    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="add_to_home_screen">Añadir a la pantalla de inicio</string>
     <string name="edit">Editar</string>
     <string name="delete">Borrar</string>
     <string name="remove">Eliminar</string>
@@ -192,7 +192,7 @@
     <string name="downloads">Descargas</string>
     <string name="downloads_empty_label">Sin descargas</string>
     <string name="duplicates_empty_label">Sin duplicados</string>
-    <string name="duplicate">Duplicate</string>
+    <string name="duplicate">Duplicar</string>
     <string name="regex">Regular expression</string>
     <string name="encryption">Cifrado</string>
     <!-- Encryption key -->
@@ -213,7 +213,7 @@
     <string name="fingerprint_phrase_help_title">¿Qué es una huella digital?</string>
     <string name="filter_auth_reprompt_items">Auth re-prompt</string>
     <string name="filter_pending_items">Pending</string>
-    <string name="filter_failed_items">Failed</string>
+    <string name="filter_failed_items">Ha fallado</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor no oficial de Bitwarden</string>
@@ -586,7 +586,7 @@
     <string name="additem_header_new_title">Nuevo ítem</string>
     <string name="additem_header_edit_title">Editar ítem</string>
     <string name="additem_header_merge_title">Merge items</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Mover elementos asociados a la papelera</string>
     <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Texto de estilo con <xliff:g id="italic" example="italic">%1$s</xliff:g> o <xliff:g id="bold" example="bold">%2$s</xliff:g> y más. Sintaxis de Markdown limitada es compatible.</string>

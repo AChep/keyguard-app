@@ -2,11 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Schließen</string>
-    <string name="quit">Quit</string>
+    <string name="quit">Beenden</string>
     <string name="yes">Ja</string>
     <string name="no">Nein</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Show Keyguard</string>
+    <string name="show_keyguard">Keyguard anzeigen</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
     <string name="account_name">Kontoname</string>
@@ -459,8 +459,8 @@
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
     <string name="error_failed_open_uri">Fehler beim Öffnen einer URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
-    <string name="scanqr_title">Scan QR code</string>
-    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
+    <string name="scanqr_title">QR-Code scannen</string>
+    <string name="scanqr_load_from_image_note">Laden und Analysieren eines QR-Codes aus einer Bilddatei.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Als Barcode anzeigen</string>
@@ -898,7 +898,7 @@
     <string name="pref_item_load_app_icons_title">App-Symbole laden</string>
     <string name="pref_item_load_website_icons_title">Website-Symbole laden</string>
     <string name="pref_item_load_website_icons_text">Nachfragen der Icons könnte die Adresse der Webseite an den Internetprovider preisgeben</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
+    <string name="pref_item_load_gravatar_icons_title">Gravatar Icons laden</string>
     <string name="pref_item_markdown_title">Rich-Text-Formatierung</string>
     <string name="pref_item_markdown_text">Markdown verwenden, um Notizen zu formatieren</string>
     <string name="pref_item_locale_title">Sprache</string>
@@ -910,10 +910,10 @@
     <string name="pref_item_color_scheme_amoled_dark_title">Schwarzes Farbschema verwenden</string>
     <string name="pref_item_open_links_in_external_browser_title">Links in externem Browser öffnen</string>
     <string name="pref_item_close_to_tray_title">In die Taskleiste schließen</string>
-    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
-    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
-    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
-    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
+    <string name="pref_item_check_pwned_passwords_title">Auf pwned Passwörter prüfen</string>
+    <string name="pref_item_check_pwned_services_title">Auf Datenlecks prüfen</string>
+    <string name="pref_item_check_inactive_2fa_title">Auf inaktive Zwei-Faktor-Authentifizierung prüfen</string>
+    <string name="pref_item_check_inactive_passkeys_title">Auf inaktive Passkeys prüfen</string>
     <string name="pref_item_conceal_fields_title">Felder verbergen</string>
     <string name="pref_item_conceal_fields_text">Vertrauliche Informationen wie Passwörter und Kreditkartennummern verbergen</string>
     <!--

@@ -9,7 +9,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -73,6 +72,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.titleH
@@ -757,13 +757,24 @@ private fun PasskeyField(
             if (passkey != null) {
                 FlatItemTextContent(
                     title = {
-                        Text(
-                            text = passkey.userDisplayName.orEmpty(),
-                        )
+                        val userName = passkey.userDisplayName
+                        if (userName != null) {
+                            Text(
+                                text = userName,
+                            )
+                        }
                     },
                     text = {
+                        val rpName = passkey.rpName
                         Text(
-                            text = passkey.rpName ?: "",
+                            text = rpName
+                                ?: stringResource(Res.string.empty_value),
+                            color = if (rpName != null) {
+                                LocalContentColor.current
+                            } else {
+                                LocalContentColor.current
+                                    .combineAlpha(DisabledEmphasisAlpha)
+                            },
                         )
                     },
                 )

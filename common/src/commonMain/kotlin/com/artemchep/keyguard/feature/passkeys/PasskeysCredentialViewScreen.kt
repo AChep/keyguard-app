@@ -212,7 +212,14 @@ private fun ColumnScope.ContentOk(
                     val rpId = state.model.rpId
                     Column {
                         Text(
-                            text = rpName ?: "",
+                            text = rpName
+                                ?: stringResource(Res.string.empty_value),
+                            color = if (rpName != null) {
+                                LocalContentColor.current
+                            } else {
+                                LocalContentColor.current
+                                    .combineAlpha(DisabledEmphasisAlpha)
+                            },
                         )
                         Text(
                             text = rpId,

@@ -69,7 +69,7 @@ kamel = "0.9.4"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
-kodeinDi = "7.21.2"
+kodeinDi = "7.22.0"
 # https://github.com/JetBrains/kotlin
 kotlin = "2.0.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable

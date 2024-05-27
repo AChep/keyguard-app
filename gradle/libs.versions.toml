@@ -13,7 +13,7 @@ appVersionName = "1.1.1"
 appVersionCode = "5"
 # https://github.com/google/accompanist
 accompanist = "0.34.0"
-androidBillingClient = "6.2.1"
+androidBillingClient = "7.0.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.0.4"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google

@@ -148,8 +148,8 @@ val creditCardMastercard = CreditCardType(
 val creditCardMeeza = CreditCardType(
     name = "Meeza",
     digits = 16..16,
-    pattern = "^5078(03|09|10|11)\\d{10}\$".toRegex(),
-    eagerPattern = "^5078(03|09|10|11)".toRegex(),
+    pattern = "^5078(03|08|09|10)\\d{10}\$".toRegex(),
+    eagerPattern = "^5078(03|08|09|10)".toRegex(),
 )
 
 val creditCardMir = CreditCardType(

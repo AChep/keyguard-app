@@ -133,7 +133,7 @@ val creditCardMaestro = CreditCardType(
     name = "Maestro",
     icon = Res.drawable.ic_card_maestro,
     digits = 12..19,
-    pattern = "^(?:5[06789]\\d\\d|(?!6011[0234])(?!60117[4789])(?!60118[6789])(?!60119)(?!64[456789])(?!65)6\\d{3})\\d{8,15}\$".toRegex(),
+    pattern = "^(5018|5020|5038|5893|6304|6759|6761|6762|6763)\\d{8,15}\$".toRegex(),
     eagerPattern = "^(5(018|0[23]|[68])|6[37]|60111|60115|60117([56]|7[56])|60118[0-5]|64[0-3]|66)".toRegex(),
     groupPattern = "(\\d{1,4})(\\d{1,4})?(\\d{1,4})?(\\d{1,4})?(\\d{1,3})?".toRegex(),
 )
@@ -183,6 +183,14 @@ val creditCardUnionPay = CreditCardType(
     groupPattern = "(\\d{1,4})(\\d{1,4})?(\\d{1,4})?(\\d{1,4})?(\\d{1,3})?".toRegex(),
 )
 
+val creditCardRupay = CreditCardType(
+    name = "RuPay",
+    icon = Res.drawable.ic_card_rupay,
+    pattern = "^(60\\d|65\\d|81\\d|82\\d|508|353|356)\\d{13}\$".toRegex(),
+    eagerPattern = "^(60|65|81|82|508|353|356)".toRegex(),
+    groupPattern = "(\\d{1,4})(\\d{1,4})?(\\d{1,4})?(\\d{1,4})?".toRegex(),
+)
+
 // Sorted by popularity
 val creditCards = persistentListOf(
     creditCardVisa,
@@ -201,6 +209,7 @@ val creditCards = persistentListOf(
     creditCardUATP,
     creditCardMada,
     creditCardMeeza,
+    creditCardRupay,
 )
 
 fun List<CreditCardType>.firstOrNullByBrand(

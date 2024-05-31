@@ -2474,9 +2474,13 @@
   {
     "domain": "canada.ca",
     "url": "https://www.canada.ca/en/revenue-agency.html",
+    "additional-domains": [
+      "cra-arc.gc.ca"
+    ],
     "tfa": [
       "sms",
-      "call"
+      "call",
+      "totp"
     ],
     "documentation": "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services/multi-factor-authentication-access-cra-login-services.html",
     "name": "Canada Revenue Agency"
@@ -8481,7 +8485,11 @@
     "domain": "linkedin.com",
     "tfa": [
       "sms",
-      "totp"
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "LinkedIn App"
     ],
     "documentation": "https://www.linkedin.com/help/linkedin/answer/544",
     "name": "LinkedIn"
@@ -8502,7 +8510,7 @@
       "sms",
       "call"
     ],
-    "documentation": "https://linktr.ee/help/linktree-ff524ba1864c/en/articles/6108442",
+    "documentation": "https://linktr.ee/help/articles/6108442",
     "name": "Linktree"
   },
   {
@@ -9332,6 +9340,7 @@
       "email",
       "totp"
     ],
+    "documentation": "https://help.minds.com/hc/minds/articles/1705423904-two_factor-authentication",
     "name": "Minds"
   },
   {
@@ -13809,12 +13818,11 @@
   },
   {
     "domain": "snapchat.com",
-    "url": "https://www.snapchat.com/",
     "tfa": [
       "sms",
       "totp"
     ],
-    "documentation": "https://support.snapchat.com/en-US/article/enable-login-verification",
+    "documentation": "https://help.snapchat.com/hc/sections/5685887734676",
     "name": "Snapchat"
   },
   {
@@ -15350,7 +15358,7 @@
       "sms",
       "totp"
     ],
-    "documentation": "https://help.tumblr.com/hc/en-us/articles/226270148",
+    "documentation": "https://help.tumblr.com/two-factor-authentication/",
     "name": "Tumblr"
   },
   {

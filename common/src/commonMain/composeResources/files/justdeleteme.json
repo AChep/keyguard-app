@@ -3426,6 +3426,14 @@
     "notes": "Your messages will remain on the forums."
   },
   {
+    "name": "commiss.io",
+    "domains": [
+      "commiss.io"
+    ],
+    "url": "https://commiss.io/",
+    "difficulty": "impossible"
+  },
+  {
     "name": "Commun",
     "domains": [
       "commun.it"
@@ -8003,6 +8011,17 @@
     "url": "https://dsar.humblebundle.com",
     "difficulty": "medium",
     "notes": "The easiest method is to submit a Data Subject Access Request at their [DSAR Privacy Portal](https://dsar.humblebundle.com/) to request account deletion. Alternatively, you can also [submit a support request](https://support.humblebundle.com/hc/en-us/requests/new) for account deletion. In the linked page under \"What can we help you with?\" select \"Humble Bundle Account\" \u2b95 \"Delete Account\", fill in your email, enter \"Account deletion\" as subject, add your honest reason for account deletion in the message, and submit. Someone from support should contact you and guide you further."
+  },
+  {
+    "name": "Hype",
+    "domains": [
+      "hype.it",
+      "signup.hype.it",
+      "support.hype.it"
+    ],
+    "url": "https://support.hype.it/hc/it/articles/360003556214-Come-chiudere-il-conto",
+    "difficulty": "medium",
+    "notes": "First of all, you must meet the requirements written in the linked page. From the app, click on the profile icon, then go to settings, click on the button to close the account and follow the instructions."
   },
   {
     "name": "Hype Machine",
@@ -12797,10 +12816,9 @@
     "domains": [
       "perplexity.ai"
     ],
-    "url": "https://www.perplexity.ai/privacy",
-    "difficulty": "hard",
-    "notes": "According to their privacy policy, you must send an e-mail requesting account deletion.",
-    "email": "support@perplexity.ai"
+    "url": "https://www.perplexity.ai/settings/account",
+    "difficulty": "easy",
+    "notes": " In the \"System\" field, select \"Delete Account\" and confirm the action. All data will be permanently deleted 30 days after the account is deleted."
   },
   {
     "name": "Personal Capital",
@@ -14570,6 +14588,15 @@
     "url": "https://app.schoology.com/settings/account/action?delete",
     "difficulty": "easy",
     "notes": "Click on the \"I Agree\" button."
+  },
+  {
+    "name": "scite_",
+    "domains": [
+      "scite.ai"
+    ],
+    "url": "https://scite.ai/policy#your-privacy-choices",
+    "difficulty": "hard",
+    "email": "hi@scite.ai"
   },
   {
     "name": "Score",
@@ -16638,9 +16665,9 @@
     "domains": [
       "threads.net"
     ],
-    "url": "https://www.instagram.com/accounts/remove/request/permanent/",
-    "difficulty": "impossible",
-    "notes": "You must submit a request to close your INSTAGRAM account via form."
+    "url": "https://www.threads.net/settings/account",
+    "difficulty": "easy",
+    "notes": "In the app go to your profile, click on the right top corner and go to \"Account \u2b95 Deactivate or delete profile \u2b95 Delete profile\""
   },
   {
     "name": "Threema",
@@ -19434,6 +19461,14 @@
     "url": "https://privacy.zynga.com/portal/#/",
     "difficulty": "medium",
     "notes": "Select the game you want to delete your account from (if you want to delete the entire account choose zyngagames.com). Log in. Click on the FAQ tab on the top navigation bar. Then click \u201cGo here to request account deletion\u201d. Click the box indicating your understanding and then click Continue. To confirm deletion, click the box, select a reason, and then click Delete My Account. Your account deletion request is now pending. Expect the deletion request to be completed within 30 days of the request."
+  },
+  {
+    "name": "Z\u00e9 Delivery",
+    "domains": [
+      "ze.delivery"
+    ],
+    "url": "https://faq-consumidor-zedelivery.sprinklr.com/articles/conta-e-privacidade/como-deletar-minha-conta/621889ac3df9251d7ed0da18",
+    "difficulty": "easy"
   },
   {
     "name": "\u00c7i\u00e7ekSepeti",

@@ -34,7 +34,7 @@ value class FileResource(
                 .let(::FileResource)
 
         val wordlist: FileResource
-            get() = "files/wordlist_en_elf.txt"
+            get() = "files/wordlist_en_eff.txt"
                 .let(::FileResource)
     }
 }

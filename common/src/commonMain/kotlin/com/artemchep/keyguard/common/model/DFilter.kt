@@ -1247,6 +1247,9 @@ sealed interface DFilter {
             val cipherUrlDuplicateCheck = directDI.instance<CipherUrlDuplicateCheck>()
             ciphers
                 .filter { cipher ->
+                    if (shouldIgnore(cipher)) {
+                        return@filter false
+                    }
                     val uris = cipher.uris
                     if (uris.isEmpty()) {
                         return@filter false
@@ -1273,6 +1276,10 @@ sealed interface DFilter {
                     false
                 }
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlertType.DUPLICATE_URIS)
     }
 
     @Serializable

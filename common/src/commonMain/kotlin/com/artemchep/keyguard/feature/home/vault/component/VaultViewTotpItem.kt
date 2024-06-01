@@ -354,7 +354,7 @@ private fun RowScope.VaultViewTotpRemainderBadgeContent(
         else -> {
             CircularProgressIndicator(
                 modifier = circularProgressModifier,
-                progress = progress,
+                progress = { progress },
                 color = LocalContentColor.current,
             )
             Spacer(Modifier.width(4.dp))

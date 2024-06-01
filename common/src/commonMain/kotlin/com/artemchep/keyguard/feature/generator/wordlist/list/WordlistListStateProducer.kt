@@ -187,7 +187,7 @@ fun produceWordlistListState(
                         .map { raw ->
                             val onClick = if (raw.selecting) {
                                 // lambda
-                                selectionHandle::toggleSelection.partially1(it.id.orEmpty())
+                                selectionHandle::toggleSelection.partially1(it.id)
                             } else {
                                 null
                             }
@@ -195,7 +195,7 @@ fun produceWordlistListState(
                                 null
                             } else {
                                 // lambda
-                                selectionHandle::toggleSelection.partially1(it.id.orEmpty())
+                                selectionHandle::toggleSelection.partially1(it.id)
                             }
                             SelectableItemState(
                                 selecting = raw.selecting,

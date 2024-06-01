@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.home.settings.accounts
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.partially1
@@ -142,7 +142,7 @@ fun accountListScreenState(
         accountIds: Set<AccountId>,
     ) {
         val intent = createConfirmationDialogIntent(
-            icon = icon(Icons.Outlined.Logout),
+            icon = icon(Icons.AutoMirrored.Outlined.Logout),
             title = translate(Res.string.account_log_out_confirmation_title),
             message = translate(Res.string.account_log_out_confirmation_text),
         ) {
@@ -195,7 +195,7 @@ fun accountListScreenState(
             }
             section {
                 this += FlatItemAction(
-                    icon = Icons.Outlined.Logout,
+                    icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_log_out_title.wrap(),
                     onClick = onClick {
                         onDelete(f)

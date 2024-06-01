@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ViewList
 import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.ViewList
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,7 +70,7 @@ fun SelectionBar(
                     onClick = { /*TODO*/ },
                 ) {
                     IconBox(
-                        main = Icons.Outlined.ViewList,
+                        main = Icons.AutoMirrored.Outlined.ViewList,
                         secondary = null, // Icons.Outlined.PanoramaFishEye,
                     )
                     if (title != null) {

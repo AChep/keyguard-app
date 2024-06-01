@@ -1,6 +1,10 @@
 package com.artemchep.keyguard.ui.icons
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.automirrored.outlined.ShortText
+import androidx.compose.material.icons.automirrored.outlined.StickyNote2
 import androidx.compose.material.icons.materialIcon
 import androidx.compose.material.icons.materialPath
 import androidx.compose.material.icons.outlined.AccountTree
@@ -14,16 +18,12 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lens
-import androidx.compose.material.icons.outlined.LibraryBooks
-import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Recycling
-import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material.icons.outlined.StickyNote2
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
 import compose.icons.FeatherIcons
@@ -43,7 +43,7 @@ val Icons.Outlined.KeyguardPasskey
     get() = Key
 
 val Icons.Outlined.KeyguardNote
-    get() = StickyNote2
+    get() = Icons.AutoMirrored.Outlined.StickyNote2
 
 val Icons.Outlined.KeyguardAttachment
     get() = Attachment
@@ -61,7 +61,7 @@ val Icons.Outlined.KeyguardCollection
     get() = CollectionsBookmark
 
 val Icons.Outlined.KeyguardCipher
-    get() = List
+    get() = Icons.AutoMirrored.Outlined.List
 
 val Icons.Outlined.KeyguardLargeType
     get() = Lens
@@ -70,7 +70,7 @@ val Icons.Outlined.KeyguardPremium
     get() = Star
 
 val Icons.Outlined.KeyguardWordlist
-    get() = LibraryBooks
+    get() = Icons.AutoMirrored.Outlined.LibraryBooks
 
 val Icons.Outlined.KeyguardCipherFilter
     get() = FilterList
@@ -94,7 +94,7 @@ val Icons.Outlined.KeyguardDuplicateItems
     get() = CopyAll
 
 val Icons.Outlined.KeyguardIncompleteItems
-    get() = ShortText
+    get() = Icons.AutoMirrored.Outlined.ShortText
 
 val Icons.Outlined.KeyguardExpiringItems
     get() = Timer

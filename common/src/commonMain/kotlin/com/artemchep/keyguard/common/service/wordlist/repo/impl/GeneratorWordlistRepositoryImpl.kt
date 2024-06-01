@@ -37,7 +37,7 @@ class GeneratorWordlistRepositoryImpl(
                         DGeneratorWordlist(
                             idRaw = entity.id,
                             name = entity.name,
-                            wordCount = entity.wordCount ?: 0,
+                            wordCount = entity.wordCount,
                             createdDate = entity.createdAt,
                         )
                     }

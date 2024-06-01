@@ -18,8 +18,8 @@ import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -252,7 +252,7 @@ fun LoginContent(
                             )
                         } else {
                             Icon(
-                                imageVector = Icons.Outlined.Login,
+                                imageVector = Icons.AutoMirrored.Outlined.Login,
                                 contentDescription = null,
                             )
                         }

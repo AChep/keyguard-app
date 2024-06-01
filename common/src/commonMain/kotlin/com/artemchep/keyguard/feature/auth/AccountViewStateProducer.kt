@@ -6,15 +6,15 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.Login
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Badge
@@ -214,7 +214,7 @@ fun accountState(
 
     suspend fun doRemoveAccountById(accountId: AccountId) {
         val intent = createConfirmationDialogIntent(
-            icon = icon(Icons.Outlined.Logout),
+            icon = icon(Icons.AutoMirrored.Outlined.Logout),
             title = translate(Res.string.account_log_out_confirmation_title),
             message = translate(Res.string.account_log_out_confirmation_text),
         ) {
@@ -318,7 +318,7 @@ fun accountState(
                         val env = t.env.back()
                         AccountViewState.Content.Data.PrimaryAction(
                             text = translate(Res.string.account_action_sign_in_title),
-                            icon = Icons.Outlined.Login,
+                            icon = Icons.AutoMirrored.Outlined.Login,
                             onClick = ::doReLogin
                                 .partially1(accountId)
                                 .partially1(email)
@@ -424,7 +424,7 @@ fun accountState(
                 }
 
                 this += FlatItemAction(
-                    icon = Icons.Outlined.Logout,
+                    icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_sign_out_title.wrap(),
                     onClick = if (busy) {
                         null
@@ -589,7 +589,7 @@ private fun buildItemsFlow(
                         )
                     },
                 ) {
-                    Icon(Icons.Outlined.Send, null)
+                    Icon(Icons.AutoMirrored.Outlined.Send, null)
                 }
             },
             trailing = {
@@ -1079,7 +1079,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
             value = hint.orEmpty(),
             private = true,
             leading = {
-                Icon(Icons.Outlined.HelpOutline, null)
+                Icon(Icons.AutoMirrored.Outlined.HelpOutline, null)
             },
             dropdown = buildContextItems {
                 if (!hint.isNullOrBlank()) {
@@ -1144,7 +1144,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
                 }
                 section {
                     this += FlatItemAction(
-                        icon = Icons.Outlined.HelpOutline,
+                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
                         title = Res.string.fingerprint_phrase_help_title.wrap(),
                         trailing = {
                             ChevronIcon()

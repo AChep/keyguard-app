@@ -26,7 +26,7 @@ fun settingAboutAppBuildRefProvider(
     getAppBuildRef: GetAppBuildRef,
 ): SettingComponent = getAppBuildRef()
     .map { buildRef ->
-        if (buildRef.isNullOrBlank()) {
+        if (buildRef.isBlank()) {
             return@map null
         }
 

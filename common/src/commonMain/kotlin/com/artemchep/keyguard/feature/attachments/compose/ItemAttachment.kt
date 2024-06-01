@@ -27,11 +27,11 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.DownloadDone
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Launch
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -135,9 +135,9 @@ fun ItemAttachment(
                                 }
                                 val p = animateFloatAsState(updatedProgressState.value)
                                 LinearProgressIndicator(
+                                    progress = { p.value },
                                     modifier = Modifier
                                         .fillMaxWidth(),
-                                    progress = p.value,
                                 )
                             } else {
                                 LinearProgressIndicator(
@@ -355,7 +355,7 @@ private fun ItemAttachmentLayout(
                                 },
                             ) {
                                 Icon(
-                                    imageVector = Icons.Outlined.Launch,
+                                    imageVector = Icons.AutoMirrored.Outlined.Launch,
                                     contentDescription = null,
                                 )
                             }

@@ -9,7 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
 import com.artemchep.keyguard.common.model.NavAnimation
 
 const val ahForward = 300
@@ -77,14 +77,14 @@ fun NavigationAnimation.transform(
 fun NavigationAnimation.transformImmediate(): ContentTransform =
     fadeIn(
         animationSpec = snap(),
-    ) with fadeOut(
+    ) togetherWith fadeOut(
         animationSpec = snap(),
     )
 
 fun NavigationAnimation.transformSwitchContext(scale: Float): ContentTransform =
     fadeIn(
         animationSpec = tween(ahForward.times(scale).toInt()),
-    ) with fadeOut(
+    ) togetherWith fadeOut(
         animationSpec = tween(ahForward.times(scale).toInt()),
     )
 
@@ -94,7 +94,7 @@ fun NavigationAnimation.transformGoForward(scale: Float): ContentTransform =
         initialOffsetX = { fullWidth -> fullWidth / 8 },
     ) + fadeIn(
         animationSpec = twaat(ahBack.times(scale).toInt()),
-    ) with slideOutHorizontally(
+    ) togetherWith slideOutHorizontally(
         animationSpec = twuut(ahForward.times(scale).toInt()),
         targetOffsetX = { fullWidth -> -fullWidth / 12 },
     ) + fadeOut(
@@ -107,7 +107,7 @@ fun NavigationAnimation.transformGoBack(scale: Float): ContentTransform =
         initialOffsetX = { fullWidth -> -fullWidth / 12 },
     ) + fadeIn(
         animationSpec = twaat(ahBack.times(scale).toInt()),
-    ) with slideOutHorizontally(
+    ) togetherWith slideOutHorizontally(
         animationSpec = twuut(ahBack.times(scale).toInt()),
         targetOffsetX = { fullWidth -> fullWidth / 8 },
     ) + fadeOut(

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 import arrow.core.Either
+import arrow.core.Either.Companion.catch
 import arrow.core.flatten
 import arrow.core.right
 import io.ktor.http.Url
@@ -13,7 +14,7 @@ sealed interface TotpToken {
     companion object {
         fun parse(
             url: String,
-        ): Either<Throwable, TotpToken> = Either.catchAndFlatten {
+        ): Either<Throwable, TotpToken> = catch {
             when {
                 url.startsWith(PREFIX_OTP_AUTH) -> parseOtpAuth(url)
                 url.startsWith(PREFIX_OTP_STEAM) -> parseOtpSteam(url)
@@ -29,7 +30,7 @@ sealed interface TotpToken {
                         .right()
                 }
             }
-        }
+        }.flatten()
     }
 
     val raw: String

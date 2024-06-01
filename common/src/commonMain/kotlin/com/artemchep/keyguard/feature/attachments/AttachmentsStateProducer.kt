@@ -1,14 +1,14 @@
 package com.artemchep.keyguard.feature.attachments
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
@@ -618,7 +618,7 @@ fun foo(
                     }
                     if (CurrentPlatform is Platform.Mobile) {
                         this += FlatItemAction(
-                            leading = icon(Icons.Outlined.Send),
+                            leading = icon(Icons.AutoMirrored.Outlined.Send),
                             trailing = {
                                 ChevronIcon()
                             },
@@ -643,7 +643,7 @@ fun foo(
         if (launchViewCipherData != null) {
             section {
                 this += FlatItemAction(
-                    leading = icon(Icons.Outlined.OpenInNew),
+                    leading = icon(Icons.AutoMirrored.Outlined.OpenInNew),
                     trailing = {
                         ChevronIcon()
                     },

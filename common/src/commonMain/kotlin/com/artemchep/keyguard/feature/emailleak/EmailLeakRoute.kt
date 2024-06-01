@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.emailleak
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FactCheck
+import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.feature.localization.wrap
@@ -35,7 +35,7 @@ data class EmailLeakRoute(
             email: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
-            leading = icon(Icons.Outlined.FactCheck),
+            leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.email_action_check_data_breach_title.wrap(),
             onClick = {
                 val route = EmailLeakRoute(
@@ -67,7 +67,7 @@ data class EmailLeakRoute(
             username: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
-            leading = icon(Icons.Outlined.FactCheck),
+            leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.username_action_check_data_breach_title.wrap(),
             onClick = {
                 val route = EmailLeakRoute(

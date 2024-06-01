@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Message
+import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -45,7 +45,7 @@ fun SettingEmitMessage(
     onClick: () -> Unit,
 ) {
     VaultViewButtonItem(
-        leading = icon<RowScope>(Icons.Outlined.Message),
+        leading = icon<RowScope>(Icons.AutoMirrored.Outlined.Message),
         text = "Emit message",
         onClick = onClick,
     )

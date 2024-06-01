@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -25,7 +25,7 @@ fun NavigationIcon(
                 controller.queue(intent)
             },
         ) {
-            Icon(Icons.Outlined.ArrowBack, null)
+            Icon(Icons.AutoMirrored.Outlined.ArrowBack, null)
         }
     }
 }

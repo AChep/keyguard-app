@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.websiteleak
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FactCheck
+import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.DialogRoute
@@ -31,7 +31,7 @@ data class WebsiteLeakRoute(
             host: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
-            leading = icon(Icons.Outlined.FactCheck),
+            leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.website_action_check_data_breach_title.wrap(),
             onClick = {
                 val route = WebsiteLeakRoute(

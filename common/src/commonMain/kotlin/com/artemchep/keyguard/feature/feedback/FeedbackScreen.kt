@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -84,7 +84,7 @@ private fun FeedbackContent(
         floatingActionButton = {
             DefaultFab(
                 icon = {
-                    Icon(Icons.Outlined.Send, null)
+                    Icon(Icons.AutoMirrored.Outlined.Send, null)
                 },
                 text = {
                     Text(

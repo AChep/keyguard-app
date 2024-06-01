@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.TextSnippet
+import androidx.compose.material.icons.automirrored.outlined.TextSnippet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,7 +51,7 @@ private fun SettingOpenSourceLicenses(
     onClick: (() -> Unit)?,
 ) {
     FlatItem(
-        leading = icon<RowScope>(Icons.Outlined.TextSnippet),
+        leading = icon<RowScope>(Icons.AutoMirrored.Outlined.TextSnippet),
         trailing = {
             ChevronIcon()
         },

@@ -19,9 +19,9 @@ import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Launch
+import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Construction
-import androidx.compose.material.icons.outlined.Launch
-import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.Checkbox
@@ -158,13 +158,13 @@ fun LoginTwofaScreenContent(
                         when (icon) {
                             LoginTwofaState.PrimaryAction.Icon.LOGIN ->
                                 Icon(
-                                    imageVector = Icons.Outlined.Login,
+                                    imageVector = Icons.AutoMirrored.Outlined.Login,
                                     contentDescription = null,
                                 )
 
                             LoginTwofaState.PrimaryAction.Icon.LAUNCH ->
                                 Icon(
-                                    imageVector = Icons.Outlined.Launch,
+                                    imageVector = Icons.AutoMirrored.Outlined.Launch,
                                     contentDescription = null,
                                 )
 

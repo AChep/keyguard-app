@@ -4,9 +4,8 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Launch
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -634,7 +633,7 @@ private suspend fun RememberStateFlowScope.aaaa(
         }
         section {
             this += FlatItemAction(
-                icon = Icons.Outlined.Launch,
+                icon = Icons.AutoMirrored.Outlined.Launch,
                 title = Res.string.uri_action_launch_browser_title.wrap(),
                 text = TextHolder.Value(url),
                 trailing = {

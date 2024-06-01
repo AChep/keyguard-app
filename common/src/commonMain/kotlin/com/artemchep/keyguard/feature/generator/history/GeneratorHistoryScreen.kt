@@ -6,10 +6,10 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.ForwardToInbox
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -182,7 +182,7 @@ private fun GeneratorHistoryItem(
                 val icon = when (type) {
                     GeneratorHistoryItem.Value.Type.USERNAME -> Icons.Outlined.AlternateEmail
                     GeneratorHistoryItem.Value.Type.EMAIL -> Icons.Outlined.Email
-                    GeneratorHistoryItem.Value.Type.EMAIL_RELAY -> Icons.Outlined.ForwardToInbox
+                    GeneratorHistoryItem.Value.Type.EMAIL_RELAY -> Icons.AutoMirrored.Outlined.ForwardToInbox
                     GeneratorHistoryItem.Value.Type.PASSWORD -> Icons.Outlined.Password
                     null -> Icons.Stub
                 }

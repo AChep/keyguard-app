@@ -201,8 +201,6 @@ fun produceSendAddScreenState(
 
     val typeFlow = kotlin.run {
         val initialValue = args.type
-        // this should never happen
-            ?: DSend.Type.None
         flowOf(initialValue)
     }
     val typeItemsFlow = typeFlow

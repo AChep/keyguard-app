@@ -70,12 +70,10 @@ fun RGBToHSL(
         s = 0f
         h = s
     } else {
-        h = if (max == rf) {
-            (gf - bf) / deltaMaxMin % 6f
-        } else if (max == gf) {
-            (bf - rf) / deltaMaxMin + 2f
-        } else {
-            (rf - gf) / deltaMaxMin + 4f
+        h = when (max) {
+            rf -> (gf - bf) / deltaMaxMin % 6f
+            gf -> (bf - rf) / deltaMaxMin + 2f
+            else -> (rf - gf) / deltaMaxMin + 4f
         }
         s = (deltaMaxMin / (1f - abs((2f * l - 1f).toDouble()))).toFloat()
     }

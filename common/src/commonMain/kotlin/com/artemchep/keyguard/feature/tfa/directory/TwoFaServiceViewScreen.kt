@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -313,7 +313,7 @@ fun FlatLaunchBrowserItem(
     val updatedNavigationController by rememberUpdatedState(LocalNavigationController.current)
     FlatItem(
         modifier = modifier,
-        leading = icon<RowScope>(Icons.Outlined.OpenInNew),
+        leading = icon<RowScope>(Icons.AutoMirrored.Outlined.OpenInNew),
         title = {
             Text(
                 text = title,

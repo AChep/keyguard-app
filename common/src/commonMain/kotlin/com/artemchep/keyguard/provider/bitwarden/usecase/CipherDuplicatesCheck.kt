@@ -27,7 +27,7 @@ class CipherDuplicatesCheckImpl(
     private val logRepository: LogRepository,
 ) : CipherDuplicatesCheck {
     companion object {
-        private val TAG = "CipherDuplicatesCheck"
+        private const val TAG = "CipherDuplicatesCheck"
 
         private val REGEX_SYMBOLS = "\\W".toRegex()
         private val REGEX_DIGITS = "\\d".toRegex()

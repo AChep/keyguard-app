@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Label
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -63,7 +63,7 @@ private fun SettingNavLabel(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItem(
-        leading = icon<RowScope>(Icons.Outlined.Label),
+        leading = icon<RowScope>(Icons.AutoMirrored.Outlined.Label),
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentEnforcement provides false,

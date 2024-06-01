@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.generator.emailrelay
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ForwardToInbox
+import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -26,7 +26,7 @@ object EmailRelayListRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
-        leading = iconSmall(Icons.Outlined.ForwardToInbox),
+        leading = iconSmall(Icons.AutoMirrored.Outlined.ForwardToInbox),
         title = Res.string.emailrelay_list_header_title.wrap(),
         trailing = {
             ChevronIcon()

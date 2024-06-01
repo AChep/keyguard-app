@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ShortText
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.DataArray
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
-import androidx.compose.material.icons.outlined.ShortText
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -137,7 +137,7 @@ val onboardingItemsWatchtower = listOf(
     OnboardingItem(
         title = Res.string.feat_item_incomplete_items_title,
         text = Res.string.feat_item_incomplete_items_text,
-        icon = Icons.Outlined.ShortText,
+        icon = Icons.AutoMirrored.Outlined.ShortText,
     ),
     OnboardingItem(
         title = Res.string.feat_item_expiring_items_title,

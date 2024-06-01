@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Call
@@ -17,7 +18,6 @@ import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.Launch
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.PhoneIphone
@@ -2308,7 +2308,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                                 },
                             )
                             this += FlatItemAction(
-                                icon = Icons.Outlined.Launch,
+                                icon = Icons.AutoMirrored.Outlined.Launch,
                                 title = Res.string.uri_action_launch_play_store_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
@@ -2347,7 +2347,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         }
                         section {
                             this += FlatItemAction(
-                                icon = Icons.Outlined.Launch,
+                                icon = Icons.AutoMirrored.Outlined.Launch,
                                 title = Res.string.uri_action_launch_play_store_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
@@ -2412,7 +2412,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                 }
                 section {
                     this += FlatItemAction(
-                        icon = Icons.Outlined.Launch,
+                        icon = Icons.AutoMirrored.Outlined.Launch,
                         title = Res.string.uri_action_launch_browser_title.wrap(),
                         text = TextHolder.Value(url),
                         trailing = {
@@ -2429,7 +2429,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     ) {
                         val launchUrl = platformMarker.frontPageUrl.toString()
                         this += FlatItemAction(
-                            icon = Icons.Outlined.Launch,
+                            icon = Icons.AutoMirrored.Outlined.Launch,
                             title = Res.string.uri_action_launch_browser_main_page_title.wrap(),
                             text = TextHolder.Value(launchUrl),
                             trailing = {
@@ -2525,7 +2525,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     if (canLuanch != null) {
                         if (canLuanch.apps.size > 1) {
                             this += FlatItemAction(
-                                icon = Icons.Outlined.Launch,
+                                icon = Icons.AutoMirrored.Outlined.Launch,
                                 title = Res.string.uri_action_launch_in_smth_title.wrap(),
                                 trailing = {
                                     ChevronIcon()
@@ -2548,7 +2548,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                                             contentDescription = null,
                                         )
                                     } else {
-                                        Icon(Icons.Outlined.Launch, null)
+                                        Icon(Icons.AutoMirrored.Outlined.Launch, null)
                                     }
                                 },
                                 title = translate(

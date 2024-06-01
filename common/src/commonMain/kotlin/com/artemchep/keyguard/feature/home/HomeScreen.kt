@@ -31,10 +31,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudUpload
@@ -43,7 +44,6 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -189,8 +189,8 @@ fun HomeScreen(
             Rail(
                 key = "sends",
                 route = sendsRoute,
-                icon = Icons.Outlined.Send,
-                iconSelected = Icons.Filled.Send,
+                icon = Icons.AutoMirrored.Outlined.Send,
+                iconSelected = Icons.AutoMirrored.Filled.Send,
                 label = TextHolder.Res(Res.string.home_send_label),
             ),
             Rail(

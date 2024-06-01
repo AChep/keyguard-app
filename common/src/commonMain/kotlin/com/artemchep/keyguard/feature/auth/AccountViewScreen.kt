@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Launch
+import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -94,7 +94,7 @@ fun AccountViewScreen(
                         },
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Launch,
+                            imageVector = Icons.AutoMirrored.Outlined.Launch,
                             contentDescription = null,
                         )
                         Spacer(

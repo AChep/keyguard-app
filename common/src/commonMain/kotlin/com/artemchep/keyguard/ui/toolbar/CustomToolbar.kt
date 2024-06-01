@@ -62,7 +62,7 @@ fun CustomToolbar(
         Modifier.draggable(
             orientation = Orientation.Vertical,
             state = rememberDraggableState { delta ->
-                scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffset + delta
+                scrollBehavior.state.heightOffset += delta
             },
             onDragStopped = { velocity ->
                 settleAppBar(

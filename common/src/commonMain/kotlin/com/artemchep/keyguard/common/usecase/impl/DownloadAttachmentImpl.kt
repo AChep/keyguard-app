@@ -204,14 +204,14 @@ class DownloadAttachmentImpl2(
                 url = requireNotNull(model.url),
                 urlIsOneTime = true,
                 name = model.fileName,
-                encryptionKey = base64Service.decode(model.keyBase64!!),
+                encryptionKey = base64Service.decode(model.keyBase64),
             )
         }.getOrElse {
             AttachmentData(
                 url = requireNotNull(attachment.url),
                 urlIsOneTime = false,
                 name = attachment.fileName,
-                encryptionKey = base64Service.decode(attachment.keyBase64!!),
+                encryptionKey = base64Service.decode(attachment.keyBase64),
             )
         }
     }

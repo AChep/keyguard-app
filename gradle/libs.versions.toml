@@ -61,7 +61,7 @@ firebase = "33.1.0"
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
 glide = "5.0.0-rc01"
-googleServicesPlugin = "4.4.1"
+googleServicesPlugin = "4.4.2"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
@@ -106,7 +106,7 @@ okHttp = "4.12.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.1"
 # https://developers.google.com/android/guides/setup
-playServicesBase = "18.4.0"
+playServicesBase = "18.5.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha01"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr

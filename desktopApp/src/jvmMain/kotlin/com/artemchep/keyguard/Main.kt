@@ -30,6 +30,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.util.navigateToBrowser
 import com.artemchep.keyguard.desktop.util.navigateToEmail
@@ -72,6 +73,7 @@ import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DI
+import org.kodein.di.allInstances
 import org.kodein.di.bindSingleton
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
@@ -163,6 +165,13 @@ fun main() {
     val processLifecycleFlow = MutableStateFlow(LeLifecycleState.RESUMED)
     GlobalScope.launch {
         appWorker.launch(this, processLifecycleFlow)
+    }
+
+    val workers by appDi.di.allInstances<Wrker>()
+    GlobalScope.launch {
+        workers.forEach {
+            it.start(this, processLifecycleFlow)
+        }
     }
 
     // timeout

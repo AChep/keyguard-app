@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -132,6 +133,7 @@ class AddCipherImpl(
                         accountId = cipher.accountId,
                         folderId = cipher.folderId,
                         data = cipher,
+                        updatedAt = cipher.revisionDate,
                     )
                 }
             }

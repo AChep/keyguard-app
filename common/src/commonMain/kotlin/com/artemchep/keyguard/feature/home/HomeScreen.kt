@@ -2,16 +2,10 @@ package com.artemchep.keyguard.feature.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -51,7 +45,6 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -71,6 +64,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -91,6 +85,7 @@ import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetNavLabel
+import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
@@ -116,13 +111,15 @@ import com.artemchep.keyguard.platform.leStatusBars
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.AnimatedCounterBadge
+import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
+import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
@@ -132,13 +129,18 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.rememberInstance
 
 data class Rail(
+    val key: String,
     val route: Route,
     val icon: ImageVector,
     val iconSelected: ImageVector,
     val label: TextHolder,
+    val counterFlow: Flow<Int?> = flowOf(null),
 )
 
 private const val ROUTE_NAME = "home"
@@ -173,33 +175,44 @@ fun HomeScreen(
         }
     }
 
+    val getWatchtowerUnreadCount by rememberInstance<GetWatchtowerUnreadCount>()
+
     val navRoutes = remember {
         persistentListOf(
             Rail(
+                key = "vault",
                 route = vaultRoute,
                 icon = Icons.Outlined.Home,
                 iconSelected = Icons.Filled.Home,
                 label = TextHolder.Res(Res.string.home_vault_label),
             ),
             Rail(
+                key = "sends",
                 route = sendsRoute,
                 icon = Icons.Outlined.Send,
                 iconSelected = Icons.Filled.Send,
                 label = TextHolder.Res(Res.string.home_send_label),
             ),
             Rail(
+                key = "generator",
                 route = generatorRoute,
                 icon = Icons.Outlined.Password,
                 iconSelected = Icons.Filled.Password,
                 label = TextHolder.Res(Res.string.home_generator_label),
             ),
             Rail(
+                key = "watchtower",
                 route = watchtowerRoute,
                 icon = Icons.Outlined.Security,
                 iconSelected = Icons.Filled.Security,
+                counterFlow = getWatchtowerUnreadCount()
+                    .map { count ->
+                        count.takeIf { it > 0 }
+                    },
                 label = TextHolder.Res(Res.string.home_watchtower_label),
             ),
             Rail(
+                key = "settings",
                 route = SettingsRoute,
                 icon = Icons.Outlined.Settings,
                 iconSelected = Icons.Filled.Settings,
@@ -265,23 +278,27 @@ fun HomeScreenContent(
                         windowInsets = verticalInsets,
                     ) {
                         routes.forEach { r ->
-                            RailNavigationControllerItem(
-                                backStack = backStack,
-                                route = r.route,
-                                icon = r.icon,
-                                iconSelected = r.iconSelected,
-                                label = if (navLabelState.value) {
-                                    // composable
-                                    {
-                                        Text(
-                                            text = textResource(r.label),
-                                            maxLines = 2,
-                                        )
-                                    }
-                                } else {
-                                    null
-                                },
-                            )
+                            key(r.key) {
+                                val counterState = r.counterFlow.collectAsState(null)
+                                RailNavigationControllerItem(
+                                    backStack = backStack,
+                                    route = r.route,
+                                    icon = r.icon,
+                                    iconSelected = r.iconSelected,
+                                    count = counterState.value,
+                                    label = if (navLabelState.value) {
+                                        // composable
+                                        {
+                                            Text(
+                                                text = textResource(r.label),
+                                                maxLines = 2,
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                )
+                            }
                         }
                         Spacer(
                             modifier = Modifier
@@ -402,27 +419,31 @@ fun HomeScreenContent(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 routes.forEach { r ->
-                                    BottomNavigationControllerItem(
-                                        backStack = backStack,
-                                        route = r.route,
-                                        icon = r.icon,
-                                        iconSelected = r.iconSelected,
-                                        label = if (navLabelState.value) {
-                                            // composable
-                                            {
-                                                Text(
-                                                    text = textResource(r.label),
-                                                    maxLines = 1,
-                                                    textAlign = TextAlign.Center,
-                                                    // Default style does not fit on devices with small
-                                                    // screens.
-                                                    fontSize = 10.sp,
-                                                )
-                                            }
-                                        } else {
-                                            null
-                                        },
-                                    )
+                                    key(r.key) {
+                                        val counterState = r.counterFlow.collectAsState(null)
+                                        BottomNavigationControllerItem(
+                                            backStack = backStack,
+                                            route = r.route,
+                                            icon = r.icon,
+                                            iconSelected = r.iconSelected,
+                                            count = counterState.value,
+                                            label = if (navLabelState.value) {
+                                                // composable
+                                                {
+                                                    Text(
+                                                        text = textResource(r.label),
+                                                        maxLines = 1,
+                                                        textAlign = TextAlign.Center,
+                                                        // Default style does not fit on devices with small
+                                                        // screens.
+                                                        fontSize = 10.sp,
+                                                    )
+                                                }
+                                            } else {
+                                                null
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -548,15 +569,10 @@ private fun BannerStatusBadgeContent(
                 if (state.count > 0) {
                     BadgedBox(
                         badge = {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.badgeContainer,
-                            ) {
-                                Text(
-                                    modifier = Modifier
-                                        .animateContentSize(),
-                                    text = state.count.toString(),
-                                )
-                            }
+                            val count = state.count
+                            AnimatedTotalCounterBadge(
+                                count = count,
+                            )
                         },
                     ) {
                         Box(
@@ -715,21 +731,9 @@ private fun RailStatusBadgeContent(
     ) {
         BadgedBox(
             badge = {
-                ExpandedIfNotEmpty(
-                    valueOrNull = badge,
-                    enter = fadeIn() + scaleIn(),
-                    exit = scaleOut() + fadeOut(),
-                ) { currentBadge ->
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .animateContentSize(),
-                            text = currentBadge,
-                        )
-                    }
-                }
+                AnimatedCounterBadge(
+                    text = badge,
+                )
             },
         ) {
             CompositionLocalProvider(
@@ -759,21 +763,19 @@ private fun ColumnScope.RailNavigationControllerItem(
     route: Route,
     icon: ImageVector,
     iconSelected: ImageVector,
-    badge: @Composable (BoxScope.() -> Unit)? = null,
+    count: Int?,
     label: @Composable (() -> Unit)? = null,
 ) {
     val controller = LocalNavigationController.current
     val selected = isSelected(backStack, route)
     NavigationRailItem(
         icon = {
-            Box {
-                NavigationIcon(
-                    selected = selected,
-                    icon = icon,
-                    iconSelected = iconSelected,
-                )
-                badge?.invoke(this)
-            }
+            NavigationIcon(
+                selected = selected,
+                icon = icon,
+                iconSelected = iconSelected,
+                count = count,
+            )
         },
         label = label,
         selected = selected,
@@ -790,21 +792,19 @@ private fun RowScope.BottomNavigationControllerItem(
     route: Route,
     icon: ImageVector,
     iconSelected: ImageVector,
-    badge: @Composable (BoxScope.() -> Unit)? = null,
+    count: Int?,
     label: @Composable (() -> Unit)? = null,
 ) {
     val controller = LocalNavigationController.current
     val selected = isSelected(backStack, route)
     NavigationBarItem(
         icon = {
-            Box {
-                NavigationIcon(
-                    selected = selected,
-                    icon = icon,
-                    iconSelected = iconSelected,
-                )
-                badge?.invoke(this)
-            }
+            NavigationIcon(
+                selected = selected,
+                icon = icon,
+                iconSelected = iconSelected,
+                count = count,
+            )
         },
         label = label,
         selected = selected,
@@ -838,14 +838,23 @@ private fun NavigationIcon(
     selected: Boolean,
     icon: ImageVector,
     iconSelected: ImageVector,
+    count: Int?,
 ) {
-    Crossfade(targetState = selected) {
-        val vector = if (it) {
-            iconSelected
-        } else {
-            icon
+    BadgedBox(
+        badge = {
+            AnimatedNewCounterBadge(
+                count = count,
+            )
+        },
+    ) {
+        Crossfade(targetState = selected) {
+            val vector = if (it) {
+                iconSelected
+            } else {
+                icon
+            }
+            Icon(vector, null)
         }
-        Icon(vector, null)
     }
 }
 

@@ -3,7 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.mapper
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.DWatchtowerAlert
+import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
@@ -72,15 +72,16 @@ fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
 )
 
 fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
-    BitwardenCipher.IgnoreAlertType.REUSED_PASSWORD -> DWatchtowerAlert.REUSED_PASSWORD
-    BitwardenCipher.IgnoreAlertType.PWNED_PASSWORD -> DWatchtowerAlert.PWNED_PASSWORD
-    BitwardenCipher.IgnoreAlertType.PWNED_WEBSITE -> DWatchtowerAlert.PWNED_WEBSITE
-    BitwardenCipher.IgnoreAlertType.UNSECURE_WEBSITE -> DWatchtowerAlert.UNSECURE_WEBSITE
-    BitwardenCipher.IgnoreAlertType.TWO_FA_WEBSITE -> DWatchtowerAlert.TWO_FA_WEBSITE
-    BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE -> DWatchtowerAlert.PASSKEY_WEBSITE
-    BitwardenCipher.IgnoreAlertType.DUPLICATE -> DWatchtowerAlert.DUPLICATE
-    BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlert.INCOMPLETE
-    BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlert.EXPIRING
+    BitwardenCipher.IgnoreAlertType.REUSED_PASSWORD -> DWatchtowerAlertType.REUSED_PASSWORD
+    BitwardenCipher.IgnoreAlertType.PWNED_PASSWORD -> DWatchtowerAlertType.PWNED_PASSWORD
+    BitwardenCipher.IgnoreAlertType.PWNED_WEBSITE -> DWatchtowerAlertType.PWNED_WEBSITE
+    BitwardenCipher.IgnoreAlertType.UNSECURE_WEBSITE -> DWatchtowerAlertType.UNSECURE_WEBSITE
+    BitwardenCipher.IgnoreAlertType.TWO_FA_WEBSITE -> DWatchtowerAlertType.TWO_FA_WEBSITE
+    BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE -> DWatchtowerAlertType.PASSKEY_WEBSITE
+    BitwardenCipher.IgnoreAlertType.DUPLICATE -> DWatchtowerAlertType.DUPLICATE
+    BitwardenCipher.IgnoreAlertType.DUPLICATE_URIS -> DWatchtowerAlertType.DUPLICATE_URIS
+    BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
+    BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
 }
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {

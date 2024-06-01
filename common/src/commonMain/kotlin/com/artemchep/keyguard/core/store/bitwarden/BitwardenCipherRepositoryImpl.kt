@@ -59,6 +59,7 @@ class BitwardenCipherRepositoryImpl(
                 cipherId = model.cipherId,
                 folderId = null,
                 data = model,
+                updatedAt = model.revisionDate,
             )
         }
 }

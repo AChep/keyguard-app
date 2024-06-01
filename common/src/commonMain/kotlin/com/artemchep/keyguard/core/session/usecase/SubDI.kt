@@ -93,7 +93,13 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
+import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
+import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
+import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
+import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsNotRead
+import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsRead
+import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PatchSendById
@@ -114,6 +120,7 @@ import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
 import com.artemchep.keyguard.common.usecase.RemoveSendById
 import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
+import com.artemchep.keyguard.common.usecase.ResetAllWatchtowerAlert
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.RotateDeviceIdUseCase
@@ -140,6 +147,15 @@ import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordPwned
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerUnsecureWebsite
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipherRepositoryImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollectionRepositoryImpl
@@ -201,7 +217,13 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetOrganizationsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetProfilesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSendsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlOverridesImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetWatchtowerAlertsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetWatchtowerUnreadAlertsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetWatchtowerUnreadCountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistPrimitiveImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.MarkAllWatchtowerAlertAsNotReadImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.MarkAllWatchtowerAlertAsReadImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.MarkWatchtowerAlertAsReadImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MergeFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.MoveCipherToFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PatchSendByIdImpl
@@ -220,6 +242,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSendByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlOverrideByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RenameFolderByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.ResetAllWatchtowerAlertImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RestoreCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RetryCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.SyncAllImpl
@@ -291,6 +314,24 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<RemoveUrlOverrideById> {
         RemoveUrlOverrideByIdImpl(this)
+    }
+    bindSingleton<GetWatchtowerAlerts> {
+        GetWatchtowerAlertsImpl(this)
+    }
+    bindSingleton<GetWatchtowerUnreadAlerts> {
+        GetWatchtowerUnreadAlertsImpl(this)
+    }
+    bindSingleton<GetWatchtowerUnreadCount> {
+        GetWatchtowerUnreadCountImpl(this)
+    }
+    bindSingleton<MarkAllWatchtowerAlertAsNotRead> {
+        MarkAllWatchtowerAlertAsNotReadImpl(this)
+    }
+    bindSingleton<MarkAllWatchtowerAlertAsRead> {
+        MarkAllWatchtowerAlertAsReadImpl(this)
+    }
+    bindSingleton<MarkWatchtowerAlertAsRead> {
+        MarkWatchtowerAlertAsReadImpl(this)
     }
     bindSingleton<GetAccounts> {
         GetAccountsImpl(this)
@@ -411,6 +452,51 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<SendToolbox> {
         SendToolboxImpl(this)
+    }
+    bindSingleton<WatchtowerInactivePasskey>() {
+        WatchtowerInactivePasskey(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerInactiveTfa>() {
+        WatchtowerInactiveTfa(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerDuplicateUris>() {
+        WatchtowerDuplicateUris(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerPasswordStrength>() {
+        WatchtowerPasswordStrength(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerPasswordPwned>() {
+        WatchtowerPasswordPwned(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerWebsitePwned>() {
+        WatchtowerWebsitePwned(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerIncomplete>() {
+        WatchtowerIncomplete(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerExpiring>() {
+        WatchtowerExpiring(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerUnsecureWebsite>() {
+        WatchtowerUnsecureWebsite(
+            directDI = this,
+        )
     }
     bindSingleton<CipherUnsecureUrlCheck> {
         CipherUnsecureUrlCheckImpl(this)
@@ -574,6 +660,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<RePromptCipherById> {
         RePromptCipherByIdImpl(this)
+    }
+    bindSingleton<ResetAllWatchtowerAlert> {
+        ResetAllWatchtowerAlertImpl(this)
     }
     bindSingleton<CopyCipherById> {
         CopyCipherByIdImpl(this)

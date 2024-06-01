@@ -255,6 +255,8 @@ fun LargeSection(
 fun VaultListItemText(
     modifier: Modifier = Modifier,
     item: VaultItem2.Item,
+    leading: (@Composable RowScope.(@Composable () -> Unit) -> Unit)? = null,
+    content: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val dropdownExpandedState = remember { mutableStateOf(false) }
     val dropdownExpand = remember {
@@ -335,6 +337,8 @@ fun VaultListItemText(
                     },
             )
 
+            content?.invoke(this)
+
             if (item.token != null) {
                 VaultViewTotpBadge2(
                     modifier = Modifier
@@ -411,10 +415,19 @@ fun VaultListItemText(
             }
         },
         leading = {
-            AccountListItemTextIcon(
-                modifier = Modifier,
-                item = item,
-            )
+            if (leading != null) {
+                leading {
+                    AccountListItemTextIcon(
+                        modifier = Modifier,
+                        item = item,
+                    )
+                }
+            } else {
+                AccountListItemTextIcon(
+                    modifier = Modifier,
+                    item = item,
+                )
+            }
         },
         trailing = {
             when (item.feature) {

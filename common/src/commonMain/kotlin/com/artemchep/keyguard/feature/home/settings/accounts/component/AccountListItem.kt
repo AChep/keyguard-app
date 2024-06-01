@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,15 +38,20 @@ import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentC
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewFullRoute
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
+import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.icons.SyncIcon
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AccountListItem(
@@ -121,11 +127,19 @@ fun AccountListItemText(
         content = {
             FlatItemTextContent(
                 title = {
-                    Text(
-                        text = item.title,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
+                    if (item.title != null) {
+                        Text(
+                            text = item.title,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(Res.string.empty_value),
+                            color = LocalContentColor.current
+                                .combineAlpha(DisabledEmphasisAlpha),
+                        )
+                    }
                 },
                 text = item.text
                     ?.takeIf { it.isNotEmpty() }

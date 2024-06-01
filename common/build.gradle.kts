@@ -1,5 +1,7 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import org.jetbrains.kotlin.daemon.common.toHexString
+import java.security.MessageDigest
 import java.util.*
 
 plugins {
@@ -24,6 +26,63 @@ val versionInfo = createVersionInfo(
     logicalVersion = libs.versions.appVersionCode.get().toInt(),
 )
 
+// We want to know when the public data files
+// change. For example we might need to re-compute
+// watchtower alerts in that case.
+val generateResHashesTask = tasks.register("generateKeyguardResHashes") {
+    val packageName = "com.artemchep.keyguard.build"
+
+    val prefix = "src/commonMain/composeResources/files"
+    val src = files(
+        "$prefix/justdeleteme.json",
+        "$prefix/justgetmydata.json",
+        "$prefix/passkeys.json",
+        "$prefix/public_suffix_list.txt",
+        "$prefix/tfa.json",
+    )
+    src.forEach { file ->
+        inputs.files(file)
+    }
+    val out = file("build/generated/keyguardResHashes/kotlin/")
+    outputs.dir(out)
+
+    fun File.md5(): String {
+        val md = MessageDigest.getInstance("MD5")
+        val bytes = readBytes()
+        return md
+            .digest(bytes)
+            .toHexString()
+    }
+
+    doFirst {
+        val payload = src
+            .map { file ->
+                val name = file.name
+                    .substringBefore('.')
+                val hash = file.md5()
+                name to hash
+            }
+            .map { (name, hash) ->
+                "const val $name = \"$hash\""
+            }
+            .joinToString(separator = "\n")
+        val content = """
+package $packageName
+
+data object FileHashes {
+$payload
+}
+        """.trimIndent()
+        out
+            .resolve("FileHashes.kt")
+            .writeText(content)
+    }
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
+    dependsOn(generateResHashesTask)
+}
+
 kotlin {
     androidTarget()
     jvm("desktop")
@@ -37,6 +96,9 @@ kotlin {
             languageSettings.optIn("androidx.compose.foundation.ExperimentalFoundationApi")
             languageSettings.optIn("androidx.compose.foundation.layout.ExperimentalLayoutApi")
             languageSettings.optIn("androidx.compose.material3.ExperimentalMaterial3Api")
+        }
+        commonMain {
+            kotlin.srcDir(generateResHashesTask.get().outputs.files)
         }
     }
 

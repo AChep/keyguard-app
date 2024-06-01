@@ -595,6 +595,7 @@ class SyncEngine(
                             accountId = cipher.accountId,
                             folderId = cipher.folderId,
                             data = cipher,
+                            updatedAt = cipher.revisionDate,
                         )
                     }
                 }

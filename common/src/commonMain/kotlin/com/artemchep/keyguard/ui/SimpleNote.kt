@@ -56,7 +56,10 @@ fun FlatSimpleNote(
     type: SimpleNote.Type,
     title: String? = null,
     text: String? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
 ) {
     val tintColor = when (type) {
         SimpleNote.Type.OK -> MaterialTheme.colorScheme.ok
@@ -80,7 +83,13 @@ fun FlatSimpleNote(
         modifier = modifier,
         backgroundColor = surfaceColor
             .combineAlpha(DisabledEmphasisAlpha),
+        contentColor = contentColor,
         leading = {
+            if (leading != null) {
+                leading.invoke(this)
+                return@FlatItemLayout
+            }
+
             val imageVector = when (type) {
                 SimpleNote.Type.OK -> Icons.Outlined.Check
                 SimpleNote.Type.INFO -> Icons.Outlined.Info
@@ -116,6 +125,7 @@ fun FlatSimpleNote(
             }
         },
         trailing = trailing,
-        enabled = true,
+        onClick = onClick,
+        enabled = enabled,
     )
 }

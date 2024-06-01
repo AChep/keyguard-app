@@ -76,6 +76,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingPermissionW
 import com.artemchep.keyguard.feature.home.settings.component.settingPrivacyPolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRateAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRequireMasterPasswordProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingResetWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingRotateDeviceId
 import com.artemchep.keyguard.feature.home.settings.component.settingScreenDelay
 import com.artemchep.keyguard.feature.home.settings.component.settingScreenshotsProvider
@@ -87,6 +88,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptio
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingUnreadWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUseExternalBrowserProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterRebootProvider
@@ -182,6 +184,8 @@ object Setting {
     const val CHECK_TWO_FA = "check_two_fa"
     const val CHECK_PASSKEYS = "check_passkeys"
     const val CLEAR_CACHE = "clear_cache"
+    const val RESET_WATCHTOWER_ALERTS = "reset_watchtower_alerts"
+    const val UNREAD_WATCHTOWER_ALERTS = "unread_watchtower_alerts"
     const val APK = "apk"
     const val SUBSCRIPTIONS = "subscriptions"
     const val SUBSCRIPTIONS_IN_STORE = "subscriptions_in_store"
@@ -267,6 +271,8 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.CHECK_TWO_FA to ::settingCheckTwoFAProvider,
     Setting.CHECK_PASSKEYS to ::settingCheckPasskeysProvider,
     Setting.CLEAR_CACHE to ::settingClearCache,
+    Setting.RESET_WATCHTOWER_ALERTS to ::settingResetWatchtowerAlerts,
+    Setting.UNREAD_WATCHTOWER_ALERTS to ::settingUnreadWatchtowerAlerts,
     Setting.APK to ::settingApkProvider,
     Setting.SUBSCRIPTIONS to ::settingSubscriptionsProvider,
     Setting.SUBSCRIPTIONS_IN_STORE to ::settingSubscriptionsPlayStoreProvider,

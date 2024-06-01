@@ -1,10 +1,12 @@
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher;
+import kotlinx.datetime.Instant;
 
 CREATE TABLE cipher (
   cipherId TEXT NOT NULL PRIMARY KEY,
   accountId TEXT NOT NULL,
   folderId TEXT,
   data TEXT AS BitwardenCipher NOT NULL,
+  updatedAt INTEGER AS Instant,
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
@@ -12,13 +14,14 @@ insert {
   UPDATE cipher
   SET
     folderId = :folderId,
-    data = :data
+    data = :data,
+    updatedAt = :updatedAt
   WHERE
     accountId = :accountId AND
     cipherId = :cipherId;
 
-  INSERT OR IGNORE INTO cipher(cipherId, accountId, folderId, data)
-  VALUES (:cipherId, :accountId, :folderId, :data);
+  INSERT OR IGNORE INTO cipher(cipherId, accountId, folderId, data, updatedAt)
+  VALUES (:cipherId, :accountId, :folderId, :data, :updatedAt);
 }
 
 get:

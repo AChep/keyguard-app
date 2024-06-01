@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.core.store
 
 import app.cash.sqldelight.ColumnAdapter
+import app.cash.sqldelight.db.AfterVersion
+import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
@@ -26,6 +28,7 @@ import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
 import com.artemchep.keyguard.data.UrlOverride
+import com.artemchep.keyguard.data.WatchtowerThreat
 import com.artemchep.keyguard.data.bitwarden.Account
 import com.artemchep.keyguard.data.bitwarden.Cipher
 import com.artemchep.keyguard.data.bitwarden.Collection
@@ -64,6 +67,7 @@ interface SqlManager {
     fun create(
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,
+        vararg callbacks: AfterVersion,
     ): IO<SqlHelper>
 }
 
@@ -115,7 +119,10 @@ class DatabaseManagerImpl(
                     generatorWordlistAdapter = GeneratorWordlist.Adapter(InstantToLongAdapter),
                     generatorEmailRelayAdapter = GeneratorEmailRelay.Adapter(InstantToLongAdapter),
                     urlOverrideAdapter = UrlOverride.Adapter(InstantToLongAdapter),
-                    cipherAdapter = Cipher.Adapter(bitwardenCipherToStringAdapter),
+                    cipherAdapter = Cipher.Adapter(
+                        updatedAtAdapter = InstantToLongAdapter,
+                        data_Adapter = bitwardenCipherToStringAdapter,
+                    ),
                     sendAdapter = Send.Adapter(bitwardenSendToStringAdapter),
                     collectionAdapter = Collection.Adapter(bitwardenCollectionToStringAdapter),
                     folderAdapter = Folder.Adapter(bitwardenFolderToStringAdapter),
@@ -130,10 +137,50 @@ class DatabaseManagerImpl(
                         updatedAtAdapter = InstantToLongAdapter,
                         data_Adapter = hibpAccountBreachToStringAdapter,
                     ),
+                    watchtowerThreatAdapter = WatchtowerThreat.Adapter(
+                        reportedAtAdapter = InstantToLongAdapter,
+                    ),
                 )
             }
+            val callbacks = arrayOf(
+                AfterVersionWithTransaction(
+                    afterVersion = 11,
+                ) { driver ->
+                    val ciphers = driver.executeQuery(
+                        identifier = null,
+                        sql = "SELECT data FROM cipher",
+                        mapper = { cursor ->
+                            val ciphers = sequence<BitwardenCipher> {
+                                while (!cursor.next().value) {
+                                    val cipher = kotlin.run {
+                                        val data = cursor.getString(0)!!
+                                        bitwardenCipherToStringAdapter.decode(data)
+                                    }
+                                    yield(cipher)
+                                }
+                            }.toList()
+                            QueryResult.Value(ciphers)
+                        },
+                        parameters = 0,
+                    ).value
+                    ciphers.forEach { cipher ->
+                        println("migrated = ${cipher.cipherId}")
+                        val sql = "UPDATE cipher SET updatedAt = ? WHERE cipherId = ?"
+                        driver.execute(
+                            identifier = null,
+                            sql = sql,
+                            parameters = 0,
+                            binders = {
+                                val revisionDate = InstantToLongAdapter.encode(cipher.revisionDate)
+                                bindLong(0, revisionDate)
+                                bindString(1, cipher.cipherId)
+                            },
+                        )
+                    }
+                },
+            )
             val sqlHelper = sqlManager
-                .create(masterKey, databaseFactory)
+                .create(masterKey, databaseFactory, *callbacks)
                 .bind()
             sqlHelper
         }
@@ -165,6 +212,33 @@ class DatabaseManagerImpl(
                     .bind()
             }
         }
+}
+
+@Suppress("FunctionName")
+private fun AfterVersionWithTransaction(
+    afterVersion: Long,
+    block: (SqlDriver) -> Unit,
+) = AfterVersion(
+    afterVersion = afterVersion,
+    block = AfterVersionWithTransactionBlock(block),
+)
+
+private class AfterVersionWithTransactionBlock(
+    private val block: (SqlDriver) -> Unit,
+) : (SqlDriver) -> Unit {
+    override fun invoke(
+        driver: SqlDriver,
+    ) {
+        // TODO: Would be nice to ensure that the block is running in the
+        //  transaction. Simple:
+        //
+        // BEGIN TRANSACTION
+        // ...
+        // COMMIT
+        //
+        // did not do the trick for me with 'cannot commit - no transaction is active'
+        block(driver)
+    }
 }
 
 private object InstantToLongAdapter : ColumnAdapter<Instant, Long> {

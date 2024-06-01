@@ -32,14 +32,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.CheckCircleOutline
-import androidx.compose.material.icons.outlined.CopyAll
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.ShortText
-import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -76,10 +75,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.formatLocalized
+import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.appreview.RequestAppReviewEffect
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
@@ -91,13 +92,17 @@ import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Ah
+import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
+import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.GridLayout
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardDuplicateItems
 import com.artemchep.keyguard.ui.icons.KeyguardDuplicateWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardExpiringItems
@@ -109,7 +114,6 @@ import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardTrashedItems
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
-import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.poweredby.PoweredByPasskeys
@@ -118,6 +122,7 @@ import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.theme.info
@@ -267,6 +272,57 @@ fun WatchtowerScreen2(
             contentInsets = contentWindowInsets,
             contentPadding = contentPadding,
             dashboardContent = {
+                val e by remember(state.content) {
+                    if (state.content is Loadable.Ok) {
+                        state.content.value.unreadThreats
+                    } else {
+                        MutableStateFlow(Loadable.Loading)
+                    }
+                }.collectAsState()
+                val r = e
+                ExpandedIfNotEmpty(
+                    valueOrNull = r.getOrNull(),
+                ) { unreadThreats ->
+                    Column {
+                        Spacer(
+                            modifier = Modifier
+                                .height(8.dp),
+                        )
+                        FlatItem(
+                            leading = {
+                                BadgedBox(
+                                    modifier = Modifier
+                                        .zIndex(20f),
+                                    badge = {
+                                        AnimatedTotalCounterBadge(
+                                            count = unreadThreats.count,
+                                        )
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.NotificationsActive,
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            title = {
+                                Text(
+                                    text = stringResource(Res.string.watchtower_item_new_alerts_title),
+                                )
+                            },
+                            trailing = if (unreadThreats.onClick != null) {
+                                // composable
+                                {
+                                    ChevronIcon()
+                                }
+                            } else {
+                                null
+                            },
+                            onClick = unreadThreats.onClick,
+                        )
+                    }
+                }
+
                 val passwordStrength by remember(state.content) {
                     if (state.content is Loadable.Ok) {
                         state.content.value.strength
@@ -592,14 +648,30 @@ private fun ColumnScope.DashboardContentData(
                         .width(8.dp),
                 )
                 val text = item.score.formatLocalized()
-                Text(
-                    modifier = Modifier
-                        .widthIn(max = 128.dp),
-                    text = text,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+                BadgedBox(
+                    badge = {
+                        AnimatedNewCounterBadge(
+                            count = item.new,
+                        )
+                    },
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .widthIn(max = 128.dp),
+                        text = text,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                if (item.new > 0) {
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 2.dp),
+                        text = item.new.toString(),
+                        color = Color.Transparent,
+                    )
+                }
             }
         }
     }
@@ -703,6 +775,7 @@ private fun CardPwnedPassword(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
@@ -729,6 +802,7 @@ private fun CardReusedPassword(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
@@ -748,6 +822,7 @@ private fun CardVulnerableAccounts(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
@@ -774,6 +849,7 @@ private fun CardUnsecureWebsites(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
@@ -793,6 +869,7 @@ private fun CardCompromisedAccount(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
@@ -819,6 +896,7 @@ private fun CardInactiveTwoFactorAuth(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
@@ -845,6 +923,7 @@ private fun CardInactivePasskey(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
@@ -871,6 +950,7 @@ private fun CardIncompleteItems(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
@@ -890,6 +970,7 @@ private fun CardExpiringItems(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
@@ -909,6 +990,7 @@ private fun CardDuplicateWebsites(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
@@ -955,6 +1037,7 @@ private fun CardEmptyItems(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             val icon = when {
                 state.count > 50 -> WatchtowerStatusIcon.ERROR
@@ -979,6 +1062,7 @@ private fun CardDuplicateItems(
 ) {
     Card(
         number = state.count,
+        new = state.new,
         title = {
             ContentCardsContentTitle(
                 icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
@@ -1149,6 +1233,7 @@ private fun ContentLayout(
 fun Card(
     modifier: Modifier = Modifier,
     number: Int,
+    new: Int = 0,
     title: @Composable RowScope.() -> Unit,
     text: String,
     imageVector: ImageVector?,
@@ -1204,11 +1289,19 @@ fun Card(
             )
 
             val numberStr = animatedNumberText(number)
-            Text(
-                numberStr,
-                style = MaterialTheme.typography.displayLarge
-                    .merge(localTextStyle),
-            )
+            BadgedBox(
+                badge = {
+                    AnimatedNewCounterBadge(
+                        count = new,
+                    )
+                },
+            ) {
+                Text(
+                    numberStr,
+                    style = MaterialTheme.typography.displayLarge
+                        .merge(localTextStyle),
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             CompositionLocalProvider(
                 LocalTextStyle provides MaterialTheme.typography.titleMedium

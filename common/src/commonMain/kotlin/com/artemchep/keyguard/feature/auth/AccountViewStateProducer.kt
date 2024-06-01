@@ -89,6 +89,7 @@ import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
@@ -558,12 +559,9 @@ private fun buildItemsFlow(
             leading = {
                 BadgedBox(
                     badge = {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.badgeContainer,
-                        ) {
-                            val size = counters.ciphers
-                            Text(text = size.toString())
-                        }
+                        AnimatedTotalCounterBadge(
+                            count = counters.ciphers,
+                        )
                     },
                 ) {
                     Icon(Icons.Outlined.KeyguardCipher, null)
@@ -585,12 +583,10 @@ private fun buildItemsFlow(
             leading = {
                 BadgedBox(
                     badge = {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.badgeContainer,
-                        ) {
-                            val size = counters.sends
-                            Text(text = size.toString())
-                        }
+                        val count = counters.sends
+                        AnimatedTotalCounterBadge(
+                            count = count,
+                        )
                     },
                 ) {
                     Icon(Icons.Outlined.Send, null)
@@ -613,12 +609,10 @@ private fun buildItemsFlow(
         leading = {
             BadgedBox(
                 badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        val size = counters.folders
-                        Text(text = size.toString())
-                    }
+                    val count = counters.folders
+                    AnimatedTotalCounterBadge(
+                        count = count,
+                    )
                 },
             ) {
                 Icon(Icons.Outlined.Folder, null)
@@ -644,12 +638,10 @@ private fun buildItemsFlow(
         leading = {
             BadgedBox(
                 badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        val size = counters.collections
-                        Text(text = size.toString())
-                    }
+                    val count = counters.collections
+                    AnimatedTotalCounterBadge(
+                        count = count,
+                    )
                 },
             ) {
                 Icon(Icons.Outlined.KeyguardCollection, null)
@@ -676,12 +668,10 @@ private fun buildItemsFlow(
         leading = {
             BadgedBox(
                 badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        val size = counters.organizations
-                        Text(text = size.toString())
-                    }
+                    val count = counters.organizations
+                    AnimatedTotalCounterBadge(
+                        count = count,
+                    )
                 },
             ) {
                 Icon(Icons.Outlined.KeyguardOrganization, null)

@@ -1,0 +1,13 @@
+CREATE TABLE watchtowerThreat (
+  cipherId TEXT NOT NULL,
+  type INTEGER NOT NULL,
+  value TEXT,
+  threat INTEGER NOT NULL,
+  reportedAt INTEGER NOT NULL,
+  version TEXT NOT NULL,
+  read INTEGER NOT NULL,
+  PRIMARY KEY (cipherId, type),
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+ALTER TABLE cipher ADD COLUMN updatedAt INTEGER;

@@ -29,7 +29,7 @@ sealed interface AccountItem {
          * The name of the item.
          */
         val name: String,
-        val title: AnnotatedString,
+        val title: AnnotatedString?,
         val text: String?,
         val error: Boolean = false,
         val hidden: Boolean,

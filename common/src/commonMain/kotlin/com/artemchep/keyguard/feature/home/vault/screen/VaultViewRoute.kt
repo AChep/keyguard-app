@@ -6,6 +6,7 @@ import com.artemchep.keyguard.feature.navigation.Route
 data class VaultViewRoute(
     val itemId: String,
     val accountId: String,
+    val tag: String? = null,
 ) : Route {
     @Composable
     override fun Content() {

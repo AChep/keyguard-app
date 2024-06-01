@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.core.store
 
+import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
@@ -18,6 +19,7 @@ class SqlManagerFile(
     override fun create(
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,
+        vararg callbacks: AfterVersion,
     ): IO<SqlHelper> = ioEffect {
         val driver: SqlDriver = createSqlDriver(
             file = fileIo
@@ -33,7 +35,12 @@ class SqlManagerFile(
         if (currentVersion == 0L) {
             Database.Schema.create(driver)
         } else if (targetVersion > currentVersion) {
-            Database.Schema.migrate(driver, currentVersion, targetVersion)
+            Database.Schema.migrate(
+                driver,
+                currentVersion,
+                targetVersion,
+                *callbacks,
+            )
         }
         // Bump the version to the current one.
         if (currentVersion != targetVersion) {

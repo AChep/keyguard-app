@@ -1,0 +1,85 @@
+import kotlinx.datetime.Instant;
+import kotlin.Boolean;
+
+CREATE TABLE watchtowerThreat (
+  cipherId TEXT NOT NULL,
+  type INTEGER NOT NULL,
+  value TEXT,
+  threat INTEGER AS Boolean NOT NULL,
+  reportedAt INTEGER AS Instant NOT NULL,
+  version TEXT NOT NULL,
+  read INTEGER AS Boolean NOT NULL,
+  PRIMARY KEY (cipherId, type),
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+upsert {
+  UPDATE watchtowerThreat
+  SET
+    value = :value,
+    threat = :threat,
+    reportedAt = :reportedAt,
+    version = :version,
+    read = CASE
+      WHEN value != :value OR version != :version OR threat != :threat THEN 0
+      ELSE read
+    END
+  WHERE
+    (value != :value OR version != :version OR threat != :threat OR reportedAt != :reportedAt) AND
+    cipherId = :cipherId AND
+    type = :type;
+
+  INSERT OR IGNORE INTO watchtowerThreat(cipherId, type, value, threat, reportedAt, version, read)
+  VALUES (:cipherId, :type,:value, :threat, :reportedAt, :version, 0);
+}
+
+markAllAsNotRead {
+  UPDATE watchtowerThreat
+  SET
+    read = 0
+  WHERE
+    read > 0;
+}
+
+markAllAsRead {
+  UPDATE watchtowerThreat
+  SET
+    read = 1
+  WHERE
+    read < 1;
+}
+
+markAsRead {
+  UPDATE watchtowerThreat
+  SET
+    read = 1
+  WHERE
+    cipherId = :cipherId AND
+    read < 1;
+}
+
+getThreats:
+SELECT *
+FROM watchtowerThreat
+WHERE
+  threat > 0
+ORDER BY reportedAt DESC;
+
+getPendingCipherIds:
+SELECT DISTINCT
+  c.cipherId
+FROM
+  cipher c
+LEFT JOIN (
+  SELECT *
+  FROM watchtowerThreat
+  WHERE
+    watchtowerThreat.type = :type AND
+    watchtowerThreat.version = :version
+) t ON c.cipherId = t.cipherId
+WHERE
+  t.type IS NULL OR
+  (c.updatedAt IS NOT NULL AND c.updatedAt >= t.reportedAt);
+
+deleteAll:
+DELETE FROM watchtowerThreat;

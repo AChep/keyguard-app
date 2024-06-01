@@ -242,11 +242,12 @@ fun accountListScreenState(
                 val accent = profile?.accentColor
                     ?: generateAccentColorsByAccountId(it.id.id)
                 val icon = VaultItemIcon.TextIcon.short(profile?.name.orEmpty())
+                val title = profile?.displayName?.let(::AnnotatedString)
                 AccountItem.Item(
                     id = it.id.id,
                     icon = icon,
                     name = profile?.name.orEmpty(),
-                    title = AnnotatedString(profile?.displayName.orEmpty()),
+                    title = title,
                     text = it.host,
                     error = error,
                     hidden = profile?.hidden == true,

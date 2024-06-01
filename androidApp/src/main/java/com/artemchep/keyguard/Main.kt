@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
+import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
@@ -101,6 +102,15 @@ class Main : BaseApp(), DIAware {
                     downloadRepository = downloadRepository,
                     cleanUpAttachment = cleanUpAttachment,
                 )
+            }
+        }
+
+        val workers by allInstances<Wrker>()
+        workers.forEach {
+            ProcessLifecycleOwner.get().bindBlock {
+                coroutineScope {
+                    it.start(this, processLifecycleFlow)
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.model
 
-data class CipherId(
+@JvmInline
+value class CipherId(
     val id: String,
 )

@@ -13,10 +13,7 @@ import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
-import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
-import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
-import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
@@ -27,6 +24,7 @@ import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
+import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
@@ -660,7 +658,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.REUSED_PASSWORD)
+        ) = cipher.ignores(DWatchtowerAlertType.REUSED_PASSWORD)
     }
 
     @Serializable
@@ -736,7 +734,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.PWNED_PASSWORD)
+        ) = cipher.ignores(DWatchtowerAlertType.PWNED_PASSWORD)
     }
 
     @Serializable
@@ -806,7 +804,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.PWNED_WEBSITE)
+        ) = cipher.ignores(DWatchtowerAlertType.PWNED_WEBSITE)
     }
 
     @Serializable
@@ -863,7 +861,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.INCOMPLETE)
+        ) = cipher.ignores(DWatchtowerAlertType.INCOMPLETE)
     }
 
     @Serializable
@@ -921,7 +919,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.EXPIRING)
+        ) = cipher.ignores(DWatchtowerAlertType.EXPIRING)
     }
 
     @Serializable
@@ -980,7 +978,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.UNSECURE_WEBSITE)
+        ) = cipher.ignores(DWatchtowerAlertType.UNSECURE_WEBSITE)
     }
 
     @Serializable
@@ -1085,7 +1083,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.TWO_FA_WEBSITE)
+        ) = cipher.ignores(DWatchtowerAlertType.TWO_FA_WEBSITE)
     }
 
     @Serializable
@@ -1202,7 +1200,7 @@ sealed interface DFilter {
 
         private fun shouldIgnore(
             cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlert.PASSKEY_WEBSITE)
+        ) = cipher.ignores(DWatchtowerAlertType.PASSKEY_WEBSITE)
     }
 
     @Serializable

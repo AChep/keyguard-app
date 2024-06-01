@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +36,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Ah
 import com.artemchep.keyguard.ui.AhContainer
+import com.artemchep.keyguard.ui.AnimatedCounterBadge
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -46,7 +46,6 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.shimmer.shimmer
-import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -274,15 +273,9 @@ private fun BadgeStatusPending(
                 modifier = Modifier
                     .padding(horizontal = 4.dp),
                 badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .animateContentSize(),
-                            text = badge.orEmpty(),
-                        )
-                    }
+                    AnimatedCounterBadge(
+                        text = badge,
+                    )
                 },
             ) {
                 Text(

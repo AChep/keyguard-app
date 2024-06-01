@@ -45,7 +45,7 @@ data class DSecret(
     val favorite: Boolean,
     val reprompt: Boolean,
     val synced: Boolean,
-    val ignoredAlerts: Map<DWatchtowerAlert, Instant> = emptyMap(),
+    val ignoredAlerts: Map<DWatchtowerAlertType, Instant> = emptyMap(),
     val uris: List<Uri> = emptyList(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
@@ -54,7 +54,7 @@ data class DSecret(
     val login: Login? = null,
     val card: Card? = null,
     val identity: Identity? = null,
-) : HasAccountId {
+) : HasAccountId, HasCipherId {
     companion object {
         private const val ignoreLength = 3
 
@@ -174,6 +174,8 @@ data class DSecret(
     }
 
     override fun accountId(): String = accountId
+
+    override fun cipherId(): String = id
 
     enum class Type {
         None,
@@ -376,7 +378,7 @@ data class DSecret(
     }
 }
 
-fun DSecret.ignores(alertType: DWatchtowerAlert) = alertType in ignoredAlerts
+fun DSecret.ignores(alertType: DWatchtowerAlertType) = alertType in ignoredAlerts
 
 fun DSecret.canDelete() = service.canDelete()
 

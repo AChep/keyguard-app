@@ -160,6 +160,8 @@ data class BitwardenCipher(
         PASSKEY_WEBSITE,
         @SerialName("duplicate")
         DUPLICATE,
+        @SerialName("duplicate_uris")
+        DUPLICATE_URIS,
         @SerialName("incomplete")
         INCOMPLETE,
         @SerialName("expiring")

@@ -18,6 +18,7 @@ data class WatchtowerState(
     )
 
     data class Content(
+        val unreadThreats: StateFlow<Loadable<UnreadThreats?>>,
         val unsecureWebsites: StateFlow<Loadable<UnsecureWebsites?>>,
         val duplicateWebsites: StateFlow<Loadable<DuplicateWebsites?>>,
         val inactiveTwoFactorAuth: StateFlow<Loadable<InactiveTwoFactorAuth?>>,
@@ -36,66 +37,77 @@ data class WatchtowerState(
         data class UnsecureWebsites(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class DuplicateWebsites(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class InactiveTwoFactorAuth(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class InactivePasskey(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class PwnedPasswords(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class PwnedWebsites(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class CompromisedAccounts(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class ReusedPasswords(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class IncompleteItems(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class ExpiringItems(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
         data class DuplicateItems(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
@@ -108,6 +120,7 @@ data class WatchtowerState(
         data class EmptyItems(
             val revision: Int,
             val count: Int,
+            val new: Int,
             val onClick: (() -> Unit)? = null,
         )
 
@@ -118,8 +131,15 @@ data class WatchtowerState(
             data class Item(
                 val score: com.artemchep.keyguard.common.model.PasswordStrength.Score,
                 val count: Int,
+                val new: Int,
                 val onClick: (() -> Unit)?,
             )
         }
+
+        data class UnreadThreats(
+            val revision: Int,
+            val count: Int,
+            val onClick: (() -> Unit)? = null,
+        )
     }
 }

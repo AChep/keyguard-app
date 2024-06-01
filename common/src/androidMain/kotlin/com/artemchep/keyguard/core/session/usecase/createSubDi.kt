@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
+import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
@@ -87,13 +88,14 @@ class SqlManagerFile2(
     override fun create(
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,
+        vararg callbacks: AfterVersion,
     ): IO<SqlHelper> = ioEffect {
         // Create encrypted database using the provided master key. If the
         // key is incorrect, trying to open the database would lead to a crash.
         val factory = SupportOpenHelperFactory(masterKey.byteArray, null, false)
         val openHelper = factory.create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
-                .callback(Callback())
+                .callback(Callback(*callbacks))
                 .name("database_v2")
                 .noBackupDirectory(true)
                 .build(),
@@ -109,7 +111,12 @@ class SqlManagerFile2(
         )
     }
 
-    private class Callback : AndroidSqliteDriver.Callback(Database.Schema) {
+    private class Callback(
+        vararg callbacks: AfterVersion,
+    ) : AndroidSqliteDriver.Callback(
+        Database.Schema,
+        *callbacks,
+    ) {
         override fun onConfigure(db: SupportSQLiteDatabase) {
             super.onConfigure(db)
             db.setForeignKeyConstraintsEnabled(true)

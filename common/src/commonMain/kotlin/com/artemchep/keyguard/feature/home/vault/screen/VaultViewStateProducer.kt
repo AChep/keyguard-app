@@ -50,6 +50,7 @@ import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.common.model.CheckPasswordLeakRequest
 import com.artemchep.keyguard.common.model.CipherFieldSwitchToggleRequest
+import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
@@ -57,7 +58,7 @@ import com.artemchep.keyguard.common.model.DFolderTree
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.DWatchtowerAlert
+import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.LinkInfo
 import com.artemchep.keyguard.common.model.LinkInfoAndroid
@@ -70,6 +71,7 @@ import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.alertScore
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
+import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.model.titleH
@@ -78,12 +80,10 @@ import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
-import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
-import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
@@ -117,7 +117,9 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
+import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
+import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
@@ -211,7 +213,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
@@ -248,6 +252,8 @@ fun vaultViewScreenState(
         getPasswordStrength = instance(),
         getUrlOverrides = instance(),
         passkeyTargetCheck = instance(),
+        getWatchtowerUnreadAlerts = instance(),
+        markWatchtowerAlertAsRead = instance(),
         cipherUnsecureUrlCheck = instance(),
         cipherUnsecureUrlAutoFix = instance(),
         cipherFieldSwitchToggle = instance(),
@@ -325,6 +331,8 @@ fun vaultViewScreenState(
     getPasswordStrength: GetPasswordStrength,
     getUrlOverrides: GetUrlOverrides,
     passkeyTargetCheck: PasskeyTargetCheck,
+    getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
+    markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
@@ -410,6 +418,24 @@ fun vaultViewScreenState(
         }
         .distinctUntilChanged()
     launchAutoPopSelfHandler(secretFlow)
+
+    // Mark watchtower alert as read if the screen
+    // is currently visible.
+    launchUi {
+        getWatchtowerUnreadAlerts()
+            .map { alerts ->
+                val cipherId = CipherId(itemId)
+                val alert = alerts.firstOrNull(cipherId)
+                cipherId.takeIf { alert != null }
+            }
+            .onEach { cipherId ->
+                if (cipherId != null) {
+                    markWatchtowerAlertAsRead(cipherId)
+                        .launchIn(appScope)
+                }
+            }
+            .launchIn(this)
+    }
 
     val ciphersFlow = getCiphers()
         .map { secrets ->
@@ -862,7 +888,7 @@ private fun RememberStateFlowScope.oh(
         cipherIncompleteCheck.invoke(cipher)
     }
     if (
-        !cipher.ignores(DWatchtowerAlert.INCOMPLETE) &&
+        !cipher.ignores(DWatchtowerAlertType.INCOMPLETE) &&
         incomplete
     ) {
         val model = VaultViewItem.Info(
@@ -876,7 +902,7 @@ private fun RememberStateFlowScope.oh(
     val now = Clock.System.now()
     val expiring = cipherExpiringCheck.invoke(cipher, now)
     if (
-        !cipher.ignores(DWatchtowerAlert.EXPIRING) &&
+        !cipher.ignores(DWatchtowerAlertType.EXPIRING) &&
         expiring != null
     ) {
         val expired = expiring <= now
@@ -966,7 +992,7 @@ private fun RememberStateFlowScope.oh(
                     val occurrences = it.getOrElse { 0 }
                     if (
                         occurrences > 0 &&
-                        !cipher.ignores(DWatchtowerAlert.PWNED_PASSWORD)
+                        !cipher.ignores(DWatchtowerAlertType.PWNED_PASSWORD)
                     )
                         VaultViewItem.Value.Badge(
                             text = translate(Res.string.password_pwned_label),
@@ -1012,7 +1038,7 @@ private fun RememberStateFlowScope.oh(
                     }
             }
             if (
-                !cipher.ignores(DWatchtowerAlert.REUSED_PASSWORD) &&
+                !cipher.ignores(DWatchtowerAlertType.REUSED_PASSWORD) &&
                 reusedPasswords > 1
             ) {
                 val reusedPasswordsModel = VaultViewItem.ReusedPassword(
@@ -1116,7 +1142,7 @@ private fun RememberStateFlowScope.oh(
                 if (
                     cipherLogin.fido2Credentials.isNotEmpty() &&
                     cipherLogin.password.isNullOrEmpty() ||
-                    cipher.ignores(DWatchtowerAlert.TWO_FA_WEBSITE)
+                    cipher.ignores(DWatchtowerAlertType.TWO_FA_WEBSITE)
                 ) {
                     return@run
                 }
@@ -1149,7 +1175,7 @@ private fun RememberStateFlowScope.oh(
         }
         if (
             cipher.login.fido2Credentials.isEmpty() &&
-            !cipher.ignores(DWatchtowerAlert.PASSKEY_WEBSITE)
+            !cipher.ignores(DWatchtowerAlertType.PASSKEY_WEBSITE)
         ) {
             val tfa = getPasskeys()
                 .crashlyticsTap()
@@ -2095,7 +2121,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
             val url = platformMarker.url.toString()
 
             val isUnsecure = cipherUnsecureUrlCheck(holder.uri.uri) &&
-                    !cipher.ignores(DWatchtowerAlert.UNSECURE_WEBSITE)
+                    !cipher.ignores(DWatchtowerAlertType.UNSECURE_WEBSITE)
             val faviconUrl = FaviconUrl(
                 serverId = accountId,
                 url = url,

@@ -207,6 +207,7 @@ import com.artemchep.keyguard.common.usecase.RequestAppReview
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
+import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.AuthConfirmMasterKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.AuthGenerateMasterKeyUseCaseImpl
@@ -334,6 +335,11 @@ import com.artemchep.keyguard.common.usecase.impl.RemoveAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.RequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
 import com.artemchep.keyguard.common.usecase.impl.WindowCoroutineScopeImpl
 import com.artemchep.keyguard.copy.Base32ServiceJvm
 import com.artemchep.keyguard.copy.Base64ServiceJvm
@@ -976,6 +982,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<AppWorker>(tag = AppWorker.Feature.SYNC) {
         AppWorkerIm(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerSyncer>() {
+        WatchtowerSyncerImpl(
             directDI = this,
         )
     }

@@ -89,6 +89,7 @@ class ModifyCipherById(
                     accountId = cipher.accountId,
                     folderId = cipher.folderId,
                     data = cipher.data_,
+                    updatedAt = cipher.data_.revisionDate,
                 )
             }
         }

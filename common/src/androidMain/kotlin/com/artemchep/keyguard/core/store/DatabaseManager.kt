@@ -225,6 +225,7 @@ class DatabaseManagerAndroid(
                         accountId = cipher.accountId,
                         folderId = cipher.folderId,
                         data = cipher.content,
+                        updatedAt = cipher.content.revisionDate,
                     )
                     changed()
                 }

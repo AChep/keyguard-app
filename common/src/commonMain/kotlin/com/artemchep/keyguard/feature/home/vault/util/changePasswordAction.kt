@@ -27,7 +27,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.DWatchtowerAlert
+import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
 import com.artemchep.keyguard.common.model.ToastMessage
@@ -36,7 +36,6 @@ import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CopyCipherById
-import com.artemchep.keyguard.common.usecase.ExportAccount
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
@@ -46,7 +45,6 @@ import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
-import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -64,6 +62,7 @@ import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -547,12 +546,10 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
         leading = {
             BadgedBox(
                 badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        val size = cipher.login?.passwordHistory?.size ?: 0
-                        Text(text = size.toString())
-                    }
+                    val count = cipher.login?.passwordHistory?.size ?: 0
+                    AnimatedTotalCounterBadge(
+                        count = count,
+                    )
                 },
             ) {
                 Icon(
@@ -728,13 +725,10 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
         leading = {
             BadgedBox(
                 badge = {
-                    if (totalUniqueIgnoredAlerts > 0) {
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.badgeContainer,
-                        ) {
-                            Text(text = totalUniqueIgnoredAlerts.toString())
-                        }
-                    }
+                    AnimatedTotalCounterBadge(
+                        count = totalUniqueIgnoredAlerts,
+                        predicate = { it > 0 },
+                    )
                 },
             ) {
                 Icon(
@@ -747,7 +741,8 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
         onClick = onClick {
             before?.invoke()
 
-            val items = DWatchtowerAlert.entries
+            val items = DWatchtowerAlertType.entries
+                .filter { it.canBeDisabled }
                 .map { watchtowerAlert ->
                     val checked = ciphers
                         .any { cipher ->
@@ -770,7 +765,7 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
-                    val patch = DWatchtowerAlert.entries
+                    val patch = DWatchtowerAlertType.entries
                         .mapNotNull {
                             val checked = result.data[it.name] as? Boolean
                                 ?: return@mapNotNull null

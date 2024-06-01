@@ -1,9 +1,8 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
-import com.artemchep.keyguard.common.model.DGeneratorWord
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretDuplicateGroup
-import com.artemchep.keyguard.common.model.DWatchtowerAlert
+import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.ignores
@@ -16,7 +15,6 @@ import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.math.absoluteValue
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
 /**
@@ -96,7 +94,7 @@ class CipherDuplicatesCheckImpl(
         val existingGroupIds = mutableSetOf<String>()
         val pCiphers = ciphers
             .filter { cipher ->
-                !cipher.ignores(DWatchtowerAlert.DUPLICATE)
+                !cipher.ignores(DWatchtowerAlertType.DUPLICATE)
             }
             .map { cipher ->
                 processCipher(cipher)

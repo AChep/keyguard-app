@@ -715,22 +715,35 @@ fun AvatarBuilder(
     } else {
         MaterialTheme.colorScheme.tertiaryContainer
     }
-    val contentColor = contentColorFor(backgroundColor)
-    FlowRow(
+    AvatarBadgeSurface(
         modifier = Modifier
             .align(Alignment.BottomEnd)
             .widthIn(max = 36.dp)
             .wrapContentWidth(
                 align = Alignment.Start,
                 unbounded = true,
-            )
+            ),
+        backgroundColor = backgroundColor,
+        content = badge,
+    )
+}
+
+@Composable
+fun AvatarBadgeSurface(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    content: @Composable () -> Unit,
+) {
+    val contentColor = contentColorFor(backgroundColor)
+    FlowRow(
+        modifier = modifier
             .clip(MaterialTheme.shapes.extraSmall)
             .background(backgroundColor),
     ) {
         CompositionLocalProvider(
             LocalContentColor provides contentColor,
         ) {
-            badge()
+            content()
         }
     }
 }

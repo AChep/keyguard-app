@@ -342,16 +342,21 @@ fun produceAttachmentsScreenState(
             if (selectedItemsAllDownloadable) {
                 actions += FlatItemAction(
                     leading = icon(Icons.Outlined.Download),
-                    title = TextHolder.Value("Download"),
+                    title = Res.string.download.wrap(),
                     onClick = {
                         downloadIo.launchIn(appScope)
                     },
                 )
             }
             if (selectedItemsAllDownloaded) {
+                val title = if (selectedPairs.size > 1) {
+                    Res.string.file_action_delete_local_many_title.wrap()
+                } else {
+                    Res.string.file_action_delete_local_title.wrap()
+                }
                 actions += FlatItemAction(
                     leading = icon(Icons.Outlined.Delete),
-                    title = TextHolder.Value("Delete local files"),
+                    title = title,
                     onClick = {
                         removeIo.launchIn(appScope)
                     },

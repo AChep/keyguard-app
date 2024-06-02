@@ -381,7 +381,7 @@ fun foldersScreenState(
                                 selectedFolders.values.maxBy { it.ciphers.size }.folder.name
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Merge,
-                                title = TextHolder.Value("Merge into…"),
+                                title = Res.string.folder_action_merge_title.wrap(),
                                 onClick = ::onMerge
                                     .partially1(folderName)
                                     .partially1(selectedFolderIds),

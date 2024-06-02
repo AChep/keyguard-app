@@ -18,6 +18,7 @@
     <string name="app_password">App password</string>
     <string name="current_password">Current password</string>
     <string name="new_password">New password</string>
+    <string name="no_password">No password</string>
     <string name="email">Email</string>
     <string name="email_verified">Verified</string>
     <string name="email_not_verified">Not verified</string>
@@ -240,6 +241,7 @@
 
     <string name="folder_action_change_name_title">Change name</string>
     <string name="folder_action_change_names_title">Change names</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
     <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
@@ -301,6 +303,7 @@
     <string name="file_action_send_with_title">Send with…</string>
     <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
     <string name="file_action_delete_local_title">Delete local file</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">View parent item</string>
 
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>

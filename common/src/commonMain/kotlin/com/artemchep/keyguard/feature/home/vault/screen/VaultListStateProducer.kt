@@ -1873,7 +1873,7 @@ private class PasswordDecorator : Decorator {
         if (pw == null) {
             return VaultItem2.Section(
                 id = "decorator.pw.empty",
-                text = TextHolder.Value("No password"),
+                text = Res.string.no_password.wrap(),
             )
         }
         val text = obscurePassword(pw)
@@ -1902,7 +1902,7 @@ private class PasswordStrengthDecorator : Decorator {
         if (score == null) {
             return VaultItem2.Section(
                 id = "decorator.pw_strength.empty",
-                text = TextHolder.Value("No password"),
+                text = Res.string.no_password.wrap(),
             )
         }
         return VaultItem2.Section(

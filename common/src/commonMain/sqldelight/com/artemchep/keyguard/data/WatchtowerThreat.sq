@@ -21,7 +21,7 @@ upsert {
     reportedAt = :reportedAt,
     version = :version,
     read = CASE
-      WHEN value != :value OR version != :version OR threat != :threat THEN 0
+      WHEN value != :value OR threat != :threat THEN 0
       ELSE read
     END
   WHERE

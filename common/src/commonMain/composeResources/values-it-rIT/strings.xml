@@ -2,11 +2,11 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Chiudi</string>
-    <string name="quit">Quit</string>
+    <string name="quit">Esci</string>
     <string name="yes">Sì</string>
     <string name="no">No</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Show Keyguard</string>
+    <string name="show_keyguard">Mostra Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="account_name">Nome account</string>
@@ -18,6 +18,7 @@
     <string name="app_password">Password app</string>
     <string name="current_password">Password attuale</string>
     <string name="new_password">Nuova password</string>
+    <string name="no_password">Nessuna password</string>
     <string name="email">Email</string>
     <string name="email_verified">Verificata</string>
     <string name="email_not_verified">Non verificata</string>
@@ -66,16 +67,16 @@
     <string name="postal_code">CAP</string>
     <string name="pull_to_search">Trascina per cercare</string>
     <string name="save">Salva</string>
-    <string name="save_to">Save to</string>
+    <string name="save_to">Salva in</string>
     <string name="uri">URI</string>
     <string name="uris">URI</string>
     <string name="note">Nota</string>
     <string name="notes">Note</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
+    <string name="date">Data</string>
+    <string name="time">Ora</string>
     <string name="attachments">Allegati</string>
     <string name="attachments_empty_label">Nessun allegato</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">Disattivato</string>
     <string name="expired">Scaduta</string>
     <string name="expiring_soon">In scadenza</string>
     <string name="item_incomplete_title">Dati incompleti</string>
@@ -85,7 +86,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elementi</string>
     <string name="items_all">Tutti gli elementi</string>
     <string name="items_empty_label">Non c\'è niente qui</string>
-    <string name="sends">Sends</string>
+    <string name="sends">Invia</string>
     <string name="folder_none">Nessuna cartella</string>
     <string name="folder_new">Nuova cartella</string>
     <string name="folder">Cartella</string>
@@ -100,7 +101,7 @@
     <string name="organizations">Organizzazioni</string>
     <string name="organizations_empty_label">Nessuna organizzazione</string>
     <string name="misc">Varie</string>
-    <string name="category">Category</string>
+    <string name="category">Categoria</string>
     <string name="command">Comando</string>
     <string name="execute_command">Esegui</string>
     <!-- Add (something) -->
@@ -126,11 +127,11 @@
     <string name="address2">Indirizzo riga 2</string>
     <string name="address3">Indirizzo riga 3</string>
     <string name="rename">Rinomina</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Data di eliminazione</string>
+    <string name="deletion_date_custom">Personalizzato</string>
+    <string name="expiration_date">Data di scadenza</string>
+    <string name="expiration_date_custom">Personalizzato</string>
+    <string name="expiration_date_never">Mai</string>
     <string name="select_linked_type">Seleziona un tipo</string>
     <string name="select_file">Seleziona un file</string>
     <string name="autofill">Riempimento automatico</string>
@@ -160,7 +161,7 @@
     <string name="ignored_alerts">Avvisi ignorati</string>
     <string name="api_key">Chiave API</string>
     <string name="domain">Dominio</string>
-    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="add_to_home_screen">Aggiungi alla schermata Home</string>
     <string name="edit">Modifica</string>
     <string name="delete">Elimina</string>
     <string name="remove">Rimuovi</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Tutte le modifiche non sincronizzate verranno perse!</string>
     <string name="folder_action_change_name_title">Modifica nome</string>
     <string name="folder_action_change_names_title">Modifica nomi</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">Eliminare la cartella?</string>
     <string name="folder_delete_many_confirmation_title">Eliminare le cartelle?</string>
     <string name="folder_delete_confirmation_text">Questo/i elemento/i verranno eliminati immediatamente. Questa azione non può essere annullata.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Invia con…</string>
     <string name="file_action_open_in_file_manager_title">Apri in un file manager</string>
     <string name="file_action_delete_local_title">Elimina file locale</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Visualizza elemento genitore</string>
     <string name="vault_action_always_show_keyboard_title">Mostra sempre tastiera</string>
     <string name="vault_action_sync_vault_title">Sincronizza</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Data di modifica</string>
     <string name="sortby_modification_date_normal_mode">Prima i più recenti</string>
     <string name="sortby_modification_date_reverse_mode">Prima i più vecchi</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Data di scadenza</string>
     <string name="sortby_expiration_date_normal_mode">Prima i più recenti</string>
     <string name="sortby_expiration_date_reverse_mode">Prima i più vecchi</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Sicurezza password</string>
     <string name="watchtower_section_security_label">Sicurezza</string>
     <string name="watchtower_section_maintenance_label">Manutenzione</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Password debole</string>
     <string name="watchtower_item_pwned_passwords_title">Password Compromesse</string>
     <string name="watchtower_item_pwned_passwords_text">Password che sono state esposte in violazioni di dati. Tali password dovrebbero essere modificate immediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Password Riutilizzate</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Ti aiuta a identificare ed eliminare gli elementi duplicati nella tua cassaforte.</string>
     <string name="watchtower_item_compromised_accounts_title">Account Compromessi</string>
     <string name="watchtower_item_compromised_accounts_text">Controlla le violazioni dei dati attraverso un nome utente o un indirizzo email.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Segna tutti come già letti</string>
     <string name="changepassword_header_title">Modifica password app</string>
     <string name="changepassword_change_password_button">Modifica password</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticazione biometrica</string>

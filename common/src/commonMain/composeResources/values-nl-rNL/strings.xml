@@ -18,6 +18,7 @@
     <string name="app_password">App wachtwoord</string>
     <string name="current_password">Huidig wachtwoord</string>
     <string name="new_password">Nieuw wachtwoord</string>
+    <string name="no_password">Geen wachtwoord</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Geverifieerd</string>
     <string name="email_not_verified">Niet geverifieerd</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Alle niet gesynchroniseerde wijzigingen zullen verloren gaan!</string>
     <string name="folder_action_change_name_title">Naam wijzigen</string>
     <string name="folder_action_change_names_title">Namen wijzigen</string>
+    <string name="folder_action_merge_title">Samenvoegen in…</string>
     <string name="folder_delete_one_confirmation_title">Map verwijderen?</string>
     <string name="folder_delete_many_confirmation_title">Mappen verwijderen?</string>
     <string name="folder_delete_confirmation_text">Deze items worden onmiddellijk verwijderd. U kunt deze actie niet ongedaan maken.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Verzenden met…</string>
     <string name="file_action_open_in_file_manager_title">Open in een bestandsbeheerder</string>
     <string name="file_action_delete_local_title">Lokaal bestand verwijderen</string>
+    <string name="file_action_delete_local_many_title">Verwijder lokale bestanden</string>
     <string name="file_action_view_cipher_title">Bekijk het bovenliggende item</string>
     <string name="vault_action_always_show_keyboard_title">Toetsenbord altijd weergeven</string>
     <string name="vault_action_sync_vault_title">Kluis synchroniseren</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Wijzigingsdatum</string>
     <string name="sortby_modification_date_normal_mode">Nieuwste eerst</string>
     <string name="sortby_modification_date_reverse_mode">Oudste eerst</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Verloopdatum</string>
     <string name="sortby_expiration_date_normal_mode">Nieuwste eerst</string>
     <string name="sortby_expiration_date_reverse_mode">Oudste eerst</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Wachtwoordsterkte</string>
     <string name="watchtower_section_security_label">Beveiliging</string>
     <string name="watchtower_section_maintenance_label">Onderhoud</string>
+    <string name="watchtower_item_new_alerts_title">Controleer nieuwe waarschuwingen</string>
+    <string name="watchtower_item_weak_passwords_title">Zwakke wachtwoorden</string>
     <string name="watchtower_item_pwned_passwords_title">Gelekte wachtwoorden</string>
     <string name="watchtower_item_pwned_passwords_text">Wachtwoorden die zijn gevonden in datalekken. Dergelijke wachtwoorden moeten onmiddellijk worden gewijzigd.</string>
     <string name="watchtower_item_reused_passwords_title">Hergebruikte wachtwoorden</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Helpt u dubbele items in uw kluis te identificeren en te verwijderen.</string>
     <string name="watchtower_item_compromised_accounts_title">Gecompromitteerde Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Controleer of je gebruikersnamen en wachtwoorden zijn gevonden in bekende datalekken.</string>
+    <string name="watchtower_alerts_header_title">Nieuwe watchtower waarschuwingen</string>
+    <string name="watchtower_mark_all_as_read_title">Markeer alles als gelezen</string>
     <string name="changepassword_header_title">App-wachtwoord wijzigen</string>
     <string name="changepassword_change_password_button">Wachtwoord wijzigen</string>
     <string name="changepassword_biometric_auth_checkbox">Biometrische authenticatie</string>

@@ -18,6 +18,7 @@
     <string name="app_password">Mot de passe de l\'application</string>
     <string name="current_password">Mot de passe actuel</string>
     <string name="new_password">Nouveau mot de passe</string>
+    <string name="no_password">No password</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Vérifié</string>
     <string name="email_not_verified">Non vérifié</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Toutes les modifications non synchronisées seront perdues !</string>
     <string name="folder_action_change_name_title">Modifier le nom</string>
     <string name="folder_action_change_names_title">Changer les noms</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">Supprimer le dossier ?</string>
     <string name="folder_delete_many_confirmation_title">Supprimer les dossiers ?</string>
     <string name="folder_delete_confirmation_text">Ces élément(s) seront supprimés immédiatement. Vous ne pouvez pas annuler cette action.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Envoyer avec…</string>
     <string name="file_action_open_in_file_manager_title">Ouvrir dans un gestionnaire de fichiers</string>
     <string name="file_action_delete_local_title">Supprimer le fichier local</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Voir l\'élément parent</string>
     <string name="vault_action_always_show_keyboard_title">Toujours afficher le clavier</string>
     <string name="vault_action_sync_vault_title">Synchroniser le coffre-fort</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Date de modification</string>
     <string name="sortby_modification_date_normal_mode">Les plus récents en premier</string>
     <string name="sortby_modification_date_reverse_mode">Plus ancien en premier</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Date d\'expiration</string>
     <string name="sortby_expiration_date_normal_mode">Les plus récents en premier</string>
     <string name="sortby_expiration_date_reverse_mode">Plus ancien en premier</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Robustesse du mot de passe</string>
     <string name="watchtower_section_security_label">Sécurité</string>
     <string name="watchtower_section_maintenance_label">Maintenance</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">Mots de passe pwned</string>
     <string name="watchtower_item_pwned_passwords_text">Les mots de passe qui ont été exposés dans des violations de données. Ces mots de passe devraient être modifiés immédiatement.</string>
     <string name="watchtower_item_reused_passwords_title">Mot de passe réutilisé</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Vous aide à identifier et à éliminer les doublons dans votre coffre.</string>
     <string name="watchtower_item_compromised_accounts_title">Comptes Compromis</string>
     <string name="watchtower_item_compromised_accounts_text">Vérifier les violations de données par un nom d\'utilisateur ou une adresse e-mail.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">Modifier le mot de passe de l\'application</string>
     <string name="changepassword_change_password_button">Modifier le mot de passe</string>
     <string name="changepassword_biometric_auth_checkbox">Authentification biométrique</string>

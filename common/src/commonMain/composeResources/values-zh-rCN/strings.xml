@@ -18,6 +18,7 @@
     <string name="app_password">应用专用密码</string>
     <string name="current_password">当前密码</string>
     <string name="new_password">新密码</string>
+    <string name="no_password">No password</string>
     <string name="email">电子邮件</string>
     <string name="email_verified">已验证</string>
     <string name="email_not_verified">未验证</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">所有未同步的更改都将丢失！</string>
     <string name="folder_action_change_name_title">修改名称</string>
     <string name="folder_action_change_names_title">修改名称</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">确认删除文件夹？</string>
     <string name="folder_delete_many_confirmation_title">确认删除全部选中的文件夹？</string>
     <string name="folder_delete_confirmation_text">此项目将被立即删除且这是不可逆的。</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">通过...发送</string>
     <string name="file_action_open_in_file_manager_title">在文件管理器中打开</string>
     <string name="file_action_delete_local_title">删除本地文件</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">查看父项目</string>
     <string name="vault_action_always_show_keyboard_title">总是显示键盘</string>
     <string name="vault_action_sync_vault_title">同步密码库</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">修改日期</string>
     <string name="sortby_modification_date_normal_mode">从新到旧</string>
     <string name="sortby_modification_date_reverse_mode">从旧到新</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">过期时间</string>
     <string name="sortby_expiration_date_normal_mode">从新到旧</string>
     <string name="sortby_expiration_date_reverse_mode">从旧到新</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">密码强度</string>
     <string name="watchtower_section_security_label">安全性</string>
     <string name="watchtower_section_maintenance_label">维护</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">泄露的密码</string>
     <string name="watchtower_item_pwned_passwords_text">密码存在于已知的数据泄露事件中，应立即更改此密码。</string>
     <string name="watchtower_item_reused_passwords_title">重复使用的密码</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">帮助您寻找并删除密码库中的重复项目。</string>
     <string name="watchtower_item_compromised_accounts_title">被盗账户</string>
     <string name="watchtower_item_compromised_accounts_text">使用用户名或电子邮件地址检查数据泄露情况。</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">修改应用专用密码</string>
     <string name="changepassword_change_password_button">修改密码</string>
     <string name="changepassword_biometric_auth_checkbox">生物识别认证</string>

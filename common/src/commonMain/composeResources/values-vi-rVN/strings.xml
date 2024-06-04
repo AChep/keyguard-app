@@ -18,6 +18,7 @@
     <string name="app_password">Mật khẩu ứng dụng</string>
     <string name="current_password">Mật khẩu hiện tại</string>
     <string name="new_password">Mật khẩu mới</string>
+    <string name="no_password">No password</string>
     <string name="email">Email</string>
     <string name="email_verified">Đã xác thực</string>
     <string name="email_not_verified">Chưa xác thực</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Tất cả những thay đổi không được đồng bộ hóa sẽ bị mất!</string>
     <string name="folder_action_change_name_title">Đổi tên</string>
     <string name="folder_action_change_names_title">Đổi các tên</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">Xóa thư mục?</string>
     <string name="folder_delete_many_confirmation_title">Xóa các thư mục?</string>
     <string name="folder_delete_confirmation_text">(Các) mục này sẽ bị xóa ngay lập tức. Bạn không thể hoàn tác hành động này.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Gửi với…</string>
     <string name="file_action_open_in_file_manager_title">Mở trong một trình quản lý tệp</string>
     <string name="file_action_delete_local_title">Xóa tệp cục bộ</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Xem mục gốc</string>
     <string name="vault_action_always_show_keyboard_title">Luôn hiển thị bàn phím</string>
     <string name="vault_action_sync_vault_title">Đồng bộ hóa kho</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Ngày sửa đổi</string>
     <string name="sortby_modification_date_normal_mode">Mới nhất trước</string>
     <string name="sortby_modification_date_reverse_mode">Cũ nhất trước</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Ngày hết hạn</string>
     <string name="sortby_expiration_date_normal_mode">Mới nhất trước</string>
     <string name="sortby_expiration_date_reverse_mode">Cũ nhất trước</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Độ mạnh mật khẩu</string>
     <string name="watchtower_section_security_label">Bảo mật</string>
     <string name="watchtower_section_maintenance_label">Bảo trì</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">Những mật khẩu bị xâm phạm</string>
     <string name="watchtower_item_pwned_passwords_text">Những mật khẩu đã bị lộ trong các vụ vi phạm dữ liệu. Những mật khẩu như vậy nên được thay đổi ngay lập tức.</string>
     <string name="watchtower_item_reused_passwords_title">Mật khẩu dùng lại</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Giúp bạn xác định và loại bỏ các mục trùng lặp trong kho của bạn.</string>
     <string name="watchtower_item_compromised_accounts_title">Tài khoản bị xâm phạm</string>
     <string name="watchtower_item_compromised_accounts_text">Kiểm tra vi phạm dữ liệu bằng tên người dùng hoặc địa chỉ email.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">Thay đổi mật khẩu ứng dụng</string>
     <string name="changepassword_change_password_button">Đổi mật khẩu</string>
     <string name="changepassword_biometric_auth_checkbox">Xác thực sinh trắc học</string>

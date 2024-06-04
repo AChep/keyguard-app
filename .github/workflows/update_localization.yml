@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: crowdin/github-action@v1
+      - uses: crowdin/github-action@v2
         with:
           upload_sources: true
           # We only want to upload the sources, nothing else is

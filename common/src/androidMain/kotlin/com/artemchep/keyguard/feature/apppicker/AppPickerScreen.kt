@@ -18,6 +18,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -35,6 +36,7 @@ import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevation
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.search.sort.SortButton
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
@@ -88,6 +90,13 @@ fun ChangePasswordScreen(
     }
 
     LaunchedEffect(listRevision) {
+        // Scroll to the start of the list if the list has
+        // no real content.
+        if (listRevision == null) {
+            listState.scrollToItem(0, 0)
+            return@LaunchedEffect
+        }
+
         // TODO: How do you wait till the layout state start to represent
         //  the actual data?
         val listSize =
@@ -135,6 +144,14 @@ fun ChangePasswordScreen(
                         title = stringResource(Res.string.apppicker_header_title),
                         icon = {
                             NavigationIcon()
+                        },
+                        actions = {
+                            val content = loadableState.getOrNull()
+                                ?: return@CustomToolbarContent
+                            val sort by content.sort.collectAsState()
+                            AppPickerSortButton(
+                                state = sort,
+                            )
                         },
                     )
 
@@ -225,6 +242,20 @@ fun ChangePasswordScreen(
             }
         }
     }
+}
+
+@Composable
+private fun AppPickerSortButton(
+    modifier: Modifier = Modifier,
+    state: AppPickerState.Sort,
+) {
+    val filters = state.sort
+    val clearFilters = state.clearSort
+    SortButton(
+        modifier = modifier,
+        items = filters,
+        onClear = clearFilters,
+    )
 }
 
 @Composable

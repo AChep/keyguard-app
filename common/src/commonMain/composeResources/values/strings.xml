@@ -763,6 +763,9 @@
     <string name="sortby_modification_date_title">Modification date</string>
     <string name="sortby_modification_date_normal_mode">Newest First</string>
     <string name="sortby_modification_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Expiration date</string>
     <string name="sortby_expiration_date_normal_mode">Newest First</string>
     <string name="sortby_expiration_date_reverse_mode">Oldest First</string>

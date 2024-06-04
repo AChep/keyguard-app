@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -21,11 +22,13 @@ class SearchQueryHandle(
     val querySink: MutableStateFlow<String>,
     val queryState: MutableState<String>,
     val queryIndexed: Flow<IndexedText?>,
+    val revisionFlow: Flow<Int>,
 ) {
 }
 
 fun RememberStateFlowScope.searchQueryHandle(
     key: String,
+    revisionFlow: Flow<Int> = flowOf(0),
 ): SearchQueryHandle {
     val querySink = mutablePersistedFlow(key) { "" }
     val queryState = mutableComposeState(querySink)
@@ -45,35 +48,43 @@ fun RememberStateFlowScope.searchQueryHandle(
         querySink = querySink,
         queryState = queryState,
         queryIndexed = queryIndexedFlow,
+        revisionFlow = revisionFlow,
     )
 }
 
 suspend fun <T> RememberStateFlowScope.searchFilter(
     handle: SearchQueryHandle,
     transform: (TextFieldModel2, Int) -> T,
-) = handle.querySink
-    .map { query ->
-        val revision = query.trim().hashCode()
-        val model = TextFieldModel2(
-            state = handle.queryState,
-            text = query,
-            onChange = handle.queryState::value::set,
-        )
-        transform(
-            model,
-            revision,
-        )
-    }
+) = combine(
+    handle.querySink,
+    handle.revisionFlow,
+) { query, rev ->
+    val revision = rev xor query.trim().hashCode()
+    val model = TextFieldModel2(
+        state = handle.queryState,
+        text = query,
+        onChange = handle.queryState::value::set,
+    )
+    transform(
+        model,
+        revision,
+    )
+}
     .stateIn(screenScope)
 
 fun <T> Flow<List<IndexedModel<T>>>.mapSearch(
     handle: SearchQueryHandle,
     transform: (T, IndexedText.FindResult) -> T,
-) = this
-    .combine(handle.queryIndexed) { items, query -> items to query }
-    .mapLatest { (items, query) ->
+) = combine(
+    this,
+    handle.queryIndexed,
+    handle.revisionFlow,
+) { items, query, rev ->
+    Triple(items, query, rev)
+}
+    .mapLatest { (items, query, rev) ->
         if (query == null) {
-            return@mapLatest items.map { it.model } to 0
+            return@mapLatest items.map { it.model } to rev
         }
 
         val filteredItems = items
@@ -83,6 +94,7 @@ fun <T> Flow<List<IndexedModel<T>>>.mapSearch(
                 highlightContentColor = handle.scope.colorScheme.searchHighlightContentColor,
                 transform = transform,
             )
-        filteredItems to query.text.hashCode()
+        val revision = rev xor query.text.hashCode()
+        filteredItems to revision
     }
 

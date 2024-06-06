@@ -18,6 +18,7 @@
     <string name="app_password">Пароль застосунку</string>
     <string name="current_password">Поточний пароль</string>
     <string name="new_password">Новий пароль</string>
+    <string name="no_password">Без пароля</string>
     <string name="email">Ел. пошта</string>
     <string name="email_verified">Підтверджено</string>
     <string name="email_not_verified">Не підтверджено</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Всі несинхронізовані зміни будуть втрачені!</string>
     <string name="folder_action_change_name_title">Змінити назву</string>
     <string name="folder_action_change_names_title">Змінити назви</string>
+    <string name="folder_action_merge_title">Об'єднати в…</string>
     <string name="folder_delete_one_confirmation_title">Видалити теку?</string>
     <string name="folder_delete_many_confirmation_title">Видалити теки?</string>
     <string name="folder_delete_confirmation_text">Цей запис(и) буде видалено. Ви не зможете скасовувати цю дію.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Надіслати за допомогою…</string>
     <string name="file_action_open_in_file_manager_title">Відкрити в файловому менеджері…</string>
     <string name="file_action_delete_local_title">Видалити локальний файл</string>
+    <string name="file_action_delete_local_many_title">Видалити локальні файли</string>
     <string name="file_action_view_cipher_title">Переглянути батьківський запис</string>
     <string name="vault_action_always_show_keyboard_title">Завжди показувати клавіатуру</string>
     <string name="vault_action_sync_vault_title">Синхронізувати сховище</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Датою останньої зміни</string>
     <string name="sortby_modification_date_normal_mode">Спочатку нові</string>
     <string name="sortby_modification_date_reverse_mode">Спочатку старіші</string>
+    <string name="sortby_installation_date_title">Дата встановлення</string>
+    <string name="sortby_installation_date_normal_mode">Спочатку новіші</string>
+    <string name="sortby_installation_date_reverse_mode">Спочатку старіші</string>
     <string name="sortby_expiration_date_title">Датою закінчення дії</string>
     <string name="sortby_expiration_date_normal_mode">Спочатку нові</string>
     <string name="sortby_expiration_date_reverse_mode">Спочатку старіші</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Надійність пароля</string>
     <string name="watchtower_section_security_label">Безпека</string>
     <string name="watchtower_section_maintenance_label">Підтримка</string>
+    <string name="watchtower_item_new_alerts_title">Переглянути нові оповіщення</string>
+    <string name="watchtower_item_weak_passwords_title">Слабкі паролі</string>
     <string name="watchtower_item_pwned_passwords_title">Викриті паролі</string>
     <string name="watchtower_item_pwned_passwords_text">Паролі, які було знайдено в витоках даних. Такі паролі мають бути негайно змінені.</string>
     <string name="watchtower_item_reused_passwords_title">Повторювані паролі</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Допомагає вам знайти та виправити записи з повторюваними даними.</string>
     <string name="watchtower_item_compromised_accounts_title">Скомпрометовані облікові записи</string>
     <string name="watchtower_item_compromised_accounts_text">Шукати ім'я користувача або електрону адресу в відомих витоках даних.</string>
+    <string name="watchtower_alerts_header_title">Нові оповіщення ст. вежі</string>
+    <string name="watchtower_mark_all_as_read_title">Позначити все прочитаним</string>
     <string name="changepassword_header_title">Змінити пароль застосунку</string>
     <string name="changepassword_change_password_button">Змінити пароль</string>
     <string name="changepassword_biometric_auth_checkbox">Біометрична автентифікація</string>

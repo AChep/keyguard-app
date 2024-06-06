@@ -18,6 +18,7 @@
     <string name="app_password">Uygulama şifresi</string>
     <string name="current_password">Mevcut şifre</string>
     <string name="new_password">Yeni şifre</string>
+    <string name="no_password">Şifre yok</string>
     <string name="email">E-posta</string>
     <string name="email_verified">Doğrulandı</string>
     <string name="email_not_verified">Doğrulanmadı</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Senkronize edilmeyen tüm değişiklikler kaybolacak!</string>
     <string name="folder_action_change_name_title">Adı değiştir</string>
     <string name="folder_action_change_names_title">İsimleri değiştir</string>
+    <string name="folder_action_merge_title">Şurada birleştir…</string>
     <string name="folder_delete_one_confirmation_title">Klasör silinsin mi?</string>
     <string name="folder_delete_many_confirmation_title">Klasörler silinsin mi?</string>
     <string name="folder_delete_confirmation_text">Bu öğe(ler) hemen silinecek. Bu işlemi geri alamazsınız.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Şununla gönder...</string>
     <string name="file_action_open_in_file_manager_title">Dosya yöneticisinde aç</string>
     <string name="file_action_delete_local_title">Yerel dosyayı sil</string>
+    <string name="file_action_delete_local_many_title">Yerel dosyaları sil</string>
     <string name="file_action_view_cipher_title">Üst öğeyi görüntüle</string>
     <string name="vault_action_always_show_keyboard_title">Her zaman klavyeyi göster</string>
     <string name="vault_action_sync_vault_title">Kasayı senkronize et</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Değişiklik tarihi</string>
     <string name="sortby_modification_date_normal_mode">Önce En Yeni</string>
     <string name="sortby_modification_date_reverse_mode">Önce En Eski</string>
+    <string name="sortby_installation_date_title">Kurulum Tarihi</string>
+    <string name="sortby_installation_date_normal_mode">Önce En Yeni</string>
+    <string name="sortby_installation_date_reverse_mode">Önce En Eski</string>
     <string name="sortby_expiration_date_title">Son kullanma tarihi</string>
     <string name="sortby_expiration_date_normal_mode">Önce En Yeni</string>
     <string name="sortby_expiration_date_reverse_mode">Önce En Eski</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Şifre gücü</string>
     <string name="watchtower_section_security_label">Güvenlik</string>
     <string name="watchtower_section_maintenance_label">Bakım</string>
+    <string name="watchtower_item_new_alerts_title">Yeni uyarıları gözden geçir</string>
+    <string name="watchtower_item_weak_passwords_title">Zayıf Şifreler</string>
     <string name="watchtower_item_pwned_passwords_title">Sızan Şifreler</string>
     <string name="watchtower_item_pwned_passwords_text">Veri ihlallerinde açığa çıkan şifreler. Bu tür şifreler derhal değiştirilmelidir.</string>
     <string name="watchtower_item_reused_passwords_title">Yeniden Kullanılan Şifreler</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Kasanızdaki yinelenen öğeleri belirlemenize ve ortadan kaldırmanıza yardımcı olur.</string>
     <string name="watchtower_item_compromised_accounts_title">Ele Geçirilen Hesaplar</string>
     <string name="watchtower_item_compromised_accounts_text">Kullanıcı adı veya e-posta adresi ile veri ihlallerini kontrol edin.</string>
+    <string name="watchtower_alerts_header_title">Yeni gözlemci uyarıları</string>
+    <string name="watchtower_mark_all_as_read_title">Tümünü okundu olarak işaretle</string>
     <string name="changepassword_header_title">Uygulama şifresini değiştir</string>
     <string name="changepassword_change_password_button">Şifreyi değiştir</string>
     <string name="changepassword_biometric_auth_checkbox">Biyometrik kimlik doğrulama</string>

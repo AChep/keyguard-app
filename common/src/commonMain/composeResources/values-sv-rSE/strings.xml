@@ -18,6 +18,7 @@
     <string name="app_password">App password</string>
     <string name="current_password">Nuvarande lösenord</string>
     <string name="new_password">Nytt lösenord</string>
+    <string name="no_password">No password</string>
     <string name="email">E-post</string>
     <string name="email_verified">Verifierad</string>
     <string name="email_not_verified">Ej verifierad</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">All of the not synchronized changes will be lost!</string>
     <string name="folder_action_change_name_title">Ändra namn</string>
     <string name="folder_action_change_names_title">Ändra namn</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">Radera mapp?</string>
     <string name="folder_delete_many_confirmation_title">Radera mappar?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Skicka med…</string>
     <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
     <string name="file_action_delete_local_title">Delete local file</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">View parent item</string>
     <string name="vault_action_always_show_keyboard_title">Visa alltid tangentbord</string>
     <string name="vault_action_sync_vault_title">Synkronisera valv</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Modification date</string>
     <string name="sortby_modification_date_normal_mode">Newest First</string>
     <string name="sortby_modification_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Utgångsdatum</string>
     <string name="sortby_expiration_date_normal_mode">Newest First</string>
     <string name="sortby_expiration_date_reverse_mode">Oldest First</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Lösenordsstyrka</string>
     <string name="watchtower_section_security_label">Säkerhet</string>
     <string name="watchtower_section_maintenance_label">Maintenance</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Svaga lösenord</string>
     <string name="watchtower_item_pwned_passwords_title">Pwned Passwords</string>
     <string name="watchtower_item_pwned_passwords_text">Passwords that have been exposed in data breaches. Such passwords should be changed immediately.</string>
     <string name="watchtower_item_reused_passwords_title">Återanvända lösenord</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Hjälper dig att identifiera och eliminera dubbletter i ditt valv.</string>
     <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Markera alla som lästa</string>
     <string name="changepassword_header_title">Change app password</string>
     <string name="changepassword_change_password_button">Ändra lösenord</string>
     <string name="changepassword_biometric_auth_checkbox">Biometrisk autentisering</string>

@@ -26,10 +26,15 @@ jobs:
           upload_translations: false
           download_translations: true
           config: 'crowdin.yml'
+          create_pull_request: false
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+      # https://github.com/crowdin/github-action/issues/229
+      - name: Fix permissions Crowdin created
+        run: |
+          sudo chmod -R 644 common/src/commonMain/composeResources/values-*/*.xml
       - name: "Update library"
         run: |
           python .github/update_localization.py

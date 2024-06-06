@@ -167,7 +167,11 @@ kotlin {
                 implementation(libs.google.zxing.javase)
                 implementation(libs.harawata.appdirs)
                 implementation(libs.commons.lang3)
-                api(libs.cash.sqldelight.sqlite.driver)
+                val sqldelight = libs.cash.sqldelight.sqlite.driver.get()
+                    .let { "${it.module}:${it.versionConstraint.requiredVersion}" }
+                api(sqldelight) {
+                    exclude(group = "org.xerial")
+                }
                 api(libs.kamel.image)
                 api(libs.mayakapps.window.styler)
                 api(libs.wunderbox.nativefiledialog)

@@ -9,9 +9,11 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.data.Database
-import io.ktor.util.hex
+import io.ktor.util.*
+import org.sqlite.mc.SQLiteMCSqlCipherConfig
 import java.io.File
-import java.util.Properties
+import java.sql.DriverManager
+import java.util.*
 
 class SqlManagerFile(
     private val fileIo: IO<File>,
@@ -21,9 +23,40 @@ class SqlManagerFile(
         databaseFactory: (SqlDriver) -> Database,
         vararg callbacks: AfterVersion,
     ): IO<SqlHelper> = ioEffect {
+        val file = fileIo
+            .bind()
+        try {
+            createSqlHelper(
+                file = file,
+                masterKey = masterKey,
+                databaseFactory = databaseFactory,
+                callbacks = callbacks,
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            println(e.message)
+            if ("is not a database" in e.message.orEmpty()) {
+                file.delete()
+            }
+
+            // Try again
+            createSqlHelper(
+                file = file,
+                masterKey = masterKey,
+                databaseFactory = databaseFactory,
+                callbacks = callbacks,
+            )
+        }
+    }
+
+    private suspend fun createSqlHelper(
+        file: File,
+        masterKey: MasterKey,
+        databaseFactory: (SqlDriver) -> Database,
+        vararg callbacks: AfterVersion,
+    ): SqlHelper {
         val driver: SqlDriver = createSqlDriver(
-            file = fileIo
-                .bind(),
+            file = file,
             key = masterKey.byteArray,
         )
 
@@ -48,7 +81,7 @@ class SqlManagerFile(
         }
 
         val database = databaseFactory(driver)
-        object : SqlHelper {
+        return object : SqlHelper {
             override val driver: SqlDriver get() = driver
 
             override val database: Database get() = database
@@ -64,8 +97,7 @@ class SqlManagerFile(
                 driver.execute(
                     identifier = null,
                     sql = """
-                        PRAGMA key = "x'$hex";
-                        PRAGMA rekey = "x'$hex";
+                        PRAGMA rekey = "x'$hex'";
                     """.trimIndent(),
                     parameters = 0,
                     binders = null,
@@ -78,13 +110,22 @@ class SqlManagerFile(
         file: File,
         key: ByteArray,
     ): SqlDriver {
-        val hex = hex(key)
+        val drivers = DriverManager.getDrivers().toList()
+        require(drivers.size == 1) {
+            "There should be only one SQL driver, currently " +
+                    drivers.joinToString { it::class.java.canonicalName } +
+                    " are present."
+        }
+
+        val sqlCipherProps = SQLiteMCSqlCipherConfig.getDefault()
+            .withRawUnsaltedKey(key)
+            .build()
+            .toProperties()
         val url = "jdbc:sqlite:file:${file.absolutePath}"
         return JdbcSqliteDriver(
             url = url,
             properties = Properties().apply {
-                put("cipher", "sqlcipher")
-                put("hexkey", hex)
+                putAll(sqlCipherProps)
                 put("foreign_keys", "true")
             },
         )

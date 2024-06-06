@@ -8,9 +8,9 @@ androidTargetSdk = "34"
 # @keep
 jdk = "17"
 # @keep
-appVersionName = "1.1.1"
+appVersionName = "1.2.0"
 # @keep
-appVersionCode = "5"
+appVersionCode = "6"
 # https://github.com/google/accompanist
 accompanist = "0.34.0"
 androidBillingClient = "6.2.1"

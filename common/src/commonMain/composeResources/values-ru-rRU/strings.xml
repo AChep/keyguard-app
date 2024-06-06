@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">Строчные буквы</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Исключить похожие символы</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Исключить неоднозначные символы</string>
     <string name="generator_email_catch_all_type">Универсальный e-mail</string>
     <string name="generator_email_catch_all_note">Универсальный адрес электронной почты предоставляет пользователям возможность получать всю почту, отправляемую на их домен, даже если она отправляется на адрес электронной почты, который не был настроен для их домена. Убедитесь, что ваш почтовый хостинг поддерживает эту функцию, прежде чем использовать её.</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">Держать экран включенным во время просмотра записей</string>
     <string name="pref_item_autofill_service_title">Служба автозаполнения</string>
     <string name="pref_item_autofill_service_text">Использовать фреймворк автозаполнения Android для заполнения информации о входе в другие приложения на устройстве</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Некоторые устройства Xiaomi требуют разрешения \"Отображать всплывающие окна в фоновом режиме\". Откройте настройки и убедитесь, что оно предоставлено.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Некоторые устройства Xiaomi требуют разрешения "Отображать всплывающие окна в фоновом режиме". Откройте настройки и убедитесь, что оно предоставлено.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автокопирование одноразовых паролей</string>
     <string name="pref_item_autofill_auto_copy_otp_text">При заполнении регистрационной информации автоматически копировать одноразовые пароли</string>
     <string name="pref_item_autofill_inline_suggestions_title">Встроенные предложения</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Фильтр</string>
     <string name="feat_item_filter_text">Фильтр по папке, организации, типу и т.д.</string>
     <string name="feat_item_multiple_keywords_title">Несколько ключевых слов</string>
-    <string name="feat_item_multiple_keywords_text">Введите в поиске \'bitw test\', чтобы найти запись \'Bitwarden Test Account\'.</string>
+    <string name="feat_item_multiple_keywords_text">Введите в поиске 'bitw test', чтобы найти запись 'Bitwarden Test Account'.</string>
     <string name="feat_section_watchtower_title">Дозорная башня</string>
     <string name="feat_item_pwned_passwords_title">Скомпрометированные пароли</string>
     <string name="feat_item_pwned_passwords_text">Найти записи с открытыми паролями, связанными с утечкой данных.</string>

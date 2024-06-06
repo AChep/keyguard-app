@@ -13,7 +13,7 @@
     <string name="enabled">Увімкнено</string>
     <string name="disabled">Вимкнено</string>
     <string name="wordlist">Список слів</string>
-    <string name="username">Ім\'я користувача</string>
+    <string name="username">Ім'я користувача</string>
     <string name="password">Пароль</string>
     <string name="app_password">Пароль застосунку</string>
     <string name="current_password">Поточний пароль</string>
@@ -43,7 +43,7 @@
     <string name="card_valid_to">Чинна до</string>
     <string name="card_expiry_month">Місяць терміну дії картки</string>
     <string name="card_expiry_year">Рік терміну дії картки</string>
-    <string name="cardholder_name">Ім\'я власника картки</string>
+    <string name="cardholder_name">Ім'я власника картки</string>
     <string name="valid_from">Чинний з</string>
     <string name="expiry_date">Чинна до</string>
     <string name="company">Компанія</string>
@@ -118,10 +118,10 @@
     <string name="security">Безпека</string>
     <string name="contact_info">Контактні дані</string>
     <string name="identity_title">Титул</string>
-    <string name="identity_first_name">Ім\'я</string>
+    <string name="identity_first_name">Ім'я</string>
     <string name="identity_middle_name">По батькові</string>
     <string name="identity_last_name">Прізвище</string>
-    <string name="identity_full_name">Повне ім\'я</string>
+    <string name="identity_full_name">Повне ім'я</string>
     <string name="address1">Адресний рядок 1</string>
     <string name="address2">Адресний рядок 2</string>
     <string name="address3">Адресний рядок 3</string>
@@ -155,8 +155,8 @@
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
     <string name="passkey_discoverable">Видимий</string>
-    <string name="passkey_user_username">Ім\'я користувача</string>
-    <string name="passkey_user_display_name">Видиме ім\'я</string>
+    <string name="passkey_user_username">Ім'я користувача</string>
+    <string name="passkey_user_display_name">Видиме ім'я</string>
     <string name="ignored_alerts">Вимкнені оповіщення</string>
     <string name="api_key">Ключ API</string>
     <string name="domain">Домен</string>
@@ -184,7 +184,7 @@
     <string name="web_vault">Веб сховище</string>
     <string name="launch_web_vault">Відкрити вебсховище</string>
     <!-- Remember me to not have to enter OTP code second time -->
-    <string name="remember_me">Запам\'ятати мене</string>
+    <string name="remember_me">Запам'ятати мене</string>
     <!-- A Trash screen -->
     <string name="trash">Кошик</string>
     <!-- To download something -->
@@ -203,8 +203,8 @@
     <string name="encryption_random_bits_data">Випадкові <xliff:g id="length" example="64">%1$d</xliff:g>-бітні дані</string>
     <string name="none">Нема</string>
     <string name="text">Текст</string>
-    <string name="linked_apps">Зв\'язані застосунки</string>
-    <string name="linked_uris">Зв\'язані URI</string>
+    <string name="linked_apps">Зв'язані застосунки</string>
+    <string name="linked_uris">Зв'язані URI</string>
     <string name="custom_fields">Користувацькі поля</string>
     <string name="reveal_secure_note">Показати захищену нотатку</string>
     <string name="hide_secure_note">Приховати захищену нотатку</string>
@@ -250,7 +250,7 @@
     <string name="ciphers_action_enable_auth_reprompt_title">Ввімкнути подвійну автентифікацію</string>
     <string name="ciphers_action_disable_auth_reprompt_title">Вимкнути подвійну автентифікацію</string>
     <string name="ciphers_action_edit_title">Редагувати</string>
-    <string name="ciphers_action_merge_title">Об\'єднати в…</string>
+    <string name="ciphers_action_merge_title">Об'єднати в…</string>
     <string name="ciphers_action_copy_title">Скопіювати в…</string>
     <string name="ciphers_action_export_title">Експорт…</string>
     <string name="ciphers_action_change_folder_title">Перемістити в теку</string>
@@ -266,7 +266,7 @@
     <string name="ciphers_action_delete_title">Видалити назавжди</string>
     <string name="ciphers_action_delete_confirmation_title">Видалити назавжди?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Налаштувати сповіщення вартової вежі</string>
-    <string name="ciphers_action_cascade_trash_associated_items_title">Перемістити зв\'язані записи до кошика</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Перемістити зв'язані записи до кошика</string>
     <string name="sends_action_change_name_title">Змінити назву</string>
     <string name="sends_action_change_names_title">Змінити назви</string>
     <string name="sends_action_change_filename_title">Змінити назву файлу</string>
@@ -302,7 +302,7 @@
     <string name="vault_action_lock_vault_title">Заблокувати сховище</string>
     <string name="vault_action_rename_folder_title">Перейменувати теку</string>
     <string name="email_action_check_data_breach_title">Перевірити ел. пошту в відомих витоках даних</string>
-    <string name="username_action_check_data_breach_title">Перевірити ім\'я користувача в відомих витоках даних</string>
+    <string name="username_action_check_data_breach_title">Перевірити ім'я користувача в відомих витоках даних</string>
     <string name="password_action_check_data_breach_title">Перевірити пароль в відомих витоках даних</string>
     <string name="website_action_check_data_breach_title">Перевірити вебсайт у відомих витоках даних</string>
     <string name="uri_action_launch_app_title">Відкрити застосунок</string>
@@ -332,34 +332,34 @@
     <string name="uri_match_detection_regex_note">Порівнювати ресурси за допомогою регулярного виразу. Опція просунутого рівня.</string>
     <string name="uri_match_detection_never_title">Ніколи</string>
     <string name="uri_match_detection_never_note">Ігнорувати URI-посилання під час пошуку записів для автозаповнення.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> зв\'язано з паролем</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з іменем користувача</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з іменем власника карти</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з місяцем закінченням терміну картки</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з роком закінченням терміну картки</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язаний з кодом безпеки карти</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з виробником картки</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з номером картки</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з титулом</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з іменем по батькові</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з адресним рядком (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з адресним рядком (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з адресним рядком (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з містом</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з штатом/областю</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з поштовим індексом</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з країною</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з компанією</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з електронною поштою</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з номером телефону</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з іменем користувача</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з номером паспорта</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з номером ліцензії</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з іменем</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з прізвищем</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з повним іменем</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв\'язано з невідомим полем</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> зв'язано з паролем</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з іменем користувача</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з іменем власника карти</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з місяцем закінченням терміну картки</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з роком закінченням терміну картки</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язаний з кодом безпеки карти</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з виробником картки</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з номером картки</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з титулом</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з іменем по батькові</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з адресним рядком (1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з адресним рядком (2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з адресним рядком (3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з містом</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з штатом/областю</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з поштовим індексом</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з країною</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з компанією</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з електронною поштою</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з номером телефону</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з SSN</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з іменем користувача</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з номером паспорта</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з номером ліцензії</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з іменем</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з прізвищем</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з повним іменем</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з невідомим полем</string>
     <string name="text_action_share_with_title">Поділитися через…</string>
     <string name="text_action_send_title">Створити відправлення</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> вибрано</string>
@@ -370,7 +370,7 @@
     <string name="copy_send">Скопіювати відправлення</string>
     <string name="copy_package_name">Скопіювати назву пакета</string>
     <string name="copy_password">Копіювати пароль</string>
-    <string name="copy_username">Скопіювати ім\'я користувача</string>
+    <string name="copy_username">Скопіювати ім'я користувача</string>
     <string name="copy_email">Скопіювати ел. пошту</string>
     <string name="copy_phone_number">Скопіювати номер телефону</string>
     <string name="copy_passport_number">Скопіювати номер паспорта</string>
@@ -387,13 +387,13 @@
     <string name="copied_uri">Скопійований URI</string>
     <string name="copied_package_name">Скопійовано назву пакету</string>
     <string name="copied_password">Скопійовано пароль</string>
-    <string name="copied_username">Скопійовано ім\'я користувача</string>
+    <string name="copied_username">Скопійовано ім'я користувача</string>
     <string name="copied_email">Скопійовано електронну пошту</string>
     <string name="copied_phone_number">Скопійовано номер телефону</string>
     <string name="copied_passport_number">Скопійовано номер паспорта</string>
     <string name="copied_license_number">Скопійовано номер ліцензії</string>
     <string name="copied_card_number">Скопійовано номер картки</string>
-    <string name="copied_cardholder_name">Скопійовано ім\'я власника карти</string>
+    <string name="copied_cardholder_name">Скопійовано ім'я власника карти</string>
     <string name="copied_expiration_year">Скопійовано рік закінчення терміну дії</string>
     <string name="copied_expiration_month">Скопійовано місяць закінчення терміну дії</string>
     <string name="copied_cvv_code">Скопійовано код безпеки</string>
@@ -453,7 +453,7 @@
     <string name="error_invalid_uri">Некоректний URI</string>
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
-    <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам\'яті. Перевірте KDF налаштування сервера.</string>
+    <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>
@@ -515,13 +515,13 @@
     <string name="emailleak_breach_section">Скомпрометовані сервіси</string>
     <string name="emailleak_breach_occurred_at">Відбулося <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Стало відомо <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з\'єднання з інтернетом</string>
+    <string name="emailleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з'єднання з інтернетом</string>
     <string name="passwordleak_title">Витік даних</string>
     <string name="passwordleak_note">Пароль, який зустрічається в витоках даних набагато легше підібрати. Такий пароль не рекомендується використовувати.</string>
     <string name="passwordleak_occurrences_found_title">Знайдено скомпрометовані паролі</string>
     <string name="passwordleak_occurrences_found_text">Пароль ідентифіковано у відомих витоках даних. Будь ласка, негайно змініть його для захисту вашої онлайн-безпеки</string>
     <string name="passwordleak_occurrences_not_found_title">Все добре</string>
-    <string name="passwordleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з\'єднання з інтернетом</string>
+    <string name="passwordleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з'єднання з інтернетом</string>
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Великий шрифт</string>
     <string name="largetype_action_show_in_large_type_title">Показати великим шрифтом</string>
@@ -585,9 +585,9 @@
     <string name="syncstatus_status_failed">Помилка синхронізації</string>
     <string name="additem_header_new_title">Новий запис</string>
     <string name="additem_header_edit_title">Редагувати запис</string>
-    <string name="additem_header_merge_title">Об\'єднати елементи</string>
+    <string name="additem_header_merge_title">Об'єднати елементи</string>
     <string name="additem_merge_remove_origin_ciphers_title">Перемісти початкові записи до кошика</string>
-    <string name="additem_merge_attachments_note">Об’єднання елементів не об\'єднує їх вкладення! Створений новий елемент не буде мати доданих вкладень.</string>
+    <string name="additem_merge_attachments_note">Об’єднання елементів не об'єднує їх вкладення! Створений новий елемент не буде мати доданих вкладень.</string>
     <string name="additem_note_placeholder">Додайте будь-які примітки про цей запис</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
     <string name="additem_markdown_note_italic">курсив</string>
@@ -602,7 +602,7 @@
     <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
     <string name="addsend_max_access_count_note">Якщо встановлено, користувачі більше не зможуть отримати доступ до цього відправлення після досягнення максимальної кількості відвідувань.</string>
     <string name="addaccount_header_title">Додати обліковий запис Bitwarden</string>
-    <string name="addaccount_disclaimer_bitwarden_label">Ми не асоційовані, авторизовані, схвалені, або будь-яким чином офіційно з\'єднані з Bitwarden Inc., або будь-якими його дочірніми компаніями або партнерами.</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Ми не асоційовані, авторизовані, схвалені, або будь-яким чином офіційно з'єднані з Bitwarden Inc., або будь-якими його дочірніми компаніями або партнерами.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
@@ -638,7 +638,7 @@
     <string name="provider_2fa_fido2_webauthn">Web-аутентифікація FIDO2</string>
     <string name="provider_2fa_email">Ел. пошта</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
-    <string name="yubikey_usb_title">Під\'єднати YubiKey через USB</string>
+    <string name="yubikey_usb_title">Під'єднати YubiKey через USB</string>
     <string name="yubikey_usb_text">Потребує підтримки USB OTG.</string>
     <string name="yubikey_usb_touch_the_gold_sensor_note">Тепер доторкніться до золотої кнопки на YubiKey.</string>
     <string name="yubikey_nfc_title">Прислоніть YubiKey до задньої частини вашого пристрою</string>
@@ -666,7 +666,7 @@
     <string name="cipher_type_passkey">Ключ доступу</string>
     <string name="field_type_text">Текст</string>
     <string name="field_type_boolean">Логічний тип</string>
-    <string name="field_type_linked">Пов\'язаний тип</string>
+    <string name="field_type_linked">Пов'язаний тип</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
         ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
@@ -748,12 +748,12 @@
     <string name="generator_generate_button">Згенерувати</string>
     <string name="generator_regenerate_button">Перегенерувати</string>
     <string name="generator_passphrase_type">Парольна фраза</string>
-    <string name="generator_passphrase_note">Випадкові парольні фрази забезпечують найкраще поєднання запам\'ятовуваності та безпеки.</string>
+    <string name="generator_passphrase_note">Випадкові парольні фрази забезпечують найкраще поєднання запам'ятовуваності та безпеки.</string>
     <string name="generator_passphrase_delimiter_title">Роздільник</string>
     <string name="generator_passphrase_capitalize_title">З великої літери</string>
     <string name="generator_passphrase_number_title">Число</string>
     <string name="generator_passphrase_wordlist_title">Список слів</string>
-    <string name="generator_username_type">Ім\'я користувача</string>
+    <string name="generator_username_type">Ім'я користувача</string>
     <string name="generator_username_delimiter_title">Роздільник</string>
     <string name="generator_username_custom_word_title">Довільне слово</string>
     <string name="generator_username_capitalize_title">З великої літери</string>
@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">Малі літери</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Виключити подібні символи</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Виключити неоднозначні символи</string>
     <string name="generator_email_catch_all_type">Адреса ел. пошти catch-all</string>
     <string name="generator_email_catch_all_note">Адреса електронної пошти catch-all надає користувачам можливість отримувати повідомлення, надіслані на їхній домен, навіть якщо вони надсилаються на адресу електронної пошти, яка не була налаштована для їх домену. Перед використанням переконайтеся, що ваш хостинг електронної пошти підтримує цю функцію.</string>
@@ -825,7 +825,7 @@
     <string name="watchtower_item_duplicate_items_title">Повторювані записи</string>
     <string name="watchtower_item_duplicate_items_text">Допомагає вам знайти та виправити записи з повторюваними даними.</string>
     <string name="watchtower_item_compromised_accounts_title">Скомпрометовані облікові записи</string>
-    <string name="watchtower_item_compromised_accounts_text">Шукати ім\'я користувача або електрону адресу в відомих витоках даних.</string>
+    <string name="watchtower_item_compromised_accounts_text">Шукати ім'я користувача або електрону адресу в відомих витоках даних.</string>
     <string name="changepassword_header_title">Змінити пароль застосунку</string>
     <string name="changepassword_change_password_button">Змінити пароль</string>
     <string name="changepassword_biometric_auth_checkbox">Біометрична автентифікація</string>
@@ -838,7 +838,7 @@
     <string name="exportaccount_no_attachments_note">Експортується тільки інформація про сховище, вкладення не будуть збережені.</string>
     <string name="exportaccount_export_button">Експортувати</string>
     <string name="exportaccount_export_success">Експорт завершено</string>
-    <string name="contactus_header_title">Зв\'язатися з нами</string>
+    <string name="contactus_header_title">Зв'язатися з нами</string>
     <string name="contactus_message_label">Ваше повідомлення</string>
     <string name="contactus_english_note">Пишіть англійською, щоб переконатися, що ваше повідомлення не буде сприйнято неправильно.</string>
     <string name="contactus_thanks_note">Ми цінуємо час, який ви витрачаєте, надсилаючи нам повідомлення. Ваше повідомлення надходить безпосередньо до нас, і ми використовуємо його для вирішення проблем та вдосконалення продукту. Хоча ми відповідаємо не на кожне повідомлення, ми переглядаємо їх та якнайшвидше працюємо над усуненням проблем, а також покращенням функціональності.</string>
@@ -923,7 +923,7 @@
     <string name="pref_item_credential_provider_title">Постачальник реквізитів для входу</string>
     <string name="pref_item_credential_provider_text">Ключі, паролі та служби даних</string>
     <string name="pref_item_privacy_policy_title">Політика конфіденційності</string>
-    <string name="pref_item_contact_us_title">Зв\'язатися з нами</string>
+    <string name="pref_item_contact_us_title">Зв'язатися з нами</string>
     <string name="pref_item_experimental_title">Експериментальні налаштування</string>
     <string name="pref_item_change_app_password_title">Змінити пароль застосунку</string>
     <string name="pref_item_require_app_password_title">Вимагати пароль застосунку</string>
@@ -947,8 +947,8 @@
     <string name="pref_item_lock_vault_after_delay_immediately_text">Негайно</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Ніколи</string>
     <string name="pref_item_persist_vault_key_title">Зберігати ключ сховища на диску</string>
-    <string name="pref_item_persist_vault_key_text_on">Ключ сховища зберігається у внутрішній пам\'яті</string>
-    <string name="pref_item_persist_vault_key_text_off">Сховище буде заблоковано після вивантаження застосунку з пам\'яті</string>
+    <string name="pref_item_persist_vault_key_text_on">Ключ сховища зберігається у внутрішній пам'яті</string>
+    <string name="pref_item_persist_vault_key_text_off">Сховище буде заблоковано після вивантаження застосунку з пам'яті</string>
     <string name="pref_item_persist_vault_key_note">Зберігання ключа сховища на диску становить загрозу безпеці. Якщо внутрішнє сховище пристрою скомпрометовано, зловмисник отримає доступ до даних локального сховища.</string>
     <string name="pref_item_permissions_title">Дозволи</string>
     <string name="pref_item_features_overview_title">Перегляд можливостей</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">Залишати екран включеним під час перегляду записів</string>
     <string name="pref_item_autofill_service_title">Автозаповнення</string>
     <string name="pref_item_autofill_service_text">Заповнювати інформацію в інших програмах за допомогою Android Autofill Framework</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Деякі пристрої Xiaomi вимагають ручного надання дозволу \"Показувати вікна під час роботи на задньому плані\". Будь ласка, відкрийте налаштування та переконайтеся, що дозвіл надано.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Деякі пристрої Xiaomi вимагають ручного надання дозволу "Показувати вікна під час роботи на задньому плані". Будь ласка, відкрийте налаштування та переконайтеся, що дозвіл надано.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автоматично копіювати одноразові паролі</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Автоматично копіювати одноразові паролі при заповненні логіну</string>
     <string name="pref_item_autofill_inline_suggestions_title">Вбудовані підказки</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Фільтр</string>
     <string name="feat_item_filter_text">Фільтрувати за текою, організацією, типом запису і т. д.</string>
     <string name="feat_item_multiple_keywords_title">Кілька ключових слів</string>
-    <string name="feat_item_multiple_keywords_text">Введіть \'bitw test\', щоб знайти запис \'Bitwarden Test Account\'.</string>
+    <string name="feat_item_multiple_keywords_text">Введіть 'bitw test', щоб знайти запис 'Bitwarden Test Account'.</string>
     <string name="feat_section_watchtower_title">Вартова вежа</string>
     <string name="feat_item_pwned_passwords_title">Викриті паролі</string>
     <string name="feat_item_pwned_passwords_text">Знайти викриті в витоках даних паролі.</string>
@@ -1038,24 +1038,24 @@
     <string name="feat_item_expiring_items_title">Закінчується термін дії</string>
     <string name="feat_item_expiring_items_text">Знайти записи з вичерпаним терміном придатності.</string>
     <string name="feat_item_duplicate_items_title">Повторювані записи</string>
-    <string name="feat_item_duplicate_items_text">Знайти й об\'єднати повторювані записи.</string>
+    <string name="feat_item_duplicate_items_text">Знайти й об'єднати повторювані записи.</string>
     <string name="feat_section_misc_title">Різне</string>
     <string name="feat_item_multi_selection_title">Множинний вибір</string>
-    <string name="feat_item_multi_selection_text">Об\'єднати записи, пришвидшити рефакторінг з груповими операціями.</string>
+    <string name="feat_item_multi_selection_text">Об'єднати записи, пришвидшити рефакторінг з груповими операціями.</string>
     <string name="feat_item_show_barcode_title">Показати як штрих-код</string>
     <string name="feat_item_show_barcode_text">Показати текст у вигляді різних штрих-кодів.</string>
     <string name="feat_item_generator_title">Генератор</string>
     <string name="feat_item_generator_text">Генеруй паролі або імена користувачів.</string>
     <string name="datasafety_header_title">Безпека даних</string>
     <string name="datasafety_local_section">Локальні дані</string>
-    <string name="datasafety_local_text">Локальні дані складаються з завантажень файлів, налаштувань користувача та сховища. Вони зберігаються у внутрішній пам\'яті пристрою, до якого має доступ лише система Android та Keyguard.</string>
+    <string name="datasafety_local_text">Локальні дані складаються з завантажень файлів, налаштувань користувача та сховища. Вони зберігаються у внутрішній пам'яті пристрою, до якого має доступ лише система Android та Keyguard.</string>
     <string name="datasafety_local_downloads_section">Завантаження</string>
     <string name="datasafety_local_settings_section">Налаштування користувача</string>
     <string name="datasafety_local_settings_note">Налаштування користувача зашифровано за допомогою ключа пристрою.</string>
     <string name="datasafety_local_vault_section">Налаштування користувача</string>
     <string name="datasafety_local_encryption_algorithm_intro">Сховище зашифровано за допомогою ключа, який було отримано з пароля застосунку таким алгоритмом:</string>
     <string name="datasafety_local_encryption_algorithm_outro">Після цього сіль та хеш записується локально на пристрій для подальшої генерації майстер ключа для розблокування сховища.</string>
-    <string name="datasafety_local_unlocking_vault">Розблокування сховища означає збереження коректного майстер-ключа в оперативній пам\'яті пристрою, що дає можливість читати та редагувати зашифроване сховище.</string>
+    <string name="datasafety_local_unlocking_vault">Розблокування сховища означає збереження коректного майстер-ключа в оперативній пам'яті пристрою, що дає можливість читати та редагувати зашифроване сховище.</string>
     <string name="datasafety_remote_section">Віддалені дані</string>
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>
 </resources>

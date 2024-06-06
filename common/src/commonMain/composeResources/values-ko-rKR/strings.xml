@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">소문자</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">비슷한 문자 제외</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">알아보기 힘든 문자 제외</string>
     <string name="generator_email_catch_all_type">Catch-all 이메일</string>
     <string name="generator_email_catch_all_note">Catch-all 이메일 주소를 사용하면 이메일 설정에 관계없이 도메인으로 오는 모든 이메일을 받을 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인해 보세요.</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">항목을 보고 있을 때 화면 켜짐 유지</string>
     <string name="pref_item_autofill_service_title">자동 완성 서비스</string>
     <string name="pref_item_autofill_service_text">Android 자동 완성 프레임워크를 사용하여 기기의 다른 앱에서 로그인 정보를 채울 수 있도록 합니다.</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">일부 샤오미 기기는 \"백그라운드에서 실행되는 동안 팝업창 표시\" 권한을 직접 허용해야 할 수 있습니다. 시스템 설정에서 권한이 허용되어 있는지 확인해 보세요.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">일부 샤오미 기기는 "백그라운드에서 실행되는 동안 팝업창 표시" 권한을 직접 허용해야 할 수 있습니다. 시스템 설정에서 권한이 허용되어 있는지 확인해 보세요.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">OTP 자동 복사</string>
     <string name="pref_item_autofill_auto_copy_otp_text">로그인 정보를 입력할 때 OTP를 자동으로 복사합니다.</string>
     <string name="pref_item_autofill_inline_suggestions_title">인라인 제안</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">필터</string>
     <string name="feat_item_filter_text">폴더, 조직, 유형 등으로 항목을 필터링합니다.</string>
     <string name="feat_item_multiple_keywords_title">다중 키워드</string>
-    <string name="feat_item_multiple_keywords_text">예를 들어 \'Bitwarden Test Account\' 항목을 검색하려면 \'bitw test\'를 입력하세요.</string>
+    <string name="feat_item_multiple_keywords_text">예를 들어 'Bitwarden Test Account' 항목을 검색하려면 'bitw test'를 입력하세요.</string>
     <string name="feat_section_watchtower_title">Watchtower</string>
     <string name="feat_item_pwned_passwords_title">유출된 비밀번호</string>
     <string name="feat_item_pwned_passwords_text">알려진 유출 데이터베이스를 통해 비밀번호가 유출된 항목을 찾습니다.</string>

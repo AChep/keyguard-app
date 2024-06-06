@@ -204,7 +204,7 @@
     <string name="none">Geen</string>
     <string name="text">Tekst</string>
     <string name="linked_apps">Gekoppelde apps</string>
-    <string name="linked_uris">Gekoppelde URI\'s</string>
+    <string name="linked_uris">Gekoppelde URI's</string>
     <string name="custom_fields">Extra velden</string>
     <string name="reveal_secure_note">Een beveiligde notitie onthullen</string>
     <string name="hide_secure_note">Verberg een beveiligde notitie</string>
@@ -558,7 +558,7 @@
     <string name="urloverride_header_title">URL overrides</string>
     <string name="urloverride_list_header_title">URL overrides</string>
     <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">De override wordt toegepast op URL\'s die overeenkomen met de reguliere expressie.</string>
+    <string name="urloverride_regex_note">De override wordt toegepast op URL's die overeenkomen met de reguliere expressie.</string>
     <string name="urloverride_delete_one_confirmation_title">Verwijder URL override?</string>
     <string name="urloverride_delete_many_confirmation_title">Verwijder URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">Kleine letters</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Gelijksoortige symbolen uitsluiten</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Dubbele symbolen uitsluiten</string>
     <string name="generator_email_catch_all_type">Catch-all e-mail</string>
     <string name="generator_email_catch_all_note">Een catch-all e-mailadres biedt gebruikers de mogelijkheid om alle e-mails te ontvangen die naar hun domein zijn verzonden. Zelfs als ze worden verzonden naar een e-mailadres dat niet is ingesteld voor hun domein. Zorg ervoor dat de e-mail hosting deze functie ondersteunt voordat je deze gebruikt.</string>
@@ -807,7 +807,7 @@
     <string name="watchtower_item_vulnerable_accounts_title">Kwetsbare Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Websites die getroffen zijn door datalekken sinds je voor het laatst je wachtwoord hebt gewijzigd. Wijzig je wachtwoord om je account veilig te houden.</string>
     <string name="watchtower_item_unsecure_websites_title">Onveilige websites</string>
-    <string name="watchtower_item_unsecure_websites_text">Wijzig de URL\'s die het HTTP-protocol gebruiken om het HTTPS-protocol te gebruiken, dit zorgt ervoor dat de meest geavanceerde beschikbare versleuteling wordt gebruikt.</string>
+    <string name="watchtower_item_unsecure_websites_text">Wijzig de URL's die het HTTP-protocol gebruiken om het HTTPS-protocol te gebruiken, dit zorgt ervoor dat de meest geavanceerde beschikbare versleuteling wordt gebruikt.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactieve tweestapsverificatie</string>
     <string name="watchtower_item_inactive_2fa_text">Websites met tweestapsverificatie beschikbaar, maar u hebt deze nog niet ingesteld.</string>
     <string name="watchtower_item_inactive_passkey_title">Beschikbare Toegangssleutels</string>
@@ -817,7 +817,7 @@
     <string name="watchtower_item_expiring_items_title">Verlopende items</string>
     <string name="watchtower_item_expiring_items_text">Items die verlopen zijn of binnenkort verlopen.</string>
     <string name="watchtower_item_duplicate_websites_title">Dubbele URIs</string>
-    <string name="watchtower_item_duplicate_websites_text">Items met een of meer URI\'s die dezelfde websites bevatten na het toepassen van de overeenkomst detectie.</string>
+    <string name="watchtower_item_duplicate_websites_text">Items met een of meer URI's die dezelfde websites bevatten na het toepassen van de overeenkomst detectie.</string>
     <string name="watchtower_item_trashed_items_title">Weggegooide items</string>
     <string name="watchtower_item_trashed_items_text">Voorwerpen die naar de prullenbak zijn verplaatst. Te veel voorwerpen in de prullenbak kunnen de reactietijd van je kluis verlagen.</string>
     <string name="watchtower_item_empty_folders_title">Lege mappen</string>
@@ -963,14 +963,14 @@
     <string name="pref_item_keep_screen_on_title">Houd het scherm aan tijdens het bekijken van items</string>
     <string name="pref_item_autofill_service_title">Autofill service</string>
     <string name="pref_item_autofill_service_text">Gebruik het Android Autofill Framework voor het automatisch invullen van inloggegevens in andere apps op het apparaat</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Voor sommige Xiaomi apparaten moet je handmatig de toestemming \"Toon pop-upvensters weergeven wanneer ze in de achtergrond draaien\" toestaan. Open de instellingen en controleer of deze verleend zijn.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Voor sommige Xiaomi apparaten moet je handmatig de toestemming "Toon pop-upvensters weergeven wanneer ze in de achtergrond draaien" toestaan. Open de instellingen en controleer of deze verleend zijn.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Automatisch verificatie codes kopiëren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Bij het invullen van inloggegevens worden eenmalige verificatie codes automatisch gekopieerd</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggesties</string>
     <string name="pref_item_autofill_inline_suggestions_text">Voeg automatische invulsuggesties toe in compatibele toetsenborden</string>
     <string name="pref_item_autofill_manual_selection_title">Handmatige selectie</string>
     <string name="pref_item_autofill_manual_selection_text">Toont een optie om handmatig een item te zoeken in de kluis</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_title">Respecteer de \'Autofill disabled\' flag</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Respecteer de 'Autofill disabled' flag</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Schakelt automatisch invullen uit voor een browserveld dat automatisch invullen uitgeschakeld heeft</string>
     <string name="pref_item_autofill_respect_autofill_disabled_note">Houd er rekening mee dat sommige websites automatisch invullen uitschakelen voor een wachtwoordveld en dat ook sommige browsers deze optie negeren</string>
     <string name="pref_item_autofill_save_request_title">Vraag om gegevens op te slaan</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Filter</string>
     <string name="feat_item_filter_text">Filter op map, organisatie, type etc.</string>
     <string name="feat_item_multiple_keywords_title">Meerdere trefwoorden</string>
-    <string name="feat_item_multiple_keywords_text">Zoek op \'bitw test\' om je \'Bitwarden Test Account\' item te vinden.</string>
+    <string name="feat_item_multiple_keywords_text">Zoek op 'bitw test' om je 'Bitwarden Test Account' item te vinden.</string>
     <string name="feat_section_watchtower_title">Watchtower</string>
     <string name="feat_item_pwned_passwords_title">Gelekte wachtwoorden</string>
     <string name="feat_item_pwned_passwords_text">Zoek gelekte wachtwoorden in bekende datalekken.</string>

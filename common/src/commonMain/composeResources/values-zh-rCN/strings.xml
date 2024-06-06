@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">小写字母</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">排除易混淆的符号</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">排除不明确的符号</string>
     <string name="generator_email_catch_all_type">Catch-all 电子邮件</string>
     <string name="generator_email_catch_all_note">Catch-all 电子邮件地址可让用户选择接收发送到其域名的所有邮件，即使这些邮件是发送到未为其域名设置的电子邮件地址。使用前请确保您的电子邮件主机支持此功能。</string>

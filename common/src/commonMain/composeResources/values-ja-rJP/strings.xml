@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">小文字</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">類似した文字を除外</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">あいまいな文字を除外</string>
     <string name="generator_email_catch_all_type">Catch-All メールアドレス</string>
     <string name="generator_email_catch_all_note">キャッチオールメールアドレスは、ドメインに送信されたすべてのメールを受信できるメールアドレスです。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">アイテムの表示中は画面をオンのままにする</string>
     <string name="pref_item_autofill_service_title">自動入力サービス</string>
     <string name="pref_item_autofill_service_text">Android 自動入力フレームワークを使用して、デバイス上の他のアプリにログイン情報を入力します。</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">ワンタイムパスワードの自動コピー</string>
     <string name="pref_item_autofill_auto_copy_otp_text">ログイン情報を入力するときに、ワンタイムパスワードを自動的にコピーします。</string>
     <string name="pref_item_autofill_inline_suggestions_title">インライン自動入力の候補</string>

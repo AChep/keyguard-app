@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">Letras minúsculas</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Excluir símbolos similares</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Excluir símbolos ambiguos</string>
     <string name="generator_email_catch_all_type">Correo catch-all</string>
     <string name="generator_email_catch_all_note">Una dirección de correo catch-all proporciona a los usuarios la opción de recibir todo el correo enviado a su dominio, incluso si se envían a una dirección de correo electrónico que no ha sido configurada para su dominio. Asegúrate de que tu alojamiento de correo electrónico soporta esta característica antes de usarla.</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">Mantener la pantalla encendida mientras se visualizan los elementos</string>
     <string name="pref_item_autofill_service_title">Servicio de Autocompletar</string>
     <string name="pref_item_autofill_service_text">Utiliza el Framework de Autorrellenado de Android para ayudar a rellenar información de inicio de sesión en otras aplicaciones del dispositivo</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copiar contraseñas de un solo uso</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Cuando se rellena información del inicio de sesión, se copia automáticamente las contraseñas de un solo uso</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugerencias automáticas</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Filtrar</string>
     <string name="feat_item_filter_text">Filtrar por carpeta, organización, tipo etc.</string>
     <string name="feat_item_multiple_keywords_title">Múltiples palabras clave</string>
-    <string name="feat_item_multiple_keywords_text">Busca por \"bitw test\" para encontrar el elemento de \"Cuenta de Prueba de Bitwarden\".</string>
+    <string name="feat_item_multiple_keywords_text">Busca por "bitw test" para encontrar el elemento de "Cuenta de Prueba de Bitwarden".</string>
     <string name="feat_section_watchtower_title">Vigilancia</string>
     <string name="feat_item_pwned_passwords_title">Contraseñas filtradas</string>
     <string name="feat_item_pwned_passwords_text">Encuentre elementos de contraseñas expuestas en las filtraciones de datos.</string>

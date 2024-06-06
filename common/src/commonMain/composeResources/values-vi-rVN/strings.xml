@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">Chữ in thường</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Loại trừ các ký hiệu tương tự</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Loại trừ các ký hiệu mơ hồ</string>
     <string name="generator_email_catch_all_type">Email nhận-hết</string>
     <string name="generator_email_catch_all_note">Một địa chỉ email nhận-hết cung cấp cho người dùng tùy chọn nhận tất cả thư được gửi đến tên miền của họ, ngay cả khi chúng được gửi đến địa chỉ email chưa được thiết lập cho tên miền của họ. Đảm bảo rằng dịch vụ lưu trữ email của bạn hỗ trợ tính năng này trước khi sử dụng.</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">Giữ màn hình bật trong khi xem các mục</string>
     <string name="pref_item_autofill_service_title">Dịch vụ tự động điền</string>
     <string name="pref_item_autofill_service_text">Sử dụng Khung tự động điền Android để hỗ trợ điền thông tin đăng nhập vào các ứng dụng khác trên thiết bị</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Một số thiết bị Xiaomi yêu cầu bạn phải cấp quyền \"Hiển thị cửa sổ bật lên khi chạy ở chế độ nền\" theo cách thủ công. Vui lòng mở cài đặt và xác minh rằng nó đã được cấp.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Một số thiết bị Xiaomi yêu cầu bạn phải cấp quyền "Hiển thị cửa sổ bật lên khi chạy ở chế độ nền" theo cách thủ công. Vui lòng mở cài đặt và xác minh rằng nó đã được cấp.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tự động sao chép mật khẩu một lần</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Khi điền thông tin đăng nhập, tự động sao chép mật khẩu một lần</string>
     <string name="pref_item_autofill_inline_suggestions_title">Đề xuất nội tuyến</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Bộ lọc</string>
     <string name="feat_item_filter_text">Lọc theo thư mục, tổ chức, loại, v. v.</string>
     <string name="feat_item_multiple_keywords_title">Nhiều từ khóa</string>
-    <string name="feat_item_multiple_keywords_text">Tìm kiếm theo \'bitw test\' để tìm mục \'Tài khoản thử nghiệm Bitwarden\' của bạn.</string>
+    <string name="feat_item_multiple_keywords_text">Tìm kiếm theo 'bitw test' để tìm mục 'Tài khoản thử nghiệm Bitwarden' của bạn.</string>
     <string name="feat_section_watchtower_title">Tháp canh</string>
     <string name="feat_item_pwned_passwords_title">Những mật khẩu bị xâm phạm</string>
     <string name="feat_item_pwned_passwords_text">Tìm các mục bị lộ trong dữ liệu vi phạm mật khẩu.</string>

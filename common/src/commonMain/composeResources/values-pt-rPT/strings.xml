@@ -767,7 +767,7 @@
     <string name="generator_password_lowercase_letters_title">Letras minúsculas</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Excluir símbolos semelhantes</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Excluir símbolos ambíguos</string>
     <string name="generator_email_catch_all_type">E-mail catch-all</string>
     <string name="generator_email_catch_all_note">Um endereço de e-mail catch-all oferece aos utilizadores a opção de receber todos os e-mails enviados para o seu domínio, mesmo se eles forem enviados para um endereço de e-mail que não tenha sido configurado para o seu domínio. Certifique-se de que o provedor de e-mail suporta este recurso antes de usá-lo.</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">Manter o ecrã ligado durante a visualização</string>
     <string name="pref_item_autofill_service_title">Preenchimento automático</string>
     <string name="pref_item_autofill_service_text">Usar a estrutura de preenchimento automático do Android para ajudar a preencher informações de login em outros aplicativos do dispositivo</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Alguns dispositivos Xiaomi requerem que permita manualmente a permissão \"Mostrar janelas pop-up enquanto estiver executando em segundo plano\". Abra as configurações e verifique se está concedida.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Alguns dispositivos Xiaomi requerem que permita manualmente a permissão "Mostrar janelas pop-up enquanto estiver executando em segundo plano". Abra as configurações e verifique se está concedida.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copiar automaticamente códigos de verificação 2FA</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Ao preencher informações de login, copiar automaticamente códigos de uso único 2FA</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugestões automáticas</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Filtro</string>
     <string name="feat_item_filter_text">Filtrar por pasta, organização, tipo etc.</string>
     <string name="feat_item_multiple_keywords_title">Múltiplas palavras</string>
-    <string name="feat_item_multiple_keywords_text">Pesquisar por \'bitw teste\' para encontrar a entrada \'Conta de teste Bitwarden.</string>
+    <string name="feat_item_multiple_keywords_text">Pesquisar por 'bitw teste' para encontrar a entrada 'Conta de teste Bitwarden.</string>
     <string name="feat_section_watchtower_title">Guardião</string>
     <string name="feat_item_pwned_passwords_title">Palavras-passe comprometidas</string>
     <string name="feat_item_pwned_passwords_text">Encontrar palavras-passe comprometidas em violações de dados.</string>

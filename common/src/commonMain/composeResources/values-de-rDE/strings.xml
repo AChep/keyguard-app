@@ -767,10 +767,10 @@
     <string name="generator_password_lowercase_letters_title">Kleinbuchstaben</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Ähnliche Symbole ausschließen</string>
-    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Mehrdeutige Symbole ausschließen</string>
     <string name="generator_email_catch_all_type">Catch-All E-Mail Adresse</string>
-    <string name="generator_email_catch_all_note">Eine \"Catch-All-E-Mail-Adresse\" bietet Benutzern die Möglichkeit, alle E-Mails an ihre Domain zu erhalten, auch wenn sie an eine E-Mail-Adresse gesendet werden, die nicht für ihre Domain eingerichtet wurde. Stellen Sie sicher, dass Ihr E-Mail-Hosting diese Funktion unterstützt, bevor Sie sie verwenden.</string>
+    <string name="generator_email_catch_all_note">Eine "Catch-All-E-Mail-Adresse" bietet Benutzern die Möglichkeit, alle E-Mails an ihre Domain zu erhalten, auch wenn sie an eine E-Mail-Adresse gesendet werden, die nicht für ihre Domain eingerichtet wurde. Stellen Sie sicher, dass Ihr E-Mail-Hosting diese Funktion unterstützt, bevor Sie sie verwenden.</string>
     <!-- Referring to a website domain -->
     <string name="generator_email_catch_all_domain_title">Domäne</string>
     <string name="generator_email_plus_addressing_type">Plus-adressierte E-Mail-Adresse</string>
@@ -963,7 +963,7 @@
     <string name="pref_item_keep_screen_on_title">Bildschirm während der Anzeige von Elementen nicht ausschalten</string>
     <string name="pref_item_autofill_service_title">Autofill Dienst</string>
     <string name="pref_item_autofill_service_text">Android Autofill Framework verwenden, um Login-Informationen in anderen Apps des Geräts zu füllen</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Einige Xiaomi Geräte verlangen, dass Sie manuell die Berechtigung \"Popup-Fenster während Sie im Hintergrund laufen\" erlauben. Bitte öffnen Sie die Einstellungen und stellen Sie sicher, dass sie gewährt werden.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Einige Xiaomi Geräte verlangen, dass Sie manuell die Berechtigung "Popup-Fenster während Sie im Hintergrund laufen" erlauben. Bitte öffnen Sie die Einstellungen und stellen Sie sicher, dass sie gewährt werden.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Einmalpasswörter automatisch kopieren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Beim Ausfüllen von Login-Informationen, automatisch Einmalpasswörter kopieren</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline-Vorschläge</string>
@@ -1021,7 +1021,7 @@
     <string name="feat_item_filter_title">Filter</string>
     <string name="feat_item_filter_text">Nach Ordner, Organisation, Typ usw. filtern.</string>
     <string name="feat_item_multiple_keywords_title">Mehrere Schlüsselwörter</string>
-    <string name="feat_item_multiple_keywords_text">Suchen Sie nach \'bitw test\', um Ihr \'Bitwarden Test Account\' Element zu finden.</string>
+    <string name="feat_item_multiple_keywords_text">Suchen Sie nach 'bitw test', um Ihr 'Bitwarden Test Account' Element zu finden.</string>
     <string name="feat_section_watchtower_title">Wachturm</string>
     <string name="feat_item_pwned_passwords_title">Aufgedeckte Passwörter</string>
     <string name="feat_item_pwned_passwords_text">Finde Elemente mit in Datenlecks veröffentlichten Passwörtern.</string>

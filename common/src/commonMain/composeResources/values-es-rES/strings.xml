@@ -18,6 +18,7 @@
     <string name="app_password">Contraseña de aplicación</string>
     <string name="current_password">Contraseña actual</string>
     <string name="new_password">Nueva contraseña</string>
+    <string name="no_password">No password</string>
     <string name="email">Correo electrónico</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">No verificado</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">¡Todos los cambios no sincronizados se perderán!</string>
     <string name="folder_action_change_name_title">Cambiar nombre</string>
     <string name="folder_action_change_names_title">Cambiar nombres</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">¿Eliminar carpeta?</string>
     <string name="folder_delete_many_confirmation_title">¿Eliminar carpetas?</string>
     <string name="folder_delete_confirmation_text">Este elemento(s) se eliminará inmediatamente. No puede deshacer esta acción.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Enviar con…</string>
     <string name="file_action_open_in_file_manager_title">Abrir en un explorador de archivos</string>
     <string name="file_action_delete_local_title">Eliminar archivo local</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Ver elemento emparentado</string>
     <string name="vault_action_always_show_keyboard_title">Mostrar siempre el teclado</string>
     <string name="vault_action_sync_vault_title">Sincronizar bóveda</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Fecha de modificación</string>
     <string name="sortby_modification_date_normal_mode">Más nuevo primero</string>
     <string name="sortby_modification_date_reverse_mode">Más antiguo primero</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Fecha de caducidad</string>
     <string name="sortby_expiration_date_normal_mode">Más nuevo primero</string>
     <string name="sortby_expiration_date_reverse_mode">Más antiguo primero</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Seguridad de la contraseña</string>
     <string name="watchtower_section_security_label">Seguridad</string>
     <string name="watchtower_section_maintenance_label">Mantenimiento</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">Contraseñas filtradas</string>
     <string name="watchtower_item_pwned_passwords_text">Las contraseñas que han sido vulneradas en las filtraciones de datos. Deben ser modificadas inmediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Contraseñas reutilizadas</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Te ayuda a identificar y eliminar objetos duplicados en tu caja fuerte.</string>
     <string name="watchtower_item_compromised_accounts_title">Cuentas Comprometidas</string>
     <string name="watchtower_item_compromised_accounts_text">Compruebe las filtraciones de datos por un nombre de usuario o dirección de correo electrónico.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">Cambiar contraseña de la app</string>
     <string name="changepassword_change_password_button">Cambiar contraseña</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticación biométrica</string>

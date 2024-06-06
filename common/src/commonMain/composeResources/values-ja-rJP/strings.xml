@@ -18,6 +18,7 @@
     <string name="app_password">アプリのパスワード</string>
     <string name="current_password">現在のパスワード</string>
     <string name="new_password">新しいパスワード</string>
+    <string name="no_password">No password</string>
     <string name="email">メールアドレス</string>
     <string name="email_verified">確認済み</string>
     <string name="email_not_verified">未確認</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">同期されていない変更はすべて失われます！</string>
     <string name="folder_action_change_name_title">名前の変更</string>
     <string name="folder_action_change_names_title">名前の変更</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">フォルダーを削除しますか？</string>
     <string name="folder_delete_many_confirmation_title">フォルダーを削除しますか？</string>
     <string name="folder_delete_confirmation_text">このアイテムはすぐに削除されます。この操作は元に戻せません。</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">送信…</string>
     <string name="file_action_open_in_file_manager_title">ファイルマネージャーで開く</string>
     <string name="file_action_delete_local_title">Delete local file</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">View parent item</string>
     <string name="vault_action_always_show_keyboard_title">常にキーボードを表示</string>
     <string name="vault_action_sync_vault_title">保管庫を同期</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">更新日</string>
     <string name="sortby_modification_date_normal_mode">新しい順</string>
     <string name="sortby_modification_date_reverse_mode">古い順</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">有効期限</string>
     <string name="sortby_expiration_date_normal_mode">新しい順</string>
     <string name="sortby_expiration_date_reverse_mode">古い順</string>
@@ -767,7 +773,7 @@
     <string name="generator_password_lowercase_letters_title">小文字</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">類似した文字を除外</string>
-    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">あいまいな文字を除外</string>
     <string name="generator_email_catch_all_type">Catch-All メールアドレス</string>
     <string name="generator_email_catch_all_note">キャッチオールメールアドレスは、ドメインに送信されたすべてのメールを受信できるメールアドレスです。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">パスワード強度</string>
     <string name="watchtower_section_security_label">セキュリティ</string>
     <string name="watchtower_section_maintenance_label">メンテナンス</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">漏洩したパスワード</string>
     <string name="watchtower_item_pwned_passwords_text">データ漏洩で公開されたパスワード。このようなパスワードはすぐに変更すべきです。</string>
     <string name="watchtower_item_reused_passwords_title">再利用パスワード</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">保管庫内の重複するアイテムを特定して削除するのに役立ちます。</string>
     <string name="watchtower_item_compromised_accounts_title">漏洩したアカウント</string>
     <string name="watchtower_item_compromised_accounts_text">ユーザー名またはメールアドレスでデータ漏洩をチェックします。</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">アプリパスワードの変更</string>
     <string name="changepassword_change_password_button">パスワードの変更</string>
     <string name="changepassword_biometric_auth_checkbox">生体認証</string>
@@ -963,7 +973,7 @@
     <string name="pref_item_keep_screen_on_title">アイテムの表示中は画面をオンのままにする</string>
     <string name="pref_item_autofill_service_title">自動入力サービス</string>
     <string name="pref_item_autofill_service_text">Android 自動入力フレームワークを使用して、デバイス上の他のアプリにログイン情報を入力します。</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">ワンタイムパスワードの自動コピー</string>
     <string name="pref_item_autofill_auto_copy_otp_text">ログイン情報を入力するときに、ワンタイムパスワードを自動的にコピーします。</string>
     <string name="pref_item_autofill_inline_suggestions_title">インライン自動入力の候補</string>

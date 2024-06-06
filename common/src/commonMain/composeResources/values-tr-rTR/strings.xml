@@ -6,7 +6,7 @@
     <string name="yes">Evet</string>
     <string name="no">Hayır</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Keyguard'ı Göster</string>
+    <string name="show_keyguard">Keyguard\'ı Göster</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Ad</string>
     <string name="account_name">Hesap adı</string>
@@ -18,6 +18,7 @@
     <string name="app_password">Uygulama şifresi</string>
     <string name="current_password">Mevcut şifre</string>
     <string name="new_password">Yeni şifre</string>
+    <string name="no_password">Şifre yok</string>
     <string name="email">E-posta</string>
     <string name="email_verified">Doğrulandı</string>
     <string name="email_not_verified">Doğrulanmadı</string>
@@ -68,7 +69,7 @@
     <string name="save">Kaydet</string>
     <string name="save_to">Şuraya kaydet</string>
     <string name="uri">URI</string>
-    <string name="uris">URI'ler</string>
+    <string name="uris">URI\'ler</string>
     <string name="note">Not</string>
     <string name="notes">Notlar</string>
     <string name="date">Tarih</string>
@@ -137,7 +138,7 @@
     <string name="autofill_and_save_uri">Uygulama veya web sitesi bilgilerini otomatik olarak doldurun ve kaydedin</string>
     <string name="passkey">Geçiş anahtarı</string>
     <string name="passkey_create_header">Bir geçiş anahtarı oluşturun</string>
-    <string name="passkey_unlock_header">Keyguard'ın kilidini aç</string>
+    <string name="passkey_unlock_header">Keyguard\'ın kilidini aç</string>
     <string name="passkey_auth_via_header">Yetkilendirme isteği onaylanıyor…</string>
     <string name="passkeys">Geçiş Anahtarları</string>
     <!--
@@ -204,7 +205,7 @@
     <string name="none">Yok</string>
     <string name="text">Metin</string>
     <string name="linked_apps">Bağlantılı uygulamalar</string>
-    <string name="linked_uris">Bağlantılı URI'ler</string>
+    <string name="linked_uris">Bağlantılı URI\'ler</string>
     <string name="custom_fields">Özel alanlar</string>
     <string name="reveal_secure_note">Güvenli bir not göster</string>
     <string name="hide_secure_note">Güvenli bir not gizle</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">Senkronize edilmeyen tüm değişiklikler kaybolacak!</string>
     <string name="folder_action_change_name_title">Adı değiştir</string>
     <string name="folder_action_change_names_title">İsimleri değiştir</string>
+    <string name="folder_action_merge_title">Şurada birleştir…</string>
     <string name="folder_delete_one_confirmation_title">Klasör silinsin mi?</string>
     <string name="folder_delete_many_confirmation_title">Klasörler silinsin mi?</string>
     <string name="folder_delete_confirmation_text">Bu öğe(ler) hemen silinecek. Bu işlemi geri alamazsınız.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Şununla gönder...</string>
     <string name="file_action_open_in_file_manager_title">Dosya yöneticisinde aç</string>
     <string name="file_action_delete_local_title">Yerel dosyayı sil</string>
+    <string name="file_action_delete_local_many_title">Yerel dosyaları sil</string>
     <string name="file_action_view_cipher_title">Üst öğeyi görüntüle</string>
     <string name="vault_action_always_show_keyboard_title">Her zaman klavyeyi göster</string>
     <string name="vault_action_sync_vault_title">Kasayı senkronize et</string>
@@ -310,12 +313,12 @@
     <string name="uri_action_launch_docs_title">Belgeleri başlat</string>
     <string name="uri_action_launch_browser_title">Tarayıcıyı başlat</string>
     <string name="uri_action_launch_browser_main_page_title">Ana sayfayı başlat</string>
-    <string name="uri_action_launch_play_store_title">Play Store'u başlat</string>
+    <string name="uri_action_launch_play_store_title">Play Store\'u başlat</string>
     <string name="uri_action_launch_in_app_title">Şununla başlat: <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Şununla başlat...</string>
     <string name="uri_action_how_to_delete_account_title">Hesap nasıl silinir?</string>
     <string name="uri_action_get_my_data_account_title">Verilerimi nasıl alabilirim?</string>
-    <string name="uri_action_autofix_unsecure_title">Güvenli olmayan URL'yi otomatik düzelt</string>
+    <string name="uri_action_autofix_unsecure_title">Güvenli olmayan URL\'yi otomatik düzelt</string>
     <string name="uri_action_autofix_unsecure_text">Varsa, varyantı güvence altına almak için protokolü değiştirir</string>
     <string name="uri_unsecure">Güvensiz</string>
     <string name="uri_match_app_title">Eşleştirme uygulaması</string>
@@ -331,7 +334,7 @@
     <string name="uri_match_detection_regex_title">Normal ifade</string>
     <string name="uri_match_detection_regex_note">Kaynakları düzenli ifadeye göre eşleştir. Gelişmiş seçenek.</string>
     <string name="uri_match_detection_never_title">Asla</string>
-    <string name="uri_match_detection_never_note">Otomatik doldurma öğesi araması sırasında URI'yi yoksay.</string>
+    <string name="uri_match_detection_never_note">Otomatik doldurma öğesi araması sırasında URI\'yi yoksay.</string>
     <string name="field_linked_to_password">    <xliff:g id="name" example="passwordField">%1$s</xliff:g> parolaya bağlı</string>
     <string name="field_linked_to_username">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> kullanıcı adına bağlı</string>
     <string name="field_linked_to_card_cardholdername">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> kart sahibinin adına bağlı</string>
@@ -352,7 +355,7 @@
     <string name="field_linked_to_identity_company">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> şirkete bağlı</string>
     <string name="field_linked_to_identity_email">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> e-postaya bağlı</string>
     <string name="field_linked_to_identity_phone">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> telefon numarasına bağlı</string>
-    <string name="field_linked_to_identity_ssn">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> sSN'ye bağlı</string>
+    <string name="field_linked_to_identity_ssn">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> sSN\'ye bağlı</string>
     <string name="field_linked_to_identity_username">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> kullanıcı adına bağlı</string>
     <string name="field_linked_to_identity_passportnumber">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> pasaport numarasına bağlı</string>
     <string name="field_linked_to_identity_licensenumber">    <xliff:g id="name" example="usernameField">%1$s</xliff:g> ruhsat numarasına bağlı</string>
@@ -365,8 +368,8 @@
     <string name="selection_n_selected">    <xliff:g id="size" example="15">%1$d</xliff:g> seçildi</string>
     <string name="copy">Kopyala</string>
     <string name="copy_value">Değeri kopyala</string>
-    <string name="copy_url">URL'yi kopyala</string>
-    <string name="copy_uri">URI'yi kopyala</string>
+    <string name="copy_url">URL\'yi kopyala</string>
+    <string name="copy_uri">URI\'yi kopyala</string>
     <string name="copy_send">Gönderimi kopyala</string>
     <string name="copy_package_name">Paket adını kopyala</string>
     <string name="copy_password">Şifreyi kopyala</string>
@@ -399,8 +402,8 @@
     <string name="copied_cvv_code">Bir güvenlik kodu kopyalandı</string>
     <string name="copied_otp_code">Tek kullanımlık şifre kopyalandı</string>
     <string name="copied_otp_secret_code">Gizli anahtar kopyalandı</string>
-    <string name="autofill_unlock_keyguard">Keyguard'ın kilidini aç</string>
-    <string name="autofill_open_keyguard">Keyguard'ı aç</string>
+    <string name="autofill_unlock_keyguard">Keyguard\'ın kilidini aç</string>
+    <string name="autofill_open_keyguard">Keyguard\'ı aç</string>
     <string name="january">Ocak</string>
     <string name="february">Şubat</string>
     <string name="march">Mart</string>
@@ -425,7 +428,7 @@
     <string name="list_remove_confirmation_title">Ürün kaldırılsın mı?</string>
     <string name="list_add">Daha fazla ekle</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">WebAuthn'u Doğrula</string>
+    <string name="fido2webauthn_action_go_title">WebAuthn\'u Doğrula</string>
     <string name="fido2webauthn_action_return_title">Uygulamaya geri dön</string>
     <string name="expiry_tips_item_line1">Bu öğenin süresi şu tarihte dolacak: <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
     <string name="expiry_tips_card_line1">Bu kartın süresi şu tarihte dolacak: <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Sorunsuz bir geçiş sağlamak için yapabileceğiniz birkaç şey var:</string>
@@ -543,8 +546,8 @@
     <string name="emailrelay_delete_many_confirmation_title">E-posta ileticileri silinsin mi?</string>
     <string name="emailrelay_integration_title">E-posta iletici entegrasyonu</string>
     <string name="emailrelay_empty_label">E-posta ileticisi yok</string>
-    <string name="emailrelay_base_env_server_url_label">Sunucu URL'si</string>
-    <string name="emailrelay_base_env_note">Kullanıcı tarafından barındırılan kurulumunuzun temel URL'sini belirtin.</string>
+    <string name="emailrelay_base_env_server_url_label">Sunucu URL\'si</string>
+    <string name="emailrelay_base_env_note">Kullanıcı tarafından barındırılan kurulumunuzun temel URL\'sini belirtin.</string>
     <string name="wordlist_list_header_title">Kelime listeleri</string>
     <string name="wordlist_list_section_title">Kelime listeleri</string>
     <string name="wordlist_delete_one_confirmation_title">Kelime listesi silinsin mi?</string>
@@ -552,13 +555,13 @@
     <string name="wordlist_edit_wordlist_title">Kelime listesini düzenle</string>
     <string name="wordlist_add_wordlist_title">Kelime listesi ekle</string>
     <string name="wordlist_add_wordlist_via_file_title">Dosyadan yükle</string>
-    <string name="wordlist_add_wordlist_via_url_title">Bir URL'den yükle</string>
+    <string name="wordlist_add_wordlist_via_url_title">Bir URL\'den yükle</string>
     <string name="wordlist_empty_label">Kelime listesi yok</string>
     <string name="wordlist_word_search_placeholder">Kelime ara</string>
     <string name="urloverride_header_title">URL geçersiz kılma</string>
     <string name="urloverride_list_header_title">URL geçersiz kılmaları</string>
     <string name="urloverride_list_section_title">URL geçersiz kılmaları</string>
-    <string name="urloverride_regex_note">Geçersiz kılma, normal ifadeyle eşleşen URL'lere uygulanacaktır.</string>
+    <string name="urloverride_regex_note">Geçersiz kılma, normal ifadeyle eşleşen URL\'lere uygulanacaktır.</string>
     <string name="urloverride_delete_one_confirmation_title">URL geçersiz kılma silinsin mi?</string>
     <string name="urloverride_delete_many_confirmation_title">URL geçersiz kılmaları silinsin mi?</string>
     <string name="urloverride_empty_label">URL geçersiz kılma yok</string>
@@ -606,7 +609,7 @@
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">Resmi olmayan bir Bitwarden istemcisinde captcha doğrulamasını geçmek için istemci sırrını belirtmelisiniz. Bulmak için Web kasası / Ayarlar / API Anahtarı 'nı ziyaret edin.</string>
+    <string name="addaccount_captcha_need_client_secret_note">Resmi olmayan bir Bitwarden istemcisinde captcha doğrulamasını geçmek için istemci sırrını belirtmelisiniz. Bulmak için Web kasası / Ayarlar / API Anahtarı \'nı ziyaret edin.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Müşteri sırrı</string>
     <string name="addaccount_sign_in_button">Oturum aç</string>
@@ -620,28 +623,28 @@
     <string name="addaccount_http_header_key_label">Anahtar</string>
     <string name="addaccount_http_header_value_label">Değer</string>
     <string name="addaccount_http_header_add_more_button">Daha fazla ekle</string>
-    <string name="addaccount_base_env_server_url_label">Sunucu URL'si</string>
-    <string name="addaccount_base_env_note">Kullanıcı tarafından barındırılan Bitwarden kurulumunuzun temel URL'sini belirtin.</string>
+    <string name="addaccount_base_env_server_url_label">Sunucu URL\'si</string>
+    <string name="addaccount_base_env_note">Kullanıcı tarafından barındırılan Bitwarden kurulumunuzun temel URL\'sini belirtin.</string>
     <string name="addaccount_custom_env_section">Özel ortam</string>
-    <string name="addaccount_custom_env_note">Her hizmetin temel URL'sini bağımsız olarak belirtebilirsiniz.</string>
-    <string name="addaccount_custom_env_web_vault_url_label">Web Kasası Sunucu URL'si</string>
-    <string name="addaccount_custom_env_api_url_label">API Sunucusu URL'si</string>
-    <string name="addaccount_custom_env_icons_url_label">Simgeler Sunucu URL'si</string>
-    <string name="addaccount_custom_env_identity_url_label">Kimlik Sunucusu URL'si</string>
+    <string name="addaccount_custom_env_note">Her hizmetin temel URL\'sini bağımsız olarak belirtebilirsiniz.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Web Kasası Sunucu URL\'si</string>
+    <string name="addaccount_custom_env_api_url_label">API Sunucusu URL\'si</string>
+    <string name="addaccount_custom_env_icons_url_label">Simgeler Sunucu URL\'si</string>
+    <string name="addaccount_custom_env_identity_url_label">Kimlik Sunucusu URL\'si</string>
     <string name="addaccount2fa_header_title">Doğrulama</string>
     <string name="addaccount2fa_unsupported_note">Bu kimlik doğrulama yöntemi henüz desteklenmiyor.</string>
     <string name="addaccount2fa_otp_note">Kimlik doğrulama uygulamanızdan doğrulama kodunu girin.</string>
     <string name="addaccount2fa_email_note">E-posta ile gönderilen doğrulama kodunu girin <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
-    <string name="addaccount2fa_yubikey_manual_text">YubiKey kimlik doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana getirin ve YubiKey'i tetikleyin.</string>
+    <string name="addaccount2fa_yubikey_manual_text">YubiKey kimlik doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana getirin ve YubiKey\'i tetikleyin.</string>
     <string name="provider_2fa_authenticator">Kimlik Doğrulayıcı</string>
     <string name="provider_2fa_duo_organization">Duo (Organizasyon)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Kimlik Doğrulaması</string>
     <string name="provider_2fa_email">E-posta</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
-    <string name="yubikey_usb_title">YubiKey'i USB ile bağlayın</string>
+    <string name="yubikey_usb_title">YubiKey\'i USB ile bağlayın</string>
     <string name="yubikey_usb_text">USB OTG desteği gerektirir.</string>
-    <string name="yubikey_usb_touch_the_gold_sensor_note">Şimdi YubiKey'inizdeki altın sensöre dokunun.</string>
-    <string name="yubikey_nfc_title">YubiKey'inizi cihazınızın arkasına yaslayın</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Şimdi YubiKey\'inizdeki altın sensöre dokunun.</string>
+    <string name="yubikey_nfc_title">YubiKey\'inizi cihazınızın arkasına yaslayın</string>
     <string name="yubikey_nfc_text">NFC desteği gerektirir.</string>
     <string name="yubikey_error_failed_to_read">YubiKey okunamadı</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn kullanmak, Bitwarden Web kasası sürümünü kullanmayı gerektirir <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> veya daha yüksek. Eski sürümlerde kimlik doğrulama sonucu yanlışlıkla resmi Bitwarden uygulamasına iletilecektir.</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Değişiklik tarihi</string>
     <string name="sortby_modification_date_normal_mode">Önce En Yeni</string>
     <string name="sortby_modification_date_reverse_mode">Önce En Eski</string>
+    <string name="sortby_installation_date_title">Kurulum Tarihi</string>
+    <string name="sortby_installation_date_normal_mode">Önce En Yeni</string>
+    <string name="sortby_installation_date_reverse_mode">Önce En Eski</string>
     <string name="sortby_expiration_date_title">Son kullanma tarihi</string>
     <string name="sortby_expiration_date_normal_mode">Önce En Yeni</string>
     <string name="sortby_expiration_date_reverse_mode">Önce En Eski</string>
@@ -739,7 +745,7 @@
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Yol Tarifi</string>
     <string name="send_main_header_title">Gönderimler</string>
-    <string name="send_main_search_placeholder">Gönderimler'de ara</string>
+    <string name="send_main_search_placeholder">Gönderimler\'de ara</string>
     <string name="send_main_new_item_button">Yeni öğe</string>
     <string name="send_password_is_required_to_access_label">Bu paylaşıma erişmek için bir şifre gereklidir</string>
     <string name="generator_header_title">Oluşturucu</string>
@@ -767,7 +773,7 @@
     <string name="generator_password_lowercase_letters_title">Küçük harfler</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Benzer sembolleri hariç tut</string>
-    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Belirsiz sembolleri hariç tut</string>
     <string name="generator_email_catch_all_type">Tümünü yakalama e-postası</string>
     <string name="generator_email_catch_all_note">Her şeyi kapsayan bir e-posta adresi, kullanıcılara etki alanları için ayarlanmamış bir e-posta adresine gönderilmiş olsalar bile, etki alanlarına gönderilen tüm postaları alma seçeneği sunar. Kullanmadan önce e-posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Şifre gücü</string>
     <string name="watchtower_section_security_label">Güvenlik</string>
     <string name="watchtower_section_maintenance_label">Bakım</string>
+    <string name="watchtower_item_new_alerts_title">Yeni uyarıları gözden geçir</string>
+    <string name="watchtower_item_weak_passwords_title">Zayıf Şifreler</string>
     <string name="watchtower_item_pwned_passwords_title">Sızan Şifreler</string>
     <string name="watchtower_item_pwned_passwords_text">Veri ihlallerinde açığa çıkan şifreler. Bu tür şifreler derhal değiştirilmelidir.</string>
     <string name="watchtower_item_reused_passwords_title">Yeniden Kullanılan Şifreler</string>
@@ -807,7 +815,7 @@
     <string name="watchtower_item_vulnerable_accounts_title">Savunmasız Hesaplar</string>
     <string name="watchtower_item_vulnerable_accounts_text">En son şifre değiştirdiğinizden beri veri ihlalinden etkilenen siteler. Hesabınızı güvende tutmak için şifrenizi değiştirin.</string>
     <string name="watchtower_item_unsecure_websites_title">Güvenli Olmayan Web Siteleri</string>
-    <string name="watchtower_item_unsecure_websites_text">HTTP protokolünü kullanan URL'leri HTTPS protokolünü kullanacak şekilde değiştirin, çünkü HTTPS protokolü mevcut en gelişmiş şifrelemeyi kullanır.</string>
+    <string name="watchtower_item_unsecure_websites_text">HTTP protokolünü kullanan URL\'leri HTTPS protokolünü kullanacak şekilde değiştirin, çünkü HTTPS protokolü mevcut en gelişmiş şifrelemeyi kullanır.</string>
     <string name="watchtower_item_inactive_2fa_title">Etkin olmayan iki faktörlü kimlik doğrulama</string>
     <string name="watchtower_item_inactive_2fa_text">İki faktörlü kimlik doğrulaması olan ancak henüz ayarlamadığınız siteler.</string>
     <string name="watchtower_item_inactive_passkey_title">Kullanılabilir Geçiş Anahtarları</string>
@@ -816,8 +824,8 @@
     <string name="watchtower_item_incomplete_items_text">Kasanızdaki eksik veya tamamlanmamış verileri belirlemenize yardımcı olur. Bu, eksik adlara sahip kimlikleri veya kullanıcı adları olmayan oturum açma bilgilerini ifade edebilir.</string>
     <string name="watchtower_item_expiring_items_title">Süresi Dolan Ürünler</string>
     <string name="watchtower_item_expiring_items_text">Süresi dolmuş veya dolmak üzere olan ürünler.</string>
-    <string name="watchtower_item_duplicate_websites_title">Yinelenen URI'ler</string>
-    <string name="watchtower_item_duplicate_websites_text">Eşleşme tespitini uyguladıktan sonra aynı web sitelerini kapsayan bir veya daha fazla URI'ye sahip öğeler.</string>
+    <string name="watchtower_item_duplicate_websites_title">Yinelenen URI\'ler</string>
+    <string name="watchtower_item_duplicate_websites_text">Eşleşme tespitini uyguladıktan sonra aynı web sitelerini kapsayan bir veya daha fazla URI\'ye sahip öğeler.</string>
     <string name="watchtower_item_trashed_items_title">Çöpe Gönderilen Öğeler</string>
     <string name="watchtower_item_trashed_items_text">Çöpe taşınan öğeler. Çöp kutusunda çok fazla eşya olması, kasanızdaki işlemleri yavaşlatabilir.</string>
     <string name="watchtower_item_empty_folders_title">Boş Klasörler</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Kasanızdaki yinelenen öğeleri belirlemenize ve ortadan kaldırmanıza yardımcı olur.</string>
     <string name="watchtower_item_compromised_accounts_title">Ele Geçirilen Hesaplar</string>
     <string name="watchtower_item_compromised_accounts_text">Kullanıcı adı veya e-posta adresi ile veri ihlallerini kontrol edin.</string>
+    <string name="watchtower_alerts_header_title">Yeni gözlemci uyarıları</string>
+    <string name="watchtower_mark_all_as_read_title">Tümünü okundu olarak işaretle</string>
     <string name="changepassword_header_title">Uygulama şifresini değiştir</string>
     <string name="changepassword_change_password_button">Şifreyi değiştir</string>
     <string name="changepassword_biometric_auth_checkbox">Biyometrik kimlik doğrulama</string>
@@ -904,7 +914,7 @@
     <string name="pref_item_locale_title">Dil</string>
     <string name="pref_item_locale_help_translation_button">Çeviri öner</string>
     <string name="pref_item_font_title">Yazı tipi</string>
-    <string name="pref_item_rate_on_play_store_title">Play Store'da değerlendir</string>
+    <string name="pref_item_rate_on_play_store_title">Play Store\'da değerlendir</string>
     <string name="pref_item_color_accent_title">Renk tonu</string>
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Kontrast siyah tema kullan</string>
@@ -963,7 +973,7 @@
     <string name="pref_item_keep_screen_on_title">Öğeleri görüntülerken ekranı açık tutun</string>
     <string name="pref_item_autofill_service_title">Otomatik doldurma hizmeti</string>
     <string name="pref_item_autofill_service_text">Oturum açma bilgilerini cihazdaki diğer uygulamalara doldurmaya yardımcı olması için Android Otomatik Doldurma Çerçevesini kullanın</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Bazı Xiaomi cihazları, " Arka planda çalışırken açılır pencereleri görüntüle " iznine manuel olarak izin vermenizi gerektirir. Lütfen ayarları açın ve verildiğini doğrulayın.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Bazı Xiaomi cihazları, \" Arka planda çalışırken açılır pencereleri görüntüle \" iznine manuel olarak izin vermenizi gerektirir. Lütfen ayarları açın ve verildiğini doğrulayın.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tek seferlik şifreleri otomatik kopyala</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Oturum açma bilgilerini doldururken, tek seferlik şifreleri otomatik olarak kopyalayın</string>
     <string name="pref_item_autofill_inline_suggestions_title">Satır içi öneriler</string>
@@ -991,7 +1001,7 @@
     <string name="pref_item_premium_membership_failed_to_load_products">Ürün listesi yüklenemedi</string>
     <string name="pref_item_premium_status_active">Aktif</string>
     <string name="pref_item_premium_status_will_not_renew">Yenilenmeyecek</string>
-    <string name="pref_item_premium_manage_subscription_on_play_store_title">Play Store'da yönet</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Play Store\'da yönet</string>
     <string name="pref_item_permission_post_notifications_title">Bildirim gönderme</string>
     <string name="pref_item_permission_post_notifications_text">İndirme bildirimlerini göndermek için kullanılır</string>
     <string name="pref_item_permission_write_external_storage_title">Harici depolama yaz</string>
@@ -1021,7 +1031,7 @@
     <string name="feat_item_filter_title">Filtre</string>
     <string name="feat_item_filter_text">Klasöre, kuruluşa, türe vb. göre filtreleyin.</string>
     <string name="feat_item_multiple_keywords_title">Birden fazla anahtar kelime</string>
-    <string name="feat_item_multiple_keywords_text">' Bitwarden Test Hesabı ' öğenizi bulmak için ' bitw test ' ile arama yapın.</string>
+    <string name="feat_item_multiple_keywords_text">\' Bitwarden Test Hesabı \' öğenizi bulmak için \' bitw test \' ile arama yapın.</string>
     <string name="feat_section_watchtower_title">Gözlemci</string>
     <string name="feat_item_pwned_passwords_title">Sızan şifreler</string>
     <string name="feat_item_pwned_passwords_text">Veri ihlalleri şifrelerinde açığa çıkan öğeleri bulun.</string>
@@ -1032,7 +1042,7 @@
     <string name="feat_item_inactive_totp_title">Aktif olmayan 2FA</string>
     <string name="feat_item_inactive_totp_text">Mevcut TOTP iki faktörlü kimlik doğrulamasına sahip girişleri bulun.</string>
     <string name="feat_item_unsecure_websites_title">Güvenli olmayan web siteleri</string>
-    <string name="feat_item_unsecure_websites_text">Http protokolünü kullanan web sitelerini bulun, HTTPS'ye otomatik sabitleyin.</string>
+    <string name="feat_item_unsecure_websites_text">Http protokolünü kullanan web sitelerini bulun, HTTPS\'ye otomatik sabitleyin.</string>
     <string name="feat_item_incomplete_items_title">Tamamlanmamış öğeler</string>
     <string name="feat_item_incomplete_items_text">Güncelleme gerektirebilecek boş öğeleri bulun.</string>
     <string name="feat_item_expiring_items_title">Süresi dolan ürünler</string>
@@ -1055,7 +1065,7 @@
     <string name="datasafety_local_vault_section">Kasa</string>
     <string name="datasafety_local_encryption_algorithm_intro">Kasa, aşağıdaki adımlar kullanılarak Uygulama parolasından türetilen bir Anahtar kullanılarak şifrelenir:</string>
     <string name="datasafety_local_encryption_algorithm_outro">Salt ve Hash daha sonra kasanın kilidini açmak için bir ana anahtar oluşturmak üzere bir cihazda yerel olarak depolanır.</string>
-    <string name="datasafety_local_unlocking_vault">Bir Kasanın kilidini açmak, bir cihazın RAM'inde doğru bir Anahtar depolamak ve şifrelenmiş Kasayı okuma ve değiştirme yeteneği kazanmak anlamına gelir.</string>
+    <string name="datasafety_local_unlocking_vault">Bir Kasanın kilidini açmak, bir cihazın RAM\'inde doğru bir Anahtar depolamak ve şifrelenmiş Kasayı okuma ve değiştirme yeteneği kazanmak anlamına gelir.</string>
     <string name="datasafety_remote_section">Uzak veri</string>
     <string name="datasafety_remote_text">Uzak veriler, sıfır bilgi şifrelemesi ile Bitwarden sunucularında saklanır.</string>
 </resources>

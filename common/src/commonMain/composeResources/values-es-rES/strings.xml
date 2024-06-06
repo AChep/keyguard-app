@@ -18,6 +18,7 @@
     <string name="app_password">Contraseña de aplicación</string>
     <string name="current_password">Contraseña actual</string>
     <string name="new_password">Nueva contraseña</string>
+    <string name="no_password">No password</string>
     <string name="email">Correo electrónico</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">No verificado</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">¡Todos los cambios no sincronizados se perderán!</string>
     <string name="folder_action_change_name_title">Cambiar nombre</string>
     <string name="folder_action_change_names_title">Cambiar nombres</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">¿Eliminar carpeta?</string>
     <string name="folder_delete_many_confirmation_title">¿Eliminar carpetas?</string>
     <string name="folder_delete_confirmation_text">Este elemento(s) se eliminará inmediatamente. No puede deshacer esta acción.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Enviar con…</string>
     <string name="file_action_open_in_file_manager_title">Abrir en un explorador de archivos</string>
     <string name="file_action_delete_local_title">Eliminar archivo local</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Ver elemento emparentado</string>
     <string name="vault_action_always_show_keyboard_title">Mostrar siempre el teclado</string>
     <string name="vault_action_sync_vault_title">Sincronizar bóveda</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Fecha de modificación</string>
     <string name="sortby_modification_date_normal_mode">Más nuevo primero</string>
     <string name="sortby_modification_date_reverse_mode">Más antiguo primero</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Fecha de caducidad</string>
     <string name="sortby_expiration_date_normal_mode">Más nuevo primero</string>
     <string name="sortby_expiration_date_reverse_mode">Más antiguo primero</string>
@@ -767,7 +773,7 @@
     <string name="generator_password_lowercase_letters_title">Letras minúsculas</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Excluir símbolos similares</string>
-    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Excluir símbolos ambiguos</string>
     <string name="generator_email_catch_all_type">Correo catch-all</string>
     <string name="generator_email_catch_all_note">Una dirección de correo catch-all proporciona a los usuarios la opción de recibir todo el correo enviado a su dominio, incluso si se envían a una dirección de correo electrónico que no ha sido configurada para su dominio. Asegúrate de que tu alojamiento de correo electrónico soporta esta característica antes de usarla.</string>
@@ -800,6 +806,8 @@
     <string name="watchtower_section_password_strength_label">Seguridad de la contraseña</string>
     <string name="watchtower_section_security_label">Seguridad</string>
     <string name="watchtower_section_maintenance_label">Mantenimiento</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">Contraseñas filtradas</string>
     <string name="watchtower_item_pwned_passwords_text">Las contraseñas que han sido vulneradas en las filtraciones de datos. Deben ser modificadas inmediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Contraseñas reutilizadas</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Te ayuda a identificar y eliminar objetos duplicados en tu caja fuerte.</string>
     <string name="watchtower_item_compromised_accounts_title">Cuentas Comprometidas</string>
     <string name="watchtower_item_compromised_accounts_text">Compruebe las filtraciones de datos por un nombre de usuario o dirección de correo electrónico.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">Cambiar contraseña de la app</string>
     <string name="changepassword_change_password_button">Cambiar contraseña</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticación biométrica</string>
@@ -963,7 +973,7 @@
     <string name="pref_item_keep_screen_on_title">Mantener la pantalla encendida mientras se visualizan los elementos</string>
     <string name="pref_item_autofill_service_title">Servicio de Autocompletar</string>
     <string name="pref_item_autofill_service_text">Utiliza el Framework de Autorrellenado de Android para ayudar a rellenar información de inicio de sesión en otras aplicaciones del dispositivo</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copiar contraseñas de un solo uso</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Cuando se rellena información del inicio de sesión, se copia automáticamente las contraseñas de un solo uso</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugerencias automáticas</string>
@@ -1021,7 +1031,7 @@
     <string name="feat_item_filter_title">Filtrar</string>
     <string name="feat_item_filter_text">Filtrar por carpeta, organización, tipo etc.</string>
     <string name="feat_item_multiple_keywords_title">Múltiples palabras clave</string>
-    <string name="feat_item_multiple_keywords_text">Busca por "bitw test" para encontrar el elemento de "Cuenta de Prueba de Bitwarden".</string>
+    <string name="feat_item_multiple_keywords_text">Busca por \"bitw test\" para encontrar el elemento de \"Cuenta de Prueba de Bitwarden\".</string>
     <string name="feat_section_watchtower_title">Vigilancia</string>
     <string name="feat_item_pwned_passwords_title">Contraseñas filtradas</string>
     <string name="feat_item_pwned_passwords_text">Encuentre elementos de contraseñas expuestas en las filtraciones de datos.</string>

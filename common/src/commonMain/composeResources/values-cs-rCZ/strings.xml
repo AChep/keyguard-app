@@ -18,6 +18,7 @@
     <string name="app_password">Heslo aplikace</string>
     <string name="current_password">Současné heslo</string>
     <string name="new_password">Nové heslo</string>
+    <string name="no_password">No password</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Ověřeno</string>
     <string name="email_not_verified">Neověřeno</string>
@@ -238,6 +239,7 @@
     <string name="account_log_out_confirmation_text">All of the not synchronized changes will be lost!</string>
     <string name="folder_action_change_name_title">Change name</string>
     <string name="folder_action_change_names_title">Change names</string>
+    <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
     <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
@@ -296,6 +298,7 @@
     <string name="file_action_send_with_title">Odeslat pomocí…</string>
     <string name="file_action_open_in_file_manager_title">Otevřít pomocí Správce souborů</string>
     <string name="file_action_delete_local_title">Odstranit místní soubor</string>
+    <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Zobrazit nadřazenou položku</string>
     <string name="vault_action_always_show_keyboard_title">Vždy zobrazit klávesnici</string>
     <string name="vault_action_sync_vault_title">Synchronizovat trezor</string>
@@ -701,6 +704,9 @@
     <string name="sortby_modification_date_title">Modification date</string>
     <string name="sortby_modification_date_normal_mode">Newest First</string>
     <string name="sortby_modification_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Installation date</string>
+    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Expiration date</string>
     <string name="sortby_expiration_date_normal_mode">Newest First</string>
     <string name="sortby_expiration_date_reverse_mode">Oldest First</string>
@@ -767,7 +773,7 @@
     <string name="generator_password_lowercase_letters_title">Lowercase letters</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Exclude similar symbols</string>
-    <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
+    <!-- An option to exclude symbols like this: {}[]()/\'"`~,;:.<> -->
     <string name="generator_password_exclude_ambiguous_symbols_title">Exclude ambiguous symbols</string>
     <string name="generator_email_catch_all_type">Catch-all email</string>
     <string name="generator_email_catch_all_note">A catch-all email address provides users the option to receive all mail sent to their domain, even if they are sent to an email address that has not been set up for their domain. Ensure that your email hosting supports this feature before using it.</string>
@@ -800,18 +806,20 @@
     <string name="watchtower_section_password_strength_label">Password strength</string>
     <string name="watchtower_section_security_label">Security</string>
     <string name="watchtower_section_maintenance_label">Maintenance</string>
+    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
+    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
     <string name="watchtower_item_pwned_passwords_title">Pwned Passwords</string>
     <string name="watchtower_item_pwned_passwords_text">Passwords that have been exposed in data breaches. Such passwords should be changed immediately.</string>
     <string name="watchtower_item_reused_passwords_title">Reused Passwords</string>
-    <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
+    <string name="watchtower_item_reused_passwords_text">Don\'t use the same password on multiple websites. Generate unique passwords to improve security.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
     <string name="watchtower_item_unsecure_websites_title">Unsecure Websites</string>
     <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
-    <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
+    <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven\'t set it up yet.</string>
     <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure then a password.</string>
+    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven\'t set it up yet. It\'s simpler and more secure then a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
     <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>
     <string name="watchtower_item_expiring_items_title">Expiring Items</string>
@@ -826,6 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Helps you identify and eliminate duplicate items in your vault.</string>
     <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
+    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">Change app password</string>
     <string name="changepassword_change_password_button">Change password</string>
     <string name="changepassword_biometric_auth_checkbox">Biometric authentication</string>
@@ -840,12 +850,12 @@
     <string name="exportaccount_export_success">Export complete</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
-    <string name="contactus_english_note">Use English to ensure that your feedback doesn't get misunderstood.</string>
-    <string name="contactus_thanks_note">We appreciate the time that you spend sending us a message. Your message goes directly to us and we use it to troubleshoot issues, make product improvements and fix problems. While we may not reply to every report, we're reviewing and working on improvements &amp; fixing issues as fast as we can.</string>
+    <string name="contactus_english_note">Use English to ensure that your feedback doesn\'t get misunderstood.</string>
+    <string name="contactus_thanks_note">We appreciate the time that you spend sending us a message. Your message goes directly to us and we use it to troubleshoot issues, make product improvements and fix problems. While we may not reply to every report, we\'re reviewing and working on improvements &amp; fixing issues as fast as we can.</string>
     <string name="account_main_header_title">Accounts</string>
     <string name="account_main_add_account_title">Add account</string>
     <string name="team_header_title">Team behind the app</string>
-    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize on app design and development.</string>
+    <string name="team_artem_whoami_text">I\'m a Software engineer from Ukraine. I specialize on app design and development.</string>
     <string name="team_follow_me_section">Follow me</string>
     <string name="settingssearch_header_title">Search</string>
     <string name="settingssearch_header_subtitle">Settings</string>
@@ -949,7 +959,7 @@
     <string name="pref_item_persist_vault_key_title">Persist vault key on a disk</string>
     <string name="pref_item_persist_vault_key_text_on">Vault key is persisted on an internal storage</string>
     <string name="pref_item_persist_vault_key_text_off">Vault is locked after the app is unloaded from the memory</string>
-    <string name="pref_item_persist_vault_key_note">Storing a vault key on a disk is a security risk. If the device's internal storage is compromised, the attacker will gain access to the local vault data.</string>
+    <string name="pref_item_persist_vault_key_note">Storing a vault key on a disk is a security risk. If the device\'s internal storage is compromised, the attacker will gain access to the local vault data.</string>
     <string name="pref_item_permissions_title">Permissions</string>
     <string name="pref_item_features_overview_title">Features overview</string>
     <string name="pref_item_url_override_title">URL overrides</string>
@@ -963,7 +973,7 @@
     <string name="pref_item_keep_screen_on_title">Keep the screen on while viewing items</string>
     <string name="pref_item_autofill_service_title">Autofill service</string>
     <string name="pref_item_autofill_service_text">Use the Android Autofill Framework to assist in filling login information into other apps on the device</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the \"Display pop-up windows while running in the background\" permission. Please open the settings and verify that it is granted.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copy one-time passwords</string>
     <string name="pref_item_autofill_auto_copy_otp_text">When filling a login information, automatically copy one-time passwords</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggestions</string>
@@ -1021,7 +1031,7 @@
     <string name="feat_item_filter_title">Filter</string>
     <string name="feat_item_filter_text">Filter by folder, organization, type etc.</string>
     <string name="feat_item_multiple_keywords_title">Multiple keywords</string>
-    <string name="feat_item_multiple_keywords_text">Search by 'bitw test' to find your 'Bitwarden Test Account' item.</string>
+    <string name="feat_item_multiple_keywords_text">Search by \'bitw test\' to find your \'Bitwarden Test Account\' item.</string>
     <string name="feat_section_watchtower_title">Watchtower</string>
     <string name="feat_item_pwned_passwords_title">Pwned passwords</string>
     <string name="feat_item_pwned_passwords_text">Find items with exposed in data breaches passwords.</string>
@@ -1055,7 +1065,7 @@
     <string name="datasafety_local_vault_section">Vault</string>
     <string name="datasafety_local_encryption_algorithm_intro">The Vault is encrypted using a Key, derived from the App password using following steps:</string>
     <string name="datasafety_local_encryption_algorithm_outro">The Salt and the Hash is then stored locally on a device, to later generate a master key to unlock the vault.</string>
-    <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
+    <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device\'s RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
 </resources>

@@ -154,7 +154,7 @@
       "totp"
     ],
     "documentation": "https://support.mozilla.org/en-US/kb/secure-firefox-account-two-step-authentication",
-    "name": "Firefox"
+    "name": "Mozilla"
   },
   {
     "domain": "accounts.nintendo.com",
@@ -804,6 +804,18 @@
     ],
     "documentation": "https://appwrite.io/docs/advanced/security/2fa",
     "name": "Appwrite"
+  },
+  {
+    "domain": "aqara.com",
+    "tfa": [
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Aqara Home App"
+    ],
+    "notes": "Email 2FA is always available as a backup.",
+    "name": "Aqara"
   },
   {
     "domain": "arduino.cc",
@@ -3515,23 +3527,6 @@
     "name": "ComEd"
   },
   {
-    "domain": "commbank.com.au",
-    "tfa": [
-      "sms",
-      "custom-hardware",
-      "custom-software"
-    ],
-    "custom-software": [
-      "CommBank app"
-    ],
-    "custom-hardware": [
-      "NetCode Token"
-    ],
-    "documentation": "https://www.commbank.com.au/support.digital-banking.explain-netcode-token.html",
-    "notes": "NetCode Tokens are only offered to customers who cannot use SMS 2FA or the CommBank app.",
-    "name": "Commonwealth Bank of Australia"
-  },
-  {
     "domain": "commercial.metrobankonline.co.uk",
     "tfa": [
       "custom-software",
@@ -5128,6 +5123,14 @@
     ],
     "documentation": "https://support.eneba.com/hc/en-us/articles/360010216714",
     "name": "Eneba"
+  },
+  {
+    "domain": "energyaustralia.com.au",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://www.energyaustralia.com.au/home/help-and-support/faqs/multi-factor-authentication",
+    "name": "Energy Australia"
   },
   {
     "domain": "engineyard.com",
@@ -7533,6 +7536,13 @@
     ],
     "documentation": "https://help.instagram.com/566810106808145",
     "name": "Instagram"
+  },
+  {
+    "domain": "instant-gaming.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Instant-Gaming"
   },
   {
     "domain": "instructure.com",
@@ -15852,6 +15862,9 @@
   },
   {
     "domain": "up.com.au",
+    "additional-domains": [
+      "up.me"
+    ],
     "tfa": [
       "sms"
     ],

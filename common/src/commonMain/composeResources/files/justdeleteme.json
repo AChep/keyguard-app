@@ -173,6 +173,14 @@
     "notes": "Login, go to your account settings and click the delete button. That's it."
   },
   {
+    "name": "99app",
+    "domains": [
+      "99app.com"
+    ],
+    "url": "https://99app.com/ajuda/passageiro/como-excluir-minha-conta/",
+    "difficulty": "medium"
+  },
+  {
     "name": "99designs",
     "domains": [
       "99designs.com",
@@ -5707,6 +5715,15 @@
     "notes": "Log-in, go to the link and make the request to **deactivate account**"
   },
   {
+    "name": "Fixer.io",
+    "domains": [
+      "fixer.io"
+    ],
+    "url": "https://fixer.io/account",
+    "difficulty": "easy",
+    "notes": "Go to your account page, click 'delete account' at the bottom."
+  },
+  {
     "name": "Flat",
     "domains": [
       "flat.io",
@@ -5998,6 +6015,18 @@
     "url": "https://meetfranz.com/user/profile",
     "difficulty": "easy",
     "notes": "Navigate to the bottom of the profile page where you have the option to delete your account."
+  },
+  {
+    "name": "FREAKHOSTING",
+    "domains": [
+      "freakhosting.com",
+      "games.freakhosting.com",
+      "cloud.freakhosting.com",
+      "web.freakhosting.com"
+    ],
+    "url": "https://freakhosting.com/clientarea/clientarea.php",
+    "difficulty": "hard",
+    "notes": "Create a ticket to the Billing department and request your account to be deleted."
   },
   {
     "name": "FreeBitco.In",
@@ -8997,6 +9026,15 @@
     "notes": "Use the linked contact form to request account deletion."
   },
   {
+    "name": "KBin",
+    "domains": [
+      "kbin.social"
+    ],
+    "url": "https://kbin.social/settings/general",
+    "difficulty": "easy",
+    "notes": "You can go to the account page, scroll to the bottom and click the account deletion request button. It can take some time for the account to be deleted."
+  },
+  {
     "name": "KDE Bugtracking System",
     "domains": [
       "bugs.kde.org"
@@ -11456,6 +11494,15 @@
     "notes": "Fill the ticket form and wait for response."
   },
   {
+    "name": "Natural Readers",
+    "domains": [
+      "naturalreaders.com"
+    ],
+    "url": "https://www.naturalreaders.com/",
+    "difficulty": "easy",
+    "notes": "Login first, then on the left menu click 'account' then 'edit' under your email address. A popup will appear where you can delete your account."
+  },
+  {
     "name": "NAVER",
     "domains": [
       "naver.com",
@@ -11895,7 +11942,7 @@
       "nowtv.com",
       "help.nowtv.com"
     ],
-    "url": "https://help.nowtv.com/contact-us/how-do-i-cancel-now-tv",
+    "url": "https://privacyportal-de.onetrust.com/webform/1bca6949-81da-4e67-ac5e-a4174c2fb12d/f1b0c03e-ec61-4702-b2c1-6158fb608d1a",
     "difficulty": "impossible",
     "notes": "You must first cancel any active passes under 'My Account' \u2b95 'My Passes'. After this, you can contact the live chat and ask for your billing information to be removed. Your account must remain inactive for an indeterminate amount of time before the remaining data will be removed 'in accordance with our group data retention and deletion policies'."
   },
@@ -16550,6 +16597,18 @@
     "email": "customersupport@terracycle.com"
   },
   {
+    "name": "Terraform Cloud",
+    "domains": [
+      "terraform.io",
+      "terraform.com",
+      "support.terraform.com"
+    ],
+    "url": "https://support.hashicorp.com/hc/en-us/articles/1500002617421-Deleting-Terraform-Cloud-Accounts",
+    "difficulty": "hard",
+    "notes": "You must contact customer support through email. The email must include the email address of the account as well as the account's organization.",
+    "email": "tf-cloud@hashicorp.support"
+  },
+  {
     "name": "Tesla",
     "domains": [
       "tesla.com"
@@ -19143,8 +19202,8 @@
       "you.com",
       "about.you.com"
     ],
-    "url": "https://about.you.com/hc/faq/how-do-i-delete-my-profile/",
-    "difficulty": "hard",
+    "url": "https://you.com/profile",
+    "difficulty": "easy",
     "email": "legal@you.com"
   },
   {

@@ -760,6 +760,18 @@
     "created_at": "2024-05-09T11:28:44.354265+00:00"
   },
   {
+    "id": "7390a69ef1f382189612985ece21ad8a",
+    "name": "Microsoft Entra ID",
+    "domain": "entra.microsoft.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-authenticator-passkey#enable-passkeys-in-authenticator-in-the-admin-center",
+    "setup": "https://entra.microsoft.com",
+    "category": "Information Technology",
+    "created_at": "2023-09-30T10:34:07.960403+00:00"
+  },
+  {
     "id": "493e539072cc378649c3b2363ba03409",
     "name": "Esl Gaming",
     "domain": "eslgaming.com",
@@ -901,6 +913,19 @@
     "setup": "https://gitlab.com/-/profile/two_factor_auth",
     "category": "Information Technology",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "8c4577cee63fa0daa619b9c5ffedc875",
+    "name": "Gmail",
+    "domain": "gmail.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.google.com/accounts/answer/13548313",
+    "setup": "https://g.co/passkeys",
+    "category": "Information Technology",
+    "created_at": "2023-11-03T13:05:25.480293+00:00",
+    "notes": "YouTube uses a Google account to sign in and Google account's have passkey support:\n\nhttps://passkeys.directory/details/google/"
   },
   {
     "id": "1b64d0ec6fb9bc359db8166d069ce9b0",
@@ -1243,6 +1268,19 @@
     "notes": "Linkedin is actively rolling out support for saving and signing in with passkeys on LinkedIn accounts. Not all accounts have access to saving a passkey whilst LinkedIn rolls out support and you may see an error when navigating to the setup link above. "
   },
   {
+    "id": "6201e4ee86235d87df00da1bfaa6980d",
+    "name": "live.com",
+    "domain": "live.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.microsoft.com/en-us/account-billing/signing-in-with-a-passkey-09a49a86-ca47-406c-8acc-ed0e3c852c6d",
+    "setup": "https://go.microsoft.com/fwlink/?linkid=2250685",
+    "category": "Information Technology",
+    "created_at": "2023-03-30T15:34:14.249844+00:00",
+    "notes": "Live.com uses a Microsoft Account to sign in.\n\nMicrosoft Account's have passkey support:\n\nhttps://passkeys.directory/details/microsoft-account\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+  },
+  {
     "id": "a99bfc977a3a2edffa59bbae08d25da9",
     "name": "lnk.bio",
     "domain": "lnk.bio",
@@ -1566,6 +1604,19 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "8ce087080f5cb9958e0fd9adbdd807fc",
+    "name": "Onedrive",
+    "domain": "onedrive.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.microsoft.com/en-us/account-billing/signing-in-with-a-passkey-09a49a86-ca47-406c-8acc-ed0e3c852c6d",
+    "setup": "https://go.microsoft.com/fwlink/?linkid=2250685",
+    "category": "Information Technology",
+    "created_at": "2023-04-01T15:49:29.312847+00:00",
+    "notes": "OneDrive uses a Microsoft Account to sign in.\n\nMicrosoft Account's have passkey support:\n\nhttps://passkeys.directory/details/microsoft-account\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+  },
+  {
     "id": "1cd4f1a21ff42491a54d07f3f52da993",
     "name": "OneLogin",
     "domain": "onelogin.com",
@@ -1600,6 +1651,19 @@
     "setup": "https://ope.ee/user/passkey",
     "category": "Education",
     "created_at": "2024-05-13T12:38:32.552995+00:00"
+  },
+  {
+    "id": "a1b27bad9405505abf797ebdf4f82276",
+    "name": "Outlook Mail",
+    "domain": "outlook.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.microsoft.com/en-us/account-billing/signing-in-with-a-passkey-09a49a86-ca47-406c-8acc-ed0e3c852c6d",
+    "setup": "https://go.microsoft.com/fwlink/?linkid=2250685",
+    "category": "Information Technology",
+    "created_at": "2023-07-29T16:59:20.073416+00:00",
+    "notes": "Outlook uses a Microsoft Account to sign in.\n\nMicrosoft Account's have passkey support:\n\nhttps://passkeys.directory/details/microsoft-account\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
   },
   {
     "id": "af97abd5ad298fb6170be7985252a455",

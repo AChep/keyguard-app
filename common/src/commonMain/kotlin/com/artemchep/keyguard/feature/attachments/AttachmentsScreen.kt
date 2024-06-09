@@ -27,12 +27,13 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AttachmentsScreen() {
     val loadableState = produceAttachmentsScreenState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     TwoPaneScreen(
         header = { modifier ->
             SmallToolbar(

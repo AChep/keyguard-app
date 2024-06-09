@@ -88,6 +88,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 
@@ -110,7 +111,7 @@ fun LoginTwofaScreen(
 fun LoginTwofaScreenContent(
     state: TwoFactorState,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     val scope = remember {
         LoginOtpScreenScope()
     }

@@ -130,6 +130,7 @@ import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -153,7 +154,7 @@ fun WatchtowerScreen(
 fun WatchtowerScreen(
     state: WatchtowerState,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     TwoPaneScreen(
         header = { modifier ->
             SmallToolbar(

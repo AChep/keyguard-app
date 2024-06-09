@@ -60,6 +60,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -79,7 +80,7 @@ fun UrlOverrideListScreen() {
 fun EmailRelayListScreen(
     loadableState: Loadable<UrlOverrideListState>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
 
     val listRevision =
         loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.revision

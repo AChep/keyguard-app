@@ -20,6 +20,7 @@ import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -46,7 +47,7 @@ fun ScanQrScreen(
         }
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

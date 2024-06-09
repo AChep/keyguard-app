@@ -32,6 +32,7 @@ import com.artemchep.keyguard.ui.grid.SimpleGridLayout
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
@@ -63,7 +64,7 @@ fun YubiScreen() {
         updatedShowMessage.copy(msg)
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

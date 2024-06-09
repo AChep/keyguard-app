@@ -86,6 +86,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 
@@ -148,7 +149,7 @@ fun LoginScreen(
 )
 @Composable
 fun LoginContentSkeleton() {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -212,7 +213,7 @@ fun LoginContent(
         mutableStateOf(false)
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

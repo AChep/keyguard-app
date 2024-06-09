@@ -56,6 +56,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.DividerColor
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.filter
@@ -77,7 +78,7 @@ fun EmailRelayListScreen(
 fun EmailRelayListScreen(
     loadableState: Loadable<EmailRelayListState>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
 
     val listRevision =
         loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.revision

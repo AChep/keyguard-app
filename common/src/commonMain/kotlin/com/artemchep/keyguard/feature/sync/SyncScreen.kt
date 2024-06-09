@@ -49,6 +49,7 @@ import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 
@@ -75,7 +76,7 @@ private fun SyncContent(
             it.itemsFlow.collectAsState()
         },
     )
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

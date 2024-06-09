@@ -28,6 +28,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 
@@ -50,7 +51,7 @@ fun VaultViewPasswordHistoryScreen(
 fun VaultViewPasswordHistoryScreen(
     state: VaultViewPasswordHistoryState,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

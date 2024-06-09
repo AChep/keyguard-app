@@ -36,6 +36,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -51,7 +52,7 @@ fun FeedbackScreen() {
 private fun FeedbackContent(
     loadableState: Loadable<FeedbackState>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

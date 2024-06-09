@@ -49,6 +49,7 @@ import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -76,7 +77,7 @@ fun SendAddScreen(
     addScreenScope: AddScreenScope,
     loadableState: Loadable<SendAddState>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

@@ -103,6 +103,7 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -388,7 +389,7 @@ fun SettingPaneContent2(
     title: String,
     state: SettingPaneState,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

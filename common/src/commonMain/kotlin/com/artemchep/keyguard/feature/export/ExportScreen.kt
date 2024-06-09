@@ -63,6 +63,7 @@ import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.persistentListOf
 
@@ -76,7 +77,7 @@ fun ExportScreen(
 
     val title = args.title
         ?: stringResource(Res.string.exportaccount_header_title)
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     when (loadableState) {
         is Loadable.Ok -> {
             val state = loadableState.value

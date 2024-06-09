@@ -108,6 +108,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -185,7 +186,7 @@ fun SendListScreen(
             focusRequester.requestFocus()
         },
     )
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     TwoPaneScreen(
         header = { modifier ->
             CustomSearchbarContent(

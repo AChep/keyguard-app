@@ -29,6 +29,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.parcelize.Parcelize
 
@@ -112,7 +113,7 @@ private fun LargeTypeScreen(
     KeepScreenOnEffect()
 
     val navigationController by rememberUpdatedState(LocalNavigationController.current)
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

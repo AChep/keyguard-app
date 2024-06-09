@@ -39,6 +39,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Github
 import compose.icons.feathericons.Instagram
@@ -126,7 +127,7 @@ fun AboutTeamScreen() {
         }.toPersistentList()
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

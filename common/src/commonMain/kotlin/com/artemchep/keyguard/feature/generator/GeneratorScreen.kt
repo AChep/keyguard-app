@@ -113,6 +113,7 @@ import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.VerticalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Job
@@ -133,7 +134,7 @@ fun GeneratorScreen(
         args = args,
     )
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     val sliderInteractionSource = remember {
         MutableInteractionSource()
     }

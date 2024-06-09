@@ -71,6 +71,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
@@ -243,7 +244,7 @@ private fun SettingListScreenContent(
             q.queue(intent)
         },
     )
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
             .pullRefresh(pullRefreshState)

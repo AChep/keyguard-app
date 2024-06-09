@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.search.filter.FilterScreen
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 
 @Composable
 fun CipherFilterViewFullScreen(
@@ -34,7 +35,7 @@ fun CipherFilterViewScreen(
     )
 
     val title = args.model.name
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     when (loadableState) {
         is Loadable.Ok -> {
             val state = loadableState.value

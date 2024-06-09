@@ -46,6 +46,7 @@ import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -66,7 +67,7 @@ private fun GeneratorPaneMaster(
     modifier: Modifier,
     loadableState: Loadable<GeneratorHistoryState>,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

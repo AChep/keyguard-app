@@ -35,6 +35,7 @@ import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.selection.SelectionBar
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -65,7 +66,7 @@ fun AccountListScreen() {
 fun AccountListScreenContent(
     state: AccountListState,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),

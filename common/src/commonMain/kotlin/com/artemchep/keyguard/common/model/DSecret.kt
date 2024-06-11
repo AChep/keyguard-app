@@ -477,17 +477,28 @@ fun DSecret.contains(hint: AutofillHint) = when (hint) {
     AutofillHint.POSTAL_ADDRESS_EXTENDED_POSTAL_CODE -> false // not supported
     AutofillHint.POSTAL_ADDRESS_APT_NUMBER -> identity?.address1 != null
     AutofillHint.POSTAL_ADDRESS_DEPENDENT_LOCALITY -> false // not supported
-    AutofillHint.PERSON_NAME -> identity?.firstName != null
-    AutofillHint.PERSON_NAME_GIVEN -> false // not supported
+    AutofillHint.PERSON_NAME -> identity?.firstName != null ||
+            identity?.middleName != null ||
+            identity?.lastName != null
+
+    AutofillHint.PERSON_NAME_GIVEN -> identity?.firstName != null
     AutofillHint.PERSON_NAME_FAMILY -> identity?.lastName != null
     AutofillHint.PERSON_NAME_MIDDLE -> identity?.middleName != null
     AutofillHint.PERSON_NAME_MIDDLE_INITIAL -> identity?.middleName != null
     AutofillHint.PERSON_NAME_PREFIX -> false // not supported
     AutofillHint.PERSON_NAME_SUFFIX -> false // not supported
-    AutofillHint.PHONE_NUMBER -> identity?.phone != null
-    AutofillHint.PHONE_NUMBER_DEVICE -> false // not supported
-    AutofillHint.PHONE_COUNTRY_CODE -> identity?.phone != null // TODO: Extract country code
-    AutofillHint.PHONE_NATIONAL -> false // not supported
+    AutofillHint.PHONE_NUMBER -> identity?.phone != null ||
+            login?.username?.takeIf { REGEX_PHONE_NUMBER.matches(it) } != null
+
+    AutofillHint.PHONE_NUMBER_DEVICE -> identity?.phone != null ||
+            login?.username?.takeIf { REGEX_PHONE_NUMBER.matches(it) } != null
+
+    AutofillHint.PHONE_COUNTRY_CODE -> identity?.phone != null ||
+            login?.username?.takeIf { REGEX_PHONE_NUMBER.matches(it) } != null
+
+    AutofillHint.PHONE_NATIONAL -> identity?.phone != null ||
+            login?.username?.takeIf { REGEX_PHONE_NUMBER.matches(it) } != null
+
     AutofillHint.NEW_USERNAME -> false // not supported
     AutofillHint.NEW_PASSWORD -> false // not supported
     AutofillHint.GENDER -> false // not supported
@@ -529,8 +540,13 @@ fun DSecret.get(
         AutofillHint.POSTAL_ADDRESS_EXTENDED_POSTAL_CODE -> null
         AutofillHint.POSTAL_ADDRESS_APT_NUMBER -> identity?.address1
         AutofillHint.POSTAL_ADDRESS_DEPENDENT_LOCALITY -> null
-        AutofillHint.PERSON_NAME -> identity?.firstName
-        AutofillHint.PERSON_NAME_GIVEN -> null
+        AutofillHint.PERSON_NAME -> listOfNotNull(
+            identity?.firstName,
+            identity?.middleName,
+            identity?.lastName,
+        ).joinToString(separator = " ").takeIf { it.isNotEmpty() }
+
+        AutofillHint.PERSON_NAME_GIVEN -> identity?.firstName
         AutofillHint.PERSON_NAME_FAMILY -> identity?.lastName
         AutofillHint.PERSON_NAME_MIDDLE -> identity?.middleName
         AutofillHint.PERSON_NAME_MIDDLE_INITIAL -> identity?.middleName
@@ -541,7 +557,9 @@ fun DSecret.get(
 
         AutofillHint.PHONE_NUMBER_DEVICE -> null
         AutofillHint.PHONE_COUNTRY_CODE -> identity?.phone // TODO: Extract country code
-        AutofillHint.PHONE_NATIONAL -> null
+        AutofillHint.PHONE_NATIONAL -> identity?.phone
+            ?: login?.username?.takeIf { REGEX_PHONE_NUMBER.matches(it) }
+
         AutofillHint.NEW_USERNAME -> null
         AutofillHint.NEW_PASSWORD -> null
         AutofillHint.GENDER -> null
@@ -592,9 +610,9 @@ fun DSecret.gett(
 
             val variant = variants.removeFirst()
             val value = get(
-                        hint = variant.hint,
-                        getTotpCode = getTotpCode,
-                    ).attempt().bind().getOrNull()
+                hint = variant.hint,
+                getTotpCode = getTotpCode,
+            ).attempt().bind().getOrNull()
             if (value.isNullOrEmpty()) {
                 shouldLoop = shouldLoop || variants.isNotEmpty()
                 return@forEach

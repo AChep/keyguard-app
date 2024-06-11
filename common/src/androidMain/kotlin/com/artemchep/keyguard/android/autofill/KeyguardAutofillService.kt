@@ -4,13 +4,11 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.IntentSender
 import android.graphics.BlendMode
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.CancellationSignal
 import android.service.autofill.*
-import android.util.Log
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
@@ -27,6 +25,8 @@ import com.artemchep.keyguard.android.MainActivity
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.*
+import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.feature.home.vault.component.FormatCardGroupLength
 import com.artemchep.keyguard.res.Res
@@ -36,7 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.StringResource
 import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI
 import org.kodein.di.direct
@@ -48,6 +48,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         private const val TAG = "AFService"
 
         const val KEEP_CIPHERS_IN_MEMORY_FOR = 10_000L
+
+        const val SUGGESTIONS_MAX_COUNT = 10
     }
 
     private val job = Job()
@@ -91,13 +93,17 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             .shareIn(scope, SharingStarted.WhileSubscribed(KEEP_CIPHERS_IN_MEMORY_FOR), replay = 1)
     }
 
+    private val logRepository: LogRepository by lazy {
+        di.direct.instance()
+    }
+
     private val getTotpCode: GetTotpCode by lazy {
         di.direct.instance()
     }
 
     private val getSuggestions by lazy {
         val model: GetSuggestions<Any?> by di.instance()
-        model
+        GetCipherSuggestions(model)
     }
 
     private val prefInlineSuggestionsFlow by lazy {
@@ -127,328 +133,351 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     private val autofillStructureParser = AutofillStructureParser()
 
+    private class GetCipherSuggestions(
+        private val parent: GetSuggestions<Any?>,
+    ) : GetSuggestions<DSecret> {
+        override fun invoke(
+            ciphers: List<DSecret>,
+            getter: Getter<DSecret, DSecret>,
+            target: AutofillTarget,
+        ): IO<List<DSecret>> = parent
+            .invoke(
+                ciphers,
+                Getter { it as DSecret },
+                target,
+            ) as IO<List<DSecret>>
+    }
+
+    private class AbortAutofillException(
+        message: String,
+    ) : RuntimeException(message)
+
     @SuppressLint("NewApi")
     override fun onFillRequest(
         request: FillRequest,
         cancellationSignal: CancellationSignal,
         callback: FillCallback,
     ) {
-        val autofillStructure = kotlin.runCatching {
-            val structureLatest = request.fillContexts
-                .map { it.structure }
-                .lastOrNull()
-            // If the structure is missing, then abort auto-filling
-            // process.
-                ?: throw IllegalStateException("No structures to fill.")
-
-            val respectAutofillOff = prefRespectAutofillOffFlow.toIO().bindBlocking()
-            autofillStructureParser.parse(
-                structureLatest,
-                respectAutofillOff,
-            )
-        }
-//            .flatMap {
-//                val targetApplicationId = it.applicationId
-//                val keyguardApplicationId = packageName
-//                if (targetApplicationId == keyguardApplicationId) {
-//                    val response = FillResponse.Builder()
-//                        .disableAutofill(1000L)
-//                        .build()
-//                    callback.onSuccess(response)
-//                    return
-//                } else {
-//                    Result.success(it)
-//                }
-//            }
-            .fold(
-                onSuccess = ::identity,
-                onFailure = {
-                    callback.onFailure("Failed to parse structures: ${it.message}")
-                    return
-                },
-            )
-        if (autofillStructure.items.isEmpty()) {
-            callback.onFailure("Nothing to autofill.")
-            return
-        }
-
-        val job = ciphersFlow
-            .onStart {
-                Log.e("LOL", "on start v2")
-            }
-            .toIO()
-            .effectMap(Dispatchers.Default) { state ->
-                state.map { secrets ->
-                    val autofillTarget = AutofillTarget(
-                        links = listOfNotNull(
-                            // application id
-                            autofillStructure.applicationId?.let {
-                                LinkInfoPlatform.Android(
-                                    packageName = it,
-                                )
-                            },
-                            // website
-                            autofillStructure.webDomain?.let {
-                                val url = Url("https://$it")
-                                LinkInfoPlatform.Web(
-                                    url = url,
-                                    frontPageUrl = url,
-                                )
-                            },
-                        ),
-                        hints = autofillStructure.items.map { it.hint },
-                    )
-                    getSuggestions(
-                        secrets,
-                        Getter { it as DSecret },
-                        autofillTarget,
-                    ).bind()
-                        .take(10) as List<DSecret>
+        getAutofillStructureIo(request)
+            .flatMap { autofillStructure ->
+                if (autofillStructure.items.isEmpty()) {
+                    throw AbortAutofillException("Nothing to autofill.")
                 }
+
+                getAutofillResponseIo(
+                    request = request,
+                    autofillStructure = autofillStructure,
+                )
             }
-            .biEffectTap(
-                ifException = {
-                    // If the request is canceled, then it does not expect any
-                    // feedback.
-                    if (!cancellationSignal.isCanceled) {
-                        callback.onFailure("Failed to get the secrets from the database!")
-                    }
-                },
-                ifSuccess = { r ->
-                    val canInlineSuggestions = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                            prefInlineSuggestionsFlow.toIO()
-                                .attempt().bind().exists { it }
+            .effectTap { response ->
+                callback.onSuccess(response)
+            }
+            .handleError { e ->
+                logRepository.postDebug(TAG) {
+                    "Fill request: aborted because '$e'"
+                }
 
-                    val forceHideManualSelection = kotlin.run {
-                        val targetApplicationId = autofillStructure.applicationId
-                        val keyguardApplicationId = packageName
-                        targetApplicationId == keyguardApplicationId
-                    }
+                if (cancellationSignal.isCanceled) {
+                    return@handleError
+                }
 
-                    // build a response
-                    val responseBuilder = FillResponse.Builder()
-                    when (r) {
-                        is Either.Left -> {
-                            if (forceHideManualSelection) {
-                                callback.onFailure("Can not autofill own app password.")
-                                return@biEffectTap
-                            }
-                            // Database is locked, create a generic
-                            // sign in with option.
-                            responseBuilder.buildAuthentication(
-                                type = FooBar.UNLOCK,
-                                result2 = autofillStructure,
-                                request = request,
-                                canInlineSuggestions = canInlineSuggestions,
-                            )
-                        }
-
-                        is Either.Right -> if (r.value.isEmpty()) {
-                            if (forceHideManualSelection) {
-                                callback.onFailure("No match found.")
-                                return@biEffectTap
-                            }
-                            // No match found, create a generic option.
-                            responseBuilder.buildAuthentication(
-                                type = FooBar.SELECT,
-                                result2 = autofillStructure,
-                                request = request,
-                                canInlineSuggestions = canInlineSuggestions,
-                            )
-                        } else {
-                            val manualSelection = prefManualSelectionFlow.toIO().bind() &&
-                                    !forceHideManualSelection
-
-                            val totalInlineSuggestionsMaxCount = if (
-                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                                canInlineSuggestions
-                            ) {
-                                request.inlineSuggestionsRequest?.maxSuggestionCount
-                                    ?: 0 // no suggestions allowed
-                            } else {
-                                0
-                            }
-                            val secretInlineSuggestionsMaxCount =
-                                if (manualSelection) totalInlineSuggestionsMaxCount - 1 else totalInlineSuggestionsMaxCount
-
-                            var index = 0
-                            r.value.forEach { secret ->
-                                var f = false
-                                val dataset =
-                                    tryBuildDataset(index, this, secret, autofillStructure) {
-                                        if (index < secretInlineSuggestionsMaxCount) {
-                                            val inline =
-                                                tryBuildSecretInlinePresentation(
-                                                    request,
-                                                    index,
-                                                    secret,
-                                                )
-                                            if (inline != null) {
-                                                setInlinePresentation(inline)
-                                                f = true
-                                            }
-                                        }
-                                    }
-                                if (dataset != null && (!canInlineSuggestions || f)) {
-                                    responseBuilder.addDataset(dataset)
-                                    index += 1
-                                }
-                            }
-                            if (manualSelection) {
-                                val intent = AutofillActivity.getIntent(
-                                    context = this@KeyguardAutofillService,
-                                    args = AutofillActivity.Args(
-                                        applicationId = autofillStructure.applicationId,
-                                        webDomain = autofillStructure.webDomain,
-                                        webScheme = autofillStructure.webScheme,
-                                        autofillStructure2 = autofillStructure,
-                                    ),
-                                )
-
-                                val flags =
-                                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                                val pi = PendingIntent.getActivity(this, 1010, intent, flags)
-
-                                val manualSelectionView = AutofillViews
-                                    .buildPopupEntryManual(this)
-
-                                autofillStructure.items.forEach {
-                                    val autofillId = it.id
-                                    Log.e("SuggestionsTest", "autofill_id=$autofillId")
-                                    val builder = Dataset.Builder(manualSelectionView)
-
-                                    if (totalInlineSuggestionsMaxCount > 0 && canInlineSuggestions && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                        val inlinePresentation =
-                                            tryBuildManualSelectionInlinePresentation(
-                                                request,
-                                                index,
-                                                intent = intent,
-                                            )
-                                        inlinePresentation?.let {
-                                            builder.setInlinePresentation(it)
-                                        }
-                                        Log.e(
-                                            "SuggestionsTest",
-                                            "adding inline=$inlinePresentation",
-                                        )
-                                    }
-                                    builder.setValue(autofillId, null)
-                                    builder.setAuthentication(pi.intentSender)
-                                    responseBuilder.addDataset(builder.build())
-                                }
-                            }
-                        }
-                    }
-                    val shouldSaveRequest = prefSaveRequestFlow.first() &&
-                            !forceHideManualSelection
-                    if (shouldSaveRequest) {
-                        class SaveItem(
-                            val flag: Int,
-                            val item: AutofillStructure2.Item,
-                        )
-
-                        val items = mutableListOf<SaveItem>()
-                        autofillStructure.items
-                            .distinctBy { it.hint }
-                            .forEach { item ->
-                                val flag = when (item.hint) {
-                                    AutofillHint.PASSWORD -> SaveInfo.SAVE_DATA_TYPE_PASSWORD
-                                    AutofillHint.EMAIL_ADDRESS -> SaveInfo.SAVE_DATA_TYPE_EMAIL_ADDRESS
-                                    AutofillHint.USERNAME -> SaveInfo.SAVE_DATA_TYPE_USERNAME
-                                    else -> return@forEach
-                                }
-                                items += SaveItem(
-                                    flag = flag,
-                                    item = item,
-                                )
-                            }
-
-                        val hints = autofillStructure
-                            .items
-                            .asSequence()
-                            .map { it.hint }
-                            .toSet()
-                        val hintsIncludeUsername = AutofillHint.USERNAME in hints ||
-                                AutofillHint.NEW_USERNAME in hints ||
-                                AutofillHint.PHONE_NUMBER in hints ||
-                                AutofillHint.EMAIL_ADDRESS in hints
-                        val hintsIncludePassword = AutofillHint.PASSWORD in hints ||
-                                AutofillHint.NEW_PASSWORD in hints
-                        if (
-                            hintsIncludeUsername &&
-                            hintsIncludePassword &&
-                            items.isNotEmpty()
-                        ) {
-                            val saveInfoBuilder = SaveInfo.Builder(
-                                items.fold(0) { y, x -> y or x.flag },
-                                items
-                                    .map { it.item.id }
-                                    .toTypedArray(),
-                            )
-                            val saveInfo = saveInfoBuilder.build()
-                            responseBuilder.setSaveInfo(saveInfo)
-                        }
-                    }
-                    try {
-                        val response = responseBuilder
-                            .build()
-                        callback.onSuccess(response)
-                    } catch (e: Exception) {
-                        callback.onFailure("Failed to build response ${e.localizedMessage}")
-                    }
-                },
-            )
-            .dispatchOn(Dispatchers.Main)
+                val msg = e.message ?: "Something went wrong"
+                callback.onFailure(msg)
+            }
+            .dispatchOn(Dispatchers.Main.immediate)
             .launchIn(scope)
         cancellationSignal.setOnCancelListener {
             job.cancel()
         }
     }
 
-    private enum class FooBar {
+    private fun getAutofillStructureIo(
+        request: FillRequest,
+    ) = ioEffect {
+        val assistStructureLatest = request.fillContexts
+            .map { it.structure }
+            .lastOrNull()
+        if (assistStructureLatest == null) {
+            throw AbortAutofillException("No structures to fill.")
+        }
+
+        val respectAutofillOff = prefRespectAutofillOffFlow.first()
+        autofillStructureParser.parse(
+            assistStructureLatest,
+            respectAutofillOff,
+        )
+    }
+
+    private fun getSaveStructureIo(
+        request: SaveRequest,
+    ) = ioEffect {
+        val assistStructureLatest = request.fillContexts
+            .map { it.structure }
+            .lastOrNull()
+        if (assistStructureLatest == null) {
+            throw AbortAutofillException("No structures to save.")
+        }
+
+        val respectAutofillOff = prefRespectAutofillOffFlow.first()
+        autofillStructureParser.parse(
+            assistStructureLatest,
+            respectAutofillOff,
+        )
+    }
+
+    private fun getAutofillResponseIo(
+        request: FillRequest,
+        autofillStructure: AutofillStructure2,
+    ) = ciphersFlow
+        .toIO()
+        .effectMap(Dispatchers.Default) { state ->
+            val autofillTarget = autofillStructure.toAutofillTarget()
+            state.map { secrets ->
+                getSuggestions(
+                    secrets,
+                    Getter { it },
+                    autofillTarget,
+                ).bind().take(SUGGESTIONS_MAX_COUNT)
+            }
+        }
+        .effectMap { r ->
+            val shouldInlineSuggestions = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                    prefInlineSuggestionsFlow.toIO()
+                        .attempt().bind().isRight { it }
+
+            val forceHideManualSelection = kotlin.run {
+                val targetApplicationId = autofillStructure.applicationId
+                val keyguardApplicationId = packageName
+                targetApplicationId == keyguardApplicationId
+            }
+
+            // build a response
+            val responseBuilder = FillResponse.Builder()
+            when (r) {
+                is Either.Left -> {
+                    if (forceHideManualSelection) {
+                        throw AbortAutofillException("Can not autofill own app password.")
+                    }
+                    // Database is locked, create a generic
+                    // sign in with option.
+                    responseBuilder.buildAuthentication(
+                        type = AuthenticationType.UNLOCK,
+                        struct = autofillStructure,
+                        request = request,
+                        canInlineSuggestions = shouldInlineSuggestions,
+                    )
+                }
+
+                is Either.Right -> if (r.value.isEmpty()) {
+                    if (forceHideManualSelection) {
+                        throw AbortAutofillException("No match found.")
+                    }
+                    // No match found, create a generic option.
+                    responseBuilder.buildAuthentication(
+                        type = AuthenticationType.SELECT,
+                        struct = autofillStructure,
+                        request = request,
+                        canInlineSuggestions = shouldInlineSuggestions,
+                    )
+                } else {
+                    val manualSelection = prefManualSelectionFlow.toIO().bind() &&
+                            !forceHideManualSelection
+
+                    val totalInlineSuggestionsMaxCount = if (
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                        shouldInlineSuggestions
+                    ) {
+                        request.inlineSuggestionsRequest?.maxSuggestionCount
+                            ?: 0 // no suggestions allowed
+                    } else {
+                        0
+                    }
+                    val secretInlineSuggestionsMaxCount =
+                        if (manualSelection) totalInlineSuggestionsMaxCount - 1 else totalInlineSuggestionsMaxCount
+
+                    var index = 0
+                    r.value.forEach { secret ->
+                        var datasetHasInlinePresentation = false
+                        val dataset =
+                            tryBuildDataset(index, this, secret, autofillStructure) {
+                                if (index < secretInlineSuggestionsMaxCount) {
+                                    val inlinePresentation =
+                                        tryBuildSecretInlinePresentation(
+                                            request,
+                                            index,
+                                            secret,
+                                        )
+                                    if (inlinePresentation != null) {
+                                        setInlinePresentation(inlinePresentation)
+                                        datasetHasInlinePresentation = true
+                                    }
+                                }
+                            }
+                        if (dataset != null && (!shouldInlineSuggestions || datasetHasInlinePresentation)) {
+                            responseBuilder.addDataset(dataset)
+                            index += 1
+                        }
+                    }
+                    if (manualSelection) {
+                        val intent = AutofillActivity.getIntent(
+                            context = this@KeyguardAutofillService,
+                            args = AutofillActivity.Args(
+                                applicationId = autofillStructure.applicationId,
+                                webDomain = autofillStructure.webDomain,
+                                webScheme = autofillStructure.webScheme,
+                                autofillStructure2 = autofillStructure,
+                            ),
+                        )
+
+                        val flags =
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        val pi = PendingIntent.getActivity(this, 1010, intent, flags)
+
+                        val manualSelectionView = AutofillViews
+                            .buildPopupEntryManual(this)
+
+                        autofillStructure.items.forEach {
+                            val autofillId = it.id
+                            val builder = Dataset.Builder(manualSelectionView)
+
+                            if (totalInlineSuggestionsMaxCount > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val inlinePresentation =
+                                    tryBuildManualSelectionInlinePresentation(
+                                        request,
+                                        index,
+                                        intent = intent,
+                                    )
+                                inlinePresentation?.let {
+                                    builder.setInlinePresentation(it)
+                                }
+                            }
+                            builder.setValue(autofillId, null)
+                            builder.setAuthentication(pi.intentSender)
+                            responseBuilder.addDataset(builder.build())
+                        }
+                    }
+                }
+            }
+            val shouldSaveRequest = prefSaveRequestFlow.first() &&
+                    !forceHideManualSelection
+            if (shouldSaveRequest) {
+                class SaveItem(
+                    val flag: Int,
+                    val item: AutofillStructure2.Item,
+                )
+
+                val saveItems = mutableListOf<SaveItem>()
+                autofillStructure.items
+                    .distinctBy { it.hint }
+                    .forEach { item ->
+                        val flag = when (item.hint) {
+                            AutofillHint.PASSWORD -> SaveInfo.SAVE_DATA_TYPE_PASSWORD
+                            AutofillHint.EMAIL_ADDRESS -> SaveInfo.SAVE_DATA_TYPE_EMAIL_ADDRESS
+                            AutofillHint.USERNAME -> SaveInfo.SAVE_DATA_TYPE_USERNAME
+                            else -> return@forEach
+                        }
+                        saveItems += SaveItem(
+                            flag = flag,
+                            item = item,
+                        )
+                    }
+
+                val hints = autofillStructure
+                    .items
+                    .asSequence()
+                    .map { it.hint }
+                    .toSet()
+                val hintsIncludeUsername = AutofillHint.USERNAME in hints ||
+                        AutofillHint.NEW_USERNAME in hints ||
+                        AutofillHint.PHONE_NUMBER in hints ||
+                        AutofillHint.EMAIL_ADDRESS in hints
+                val hintsIncludePassword = AutofillHint.PASSWORD in hints ||
+                        AutofillHint.NEW_PASSWORD in hints
+                if (
+                    hintsIncludeUsername &&
+                    hintsIncludePassword &&
+                    saveItems.isNotEmpty()
+                ) {
+                    val saveInfoBuilder = SaveInfo.Builder(
+                        saveItems.fold(0) { y, x -> y or x.flag },
+                        saveItems
+                            .map { it.item.id }
+                            .toTypedArray(),
+                    )
+                    val saveInfo = saveInfoBuilder.build()
+                    responseBuilder.setSaveInfo(saveInfo)
+                }
+            }
+            responseBuilder
+                .build()
+        }
+
+    private fun AutofillStructure2.toAutofillTarget(
+    ) = AutofillTarget(
+        links = listOfNotNull(
+            // application id
+            applicationId?.let {
+                LinkInfoPlatform.Android(
+                    packageName = it,
+                )
+            },
+            // website
+            webDomain?.let {
+                val schema = webScheme ?: "https"
+                val url = Url("$schema://$it")
+                LinkInfoPlatform.Web(
+                    url = url,
+                    frontPageUrl = url,
+                )
+            },
+        ),
+        hints = items.map { it.hint },
+        maxCount = SUGGESTIONS_MAX_COUNT,
+    )
+
+    private enum class AuthenticationType {
         UNLOCK,
         SELECT,
     }
 
     private suspend fun FillResponse.Builder.buildAuthentication(
-        type: FooBar,
-        result2: AutofillStructure2,
+        type: AuthenticationType,
+        struct: AutofillStructure2,
         request: FillRequest,
         canInlineSuggestions: Boolean,
     ) {
-        val remoteViewsUnlock: RemoteViews = when (type) {
-            FooBar.UNLOCK -> AutofillViews.buildPopupKeyguardUnlock(
+        val remoteViews: RemoteViews = when (type) {
+            AuthenticationType.UNLOCK -> AutofillViews.buildPopupKeyguardUnlock(
                 this@KeyguardAutofillService,
-                result2.webDomain,
-                result2.applicationId,
+                struct.webDomain,
+                struct.applicationId,
             )
 
-            FooBar.SELECT -> AutofillViews.buildPopupKeyguardOpen(
+            AuthenticationType.SELECT -> AutofillViews.buildPopupKeyguardOpen(
                 this@KeyguardAutofillService,
-                result2.webDomain,
-                result2.applicationId,
+                struct.webDomain,
+                struct.applicationId,
             )
         }
 
-        result2.items.forEach {
-            val autofillId = it.id
-            val authIntent = AutofillActivity.getIntent(
-                context = this@KeyguardAutofillService,
-                args = AutofillActivity.Args(
-                    applicationId = result2.applicationId,
-                    webDomain = result2.webDomain,
-                    webScheme = result2.webScheme,
-                    autofillStructure2 = result2,
-                ),
-            )
-            val intentSender: IntentSender = PendingIntent.getActivity(
-                this@KeyguardAutofillService,
-                1001,
-                authIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-            ).intentSender
+        val authIntent = AutofillActivity.getIntent(
+            context = this@KeyguardAutofillService,
+            args = AutofillActivity.Args(
+                applicationId = struct.applicationId,
+                webDomain = struct.webDomain,
+                webScheme = struct.webScheme,
+                autofillStructure2 = struct,
+            ),
+        )
+        val authIntentSender = PendingIntent.getActivity(
+            this@KeyguardAutofillService,
+            1001,
+            authIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        ).intentSender
 
-            val builder = Dataset.Builder(remoteViewsUnlock)
+        struct.items.forEach { item ->
+            val builder = Dataset.Builder(remoteViews)
             if (canInlineSuggestions && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val inlinePresentation =
                     tryCreateAuthenticationInlinePresentation(
@@ -460,13 +489,9 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 inlinePresentation?.let {
                     builder.setInlinePresentation(it)
                 }
-                Log.e(
-                    "SuggestionsTest",
-                    "adding inline=$inlinePresentation",
-                )
             }
-            builder.setValue(autofillId, null)
-            builder.setAuthentication(intentSender)
+            builder.setValue(item.id, null)
+            builder.setAuthentication(authIntentSender)
             addDataset(builder.build())
         }
     }
@@ -620,7 +645,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             PendingIntent.getActivity(this, 1010, intent, flags)
         },
         content = {
-            val title = org.jetbrains.compose.resources.getString(Res.string.autofill_open_keyguard)
+            val title = getString(Res.string.autofill_open_keyguard)
             setContentDescription(title)
             setTitle(title)
             setStartIcon(createAppIcon())
@@ -630,7 +655,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
     @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.R)
     private suspend fun tryCreateAuthenticationInlinePresentation(
-        type: FooBar,
+        type: AuthenticationType,
         request: FillRequest,
         index: Int,
         intent: Intent,
@@ -643,8 +668,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         },
         content = {
             val text = when (type) {
-                FooBar.UNLOCK -> org.jetbrains.compose.resources.getString(Res.string.autofill_unlock_keyguard)
-                FooBar.SELECT -> org.jetbrains.compose.resources.getString(Res.string.autofill_open_keyguard)
+                AuthenticationType.UNLOCK -> getString(Res.string.autofill_unlock_keyguard)
+                AuthenticationType.SELECT -> getString(Res.string.autofill_open_keyguard)
             }
             setContentDescription(text)
             setTitle(text)
@@ -689,26 +714,49 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         }
 
     override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
-        val autofillStructure = kotlin.runCatching {
-            val structureLatest = request.fillContexts
-                .map { it.structure }
-                .lastOrNull()
-            // If the structure is missing, then abort auto-filling
-            // process.
-                ?: throw IllegalStateException("No structures to fill.")
+        getSaveStructureIo(request)
+            .flatMap { autofillStructure ->
+                if (autofillStructure.items.isEmpty()) {
+                    throw AbortAutofillException("Nothing to autofill.")
+                }
 
-            val respectAutofillOff = prefRespectAutofillOffFlow.toIO().bindBlocking()
-            autofillStructureParser.parse(
-                structureLatest,
-                respectAutofillOff,
-            )
-        }.fold(
-            onSuccess = ::identity,
-            onFailure = {
-                callback.onFailure("Failed to parse structures: ${it.message}")
-                return
-            },
-        )
+                getSaveResponseIo(
+                    request = request,
+                    autofillStructure = autofillStructure,
+                )
+            }
+            .effectTap { intent ->
+                if (Build.VERSION.SDK_INT >= 28) {
+                    val flags =
+                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
+                    val pi = PendingIntent.getActivity(this, 10120, intent, flags)
+                    callback.onSuccess(pi.intentSender)
+                } else {
+                    try {
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        callback.onFailure(e.message)
+                        return@effectTap
+                    }
+                    callback.onSuccess()
+                }
+            }
+            .handleError { e ->
+                logRepository.postDebug(TAG) {
+                    "Save request: aborted because '$e'"
+                }
+
+                val msg = e.message ?: "Something went wrong"
+                callback.onFailure(msg)
+            }
+            .dispatchOn(Dispatchers.Main.immediate)
+            .launchIn(scope)
+    }
+
+    private fun getSaveResponseIo(
+        request: SaveRequest,
+        autofillStructure: AutofillStructure2,
+    ) = ioEffect {
         val hints = autofillStructure
             .items
             .asSequence()
@@ -724,11 +772,10 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             !hintsIncludeUsername ||
             !hintsIncludePassword
         ) {
-            callback.onFailure("Can only save login data.")
-            return
+            throw AbortAutofillException("Can only save login data.")
         }
 
-        val intent = AutofillSaveActivity.getIntent(
+        AutofillSaveActivity.getIntent(
             context = this@KeyguardAutofillService,
             args = AutofillSaveActivity.Args(
                 applicationId = autofillStructure.applicationId,
@@ -737,24 +784,13 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 autofillStructure2 = autofillStructure,
             ),
         )
-        if (Build.VERSION.SDK_INT >= 28) {
-            val flags =
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
-            val pi = PendingIntent.getActivity(this, 10120, intent, flags)
-            callback.onSuccess(pi.intentSender)
-        } else {
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                callback.onFailure(e.message)
-                return
-            }
-            callback.onSuccess()
-        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
     }
+
+    private suspend fun getString(res: StringResource) =
+        org.jetbrains.compose.resources.getString(res)
 }

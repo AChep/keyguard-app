@@ -996,6 +996,7 @@
     <string name="pref_item_premium_membership_title">Giới thiệu về tư cách thành viên Keyguard</string>
     <string name="pref_item_premium_membership_text">Cao cấp mở khóa các tính năng bổ sung và tài trợ cho việc phát triển ứng dụng. Cảm ơn bạn đã ủng hộ chúng tôi! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Gói đăng ký</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
     <string name="pref_item_premium_membership_section_products_title">Các sản phẩm</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Không tải được một danh sách đăng ký</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Không tải được một danh sách sản phẩm</string>

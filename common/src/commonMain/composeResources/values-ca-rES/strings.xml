@@ -704,9 +704,9 @@
     <string name="sortby_modification_date_title">Data de modificació</string>
     <string name="sortby_modification_date_normal_mode">Els més nous primer</string>
     <string name="sortby_modification_date_reverse_mode">Els més antics primer</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
-    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Data d'instal·lació</string>
+    <string name="sortby_installation_date_normal_mode">Primer les més recents</string>
+    <string name="sortby_installation_date_reverse_mode">Primer els més antics</string>
     <string name="sortby_expiration_date_title">Data de caducitat</string>
     <string name="sortby_expiration_date_normal_mode">Els més nous primer</string>
     <string name="sortby_expiration_date_reverse_mode">Els més antics primer</string>
@@ -996,6 +996,7 @@
     <string name="pref_item_premium_membership_title">Sobre la subscripció de Keyguard</string>
     <string name="pref_item_premium_membership_text">El Prèmium desbloqueja funcions extra i finança el desenvolupament de l'app. Gràcies per donar-nos suport! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Subscripcions</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
     <string name="pref_item_premium_membership_section_products_title">Productes</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">No s'han pogut carregar les subscripcions</string>
     <string name="pref_item_premium_membership_failed_to_load_products">No s'han pogut carregar els productes</string>

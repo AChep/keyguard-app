@@ -996,6 +996,7 @@
     <string name="pref_item_premium_membership_title">About Keyguard membership</string>
     <string name="pref_item_premium_membership_text">The Premium unlocks extra features and funds a development of the app. Thank you for supporting us! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Subscriptions</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
     <string name="pref_item_premium_membership_section_products_title">Products</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Failed to load a list of subscriptions</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Failed to load a list of products</string>

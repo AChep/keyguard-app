@@ -996,6 +996,7 @@
     <string name="pref_item_premium_membership_title">Sobre a assinatura do Keyguard Premium</string>
     <string name="pref_item_premium_membership_text">O Premium desbloqueia recursos extras e financia o desenvolvimento do aplicativo. Obrigado por nos apoiar! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Assinaturas</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
     <string name="pref_item_premium_membership_section_products_title">Produtos</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Falha ao carregar uma lista de assinaturas</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Falha ao carregar uma lista de produtos</string>

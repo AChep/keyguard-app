@@ -18,7 +18,7 @@
     <string name="app_password">App-Passwort</string>
     <string name="current_password">Aktuelles Passwort</string>
     <string name="new_password">Neues Passwort</string>
-    <string name="no_password">No password</string>
+    <string name="no_password">Kein Passwort</string>
     <string name="email">E-Mail</string>
     <string name="email_verified">Verifiziert</string>
     <string name="email_not_verified">Nicht verifiziert</string>
@@ -239,7 +239,7 @@
     <string name="account_log_out_confirmation_text">Alle nicht synchronisierten Änderungen gehen verloren!</string>
     <string name="folder_action_change_name_title">Name ändern</string>
     <string name="folder_action_change_names_title">Namen ändern</string>
-    <string name="folder_action_merge_title">Merge into…</string>
+    <string name="folder_action_merge_title">Zusammenführen…</string>
     <string name="folder_delete_one_confirmation_title">Ordner löschen?</string>
     <string name="folder_delete_many_confirmation_title">Ordner löschen?</string>
     <string name="folder_delete_confirmation_text">Diese Elemente werden sofort gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.</string>
@@ -298,7 +298,7 @@
     <string name="file_action_send_with_title">Mit… senden</string>
     <string name="file_action_open_in_file_manager_title">Im Dateimanager öffnen</string>
     <string name="file_action_delete_local_title">Lokale Datei löschen</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
+    <string name="file_action_delete_local_many_title">Lokale Dateien löschen</string>
     <string name="file_action_view_cipher_title">Übergeordnetes Element anzeigen</string>
     <string name="vault_action_always_show_keyboard_title">Tastatur immer anzeigen</string>
     <string name="vault_action_sync_vault_title">Tresor synchronisieren</string>
@@ -704,9 +704,9 @@
     <string name="sortby_modification_date_title">Änderungsdatum</string>
     <string name="sortby_modification_date_normal_mode">Neuste zuerst</string>
     <string name="sortby_modification_date_reverse_mode">Älteste zuerst</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
-    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Installationsdatum</string>
+    <string name="sortby_installation_date_normal_mode">Neueste zuerst</string>
+    <string name="sortby_installation_date_reverse_mode">Älteste zuerst</string>
     <string name="sortby_expiration_date_title">Verfallsdatum</string>
     <string name="sortby_expiration_date_normal_mode">Neuste zuerst</string>
     <string name="sortby_expiration_date_reverse_mode">Älteste zuerst</string>
@@ -806,8 +806,8 @@
     <string name="watchtower_section_password_strength_label">Passwortstärke</string>
     <string name="watchtower_section_security_label">Sicherheit</string>
     <string name="watchtower_section_maintenance_label">Wartung</string>
-    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
-    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
+    <string name="watchtower_item_new_alerts_title">Neue Warnungen überprüfen</string>
+    <string name="watchtower_item_weak_passwords_title">Schwache Passwörter</string>
     <string name="watchtower_item_pwned_passwords_title">Aufgedeckte Passwörter</string>
     <string name="watchtower_item_pwned_passwords_text">Bei Datenlecks aufgedeckte Passwörter sollten unverzüglich geändert werden.</string>
     <string name="watchtower_item_reused_passwords_title">Wiederverwendete Passwörter</string>
@@ -834,8 +834,8 @@
     <string name="watchtower_item_duplicate_items_text">Hilft dabei, identische Elemente in deinem Tresor zu identifizieren und zu entfernen.</string>
     <string name="watchtower_item_compromised_accounts_title">Komprimierte Konten</string>
     <string name="watchtower_item_compromised_accounts_text">Datenlecks nach Nutzernamen oder E-Mail-Adressen überprüfen.</string>
-    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
-    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
+    <string name="watchtower_alerts_header_title">Neue Wachturm Alarme</string>
+    <string name="watchtower_mark_all_as_read_title">Alle als gelesen markieren</string>
     <string name="changepassword_header_title">App-Passwort ändern</string>
     <string name="changepassword_change_password_button">Passwort ändern</string>
     <string name="changepassword_biometric_auth_checkbox">Biometrische Authentifizierung</string>
@@ -996,6 +996,7 @@
     <string name="pref_item_premium_membership_title">Über Keyguard Mitgliedschaft</string>
     <string name="pref_item_premium_membership_text">Das Premium entsperrt zusätzliche Funktionen und finanziert eine Entwicklung der App. Vielen Dank für Ihre Unterstützung! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonnements</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
     <string name="pref_item_premium_membership_section_products_title">Produkte</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Fehler beim Laden einer Liste von Abonnements</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Fehler beim Laden einer Liste von Produkten</string>

@@ -47,10 +47,12 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatSimpleNote
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -165,6 +167,15 @@ private fun SettingSubscriptions(
                     )
                 }
             },
+        )
+        Text(
+            stringResource(Res.string.pref_item_premium_membership_section_subscriptions_note),
+            modifier = Modifier
+                .padding(top = 16.dp)
+                .padding(horizontal = Dimens.horizontalPadding),
+            style = MaterialTheme.typography.bodyMedium,
+            color = LocalContentColor.current
+                .combineAlpha(MediumEmphasisAlpha),
         )
         Section(text = stringResource(Res.string.pref_item_premium_membership_section_products_title))
         loadableProducts.fold(

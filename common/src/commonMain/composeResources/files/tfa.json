@@ -1516,6 +1516,18 @@
     "name": "Betvictor"
   },
   {
+    "domain": "beyondbank.com.au",
+    "tfa": [
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Symantec VIP"
+    ],
+    "documentation": "https://www.beyondbank.com.au/need-help/how-do-i-register-for-secure-sms-on-internet-banking",
+    "name": "Beyond Bank"
+  },
+  {
     "domain": "bglcorp.com",
     "tfa": [
       "sms",
@@ -7144,6 +7156,14 @@
     "name": "HubSpot"
   },
   {
+    "domain": "huggingface.co",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://huggingface.co/docs/hub/en/security-2fa",
+    "name": "HuggingFace"
+  },
+  {
     "domain": "huk.de",
     "tfa": [
       "sms",
@@ -8363,6 +8383,14 @@
     ],
     "documentation": "https://kb.leaseweb.com/customer-portal-api/account-management/managing-your-account/setup-two-factor-authentication",
     "name": "Leaseweb"
+  },
+  {
+    "domain": "leboncoin.fr",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Leboncoin"
   },
   {
     "domain": "lego.com",
@@ -11176,6 +11204,14 @@
     "name": "Patelco Credit Union"
   },
   {
+    "domain": "patientaccess.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.patientaccess.com/signing-in/sign-in-or-register-using-two-factor-authentication",
+    "name": "Patient Access"
+  },
+  {
     "domain": "patreon.com",
     "url": "https://www.patreon.com/",
     "tfa": [
@@ -12246,6 +12282,17 @@
     "name": "Quora"
   },
   {
+    "domain": "rabobank.com.au",
+    "tfa": [
+      "custom-hardware"
+    ],
+    "custom-hardware": [
+      "Digipass"
+    ],
+    "documentation": "https://www.rabobank.com.au/help-and-support/digipass#how-to-set-up-your-digipass-for-the-first-time",
+    "name": "Rabobank [AU]"
+  },
+  {
     "domain": "rabobank.nl",
     "tfa": [
       "custom-hardware"
@@ -12254,7 +12301,7 @@
       "Rabo Scanner"
     ],
     "documentation": "https://www.rabobank.nl/bedrijven/betalen/zelf-betalingen-doen/rabo-scanner/",
-    "name": "Rabobank"
+    "name": "Rabobank [NL]"
   },
   {
     "domain": "rackspace.com",

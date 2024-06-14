@@ -178,7 +178,8 @@
       "99app.com"
     ],
     "url": "https://99app.com/ajuda/passageiro/como-excluir-minha-conta/",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "notes": "This must be done via the app: Settings \u2b95 Privacy \u2b95 Delete My Account. You must not have any associated pix key or value in your 99pay wallet."
   },
   {
     "name": "99designs",
@@ -12512,6 +12513,15 @@
     "notes": "Contact the customer support using the contact form and request the deletion of your account."
   },
   {
+    "name": "O\u00f9ra - Auvergne-Rh\u00f4ne-Alpes",
+    "domains": [
+      "oura.com"
+    ],
+    "url": "https://oura.com/contact-et-reclamation",
+    "difficulty": "hard",
+    "notes": "You have to send a request via the contact page with your account information. You will recieve an email a few days after asking for your birth date to prove it's your account. Give them and they will delete your account a few days later."
+  },
+  {
     "name": "Packagist",
     "domains": [
       "packagist.org"
@@ -15267,6 +15277,20 @@
     "url": "https://support.snapfish.com/hc/en-us/articles/360008146353-Delete-your-account",
     "difficulty": "hard",
     "notes": "You need to open a request with customer service to delete your account."
+  },
+  {
+    "name": "SNCF",
+    "domains": [
+      "sncf.com",
+      "sncf-voyageurs.com",
+      "sncf-connect.com",
+      "tgvinoui.sncf",
+      "ouigo.com",
+      "monidentifiant.sncf"
+    ],
+    "url": "https://www.sncf-connect.com/aide/mon-identifiant-sncf",
+    "difficulty": "easy",
+    "notes": "Once logged into your customer account, you can take the request by clicking \"delete my account\", in the bottom of your homepage, then follow the instructions."
   },
   {
     "name": "Snov.io",
@@ -18415,7 +18439,7 @@
     "domains": [
       "whatsapp.com"
     ],
-    "url": "https://www.whatsapp.com/faq/search/?q=how%20do%20I%20delete%20my%20account?&p=desktop",
+    "url": "https://faq.whatsapp.com/2138577903196467/",
     "difficulty": "medium",
     "notes": "From the app: Settings \u2b95 Account \u2b95 Delete your account."
   },
@@ -18429,6 +18453,15 @@
     "notes": "Require your membership number to be sent in the email. This can be found [here](https://www.which.co.uk/account/#/)",
     "email": "which@which.co.uk",
     "email_body": "My membership number is XXXXXX"
+  },
+  {
+    "name": "Whimsical",
+    "domains": [
+      "whimsical.com"
+    ],
+    "url": "https://whimsical.com/account",
+    "difficulty": "easy",
+    "notes": "You will need to enter your e-mail address and then confirm by re-authenticating."
   },
   {
     "name": "Whirlpool",
@@ -18457,6 +18490,15 @@
     "url": "https://www.whosay.com/settings",
     "difficulty": "easy",
     "notes": "Just click 'Deactivate'."
+  },
+  {
+    "name": "Wifi Map",
+    "domains": [
+      "wifimap.io"
+    ],
+    "url": "https://www.wifimap.io/accountDeleting",
+    "difficulty": "easy",
+    "notes": "Follow the link, log in, choose a reason (optional), then click on Delete account."
   },
   {
     "name": "Wikidot",

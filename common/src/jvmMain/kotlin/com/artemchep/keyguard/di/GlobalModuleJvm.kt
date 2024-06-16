@@ -27,7 +27,10 @@ import com.artemchep.keyguard.common.service.justgetmydata.impl.JustGetMyDataSer
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.license.LicenseService
 import com.artemchep.keyguard.common.service.license.impl.LicenseServiceImpl
+import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepository
+import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepositoryImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.impl.PassKeyServiceImpl
 import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
@@ -103,7 +106,6 @@ import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
-import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
@@ -124,6 +126,8 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.GetGravatar
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
+import com.artemchep.keyguard.common.usecase.GetInMemoryLogs
+import com.artemchep.keyguard.common.usecase.GetInMemoryLogsEnabled
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
 import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
 import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
@@ -184,6 +188,7 @@ import com.artemchep.keyguard.common.usecase.PutDebugPremium
 import com.artemchep.keyguard.common.usecase.PutDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.PutFont
 import com.artemchep.keyguard.common.usecase.PutGravatar
+import com.artemchep.keyguard.common.usecase.PutInMemoryLogsEnabled
 import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutMarkdown
 import com.artemchep.keyguard.common.usecase.PutNavAnimation
@@ -235,7 +240,6 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveUriImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricRequireConfirmationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutVariantsImpl
-import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCachePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanWriteImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPasskeysImpl
@@ -256,6 +260,8 @@ import com.artemchep.keyguard.common.usecase.impl.GetFontImpl
 import com.artemchep.keyguard.common.usecase.impl.GetFontVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGravatarImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGravatarUrlImpl
+import com.artemchep.keyguard.common.usecase.impl.GetInMemoryLogsEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.GetInMemoryLogsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetJustDeleteMeByUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetJustGetMyDataByUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetKeepScreenOnImpl
@@ -313,6 +319,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutDebugPremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugScreenDelayImpl
 import com.artemchep.keyguard.common.usecase.impl.PutFontImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGravatarImpl
+import com.artemchep.keyguard.common.usecase.impl.PutInMemoryLogsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutKeepScreenOnImpl
 import com.artemchep.keyguard.common.usecase.impl.PutMarkdownImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavAnimationImpl
@@ -335,10 +342,6 @@ import com.artemchep.keyguard.common.usecase.impl.RemoveAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.RequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
-import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
-import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
-import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
-import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
 import com.artemchep.keyguard.common.usecase.impl.WindowCoroutineScopeImpl
 import com.artemchep.keyguard.copy.Base32ServiceJvm
@@ -912,6 +915,31 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutGravatar> {
         PutGravatarImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetInMemoryLogsEnabled> {
+        GetInMemoryLogsEnabledImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetInMemoryLogs> {
+        GetInMemoryLogsImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutInMemoryLogsEnabled> {
+        PutInMemoryLogsEnabledImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<InMemoryLogRepository> {
+        InMemoryLogRepositoryImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<LogRepository> {
+        LogRepositoryBridge(
             directDI = this,
         )
     }

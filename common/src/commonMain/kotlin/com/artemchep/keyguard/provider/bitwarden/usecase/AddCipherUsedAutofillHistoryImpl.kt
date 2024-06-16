@@ -10,12 +10,16 @@ import org.kodein.di.instance
 class AddCipherUsedAutofillHistoryImpl(
     private val db: DatabaseManager,
 ) : AddCipherUsedAutofillHistory {
+    companion object {
+        private const val TAG = "AddCipherUsedAutofill"
+    }
+
     constructor(directDI: DirectDI) : this(
         db = directDI.instance(),
     )
 
     override fun invoke(request: AddCipherOpenedHistoryRequest) = db
-        .mutate {
+        .mutate(TAG) {
             it.cipherUsageHistoryQueries.insert(
                 cipherId = request.cipherId,
                 credentialId = null,

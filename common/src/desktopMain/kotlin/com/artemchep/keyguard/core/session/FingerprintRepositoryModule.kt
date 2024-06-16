@@ -309,7 +309,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
         val m: KeyValueStore = instance(arg = file)
         m
     }
-    bindSingleton<LogRepository> {
+    bindSingleton<LogRepositoryKotlin> {
         LogRepositoryKotlin()
     }
 }

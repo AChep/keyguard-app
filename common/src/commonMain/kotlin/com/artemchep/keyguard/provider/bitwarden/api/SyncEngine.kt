@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.api
 
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -118,11 +119,15 @@ class SyncEngine(
         )
     }
 
+    context(SyncScope)
     suspend fun sync() = kotlin.run {
         val env = user.env.back()
         val api = env.api
         val token = requireNotNull(user.token).accessToken
 
+        post(
+            title = "Send send request.",
+        )
         val response = api.sync(
             httpClient = httpClient,
             env = env,
@@ -283,6 +288,10 @@ class SyncEngine(
         // Profile
         //
 
+        post(
+            title = "Syncing a profile entity.",
+        )
+
         val newProfile = BitwardenProfile
             .encrypted(
                 accountId = user.id,
@@ -344,6 +353,10 @@ class SyncEngine(
                 )
                 .transform(this)
         }
+
+        post(
+            title = "Syncing folder entities.",
+        )
 
         val folderDao = db.folderQueries
         val folderRemoteLens = SyncManager.Lens<FolderEntity>(
@@ -476,7 +489,7 @@ class SyncEngine(
                     )
             },
             onLog = { msg, logLevel ->
-                logRepository.post(TAG, "[SyncFolder] $msg", logLevel)
+                logRepository.add(TAG, msg, logLevel)
             },
         )
 
@@ -534,6 +547,10 @@ class SyncEngine(
                 )
                 .transform(this, codec2)
         }
+
+        post(
+            title = "Syncing cipher entities.",
+        )
 
         val cipherDao = db.cipherQueries
         val cipherRemoteLens = SyncManager.Lens<CipherEntity>(
@@ -806,7 +823,7 @@ class SyncEngine(
                     }
             },
             onLog = { msg, logLevel ->
-                logRepository.post(TAG, msg, logLevel)
+                logRepository.add(TAG, msg, logLevel)
             },
         )
 
@@ -824,6 +841,10 @@ class SyncEngine(
                 )
                 .transform(this)
         }
+
+        post(
+            title = "Syncing collection entities.",
+        )
 
         val collectionDao = db.collectionQueries
         val collectionRemoteLens = SyncManager.Lens<CollectionEntity>(
@@ -915,7 +936,7 @@ class SyncEngine(
                 TODO()
             },
             onLog = { msg, logLevel ->
-                logRepository.post(TAG, msg, logLevel)
+                logRepository.add(TAG, msg, logLevel)
             },
         )
 
@@ -933,6 +954,10 @@ class SyncEngine(
                 )
                 .transform(this)
         }
+
+        post(
+            title = "Syncing organization entities.",
+        )
 
         val organizationDao = db.organizationQueries
         val organizationRemoteLens = SyncManager.Lens<OrganizationEntity>(
@@ -1020,7 +1045,7 @@ class SyncEngine(
                 TODO()
             },
             onLog = { msg, logLevel ->
-                logRepository.post(TAG, msg, logLevel)
+                logRepository.add(TAG, msg, logLevel)
             },
         )
 
@@ -1043,6 +1068,10 @@ class SyncEngine(
                 )
                 .transform(this, codec2)
         }
+
+        post(
+            title = "Syncing send entities.",
+        )
 
         val sendDao = db.sendQueries
         val sendRemoteLens = SyncManager.Lens<SyncSends>(
@@ -1217,8 +1246,12 @@ class SyncEngine(
                     )
             },
             onLog = { msg, logLevel ->
-                logRepository.post(TAG, msg, logLevel)
+                logRepository.add(TAG, msg, logLevel)
             },
+        )
+
+        post(
+            title = "Syncing complete.",
         )
 
         Unit

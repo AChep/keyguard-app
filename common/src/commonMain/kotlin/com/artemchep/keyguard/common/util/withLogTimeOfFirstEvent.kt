@@ -28,7 +28,7 @@ inline fun <T> Flow<T>.withLogTimeOfFirstEvent(
                     } else {
                         ""
                     }
-                    "It took ${dt}ms. to load first portion of data. $suffix"
+                    "It took ${dt}. to load first portion of data. $suffix"
                 }
             }
         },

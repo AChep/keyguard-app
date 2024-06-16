@@ -1,27 +1,21 @@
 package com.artemchep.keyguard.copy
 
 import android.util.Log
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
-import kotlinx.coroutines.GlobalScope
+import com.artemchep.keyguard.common.service.logging.LogRepositoryChild
 
-class LogRepositoryAndroid() : LogRepository {
-    override fun post(
+class LogRepositoryAndroid(
+) : LogRepositoryChild {
+    override suspend fun add(
         tag: String,
         message: String,
         level: LogLevel,
     ) {
-        add(tag, message, level).attempt().launchIn(GlobalScope)
-    }
-
-    override fun add(
-        tag: String,
-        message: String,
-        level: LogLevel,
-    ) = ioEffect {
-        Log.d(tag, message)
+        when (level) {
+            LogLevel.DEBUG -> Log.d(tag, message)
+            LogLevel.INFO -> Log.i(tag, message)
+            LogLevel.WARNING -> Log.w(tag, message)
+            LogLevel.ERROR -> Log.e(tag, message)
+        }
     }
 }

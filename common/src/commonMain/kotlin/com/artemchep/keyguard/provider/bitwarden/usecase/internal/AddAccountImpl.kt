@@ -112,7 +112,7 @@ class AddAccountImpl(
             ),
         )
 
-        db.mutate { database ->
+        db.mutate(TAG) { database ->
             database.accountQueries.insert(
                 accountId = token.id,
                 data = token,

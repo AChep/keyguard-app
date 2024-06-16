@@ -1023,6 +1023,7 @@
     <string name="pref_item_allow_screenshots_text_on">Show the content of the app when switching between recent apps and allow capturing a screen</string>
     <string name="pref_item_allow_screenshots_text_off">Hide the content of the app when switching between recent apps and forbid capturing a screen</string>
     <string name="pref_item_data_safety_title">Data safety</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Lock vault</string>
     <string name="pref_item_lock_vault_after_reboot_title">Lock after a reboot</string>
     <string name="pref_item_lock_vault_after_reboot_text">Lock the vault after a device reboot</string>
@@ -1149,5 +1150,11 @@
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
+
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 
 </resources>

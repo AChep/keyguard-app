@@ -125,7 +125,7 @@ suspend fun getAndUpdateUserToken(
         throw IllegalStateException("Help")
     }
 
-    val newUser = db.mutate {
+    val newUser = db.mutate("RefreshToken") {
         it.accountQueries
             .getByAccountId(user.id)
             .executeAsOneOrNull()
@@ -149,7 +149,7 @@ suspend fun getAndUpdateUserToken(
         expirationDate = login.accessTokenExpiryDate,
     )
     val u = user.copy(token = token)
-    db.mutate {
+    db.mutate("RefreshToken") {
         it.accountQueries.insert(
             accountId = u.id,
             data = u,

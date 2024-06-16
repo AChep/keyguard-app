@@ -68,6 +68,7 @@ import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.ExportAccount
+import com.artemchep.keyguard.common.usecase.ExportLogs
 import com.artemchep.keyguard.common.usecase.FavouriteCipherById
 import com.artemchep.keyguard.common.usecase.GetAccountHasError
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
@@ -198,6 +199,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlAutoFi
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CopyCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ExportAccountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.ExportLogsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.FavouriteCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetAccountHasErrorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetAccountsHasErrorImpl
@@ -534,6 +536,9 @@ fun DI.Builder.createSubDi2(
     bindSingleton<ExportAccount> {
         ExportAccountImpl(this)
     }
+    bindSingleton<ExportLogs> {
+        ExportLogsImpl(this)
+    }
     bindSingleton<PutAccountColorById> {
         PutAccountColorByIdImpl(this)
     }
@@ -683,7 +688,7 @@ fun DI.Builder.createSubDi2(
         SyncByTokenImpl(this)
     }
     bindSingleton<WatchdogImpl> {
-        WatchdogImpl()
+        WatchdogImpl(this)
     }
     bindSingleton<Watchdog> {
         instance<WatchdogImpl>()

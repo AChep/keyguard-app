@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.unit
 import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -46,7 +47,7 @@ class RemoveAccountByIdImpl(
     private fun performRemoveAccount(
         accountId: AccountId,
     ) = db
-        .mutate { database ->
+        .mutate(TAG) { database ->
             val dao = database.accountQueries
             dao.deleteByAccountId(accountId.id)
         }

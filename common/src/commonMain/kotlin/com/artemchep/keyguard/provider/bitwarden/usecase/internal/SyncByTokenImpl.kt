@@ -9,6 +9,8 @@ import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
+import com.artemchep.keyguard.common.model.SyncProgress
+import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -70,6 +72,14 @@ class SyncByTokenImpl(
             accountId = AccountId(user.id),
             accountTask = AccountTask.SYNC,
         ) {
+            val scope = object : SyncScope {
+                override suspend fun post(
+                    title: String,
+                    progress: SyncProgress.Progress?,
+                ) {
+                    logRepository.add(TAG, title)
+                }
+            }
             // We want to automatically request a new access token if the old
             // one has expired.
             withRefreshableAccessToken(
@@ -92,7 +102,9 @@ class SyncByTokenImpl(
                     syncer = dbSyncer,
                 )
                 mutex.withLock {
-                    syncEngine.sync()
+                    with(scope) {
+                        syncEngine.sync()
+                    }
                 }
 //                sss(
 //                    logRepository = logRepository,
@@ -107,7 +119,7 @@ class SyncByTokenImpl(
         }
         .biFlatTap(
             ifException = { e ->
-                db.mutate {
+                db.mutate(TAG) {
                     val dao = it.metaQueries
                     val existingMeta = dao
                         .getByAccountId(accountId = user.id)
@@ -143,7 +155,7 @@ class SyncByTokenImpl(
                 }
             },
             ifSuccess = {
-                db.mutate {
+                db.mutate(TAG) {
                     val now = Clock.System.now()
                     val meta = BitwardenMeta(
                         accountId = user.id,

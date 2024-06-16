@@ -53,7 +53,7 @@ class ModifyDatabase(
     operator fun <T> invoke(
         block: suspend (Database) -> Result<T>,
     ): IO<T> = db
-        .mutate { database ->
+        .mutate("ModifyDatabase") { database ->
             val accountIds = block(database)
             accountIds
         }

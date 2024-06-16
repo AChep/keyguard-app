@@ -63,6 +63,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenO
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
 import com.artemchep.keyguard.feature.home.settings.component.settingLocalizationProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMasterPasswordProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavAnimationProvider
@@ -167,6 +168,7 @@ object Setting {
     const val LAUNCH_APP_PICKER = "launch_app_picker"
     const val LAUNCH_YUBIKEY = "launch_yubikey"
     const val DATA_SAFETY = "data_safety"
+    const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
     const val RATE_APP = "rate_app"
@@ -253,6 +255,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LAUNCH_YUBIKEY to ::settingLaunchYubiKey,
     Setting.LAUNCH_APP_PICKER to ::settingLaunchAppPicker,
     Setting.DATA_SAFETY to ::settingDataSafetyProvider,
+    Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.RATE_APP to ::settingRateAppProvider,

@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
+import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -107,6 +108,7 @@ interface RemotePutScope<Remote> {
     fun updateRemoteModel(remote: Remote)
 }
 
+context(SyncScope)
 suspend fun <
         Local : BitwardenService.Has<Local>,
         LocalDecoded : Any,
@@ -130,7 +132,7 @@ suspend fun <
     remoteDecodedFallback: suspend (Remote, Local?, Throwable) -> RemoteDecoded,
     remoteDeleteById: suspend (String) -> Unit,
     remotePut: suspend RemotePutScope<Remote>.(LocalDecoded) -> RemoteDecoded,
-    onLog: (String, LogLevel) -> Unit,
+    onLog: suspend (String, LogLevel) -> Unit,
 ) {
     onLog(
         "[Start] Starting to sync the $name: " +
@@ -147,20 +149,36 @@ suspend fun <
         remoteItems = remoteItems,
         shouldOverwrite = shouldOverwrite,
     )
+    onLog(
+        "[Start] Starting to sync the $name: " +
+                "${localItems.size} local items, " +
+                "${remoteItems.size} remote items.",
+        LogLevel.INFO,
+    )
 
     //
     // Write changes to local storage as these
     // are quite fast to do.
     //
 
-    localDeleteById(
-        df.localDeletedCipherIds
-            .map { localLens.getLocalId(it.local) },
+    val localDeletedCipherIds = df.localDeletedCipherIds
+        .map { localLens.getLocalId(it.local) }
+    onLog(
+        "[local] Deleting ${localDeletedCipherIds.size} $name entries...",
+        LogLevel.DEBUG,
     )
+    localDeleteById(localDeletedCipherIds)
 
     val localPutCipherDecoded = df.localPutCipher
         .map { (localOrNull, remote) ->
-            ioEffect { remoteDecoder(remote, localOrNull) }
+            ioEffect {
+                val remoteId = remote.let(remoteLens.getId)
+                onLog(
+                    "[local] Decoding $remoteId $name entry...",
+                    LogLevel.DEBUG,
+                )
+                remoteDecoder(remote, localOrNull)
+            }
                 .handleError { e ->
                     val remoteId = remoteLens.getId(remote)
                     val localId = localOrNull?.let(localLens.getLocalId)
@@ -228,7 +246,13 @@ suspend fun <
         .map { entry ->
             val localId = localLens.getLocalId(entry.local)
             val remoteId = remoteLens.getId(entry.remote)
-            ioEffect { remoteDeleteById(remoteId) }
+            ioEffect {
+                onLog(
+                    "[local] Decoding $remoteId $name entry...",
+                    LogLevel.DEBUG,
+                )
+                remoteDeleteById(remoteId)
+            }
                 .handleErrorTap { e ->
                     handleFailedToPut(entry.local, e = e)
                 }

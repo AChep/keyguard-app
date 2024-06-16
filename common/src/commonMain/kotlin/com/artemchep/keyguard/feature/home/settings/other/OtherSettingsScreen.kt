@@ -32,6 +32,7 @@ fun OtherSettingsScreen() {
                     SettingPaneItem.Item(Setting.CRASHLYTICS),
                     SettingPaneItem.Item(Setting.DATA_SAFETY),
                     SettingPaneItem.Item(Setting.PERMISSION_DETAILS),
+                    SettingPaneItem.Item(Setting.LOGS),
                 ),
             ),
             SettingPaneItem.Group(

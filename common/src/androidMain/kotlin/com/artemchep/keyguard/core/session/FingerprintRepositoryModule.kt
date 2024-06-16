@@ -236,7 +236,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
             deviceEncryptionKeyUseCase = instance(),
         )
     }
-    bindSingleton<LogRepository> {
+    bindSingleton<LogRepositoryAndroid> {
         LogRepositoryAndroid()
     }
 }

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.usecase.RemoveAccounts
 import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -21,7 +22,7 @@ class RemoveAccountsImpl(
     )
 
     override fun invoke(): IO<Unit> = db
-        .mutate { database ->
+        .mutate(TAG) { database ->
             val dao = database.accountQueries
             dao.deleteAll()
         }

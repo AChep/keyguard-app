@@ -5,13 +5,18 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
+import org.kodein.di.DirectDI
+import org.kodein.di.instance
 
 interface Watchdog {
     fun <T> track(
@@ -37,9 +42,19 @@ interface SupervisorRead {
     fun get(accountTask: AccountTask): Flow<Set<AccountId>>
 }
 
-class WatchdogImpl() : Watchdog, SupervisorRead {
+class WatchdogImpl(
+    private val logRepository: LogRepository,
+) : Watchdog, SupervisorRead {
+    companion object {
+        private const val TAG = "Watchdog"
+    }
+
     private val sink = MutableStateFlow(
         value = persistentMapOf<AccountTask, PersistentMap<AccountId, Int>>(),
+    )
+
+    constructor(directDI: DirectDI) : this(
+        logRepository = directDI.instance(),
     )
 
     override fun <T> track(
@@ -47,11 +62,26 @@ class WatchdogImpl() : Watchdog, SupervisorRead {
         accountTask: AccountTask,
         io: IO<T>,
     ): IO<T> = ioEffect {
+        val ids = accountIdSet
+            .joinToString { it.id }
+        logRepository.add(
+            tag = TAG,
+            message = "Adding '$accountTask' marker to accounts: $ids",
+        )
         try {
             updateState(accountIdSet, accountTask, Int::inc)
             io.bind()
         } finally {
-            updateState(accountIdSet, accountTask, Int::dec)
+            try {
+                withContext(NonCancellable) {
+                    logRepository.add(
+                        tag = TAG,
+                        message = "Removing '$accountTask' marker from accounts: $ids",
+                    )
+                }
+            } finally {
+                updateState(accountIdSet, accountTask, Int::dec)
+            }
         }
     }
 

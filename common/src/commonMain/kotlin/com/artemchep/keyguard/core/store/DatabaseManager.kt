@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.retry
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
@@ -41,8 +42,10 @@ import com.artemchep.keyguard.data.pwnage.AccountBreach
 import com.artemchep.keyguard.data.pwnage.PasswordBreach
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -53,6 +56,7 @@ interface DatabaseManager {
     fun get(): IO<Database>
 
     fun <T> mutate(
+        tag: String,
         block: suspend (Database) -> T,
     ): IO<T>
 
@@ -193,11 +197,28 @@ class DatabaseManagerImpl(
     override fun get() = dbIo.map { it.database }
 
     override fun <T> mutate(
+        tag: String,
         block: suspend (Database) -> T,
     ) = dbIo
         .effectMap(Dispatchers.IO) { db ->
-            mutex.withLock {
+            logRepository.add(
+                tag = TAG,
+                message = "Adding '$tag' database lock.",
+            )
+            mutex.lock()
+            try {
                 block(db.database)
+            } finally {
+                try {
+                    withContext(NonCancellable) {
+                        logRepository.add(
+                            tag = TAG,
+                            message = "Removing '$tag' database lock.",
+                        )
+                    }
+                } finally {
+                    mutex.unlock()
+                }
             }
         }
 

@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Показывать содержимое приложения при переключении между недавними приложениями и отображении экрана</string>
     <string name="pref_item_allow_screenshots_text_off">Скрыть содержимое приложения при переключении между недавними приложениями и запретить создание скриншотов</string>
     <string name="pref_item_data_safety_title">Безопасность данных</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Заблокировать хранилище</string>
     <string name="pref_item_lock_vault_after_reboot_title">Заблокировать после перезагрузки</string>
     <string name="pref_item_lock_vault_after_reboot_text">Заблокировать хранилище после перезагрузки устройства</string>
@@ -996,7 +997,7 @@
     <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
     <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания, средства за подписку будет снято с вашей учетной записи в Google Play. Ви можете настроить автоматическое продление и отменить подписку в любой момент. На первую подписку вам может быть предложен бесплатный пробный период, за который не будут сняты средства, если подписка будет отменена до её окончания.</string>
     <string name="pref_item_premium_membership_section_products_title">Товары</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Разблокировка хранилища означает сохранение корректного ключа в оперативной памяти устройства, что дает возможность читать и изменять зашифрованное хранилище.</string>
     <string name="datasafety_remote_section">Облачные данные</string>
     <string name="datasafety_remote_text">Облачные данные хранятся на серверах Bitwarden с шифрованием с нулевым знанием.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

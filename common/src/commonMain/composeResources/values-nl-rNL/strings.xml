@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Laat de inhoud van de app zien wanneer u schakelt tussen recente apps en sta het maken van schermopnames toe</string>
     <string name="pref_item_allow_screenshots_text_off">Verberg de inhoud van de app wanneer u schakelt tussen recente apps en verbied het maken van schermopnames</string>
     <string name="pref_item_data_safety_title">Veiligheid van gegevens</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Kluis vergrendelen</string>
     <string name="pref_item_lock_vault_after_reboot_title">Vergrendelen na een herstart</string>
     <string name="pref_item_lock_vault_after_reboot_text">Vergrendel de kluis na een systeem herstart</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Een kluis ontgrendelen betekent dat een correcte sleutel opgeslagen wordt in de RAM van het apparaat, zodat u de mogelijkheid krijgt om de versleutelde kluis te lezen en aan te passen.</string>
     <string name="datasafety_remote_section">Externe gegevens</string>
     <string name="datasafety_remote_text">Externe gegevens worden opgeslagen op Bitwarden servers met zero-knowledge encryptie.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

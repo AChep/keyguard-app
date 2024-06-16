@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Hiển thị nội dung của ứng dụng khi chuyển đổi giữa các ứng dụng gần đây và cho phép chụp màn hình</string>
     <string name="pref_item_allow_screenshots_text_off">Ẩn nội dung của ứng dụng khi chuyển đổi giữa các ứng dụng gần đây và cấm chụp màn hình</string>
     <string name="pref_item_data_safety_title">An toàn dữ liệu</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Khóa kho</string>
     <string name="pref_item_lock_vault_after_reboot_title">Khóa sau khi khởi động lại</string>
     <string name="pref_item_lock_vault_after_reboot_text">Khóa kho sau khi khởi động lại thiết bị</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Mở khóa một kho có nghĩa là lưu trữ một Chìa khóa chính xác trong RAM của thiết bị, có được khả năng đọc và sửa đổi Kho đã mã hóa.</string>
     <string name="datasafety_remote_section">Dữ liệu từ xa</string>
     <string name="datasafety_remote_text">Dữ liệu từ xa được lưu trữ trên máy chủ Bitwarden với mã hóa không-kiến ​​thức.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

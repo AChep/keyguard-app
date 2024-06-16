@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Son uygulamalar arasında geçiş yaparken uygulamanın içeriği gösteriliyor ve ekran yakalamaya izin veriliyor</string>
     <string name="pref_item_allow_screenshots_text_off">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini gizleniyor ve ekran yakalama yasaklı</string>
     <string name="pref_item_data_safety_title">Veri güvenliği</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Kasayı kilitle</string>
     <string name="pref_item_lock_vault_after_reboot_title">Yeniden başlatmadan sonra kilitle</string>
     <string name="pref_item_lock_vault_after_reboot_text">Cihaz yeniden başlatıldıktan sonra kasayı kilitleyin</string>
@@ -996,7 +997,7 @@
     <string name="pref_item_premium_membership_title">Keyguard üyeliği hakkında</string>
     <string name="pref_item_premium_membership_text">Premium, ekstra özelliklerin kilidini açar ve uygulamanın geliştirilmesine fon sağlar. Bizi desteklediğiniz için teşekkür ederiz! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonelikler</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Aboneliğiniz sona ermeden 24 saat önce yenilenecek ve Google Play hesabınızdan otomatik olarak ücret alınacaktır. Otomatik yenilemeyi açabilir veya kapatabilir ve aboneliğinizi Google Play'de istediğiniz zaman iptal edebilirsiniz. Daha önce hiç abone olmadıysanız, ücretsiz deneme için uygun olabilirsiniz. Ücretsiz deneme süreniz sona ermeden önce iptal ederseniz ücretlendirilmezsiniz.</string>
     <string name="pref_item_premium_membership_section_products_title">Ürünler</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Abonelik listesi yüklenemedi</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Ürün listesi yüklenemedi</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Bir Kasanın kilidini açmak, bir cihazın RAM'inde doğru bir Anahtar depolamak ve şifrelenmiş Kasayı okuma ve değiştirme yeteneği kazanmak anlamına gelir.</string>
     <string name="datasafety_remote_section">Uzak veri</string>
     <string name="datasafety_remote_text">Uzak veriler, sıfır bilgi şifrelemesi ile Bitwarden sunucularında saklanır.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

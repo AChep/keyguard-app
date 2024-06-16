@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostrar o conteúdo do aplicativo ao alternar entre apps recentes e permitir a captura de tela</string>
     <string name="pref_item_allow_screenshots_text_off">Ocultar o conteúdo do aplicativo ao alternar entre apps recentes e proibir a captura de tela</string>
     <string name="pref_item_data_safety_title">Segurança de dados</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Bloquear cofre</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloquear após uma reinicialização</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloquear o cofre após o dispositivo reiniciar</string>
@@ -996,7 +997,7 @@
     <string name="pref_item_premium_membership_title">Sobre a adesão Keyguard Premium</string>
     <string name="pref_item_premium_membership_text">O Premium desbloqueia recursos extras e financia o desenvolvimento do aplicativo. Obrigado por nos apoiar! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Subscrições</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">A sua subscrição será renovada 24 horas antes de expirar e será cobrado automaticamente na sua conta do Google Play. Pode ativar ou desativar a renovação automática e pode cancelar a sua assinatura a qualquer momento no Google Play. Se você nunca se inscreveu, você pode ser elegível para uma avaliação gratuita. Você não será cobrado se cancelar antes do fim do seu teste gratuito.</string>
     <string name="pref_item_premium_membership_section_products_title">Produtos</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Falha ao carregar lista de subscrições</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Falha ao carregar lista de produtos</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Desbloquear um cofre significa armazenar uma chave correta na memória RAM do dispositivo, ganhando a capacidade de ler e modificar um cofre criptografado.</string>
     <string name="datasafety_remote_section">Dados remotos</string>
     <string name="datasafety_remote_text">Os dados remotos são armazenados nos servidores do Bitwarden com criptografia de conhecimento zero.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

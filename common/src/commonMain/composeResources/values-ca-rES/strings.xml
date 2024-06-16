@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostra el contingut de l'aplicació quan es canviï entre aplicacions recents, i permet fer captures de pantalla</string>
     <string name="pref_item_allow_screenshots_text_off">Amaga el contingut de l'aplicació quan es canviï entre aplicacions recents, i prohibeix fer captures de pantalla</string>
     <string name="pref_item_data_safety_title">Seguretat de Dades</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Bloqueja la caixa forta</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloqueja després d'un reinici</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloqueja la caixa forta després de reiniciar el dispositiu</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Desbloquejar una caixa forta vol dir desar una clau correcta a la RAM del dispositiu, guanyant l'habilitat de llegir i modificar la caixa forta encriptada.</string>
     <string name="datasafety_remote_section">Dades remotes</string>
     <string name="datasafety_remote_text">Les dades es desen remotament als servidors de Bitwarden amb encriptació de zero-coneixement.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

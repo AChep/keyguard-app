@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Показувати вміст програми при перемиканні між нещодавніми додатками та дозволити запис екрану</string>
     <string name="pref_item_allow_screenshots_text_off">Приховувати вміст програми при перемиканні між нещодавніми додатками та заборонити запис екрану</string>
     <string name="pref_item_data_safety_title">Безпека даних</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Заблокувати сховище</string>
     <string name="pref_item_lock_vault_after_reboot_title">Блокувати після перезавантаження</string>
     <string name="pref_item_lock_vault_after_reboot_text">Блокувати сховище після перезавантаження пристрою</string>
@@ -996,7 +997,7 @@
     <string name="pref_item_premium_membership_title">Про членство в Keyguard</string>
     <string name="pref_item_premium_membership_text">Преміум відкриває нові функції та фінансує розробку застосунку. Дякуємо, що підтримуєте нас! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Підписки</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша підписка буде автоматично продовжена за 24 години до її закінчення, кошти за оновлення буде знято з вашого облікового запису в Google Play. Ви можете налаштувати автоматичне оновлення та скасувати підписку в будь-який час. На першу підписку вам може бути запропоновано безкоштовний пробний період, за який не буде знято кошти, якщо підписка буде скасована до його завершення.</string>
     <string name="pref_item_premium_membership_section_products_title">Продукти</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не вдалося завантажити список підписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не вдалося завантажити список продуктів</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Розблокування сховища означає збереження коректного майстер-ключа в оперативній пам'яті пристрою, що дає можливість читати та редагувати зашифроване сховище.</string>
     <string name="datasafety_remote_section">Віддалені дані</string>
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">在最近任务和截图中允许显示应用内容</string>
     <string name="pref_item_allow_screenshots_text_off">在最近任务和截图中隐藏应用内容</string>
     <string name="pref_item_data_safety_title">数据安全</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">锁定密码库</string>
     <string name="pref_item_lock_vault_after_reboot_title">重启后锁定</string>
     <string name="pref_item_lock_vault_after_reboot_text">设备重启后锁定密码库</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">解锁密码库意味着在设备的内存中存储正确的密钥，从而获得读取和修改加密密码库的能力。</string>
     <string name="datasafety_remote_section">远程路径</string>
     <string name="datasafety_remote_text">远程数据以零知识加密方式存储在 Bitwarden 服务器上。</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

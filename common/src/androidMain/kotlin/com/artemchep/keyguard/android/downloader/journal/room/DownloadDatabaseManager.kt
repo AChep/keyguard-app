@@ -58,7 +58,7 @@ class DownloadDatabaseManager(
 
             false
         }
-        .shared()
+        .shared("DownloadDatabaseManager")
 
     fun get() = dbIo
 

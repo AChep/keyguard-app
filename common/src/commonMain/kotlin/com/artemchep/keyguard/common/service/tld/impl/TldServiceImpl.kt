@@ -4,14 +4,12 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.measure
-import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.TldService
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
@@ -33,7 +31,7 @@ class TldServiceImpl(
                 "Loaded TLD tree in $duration, and it has $totalCount leaves."
             }
         }
-        .shared()
+        .sharedSoftRef(TAG)
 
     constructor(
         directDI: DirectDI,

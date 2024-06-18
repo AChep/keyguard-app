@@ -37,7 +37,7 @@ class DatabaseManagerAndroid(
     }
 
     private val dbFileIo = ioEffect { applicationContext.getDatabasePath(name) }
-        .shared()
+        .shared("dbFileIo")
 
     private val dbIo = io(masterKey)
         .effectMap { masterKey ->
@@ -68,7 +68,7 @@ class DatabaseManagerAndroid(
 
             false
         }
-        .shared()
+        .shared("dbIo")
 
     fun migrateIfExists(
         sqld: Database,

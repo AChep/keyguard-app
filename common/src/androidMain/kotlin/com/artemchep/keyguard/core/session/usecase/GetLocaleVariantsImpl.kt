@@ -20,7 +20,7 @@ class GetLocaleVariantsAndroid() : GetLocaleVariants {
         locales += getLocales()
         locales
     }
-        .shared()
+        .shared("GetLocaleVariantsAndroid")
         .asFlow()
 
     override fun invoke(): Flow<List<String?>> = sharedFlow

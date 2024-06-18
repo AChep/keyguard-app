@@ -4,7 +4,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
@@ -57,6 +57,10 @@ class JustGetMyDataServiceImpl(
     private val tldService: TldService,
     private val json: Json,
 ) : JustGetMyDataService {
+    companion object {
+        private const val TAG = "JustGetMyDataService"
+    }
+
     private val hostRegex = "://(.*@)?([^/]+)".toRegex()
 
     private val listIo = ::loadJustGetMyDataRawData
@@ -82,7 +86,7 @@ class JustGetMyDataServiceImpl(
                 }
             models
         }
-        .shared()
+        .sharedSoftRef(TAG)
 
     constructor(
         directDI: DirectDI,

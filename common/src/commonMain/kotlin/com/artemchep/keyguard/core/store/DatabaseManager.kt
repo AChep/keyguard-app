@@ -192,7 +192,7 @@ class DatabaseManagerImpl(
             e.printStackTrace()
             false
         }
-        .shared()
+        .shared("dbIo")
 
     override fun get() = dbIo.map { it.database }
 

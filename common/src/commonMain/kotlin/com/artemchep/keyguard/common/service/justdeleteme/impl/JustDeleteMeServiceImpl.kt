@@ -2,14 +2,12 @@ package com.artemchep.keyguard.common.service.justdeleteme.impl
 
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -48,6 +46,10 @@ class JustDeleteMeServiceImpl(
     private val textService: TextService,
     private val json: Json,
 ) : JustDeleteMeService {
+    companion object {
+        private const val TAG = "JustDeleteMeService"
+    }
+
     private val listIo = ::loadJustDeleteMeRawData
         .partially1(textService)
         .effectMap { jsonString ->
@@ -55,7 +57,7 @@ class JustDeleteMeServiceImpl(
             val models = entities.map(JustDeleteMeEntity::toDomain)
             models
         }
-        .shared()
+        .sharedSoftRef(TAG)
 
     constructor(
         directDI: DirectDI,

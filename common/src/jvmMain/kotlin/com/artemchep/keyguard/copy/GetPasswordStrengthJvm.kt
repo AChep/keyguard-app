@@ -2,22 +2,44 @@ package com.artemchep.keyguard.copy
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.dispatchOn
+import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.handleError
+import com.artemchep.keyguard.common.io.handleErrorTap
+import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.measure
+import com.artemchep.keyguard.common.io.timeout
 import com.artemchep.keyguard.common.model.PasswordStrength
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.wordlist.WordlistService
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.platform.recordException
 import com.nulabinc.zxcvbn.Strength
 import com.nulabinc.zxcvbn.Zxcvbn
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 private const val PASSWORD_STRENGTH_VERSION = 2L
+private const val PASSWORD_STRENGTH_TIMEOUT = 5000L
+
+// The longer a password is the longer it takes to
+// calculate its strength. This causes an issue where
+// a user can effectively block his own device by creating
+// a huge password that will take ages to process.
+private const val PASSWORD_LENGTH_UPPER_LIMIT = 32
 
 class GetPasswordStrengthJvm(
+    private val logRepository: LogRepository,
     private val wordlistService: WordlistService,
 ) : GetPasswordStrength {
+    companion object {
+        private const val TAG = "GetPasswordStrength"
+    }
+
     private val specialCharacterRegex = "[^a-zA-Z0-9]".toRegex()
 
     private val digitCharacterRegex = "[0-9]".toRegex()
@@ -26,30 +48,60 @@ class GetPasswordStrengthJvm(
         Zxcvbn()
     }
 
+    // Computing a password strength is a fairly memory intensive
+    // task. Limit parallelism to avoid hitting the memory limit and
+    // being heavily throttled by the garbage collector.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val dispatcher = Dispatchers.Default.limitedParallelism(2)
+
+    private class PasswordStrengthException(message: String) : RuntimeException(message)
+
     constructor(directDI: DirectDI) : this(
+        logRepository = directDI.instance(),
         wordlistService = directDI.instance(),
     )
 
     override fun invoke(
         password: String,
-    ): IO<PasswordStrength> = ioEffect(Dispatchers.Default) {
-        val isPassphrase = passphraseStrengthIo(password)
-            .handleError { null }
-            .bind()
-        if (isPassphrase != null) {
-            return@ioEffect isPassphrase
+    ): IO<PasswordStrength> = io(password)
+        .flatMap {
+            passphraseStrengthIo(password)
+                .handleError { null }
         }
+        .effectMap { passphraseStrength ->
+            if (passphraseStrength != null) {
+                return@effectMap passphraseStrength
+            }
 
-        val result = zxcvbn.measure(password)
-        result.toDomain()
-    }
+            val truncatedPassword = password.take(PASSWORD_LENGTH_UPPER_LIMIT)
+            zxcvbn.measure(truncatedPassword).toDomain()
+        }
+        .timeout(PASSWORD_STRENGTH_TIMEOUT)
+        .handleErrorTap { e ->
+            // We can not just feed the original exception to the
+            // analytics, because we have no idea how sanitized the
+            // inputs of the underlying implementation are.
+            val name = e::class.qualifiedName.orEmpty()
+            val message = "Failed to calculate password strength for ${password.length} " +
+                    "chars long password with a '$name' exception"
+            recordException(PasswordStrengthException(message))
+        }
+        .dispatchOn(dispatcher)
+        .measure { duration, passwordStrength ->
+            logRepository.add(
+                tag = TAG,
+                message = "Calculating a password strength for ${password.length} chars long password " +
+                        "took $duration, verdict ${passwordStrength.score}",
+            )
+        }
 
     private fun passphraseStrengthIo(
         password: String,
-    ): IO<PasswordStrength?> = ioEffect(Dispatchers.Default) {
+    ): IO<PasswordStrength?> = ioEffect {
         val parts = password
-            .split(specialCharacterRegex)
+            .splitToSequence(specialCharacterRegex)
             .filter { it.isNotEmpty() }
+            .toList()
         if (parts.size < 2) {
             return@ioEffect null
         }

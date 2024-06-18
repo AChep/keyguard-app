@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.passkey.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
@@ -52,6 +53,10 @@ class PassKeyServiceImpl(
     private val textService: TextService,
     private val json: Json,
 ) : PassKeyService {
+    companion object {
+        private const val TAG = "PassKeyService"
+    }
+
     private val listIo = ::loadPassKeyRawData
         .partially1(textService)
         .effectMap { jsonString ->
@@ -59,7 +64,7 @@ class PassKeyServiceImpl(
             val models = entities.map(PassKeyEntity::toDomain)
             models
         }
-        .shared()
+        .sharedSoftRef(TAG)
 
     constructor(
         directDI: DirectDI,

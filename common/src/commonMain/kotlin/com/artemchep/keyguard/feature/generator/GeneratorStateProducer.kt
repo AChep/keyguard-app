@@ -375,7 +375,7 @@ fun produceGeneratorState(
                 ?.first
             emailOrNull
         }
-        .shared()
+        .shared("getUserEmailDefaultIo")
 
     val getUserDomainDefaultIo = getUserEmailDefaultIo
         .map { email ->
@@ -387,7 +387,7 @@ fun produceGeneratorState(
                     domain in popularEmailDomains
                 }
         }
-        .shared()
+        .shared("getUserDomainDefaultIo")
 
     val storage = kotlin.run {
         val disk = loadDiskHandle(

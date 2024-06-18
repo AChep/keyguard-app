@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.twofa.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
@@ -44,6 +45,10 @@ class TwoFaServiceImpl(
     private val textService: TextService,
     private val json: Json,
 ) : TwoFaService {
+    companion object {
+        private const val TAG = "TwoFaService"
+    }
+
     private val listIo = ::loadTfaRawData
         .partially1(textService)
         .effectMap { jsonString ->
@@ -51,7 +56,7 @@ class TwoFaServiceImpl(
             val models = entities.map(TfaEntity::toDomain)
             models
         }
-        .shared()
+        .sharedSoftRef(TAG)
 
     constructor(
         directDI: DirectDI,

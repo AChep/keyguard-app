@@ -330,6 +330,24 @@ fun vaultListScreenState(
     val querySink = mutablePersistedFlow("query") { "" }
     val queryState = mutableComposeState(querySink)
 
+    // Intercept the back button while the
+    // search query is not empty.
+    interceptBackPress(
+        interceptorFlow = querySink
+            .map { it.isNotEmpty() }
+            .distinctUntilChanged()
+            .map { enabled ->
+                if (enabled) {
+                    // lambda
+                    {
+                        queryState.value = ""
+                    }
+                } else {
+                    null
+                }
+            },
+    )
+
     val cipherSink = EventFlow<DSecret>()
 
     val itemSink = mutablePersistedFlow("lole") { "" }

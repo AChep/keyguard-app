@@ -3757,6 +3757,14 @@
     "name": "Cornell University"
   },
   {
+    "domain": "corporatefinanceinstitute.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.corporatefinanceinstitute.com/article/728--",
+    "name": "Corporate Finance Institute"
+  },
+  {
     "domain": "cosmolex.com",
     "tfa": [
       "sms"
@@ -4626,6 +4634,18 @@
     ],
     "documentation": "https://support.docusign.com/en/guides/ndse-user-guide-two-step-verification",
     "name": "Docusign"
+  },
+  {
+    "domain": "dodo.com",
+    "additional-domains": [
+      "dodo.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.dodo.com/protecting-your-account",
+    "name": "Dodo"
   },
   {
     "domain": "domain.com.au",
@@ -7572,6 +7592,17 @@
     ],
     "documentation": "https://community.canvaslms.com/t5/Student-Guide/How-do-I-set-up-multi-factor-authentication-for-my-user-account/ta-p/524",
     "name": "Canvas"
+  },
+  {
+    "domain": "insurance.everyday.com.au",
+    "additional-domains": [
+      "insurance.woolworths.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Everyday Insurance"
   },
   {
     "domain": "intelli.zoolz.com",
@@ -12368,6 +12399,13 @@
     "name": "RapidAPI"
   },
   {
+    "domain": "rapidgator.net",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Rapidgator"
+  },
+  {
     "domain": "raspberrypi.com",
     "tfa": [
       "totp"
@@ -14258,12 +14296,11 @@
   },
   {
     "domain": "statefarm.com",
-    "url": "https://www.statefarm.com/",
     "tfa": [
       "sms",
       "email"
     ],
-    "documentation": "https://www.statefarm.com/customer-care/privacy-security-center/identity-verification",
+    "documentation": "https://www.statefarm.com/customer-care/privacy-security/security",
     "name": "State Farm"
   },
   {
@@ -14478,7 +14515,6 @@
   },
   {
     "domain": "swisslife.ch",
-    "url": "https://www.swisslife.ch",
     "tfa": [
       "sms"
     ],
@@ -14650,6 +14686,14 @@
     ],
     "documentation": "https://www.tangerine.ca/en/faq/answer?permaLink=how-register-mobile-number-log-with-step-authentication--generic-phone--en--0--1&responseId=219--",
     "name": "Tangerine"
+  },
+  {
+    "domain": "tangerinetelecom.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://www.tangerinetelecom.com.au/help/what-is-multi-factor-authentication",
+    "name": "Tangerine Telecom"
   },
   {
     "domain": "target.com",
@@ -16990,9 +17034,10 @@
   {
     "domain": "withings.com",
     "tfa": [
-      "sms"
+      "sms",
+      "totp"
     ],
-    "documentation": "https://support.withings.com/hc/en-us/articles/4409345943697",
+    "documentation": "https://support.withings.com/hc/articles/21866853734545",
     "notes": "The following apps do not support 2FA: Thermo, WithBaby, Withings Home Security Camera, WiScale.",
     "name": "Withings"
   },
@@ -17293,6 +17338,13 @@
     ],
     "documentation": "https://help.youhodler.com/en/articles/3787039",
     "name": "YouHodler"
+  },
+  {
+    "domain": "youi.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Youi Insurance"
   },
   {
     "domain": "youinvest.co.uk",

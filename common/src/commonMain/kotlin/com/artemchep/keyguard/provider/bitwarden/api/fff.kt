@@ -169,7 +169,7 @@ suspend fun <
     )
     localDeleteById(localDeletedCipherIds)
 
-    val localPutCipherDecoded = df.localPutCipher
+    val localPutCipherDecodedIos = df.localPutCipher
         .map { (localOrNull, remote) ->
             ioEffect {
                 val remoteId = remote.let(remoteLens.getId)
@@ -191,14 +191,26 @@ suspend fun <
                     remoteDecodedFallback(remote, localOrNull, e)
                 }
         }
-        .parallel(Dispatchers.Default)
-        .measure { duration, v ->
-            val msg = "[local] Decoding $name took $duration; " +
-                    "${v.size} entries decoded."
-            onLog(msg, LogLevel.INFO)
+    // Save the decoded items in groups. This way if a sync takes
+    // a lot of time we at least save some intermediate progress and
+    // later start from it.
+    localPutCipherDecodedIos
+        .windowed(
+            size = 1000,
+            step = 1000,
+            partialWindows = true,
+        )
+        .forEach { ios ->
+            val localPutCipherDecoded = ios
+                .parallel(Dispatchers.Default)
+                .measure { duration, v ->
+                    val msg = "[local] Decoding $name took $duration; " +
+                            "${v.size} entries decoded."
+                    onLog(msg, LogLevel.INFO)
+                }
+                .bind()
+            localPut(localPutCipherDecoded)
         }
-        .bind()
-    localPut(localPutCipherDecoded)
 
     //
     // Write changes to remote server.

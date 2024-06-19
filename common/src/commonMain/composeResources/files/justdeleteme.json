@@ -703,6 +703,15 @@
     "email": "dpo@aldogroup.com"
   },
   {
+    "name": "Alelo",
+    "domains": [
+      "alelo.com.br"
+    ],
+    "url": "https://www.alelo.com.br/meucartao/duvidas-frequentes",
+    "difficulty": "easy",
+    "notes": "On app, go to 'Settings' \u2b95 'Delete Account'. Follow the requested."
+  },
+  {
     "name": "Algolia",
     "domains": [
       "algolia.com"
@@ -2437,6 +2446,17 @@
     "difficulty": "hard",
     "notes": "You need to contact support and request account deletion, but the address listed on the help page is incorrect. You need to send an email to the address listed below.",
     "email": "support@bubbl.us"
+  },
+  {
+    "name": "Buddy UniCredit",
+    "domains": [
+      "buddyunicredit.it",
+      "buddy.unicredit.it",
+      "openaccount.unicredit.it"
+    ],
+    "url": "https://www.buddyunicredit.it",
+    "difficulty": "hard",
+    "notes": "From the app, contact the support chat and request to close your account, then follow the procedure."
   },
   {
     "name": "Buffer",
@@ -5843,6 +5863,16 @@
     "url": "https://www.floatplane.com/user/settings",
     "difficulty": "easy",
     "notes": "Click the 'Delete Account' button and type your password. Your account will be deleted in 2 weeks."
+  },
+  {
+    "name": "FlokiNET",
+    "domains": [
+      "flokinet.is",
+      "billing.flokinet.is"
+    ],
+    "url": "https://flokinet.is/privacy",
+    "difficulty": "hard",
+    "email": "info@flokinet.is"
   },
   {
     "name": "Floor Plan Creator",
@@ -14554,6 +14584,24 @@
     "notes": "Click in the checkbox \"I confirm the conditions above\", click at \"Delete\", type your password and confirm your action by clicking \"Confirm\"."
   },
   {
+    "name": "SamyGO Forum",
+    "domains": [
+      "forum.samygo.tv"
+    ],
+    "url": "https://forum.samygo.tv/memberlist.php?mode=contactadmin",
+    "difficulty": "impossible",
+    "notes": "The only way is to send a request but no one responds."
+  },
+  {
+    "name": "Sapinet",
+    "domains": [
+      "sapinet.fr"
+    ],
+    "url": "https://my.sapinet.fr/submitticket.php",
+    "difficulty": "impossible",
+    "notes": "Send a support request, they will delete your \"account\" you will still be able to login and your ability to send support request will be removed. The website will tell you \"no account found, to make a mew one you have to make a new order.\". Your name and email address will not be deleted."
+  },
+  {
     "name": "Satispay",
     "domains": [
       "satispay.com"
@@ -14719,6 +14767,15 @@
     "difficulty": "hard",
     "notes": "You can only request account deletion by sending an email. \"Upon your request, we will deactivate and delete your account, contact information, billing information, shipping information, and financial information from our active databases. To make this request, email contact@sedo.com. Your account will be deactivated and deleted as soon as reasonably possible after we receive your request but no later than 30 days.\"",
     "email": "contact@sedo.com"
+  },
+  {
+    "name": "Seedbox",
+    "domains": [
+      "seedbox.fr"
+    ],
+    "url": "https://wiki.seedbox.fr/index.php/Comment_R%C3%A9silier_son_abonnement",
+    "difficulty": "easy",
+    "notes": "There are two ways of cancelling your pack, depending on how you ordered your services: **Without automatic payment:** Simply ignore the reminders and the pack will be automatically deleted from our servers. **With automatic payment:** It is imperative to cancel the automatic payment before the renewal of your service, no refund will be made. Log in to your PayPal account, click on Preferences at the top of the page, click on \"My money\", then on \"Update\" next to \"My pre-approved payments\". Select the payment, then click Cancel, now all you have to do is ignore the renewal calls issued by the system and your pack will be deleted automatically when it expires."
   },
   {
     "name": "seedr.cc",
@@ -16870,6 +16927,15 @@
     "url": "https://tkirch.dev/account-management/",
     "difficulty": "easy",
     "notes": "Your account will be deleted after 7 days, if you don't cancel the deletion process before. Created content (such as forum posts) won't be deleted."
+  },
+  {
+    "name": "TLauncher",
+    "domains": [
+      "tlauncher.org"
+    ],
+    "url": "https://tlauncher.org/en/how-remove-tl-account.html",
+    "difficulty": "impossible",
+    "notes": "They say they are working on it but planned to support it in March 2023. Sending an email leads to nothing"
   },
   {
     "name": "Todo Cloud",

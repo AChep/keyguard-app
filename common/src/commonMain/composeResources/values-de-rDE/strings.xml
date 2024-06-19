@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Zeige den Inhalt der App beim Wechsel zwischen den letzten Apps und erlaubt das Erfassen des Bildschirms</string>
     <string name="pref_item_allow_screenshots_text_off">Den Inhalt der App ausblenden, wenn zwischen den letzten Apps gewechselt wird und verbietet das Erfassen des Bildschirms</string>
     <string name="pref_item_data_safety_title">Datensicherheit</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Tresor sperren</string>
     <string name="pref_item_lock_vault_after_reboot_title">Nach einem Neustart sperren</string>
     <string name="pref_item_lock_vault_after_reboot_text">Tresor nach einem Neustart des Geräts sperren</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Das Entsperren eines Tresors bedeutet, dass ein korrekter Schlüssel im Arbeitsspeicher eines Geräts gespeichert wird, wodurch die Fähigkeit erlangt wird, verschlüsselte Tresore zu lesen und zu ändern.</string>
     <string name="datasafety_remote_section">Externe Daten</string>
     <string name="datasafety_remote_text">Externe Daten werden auf Bitwarden Servern mit Null-Kenntnis-Verschlüsselung gespeichert.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

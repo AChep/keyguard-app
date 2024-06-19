@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Afficher le contenu de l'application lors du basculement entre les applications récentes et permettre la capture d'écran</string>
     <string name="pref_item_allow_screenshots_text_off">Masquer le contenu de l'application lors du basculement entre les applications récentes et interdire la capture d'écran</string>
     <string name="pref_item_data_safety_title">Sécurité des données</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Verrouiller le coffre-fort</string>
     <string name="pref_item_lock_vault_after_reboot_title">Verrouiller après un redémarrage</string>
     <string name="pref_item_lock_vault_after_reboot_text">Verrouiller le coffre après le redémarrage de l'appareil</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Déverrouiller un coffre-fort signifie stocker une clé correcte dans la mémoire vive d'un appareil, en obtenant une capacité de lire et de modifier le coffre chiffré.</string>
     <string name="datasafety_remote_section">Données à distance</string>
     <string name="datasafety_remote_text">Les données distantes sont stockées sur les serveurs Bitwarden avec un chiffrement zéro connaissance.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostrar o conteúdo do aplicativo ao alternar entre aplicativos recentes e permitir a captura de tela</string>
     <string name="pref_item_allow_screenshots_text_off">Ocultar o conteúdo do aplicativo ao alternar entre aplicativos recentes e proíba a captura de tela</string>
     <string name="pref_item_data_safety_title">Segurança dos dados</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Bloquear Cofre</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloquear após uma reinicialização</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloqueie o cofre após uma reinicialização do dispositivo</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Desbloquear um Cofre significa armazenar uma chave correta na memória RAM de um dispositivo, possibilitando a leitura e a modificação do Cofre criptografado.</string>
     <string name="datasafety_remote_section">Dados remotos</string>
     <string name="datasafety_remote_text">Os dados remotos são armazenados nos servidores do Bitwarden com criptografia de conhecimento zero.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

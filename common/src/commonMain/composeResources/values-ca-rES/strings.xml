@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostra el contingut de l'aplicació quan es canviï entre aplicacions recents, i permet fer captures de pantalla</string>
     <string name="pref_item_allow_screenshots_text_off">Amaga el contingut de l'aplicació quan es canviï entre aplicacions recents, i prohibeix fer captures de pantalla</string>
     <string name="pref_item_data_safety_title">Seguretat de Dades</string>
+    <string name="pref_item_logs_title">Registres</string>
     <string name="pref_item_lock_vault_title">Bloqueja la caixa forta</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloqueja després d'un reinici</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloqueja la caixa forta després de reiniciar el dispositiu</string>
@@ -996,7 +997,7 @@
     <string name="pref_item_premium_membership_title">Sobre la subscripció de Keyguard</string>
     <string name="pref_item_premium_membership_text">El Prèmium desbloqueja funcions extra i finança el desenvolupament de l'app. Gràcies per donar-nos suport! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Subscripcions</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">La teua subscripció es renovarà 24 hores abans d'expirar i se't presentarà un recàrrec al teu compte de Google Play automàticament. Pots desconnectar la renovació automàtica, o cancel·lar la subscripció a Google Play. Si mai t'has subscrit, pot ser hi haja una opció de prova gratuïta per a tú. No se't cobrarà res si cancel·les la subscripció abans de la fi de la prova.</string>
     <string name="pref_item_premium_membership_section_products_title">Productes</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">No s'han pogut carregar les subscripcions</string>
     <string name="pref_item_premium_membership_failed_to_load_products">No s'han pogut carregar els productes</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Desbloquejar una caixa forta vol dir desar una clau correcta a la RAM del dispositiu, guanyant l'habilitat de llegir i modificar la caixa forta encriptada.</string>
     <string name="datasafety_remote_section">Dades remotes</string>
     <string name="datasafety_remote_text">Les dades es desen remotament als servidors de Bitwarden amb encriptació de zero-coneixement.</string>
+    <string name="logs_header_title">Registres</string>
+    <string name="logs_start_recording_fab_title">Inicia la gravació</string>
+    <string name="logs_stop_recording_fab_title">Atura la gravació</string>
+    <string name="logs_export_button">Exportar</string>
+    <string name="logs_export_success">S'ha completat l'exportació</string>
 </resources>

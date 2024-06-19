@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostrar el contenido de la aplicación al cambiar entre aplicaciones recientes y permitir la captura de una pantalla</string>
     <string name="pref_item_allow_screenshots_text_off">Ocultar el contenido de la app al cambiar entre aplicaciones recientes y restringir las capturas de pantalla</string>
     <string name="pref_item_data_safety_title">Seguridad de los datos</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Bloquear caja fuerte</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloquear después de reiniciar</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloquear la caja fuerte después de reiniciar el dispositivo</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Desbloquear una caja fuerte significa almacenar una clave correcta en la RAM de un dispositivo, ganando la capacidad de leer y modificar la caja fuerte cifrada.</string>
     <string name="datasafety_remote_section">Datos remotos</string>
     <string name="datasafety_remote_text">Los datos remotos se almacenan en servidores Bitwarden con cifrado de conocimiento cero.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

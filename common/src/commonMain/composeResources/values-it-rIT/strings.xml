@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostra il contenuto dell'app quando si passa tra le app recenti e consente di catturare uno screenshot</string>
     <string name="pref_item_allow_screenshots_text_off">Nascondi il contenuto dell'app quando si passa tra le app recenti e proibisci di catturare uno screenshot</string>
     <string name="pref_item_data_safety_title">Sicurezza dei dati</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Blocca cassaforte</string>
     <string name="pref_item_lock_vault_after_reboot_title">Blocca dopo un riavvio</string>
     <string name="pref_item_lock_vault_after_reboot_text">Blocca la cassaforte dopo un riavvio del dispositivo</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Sbloccare una cassaforte significa memorizzare una chiave corretta nella RAM di un dispositivo, ottenendo la capacità di leggere e modificare la cassaforte crittografata.</string>
     <string name="datasafety_remote_section">Dati Remoti</string>
     <string name="datasafety_remote_text">I dati remoti vengono memorizzati sui server di Bitwarden con crittografia end-to-end.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

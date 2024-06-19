@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを許可します。</string>
     <string name="pref_item_allow_screenshots_text_off">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを禁止します。</string>
     <string name="pref_item_data_safety_title">データセーフティ</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">保管庫をロック</string>
     <string name="pref_item_lock_vault_after_reboot_title">再起動後にロック</string>
     <string name="pref_item_lock_vault_after_reboot_text">デバイスの再起動後に保管庫をロック</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">保管庫のロック解除とは、デバイスの RAM に正しいキーを保存し、暗号化された保管庫を読み書きできるようになることを意味します。</string>
     <string name="datasafety_remote_section">リモートデータ</string>
     <string name="datasafety_remote_text">リモートデータは、ゼロ知識暗号化を使用して Bitwarden のサーバー上に保存されます。</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

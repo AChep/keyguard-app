@@ -948,6 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">앱 전환 화면에 앱 내용을 표시하고 스크린샷 캡처를 허용합니다.</string>
     <string name="pref_item_allow_screenshots_text_off">앱 전환 화면에서 앱 내용을 숨기고 스크린샷 캡처를 금지합니다.</string>
     <string name="pref_item_data_safety_title">데이터 안전성</string>
+    <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">보관함 잠그기</string>
     <string name="pref_item_lock_vault_after_reboot_title">다시 시작 이후 잠그기</string>
     <string name="pref_item_lock_vault_after_reboot_text">기기 다시 시작 이후 보관함을 잠급니다.</string>
@@ -1069,4 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">보관함을 잠금 해제한다는 것은 기기의 RAM에 올바른 키를 저장하여 암호화된 보관함을 읽고 편집할 수 있게 하는 것입니다.</string>
     <string name="datasafety_remote_section">원격 데이터</string>
     <string name="datasafety_remote_text">원격 데이터는 영지식 증명으로 암호화한 뒤 Bitwarden 서버에 저장됩니다.</string>
+    <string name="logs_header_title">Logs</string>
+    <string name="logs_start_recording_fab_title">Start recording</string>
+    <string name="logs_stop_recording_fab_title">Stop recording</string>
+    <string name="logs_export_button">Export</string>
+    <string name="logs_export_success">Export complete</string>
 </resources>

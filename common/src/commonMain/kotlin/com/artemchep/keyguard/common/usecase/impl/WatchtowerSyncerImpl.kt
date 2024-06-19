@@ -145,14 +145,18 @@ private class WatchtowerClient(
                     val results = processor.process(ciphers)
                     db.transaction {
                         results.forEach { r ->
-                            db.watchtowerThreatQueries.upsert(
-                                value = r.value,
-                                threat = r.threat && !r.cipher.deleted,
-                                cipherId = r.cipher.id,
-                                type = type,
-                                reportedAt = now,
-                                version = version,
-                            )
+                            // We might be inserting a threat report on a cipher that
+                            // does not exist anymore. This is fine, just ignore it.
+                            runCatching {
+                                db.watchtowerThreatQueries.upsert(
+                                    value = r.value,
+                                    threat = r.threat && !r.cipher.deleted,
+                                    cipherId = r.cipher.id,
+                                    type = type,
+                                    reportedAt = now,
+                                    version = version,
+                                )
+                            }
                         }
                     }
                 }

@@ -491,6 +491,16 @@
     "notes": "Login, go to your profile settings on the top right, then go to the 'Account' tab and click 'Delete my Account'"
   },
   {
+    "name": "Agence nationale des titres s\u00e9curis\u00e9s",
+    "domains": [
+      "ants.gouv.fr",
+      "moncompte.ants.gouv.fr"
+    ],
+    "url": "https://moncompte.ants.gouv.fr/mes_donn%C3%A9es#delete",
+    "difficulty": "easy",
+    "notes": "Go to your profile settings and click \"Supprimer mon compte\""
+  },
+  {
     "name": "Agoda",
     "domains": [
       "agoda.com"
@@ -864,6 +874,16 @@
     "url": "https://www.amdrewards.com/my-account",
     "difficulty": "impossible",
     "notes": "You can not delete your account, only disable it, At the bottom of the page there is a 'Deactivate your account' \u2b95 Enter password \u2b95 Deactivate account"
+  },
+  {
+    "name": "Ameli",
+    "domains": [
+      "ameli.fr",
+      "assure.ameli.fr"
+    ],
+    "url": "https://www.ameli.fr/assure/mentions-legales-cgu",
+    "difficulty": "easy",
+    "notes": "On the page \"Mes informations\", click on \"R\u00e9silier mon compte\". It will automatically re-enable sending documents trough your mailbox."
   },
   {
     "name": "AmiAmi",
@@ -3187,6 +3207,18 @@
     "notes": "You have to ask the support to get your account deleted. Choose the category CNET Registration"
   },
   {
+    "name": "CNIL",
+    "domains": [
+      "cnil.fr",
+      "services.cnil.fr",
+      "connexion.services.cnil.fr",
+      "demarche.services.cnil.fr"
+    ],
+    "url": "https://www.cnil.fr/en/contact-us",
+    "difficulty": "hard",
+    "notes": "You have to contact them in order to ask to delete your account."
+  },
+  {
     "name": "CNN",
     "domains": [
       "cnn.com"
@@ -3929,6 +3961,16 @@
     "url": "https://www.dashlane.com/deleteaccount",
     "difficulty": "easy",
     "notes": "After entering the email address and selecting a reason for deletion, you will receive a security code by email. Enter the security code. After that, the account will be irretrievably deleted."
+  },
+  {
+    "name": "data.gouv.fr",
+    "domains": [
+      "data.gouv.fr",
+      "doc.data.gouv.fr"
+    ],
+    "url": "https://doc.data.gouv.fr/gestion-du-compte/supprimer-un-compte/",
+    "difficulty": "easy",
+    "notes": "On your profile page, click on the arrow next to the \"Edit\" button, in the top right of your screen, then on \"Delete my profile\""
   },
   {
     "name": "DataCamp",
@@ -5188,6 +5230,16 @@
     "notes": "Scroll down on the configurations of your profile and click on 'Delete Account'. An e-mail will be sent for you to confirm the deletion by clicking a link."
   },
   {
+    "name": "Enphase",
+    "domains": [
+      "enphase.com",
+      "enlighten.enphaseenergy.com"
+    ],
+    "url": "https://support.enphase.com/s/article/deleting-your-enphase-app-account",
+    "difficulty": "easy",
+    "notes": "Scroll down on your account page and click on 'Delete Account'."
+  },
+  {
     "name": "Envato",
     "domains": [
       "envato.com",
@@ -6037,6 +6089,16 @@
     "difficulty": "hard",
     "notes": "You have to email the support to delete the account. They take a few hours to respond.",
     "email": "support@framer.com"
+  },
+  {
+    "name": "France Identit\u00e9",
+    "domains": [
+      "france-identite.gouv.fr",
+      "idp.france-identite.gouv.fr"
+    ],
+    "url": "https.//idp.france-identite.gouv.fr/usager",
+    "difficulty": "easy",
+    "notes": "Enter your document number then a deletion code received by e-mail to delete your account."
   },
   {
     "name": "Franz",
@@ -8304,6 +8366,15 @@
     "notes": "You must login, go to your account settings and then click on the 'Delete Account' link on the bottom left."
   },
   {
+    "name": "impots.gouv.fr",
+    "domains": [
+      "impots.gouv.fr"
+    ],
+    "url": "https://www.impots.gouv.fr/",
+    "difficulty": "impossible",
+    "notes": "Your account depends on your fiscal number, you cannot delete it."
+  },
+  {
     "name": "Indeed",
     "domains": [
       "indeed.com"
@@ -9349,6 +9420,26 @@
     "notes": "In the 'Disaster Zone' field, click on the 'Nuke account' button."
   },
   {
+    "name": "L'identit\u00e9 Num\u00e9rique La Poste",
+    "domains": [
+      "lidentitenumerique.laposte.fr",
+      "aide.lidentitenumerique.laposte.fr"
+    ],
+    "url": "https://aide.lidentitenumerique.laposte.fr/kb/guide/fr/comment-supprimer-mon-identite-numerique-DmTz0vr4Hc/Steps/101590",
+    "difficulty": "easy",
+    "notes": "On your customer page, click on the \"My Profile\" icon in the top right corner, then at the bottom on \"Suppression de votre Identit\u00e9 Num\u00e9rique\". You will need to enter the 4 last digits of the ID card you used when registering."
+  },
+  {
+    "name": "La Poste",
+    "domains": [
+      "laposte.fr",
+      "moncompte.laposte.fr"
+    ],
+    "url": "https://aide.laposte.fr/mesdonneespersonnelles/moncompte/suppression",
+    "difficulty": "hard",
+    "notes": "Send a request on the GDPR form. Delete all other services linked to it (Digiposte, Identit\u00e9 Num\u00e9rique, etc) before sending the request."
+  },
+  {
     "name": "Lampyre",
     "domains": [
       "lampyre.io"
@@ -9966,9 +10057,9 @@
       "logmeininc.com",
       "support.logmeininc.com"
     ],
-    "url": "https://support.logmeininc.com/hamachi/help/how-do-i-contact-hamachi-customer-support",
+    "url": "https://submit-irm.trustarc.com/services/validation/818563f9-8d9c-4029-880a-bc743fb49de5",
     "difficulty": "hard",
-    "notes": "Scroll to the bottom of the given URL, open a new ticket and ask for account deletion"
+    "notes": "Submit a request on the linked form. It can take up to 15 days for them to comply."
   },
   {
     "name": "Logo Maker",
@@ -10727,6 +10818,16 @@
     "notes": "To cancel/delete your account, access the account deletion link specified above and log in to your account. In the options, select a reason why you want to cancel your account, click in the checkbox \"Estou de acordo\", and confirm your action by clinking \"Aceito\".<br><br><strong>Warning:</strong> You may cancel your account only if there is no limitation, partial and/or total blockage applied to it. You will also be unable to cancel your account if you have outstanding payments and/or purchases. Mercado Livre and Mercado Pago are services associated with the same type of account. If you choose to delete your Mercado Livre account, your Mercado Pago account will be deleted too."
   },
   {
+    "name": "Mes Services \u00c9tudiant",
+    "domains": [
+      "messervices.etudiant.gouv.fr",
+      "idp.messervices.etudiant.gouv.fr"
+    ],
+    "url": "https://www.messervices.etudiant.gouv.fr/envole/message/new",
+    "difficulty": "hard",
+    "notes": "You can request the deletion of your account via the assistance form."
+  },
+  {
     "name": "Metacritic",
     "domains": [
       "metacritic.com"
@@ -11032,6 +11133,25 @@
     "url": "https://www.molotov.tv/account/profile",
     "difficulty": "easy",
     "notes": "Log in, go to your profile settings, finally find at the bottom of the page (Delete my account)."
+  },
+  {
+    "name": "Mon Compte Formation",
+    "domains": [
+      "moncompteformation.gouv.fr"
+    ],
+    "url": "https://www.moncompteformation.gouv.fr/espace-public/comment-me-desinscrire-de-mon-compte-formation",
+    "difficulty": "easy",
+    "notes": "On the \"My Account\" page, click on \"Unregister\""
+  },
+  {
+    "name": "Mon Espace Sant\u00e9",
+    "domains": [
+      "monespacesante.fr",
+      "am.monespacesante.fr"
+    ],
+    "url": "https://www.monespacesante.fr/questions-frequentes/acceder-a-mon-espace-sante/14",
+    "difficulty": "easy",
+    "notes": "Login to your account, click on your profile, then on \"Param\u00e8tres\". Then click on \"Cl\u00f4ture du profil\""
   },
   {
     "name": "Money Dashboard",
@@ -11355,6 +11475,15 @@
     "url": "https://my.eset.com/account",
     "difficulty": "easy",
     "notes": "At the bottom of the account page there is a Delete account button"
+  },
+  {
+    "name": "MyFigureCollection",
+    "domains": [
+      "myfigurecollection.net"
+    ],
+    "url": "https://myfigurecollection.net/settings/profile/",
+    "difficulty": "easy",
+    "notes": "At the bottom of the account settings page, click on \"Delete my account\""
   },
   {
     "name": "MyFonts",
@@ -12701,6 +12830,15 @@
     "notes": "At the bottom of the linked page select 'Delete Account' and confirm your username."
   },
   {
+    "name": "pass Culture",
+    "domains": [
+      "passculture.app"
+    ],
+    "url": "https://passculture.app/profil/suppression",
+    "difficulty": "easy",
+    "notes": "Go to your profile, then \"Informations personelles\", and click on \"Supprimer mon compte\"."
+  },
+  {
     "name": "PassDock",
     "domains": [
       "passdock.com",
@@ -13092,6 +13230,16 @@
     "difficulty": "medium",
     "notes": "You can delete your account using the website, but it is only fully deleted after e-mailing",
     "email": "tracker@pivotal.io"
+  },
+  {
+    "name": "Pix",
+    "domains": [
+      "pix.fr",
+      "pix.org"
+    ],
+    "url": "https://support.pix.org/en/support/tickets/new",
+    "difficulty": "hard",
+    "notes": "You can request that your account be deleted by making a request through their contact form"
   },
   {
     "name": "Pixabay",
@@ -14137,12 +14285,11 @@
   {
     "name": "Remitly",
     "domains": [
-      "remitly.com",
-      "help.remitly.com"
+      "remitly.com"
     ],
-    "url": "https://help.remitly.com/s/article/delete-account",
-    "difficulty": "hard",
-    "notes": "Contact the customer support and request the deletion of your account."
+    "url": "https://www.remitly.com/fr/en/help/article/138e6277-84e5-43d1-9034-382f58e5eff1",
+    "difficulty": "medium",
+    "notes": "In your profile settings, scroll down and select \"Close my profile\". You account will remain recoverable anytime but you con contact the support to delete your data."
   },
   {
     "name": "Render",
@@ -14869,6 +15016,16 @@
     "notes": "To delete your account, click your avatar and go to \"Profile\" page, click on \"delete account\" and then confirm the deletion by entering your username."
   },
   {
+    "name": "Service-Public.fr",
+    "domains": [
+      "service-public.fr",
+      "auth.service-public.fr"
+    ],
+    "url": "https://www.service-public.fr/compte/parametres",
+    "difficulty": "easy",
+    "notes": "Open your profile settings and click on \"Supprimer mon Compte\"."
+  },
+  {
     "name": "Session",
     "domains": [
       "getsession.org",
@@ -15345,7 +15502,7 @@
       "ouigo.com",
       "monidentifiant.sncf"
     ],
-    "url": "https://www.sncf-connect.com/aide/mon-identifiant-sncf",
+    "url": "https://www.sncf-connect.com/en-en/help/your-customer-account",
     "difficulty": "easy",
     "notes": "Once logged into your customer account, you can take the request by clicking \"delete my account\", in the bottom of your homepage, then follow the instructions."
   },
@@ -15819,6 +15976,15 @@
     "url": "https://help.steampowered.com/en/wizard/HelpDeleteAccount",
     "difficulty": "hard",
     "notes": "First you must verify ownership of the account, then Steam Support will respond to confirm your identification. After it is confirmed your account will be locked and then deleted in 30 days. You can cancel the deletion by contacting Steam Support during the 30 days. You can't reuse your account name."
+  },
+  {
+    "name": "SteelSeries",
+    "domains": [
+      "steelseries.com"
+    ],
+    "url": "https://steelseries.com/dashboard/profile/delete",
+    "difficulty": "easy",
+    "notes": "Login \u2b95 Hover over your username \u2b95 Overview \u2b95 Profile \u2b95 Delete Account \u2b95 Delete"
   },
   {
     "name": "STEP (Smart Traveler Enrollment Program)",
@@ -16566,9 +16732,9 @@
     "domains": [
       "teespring.com"
     ],
-    "url": "https://teespring.com/",
-    "difficulty": "impossible",
-    "notes": "'It's currently unknown if they allow account deletions, but you can try emailing and asking. Do share their response with us on GitHub!",
+    "url": "https://forms.gle/T8LQEYdQrwRoTa469 ",
+    "difficulty": "hard",
+    "notes": "Use the form listed above, which can be obtained by: Login \u2b95 Chat with bot \u2b95 Get form \u2b95 Fill out form",
     "email": "privacy@spri.ng"
   },
   {
@@ -18186,6 +18352,17 @@
     "notes": "Create a ticket with customer support to request the deletion of your data"
   },
   {
+    "name": "W3Schools",
+    "domains": [
+      "w3schools.com"
+    ],
+    "url": "https://support.w3schools.com/hc/en-gb/articles/14697964112402-How-can-I-delete-my-account",
+    "difficulty": "hard",
+    "email": "hello@w3schools.com",
+    "email_subject": "#deleteme",
+    "email_body": "#deleteme"
+  },
+  {
     "name": "Wacom Cloud",
     "domains": [
       "wacom.com",
@@ -19315,6 +19492,15 @@
     "email": "legal@you.com"
   },
   {
+    "name": "youlookfab",
+    "domains": [
+      "youlookfab.com"
+    ],
+    "url": "https://youlookfab.com",
+    "difficulty": "easy",
+    "notes": "Login \u2b95 Profile Dropdown \u2b95 Profile \u2b95 Account \u2b95 Delete Your Account"
+  },
+  {
     "name": "Yousician",
     "domains": [
       "yousician.com",
@@ -19344,6 +19530,15 @@
     "url": "https://help.yoyogames.com/hc/en-us/articles/360025895752-How-can-I-delete-my-data-",
     "difficulty": "hard",
     "email": "datacontroller@yoyogames.com"
+  },
+  {
+    "name": "YRIS",
+    "domains": [
+      "yris.eu"
+    ],
+    "url": "https://www.yris.eu/en/frequently-asked-questions/",
+    "difficulty": "medium",
+    "notes": "To unsubscribe from YRIS, open the application on your smartphone, log in, go to \"Settings\" (the icon at the bottom right of the main screen), then click on \"Delete my account\". If you are unable to log in, you can request to unsubscribe via the contact form."
   },
   {
     "name": "Yummly",

@@ -7404,6 +7404,17 @@
     "name": "IG"
   },
   {
+    "domain": "iinet.net.au",
+    "additional-domains": [
+      "iinet.com.au"
+    ],
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://help.iinet.net.au/multi-factor-authentication-iinet",
+    "name": "iiNet"
+  },
+  {
     "domain": "immobilienscout24.de",
     "url": "https://www.immobilienscout24.de",
     "tfa": [
@@ -14460,6 +14471,17 @@
     "name": "Supabase"
   },
   {
+    "domain": "superloop.com",
+    "additional-domains": [
+      "superloop.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Superloop"
+  },
+  {
     "domain": "surfshark.com",
     "tfa": [
       "email",
@@ -15223,6 +15245,14 @@
     ],
     "documentation": "https://server.iad.liveperson.net/hc/s-81758502/cmd/kbresource/kb-8660536393490959114/front_page!PAGETYPE?category=5352",
     "name": "Tower Federal Credit Union"
+  },
+  {
+    "domain": "tpg.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://support.tpg.com.au/multi-factor-authentication-tpg",
+    "name": "TPG"
   },
   {
     "domain": "trading212.com",

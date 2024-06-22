@@ -55,7 +55,7 @@ commonsLang3 = "3.14.0"
 composeMultiplatform = "1.6.20-dev1673"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.0"
-crashlyticsPlugin = "3.0.1"
+crashlyticsPlugin = "3.0.2"
 firebase = "33.1.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"

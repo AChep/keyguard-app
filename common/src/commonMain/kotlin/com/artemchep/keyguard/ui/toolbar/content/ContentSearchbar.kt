@@ -49,7 +49,6 @@ fun CustomSearchbarContent(
                 }
             },
             onTextChange = searchFieldModel.onChange,
-            onGoClick = null,
         )
     }
 }

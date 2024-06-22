@@ -175,7 +175,6 @@ fun CipherFiltersListScreen(
                         leading = {},
                         trailing = {},
                         onTextChange = query?.onChange,
-                        onGoClick = null,
                     )
                 }
             }

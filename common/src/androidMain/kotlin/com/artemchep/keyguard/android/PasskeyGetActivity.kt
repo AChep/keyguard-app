@@ -446,10 +446,7 @@ fun UserVerificationScreen(
                     testTag = "field:password",
                     value = content.password,
                     keyboardOptions = KeyboardOptions(
-                        imeAction = when {
-                            keyboardOnGo != null -> ImeAction.Go
-                            else -> ImeAction.Default
-                        },
+                        imeAction = ImeAction.Go,
                     ),
                     keyboardActions = KeyboardActions(
                         onGo = keyboardOnGo,

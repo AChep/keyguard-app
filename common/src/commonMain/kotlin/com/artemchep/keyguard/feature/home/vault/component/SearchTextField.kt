@@ -62,7 +62,6 @@ fun SearchTextField(
     leading: @Composable () -> Unit,
     trailing: @Composable () -> Unit,
     onTextChange: ((String) -> Unit)?,
-    onGoClick: (() -> Unit)?,
 ) {
     val interactionSource = remember {
         MutableInteractionSource()
@@ -143,13 +142,8 @@ fun SearchTextField(
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = if (onGoClick != null) ImeAction.Go else ImeAction.Done,
+                    imeAction = ImeAction.Done,
                     autoCorrect = false,
-                ),
-                keyboardActions = KeyboardActions(
-                    onGo = {
-                        onGoClick?.invoke()
-                    },
                 ),
                 singleLine = true,
             )

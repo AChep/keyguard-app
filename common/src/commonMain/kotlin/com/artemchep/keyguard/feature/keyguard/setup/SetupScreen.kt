@@ -186,10 +186,7 @@ fun ColumnScope.SetupContent(
         label = stringResource(Res.string.setup_field_app_password_label),
         value = setupState.password,
         keyboardOptions = KeyboardOptions(
-            imeAction = when {
-                keyboardOnGo != null -> ImeAction.Go
-                else -> ImeAction.Default
-            },
+            imeAction = ImeAction.Go,
         ),
         keyboardActions = KeyboardActions(
             onGo = keyboardOnGo,

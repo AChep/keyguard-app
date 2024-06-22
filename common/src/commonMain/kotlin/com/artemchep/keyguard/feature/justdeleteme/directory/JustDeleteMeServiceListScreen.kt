@@ -173,7 +173,6 @@ fun JustDeleteMeListScreen(
                         leading = {},
                         trailing = {},
                         onTextChange = query?.onChange,
-                        onGoClick = null,
                     )
                 }
             }

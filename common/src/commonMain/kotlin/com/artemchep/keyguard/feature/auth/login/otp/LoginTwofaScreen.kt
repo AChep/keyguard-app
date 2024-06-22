@@ -418,10 +418,7 @@ private fun ColumnScope.LoginOtpScreenContentAuthenticator(
         keyboardOptions = KeyboardOptions(
             autoCorrect = false,
             keyboardType = KeyboardType.Number,
-            imeAction = when {
-                keyboardOnGo != null -> ImeAction.Go
-                else -> ImeAction.Default
-            },
+            imeAction = ImeAction.Go,
         ),
         keyboardActions = KeyboardActions(
             onGo = keyboardOnGo,
@@ -493,10 +490,7 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
         keyboardOptions = KeyboardOptions(
             autoCorrect = false,
             keyboardType = KeyboardType.Number,
-            imeAction = when {
-                keyboardOnGo != null -> ImeAction.Go
-                else -> ImeAction.Default
-            },
+            imeAction = ImeAction.Go,
         ),
         keyboardActions = KeyboardActions(
             onGo = keyboardOnGo,

@@ -176,10 +176,7 @@ private fun UnlockScreen(
                     testTag = "field:password",
                     value = unlockState.password,
                     keyboardOptions = KeyboardOptions(
-                        imeAction = when {
-                            keyboardOnGo != null -> ImeAction.Go
-                            else -> ImeAction.Default
-                        },
+                        imeAction = ImeAction.Go,
                     ),
                     keyboardActions = KeyboardActions(
                         onGo = keyboardOnGo,

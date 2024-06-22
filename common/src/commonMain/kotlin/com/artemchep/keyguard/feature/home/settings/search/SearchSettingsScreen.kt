@@ -121,7 +121,6 @@ fun SearchSettingsScreenContent(
                         leading = {},
                         trailing = {},
                         onTextChange = state.query.onChange,
-                        onGoClick = null,
                     )
                 }
             }

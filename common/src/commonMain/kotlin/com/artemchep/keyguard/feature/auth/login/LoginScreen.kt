@@ -332,8 +332,7 @@ fun LoginContent(
             keyboardOptions = KeyboardOptions(
                 imeAction = when {
                     !passwordIsLastField -> ImeAction.Next
-                    keyboardOnGo != null -> ImeAction.Go
-                    else -> ImeAction.Default
+                    else -> ImeAction.Go
                 },
             ),
             keyboardActions = KeyboardActions(
@@ -363,8 +362,7 @@ fun LoginContent(
                     keyboardOptions = KeyboardOptions(
                         imeAction = when {
                             !clientSecretIsLastField -> ImeAction.Next
-                            keyboardOnGo != null -> ImeAction.Go
-                            else -> ImeAction.Default
+                            else -> ImeAction.Go
                         },
                     ),
                     keyboardActions = KeyboardActions(

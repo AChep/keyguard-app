@@ -199,7 +199,6 @@ fun WordlistViewScreen(
                         leading = {},
                         trailing = {},
                         onTextChange = query?.onChange,
-                        onGoClick = null,
                     )
                 }
             }

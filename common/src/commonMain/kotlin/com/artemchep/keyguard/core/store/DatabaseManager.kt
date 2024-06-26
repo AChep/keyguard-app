@@ -155,7 +155,7 @@ class DatabaseManagerImpl(
                         sql = "SELECT data FROM cipher",
                         mapper = { cursor ->
                             val ciphers = sequence<BitwardenCipher> {
-                                while (!cursor.next().value) {
+                                while (cursor.next().value) {
                                     val cipher = kotlin.run {
                                         val data = cursor.getString(0)!!
                                         bitwardenCipherToStringAdapter.decode(data)
@@ -168,7 +168,6 @@ class DatabaseManagerImpl(
                         parameters = 0,
                     ).value
                     ciphers.forEach { cipher ->
-                        println("migrated = ${cipher.cipherId}")
                         val sql = "UPDATE cipher SET updatedAt = ? WHERE cipherId = ?"
                         driver.execute(
                             identifier = null,

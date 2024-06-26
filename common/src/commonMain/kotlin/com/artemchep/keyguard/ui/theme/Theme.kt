@@ -22,6 +22,8 @@ import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetTheme
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.theme.hasDarkThemeEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.monet.ColorSchemeFactory
@@ -275,7 +277,7 @@ fun KeyguardTheme(
     val isDarkColorScheme = when (theme) {
         AppTheme.DARK -> true
         AppTheme.LIGHT -> false
-        null -> isSystemInDarkTheme()
+        null -> CurrentPlatform.hasDarkThemeEnabled()
     }
 
     val scheme = kotlin.run {

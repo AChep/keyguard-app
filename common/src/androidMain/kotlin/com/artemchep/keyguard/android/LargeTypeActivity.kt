@@ -4,17 +4,19 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.dp
 import androidx.core.os.BundleCompat
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.largetype.LargeTypeContent
@@ -55,14 +57,17 @@ class LargeTypeActivity : BaseActivity() {
         val colorize: Boolean,
     ) : Parcelable
 
-    private val args by lazy {
+    private val argsOrNull by lazy {
         val extras = intent.extras!!
         val model = BundleCompat
             .getParcelable(extras, KEY_ARGUMENTS, Args::class.java)
-        requireNotNull(model) {
+        model
+    }
+
+    private val args
+        get() = requireNotNull(argsOrNull) {
             "Large type Activity must be called with arguments provided!"
         }
-    }
 
     private val route by lazy {
         LargeTypeRoute(
@@ -78,6 +83,18 @@ class LargeTypeActivity : BaseActivity() {
 
     @Composable
     override fun Content() {
+        if (argsOrNull == null) {
+            val text = "Activity requires arguments to display, none " +
+                    "were granted!"
+            Text(
+                modifier = Modifier
+                    .padding(16.dp),
+                text = text,
+                color = MaterialTheme.colorScheme.error,
+            )
+            return
+        }
+
         NavigationNode(
             id = "LargeType:Main",
             route = route,

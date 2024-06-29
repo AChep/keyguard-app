@@ -100,7 +100,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouter
 import com.artemchep.keyguard.feature.navigation.Route
-import com.artemchep.keyguard.feature.navigation.popById
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.sync.SyncRoute
 import com.artemchep.keyguard.platform.LocalLeContext
@@ -162,6 +161,16 @@ private val generatorRoute = GeneratorRoute(
 
 private val watchtowerRoute = WatchtowerRoute()
 
+private val settingsRoute = SettingsRoute
+
+val homeRoutes = listOf(
+    vaultRoute,
+    sendsRoute,
+    generatorRoute,
+    watchtowerRoute,
+    settingsRoute,
+)
+
 @Composable
 fun HomeScreen(
     navBarVisible: Boolean = true,
@@ -213,7 +222,7 @@ fun HomeScreen(
             ),
             Rail(
                 key = "settings",
-                route = SettingsRoute,
+                route = settingsRoute,
                 icon = Icons.Outlined.Settings,
                 iconSelected = Icons.Filled.Settings,
                 label = TextHolder.Res(Res.string.home_settings_label),
@@ -829,7 +838,10 @@ private fun isSelected(
     backStack: List<NavigationEntry>,
     route: Route,
 ) = run {
-    val entry = backStack.getOrNull(1) ?: backStack.firstOrNull()
+    val entry = backStack
+        .lastOrNull { entry ->
+            homeRoutes.any { it === entry.route }
+        }
     entry?.route === route
 }
 
@@ -864,18 +876,35 @@ private fun navigateOnClick(
     route: Route,
 ) {
     val intent = NavigationIntent.Manual { factory ->
-        // If the route exists in the stack, then simply
-        // navigate back to it.
-        val indexOfRoute = backStack.indexOfFirst { it.route === route }
-        if (indexOfRoute != -1 && indexOfRoute <= 1) {
-            return@Manual subList(0, indexOfRoute + 1)
-                .toPersistentList()
+        kotlin.run {
+            val index = this.backStack.indexOfFirst { it.route === route }
+            if (index != -1) {
+                val end = this.backStack
+                    .drop(index + 1)
+                    .indexOfFirst { entry ->
+                        homeRoutes.any { it === entry.route }
+                    }
+                    // Check if that's the end of list
+                    // or a middle part.
+                    .let {
+                        if (it != -1) {
+                            index + it + 1
+                        } else {
+                            this.backStack.size
+                        }
+                    }
+
+                val left = this.backStack.subList(0, index)
+                val center = this.backStack.subList(index, end)
+                val right = this.backStack.subList(end, this.backStack.size)
+                return@Manual left.toPersistentList()
+                    .addAll(right)
+                    .addAll(center)
+            }
         }
 
-        val stack = popById(ROUTE_NAME, exclusive = true)
-            .orEmpty()
-            .toPersistentList()
-        stack.add(factory(route))
+        val entry = factory(route)
+        this.backStack.add(entry)
     }
     controller.queue(intent)
 }

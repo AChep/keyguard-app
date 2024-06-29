@@ -97,6 +97,6 @@ sealed interface NavigationIntent {
     // manual
 
     data class Manual(
-        val handle: PersistentList<NavigationEntry>.((Route) -> NavigationEntry) -> PersistentList<NavigationEntry>,
+        val handle: NavigationIntentScope.((Route) -> NavigationEntry) -> PersistentList<NavigationEntry>,
     ) : NavigationIntent
 }

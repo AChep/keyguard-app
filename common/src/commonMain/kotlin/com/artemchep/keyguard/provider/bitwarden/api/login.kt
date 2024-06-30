@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.userAgent
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
@@ -49,43 +50,53 @@ data class BitwardenPersona(
     val clientVersion: String,
     val deviceType: String,
     val deviceName: String,
+    val userAgent: String,
 ) {
     companion object {
-        private const val CLIENT_VERSION = "2024.4.0"
+        const val CLIENT_VERSION = "2024.4.0"
 
         fun of(platform: Platform) = when (platform) {
-            is Platform.Mobile -> desktopLinux()
+            is Platform.Mobile -> {
+                Platform.Desktop.Linux.bitwardenPersona()
+            }
+
             is Platform.Desktop -> when (platform) {
-                is Platform.Desktop.Windows -> desktopWindows()
-                is Platform.Desktop.MacOS -> desktopMacOs()
+                is Platform.Desktop.Windows -> platform.bitwardenPersona()
+                is Platform.Desktop.MacOS -> platform.bitwardenPersona()
                 is Platform.Desktop.Other,
                 is Platform.Desktop.Linux,
-                -> desktopLinux()
+                -> Platform.Desktop.Linux.bitwardenPersona()
             }
         }
 
-        private fun desktopLinux() = BitwardenPersona(
+        private fun Platform.Desktop.Linux.bitwardenPersona(
+        ) = BitwardenPersona(
             clientId = "desktop",
             clientName = "desktop",
             clientVersion = CLIENT_VERSION,
             deviceType = "8",
             deviceName = "linux",
+            userAgent = userAgent,
         )
 
-        private fun desktopMacOs() = BitwardenPersona(
+        private fun Platform.Desktop.MacOS.bitwardenPersona(
+        ) = BitwardenPersona(
             clientId = "desktop",
             clientName = "desktop",
             clientVersion = CLIENT_VERSION,
             deviceType = "7",
             deviceName = "macos",
+            userAgent = userAgent,
         )
 
-        private fun desktopWindows() = BitwardenPersona(
+        private fun Platform.Desktop.Windows.bitwardenPersona(
+        ) = BitwardenPersona(
             clientId = "desktop",
             clientName = "desktop",
             clientVersion = CLIENT_VERSION,
             deviceType = "6",
             deviceName = "windows",
+            userAgent = userAgent,
         )
     }
 }

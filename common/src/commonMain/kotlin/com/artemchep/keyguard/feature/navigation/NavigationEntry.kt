@@ -35,7 +35,7 @@ interface NavigationEntry : BackPressInterceptorHost {
 
     val activeBackPressInterceptorsStateFlow: StateFlow<ImmutableMap<String, BackPressInterceptorRegistration>>
 
-    fun getOrCreate(id: String, create: () -> NavigationEntry): NavigationStack
+    fun getOrCreate(id: String, create: () -> NavigationStack): NavigationPile
 
     fun destroy()
 }
@@ -98,12 +98,15 @@ data class NavigationEntryImpl(
         }
     }
 
-    private val subStacks = mutableMapOf<String, NavigationStack>()
+    private val subStacks = mutableMapOf<String, NavigationPile>()
 
-    override fun getOrCreate(id: String, create: () -> NavigationEntry): NavigationStack = subStacks
+    override fun getOrCreate(
+        id: String,
+        create: () -> NavigationStack,
+    ): NavigationPile = subStacks
         .getOrPut(id) {
-            val navEntry = create()
-            NavigationStack(navEntry)
+            val navStack = create()
+            NavigationPile(navStack)
         }
 
     override fun destroy() {

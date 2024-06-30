@@ -27,39 +27,54 @@ fun NavigationRouter(
     // destroyed.
     val f = LocalNavigationNodeLogicalStack.current.last()
     val parentScope = f.scope
-    val navStack = f.getOrCreate(id) {
-        NavigationEntryImpl(
+
+    val navStackPrefix = id
+    val navPile = f.getOrCreate(id) {
+        val entry = NavigationEntryImpl(
             source = "router root",
             id = id,
             parent = parentScope,
             route = initial,
         )
+        NavigationStack(
+            id = NavigationStack.createId(
+                prefix = navStackPrefix,
+                suffix = NavigationStack.createIdSuffix(initial),
+            ),
+            entry = entry,
+        )
     }
-    val canPop = remember(navStack) {
-        snapshotFlow { navStack.value }
-            .flatMapLatest { stack ->
-                val navEntry = stack.lastOrNull()
-                if (navEntry != null) {
-                    navEntry
+
+    val canPop = remember(navPile) {
+        snapshotFlow { navPile.value }
+            .flatMapLatest { pile ->
+                val stack = pile.lastOrNull()
+                val entry = stack?.value?.lastOrNull()
+                if (entry != null) {
+                    return@flatMapLatest entry
                         .activeBackPressInterceptorsStateFlow
                         .map { interceptors ->
-                            interceptors.isNotEmpty() || stack.size > 1
+                            interceptors.isNotEmpty() || stack.value.size > 1 || pile.size > 1
                         }
-                } else {
-                    flowOf(false)
                 }
+
+                flowOf(false)
             }
     }
     NavigationController(
         canPop = canPop,
         handle = { intent ->
-            val backStack = navStack.value
+            val primaryNavStack = navPile.value.lastOrNull()
+                ?.toImmutableModel()
+            // Should never happen
+                ?: return@NavigationController NavigationIntent.Pop
 
             // If the navigation intent is a simple pop, then give it to
             // the back press interceptors first and only then adjust the
             // navigation stack.
             if (intent is NavigationIntent.Pop) {
-                val backPressInterceptorRegistration = backStack
+                val backPressInterceptorRegistration = primaryNavStack
+                    .entries
                     .asReversed()
                     .firstNotNullOfOrNull { navEntry ->
                         val backPressInterceptors =
@@ -73,32 +88,72 @@ fun NavigationRouter(
             }
 
             val scope = object : NavigationIntentScope {
-                override val backStack: PersistentList<NavigationEntry> = backStack
+                override val backStack: NavigationBackStack = primaryNavStack
+
+                override fun getStack(id: String) = kotlin.run {
+                    val navStackId = NavigationStack.createId(
+                        prefix = navStackPrefix,
+                        suffix = id,
+                    )
+                    val navStack = navPile.value.firstOrNull { it.id == navStackId }
+                        ?: return@run NavigationBackStack(
+                            id = navStackId,
+                            entries = persistentListOf(),
+                        )
+                    navStack.toImmutableModel()
+                }
             }
-            val newBackStack = scope
+
+            val newNavStack = scope
                 .exec(
                     intent = intent,
                     scope = parentScope,
                 )
-            when {
-                newBackStack == null -> {
-                    // The intent was not handled, pass it to the next
-                    // navigation controller.
-                    return@NavigationController intent
+            if (newNavStack == null) {
+                // The intent was not handled, pass it to the next
+                // navigation controller.
+                return@NavigationController intent
+            }
+
+            // Reorder navigation pile
+            val newNavPile = run {
+                // Modify existing navigation stack, this is
+                // needed to maintain the lifecycle of the
+                // navigation entries.
+                val existingNavStack = run {
+                    navPile.value.firstOrNull { it.id == newNavStack.id }
+                        ?.apply {
+                            // Change the values of the existing stack
+                            value = newNavStack.entries
+                        }
+                        ?: NavigationStack(
+                            id = newNavStack.id,
+                            entries = newNavStack.entries,
+                        )
                 }
 
-                newBackStack.isEmpty() -> {
+                navPile.value
+                    .removeAll { it.id == newNavStack.id }
+                    .add(existingNavStack)
+                    .removeAll { it.value.isEmpty() }
+            }
+
+            when {
+                newNavPile.isEmpty() -> {
                     NavigationIntent.Pop
                 }
 
                 else -> {
-                    navStack.value = newBackStack
+                    navPile.value = newNavPile
                     // We have handled the navigation intent.
                     null
                 }
             }
         },
     ) { controller ->
+        val navStack = navPile.value.lastOrNull()
+            ?: return@NavigationController
+
         val localBackStack = navStack.value
         val globalBackStack = LocalNavigationNodeLogicalStack.current.addAll(localBackStack)
         val backHandler = LocalNavigationBackHandler.current
@@ -122,13 +177,49 @@ fun NavigationRouter(
     }
 }
 
-class NavigationStack(
-    entry: NavigationEntry,
+class NavigationPile(
+    stack: NavigationStack,
 ) {
     private val _state = kotlin.run {
-        val initialState = persistentListOf(entry)
+        val initialState = persistentListOf(stack)
         mutableStateOf(initialState)
     }
+
+    var value: PersistentList<NavigationStack>
+        get() = _state.value
+        set(value) {
+            val oldValue = _state.value
+
+            val removedItems = mutableListOf<NavigationStack>()
+            oldValue.forEach { e ->
+                val exists = value.any { it.id === e.id }
+                if (!exists) {
+                    removedItems += e
+                }
+            }
+            removedItems.forEach { stack ->
+                stack.value.forEach { entry ->
+                    entry.destroy()
+                }
+            }
+            _state.value = value
+        }
+}
+
+class NavigationStack(
+    val id: String,
+    entries: PersistentList<NavigationEntry>,
+) {
+    companion object {
+        fun createId(
+            prefix: String,
+            suffix: String,
+        ) = "$prefix|$suffix"
+
+        fun createIdSuffix(route: Route) = route::class.qualifiedName.orEmpty()
+    }
+
+    private val _state = mutableStateOf(entries)
 
     var value: PersistentList<NavigationEntry>
         get() = _state.value
@@ -142,17 +233,30 @@ class NavigationStack(
                     removedItems += e
                 }
             }
-            removedItems.forEach {
-                it.destroy()
+            removedItems.forEach { entry ->
+                entry.destroy()
             }
             _state.value = value
         }
+
+    constructor(
+        id: String,
+        entry: NavigationEntry,
+    ) : this(
+        id = id,
+        entries = persistentListOf(entry),
+    )
+
+    fun toImmutableModel() = NavigationBackStack(
+        id = id,
+        entries = value,
+    )
 }
 
 private fun NavigationIntentScope.exec(
     intent: NavigationIntent,
     scope: CoroutineScope,
-): PersistentList<NavigationEntry>? = when (intent) {
+): NavigationBackStack? = when (intent) {
     is NavigationIntent.Composite -> run compose@{
         var ns = this
         for (subIntent in intent.list) {
@@ -161,23 +265,27 @@ private fun NavigationIntentScope.exec(
                 scope = scope,
             ) ?: return@compose null
             ns = object : NavigationIntentScope {
-                override val backStack: PersistentList<NavigationEntry>
+                override val backStack: NavigationBackStack
                     get() = new
+
+                override fun getStack(id: String) = this@exec.getStack(id)
             }
         }
         ns.backStack
     }
 
     is NavigationIntent.NavigateToRoute -> kotlin.run {
-        val backStack = when (intent.launchMode) {
-            NavigationIntent.NavigateToRoute.LaunchMode.DEFAULT -> backStack
+        val entries = when (intent.launchMode) {
+            NavigationIntent.NavigateToRoute.LaunchMode.DEFAULT -> backStack.entries
             NavigationIntent.NavigateToRoute.LaunchMode.SINGLE -> {
                 val clearedBackStack =
-                    backStack.removeAll { it.route::class == intent.route::class }
-                val existingEntry = backStack.lastOrNull { it.route == intent.route }
+                    backStack.entries.removeAll { it.route::class == intent.route::class }
+                val existingEntry = backStack.entries.lastOrNull { it.route == intent.route }
                 if (existingEntry != null) {
                     // Fast path if existing route matches the new route.
-                    return@run clearedBackStack.add(existingEntry)
+                    return@run backStack.copy(
+                        entries = clearedBackStack.add(existingEntry),
+                    )
                 }
 
                 clearedBackStack
@@ -191,7 +299,9 @@ private fun NavigationIntentScope.exec(
             parent = scope,
             route = r,
         )
-        backStack.add(e)
+        backStack.copy(
+            entries = entries.add(e),
+        )
     }
 
     is NavigationIntent.SetRoute -> {
@@ -202,19 +312,33 @@ private fun NavigationIntentScope.exec(
             parent = scope,
             route = r,
         )
-        persistentListOf(e)
+        backStack.copy(
+            entries = persistentListOf(e),
+        )
     }
 
-    is NavigationIntent.NavigateToStack -> intent.stack.toPersistentList()
+    is NavigationIntent.NavigateToStack -> {
+        backStack.copy(
+            entries = intent.stack.toPersistentList(),
+        )
+    }
+
     is NavigationIntent.Pop -> {
-        if (backStack.size > 0) {
-            backStack.removeAt(backStack.size - 1)
+        val entries = backStack.entries
+        if (entries.size > 0) {
+            val newEntries = entries.removeAt(entries.size - 1)
+            backStack.copy(entries = newEntries)
         } else {
             null
         }
     }
 
-    is NavigationIntent.PopById -> backStack.popById(intent.id, intent.exclusive)
+    is NavigationIntent.PopById -> run {
+        val newEntries = backStack.entries.popById(intent.id, intent.exclusive)
+            ?: return@run null
+        backStack.copy(entries = newEntries)
+    }
+
     is NavigationIntent.Manual -> {
         val factory = fun(route: Route): NavigationEntry =
             NavigationEntryImpl(

@@ -22,7 +22,7 @@
     <string name="email">Эл. почта</string>
     <string name="email_verified">Подтверждено</string>
     <string name="email_not_verified">Не подтверждено</string>
-    <string name="email_visibility">Видимость email</string>
+    <string name="email_visibility">Видимость эл. почты</string>
     <string name="public_url">Публичный URL</string>
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
@@ -31,7 +31,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Максимальное количество обращений</string>
+    <string name="max_access_count">Максимальное количество посещений</string>
     <string name="learn_more">Узнать больше</string>
     <string name="phone_number">Номер телефона</string>
     <string name="passport_number">Номер паспорта</string>
@@ -77,7 +77,7 @@
     <string name="attachments">Вложения</string>
     <string name="attachments_empty_label">Без вложений</string>
     <string name="deactivated">Выключено</string>
-    <string name="expired">Срок действия закончился</string>
+    <string name="expired">Срок действия истёк</string>
     <string name="expiring_soon">Срок действия истекает</string>
     <string name="item_incomplete_title">Неполные данные</string>
     <string name="item_incomplete_text">В элементе отсутствует некоторая важная информация.</string>
@@ -86,7 +86,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> записей</string>
     <string name="items_all">Все элементы</string>
     <string name="items_empty_label">Нет элементов</string>
-    <string name="sends">Отправки</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Без папки</string>
     <string name="folder_new">Новая папка</string>
     <string name="folder">Папка</string>
@@ -118,7 +118,7 @@
     <string name="length">Длина</string>
     <string name="security">Безопасность</string>
     <string name="contact_info">Контактная информация</string>
-    <string name="identity_title">Титул</string>
+    <string name="identity_title">Заголовок</string>
     <string name="identity_first_name">Имя</string>
     <string name="identity_middle_name">Отчество</string>
     <string name="identity_last_name">Фамилия</string>
@@ -133,7 +133,7 @@
     <string name="expiration_date_custom">Пользовательское</string>
     <string name="expiration_date_never">Никогда</string>
     <string name="select_linked_type">Выберите тип</string>
-    <string name="select_file">Выбрать файл</string>
+    <string name="select_file">Выберите файл</string>
     <string name="autofill">Автозаполнение</string>
     <string name="autofill_and_save_uri">Заполнить и сохранить информацию о приложении или сайте</string>
     <string name="passkey">Ключ доступа</string>
@@ -239,7 +239,7 @@
     <string name="account_log_out_confirmation_text">Все не синхронизированные изменения будут потеряны!</string>
     <string name="folder_action_change_name_title">Изменить название</string>
     <string name="folder_action_change_names_title">Изменить названия</string>
-    <string name="folder_action_merge_title">Объединить…</string>
+    <string name="folder_action_merge_title">Объединить в…</string>
     <string name="folder_delete_one_confirmation_title">Удалить папку?</string>
     <string name="folder_delete_many_confirmation_title">Удалить папки?</string>
     <string name="folder_delete_confirmation_text">Эта запись(и) будет удалено. Вы не можете отменить это действие.</string>
@@ -249,8 +249,8 @@
     <string name="ciphers_save_to">Сохранить в</string>
     <string name="ciphers_action_add_to_favorites_title">Добавить в избранное</string>
     <string name="ciphers_action_remove_from_favorites_title">Удалить из избранного</string>
-    <string name="ciphers_action_enable_auth_reprompt_title">Включить двойную аутентификацию</string>
-    <string name="ciphers_action_disable_auth_reprompt_title">Отключить двойную аутентификацию</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Включить повторную аутентификацию</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Отключить повторную аутентификацию</string>
     <string name="ciphers_action_edit_title">Редактировать</string>
     <string name="ciphers_action_merge_title">Объединить в…</string>
     <string name="ciphers_action_copy_title">Копировать в…</string>
@@ -283,15 +283,15 @@
     <string name="sends_action_remove_password_confirmation_title">Удалить пароль?</string>
     <string name="sends_action_remove_passwords_confirmation_title">Удалить пароли?</string>
     <string name="sends_action_remove_password_confirmation_message">Не запрашивать пароль для доступа пользователей к этому элементу</string>
-    <string name="sends_action_hide_email_title">Скрыть email</string>
-    <string name="sends_action_show_email_title">Показать email</string>
+    <string name="sends_action_hide_email_title">Скрыть эл. почту</string>
+    <string name="sends_action_show_email_title">Показать эл. почту</string>
     <string name="sends_action_enable_title">Активировать</string>
-    <string name="sends_action_enable_text">Активная отправка доступна по публичному URL</string>
+    <string name="sends_action_enable_text">Активный Send доступен по публичному URL</string>
     <string name="sends_action_enable_confirmation_title">Активировать?</string>
     <string name="sends_action_disable_title">Отключить</string>
-    <string name="sends_action_disable_text">Неактивная отправка недоступна по публичному URL</string>
+    <string name="sends_action_disable_text">Неактивный Send недоступен по публичному URL</string>
     <string name="sends_action_disable_confirmation_title">Отключить?</string>
-    <string name="sends_action_disabled_note">Эта отправка отключена, никто не может получить к ней доступ.</string>
+    <string name="sends_action_disabled_note">Этот Send отключен, никто не может получить к нему доступ.</string>
     <string name="sends_action_delete_title">Удалить навсегда</string>
     <string name="sends_action_delete_confirmation_title">Удалить навсегда?</string>
     <string name="file_action_open_with_title">Открыть с помощью…</string>
@@ -313,7 +313,7 @@
     <string name="uri_action_launch_docs_title">Открыть документацию</string>
     <string name="uri_action_launch_browser_title">Запустить браузер</string>
     <string name="uri_action_launch_browser_main_page_title">Открыть главную страницу</string>
-    <string name="uri_action_launch_play_store_title">Открыть Play маркет</string>
+    <string name="uri_action_launch_play_store_title">Открыть Google Play</string>
     <string name="uri_action_launch_in_app_title">Запустить в <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Запустить в…</string>
     <string name="uri_action_how_to_delete_account_title">Как удалить мою учетную запись?</string>
@@ -948,7 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Показывать содержимое приложения при переключении между недавними приложениями и отображении экрана</string>
     <string name="pref_item_allow_screenshots_text_off">Скрыть содержимое приложения при переключении между недавними приложениями и запретить создание скриншотов</string>
     <string name="pref_item_data_safety_title">Безопасность данных</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">Логи</string>
     <string name="pref_item_lock_vault_title">Заблокировать хранилище</string>
     <string name="pref_item_lock_vault_after_reboot_title">Заблокировать после перезагрузки</string>
     <string name="pref_item_lock_vault_after_reboot_text">Заблокировать хранилище после перезагрузки устройства</string>
@@ -1070,9 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Разблокировка хранилища означает сохранение корректного ключа в оперативной памяти устройства, что дает возможность читать и изменять зашифрованное хранилище.</string>
     <string name="datasafety_remote_section">Облачные данные</string>
     <string name="datasafety_remote_text">Облачные данные хранятся на серверах Bitwarden с шифрованием с нулевым знанием.</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="logs_header_title">Логи</string>
+    <string name="logs_start_recording_fab_title">Начать запись</string>
+    <string name="logs_stop_recording_fab_title">Остановить запись</string>
+    <string name="logs_export_button">Экспортировать</string>
+    <string name="logs_export_success">Экспорт завершён</string>
 </resources>

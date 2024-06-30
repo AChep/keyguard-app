@@ -96,7 +96,7 @@
     <string name="collection">收藏</string>
     <string name="collections">收藏</string>
     <string name="collections_empty_label">暫無收藏</string>
-    <string name="organization_none">My vault</string>
+    <string name="organization_none">我的密碼庫</string>
     <string name="organization">Organization</string>
     <string name="organizations">Organizations</string>
     <string name="organizations_empty_label">No organizations</string>
@@ -105,7 +105,7 @@
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">新增</string>
     <string name="add_integration">Add integration</string>
     <string name="account">Account</string>
     <string name="accounts">Accounts</string>

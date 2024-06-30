@@ -204,7 +204,7 @@
     <string name="encryption_random_bits_data">随机的 <xliff:g id="length" example="64">%1$d</xliff:g> 位数据</string>
     <string name="none">无</string>
     <string name="text">文本</string>
-    <string name="linked_apps">关联应用</string>
+    <string name="linked_apps">关联的应用</string>
     <string name="linked_uris">关联的 URI</string>
     <string name="custom_fields">自定义字段</string>
     <string name="reveal_secure_note">显示安全笔记</string>
@@ -948,7 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">在最近任务和截图中允许显示应用内容</string>
     <string name="pref_item_allow_screenshots_text_off">在最近任务和截图中隐藏应用内容</string>
     <string name="pref_item_data_safety_title">数据安全</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">日志</string>
     <string name="pref_item_lock_vault_title">锁定密码库</string>
     <string name="pref_item_lock_vault_after_reboot_title">重启后锁定</string>
     <string name="pref_item_lock_vault_after_reboot_text">设备重启后锁定密码库</string>
@@ -997,7 +997,7 @@
     <string name="pref_item_premium_membership_title">关于 Keyguard 高级会员</string>
     <string name="pref_item_premium_membership_text">高级版可解锁额外功能并支持应用程序的开发。感谢您的支持！❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">订阅</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">您的订阅将在到期前 24 小时续订，届时您的 Google Play 账户将自动扣款。 您可以打开或关闭自动续订功能，也可以随时在 Google Play 上取消订阅。 如果你从未订阅过，你可能有资格获得免费试用。 如果您在免费试用期结束前取消，将不会向您收取费用。</string>
     <string name="pref_item_premium_membership_section_products_title">产品</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">无法加载订阅列表</string>
     <string name="pref_item_premium_membership_failed_to_load_products">无法加载产品列表</string>
@@ -1070,9 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">解锁密码库意味着在设备的内存中存储正确的密钥，从而获得读取和修改加密密码库的能力。</string>
     <string name="datasafety_remote_section">远程路径</string>
     <string name="datasafety_remote_text">远程数据以零知识加密方式存储在 Bitwarden 服务器上。</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="logs_header_title">日志</string>
+    <string name="logs_start_recording_fab_title">开始录制</string>
+    <string name="logs_stop_recording_fab_title">停止录制</string>
+    <string name="logs_export_button">导出</string>
+    <string name="logs_export_success">导出完成</string>
 </resources>

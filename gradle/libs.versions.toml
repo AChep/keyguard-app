@@ -55,6 +55,7 @@ commonsLang3 = "3.14.0"
 composeMultiplatform = "1.6.20-dev1673"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.0"
+conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.2"
 firebase = "33.1.1"
 # https://github.com/tfcporciuncula/flow-preferences
@@ -184,6 +185,7 @@ cash-sqldelight-coroutines-extensions = { module = "app.cash.sqldelight:coroutin
 cash-sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
+conscrypt-openjdk = { module = "org.conscrypt:conscrypt-openjdk-uber", version.ref = "conscrypt" }
 devsrsouza-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeOpenIcons" }
 firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }

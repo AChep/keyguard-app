@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import org.conscrypt.Conscrypt
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DI
@@ -79,10 +80,17 @@ import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import java.security.Security
 import java.util.Locale
 import kotlin.reflect.KClass
 
 fun main() {
+    // Add Conscrypt as the first security provider
+    // to make OkHTTP use its TLS instead of a platform
+    // specific one.
+    // https://github.com/square/okhttp?tab=readme-ov-file#requirements
+    Security.insertProviderAt(Conscrypt.newProvider(), 1)
+
     val kamelConfig = KamelConfig {
         this.takeFrom(KamelConfig.Default)
         mapper(FaviconUrlMapper)

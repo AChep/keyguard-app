@@ -21,6 +21,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 implementation(compose.desktop.currentOs)
                 implementation(compose.components.resources)
+                implementation(libs.conscrypt.openjdk)
                 implementation(project(":common"))
             }
         }

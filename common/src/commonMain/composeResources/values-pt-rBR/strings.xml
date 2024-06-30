@@ -18,7 +18,7 @@
     <string name="app_password">Senha do aplicativo</string>
     <string name="current_password">Senha atual</string>
     <string name="new_password">Nova senha</string>
-    <string name="no_password">No password</string>
+    <string name="no_password">Sem senha</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">Não verificado</string>
@@ -239,7 +239,7 @@
     <string name="account_log_out_confirmation_text">Todas as mudanças não sincronizadas serão perdidas!</string>
     <string name="folder_action_change_name_title">Renomear</string>
     <string name="folder_action_change_names_title">Renomear</string>
-    <string name="folder_action_merge_title">Merge into…</string>
+    <string name="folder_action_merge_title">Mesclar em…</string>
     <string name="folder_delete_one_confirmation_title">Apagar a pasta?</string>
     <string name="folder_delete_many_confirmation_title">Apagar as pastas?</string>
     <string name="folder_delete_confirmation_text">Este item(ns) será excluído imediatamente. Você não pode desfazer esta ação.</string>
@@ -298,7 +298,7 @@
     <string name="file_action_send_with_title">Enviar com…</string>
     <string name="file_action_open_in_file_manager_title">Abrir em um gerenciador de arquivos</string>
     <string name="file_action_delete_local_title">Apagar arquivo local</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
+    <string name="file_action_delete_local_many_title">Excluir arquivos locais</string>
     <string name="file_action_view_cipher_title">Ver item relacionado</string>
     <string name="vault_action_always_show_keyboard_title">Sempre mostrar o teclado</string>
     <string name="vault_action_sync_vault_title">Sincronizar Cofre</string>
@@ -704,9 +704,9 @@
     <string name="sortby_modification_date_title">Data de modificação</string>
     <string name="sortby_modification_date_normal_mode">Mais Recentes Primeiro</string>
     <string name="sortby_modification_date_reverse_mode">Mais Antigos Primeiro</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
-    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Data de instalação</string>
+    <string name="sortby_installation_date_normal_mode">Mais recentes primeiro</string>
+    <string name="sortby_installation_date_reverse_mode">Mais antigos primeiro</string>
     <string name="sortby_expiration_date_title">Data de expiração</string>
     <string name="sortby_expiration_date_normal_mode">Mais Recentes Primeiro</string>
     <string name="sortby_expiration_date_reverse_mode">Mais Antigos Primeiro</string>
@@ -806,8 +806,8 @@
     <string name="watchtower_section_password_strength_label">Força da senha</string>
     <string name="watchtower_section_security_label">Segurança</string>
     <string name="watchtower_section_maintenance_label">Manutenção</string>
-    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
-    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
+    <string name="watchtower_item_new_alerts_title">Revisar novos alertas</string>
+    <string name="watchtower_item_weak_passwords_title">Senhas fracas</string>
     <string name="watchtower_item_pwned_passwords_title">Senhas comprometidas</string>
     <string name="watchtower_item_pwned_passwords_text">Senhas que foram expostas em vazamentos de dados. Essas senhas devem ser alteradas imediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Senhas reutilizadas</string>
@@ -835,7 +835,7 @@
     <string name="watchtower_item_compromised_accounts_title">Contas Comprometidas</string>
     <string name="watchtower_item_compromised_accounts_text">Verificar vazamentos de dados por um nome de usuário ou endereço de e-mail.</string>
     <string name="watchtower_alerts_header_title">New watchtower alerts</string>
-    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
+    <string name="watchtower_mark_all_as_read_title">Marcar tudo como lido</string>
     <string name="changepassword_header_title">Alterar senha do aplicativo</string>
     <string name="changepassword_change_password_button">Alterar senha</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticação biométrica</string>
@@ -948,7 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostrar o conteúdo do aplicativo ao alternar entre aplicativos recentes e permitir a captura de tela</string>
     <string name="pref_item_allow_screenshots_text_off">Ocultar o conteúdo do aplicativo ao alternar entre aplicativos recentes e proíba a captura de tela</string>
     <string name="pref_item_data_safety_title">Segurança dos dados</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">Registros</string>
     <string name="pref_item_lock_vault_title">Bloquear Cofre</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloquear após uma reinicialização</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloqueie o cofre após uma reinicialização do dispositivo</string>
@@ -997,7 +997,7 @@
     <string name="pref_item_premium_membership_title">Sobre a assinatura do Keyguard Premium</string>
     <string name="pref_item_premium_membership_text">O Premium desbloqueia recursos extras e financia o desenvolvimento do aplicativo. Obrigado por nos apoiar! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Assinaturas</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Sua assinatura será renovada 24 horas antes de expirar e sua conta do Google Play será cobrada automaticamente nesse momento. Você pode ativar ou desativar a renovação automática e pode cancelar sua assinatura a qualquer momento no Google Play. Se você nunca se inscreveu, você pode ser elegível para uma avaliação gratuita. Você não será cobrado se cancelar antes do fim do seu teste gratuito.</string>
     <string name="pref_item_premium_membership_section_products_title">Produtos</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Falha ao carregar uma lista de assinaturas</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Falha ao carregar uma lista de produtos</string>
@@ -1070,9 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Desbloquear um Cofre significa armazenar uma chave correta na memória RAM de um dispositivo, possibilitando a leitura e a modificação do Cofre criptografado.</string>
     <string name="datasafety_remote_section">Dados remotos</string>
     <string name="datasafety_remote_text">Os dados remotos são armazenados nos servidores do Bitwarden com criptografia de conhecimento zero.</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="logs_header_title">Registros</string>
+    <string name="logs_start_recording_fab_title">Iniciar gravação</string>
+    <string name="logs_stop_recording_fab_title">Parar gravação</string>
+    <string name="logs_export_button">Exportar</string>
+    <string name="logs_export_success">Exportação concluída</string>
 </resources>

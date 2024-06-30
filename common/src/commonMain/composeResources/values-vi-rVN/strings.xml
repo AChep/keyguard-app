@@ -18,11 +18,11 @@
     <string name="app_password">Mật khẩu ứng dụng</string>
     <string name="current_password">Mật khẩu hiện tại</string>
     <string name="new_password">Mật khẩu mới</string>
-    <string name="no_password">No password</string>
+    <string name="no_password">Không mật khẩu</string>
     <string name="email">Email</string>
     <string name="email_verified">Đã xác thực</string>
     <string name="email_not_verified">Chưa xác thực</string>
-    <string name="email_visibility">Mức độ hiển thị của email</string>
+    <string name="email_visibility">Khả năng hiển thị email</string>
     <string name="public_url">URL công khai</string>
     <string name="url">URL</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
@@ -31,17 +31,17 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Số lượng truy cập tối đa</string>
+    <string name="max_access_count">Lượt truy cập tối đa</string>
     <string name="learn_more">Tìm hiểu thêm</string>
     <string name="phone_number">Số điện thoại</string>
     <string name="passport_number">Số hộ chiếu</string>
-    <string name="license_number">Số bằng lái xe</string>
+    <string name="license_number">Số giấy phép</string>
     <string name="card_number">Số thẻ</string>
     <string name="card_number_empty_label">Không có số thẻ</string>
     <string name="card_type">Thương hiệu</string>
-    <string name="card_cvv">Số CVV</string>
+    <string name="card_cvv">Mã bảo mật</string>
     <string name="card_valid_from">Hiệu lực từ</string>
-    <string name="card_valid_to">Có hiệu lực đến</string>
+    <string name="card_valid_to">Hiệu lực đến</string>
     <string name="card_expiry_month">Tháng hết hạn thẻ</string>
     <string name="card_expiry_year">Năm hết hạn thẻ</string>
     <string name="cardholder_name">Tên chủ thẻ</string>
@@ -52,9 +52,9 @@
     <!-- Opposite of 'visible' -->
     <string name="hidden">Bị ẩn</string>
     <!-- Opposite of 'hidden' -->
-    <string name="visible">Được hiển thị</string>
+    <string name="visible">Hiển thị</string>
     <!-- Shows up instead of a value if a value is an empty text -->
-    <string name="empty_value">Rỗng</string>
+    <string name="empty_value">Trống</string>
     <!-- Social Security Number -->
     <string name="ssn">Số căn cước công dân</string>
     <string name="city">Thành phố</string>
@@ -187,7 +187,7 @@
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Không hỏi lại</string>
     <!-- A Trash screen -->
-    <string name="trash">Thùng rác</string>
+    <string name="trash">Sọt rác</string>
     <!-- To download something -->
     <string name="download">Tải xuống</string>
     <string name="downloads">Tải xuống</string>
@@ -239,7 +239,7 @@
     <string name="account_log_out_confirmation_text">Tất cả những thay đổi không được đồng bộ hóa sẽ bị mất!</string>
     <string name="folder_action_change_name_title">Đổi tên</string>
     <string name="folder_action_change_names_title">Đổi các tên</string>
-    <string name="folder_action_merge_title">Merge into…</string>
+    <string name="folder_action_merge_title">Gộp vào…</string>
     <string name="folder_delete_one_confirmation_title">Xóa thư mục?</string>
     <string name="folder_delete_many_confirmation_title">Xóa các thư mục?</string>
     <string name="folder_delete_confirmation_text">(Các) mục này sẽ bị xóa ngay lập tức. Bạn không thể hoàn tác hành động này.</string>
@@ -263,12 +263,12 @@
     <string name="ciphers_action_change_password_title">Đổi mật khẩu</string>
     <string name="ciphers_action_change_passwords_title">Đổi mật khẩu</string>
     <string name="ciphers_action_view_password_history_title">Xem lịch sử mật khẩu</string>
-    <string name="ciphers_action_trash_title">Thùng rác</string>
+    <string name="ciphers_action_trash_title">Vụt bỏ</string>
     <string name="ciphers_action_restore_title">Khôi phục</string>
     <string name="ciphers_action_delete_title">Xóa vĩnh viễn</string>
     <string name="ciphers_action_delete_confirmation_title">Xóa vĩnh viễn?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Định cấu hình cảnh báo của Tháp Canh</string>
-    <string name="ciphers_action_cascade_trash_associated_items_title">Di chuyển các mục liên quan vào thùng rác</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Dời các mục liên quan vào sọt rác</string>
     <string name="sends_action_change_name_title">Đổi tên</string>
     <string name="sends_action_change_names_title">Đổi tên</string>
     <string name="sends_action_change_filename_title">Thay đổi tên tệp</string>
@@ -298,7 +298,7 @@
     <string name="file_action_send_with_title">Gửi với…</string>
     <string name="file_action_open_in_file_manager_title">Mở trong một trình quản lý tệp</string>
     <string name="file_action_delete_local_title">Xóa tệp cục bộ</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
+    <string name="file_action_delete_local_many_title">Xóa các tệp cục bộ</string>
     <string name="file_action_view_cipher_title">Xem mục gốc</string>
     <string name="vault_action_always_show_keyboard_title">Luôn hiển thị bàn phím</string>
     <string name="vault_action_sync_vault_title">Đồng bộ hóa kho</string>
@@ -589,7 +589,7 @@
     <string name="additem_header_new_title">Mục mới</string>
     <string name="additem_header_edit_title">Chỉnh sửa mục</string>
     <string name="additem_header_merge_title">Gộp các mục</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Di chuyển các mục gốc vào thùng rác</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Dời các mục gốc vô sọt rác</string>
     <string name="additem_merge_attachments_note">Việc gộp các mục không gộp các tệp đính kèm của chúng! Mục đã tạo sẽ không có bất kỳ tệp đính kèm nào được thêm vào.</string>
     <string name="additem_note_placeholder">Thêm bất kỳ ghi chú nào về mục này ở đây</string>
     <string name="additem_markdown_note">Tạo kiểu cho văn bản bằng <xliff:g id="italic" example="italic">%1$s</xliff:g> hoặc <xliff:g id="bold" example="bold">%2$s</xliff:g> và hơn thế nữa. Hỗ trợ cú pháp Markdown giới hạn.</string>
@@ -704,9 +704,9 @@
     <string name="sortby_modification_date_title">Ngày sửa đổi</string>
     <string name="sortby_modification_date_normal_mode">Mới nhất trước</string>
     <string name="sortby_modification_date_reverse_mode">Cũ nhất trước</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
-    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Ngày cài đặt</string>
+    <string name="sortby_installation_date_normal_mode">Gần đây nhất trước tiên</string>
+    <string name="sortby_installation_date_reverse_mode">Cũ nhất trước tiên</string>
     <string name="sortby_expiration_date_title">Ngày hết hạn</string>
     <string name="sortby_expiration_date_normal_mode">Mới nhất trước</string>
     <string name="sortby_expiration_date_reverse_mode">Cũ nhất trước</string>
@@ -806,8 +806,8 @@
     <string name="watchtower_section_password_strength_label">Độ mạnh mật khẩu</string>
     <string name="watchtower_section_security_label">Bảo mật</string>
     <string name="watchtower_section_maintenance_label">Bảo trì</string>
-    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
-    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
+    <string name="watchtower_item_new_alerts_title">Xem lại cảnh báo mới</string>
+    <string name="watchtower_item_weak_passwords_title">Các mật khẩu yếu</string>
     <string name="watchtower_item_pwned_passwords_title">Những mật khẩu bị xâm phạm</string>
     <string name="watchtower_item_pwned_passwords_text">Những mật khẩu đã bị lộ trong các vụ vi phạm dữ liệu. Những mật khẩu như vậy nên được thay đổi ngay lập tức.</string>
     <string name="watchtower_item_reused_passwords_title">Mật khẩu dùng lại</string>
@@ -826,16 +826,16 @@
     <string name="watchtower_item_expiring_items_text">Các mục đã hết hạn hoặc sắp hết hạn.</string>
     <string name="watchtower_item_duplicate_websites_title">URI trùng lặp</string>
     <string name="watchtower_item_duplicate_websites_text">Các mục có một hoặc nhiều URI bao gồm cùng một trang web sau khi áp dụng tính năng phát hiện trùng khớp.</string>
-    <string name="watchtower_item_trashed_items_title">Các mục trong thùng rác</string>
-    <string name="watchtower_item_trashed_items_text">Các mục đã được chuyển vào thùng rác. Việc có quá nhiều mục trong thùng rác có thể làm chậm hoạt động của kho.</string>
+    <string name="watchtower_item_trashed_items_title">Các mục rác</string>
+    <string name="watchtower_item_trashed_items_text">Các mục đã được dời vô sọt rác. Việc có quá nhiều mục trong sọt rác có thể làm chậm hoạt động của kho.</string>
     <string name="watchtower_item_empty_folders_title">Các thư mục trống</string>
     <string name="watchtower_item_empty_folders_text">Các thư mục không có bất kỳ mục nào trong đó.</string>
     <string name="watchtower_item_duplicate_items_title">Các mục trùng lặp</string>
     <string name="watchtower_item_duplicate_items_text">Giúp bạn xác định và loại bỏ các mục trùng lặp trong kho của bạn.</string>
     <string name="watchtower_item_compromised_accounts_title">Tài khoản bị xâm phạm</string>
     <string name="watchtower_item_compromised_accounts_text">Kiểm tra vi phạm dữ liệu bằng tên người dùng hoặc địa chỉ email.</string>
-    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
-    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
+    <string name="watchtower_alerts_header_title">Các cảnh báo tháp canh mới</string>
+    <string name="watchtower_mark_all_as_read_title">Đánh dấu tất cả như đã đọc</string>
     <string name="changepassword_header_title">Thay đổi mật khẩu ứng dụng</string>
     <string name="changepassword_change_password_button">Đổi mật khẩu</string>
     <string name="changepassword_biometric_auth_checkbox">Xác thực sinh trắc học</string>
@@ -929,7 +929,7 @@
     <!--
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
-    <string name="pref_item_crash_title">Tai nạn</string>
+    <string name="pref_item_crash_title">Hỏng</string>
     <string name="pref_item_credential_provider_title">Nhà cung cấp thông tin xác thực</string>
     <string name="pref_item_credential_provider_text">Các khóa truy cập, mật khẩu và dịch vụ dữ liệu</string>
     <string name="pref_item_privacy_policy_title">Chính sách bảo mật</string>
@@ -948,7 +948,7 @@
     <string name="pref_item_allow_screenshots_text_on">Hiển thị nội dung của ứng dụng khi chuyển đổi giữa các ứng dụng gần đây và cho phép chụp màn hình</string>
     <string name="pref_item_allow_screenshots_text_off">Ẩn nội dung của ứng dụng khi chuyển đổi giữa các ứng dụng gần đây và cấm chụp màn hình</string>
     <string name="pref_item_data_safety_title">An toàn dữ liệu</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">Nhật ký</string>
     <string name="pref_item_lock_vault_title">Khóa kho</string>
     <string name="pref_item_lock_vault_after_reboot_title">Khóa sau khi khởi động lại</string>
     <string name="pref_item_lock_vault_after_reboot_text">Khóa kho sau khi khởi động lại thiết bị</string>
@@ -997,7 +997,7 @@
     <string name="pref_item_premium_membership_title">Giới thiệu về tư cách thành viên Keyguard</string>
     <string name="pref_item_premium_membership_text">Cao cấp mở khóa các tính năng bổ sung và tài trợ cho việc phát triển ứng dụng. Cảm ơn bạn đã ủng hộ chúng tôi! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Gói đăng ký</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Đăng ký của bạn sẽ gia hạn 24 giờ trước khi hết hạn và tài khoản Google Play của bạn sẽ tự động bị tính phí vào thời điểm đó. Bạn có thể bật hoặc tắt tính năng tự động gia hạn và có thể hủy đăng ký của mình bất kỳ lúc nào trên Google Play. Nếu bạn chưa bao giờ đăng ký, bạn có thể đủ điều kiện để dùng thử miễn phí. Bạn sẽ không bị tính phí nếu hủy trước khi kết thúc thời gian dùng thử miễn phí.</string>
     <string name="pref_item_premium_membership_section_products_title">Các sản phẩm</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Không tải được một danh sách đăng ký</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Không tải được một danh sách sản phẩm</string>
@@ -1070,9 +1070,9 @@
     <string name="datasafety_local_unlocking_vault">Mở khóa một kho có nghĩa là lưu trữ một Chìa khóa chính xác trong RAM của thiết bị, có được khả năng đọc và sửa đổi Kho đã mã hóa.</string>
     <string name="datasafety_remote_section">Dữ liệu từ xa</string>
     <string name="datasafety_remote_text">Dữ liệu từ xa được lưu trữ trên máy chủ Bitwarden với mã hóa không-kiến ​​thức.</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="logs_header_title">Nhật ký</string>
+    <string name="logs_start_recording_fab_title">Bắt đầu ghi</string>
+    <string name="logs_stop_recording_fab_title">Dừng ghi</string>
+    <string name="logs_export_button">Xuất</string>
+    <string name="logs_export_success">Xuất hoàn tất</string>
 </resources>

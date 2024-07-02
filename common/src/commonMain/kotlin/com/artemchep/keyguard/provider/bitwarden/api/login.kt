@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.defaultUserAgent
 import com.artemchep.keyguard.platform.util.userAgent
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
@@ -76,7 +77,7 @@ data class BitwardenPersona(
             clientVersion = CLIENT_VERSION,
             deviceType = "8",
             deviceName = "linux",
-            userAgent = userAgent,
+            userAgent = defaultUserAgent,
         )
 
         private fun Platform.Desktop.MacOS.bitwardenPersona(
@@ -86,7 +87,7 @@ data class BitwardenPersona(
             clientVersion = CLIENT_VERSION,
             deviceType = "7",
             deviceName = "macos",
-            userAgent = userAgent,
+            userAgent = defaultUserAgent,
         )
 
         private fun Platform.Desktop.Windows.bitwardenPersona(
@@ -96,7 +97,7 @@ data class BitwardenPersona(
             clientVersion = CLIENT_VERSION,
             deviceType = "6",
             deviceName = "windows",
-            userAgent = userAgent,
+            userAgent = defaultUserAgent,
         )
     }
 }

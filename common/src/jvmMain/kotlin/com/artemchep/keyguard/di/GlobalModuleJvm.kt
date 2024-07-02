@@ -361,7 +361,7 @@ import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorImpl
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.platform.util.userAgent
+import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
 import io.ktor.client.HttpClient
@@ -1295,7 +1295,8 @@ fun globalModuleJvm() = DI.Module(
         val okHttpClient: OkHttpClient = instance()
         HttpClient(OkHttp) {
             install(UserAgent) {
-                agent = CurrentPlatform.userAgent
+                agent = BitwardenPersona.of(CurrentPlatform)
+                    .userAgent
             }
             engine {
                 preconfigured = okHttpClient

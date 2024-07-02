@@ -70,7 +70,8 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import org.conscrypt.Conscrypt
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DI
@@ -85,11 +86,12 @@ import java.util.Locale
 import kotlin.reflect.KClass
 
 fun main() {
-    // Add Conscrypt as the first security provider
+    // Add BouncyCastle as the first security provider
     // to make OkHTTP use its TLS instead of a platform
     // specific one.
     // https://github.com/square/okhttp?tab=readme-ov-file#requirements
-    Security.insertProviderAt(Conscrypt.newProvider(), 1)
+    Security.insertProviderAt(BouncyCastleProvider(), 1)
+    Security.insertProviderAt(BouncyCastleJsseProvider(), 2)
 
     val kamelConfig = KamelConfig {
         this.takeFrom(KamelConfig.Default)

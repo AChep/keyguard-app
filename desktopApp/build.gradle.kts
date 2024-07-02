@@ -21,7 +21,8 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 implementation(compose.desktop.currentOs)
                 implementation(compose.components.resources)
-                implementation(libs.conscrypt.openjdk)
+                implementation(libs.bouncycastle.bcprov)
+                implementation(libs.bouncycastle.bctls)
                 implementation(project(":common"))
             }
         }

@@ -231,6 +231,7 @@ landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.
 landscapist-placeholder = { module = "com.github.skydoves:landscapist-placeholder", version.ref = "landscapist" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
 mayakapps-window-styler = { module = "com.mayakapps.compose:window-styler", version.ref = "windowStyler" }
 microsoft-signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
 microsoft-signalr-messagepack = { module = "com.microsoft.signalr.messagepack:signalr-messagepack", version.ref = "signalr" }

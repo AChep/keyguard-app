@@ -45,8 +45,6 @@ actual fun LeMOdelBottomSheet(
             ModalBottomSheet(
                 onDismissRequest = onDismissRequest,
                 sheetState = bottomSheetState,
-                windowInsets = WindowInsets.systemBars
-                    .only(WindowInsetsSides.Top),
                 content = {
                     content(contentPadding)
                 },

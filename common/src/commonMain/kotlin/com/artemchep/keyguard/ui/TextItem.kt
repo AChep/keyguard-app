@@ -145,7 +145,7 @@ fun UrlFlatTextField(
         placeholder = placeholder,
         value = value,
         keyboardOptions = keyboardOptions.copy(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Uri,
         ),
         keyboardActions = keyboardActions,
@@ -188,7 +188,7 @@ fun EmailFlatTextField(
         placeholder = placeholder,
         value = value,
         keyboardOptions = keyboardOptions.copy(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Email,
         ),
         keyboardActions = keyboardActions,
@@ -231,7 +231,7 @@ fun PasswordFlatTextField(
         placeholder = placeholder,
         value = value,
         keyboardOptions = keyboardOptions.copy(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Password,
         ),
         keyboardActions = keyboardActions,

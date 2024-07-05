@@ -2,11 +2,6 @@ package com.artemchep.keyguard.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -38,14 +33,11 @@ actual fun LeMOdelBottomSheet(
             skipPartiallyExpanded = false,
         )
         if (visible) {
-            val contentInsets = WindowInsets.systemBars
-                .only(WindowInsetsSides.Bottom)
-            val contentPadding = contentInsets
-                .asPaddingValues()
             ModalBottomSheet(
                 onDismissRequest = onDismissRequest,
                 sheetState = bottomSheetState,
                 content = {
+                    val contentPadding = PaddingValues(0.dp)
                     content(contentPadding)
                 },
             )

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,6 +36,7 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetSubscriptions
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.onboarding.OnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
@@ -47,6 +49,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatSimpleNote
+import com.artemchep.keyguard.ui.FlatTextFieldBadge
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -268,6 +271,18 @@ private fun SettingSubscriptionItem(
         },
         elevation = 2.dp,
         trailing = {
+            val status = subscription.status
+            if (status is Subscription.Status.Inactive && status.hasTrialAvailable) {
+                FlatTextFieldBadge(
+                    type = TextFieldModel2.Vl.Type.INFO,
+                    text = stringResource(Res.string.pref_item_premium_status_free_trial),
+                )
+                Spacer(
+                    modifier = Modifier
+                        .width(16.dp),
+                )
+            }
+
             ChevronIcon()
         },
         content = {

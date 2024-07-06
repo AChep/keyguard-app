@@ -8,7 +8,10 @@ import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.SkuDetails
 import com.android.billingclient.api.SkuDetailsParams
 import com.artemchep.keyguard.common.io.IO
@@ -59,14 +62,14 @@ class BillingConnectionImpl(
         private const val TIMEOUT_LAUNCH_BILLING_FLOW = 1000L
     }
 
-    override fun skuDetailsFlow(skuDetailsParams: SkuDetailsParams): Flow<RichResult<List<SkuDetails>>> =
+    override fun productDetailsFlow(params: QueryProductDetailsParams): Flow<RichResult<List<ProductDetails>>> =
         mapClient { client ->
-            client.mapToSkuDetails(skuDetailsParams)
+            client.mapToSkuDetails(params)
         }
 
-    private suspend fun BillingClient.mapToSkuDetails(skuDetailsParams: SkuDetailsParams) =
+    private suspend fun BillingClient.mapToSkuDetails(params: QueryProductDetailsParams) =
         ioEffect(Dispatchers.IO) {
-            querySkuDetailsSuspending(skuDetailsParams)
+            querySkuDetailsSuspending(params)
         }
             .flattenMap()
             .flatMap { skuDetailsList ->
@@ -76,16 +79,16 @@ class BillingConnectionImpl(
                     ?: kotlin.run {
                         val exception =
                             IllegalArgumentException("Sku details list must not be null!")
-                        ioRaise<List<SkuDetails>>(exception)
+                        ioRaise<List<ProductDetails>>(exception)
                     }
             }
             .retryIfNetworkIssue()
             .attempt().bind().let { RichResult.invoke(it) }
 
-    override fun purchasesFlow(skuType: String): Flow<RichResult<List<Purchase>>> =
+    override fun purchasesFlow(params: QueryPurchasesParams): Flow<RichResult<List<Purchase>>> =
         mapClient { client ->
             ioEffect(Dispatchers.IO) {
-                client.queryPurchasesSuspending(skuType)
+                client.queryPurchasesSuspending(params)
             }
                 .flattenMap()
                 .flatMap { purchasesList ->
@@ -169,9 +172,9 @@ class BillingConnectionImpl(
             }
 }
 
-private suspend fun BillingClient.querySkuDetailsSuspending(skuDetailsParams: SkuDetailsParams) =
-    suspendCancellableCoroutine<Either<BillingResponseException, List<SkuDetails>?>> { continuation ->
-        querySkuDetailsAsync(skuDetailsParams) { billingResult, skuDetailsList ->
+private suspend fun BillingClient.querySkuDetailsSuspending(params: QueryProductDetailsParams) =
+    suspendCancellableCoroutine<Either<BillingResponseException, List<ProductDetails>?>> { continuation ->
+        queryProductDetailsAsync(params) { billingResult, skuDetailsList ->
             kotlin.runCatching {
                 val r = getBillingResultOrException(billingResult, skuDetailsList)
                 continuation.resume(r)
@@ -179,9 +182,9 @@ private suspend fun BillingClient.querySkuDetailsSuspending(skuDetailsParams: Sk
         }
     }
 
-private suspend fun BillingClient.queryPurchasesSuspending(skuType: String) =
+private suspend fun BillingClient.queryPurchasesSuspending(params: QueryPurchasesParams) =
     suspendCancellableCoroutine<Either<BillingResponseException, List<Purchase>?>> { continuation ->
-        queryPurchasesAsync(skuType) { billingResult, purchases ->
+        queryPurchasesAsync(params) { billingResult, purchases ->
             kotlin.runCatching {
                 val r = getBillingResultOrException(billingResult, purchases)
                 continuation.resume(r)

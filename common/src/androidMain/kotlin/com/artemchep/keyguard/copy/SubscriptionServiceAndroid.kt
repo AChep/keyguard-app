@@ -2,10 +2,11 @@ package com.artemchep.keyguard.copy
 
 import android.app.Activity
 import com.android.billingclient.api.AcknowledgePurchaseParams
-import com.android.billingclient.api.BillingClient.SkuType
+import com.android.billingclient.api.BillingClient.ProductType
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.SkuDetailsParams
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.billing.BillingConnection
 import com.artemchep.keyguard.billing.BillingManager
@@ -59,8 +60,8 @@ class SubscriptionServiceAndroid(
         .map { receiptsResult ->
             receiptsResult.map { receipts ->
                 receipts.any {
-                    val isSubscription = it.skus.intersect(SkuListSubscription).isNotEmpty()
-                    val isProduct = it.skus.intersect(SkuListProduct).isNotEmpty()
+                    val isSubscription = it.products.intersect(SkuListSubscription).isNotEmpty()
+                    val isProduct = it.products.intersect(SkuListProduct).isNotEmpty()
                     isSubscription || isProduct
                 }
             }
@@ -69,47 +70,80 @@ class SubscriptionServiceAndroid(
     override fun subscriptions(): Flow<List<Subscription>?> = combine(
         getReceiptFlow()
             .filter { it !is RichResult.Loading },
-        getSkuDetailsFlow(SkuType.SUBS)
+        getProductDetailsFlow(ProductType.SUBS)
             .filter { it !is RichResult.Loading },
     ) { receiptsResult, skuDetailsResult ->
         val receipts = receiptsResult.orNull()
         val skuDetails = skuDetailsResult.orNull()
 
-        skuDetails?.map {
+        skuDetails?.mapNotNull {
+            val bestOffer = it.subscriptionOfferDetails
+                ?.filter { it.offerId != null }
+                ?.minByOrNull {
+                    val firstPrice = it.pricingPhases
+                        .pricingPhaseList
+                        .first()
+                    firstPrice.priceAmountMicros
+                }
+            val baseOffer = it.subscriptionOfferDetails
+                ?.firstOrNull { it.offerId == null }
+                ?: return@mapNotNull null
+            val finalPrice = baseOffer.pricingPhases
+                .pricingPhaseList
+                .last()
+
             val status = kotlin.run {
-                val skuReceipt = receipts?.firstOrNull { purchase -> it.sku in purchase.skus }
-                    ?: return@run Subscription.Status.Inactive
+                val skuReceipt =
+                    receipts?.firstOrNull { purchase -> it.productId in purchase.products }
+                        ?: return@run kotlin.run {
+                            val hasTrialAvailable = bestOffer?.pricingPhases
+                                ?.pricingPhaseList
+                                ?.firstOrNull()
+                                ?.priceAmountMicros == 0L
+                            Subscription.Status.Inactive(
+                                hasTrialAvailable = hasTrialAvailable,
+                            )
+                        }
                 Subscription.Status.Active(
                     willRenew = skuReceipt.isAutoRenewing,
                 )
             }
             Subscription(
-                id = it.sku,
-                title = it.title,
+                id = it.productId,
+                title = it.name,
                 description = it.description,
-                price = it.price,
+                price = finalPrice.formattedPrice,
                 status = status,
                 purchase = { context ->
                     val activity = context.context.closestActivityOrNull
                         ?: return@Subscription
+
+                    val offerToken = bestOffer?.offerToken
+                        ?: baseOffer.offerToken
+                    val list = listOf(
+                        BillingFlowParams.ProductDetailsParams.newBuilder()
+                            .setProductDetails(it)
+                            .setOfferToken(offerToken)
+                            .build()
+                    )
                     val params = BillingFlowParams.newBuilder()
                         .run {
                             val existingPurchase = receipts
                                 ?.firstOrNull {
-                                    SkuListSubscription.intersect(it.skus)
+                                    SkuListSubscription.intersect(it.products)
                                         .isNotEmpty()
                                 }
-                            if (existingPurchase != null && it.sku !in existingPurchase.skus) {
+                            if (existingPurchase != null && it.productId !in existingPurchase.products) {
                                 val params = BillingFlowParams.SubscriptionUpdateParams
                                     .newBuilder()
-                                    .setOldSkuPurchaseToken(existingPurchase.purchaseToken)
+                                    .setOldPurchaseToken(existingPurchase.purchaseToken)
                                     .build()
                                 setSubscriptionUpdateParams(params)
                             } else {
                                 this
                             }
                         }
-                        .setSkuDetails(it)
+                        .setProductDetailsParamsList(list)
                         .build()
                     purchase(activity, params)
                         .crashlyticsTap()
@@ -123,29 +157,37 @@ class SubscriptionServiceAndroid(
     override fun products(): Flow<List<Product>?> = combine(
         getReceiptFlow()
             .filter { it !is RichResult.Loading },
-        getSkuDetailsFlow(SkuType.INAPP)
+        getProductDetailsFlow(ProductType.INAPP)
             .filter { it !is RichResult.Loading },
     ) { receiptsResult, skuDetailsResult ->
         val receipts = receiptsResult.orNull()
         val skuDetails = skuDetailsResult.orNull()
 
-        skuDetails?.map {
+        skuDetails?.mapNotNull {
             val status = kotlin.run {
-                receipts?.firstOrNull { purchase -> it.sku in purchase.skus }
+                receipts?.firstOrNull { purchase -> it.productId in purchase.products }
                     ?: return@run Product.Status.Inactive
                 Product.Status.Active
             }
+            val finalPrice = it.oneTimePurchaseOfferDetails
+                ?: return@mapNotNull null
             Product(
-                id = it.sku,
-                title = it.title,
+                id = it.productId,
+                title = it.name,
                 description = it.description,
-                price = it.price,
+                price = finalPrice.formattedPrice,
                 status = status,
                 purchase = { context ->
                     val activity = context.context.closestActivityOrNull
                         ?: return@Product
+
+                    val list = listOf(
+                        BillingFlowParams.ProductDetailsParams.newBuilder()
+                            .setProductDetails(it)
+                            .build()
+                    )
                     val params = BillingFlowParams.newBuilder()
-                        .setSkuDetails(it)
+                        .setProductDetailsParamsList(list)
                         .build()
                     purchase(activity, params)
                         .crashlyticsTap()
@@ -180,10 +222,18 @@ class SubscriptionServiceAndroid(
         .billingConnectionFlow
         .flatMapLatest { connection ->
             val subscriptionsFlow = connection
-                .purchasesFlow(SkuType.SUBS)
+                .purchasesFlow(
+                    QueryPurchasesParams.newBuilder()
+                        .setProductType(ProductType.SUBS)
+                        .build(),
+                )
                 .onEachAcknowledge(connection)
             val productsFlow = connection
-                .purchasesFlow(SkuType.INAPP)
+                .purchasesFlow(
+                    QueryPurchasesParams.newBuilder()
+                        .setProductType(ProductType.INAPP)
+                        .build(),
+                )
                 .onEachAcknowledge(connection)
             combine(
                 subscriptionsFlow,
@@ -213,19 +263,24 @@ class SubscriptionServiceAndroid(
             connection.acknowledgePurchase(acknowledgePurchaseParams)
         }
 
-    private fun getSkuDetailsFlow(skuType: String) = billingManager
+    private fun getProductDetailsFlow(@ProductType productType: String) = billingManager
         .billingConnectionFlow
         .flatMapLatest { connection ->
-            val skusList = when (skuType) {
-                SkuType.SUBS -> SkuListSubscription
-                SkuType.INAPP -> SkuListProduct
+            val productIdList = when (productType) {
+                ProductType.SUBS -> SkuListSubscription
+                ProductType.INAPP -> SkuListProduct
                 else -> error("Unknown SKU type!")
             }
-
-            val skuDetailsParams = SkuDetailsParams.newBuilder()
-                .setType(skuType)
-                .setSkusList(skusList)
+            val productList = productIdList
+                .map {
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(it)
+                        .setProductType(productType)
+                        .build()
+                }
+            val skuDetailsParams = QueryProductDetailsParams.newBuilder()
+                .setProductList(productList)
                 .build()
-            connection.skuDetailsFlow(skuDetailsParams)
+            connection.productDetailsFlow(skuDetailsParams)
         }
 }

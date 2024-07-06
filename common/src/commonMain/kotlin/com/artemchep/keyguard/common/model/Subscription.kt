@@ -11,7 +11,9 @@ data class Subscription(
     val purchase: (LeContext) -> Unit,
 ) {
     sealed interface Status {
-        data object Inactive : Status
+        data class Inactive(
+            val hasTrialAvailable: Boolean,
+        ) : Status
 
         data class Active(
             val willRenew: Boolean,

@@ -4,9 +4,10 @@ import android.app.Activity
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.SkuDetails
-import com.android.billingclient.api.SkuDetailsParams
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import com.artemchep.keyguard.common.model.RichResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,7 @@ interface BillingConnection {
      * Perform a network query to get SKU details and
      * return the result asynchronously.
      */
-    fun skuDetailsFlow(skuDetailsParams: SkuDetailsParams): Flow<RichResult<List<SkuDetails>>>
+    fun productDetailsFlow(params: QueryProductDetailsParams): Flow<RichResult<List<ProductDetails>>>
 
     /**
      * Get purchases details for all the items bought within your app.
@@ -32,7 +33,7 @@ interface BillingConnection {
      * https://developers.google.com/android-publisher/api-ref/purchases/products/get
      * https://developers.google.com/android-publisher/api-ref/purchases/subscriptions/get
      */
-    fun purchasesFlow(skuType: String): Flow<RichResult<List<Purchase>>>
+    fun purchasesFlow(params: QueryPurchasesParams): Flow<RichResult<List<Purchase>>>
 
     fun launchBillingFlow(activity: Activity, billingFlowParams: BillingFlowParams)
 

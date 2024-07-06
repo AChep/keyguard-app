@@ -255,7 +255,7 @@
     <string name="ciphers_action_merge_title">Gộp vào…</string>
     <string name="ciphers_action_copy_title">Sao chép đến…</string>
     <string name="ciphers_action_export_title">Xuất…</string>
-    <string name="ciphers_action_change_folder_title">Chuyển tới thư mục</string>
+    <string name="ciphers_action_change_folder_title">Chuyển đến thư mục</string>
     <string name="ciphers_action_change_name_title">Đổi tên</string>
     <string name="ciphers_action_change_names_title">Đổi tên</string>
     <string name="ciphers_action_add_password_title">Thêm mật khẩu</string>
@@ -263,7 +263,7 @@
     <string name="ciphers_action_change_password_title">Đổi mật khẩu</string>
     <string name="ciphers_action_change_passwords_title">Đổi mật khẩu</string>
     <string name="ciphers_action_view_password_history_title">Xem lịch sử mật khẩu</string>
-    <string name="ciphers_action_trash_title">Vụt bỏ</string>
+    <string name="ciphers_action_trash_title">Vứt bỏ</string>
     <string name="ciphers_action_restore_title">Khôi phục</string>
     <string name="ciphers_action_delete_title">Xóa vĩnh viễn</string>
     <string name="ciphers_action_delete_confirmation_title">Xóa vĩnh viễn?</string>
@@ -696,8 +696,8 @@
     <string name="sort_header_title">Sắp xếp theo</string>
     <string name="sort_empty_label">Không có sẵn sắp xếp nào</string>
     <string name="sortby_title_title">Tiêu đề</string>
-    <string name="sortby_title_normal_mode">A đến Z</string>
-    <string name="sortby_title_reverse_mode">Z đến A</string>
+    <string name="sortby_title_normal_mode">Thứ tự bảng chữ cái</string>
+    <string name="sortby_title_reverse_mode">Đảo ngược thứ tự bảng chữ cái</string>
     <string name="sortby_access_count_title">Lượt truy cập</string>
     <string name="sortby_access_count_normal_mode">Lớn nhất trước</string>
     <string name="sortby_access_count_reverse_mode">Nhỏ nhất trước</string>
@@ -714,8 +714,8 @@
     <string name="sortby_deletion_date_normal_mode">Mới nhất trước</string>
     <string name="sortby_deletion_date_reverse_mode">Cũ nhất trước</string>
     <string name="sortby_password_title">Mật khẩu</string>
-    <string name="sortby_password_normal_mode">A đến Z</string>
-    <string name="sortby_password_reverse_mode">Z đến A</string>
+    <string name="sortby_password_normal_mode">Thứ tự bảng chữ cái</string>
+    <string name="sortby_password_reverse_mode">Đảo ngược thứ tự bảng chữ cái</string>
     <string name="sortby_password_modification_date_title">Ngày sửa đổi mật khẩu</string>
     <string name="sortby_password_modification_date_normal_mode">Mới nhất trước</string>
     <string name="sortby_password_modification_date_reverse_mode">Cũ nhất trước</string>
@@ -826,7 +826,7 @@
     <string name="watchtower_item_expiring_items_text">Các mục đã hết hạn hoặc sắp hết hạn.</string>
     <string name="watchtower_item_duplicate_websites_title">URI trùng lặp</string>
     <string name="watchtower_item_duplicate_websites_text">Các mục có một hoặc nhiều URI bao gồm cùng một trang web sau khi áp dụng tính năng phát hiện trùng khớp.</string>
-    <string name="watchtower_item_trashed_items_title">Các mục rác</string>
+    <string name="watchtower_item_trashed_items_title">Các mục đã vứt</string>
     <string name="watchtower_item_trashed_items_text">Các mục đã được dời vô sọt rác. Việc có quá nhiều mục trong sọt rác có thể làm chậm hoạt động của kho.</string>
     <string name="watchtower_item_empty_folders_title">Các thư mục trống</string>
     <string name="watchtower_item_empty_folders_text">Các thư mục không có bất kỳ mục nào trong đó.</string>
@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Không tải được một danh sách đăng ký</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Không tải được một danh sách sản phẩm</string>
     <string name="pref_item_premium_status_active">Hiệu lực</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">Sẽ không gia hạn</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Quản lý trên Cửa hàng Play</string>
     <string name="pref_item_permission_post_notifications_title">Đăng thông báo</string>

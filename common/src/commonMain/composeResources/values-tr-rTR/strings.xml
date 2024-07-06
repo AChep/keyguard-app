@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Abonelik listesi yüklenemedi</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Ürün listesi yüklenemedi</string>
     <string name="pref_item_premium_status_active">Aktif</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">Yenilenmeyecek</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play Store'da yönet</string>
     <string name="pref_item_permission_post_notifications_title">Bildirim gönderme</string>

@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">无法加载订阅列表</string>
     <string name="pref_item_premium_membership_failed_to_load_products">无法加载产品列表</string>
     <string name="pref_item_premium_status_active">已激活</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">将不续订</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">在 Play 商店管理</string>
     <string name="pref_item_permission_post_notifications_title">发送通知</string>

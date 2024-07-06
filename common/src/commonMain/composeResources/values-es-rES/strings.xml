@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Error al cargar la lista de suscripciones</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Error al cargar la lista de productos</string>
     <string name="pref_item_premium_status_active">Activo</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">No se renovará</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Administrar en Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Mostrar notificaciones</string>

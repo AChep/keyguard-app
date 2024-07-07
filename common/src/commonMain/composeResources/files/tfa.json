@@ -2045,6 +2045,18 @@
     "name": "Booking.com"
   },
   {
+    "domain": "boost.com.au",
+    "additional-domains": [
+      "boostmobile.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://boost.com.au/pages/two-step-verification",
+    "name": "Boost Mobile [AU]"
+  },
+  {
     "domain": "boots.com",
     "tfa": [
       "call",

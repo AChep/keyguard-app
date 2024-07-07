@@ -19,7 +19,12 @@ import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.common.AppWorker
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.flatten
+import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
@@ -27,8 +32,10 @@ import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
+import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
@@ -39,14 +46,19 @@ import com.artemchep.keyguard.desktop.util.navigateToFileInFileManager
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.keyguard.AppRoute
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
+import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
+import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LocalComposeWindow
@@ -60,7 +72,9 @@ import io.kamel.image.config.Default
 import io.kamel.image.config.LocalKamelConfig
 import io.ktor.http.Url
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -69,6 +83,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.Clock
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
@@ -104,7 +119,13 @@ fun main() {
         }
     }
 
+    val processLifecycleProvider = LePlatformLifecycleProvider(
+        scope = GlobalScope,
+        cryptoGenerator = appDi.direct.instance(),
+    )
+
     val getVaultSession by appDi.di.instance<GetVaultSession>()
+    val putVaultSession by appDi.di.instance<PutVaultSession>()
     val getVaultPersist by appDi.di.instance<GetVaultPersist>()
     val keyReadWriteRepository by appDi.di.instance<KeyReadWriteRepository>()
     getVaultSession()
@@ -185,34 +206,38 @@ fun main() {
     }
 
     // timeout
-//    var timeoutJob: Job? = null
-//    val getVaultLockAfterTimeout: GetVaultLockAfterTimeout by instance()
-//    ProcessLifecycleOwner.get().bindBlock {
-//        timeoutJob?.cancel()
-//        timeoutJob = null
-//
-//        try {
-//            // suspend forever
-//            suspendCancellableCoroutine<Unit> { }
-//        } finally {
-//            timeoutJob = getVaultLockAfterTimeout()
-//                .toIO()
-//                // Wait for the timeout duration.
-//                .effectMap { duration ->
-//                    delay(duration)
-//                    duration
-//                }
-//                .flatMap {
-//                    // Clear the current session.
-//                    val session = MasterSession.Empty(
-//                        reason = "Locked due to inactivity."
-//                    )
-//                    putVaultSession(session)
-//                }
-//                .attempt()
-//                .launchIn(GlobalScope)
-//        }
-//    }
+    var timeoutJob: Job? = null
+    val getVaultLockAfterTimeout: GetVaultLockAfterTimeout by appDi.di.instance()
+    processLifecycleProvider.lifecycleStateFlow
+        .onState(minActiveState = LeLifecycleState.RESUMED) {
+            timeoutJob?.cancel()
+            timeoutJob = null
+
+            try {
+                // suspend forever
+                suspendCancellableCoroutine<Unit> { }
+            } finally {
+                timeoutJob = getVaultLockAfterTimeout()
+                    .toIO()
+                    // Wait for the timeout duration.
+                    .effectMap { duration ->
+                        delay(duration)
+                        duration
+                    }
+                    .effectMap {
+                        // Clear the current session.
+                        val context = LeContext()
+                        val session = MasterSession.Empty(
+                            reason = textResource(Res.string.lock_reason_inactivity, context),
+                        )
+                        putVaultSession(session)
+                    }
+                    .flatten()
+                    .attempt()
+                    .launchIn(GlobalScope)
+            }
+        }
+        .launchIn(GlobalScope)
 
     val getCloseToTray: GetCloseToTray = appDi.direct.instance()
 
@@ -265,6 +290,7 @@ fun main() {
             }
             if (isWindowOpenState.value) {
                 KeyguardWindow(
+                    processLifecycleProvider = processLifecycleProvider,
                     onCloseRequest = {
                         val shouldCloseToTray = getCloseToTrayState.value
                         if (shouldCloseToTray) {
@@ -281,6 +307,7 @@ fun main() {
 
 @Composable
 private fun ApplicationScope.KeyguardWindow(
+    processLifecycleProvider: LePlatformLifecycleProvider,
     onCloseRequest: () -> Unit,
 ) {
     val windowState = rememberWindowState()
@@ -290,6 +317,10 @@ private fun ApplicationScope.KeyguardWindow(
         state = windowState,
         title = "Keyguard",
     ) {
+        LaunchLifecycleProviderEffect(
+            processLifecycleProvider = processLifecycleProvider,
+        )
+
         KeyguardTheme {
             val containerColor = LocalBackgroundManager.current.colorHighest
             val containerColorAnimatedState = animateColorAsState(containerColor)

@@ -122,6 +122,8 @@ kotlin {
                 api(libs.arrow.arrow.optics)
                 api(libs.kodein.kodein.di)
                 api(libs.kodein.kodein.di.framework.compose)
+                api(libs.androidx.lifecycle.common)
+                api(libs.androidx.lifecycle.runtime)
                 api(libs.ktor.ktor.client.core)
                 api(libs.ktor.ktor.client.logging)
                 api(libs.ktor.ktor.client.content.negotiation)

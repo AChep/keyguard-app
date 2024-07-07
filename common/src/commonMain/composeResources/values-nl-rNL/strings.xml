@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Fout bij het laden van de lijst met abonnementen</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Fout bij het laden van de lijst met producten</string>
     <string name="pref_item_premium_status_active">Actief</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">Wordt niet verlengd</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Beheren in Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Meldingen sturen</string>

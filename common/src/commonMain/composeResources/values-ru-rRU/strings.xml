@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
     <string name="pref_item_premium_status_active">Активно</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">Не будет продлеваться</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>

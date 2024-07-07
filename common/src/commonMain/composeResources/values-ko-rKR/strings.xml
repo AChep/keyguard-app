@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">구독 목록을 불러오지 못했습니다.</string>
     <string name="pref_item_premium_membership_failed_to_load_products">상품 목록을 불러오지 못했습니다.</string>
     <string name="pref_item_premium_status_active">사용 중</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">갱신 안 함</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play 스토어에서 관리</string>
     <string name="pref_item_permission_post_notifications_title">알림 게시</string>

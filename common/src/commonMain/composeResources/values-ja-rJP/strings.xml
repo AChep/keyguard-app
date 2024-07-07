@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">サブスクリプションのリストの読み込みに失敗しました</string>
     <string name="pref_item_premium_membership_failed_to_load_products">プロダクトのリストの読み込みに失敗しました</string>
     <string name="pref_item_premium_status_active">アクティブ</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">更新されません</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play ストアで管理</string>
     <string name="pref_item_permission_post_notifications_title">通知</string>

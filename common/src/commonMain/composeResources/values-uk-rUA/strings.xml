@@ -1002,6 +1002,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не вдалося завантажити список підписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не вдалося завантажити список продуктів</string>
     <string name="pref_item_premium_status_active">Активний</string>
+    <string name="pref_item_premium_status_free_trial">Free trial</string>
     <string name="pref_item_premium_status_will_not_renew">Не буде продовжено</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Керувати на Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Публікувати сповіщення</string>

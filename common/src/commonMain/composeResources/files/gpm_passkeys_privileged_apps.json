@@ -535,6 +535,18 @@
     {
       "type": "android",
       "info": {
+        "package_name": "com.naver.whale",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "0B:8B:85:23:BB:4A:EF:FA:34:6E:4B:DD:4F:BF:7D:19:34:50:56:9A:A1:4A:AA:D4:AD:FD:94:A3:F7:B2:27:BB"
+          }
+        ]
+      }
+    },
+    {
+      "type": "android",
+      "info": {
         "package_name": "org.mozilla.fenix",
         "signatures": [
           {

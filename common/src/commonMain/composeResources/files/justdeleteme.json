@@ -459,6 +459,15 @@
     "notes": "On your account settings, scroll to the bottom and click 'Delete my Account'"
   },
   {
+    "name": "Adidas US",
+    "domains": [
+      "adidas.com"
+    ],
+    "url": "https://www.adidas.com/us/my-account/profile",
+    "difficulty": "easy",
+    "notes": "On your account settings, scroll down to 'Manage Account' and click 'Delete Account'"
+  },
+  {
     "name": "Adobe",
     "domains": [
       "adobe.com",
@@ -810,6 +819,19 @@
     "url": "https://alvanista.com/profile/edit",
     "difficulty": "easy",
     "notes": "Follow the link to edit your profile and click cancel account at bottom."
+  },
+  {
+    "name": "Alza",
+    "domains": [
+      "alza.de",
+      "alza.cz",
+      "alza.sk",
+      "alza.hu",
+      "alza.at"
+    ],
+    "url": "https://www.alza.cz/my-account?setlang=en-GB",
+    "difficulty": "easy",
+    "notes": "Open the link scroll down and press on the \"Request the deletion of my personal data\" "
   },
   {
     "name": "Amara",
@@ -1628,6 +1650,15 @@
     "url": "https://secure.backblaze.com/account_settings.htm",
     "difficulty": "medium",
     "notes": "Click on delete account and follow the required steps. You must have no outstanding B2 balance and will have to delete most files and settings in your account first."
+  },
+  {
+    "name": "Badlion",
+    "domains": [
+      "badlion.net"
+    ],
+    "url": "https://www.badlion.net/settings",
+    "difficulty": "easy",
+    "notes": "Open settings, scroll down and enter your username and delete your account."
   },
   {
     "name": "Badoo",
@@ -3901,6 +3932,15 @@
     "notes": "Go to \"Delete Your Account \u2b95 Delete Account\"."
   },
   {
+    "name": "CZC",
+    "domains": [
+      "czc.cz"
+    ],
+    "url": "https://www.czc.cz/soukromi/sprava-udaju",
+    "difficulty": "easy",
+    "notes": "You have to fill out a form. (BUT IT'S ONLY IN CZECH)"
+  },
+  {
     "name": "DaFONT",
     "domains": [
       "dafont.com"
@@ -5438,6 +5478,15 @@
     "url": "https://privacyportal-cdn.onetrust.com/dsarwebform/516d7c8e-88ca-4311-b9d9-a6a1aa23be02/5eb62c40-d057-4621-93ca-9842142c3443.html",
     "difficulty": "hard",
     "notes": "Go to the URL, select 'Delete My Info' as the request type, and fill out the form with your account information. Open the email they send you and confirm. Wait a few days while they review your request. You should eventually receive email confirmation that your account was deleted, after which your login credentials will no longer work."
+  },
+  {
+    "name": "Exclusive Car Registry",
+    "domains": [
+      "exclusivecarregistry.com"
+    ],
+    "url": "https://exclusivecarregistry.com/account/security",
+    "difficulty": "easy",
+    "notes": "Click Profile icon \u2b95 Show Menu \u2b95 Security \u2b95 Delete Profile \u2b95 Type CONFIRM \u2b95 Click Delete account button \u2b95 Email Sent \u2b95 Click DELETE ACCOUNT button."
   },
   {
     "name": "Exercism",
@@ -11325,6 +11374,17 @@
     "notes": "On your account page, scroll to the bottom and click on the red button to delete it."
   },
   {
+    "name": "Mullvad",
+    "domains": [
+      "mullvad.net",
+      "mullvadvpn.net"
+    ],
+    "url": "https://mullvad.net/en/help/faq#119",
+    "difficulty": "hard",
+    "notes": "Contact support via email to request deletion of your account.",
+    "email": "support@mullvadvpn.net"
+  },
+  {
     "name": "MultCloud",
     "domains": [
       "multcloud.com"
@@ -15136,6 +15196,16 @@
     "notes": "Create a customer support ticket requesting deletion."
   },
   {
+    "name": "Shodan",
+    "domains": [
+      "shodan.io"
+    ],
+    "url": "https://static.shodan.io/legal/terms.html",
+    "difficulty": "hard",
+    "notes": "Send an email to Shodan support to delete your account.",
+    "email": "support@shodan.io"
+  },
+  {
     "name": "Shop",
     "domains": [
       "shop.app",
@@ -17897,6 +17967,15 @@
     "difficulty": "hard",
     "notes": "Contact the customer support via email and request the deletion of your account.",
     "email": "service@utryme.com"
+  },
+  {
+    "name": "uVPN",
+    "domains": [
+      "uvpn.me"
+    ],
+    "url": "https://uvpn.me/support/#contactus",
+    "difficulty": "hard",
+    "email": "support@uvpn.me"
   },
   {
     "name": "Uxcel",

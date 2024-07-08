@@ -2,6 +2,9 @@ package db_key_value.crypto_prefs
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import android.security.keystore.StrongBoxUnavailableException
+import androidx.annotation.RequiresApi
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -94,16 +97,25 @@ private fun getMasterKeyAlias(
 ): MasterKey {
     lateinit var exception: Throwable
 
+    var strongBox = true
     val retryCount = 3
     for (i in 0 until retryCount) {
         try {
             return MasterKey.Builder(context, alias)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .setRequestStrongBoxBacked(true)
+                .setRequestStrongBoxBacked(strongBox)
                 .setUserAuthenticationRequired(false)
                 .build()
         } catch (e: Exception) {
-            if (e is GeneralSecurityException) {
+            if (e.isStrongBoxUnavailableExceptionCompat()) {
+                // If the StrongBox Keymaster isn't available for the given algorithm
+                // and key size associated with a key, the framework throws a
+                // StrongBoxUnavailableException. If you get this exception,
+                // try using TEE for your key storage as a fallback option.
+                //
+                // https://developer.android.com/privacy-and-security/keystore#HardwareSecurityModule
+                strongBox = false
+            } else if (e is GeneralSecurityException) {
                 exception = e
                 onError()
             } else {
@@ -136,3 +148,11 @@ private fun clearKeystore(
     keyStore.load(null)
     keyStore.deleteEntry(alias)
 }
+
+private fun Throwable.isStrongBoxUnavailableExceptionCompat(): Boolean =
+    Build.VERSION.SDK_INT >= 28 && isStrongBoxUnavailableException()
+
+@RequiresApi(Build.VERSION_CODES.P)
+private fun Throwable.isStrongBoxUnavailableException(): Boolean =
+    this is StrongBoxUnavailableException ||
+            cause?.isStrongBoxUnavailableException() == true

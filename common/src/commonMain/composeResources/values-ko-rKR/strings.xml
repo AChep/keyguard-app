@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">충돌</string>
     <string name="pref_item_credential_provider_title">자격 증명 공급자</string>
     <string name="pref_item_credential_provider_text">패스키, 비밀번호 및 데이터 서비스</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">개인 정보 보호 정책</string>
     <string name="pref_item_contact_us_title">고객 지원</string>
     <string name="pref_item_experimental_title">실험용 기능</string>

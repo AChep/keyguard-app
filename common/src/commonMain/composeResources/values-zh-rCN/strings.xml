@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">程序崩溃</string>
     <string name="pref_item_credential_provider_title">凭据提供商</string>
     <string name="pref_item_credential_provider_text">通行密钥、密码和数据服务</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">隐私政策</string>
     <string name="pref_item_contact_us_title">联系我们</string>
     <string name="pref_item_experimental_title">实验性功能</string>

@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">Falha</string>
     <string name="pref_item_credential_provider_title">Provedor de credenciais</string>
     <string name="pref_item_credential_provider_text">Chaves de acesso, palavras-passe e serviços de dados</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Política de Privacidade</string>
     <string name="pref_item_contact_us_title">Contacte-nos</string>
     <string name="pref_item_experimental_title">Experimental</string>
@@ -1002,7 +1003,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Falha ao carregar lista de subscrições</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Falha ao carregar lista de produtos</string>
     <string name="pref_item_premium_status_active">Ativo</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial">Avalaiação gratuita</string>
     <string name="pref_item_premium_status_will_not_renew">Não renovará</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gerir na Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Mostrar notificações</string>

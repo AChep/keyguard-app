@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">Absturz</string>
     <string name="pref_item_credential_provider_title">Anmeldedatenanbieter</string>
     <string name="pref_item_credential_provider_text">Passkeys, Passwörter und Datendienste</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Datenschutzrichtlinie</string>
     <string name="pref_item_contact_us_title">Kontaktiere uns</string>
     <string name="pref_item_experimental_title">Experimentell</string>

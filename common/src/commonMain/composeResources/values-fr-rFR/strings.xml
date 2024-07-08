@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">Plantage</string>
     <string name="pref_item_credential_provider_title">Fournisseur d’informations d’identification</string>
     <string name="pref_item_credential_provider_text">Clés d'accès, mots de passe et services de données</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Politique de confidentialité</string>
     <string name="pref_item_contact_us_title">Contactez-nous</string>
     <string name="pref_item_experimental_title">Expérimental</string>

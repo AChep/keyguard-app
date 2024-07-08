@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">Спровокувати виліт застосунку</string>
     <string name="pref_item_credential_provider_title">Постачальник реквізитів для входу</string>
     <string name="pref_item_credential_provider_text">Ключі, паролі та служби даних</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Політика конфіденційності</string>
     <string name="pref_item_contact_us_title">Зв'язатися з нами</string>
     <string name="pref_item_experimental_title">Експериментальні налаштування</string>
@@ -1002,7 +1003,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не вдалося завантажити список підписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не вдалося завантажити список продуктів</string>
     <string name="pref_item_premium_status_active">Активний</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial">Безплатний пробний період</string>
     <string name="pref_item_premium_status_will_not_renew">Не буде продовжено</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Керувати на Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Публікувати сповіщення</string>

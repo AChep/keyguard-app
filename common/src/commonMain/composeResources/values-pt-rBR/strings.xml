@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">Falha</string>
     <string name="pref_item_credential_provider_title">Provedor de credenciais</string>
     <string name="pref_item_credential_provider_text">Passkeys, senhas e serviços de dados</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Política de privacidade</string>
     <string name="pref_item_contact_us_title">Contate-nos</string>
     <string name="pref_item_experimental_title">Experimental</string>

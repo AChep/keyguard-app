@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">Сбой</string>
     <string name="pref_item_credential_provider_title">Поставщик учетных данных</string>
     <string name="pref_item_credential_provider_text">Пасскеи, пароли и сервисы данных</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Политика конфиденциальности</string>
     <string name="pref_item_contact_us_title">Связаться с нами</string>
     <string name="pref_item_experimental_title">Экспериментальные</string>
@@ -1002,7 +1003,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
     <string name="pref_item_premium_status_active">Активно</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial">Бесплатный пробный период</string>
     <string name="pref_item_premium_status_will_not_renew">Не будет продлеваться</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>

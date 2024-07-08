@@ -932,6 +932,7 @@
     <string name="pref_item_crash_title">クラッシュ</string>
     <string name="pref_item_credential_provider_title">認証プロバイダー</string>
     <string name="pref_item_credential_provider_text">パスキー、パスワード、データサービス</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">プライバシーポリシー</string>
     <string name="pref_item_contact_us_title">お問い合わせ</string>
     <string name="pref_item_experimental_title">実験的機能</string>

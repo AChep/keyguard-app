@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- Passkeys -->
+    <uses-feature
+        android:name="android.software.credentials"
+        android:required="false" />
     <!--
         I need this permission to be able to check if linked app is installed on the
         system or not. -->

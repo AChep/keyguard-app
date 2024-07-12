@@ -2424,14 +2424,6 @@
     "name": "Brigham Young University"
   },
   {
-    "domain": "caffeine.tv",
-    "tfa": [
-      "email"
-    ],
-    "documentation": "https://caffeine.custhelp.com/app/answers/detail/a_id/32/",
-    "name": "Caffeine"
-  },
-  {
     "domain": "cal.com",
     "tfa": [
       "totp"
@@ -11258,6 +11250,19 @@
     "name": "Patelco Credit Union"
   },
   {
+    "domain": "patient.labcorp.com",
+    "tfa": [
+      "sms",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Okta Verify"
+    ],
+    "documentation": "https://patient.labcorp.com/help-center/q-and-a/8000/1",
+    "name": "Labcorp Patient"
+  },
+  {
     "domain": "patientaccess.com",
     "tfa": [
       "totp"
@@ -12366,6 +12371,15 @@
     ],
     "documentation": "https://docs.rackspace.com/docs/multi-factor-authentication",
     "name": "Rackspace"
+  },
+  {
+    "domain": "racv.com.au",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.racv.com.au/help-and-support/account-membership.html#Whatistwostepverification",
+    "name": "RACV"
   },
   {
     "domain": "raindrop.io",

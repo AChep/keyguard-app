@@ -1503,6 +1503,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "AutoWebSurf",
+    "domains": [
+      "autowebsurf.com"
+    ],
+    "url": "https://autowebsurf.com/members/delete.php",
+    "difficulty": "easy",
+    "notes": "Enter your password to confirm the deletion."
+  },
+  {
     "name": "AV Club",
     "domains": [
       "avclub.com"
@@ -2816,6 +2825,16 @@
     "email_body": "Please delete my account. I use XXX to sign in. My email address is XXX."
   },
   {
+    "name": "Catappult ",
+    "domains": [
+      "catappult.io",
+      "developers.catappult.io"
+    ],
+    "url": "https://developers.catappult.io/settings/account",
+    "difficulty": "easy",
+    "notes": "Go to Manage Users Access section, click Request account deletion."
+  },
+  {
     "name": "Catawiki",
     "domains": [
       "catawiki.com"
@@ -3579,6 +3598,16 @@
     "url": "https://coolors.co/account/delete",
     "difficulty": "medium",
     "notes": "Use the link provided to request account deletion. Enter your password, then you get an e-mail with a code. Enter this code in the next input field. If you created the account with a 'Social Login' you need to set a password first."
+  },
+  {
+    "name": "Copyrighted",
+    "domains": [
+      "copyrighted.com",
+      "app.copyrighted.com"
+    ],
+    "url": "https://app.copyrighted.com/users/settings/cancel",
+    "difficulty": "easy",
+    "notes": "Enter your current password to confirm deletion."
   },
   {
     "name": "Corellium",
@@ -4694,6 +4723,16 @@
     ],
     "url": "https://drawpile.net/accounts/delete/",
     "difficulty": "easy"
+  },
+  {
+    "name": "Draxlr",
+    "domains": [
+      "draxlr.com",
+      "app.draxlr.com"
+    ],
+    "url": "https://www.draxlr.com/contact/",
+    "difficulty": "hard",
+    "notes": "Contact customer support to request account deletion. They should respond and will delete any personal information, database credentials and result caches that you have provided along with your account within 4 working days."
   },
   {
     "name": "DreamHost",
@@ -6050,6 +6089,15 @@
     "email_body": "Please delete my data from all Follett services under my email address XXXXXX."
   },
   {
+    "name": "Followlike",
+    "domains": [
+      "followlike.net"
+    ],
+    "url": "https://www.followlike.net/settings.php",
+    "difficulty": "easy",
+    "notes": "On \"Delete Sites or Account\" section, click the red 'Delete account'."
+  },
+  {
     "name": "Font Awesome",
     "domains": [
       "fontawesome.com"
@@ -6411,6 +6459,15 @@
     "email": "privacy@galaxy.click"
   },
   {
+    "name": "Galaxy Play",
+    "domains": [
+      "galaxyplay.vn"
+    ],
+    "url": "https://galaxyplay.vn/account/info/delete-account",
+    "difficulty": "medium",
+    "notes": "Check the \"confirm\" checkbox and click \"Delete account\". Enter PIN code sent to your phone number. Your account will now be locked, logged out on all devices and will be permanently deleted after 14 days"
+  },
+  {
     "name": "Game Tracker",
     "domains": [
       "gametracker.com"
@@ -6517,11 +6574,18 @@
   {
     "name": "Garena",
     "domains": [
-      "garena.sg"
+      "account.garena.com",
+      "garena.com",
+      "garena.my",
+      "garena.ph",
+      "garena.sg",
+      "garena.tw",
+      "garena.vn",
+      "hotro.garena.vn"
     ],
     "url": "https://www.garena.sg/support/",
     "difficulty": "hard",
-    "notes": "Accounts are deleted with 6 months of inactivity or by opening a ticket to their support team."
+    "notes": "Accounts can only be deleted by opening a ticket to their support team."
   },
   {
     "name": "Garmin",
@@ -7793,6 +7857,16 @@
     "notes": "Login, go to Account and click on Cancel Account"
   },
   {
+    "name": "Hemingway Editor",
+    "domains": [
+      "hemingwayapp.com"
+    ],
+    "url": "https://hemingwayapp.com/help#more-help",
+    "difficulty": "hard",
+    "notes": "Since there is no button, you must contact them through E-Mail. Thankfully, the wait time for their response is brief; however, this may differ from one to another.",
+    "email": "support@hemingwayapp.com"
+  },
+  {
     "name": "Hepsiburada",
     "domains": [
       "hepsiburada.com"
@@ -7886,6 +7960,15 @@
     "url": "https://hinative.com/users/edit?type=delete_my_account",
     "difficulty": "easy",
     "notes": "Click \"Settings\", then \"My Account\", then \"Delete my account\", and finally click the red \"Delete my account\" button."
+  },
+  {
+    "name": "Histats",
+    "domains": [
+      "histats.com"
+    ],
+    "url": "https://www.histats.com/viewstats/?act=1",
+    "difficulty": "easy",
+    "notes": "Click the red 'Delete Account'."
   },
   {
     "name": "HitBTC",
@@ -8163,6 +8246,15 @@
     ],
     "url": "https://secure.hulu.com/users/delete",
     "difficulty": "easy"
+  },
+  {
+    "name": "Human Benchmark",
+    "domains": [
+      "humanbenchmark.com"
+    ],
+    "url": "https://humanbenchmark.com/delete-account",
+    "difficulty": "easy",
+    "notes": "Click \"Confirm delete account\"."
   },
   {
     "name": "Humata",
@@ -8466,12 +8558,13 @@
   {
     "name": "Infinity Free",
     "domains": [
-      "infinityfree.net",
-      "app.infinityfree.net"
+      "infinityfree.com",
+      "dash.infinityfree.com",
+      "forum.infinityfree.com"
     ],
-    "url": "https://app.infinityfree.net/accounts/",
-    "difficulty": "easy",
-    "notes": "Visit the URL. Click on your account name. Click on 'Account Settings'. Scroll down to click 'Deactivate Account'. Note: It takes 20-60 days for complete account deletion."
+    "url": "https://dash.infinityfree.com/users",
+    "difficulty": "medium",
+    "notes": "Visit the URL. Click on 'Edit Profile'. Scroll down to 'Delete Profile' section, enter current password then click 'Delete Profile'. Note that it can take up to 30 days for all data to be fully removed."
   },
   {
     "name": "InfoCasas",
@@ -10401,6 +10494,15 @@
     "url": "https://mangadex.org/settings#del",
     "difficulty": "easy",
     "notes": "Sign in \u2b95 Click the 'Delete' button \u2b95 You will receive an email with a confirm button \u2b95 Enter 'CONFIRM' in the text box."
+  },
+  {
+    "name": "Mangools",
+    "domains": [
+      "mangools.com"
+    ],
+    "url": "https://mangools.com/account",
+    "difficulty": "easy",
+    "notes": "On 'Delete account' section, click the red 'Understand, delete my account'"
   },
   {
     "name": "Mapbox",
@@ -12556,6 +12658,18 @@
     "email": "support@openinvest.com"
   },
   {
+    "name": "OpenPhone",
+    "domains": [
+      "openphone.com"
+    ],
+    "url": "https://support.openphone.com/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "You need to contact OpenPhone support.",
+    "email": "help@openphone.co",
+    "email_subject": "Account deletion request",
+    "email_body": "I request a deletion of my OpenPhone account associated with this email address."
+  },
+  {
     "name": "OpenSea",
     "domains": [
       "opensea.io",
@@ -14145,6 +14259,16 @@
     "url": "https://razer-id.razerzone.com/account/delete",
     "difficulty": "easy",
     "notes": "An account is required to access the warranty and product registration section of the website. Despite being on a different subdomain, this affects the normal Razerzone.com website and the assorted store as well."
+  },
+  {
+    "name": "RD Sa\u00fade (Droga Raia and Drogasil)",
+    "domains": [
+      "drogasil.com.br",
+      "drogaraia.com.br"
+    ],
+    "url": "https://privacyportal-br.onetrust.com/webform/ece1e280-13aa-4d10-984a-bda9a79f64d7/c973a872-1b90-4b71-8284-e75ce6928857",
+    "difficulty": "hard",
+    "notes": "Fill out the form and make your data deletion request."
   },
   {
     "name": "Read the Docs",
@@ -16830,11 +16954,12 @@
   {
     "name": "Telltale",
     "domains": [
-      "telltale.com"
+      "telltale.com",
+      "account.telltale.com"
     ],
-    "url": "https://telltale.com",
-    "difficulty": "hard",
-    "notes": "Contact support using the blue \"Support\" button at the bottom right, filling out all applicable fields with \"Account Deletion\""
+    "url": "https://account.telltale.com/account/settings",
+    "difficulty": "easy",
+    "notes": "After logging in, navigate to your account's settings, scroll down to the \u201cDelete Account\u201d section. After pressing the \u201cDELETE\u201d button, enter your E-Mail and click the button again to confirm."
   },
   {
     "name": "TEMPO",
@@ -17796,6 +17921,16 @@
     "url": "https://www.ultimate-guitar.com/forum/profile/delete-account",
     "difficulty": "easy",
     "notes": "Click the link or log in, go to 'settings', 'Profile' and click the small delete button at the bottom."
+  },
+  {
+    "name": "umami",
+    "domains": [
+      "umami.is",
+      "cloud.umami.is"
+    ],
+    "url": "https://cloud.umami.is/account",
+    "difficulty": "easy",
+    "notes": "After logging in, proceed to the \u201cManage\u201d section and select the red button labelled \u201cDelete\u201d. In the pop-up text box, type \u201cDELETE\u201d and confirm once more."
   },
   {
     "name": "Uncubed",

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
@@ -129,6 +130,8 @@ fun NavigationNode(
 
         val updatedAnimationScale by rememberUpdatedState(LocalAnimationFactor)
         AnimatedContent(
+            modifier = Modifier
+                .fillMaxSize(),
             targetState = foo,
             transitionSpec = {
                 val animationType = getNavAnimation().value

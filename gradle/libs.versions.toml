@@ -57,7 +57,7 @@ composeMultiplatform = "1.7.0-alpha01"
 composeOpenIcons = "1.1.0"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.2"
-firebase = "33.1.1"
+firebase = "33.1.2"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide

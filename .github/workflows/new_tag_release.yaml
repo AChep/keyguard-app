@@ -43,12 +43,12 @@ jobs:
           echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}" >> gradle.properties
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
-      - name: "./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg"
+      - name: "Setup Gradle"
         uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        with:
-          arguments: ":desktopApp:packageDmg :desktopApp:notarizeDmg"
+      - name: "Build"
+        run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: 'Upload logs'
         uses: actions/upload-artifact@v4
         if: always()
@@ -96,12 +96,12 @@ jobs:
           pwd
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "./gradlew :desktopApp:bundleFlatpak"
+      - name: "Setup Gradle"
         uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        with:
-          arguments: ":desktopApp:bundleFlatpak"
+      - name: "Build"
+        run: ./gradlew :desktopApp:bundleFlatpak
       - name: 'Upload .flatpak'
         uses: actions/upload-artifact@v4
         with:
@@ -129,12 +129,12 @@ jobs:
       - name: "Setup build env"
         run: |
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "./gradlew :desktopApp:packageMsi"
+      - name: "Setup Gradle"
         uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        with:
-          arguments: ":desktopApp:packageMsi"
+      - name: "Build"
+        run: ./gradlew :desktopApp:packageMsi
       - name: 'Upload .msi'
         uses: actions/upload-artifact@v4
         with:
@@ -159,21 +159,17 @@ jobs:
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "Check and Build licenses"
+      - name: "Setup Gradle"
         uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        with:
-          arguments: :androidApp:licenseeAndroidNoneRelease
+      - name: "Check and Build licenses"
+        run: ./gradlew androidApp:licenseeAndroidNoneRelease
       - name: "Move licenses"
         run: |
           mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
-      - name: "./gradlew :androidApp:assembleNoneRelease"
-        uses: gradle/actions/setup-gradle@v3
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        with:
-          arguments: :androidApp:assembleNoneRelease
+      - name: "Build"
+        run: ./gradlew androidApp:assembleNoneRelease
       - name: 'Upload .apk'
         uses: actions/upload-artifact@v4
         with:

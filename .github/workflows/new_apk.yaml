@@ -33,12 +33,12 @@ jobs:
       - name: "Move licenses"
         run: |
           mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
-      - name: "./gradlew :androidApp:assembleNoneRelease"
+      - name: "Setup Gradle"
         uses: gradle/actions/setup-gradle@v3
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        with:
-          arguments: :androidApp:assembleNoneRelease
+      - name: "Build"
+        run: ./gradlew :androidApp:assembleNoneRelease
       - name: 'Upload .apk'
         uses: actions/upload-artifact@v4
         with:

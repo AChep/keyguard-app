@@ -307,6 +307,7 @@
     <string name="file_action_view_cipher_title">View parent item</string>
 
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
+    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">Sync vault</string>
     <string name="vault_action_lock_vault_title">Lock vault</string>
     <string name="vault_action_rename_folder_title">Rename folder</string>

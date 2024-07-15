@@ -137,6 +137,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -165,6 +166,16 @@ data class ComparatorHolder(
                 favourites = map["favourites"].toString() == "true",
             )
         }
+
+        fun deserialize(
+            json: Json,
+            value: Map<String, Any?>,
+        ): ComparatorHolder = of(value)
+
+        fun serialize(
+            json: Json,
+            value: ComparatorHolder,
+        ): Map<String, Any?> = value.toMap()
     }
 
     fun toMap() = mapOf(
@@ -369,16 +380,18 @@ fun vaultListScreenState(
         }
         .launchIn(this)
 
-    val showKeyboardSink = if (args.canAlwaysShowKeyboard) {
-        mutablePersistedFlow(
-            key = "keyboard",
-            storage = storage,
-        ) { false }
-    } else {
-        mutablePersistedFlow(
-            key = "keyboard",
-        ) { false }
-    }
+    val showKeyboardSink = mutablePersistedFlow(
+        key = "keyboard",
+        storage = if (args.canAlwaysShowKeyboard) {
+            storage
+        } else PersistedStorage.InMemory,
+    ) { false }
+    val rememberSortSink = mutablePersistedFlow(
+        key = "sort_persistent_enabled",
+        storage = if (args.canAlwaysShowKeyboard) {
+            storage
+        } else PersistedStorage.InMemory,
+    ) { false }
     val syncFlow = syncSupervisor
         .get(AccountTask.SYNC)
         .map { accounts ->
@@ -389,23 +402,41 @@ fun vaultListScreenState(
         comparator = AlphabeticalSort,
         favourites = true,
     )
+    // Alternative sort sink that is stored on the
+    // disk storage. Mirrored from the in-memory sink.
+    val sortPersistentSink = mutablePersistedFlow(
+        key = "sort_persistent",
+        storage = storage,
+        serialize = ComparatorHolder::serialize,
+        deserialize = ComparatorHolder::deserialize,
+    ) {
+        sortDefault
+    }
     val sortSink = mutablePersistedFlow(
         key = "sort",
-        serialize = { json, value ->
-            value.toMap()
-        },
-        deserialize = { json, value ->
-            ComparatorHolder.of(value)
-        },
+        serialize = ComparatorHolder::serialize,
+        deserialize = ComparatorHolder::deserialize,
     ) {
         if (args.sort != null) {
             ComparatorHolder(
                 comparator = args.sort,
             )
         } else {
-            sortDefault
+            if (rememberSortSink.value) {
+                sortPersistentSink.value
+            } else {
+                sortDefault
+            }
         }
     }
+    // Copy the in-memory sorting method into
+    // the persistent storage. We need it for
+    // 'Remember sorting method' option to work.
+    sortSink
+        .onEach { value ->
+            sortPersistentSink.value = value
+        }
+        .launchIn(screenScope)
 
     var scrollPositionKey: Any? = null
     val scrollPositionSink = mutablePersistedFlow<OhOhOh>("scroll_state") { OhOhOh() }
@@ -488,8 +519,28 @@ fun vaultListScreenState(
                     onClick = showKeyboardSink::value::set.partially1(!showKeyboard),
                 )
             }
+        val actionRememberSortingFlow = rememberSortSink
+            .map { rememberSorting ->
+                FlatItemAction(
+                    leading = {
+                        Icon(
+                            Icons.Outlined.SortByAlpha,
+                            null,
+                        )
+                    },
+                    trailing = {
+                        Switch(
+                            checked = rememberSorting,
+                            onCheckedChange = rememberSortSink::value::set,
+                        )
+                    },
+                    title = Res.string.vault_action_remember_sorting_title.wrap(),
+                    onClick = rememberSortSink::value::set.partially1(!rememberSorting),
+                )
+            }
         val actionGroup2Flow = combine(
             actionAlwaysShowKeyboardFlow,
+            actionRememberSortingFlow,
         ) { array ->
             buildContextItems {
                 section {

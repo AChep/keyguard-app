@@ -301,6 +301,7 @@
     <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">Zobacz element nadrzędny</string>
     <string name="vault_action_always_show_keyboard_title">Zawsze pokazuj klawiaturę</string>
+    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">Synchronizuj sejf</string>
     <string name="vault_action_lock_vault_title">Zablokuj sejf</string>
     <string name="vault_action_rename_folder_title">Zmień nazwę folderu</string>
@@ -932,6 +933,7 @@
     <string name="pref_item_crash_title">Crash</string>
     <string name="pref_item_credential_provider_title">Credential provider</string>
     <string name="pref_item_credential_provider_text">Passkeys, passwords and data services</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Privacy policy</string>
     <string name="pref_item_contact_us_title">Contact us</string>
     <string name="pref_item_experimental_title">Experimental</string>

@@ -301,6 +301,7 @@
     <string name="file_action_delete_local_many_title">Xóa các tệp cục bộ</string>
     <string name="file_action_view_cipher_title">Xem mục gốc</string>
     <string name="vault_action_always_show_keyboard_title">Luôn hiển thị bàn phím</string>
+    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">Đồng bộ hóa kho</string>
     <string name="vault_action_lock_vault_title">Khóa kho</string>
     <string name="vault_action_rename_folder_title">Đổi tên thư mục</string>
@@ -367,7 +368,7 @@
     <string name="text_action_send_title">Tạo một gửi</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> mục đã chọn</string>
     <string name="copy">Sao chép</string>
-    <string name="copy_value">Sao chép</string>
+    <string name="copy_value">Sao chép giá trị</string>
     <string name="copy_url">Sao chép đường dẫn</string>
     <string name="copy_uri">Sao chép đường dẫn</string>
     <string name="copy_send">Sao chép gửi</string>
@@ -897,7 +898,7 @@
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
         -->
-    <string name="pref_item_app_build_ref_title">Tài liệu tham khảo về bản dựng ứng dụng</string>
+    <string name="pref_item_app_build_ref_title">Giới thiệu bản dựng ứng dụng</string>
     <string name="pref_item_app_changelog_title">Nhật ký thay đổi ứng dụng</string>
     <string name="pref_item_app_team_title">Đội ngũ đằng sau ứng dụng</string>
     <string name="pref_item_reddit_community_title">Cộng đồng Reddit</string>
@@ -932,6 +933,7 @@
     <string name="pref_item_crash_title">Hỏng</string>
     <string name="pref_item_credential_provider_title">Nhà cung cấp thông tin xác thực</string>
     <string name="pref_item_credential_provider_text">Các khóa truy cập, mật khẩu và dịch vụ dữ liệu</string>
+    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
     <string name="pref_item_privacy_policy_title">Chính sách bảo mật</string>
     <string name="pref_item_contact_us_title">Liên hệ chúng tôi</string>
     <string name="pref_item_experimental_title">Thử nghiệm</string>
@@ -1002,7 +1004,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Không tải được một danh sách đăng ký</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Không tải được một danh sách sản phẩm</string>
     <string name="pref_item_premium_status_active">Hiệu lực</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial">Dùng thử miễn phí</string>
     <string name="pref_item_premium_status_will_not_renew">Sẽ không gia hạn</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Quản lý trên Cửa hàng Play</string>
     <string name="pref_item_permission_post_notifications_title">Đăng thông báo</string>

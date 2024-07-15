@@ -301,6 +301,7 @@
     <string name="file_action_delete_local_many_title">Удалить локальные файлы</string>
     <string name="file_action_view_cipher_title">Просмотр родительского элемента</string>
     <string name="vault_action_always_show_keyboard_title">Всегда показывать клавиатуру</string>
+    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">Синхронизировать хранилище</string>
     <string name="vault_action_lock_vault_title">Заблокировать хранилище</string>
     <string name="vault_action_rename_folder_title">Переименовать папку</string>
@@ -932,6 +933,7 @@
     <string name="pref_item_crash_title">Сбой</string>
     <string name="pref_item_credential_provider_title">Поставщик учетных данных</string>
     <string name="pref_item_credential_provider_text">Пасскеи, пароли и сервисы данных</string>
+    <string name="pref_item_credential_provider_no_feature_note">Устройство не поддерживает интеграцию с поставщиками учетных записей. Свяжитесь с производителем для получения дополнительной информации.</string>
     <string name="pref_item_privacy_policy_title">Политика конфиденциальности</string>
     <string name="pref_item_contact_us_title">Связаться с нами</string>
     <string name="pref_item_experimental_title">Экспериментальные</string>
@@ -1002,7 +1004,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
     <string name="pref_item_premium_status_active">Активно</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial">Бесплатный пробный период</string>
     <string name="pref_item_premium_status_will_not_renew">Не будет продлеваться</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>

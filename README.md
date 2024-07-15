@@ -12,8 +12,8 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 </a>
 
 <a href="https://gh.artemchep.com/keyguard-repo-fdroid/repo">
-  <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-       alt="Get Keyguard on F-Droid"
+  <img src="https://github.com/AChep/keyguard-app/blob/master/artwork/badge_fdroid.png"
+       alt="Get Keyguard F-Droid repository"
        vspace="20"
        height="60">
 </a>

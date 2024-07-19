@@ -8706,14 +8706,6 @@
     "name": "Localize"
   },
   {
-    "domain": "localmonero.co",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://localmonero.co/guides/2fa",
-    "name": "LocalMonero"
-  },
-  {
     "domain": "logicmonitor.com",
     "tfa": [
       "call",
@@ -13806,22 +13798,6 @@
     ],
     "documentation": "https://www.sketch.com/docs/workspaces/managing-your-sketch-account/",
     "name": "Sketch"
-  },
-  {
-    "domain": "skiff.com",
-    "additional-domains": [
-      "bitkeep.app",
-      "ethereum.email",
-      "keplr.xyz",
-      "solana.email"
-    ],
-    "tfa": [
-      "totp",
-      "u2f"
-    ],
-    "documentation": "https://www.youtube.com/watch?v=ImSqwEbn3fc",
-    "notes": "TOTP must be enabled to use a hardware token.",
-    "name": "Skiff"
   },
   {
     "domain": "skinport.com",

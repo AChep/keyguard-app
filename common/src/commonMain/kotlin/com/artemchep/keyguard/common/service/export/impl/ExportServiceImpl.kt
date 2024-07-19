@@ -84,7 +84,6 @@ class ExportServiceImpl(
                 )
             }
         val exportedItems = ciphers
-            .filter { it.organizationId == null }
             .map { cipher ->
                 cipher.toExportEntity(
                     localToRemoteFolderIdMap = localToRemoteFolderIdMap,

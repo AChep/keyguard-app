@@ -2909,6 +2909,16 @@
     "notes": "Contact customer service via the support e-mail form and request deletion of your account under General Questions."
   },
   {
+    "name": "CEEOL",
+    "domains": [
+      "ceeol.com"
+    ],
+    "url": "https://www.cdkeys.com/user/profile/",
+    "difficulty": "impossible",
+    "notes": "To request account cancellation & remove your personal information, please email them. Note: CEEOL will retain and use your information as necessary to comply with their legal obligations, resolve disputes, and enforce their agreements.",
+    "email": "info@ceeol.com"
+  },
+  {
     "name": "Celcoin",
     "domains": [
       "celcoin.com.br",
@@ -12052,6 +12062,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "Ngan Luong",
+    "domains": [
+      "nganluong.vn",
+      "account.nganluong.vn"
+    ],
+    "url": "https://account.nganluong.vn/nganluong/user-info/lock-wallet",
+    "difficulty": "impossible",
+    "notes": "Enter your current password and click \"Continue\". Notification: After requesting to close the account, NganLuong will proceed to approve:\n - If the account is being disputed, Ngan Luong will ask you to resolve the dispute before closing the account.\n - If the account still has a balance, Ngan Luong will guide you to pay off the balance before closing.\n Accounts cannot be reopened once closed, you should consider before closing."
+  },
+  {
     "name": "ngrok",
     "domains": [
       "ngrok.com",
@@ -12326,6 +12346,15 @@
     "url": "https://www.nube.com.br/politica-uso-privacidade",
     "difficulty": "impossible",
     "notes": "According to the privacy policy, accounts cannot be deleted, only deactivated (and reactivated later)."
+  },
+  {
+    "name": "Nulled",
+    "domains": [
+      "nulled.to"
+    ],
+    "url": "https://www.nulled.to/topic/1418075-delete-account/",
+    "difficulty": "impossible",
+    "notes": "They DO NOT delete accounts, just log out."
   },
   {
     "name": "Nutaku",
@@ -13992,6 +14021,17 @@
     "notes": "At the bottom of the page click 'Delete Account'. You will need a code sent to the 'Work E-Mail' listed on the same page (can be changed without confirmation)."
   },
   {
+    "name": "Pushlink",
+    "domains": [
+      "pushlink.com",
+      "adm.pushlink.com",
+      "docs.pushlink.com"
+    ],
+    "url": "https://adm.pushlink.com/delete-account.xhtml",
+    "difficulty": "easy",
+    "notes": "Type your current password and click 'Erase all data permanently'."
+  },
+  {
     "name": "Pushover",
     "domains": [
       "pushover.net"
@@ -14068,6 +14108,15 @@
     "url": "https://kf.qq.com/faq/1803146n2yMr180314MbIfER.html",
     "difficulty": "easy",
     "notes": "From the app: Avatar \u2b95 Settings \u2b95 Account Security \u2b95 Account Cancellation."
+  },
+  {
+    "name": "QQTube",
+    "domains": [
+      "qqtube.com"
+    ],
+    "url": "https://www.qqtube.com/identity",
+    "difficulty": "easy",
+    "notes": "Click 'Close account' \u2b95 Enter your current password \u2b95 Click 'Deactivate'."
   },
   {
     "name": "Qt",
@@ -15685,6 +15734,15 @@
     "url": "https://support.snapfish.com/hc/en-us/articles/360008146353-Delete-your-account",
     "difficulty": "hard",
     "notes": "You need to open a request with customer service to delete your account."
+  },
+  {
+    "name": "Snappa",
+    "domains": [
+      "snappa.com"
+    ],
+    "url": "https://snappa.com/app/account-settings",
+    "difficulty": "easy",
+    "notes": "Click 'Delete Account' \u2b95 Click 'Delete' to confirm."
   },
   {
     "name": "SNCF",

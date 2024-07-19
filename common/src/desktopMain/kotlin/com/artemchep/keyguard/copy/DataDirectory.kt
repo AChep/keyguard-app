@@ -47,6 +47,9 @@ class DataDirectory(
             .bind()
             .let(::File)
         val file = downloadsDir.resolve(fileName)
+        // Ensure the parent directory does exist
+        // before writing the file.
+        file.parentFile?.mkdirs()
         file.outputStream()
             .use {
                 write(it)

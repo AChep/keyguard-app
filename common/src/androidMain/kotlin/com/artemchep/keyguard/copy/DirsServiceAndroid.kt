@@ -49,6 +49,9 @@ class DirsServiceAndroid(
         val downloadsDir = Environment
             .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val file = downloadsDir.resolve(fileName)
+        // Ensure the parent directory does exist
+        // before writing the file.
+        file.parentFile?.mkdirs()
         file.outputStream()
             .use {
                 write(it)

@@ -146,6 +146,26 @@ class ExportServiceImpl(
         put("creationDate", instant = createdDate ?: revisionDate)
         put("deletedDate", deletedDate)
 
+        run {
+            val key = "attachments"
+            // TODO: Export local attachments with their
+            //  local identifier.
+            val remoteAttachments = attachments
+                .mapNotNull { it as? DSecret.Attachment.Remote }
+            if (remoteAttachments.isNotEmpty()) {
+                putJsonArray(key) {
+                    remoteAttachments.forEach { attachment ->
+                        val obj = buildJsonObject {
+                            put("id", attachment.remoteCipherId)
+                            put("size", attachment.size)
+                            put("fileName", attachment.fileName)
+                        }
+                        add(obj)
+                    }
+                }
+            }
+        }
+
         //
         // Type
         //

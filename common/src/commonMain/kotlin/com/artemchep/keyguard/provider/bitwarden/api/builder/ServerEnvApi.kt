@@ -88,8 +88,6 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
     value class Accounts(
         private val url: String,
     ) {
-        val prelogin get() = url + "prelogin"
-
         /**
          * Send a PUT request to change the avatar
          * color of the account.

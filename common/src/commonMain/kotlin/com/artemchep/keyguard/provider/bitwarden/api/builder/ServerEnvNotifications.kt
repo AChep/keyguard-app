@@ -14,11 +14,20 @@ value class ServerEnvIdentity @Deprecated("Use the [ServerEnv.identity] property
 ) {
     val connect get() = Connect(url = url + "connect/")
 
+    val accounts get() = Accounts(url = url + "accounts/")
+
     @JvmInline
     value class Connect(
         private val url: String,
     ) {
         val token get() = url + "token"
+    }
+
+    @JvmInline
+    value class Accounts(
+        private val url: String,
+    ) {
+        val prelogin get() = url + "prelogin"
     }
 }
 

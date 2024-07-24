@@ -280,7 +280,7 @@ private suspend fun prelogin(
     env: ServerEnv,
     email: String,
 ): PreLogin = httpClient
-    .post(env.api.accounts.prelogin) {
+    .post(env.identity.accounts.prelogin) {
         headers(env)
         contentType(ContentType.Application.Json)
         setBody(

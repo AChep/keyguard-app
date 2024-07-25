@@ -175,6 +175,7 @@
     <string name="passkey_available">Passkey disponível</string>
     <string name="twofa_available">Autenticação de dois fatores disponível</string>
     <string name="custom">Personalizado</string>
+    <string name="create_account">Create account</string>
     <string name="follow_system_settings">Usar as configurações do sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Em breve</string>

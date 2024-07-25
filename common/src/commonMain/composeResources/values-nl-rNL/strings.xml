@@ -175,6 +175,7 @@
     <string name="passkey_available">Toegangssleutel beschikbaar</string>
     <string name="twofa_available">Tweestapsverificatie beschikbaar</string>
     <string name="custom">Aangepast</string>
+    <string name="create_account">Create account</string>
     <string name="follow_system_settings">Gebruik systeeminstellingen</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Binnenkort beschikbaar</string>

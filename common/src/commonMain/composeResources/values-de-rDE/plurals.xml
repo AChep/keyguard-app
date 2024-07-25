@@ -25,7 +25,7 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Minuten</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Strunde</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Stunde</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Stunden</item>
     </plurals>
     <plurals name="days_plural">

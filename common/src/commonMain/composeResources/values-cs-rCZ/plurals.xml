@@ -1,51 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> účet</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> účty</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> účtů</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> účtů</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> výskyt</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> výskyty</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> výskytů</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> výskytů</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> slovo</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> slova</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> slov</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> slov</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> výsledek</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> výsledky</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> výsledků</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> výsledků</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> sekunda</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> sekundy</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> sekund</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> sekund</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minuta</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minuty</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minut</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minut</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hodina</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hodiny</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> hodin</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hodin</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> den</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> dny</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> dní</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dní</item>
     </plurals>
 </resources>

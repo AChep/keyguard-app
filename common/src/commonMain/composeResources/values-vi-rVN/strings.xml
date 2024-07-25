@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="ok">ỪA</string>
+    <string name="ok">OK</string>
     <string name="close">Đóng</string>
     <string name="quit">Thoát</string>
     <string name="yes">Đúng</string>
@@ -175,6 +175,7 @@
     <string name="passkey_available">Khóa truy cập có sẵn</string>
     <string name="twofa_available">Xác thực hai yếu tố có sẵn</string>
     <string name="custom">Tùy chỉnh</string>
+    <string name="create_account">Create account</string>
     <string name="follow_system_settings">Theo thiết đặt hệ thống</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Sắp ra mắt</string>
@@ -301,7 +302,7 @@
     <string name="file_action_delete_local_many_title">Xóa các tệp cục bộ</string>
     <string name="file_action_view_cipher_title">Xem mục gốc</string>
     <string name="vault_action_always_show_keyboard_title">Luôn hiển thị bàn phím</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Ghi nhớ cách sắp xếp</string>
     <string name="vault_action_sync_vault_title">Đồng bộ hóa kho</string>
     <string name="vault_action_lock_vault_title">Khóa kho</string>
     <string name="vault_action_rename_folder_title">Đổi tên thư mục</string>
@@ -933,7 +934,7 @@
     <string name="pref_item_crash_title">Hỏng</string>
     <string name="pref_item_credential_provider_title">Nhà cung cấp thông tin xác thực</string>
     <string name="pref_item_credential_provider_text">Các khóa truy cập, mật khẩu và dịch vụ dữ liệu</string>
-    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
+    <string name="pref_item_credential_provider_no_feature_note">Thiết bị không hỗ trợ truy xuất thông tin xác thực của người dùng thông qua tích hợp với nhà cung cấp thông tin xác thực. Liên hệ với nhà sản xuất để biết thêm thông tin.</string>
     <string name="pref_item_privacy_policy_title">Chính sách bảo mật</string>
     <string name="pref_item_contact_us_title">Liên hệ chúng tôi</string>
     <string name="pref_item_experimental_title">Thử nghiệm</string>

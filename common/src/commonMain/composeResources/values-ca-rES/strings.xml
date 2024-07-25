@@ -175,6 +175,7 @@
     <string name="passkey_available">Passkey disponible</string>
     <string name="twofa_available">Autenticació de dos factors disponible</string>
     <string name="custom">Personalitzat</string>
+    <string name="create_account">Create account</string>
     <string name="follow_system_settings">Segueix el sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Aviat</string>
@@ -301,7 +302,7 @@
     <string name="file_action_delete_local_many_title">Elimina els fitxers locals</string>
     <string name="file_action_view_cipher_title">Veure l'element pare</string>
     <string name="vault_action_always_show_keyboard_title">Sempre mostra el teclat</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Recorda el mètode d'ordenat</string>
     <string name="vault_action_sync_vault_title">Sincronitza la caixa forta</string>
     <string name="vault_action_lock_vault_title">Bloqueja la caixa forta</string>
     <string name="vault_action_rename_folder_title">Canvia el nom a la carpeta</string>

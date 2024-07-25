@@ -271,18 +271,6 @@ private fun SettingSubscriptionItem(
         },
         elevation = 2.dp,
         trailing = {
-            val status = subscription.status
-            if (status is Subscription.Status.Inactive && status.hasTrialAvailable) {
-                FlatTextFieldBadge(
-                    type = TextFieldModel2.Vl.Type.INFO,
-                    text = stringResource(Res.string.pref_item_premium_status_free_trial),
-                )
-                Spacer(
-                    modifier = Modifier
-                        .width(16.dp),
-                )
-            }
-
             ChevronIcon()
         },
         content = {

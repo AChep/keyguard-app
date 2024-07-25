@@ -110,7 +110,7 @@ class SubscriptionServiceAndroid(
             }
             Subscription(
                 id = it.productId,
-                title = it.name,
+                title = it.title,
                 description = it.description,
                 price = finalPrice.formattedPrice,
                 status = status,

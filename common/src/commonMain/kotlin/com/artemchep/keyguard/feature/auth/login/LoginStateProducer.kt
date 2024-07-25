@@ -29,6 +29,7 @@ import com.artemchep.keyguard.feature.auth.login.otp.LoginTwofaRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -566,6 +567,23 @@ fun produceLoginScreenState(
                 !output.error &&
                 !taskIsExecuting
 
+        val onRegister = kotlin.run {
+            val registerUrl = when (val region = output.region) {
+                is LoginRegion.Predefined -> when (region.region) {
+                    ServerEnv.Region.US -> "https://vault.bitwarden.com/#/register"
+                    ServerEnv.Region.EU -> "https://vault.bitwarden.eu/#/register"
+                }
+                else -> null
+            }
+            registerUrl?.let {
+                // lambda
+                {
+                    val intent = NavigationIntent.NavigateToBrowser(it)
+                    navigate(intent)
+                }
+            }
+        }
+
         val emailField = TextFieldModel2.of(
             state = emailState,
             validated = validatedEmail,
@@ -598,6 +616,7 @@ fun produceLoginScreenState(
             regionItems = globalItems,
             items = envServerItems + items,
             isLoading = taskIsExecuting,
+            onRegisterClick = onRegister,
             onLoginClick = if (canLogin) {
                 {
                     val env = if (args.envEditable) {

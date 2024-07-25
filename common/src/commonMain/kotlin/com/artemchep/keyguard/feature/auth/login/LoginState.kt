@@ -22,6 +22,7 @@ data class LoginState(
     val regionItems: List<LoginStateItem> = emptyList(),
     val items: List<LoginStateItem> = emptyList(),
     val isLoading: Boolean = false,
+    val onRegisterClick: (() -> Unit)? = null,
     val onLoginClick: (() -> Unit)? = null,
 ) {
     companion object;

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,10 +21,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AppRegistration
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -73,14 +76,17 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.UrlFlatTextField
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -389,6 +395,30 @@ fun LoginContent(
         ) {
             LoginItems(
                 items = loginState.items,
+            )
+        }
+        loginState.onRegisterClick?.let { onClick ->
+            HorizontalDivider(
+                modifier = Modifier
+                    .padding(
+                        top = 32.dp,
+                        bottom = 8.dp,
+                    ),
+            )
+            FlatItemLayout(
+                content = {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                text = "Create an account",
+                            )
+                        },
+                    )
+                },
+                trailing = {
+                    ChevronIcon()
+                },
+                onClick = onClick,
             )
         }
     }

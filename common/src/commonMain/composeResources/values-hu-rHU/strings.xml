@@ -175,6 +175,7 @@
     <string name="passkey_available">Hozzáférési kulcs elérhető</string>
     <string name="twofa_available">Kétfaktoros hitelesítés elérhető</string>
     <string name="custom">Egyéni</string>
+    <string name="create_account">Create account</string>
     <string name="follow_system_settings">Rendszerbeállítások követése</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Hamarosan</string>

@@ -175,6 +175,7 @@
     <string name="passkey_available">Доступен Passkey</string>
     <string name="twofa_available">Доступна двухфакторная аутентификация</string>
     <string name="custom">Пользовательское</string>
+    <string name="create_account">Create account</string>
     <string name="follow_system_settings">Как в системе</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">В ближайшее время</string>

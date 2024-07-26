@@ -761,9 +761,9 @@
       "alibaba.com",
       "accounts.alibaba.com"
     ],
-    "url": "https://accounts.alibaba.com/user/organization/manage_person_profile.htm",
+    "url": "https://myprivacy.alibaba.com/home#/request/delete",
     "difficulty": "easy",
-    "notes": "To delete your account, go to \"My Account\" page, click on \"Member Profile\" and then, \"Deactivate Account\""
+    "notes": "To delete your account, go to the Alibaba privacy center linked above, then click \"Delete Account\", enter \"delete\" in the text field, and click \"Delete Account\" again."
   },
   {
     "name": "AlienwareArena",
@@ -2909,6 +2909,16 @@
     "notes": "Contact customer service via the support e-mail form and request deletion of your account under General Questions."
   },
   {
+    "name": "CEEOL",
+    "domains": [
+      "ceeol.com"
+    ],
+    "url": "https://www.cdkeys.com/user/profile/",
+    "difficulty": "impossible",
+    "notes": "To request account cancellation & remove your personal information, please email them. Note: CEEOL will retain and use your information as necessary to comply with their legal obligations, resolve disputes, and enforce their agreements.",
+    "email": "info@ceeol.com"
+  },
+  {
     "name": "Celcoin",
     "domains": [
       "celcoin.com.br",
@@ -2938,6 +2948,17 @@
     "notes": "You can't delete your account without contacting them. You must set the subject to 'Delete Account'",
     "email": "support@cex.io",
     "email_subject": "Delete Account"
+  },
+  {
+    "name": "Cfx.re",
+    "domains": [
+      "cfx.re",
+      "forum.cfx.re",
+      "support.cfx.re"
+    ],
+    "url": "https://support.cfx.re/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "You need to send a support request. The button in your forum profile page leads you to that."
   },
   {
     "name": "cgtrader",
@@ -11374,6 +11395,15 @@
     "notes": "On the linked page, complete the form and ask for your account to be deleted."
   },
   {
+    "name": "MonTCL",
+    "domains": [
+      "tcl.fr"
+    ],
+    "url": "https://www.tcl.fr/user/delete/confirmation",
+    "difficulty": "easy",
+    "notes": "Go to your account settings, scroll down and click on \"Delete my account\"."
+  },
+  {
     "name": "Moodle",
     "domains": [
       "moodle.com"
@@ -12052,6 +12082,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "Ngan Luong",
+    "domains": [
+      "nganluong.vn",
+      "account.nganluong.vn"
+    ],
+    "url": "https://account.nganluong.vn/nganluong/user-info/lock-wallet",
+    "difficulty": "impossible",
+    "notes": "Enter your current password and click \"Continue\". Notification: After requesting to close the account, NganLuong will proceed to approve:\n - If the account is being disputed, Ngan Luong will ask you to resolve the dispute before closing the account.\n - If the account still has a balance, Ngan Luong will guide you to pay off the balance before closing.\n Accounts cannot be reopened once closed, you should consider before closing."
+  },
+  {
     "name": "ngrok",
     "domains": [
       "ngrok.com",
@@ -12326,6 +12366,15 @@
     "url": "https://www.nube.com.br/politica-uso-privacidade",
     "difficulty": "impossible",
     "notes": "According to the privacy policy, accounts cannot be deleted, only deactivated (and reactivated later)."
+  },
+  {
+    "name": "Nulled",
+    "domains": [
+      "nulled.to"
+    ],
+    "url": "https://www.nulled.to/topic/1418075-delete-account/",
+    "difficulty": "impossible",
+    "notes": "They DO NOT delete accounts, just log out."
   },
   {
     "name": "Nutaku",
@@ -13992,6 +14041,17 @@
     "notes": "At the bottom of the page click 'Delete Account'. You will need a code sent to the 'Work E-Mail' listed on the same page (can be changed without confirmation)."
   },
   {
+    "name": "Pushlink",
+    "domains": [
+      "pushlink.com",
+      "adm.pushlink.com",
+      "docs.pushlink.com"
+    ],
+    "url": "https://adm.pushlink.com/delete-account.xhtml",
+    "difficulty": "easy",
+    "notes": "Type your current password and click 'Erase all data permanently'."
+  },
+  {
     "name": "Pushover",
     "domains": [
       "pushover.net"
@@ -14068,6 +14128,15 @@
     "url": "https://kf.qq.com/faq/1803146n2yMr180314MbIfER.html",
     "difficulty": "easy",
     "notes": "From the app: Avatar \u2b95 Settings \u2b95 Account Security \u2b95 Account Cancellation."
+  },
+  {
+    "name": "QQTube",
+    "domains": [
+      "qqtube.com"
+    ],
+    "url": "https://www.qqtube.com/identity",
+    "difficulty": "easy",
+    "notes": "Click 'Close account' \u2b95 Enter your current password \u2b95 Click 'Deactivate'."
   },
   {
     "name": "Qt",
@@ -15687,6 +15756,15 @@
     "notes": "You need to open a request with customer service to delete your account."
   },
   {
+    "name": "Snappa",
+    "domains": [
+      "snappa.com"
+    ],
+    "url": "https://snappa.com/app/account-settings",
+    "difficulty": "easy",
+    "notes": "Click 'Delete Account' \u2b95 Click 'Delete' to confirm."
+  },
+  {
     "name": "SNCF",
     "domains": [
       "sncf.com",
@@ -15870,6 +15948,17 @@
     "notes": "Data created by the user such as posts and tickets will remain and be attributed to the account, even if deleted. The username will not become available."
   },
   {
+    "name": "Sourcegraph",
+    "domains": [
+      "sourcegraph.com",
+      "accounts.sourcegraph.com"
+    ],
+    "url": "https://sourcegraph.com/docs/sourcegraph-accounts#how-to-delete-accounts-or-unlink-social-sign-ins",
+    "difficulty": "hard",
+    "notes": "Contact Sourcegraph support via email using your primary email (shown at [accounts.sourcegraph.com](https://accounts.sourcegraph.com) when signed in).",
+    "email": "support@sourcegraph.com"
+  },
+  {
     "name": "Sourcery.ai",
     "domains": [
       "sourcery.ai"
@@ -16023,6 +16112,15 @@
     "difficulty": "hard",
     "notes": "You need to e-mail them to request for account deletion.",
     "email": "support@squadjobs.com"
+  },
+  {
+    "name": "Square",
+    "domains": [
+      "squareup.com"
+    ],
+    "url": "https://squareup.com/help/us/en/article/3819-deactivate-your-account",
+    "difficulty": "impossible",
+    "notes": "You can deactivate your business, but not delete your account."
   },
   {
     "name": "Square Cash",
@@ -16552,6 +16650,15 @@
     "notes": "Click the \"Delete User\" button in the bottom-right corner."
   },
   {
+    "name": "SubMeNow",
+    "domains": [
+      "submenow.com"
+    ],
+    "url": "https://www.submenow.com/account.html",
+    "difficulty": "easy",
+    "notes": "Click 'Close Account' then click 'YES, close my Account' to confirm."
+  },
+  {
     "name": "Super Dom\u00ednios",
     "domains": [
       "superdominios.org"
@@ -16838,6 +16945,15 @@
     "difficulty": "hard"
   },
   {
+    "name": "TCL",
+    "domains": [
+      "tcl.com"
+    ],
+    "url": "https://www.tcl.com/deleteaccount/",
+    "difficulty": "medium",
+    "notes": "Click 'Continue' \u2b95 Click 'Register to delete' \u2b95 Enter verification code sent to your email \u2b95 Click 'Proceed' to confirm deletion."
+  },
+  {
     "name": "Teachable",
     "domains": [
       "teachable.com",
@@ -17113,6 +17229,15 @@
     "url": "https://www.textures.com/my-account/delete",
     "difficulty": "easy",
     "notes": "If you want to permanently delete your Textures.com account, go to the [<b>Delete Account</b> tab on your account](https://www.textures.com/my-account/delete) fill out your password and press <b>Delete My Account</b>."
+  },
+  {
+    "name": "Themeplaza",
+    "domains": [
+      "themeplaza.art"
+    ],
+    "url": "https://themeplaza.art/contact",
+    "difficulty": "limited",
+    "notes": "You need to send a support request through Discord."
   },
   {
     "name": "TheMovieDB",
@@ -17862,8 +17987,8 @@
       "ubereats.com"
     ],
     "url": "https://myprivacy.uber.com/privacy/deleteyouraccount",
-    "difficulty": "medium",
-    "notes": "Select a reason, and wait 30 days for account to be deleted."
+    "difficulty": "impossible",
+    "notes": "You can select a reason and supposedly wait 30 days for the account to be deleted, but it never happens."
   },
   {
     "name": "Ubiquiti",
@@ -18645,9 +18770,9 @@
     "domains": [
       "walmart.ca"
     ],
-    "url": "https://www.walmart.ca/en/help/contact-us",
-    "difficulty": "hard",
-    "notes": "Contact customer service to close your account."
+    "url": "https://www.walmart.ca/en/account/delete-account",
+    "difficulty": "easy",
+    "notes": "Follow the link or scroll to the bottom of the website and click \"Delete my account.\" You will be prompted to log in and confirm the deletion."
   },
   {
     "name": "WaniKani",

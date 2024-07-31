@@ -85,6 +85,7 @@ fun BitwardenCipher.Login.Uri.transform(
     crypto: BitwardenCrCta,
 ) = copy(
     uri = crypto.transformString(uri.orEmpty()),
+    uriChecksumBase64 = uriChecksumBase64?.let(crypto::transformString),
 )
 
 @JvmName("encryptListOfBitwardenCipherLoginFido2Credentials")

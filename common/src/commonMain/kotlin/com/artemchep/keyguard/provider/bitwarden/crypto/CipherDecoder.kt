@@ -80,6 +80,7 @@ fun BitwardenCipher.Companion.encrypted(
                             val match = it.match?.domain()
                             BitwardenCipher.Login.Uri(
                                 uri = it.uri,
+                                uriChecksumBase64 = it.uriChecksum,
                                 match = match,
                             )
                         },

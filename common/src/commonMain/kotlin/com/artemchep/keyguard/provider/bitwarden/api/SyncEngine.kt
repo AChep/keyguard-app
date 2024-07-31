@@ -19,6 +19,8 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.login
+import com.artemchep.keyguard.core.store.bitwarden.uris
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
@@ -575,7 +577,24 @@ class SyncEngine(
             localReEncoder = { model ->
                 model
             },
-            localDecoder = { local, remote ->
+            localDecoder = { rawLocal, remote ->
+                // Inject the URL checksums into the list of URLs before
+                // processing the entry.
+                val local = BitwardenCipher.login.uris.modify(rawLocal) { uris ->
+                    uris
+                        .map { uri ->
+                            if (uri.uriChecksumBase64 != null) return@map uri
+                            val uriChecksumBase64 = kotlin.run {
+                                val rawHash =
+                                    cryptoGenerator.hashSha256(uri.uri.orEmpty().toByteArray())
+                                base64Service.encodeToString(rawHash)
+                            }
+                            uri.copy(
+                                uriChecksumBase64 = uriChecksumBase64,
+                            )
+                        }
+                }
+
                 val itemKey = local.keyBase64
                     ?.let(base64Service::decode)
                 val (

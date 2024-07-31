@@ -210,11 +210,15 @@ data class BitwardenCipher(
             val version: Long,
         )
 
+        @optics
         @Serializable
         data class Uri(
             val uri: String? = null,
+            val uriChecksumBase64: String? = null,
             val match: MatchType? = null,
         ) {
+            companion object;
+
             @Serializable
             enum class MatchType {
                 Domain,

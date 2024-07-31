@@ -10,6 +10,8 @@ import kotlinx.serialization.Serializable
 data class LoginUriRequest(
     @SerialName("uri")
     val uri: String,
+    @SerialName("uriChecksum")
+    val uriChecksum: String?,
     @SerialName("match")
     val match: UriMatchTypeEntity?,
 ) {
@@ -21,6 +23,7 @@ fun LoginUriRequest.Companion.of(
 ) = kotlin.run {
     LoginUriRequest(
         uri = requireNotNull(model.uri) { "Login URI request must have a non-null URI!" },
+        uriChecksum = model.uriChecksumBase64,
         match = model.match?.let(UriMatchTypeEntity::of),
     )
 }

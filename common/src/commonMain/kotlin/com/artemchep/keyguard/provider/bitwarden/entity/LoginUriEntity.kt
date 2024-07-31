@@ -9,6 +9,9 @@ data class LoginUriEntity(
     @JsonNames("uri")
     @SerialName("Uri")
     val uri: String? = null,
+    @JsonNames("uriChecksum")
+    @SerialName("UriChecksum")
+    val uriChecksum: String? = null,
     @JsonNames("match")
     @SerialName("Match")
     val match: UriMatchTypeEntity? = null,

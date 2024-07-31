@@ -8706,14 +8706,6 @@
     "name": "Localize"
   },
   {
-    "domain": "localmonero.co",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://localmonero.co/guides/2fa",
-    "name": "LocalMonero"
-  },
-  {
     "domain": "logicmonitor.com",
     "tfa": [
       "call",
@@ -12382,6 +12374,14 @@
     "name": "RACV"
   },
   {
+    "domain": "railway.app",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.railway.app/reference/accounts#two-factor-authentication",
+    "name": "Railway"
+  },
+  {
     "domain": "raindrop.io",
     "tfa": [
       "totp"
@@ -13808,22 +13808,6 @@
     "name": "Sketch"
   },
   {
-    "domain": "skiff.com",
-    "additional-domains": [
-      "bitkeep.app",
-      "ethereum.email",
-      "keplr.xyz",
-      "solana.email"
-    ],
-    "tfa": [
-      "totp",
-      "u2f"
-    ],
-    "documentation": "https://www.youtube.com/watch?v=ImSqwEbn3fc",
-    "notes": "TOTP must be enabled to use a hardware token.",
-    "name": "Skiff"
-  },
-  {
     "domain": "skinport.com",
     "tfa": [
       "email",
@@ -14000,9 +13984,10 @@
     "tfa": [
       "sms",
       "call",
-      "email"
+      "email",
+      "totp"
     ],
-    "documentation": "https://support.sofi.com/hc/en-us/articles/360043651452",
+    "documentation": "https://support.sofi.com/hc/en-us/articles/9274826655757",
     "name": "SoFi"
   },
   {

@@ -1739,6 +1739,18 @@
     "notes": "Passkeys on PayPal can be created on mobile devices in Chrome on Android or iOS and in Safari on iOS.\n\n- [How to log in to PayPal with a passkey](https://www.paypal.com/us/cshelp/article/how-to-log-in-to-paypal-with-a-passkey-help997)\n- [What is a passkey and how do I use it to log in to my PayPal account?](https://www.paypal.com/us/cshelp/article/what-is-a-passkey-and-how-do-i-use-it-to-log-in-to-my-paypal-account-help997)\n\n\n### Confirmed Location Support\n- [United States](https://newsroom.paypal-corp.com/2022-10-24-PayPal-Introduces-More-Secure-Payments-with-Passkeys)\n- Canada\n- [United Kingdom](https://newsroom.uk.paypal-corp.com/2023-06-27-PayPal-Expands-Passkeys-to-the-UK)\n- [Germany](https://newsroom.deatch.paypal-corp.com/PayPal-weitet-Passkeys-nach-Deutschland-aus)"
   },
   {
+    "id": "33a8263cb6b8065268c5cc801e94d3e5",
+    "name": "Pixiv",
+    "domain": "pixiv.net",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.pixiv.help/hc/en-us/articles/32291223415449-How-to-set-a-passkey",
+    "setup": "https://accounts.pixiv.net/passkeys",
+    "category": "Other",
+    "created_at": "2024-06-17T09:28:08+00:00"
+  },
+  {
     "id": "867af8aa7bf57d42dd3f185fc89bb0be",
     "name": "PlayStation",
     "domain": "playstation.com",

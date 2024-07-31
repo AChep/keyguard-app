@@ -942,6 +942,32 @@ private fun RememberStateFlowScope.oh(
             data = cipherCard,
         )
         emit(model)
+        val cipherCardFromYear = cipherCard.fromYear
+        val cipherCardFromMonth = cipherCard.fromMonth
+        if (cipherCardFromYear != null || cipherCardFromMonth != null) {
+            val item = createExpDate(
+                copy = copy,
+                id = "card.from_date",
+                title = translate(Res.string.card_valid_from),
+                year = cipherCardFromYear,
+                month = cipherCardFromMonth,
+                elevated = true,
+            )
+            emit(item)
+        }
+        val cipherCardExpYear = cipherCard.expYear
+        val cipherCardExpMonth = cipherCard.expMonth
+        if (cipherCardExpYear != null || cipherCardExpMonth != null) {
+            val item = createExpDate(
+                copy = copy,
+                id = "card.exp_date",
+                title = translate(Res.string.card_valid_to),
+                year = cipherCardExpYear,
+                month = cipherCardExpMonth,
+                elevated = true,
+            )
+            emit(item)
+        }
         val cipherCardCode = cipherCard.code
         if (cipherCardCode != null) {
             val cvv = create(
@@ -2699,6 +2725,61 @@ suspend fun RememberStateFlowScope.create(
     )
 }
 
+suspend fun RememberStateFlowScope.createExpDate(
+    copy: CopyText,
+    id: String,
+    title: String?,
+    month: String?,
+    year: String?,
+    elevated: Boolean = false,
+): VaultViewItem {
+    val monthFormatted = month ?: "mm"
+    val yearFormatted = year ?: "yyyy"
+    // Compose the value of a date, raw value
+    // doesn't contain the / symbol because it
+    // usually is inserted automatically.
+    val valueRaw = kotlin.run {
+        val monthCopy = monthFormatted.takeLast(2).padStart(2, '0')
+        val yearCopy = yearFormatted.takeLast(2)
+        "$monthCopy$yearCopy"
+    }
+    val valueFormatted = "$monthFormatted/$yearFormatted"
+
+    val dropdown = buildContextItems {
+        section {
+            this += copy.FlatItemAction(
+                title = Res.string.copy.wrap(),
+                value = valueRaw,
+            )
+            this += copy.FlatItemAction(
+                title = Res.string.copy_expiration_month.wrap(),
+                value = month,
+                type = CopyText.Type.CARD_EXP_MONTH,
+            )
+            this += copy.FlatItemAction(
+                title = Res.string.copy_expiration_year.wrap(),
+                value = year,
+                type = CopyText.Type.CARD_EXP_YEAR,
+            )
+        }
+    }
+    return VaultViewItem.Value(
+        id = id,
+        elevation = if (elevated) 1.dp else 0.dp,
+        title = title,
+        value = valueFormatted,
+        verify = null,
+        private = false,
+        hidden = false,
+        monospace = false,
+        colorize = false,
+        leading = null,
+        badge = null,
+        badge2 = emptyList(),
+        dropdown = dropdown,
+    )
+}
+
 private suspend fun RememberStateFlowScope.create(
     copy: CopyText,
     id: String,
@@ -2719,16 +2800,6 @@ private suspend fun RememberStateFlowScope.create(
                 title = Res.string.copy_cardholder_name.wrap(),
                 value = data.cardholderName,
                 type = CopyText.Type.CARD_CARDHOLDER_NAME,
-            )
-            this += copy.FlatItemAction(
-                title = Res.string.copy_expiration_month.wrap(),
-                value = data.expMonth,
-                type = CopyText.Type.CARD_EXP_MONTH,
-            )
-            this += copy.FlatItemAction(
-                title = Res.string.copy_expiration_year.wrap(),
-                value = data.expYear,
-                type = CopyText.Type.CARD_EXP_YEAR,
             )
         }
         section {

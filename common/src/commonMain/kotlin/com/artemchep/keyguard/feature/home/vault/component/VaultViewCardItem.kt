@@ -1,12 +1,9 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -215,29 +212,6 @@ fun VaultViewCardItem(
                     }
                 }
             }
-            if (
-                item.data.fromMonth != null ||
-                item.data.fromYear != null ||
-                item.data.expMonth != null ||
-                item.data.expYear != null
-            ) {
-                Spacer(
-                    modifier = Modifier
-                        .height(16.dp),
-                )
-                Row {
-                    DateLabel(
-                        label = stringResource(Res.string.card_valid_from),
-                        month = item.data.fromMonth,
-                        year = item.data.fromYear,
-                    )
-                    DateLabel(
-                        label = stringResource(Res.string.card_valid_to),
-                        month = item.data.expMonth,
-                        year = item.data.expYear,
-                    )
-                }
-            }
             val cardholderName = item.data.cardholderName
             if (cardholderName != null) {
                 Spacer(
@@ -295,50 +269,4 @@ fun VaultViewCardItem(
         },
         dropdown = item.dropdown,
     )
-}
-
-@Composable
-private fun RowScope.DateLabel(
-    label: String,
-    month: String?,
-    year: String?,
-) {
-    if (
-        month == null &&
-        year == null
-    ) {
-        return
-    }
-
-    val monthFormatted = month ?: "mm"
-    val yearFormatted = year ?: "yyyy"
-    DateLabelContent(
-        text = label,
-        date = "$monthFormatted/$yearFormatted",
-    )
-    Spacer(modifier = Modifier.width(24.dp))
-}
-
-@Composable
-private fun DateLabelContent(
-    modifier: Modifier = Modifier,
-    text: String,
-    date: String,
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.Start,
-    ) {
-        Text(
-            text = text,
-            color = LocalContentColor.current
-                .combineAlpha(MediumEmphasisAlpha),
-            style = MaterialTheme.typography.labelSmall,
-        )
-        Text(
-            text = date,
-            style = MaterialTheme.typography.bodyMedium,
-            fontFamily = monoFontFamily,
-        )
-    }
 }

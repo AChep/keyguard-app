@@ -117,6 +117,16 @@
     "email": "shoot@3daimtrainer.com"
   },
   {
+    "name": "404 Media",
+    "domains": [
+      "404media.co"
+    ],
+    "url": "https://www.404media.co/privacy-policy/",
+    "difficulty": "hard",
+    "notes": "You need to send an email to support.",
+    "email": "emanuel@404media.co"
+  },
+  {
     "name": "4PDA",
     "domains": [
       "4pda.ru",
@@ -1221,6 +1231,25 @@
     "email": "privacy@gearboxsf.com"
   },
   {
+    "name": "Arch Linux AUR",
+    "domains": [
+      "aur.archlinux.org"
+    ],
+    "url": "https://aur.archlinux.org/",
+    "difficulty": "easy",
+    "notes": "Click on the \"My Account\" button, then in the first line of text at the top of the page, there is a button that links to a page where you can delete your account."
+  },
+  {
+    "name": "Arch Linux Forums",
+    "domains": [
+      "bbs.archlinux.org"
+    ],
+    "url": "https://aur.archlinux.org/",
+    "difficulty": "hard",
+    "notes": "You need to send an email to the forum team.",
+    "email": "forum@archlinux.org"
+  },
+  {
     "name": "Archipad",
     "domains": [
       "archipad.com",
@@ -2135,6 +2164,15 @@
     "url": "https://support.google.com/blogger/answer/41932",
     "difficulty": "impossible",
     "notes": "You can't delete your Blogger Account without deleting your entire Google Account. But you can delete your blog.\nIf you want to delete your entire google account, use the instructions for [Google](https://justdeleteme.xyz/#google)."
+  },
+  {
+    "name": "Bloomberg",
+    "domains": [
+      "bloomberg.com"
+    ],
+    "url": "https://www.bloomberg.com/notices/tos/",
+    "difficulty": "impossible",
+    "notes": "You cannot delete your account by yourself. Apparently, they delete it automatically after a long period of inactivity but nothing in their website talks about it."
   },
   {
     "name": "Bloomingdales",
@@ -3516,9 +3554,9 @@
       "coinmarketcap.com",
       "support.coinmarketcap.com"
     ],
-    "url": "https://support.coinmarketcap.com/hc/en-us/requests/new",
-    "difficulty": "hard",
-    "notes": "You must submit a support ticket and request your account to be deleted."
+    "url": "https://coinmarketcap.com/community/edit-profile/",
+    "difficulty": "easy",
+    "notes": "CoinMarketCap provides a button to automatically request account deletion. The account deletion process is said to take up to 21 days."
   },
   {
     "name": "CoinPayments",
@@ -5531,6 +5569,15 @@
     "notes": "Sign in to account settings, click 'Account Status', click 'Close your Evernote Account', read carefully and accept."
   },
   {
+    "name": "EVGA",
+    "domains": [
+      "evga.com"
+    ],
+    "url": "https://www.evga.com/legal/privacy/#form",
+    "difficulty": "medium",
+    "notes": "Submit form to request deletion, open confirmation link from e-mail."
+  },
+  {
     "name": "Evite",
     "domains": [
       "evite.com"
@@ -5822,6 +5869,16 @@
     "url": "https://www.figma.com/",
     "difficulty": "easy",
     "notes": "Log in, click on your profile picture in the top right of the header, click on 'Settings', scroll down to the accout section, click on 'Delete account', re-enter your account password, type 'delete my account' into the dialog box, and click on 'Delete account'."
+  },
+  {
+    "name": "Filen.io",
+    "domains": [
+      "drive.filen.io",
+      "filen.io"
+    ],
+    "url": "https://drive.filen.io/#/account/settings",
+    "difficulty": "easy",
+    "notes": "The deletion option is at the bottom of the second tab of the user settings page when logged in."
   },
   {
     "name": "Fin.do",
@@ -14119,6 +14176,15 @@
     "url": "https://qiwi.com/support/security/subject21/udalit-qiwi-koshelek",
     "difficulty": "medium",
     "notes": "If you want to delete the wallet, then log in to your QIWI Wallet and fill out the form below, which will be available after authorization."
+  },
+  {
+    "name": "Qobuz",
+    "domains": [
+      "qobuz.com"
+    ],
+    "url": "https://www.qobuz.com/profile/delete/confirmation/email",
+    "difficulty": "easy",
+    "notes": "Requires email confirmation."
   },
   {
     "name": "QQ",

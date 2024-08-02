@@ -84,14 +84,6 @@
     "name": "2Checkout"
   },
   {
-    "domain": "34SP.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://www.34sp.com/kb/142/how-to-enable-two-factor-authentication-on-your-account",
-    "name": "34SP.com"
-  },
-  {
     "domain": "3commas.io",
     "tfa": [
       "totp"
@@ -2159,6 +2151,24 @@
     "name": "Brex"
   },
   {
+    "domain": "broadcom.com",
+    "additional-domains": [
+      "vmware.com"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Okta Verify",
+      "Symantec VIP"
+    ],
+    "documentation": "https://knowledge.broadcom.com/external/article?articleId=216428",
+    "name": "Broadcom"
+  },
+  {
     "domain": "bsky.app",
     "additional-domains": [
       "bsky.social",
@@ -2345,6 +2355,17 @@
     ],
     "documentation": "https://www.bullionvault.com/help/two_factor_auth.html",
     "name": "BullionVault"
+  },
+  {
+    "domain": "bunnings.com.au",
+    "additional-domains": [
+      "bunnings.co.nz"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Bunnings Warehouse"
   },
   {
     "domain": "bunny.net",
@@ -7096,6 +7117,14 @@
       "totp"
     ],
     "name": "Hostwinds"
+  },
+  {
+    "domain": "hotdoc.com.au",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://help.hotdoc.com.au/hc/articles/9565844108175",
+    "name": "HotDoc"
   },
   {
     "domain": "hotjar.com",
@@ -16493,14 +16522,6 @@
     "documentation": "https://vk.com/page-777107_53677752",
     "notes": "SMS is required for TOTP",
     "name": "VK"
-  },
-  {
-    "domain": "vmware.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://kb.vmware.com/s/article/74603",
-    "name": "VMware"
   },
   {
     "domain": "vodafone.co.uk",

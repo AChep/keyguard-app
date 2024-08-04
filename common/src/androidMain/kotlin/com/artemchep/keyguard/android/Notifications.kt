@@ -9,4 +9,8 @@ object Notifications {
     )
     val uploads = NotificationIdPool.sequential(20000)
     val totp = NotificationIdPool.sequential(30000)
+    val export = NotificationIdPool.sequential(
+        start = 40000,
+        endExclusive = 50000,
+    )
 }

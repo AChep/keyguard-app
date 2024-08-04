@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
+import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.textResource
@@ -159,35 +160,9 @@ class Main : BaseApp(), DIAware {
         }
 
         // timeout
-        var timeoutJob: Job? = null
-        val getVaultLockAfterTimeout: GetVaultLockAfterTimeout by instance()
+        val vaultSessionLocker: VaultSessionLocker by instance()
         ProcessLifecycleOwner.get().bindBlock {
-            timeoutJob?.cancel()
-            timeoutJob = null
-
-            try {
-                // suspend forever
-                suspendCancellableCoroutine<Unit> { }
-            } finally {
-                timeoutJob = getVaultLockAfterTimeout()
-                    .toIO()
-                    // Wait for the timeout duration.
-                    .effectMap { duration ->
-                        delay(duration)
-                        duration
-                    }
-                    .effectMap {
-                        // Clear the current session.
-                        val context = LeContext(this)
-                        val session = MasterSession.Empty(
-                            reason = textResource(Res.string.lock_reason_inactivity, context),
-                        )
-                        putVaultSession(session)
-                    }
-                    .flatten()
-                    .attempt()
-                    .launchIn(GlobalScope)
-            }
+            vaultSessionLocker.keepAlive()
         }
 
         // screen lock

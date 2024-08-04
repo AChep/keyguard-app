@@ -5,7 +5,11 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 
-interface ExportService {
+interface JsonExportService {
+    /**
+     * Exports given content into an extended Bitwarden
+     * JSON export format.
+     */
     fun export(
         organizations: List<DOrganization>,
         collections: List<DCollection>,

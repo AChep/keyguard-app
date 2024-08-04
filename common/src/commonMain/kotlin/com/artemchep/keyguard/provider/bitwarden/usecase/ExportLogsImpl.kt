@@ -62,7 +62,7 @@ class ExportLogsImpl(
                 entries = listOf(
                     ZipEntry(
                         name = "logs.txt",
-                        stream = {
+                        data = ZipEntry.Data.In {
                             txt.byteInputStream()
                         },
                     ),

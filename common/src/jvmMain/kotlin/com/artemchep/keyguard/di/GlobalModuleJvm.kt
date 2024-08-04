@@ -12,8 +12,8 @@ import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
-import com.artemchep.keyguard.common.service.export.ExportService
-import com.artemchep.keyguard.common.service.export.impl.ExportServiceImpl
+import com.artemchep.keyguard.common.service.export.JsonExportService
+import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoPlatformExtractor
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
@@ -44,6 +44,7 @@ import com.artemchep.keyguard.common.service.placeholder.impl.UrlPlaceholder
 import com.artemchep.keyguard.common.service.relays.di.emailRelayDiModule
 import com.artemchep.keyguard.common.service.review.ReviewLog
 import com.artemchep.keyguard.common.service.review.impl.ReviewLogImpl
+import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
@@ -598,6 +599,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutKeepScreenOn> {
         PutKeepScreenOnImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<VaultSessionLocker> {
+        VaultSessionLocker(
             directDI = this,
         )
     }
@@ -1169,8 +1175,8 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<ExportService> {
-        ExportServiceImpl(
+    bindSingleton<JsonExportService> {
+        JsonExportServiceImpl(
             directDI = this,
         )
     }

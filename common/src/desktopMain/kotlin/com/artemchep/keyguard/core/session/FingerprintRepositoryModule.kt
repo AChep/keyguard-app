@@ -24,6 +24,8 @@ import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.FileJsonKeyValueStoreStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
@@ -53,11 +55,14 @@ import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.copy.DownloadClientDesktop
 import com.artemchep.keyguard.copy.DownloadManagerDesktop
 import com.artemchep.keyguard.copy.DownloadRepositoryDesktop
+import com.artemchep.keyguard.copy.DownloadTaskDesktop
+import com.artemchep.keyguard.copy.ExportManagerImpl
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
+import com.artemchep.keyguard.copy.download.DownloadTaskJvm
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.util.traverse
@@ -269,6 +274,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<DownloadClientDesktop> {
         DownloadClientDesktop(
+            directDI = this,
+        )
+    }
+    bindSingleton<DownloadTask> {
+        DownloadTaskDesktop(
             directDI = this,
         )
     }

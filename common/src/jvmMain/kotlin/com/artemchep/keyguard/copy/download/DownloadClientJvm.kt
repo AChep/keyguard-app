@@ -5,6 +5,7 @@ import arrow.core.right
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -49,6 +50,7 @@ import java.io.IOException
 
 abstract class DownloadClientJvm(
     private val cacheDirProvider: CacheDirProvider,
+    private val cryptoGenerator: CryptoGenerator,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val okHttpClient: OkHttpClient,
     private val fileEncryptor: FileEncryptor,
@@ -81,6 +83,7 @@ abstract class DownloadClientJvm(
         cacheDirProvider: CacheDirProvider,
     ) : this(
         cacheDirProvider = cacheDirProvider,
+        cryptoGenerator = directDI.instance(),
         windowCoroutineScope = directDI.instance(),
         okHttpClient = directDI.instance(),
         fileEncryptor = directDI.instance(),
@@ -117,7 +120,6 @@ abstract class DownloadClientJvm(
                         val internalFlow = internalFileLoader(
                             url = url,
                             file = file,
-                            fileId = downloadId,
                             fileKey = fileKey,
                         )
 
@@ -210,7 +212,6 @@ abstract class DownloadClientJvm(
     private fun internalFileLoader(
         url: String,
         file: File,
-        fileId: String,
         fileKey: ByteArray? = null,
     ): Flow<DownloadProgress> = flow {
         val exists = file.exists()
@@ -227,14 +228,32 @@ abstract class DownloadClientJvm(
         file.parentFile?.mkdirs()
 
         val f = channelFlow<DownloadProgress> {
+            val cacheFile = kotlin.runCatching {
+                val cacheFileName = cryptoGenerator.uuid() + ".download"
+                val cacheFileRelativePath = "download_cache/$cacheFileName"
+                cacheDirProvider.get().resolve(cacheFileRelativePath)
+            }.getOrElse { e ->
+                // Report the download as failed if we could not
+                // resolve a cache file.
+                val event = DownloadProgress.Complete(
+                    result = e.left(),
+                )
+                send(event)
+                return@channelFlow
+            }
+
             val result = try {
-                val cacheFileRelativePath = "download_cache/$fileId.download"
-                val cacheFile = cacheDirProvider.get().resolve(cacheFileRelativePath)
                 flap(
                     src = url,
                     dst = cacheFile,
                 )
             } catch (e: Exception) {
+                // Delete cache file in case of
+                // an error.
+                runCatching {
+                    cacheFile.delete()
+                }
+
                 e.throwIfFatalOrCancellation()
 
                 val result = e.left()

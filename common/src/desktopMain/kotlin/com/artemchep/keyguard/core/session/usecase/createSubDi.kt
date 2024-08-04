@@ -6,10 +6,12 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.copy.DataDirectory
+import com.artemchep.keyguard.copy.ExportManagerImpl
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseManagerImpl
 import com.artemchep.keyguard.core.store.SqlManagerFile
@@ -31,6 +33,11 @@ actual fun DI.Builder.createSubDi(
     }
     bindSingleton<QueueSyncById> {
         QueueSyncByIdImpl(this)
+    }
+    bindSingleton<ExportManager> {
+        ExportManagerImpl(
+            directDI = this,
+        )
     }
 
     bindSingleton<NotificationsWorker> {

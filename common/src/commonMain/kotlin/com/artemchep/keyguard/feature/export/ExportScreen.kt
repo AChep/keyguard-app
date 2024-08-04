@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.export
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -19,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.permission.PermissionState
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
@@ -47,11 +50,14 @@ import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
@@ -64,6 +70,7 @@ import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.persistentListOf
 
@@ -154,6 +161,7 @@ fun ExportScreenOk(
     state: ExportState,
 ) {
     val items by state.itemsFlow.collectAsState()
+    val attachments by state.attachmentsFlow.collectAsState()
     val filter by state.filterFlow.collectAsState()
     val password by state.passwordFlow.collectAsState()
     val content by state.contentFlow.collectAsState()
@@ -195,6 +203,7 @@ fun ExportScreenOk(
         ExportScreen(
             modifier = modifier,
             items = items,
+            attachments = attachments,
             filter = filter,
             password = password,
             content = content,
@@ -251,6 +260,7 @@ private fun ExportScreenFilterButton(
 private fun ExportScreen(
     modifier: Modifier,
     items: ExportState.Items? = null,
+    attachments: ExportState.Attachments? = null,
     filter: ExportState.Filter? = null,
     password: ExportState.Password? = null,
     content: ExportState.Content? = null,
@@ -328,39 +338,47 @@ private fun ExportScreen(
             ExportContentSkeleton()
         } else if (
             items != null &&
+            attachments != null &&
             password != null &&
             content != null
         ) {
             ExportContentOk(
                 items = items,
+                attachments = attachments,
                 password = password,
                 content = content,
             )
         }
 
-        Spacer(
-            modifier = Modifier
-                .height(32.dp),
-        )
-        Icon(
-            modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-            tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
-        )
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
-        )
-        Text(
-            modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
-            text = stringResource(Res.string.exportaccount_no_attachments_note),
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalContentColor.current
-                .combineAlpha(alpha = MediumEmphasisAlpha),
-        )
+        ExpandedIfNotEmpty(
+            Unit.takeIf { attachments?.enabled == true },
+        ) {
+            Column {
+                Spacer(
+                    modifier = Modifier
+                        .height(32.dp),
+                )
+                Icon(
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.horizontalPadding),
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
+                )
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp),
+                )
+                Text(
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.horizontalPadding),
+                    text = stringResource(Res.string.exportaccount_attachments_note),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = LocalContentColor.current
+                        .combineAlpha(alpha = MediumEmphasisAlpha),
+                )
+            }
+        }
     }
 }
 
@@ -377,6 +395,7 @@ private fun ColumnScope.ExportContentSkeleton(
 @Composable
 private fun ColumnScope.ExportContentOk(
     items: ExportState.Items,
+    attachments: ExportState.Attachments,
     password: ExportState.Password,
     content: ExportState.Content,
 ) {
@@ -452,4 +471,45 @@ private fun ColumnScope.ExportContentOk(
         },
         onClick = items.onView,
     )
+    if (attachments.onToggle != null) {
+        HorizontalDivider(
+            modifier = Modifier
+                .padding(vertical = 8.dp),
+        )
+        FlatItemLayout(
+            leading = {
+                BadgedBox(
+                    modifier = Modifier
+                        .zIndex(20f),
+                    badge = {
+                        val size = attachments.size
+                            ?: return@BadgedBox
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.badgeContainer,
+                        ) {
+                            Text(text = size)
+                        }
+                    },
+                ) {
+                    Icon(Icons.Outlined.KeyguardAttachment, null)
+                }
+            },
+            content = {
+                FlatItemTextContent(
+                    title = {
+                        Text(
+                            text = stringResource(Res.string.exportaccount_include_attachments_title),
+                        )
+                    },
+                )
+            },
+            trailing = {
+                Switch(
+                    checked = attachments.enabled,
+                    onCheckedChange = null,
+                )
+            },
+            onClick = attachments.onToggle,
+        )
+    }
 }

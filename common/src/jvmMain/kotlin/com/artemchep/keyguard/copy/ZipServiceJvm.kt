@@ -17,7 +17,7 @@ class ZipServiceJvm(
         directDI: DirectDI,
     ) : this()
 
-    override fun zip(
+    override suspend fun zip(
         outputStream: OutputStream,
         config: ZipConfig,
         entries: List<ZipEntry>,
@@ -30,9 +30,14 @@ class ZipServiceJvm(
                 )
                 zipStream.putNextEntry(entryParams)
                 try {
-                    val inputStream = entry.stream()
-                    inputStream.use {
-                        it.copyTo(zipStream)
+                    when (val d = entry.data) {
+                        is ZipEntry.Data.In -> {
+                            d.stream().use { inputStream -> inputStream.copyTo(zipStream) }
+                        }
+
+                        is ZipEntry.Data.Out -> {
+                            d.stream(zipStream)
+                        }
                     }
                 } finally {
                     zipStream.closeEntry()

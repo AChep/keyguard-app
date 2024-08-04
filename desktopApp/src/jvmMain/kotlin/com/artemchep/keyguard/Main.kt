@@ -19,20 +19,15 @@ import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.common.AppWorker
-import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.flatten
-import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
-import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
@@ -46,14 +41,12 @@ import com.artemchep.keyguard.desktop.util.navigateToFileInFileManager
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.keyguard.AppRoute
-import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
@@ -72,9 +65,7 @@ import io.kamel.image.config.Default
 import io.kamel.image.config.LocalKamelConfig
 import io.ktor.http.Url
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -83,7 +74,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.Clock
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
@@ -206,36 +196,10 @@ fun main() {
     }
 
     // timeout
-    var timeoutJob: Job? = null
-    val getVaultLockAfterTimeout: GetVaultLockAfterTimeout by appDi.di.instance()
+    val vaultSessionLocker: VaultSessionLocker by appDi.di.instance()
     processLifecycleProvider.lifecycleStateFlow
         .onState(minActiveState = LeLifecycleState.RESUMED) {
-            timeoutJob?.cancel()
-            timeoutJob = null
-
-            try {
-                // suspend forever
-                suspendCancellableCoroutine<Unit> { }
-            } finally {
-                timeoutJob = getVaultLockAfterTimeout()
-                    .toIO()
-                    // Wait for the timeout duration.
-                    .effectMap { duration ->
-                        delay(duration)
-                        duration
-                    }
-                    .effectMap {
-                        // Clear the current session.
-                        val context = LeContext()
-                        val session = MasterSession.Empty(
-                            reason = textResource(Res.string.lock_reason_inactivity, context),
-                        )
-                        putVaultSession(session)
-                    }
-                    .flatten()
-                    .attempt()
-                    .launchIn(GlobalScope)
-            }
+            vaultSessionLocker.keepAlive()
         }
         .launchIn(GlobalScope)
 

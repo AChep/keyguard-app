@@ -169,6 +169,14 @@
         </receiver>
 
         <receiver
+            android:name="com.artemchep.keyguard.android.downloader.receiver.VaultExportActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="${applicationId}.ACTION_VAULT_EXPORT_CANCEL" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name="com.artemchep.keyguard.android.downloader.receiver.CopyActionReceiver"
             android:exported="false">
             <intent-filter>

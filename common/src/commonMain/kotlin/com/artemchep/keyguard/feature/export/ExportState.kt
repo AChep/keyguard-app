@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 data class ExportState(
     val itemsFlow: StateFlow<Items>,
+    val attachmentsFlow: StateFlow<Attachments>,
     val filterFlow: StateFlow<Filter>,
     val passwordFlow: StateFlow<Password>,
     val contentFlow: StateFlow<Content>,
@@ -35,5 +36,16 @@ data class ExportState(
         val list: List<DSecret>,
         val count: Int,
         val onView: (() -> Unit)? = null,
+    )
+
+    @Immutable
+    data class Attachments(
+        val revision: Int,
+        val list: List<DSecret.Attachment>,
+        val size: String? = null,
+        val count: Int,
+        val onView: (() -> Unit)? = null,
+        val enabled: Boolean,
+        val onToggle: (() -> Unit)? = null,
     )
 }

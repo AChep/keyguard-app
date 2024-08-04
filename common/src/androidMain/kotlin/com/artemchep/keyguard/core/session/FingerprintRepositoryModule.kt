@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.artemchep.keyguard.android.downloader.DownloadClientAndroid
 import com.artemchep.keyguard.android.downloader.DownloadManagerImpl
+import com.artemchep.keyguard.android.downloader.DownloadTaskAndroid
+import com.artemchep.keyguard.android.downloader.ExportManagerImpl
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
@@ -14,6 +16,8 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.permission.PermissionService
@@ -55,6 +59,7 @@ import com.artemchep.keyguard.copy.SharedPreferencesStoreFactory
 import com.artemchep.keyguard.copy.SharedPreferencesStoreFactoryDefault
 import com.artemchep.keyguard.copy.SubscriptionServiceAndroid
 import com.artemchep.keyguard.copy.TextServiceAndroid
+import com.artemchep.keyguard.copy.download.DownloadTaskJvm
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
@@ -182,6 +187,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<DownloadClientAndroid> {
         DownloadClientAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<DownloadTask> {
+        DownloadTaskAndroid(
             directDI = this,
         )
     }

@@ -6,4 +6,5 @@ import com.artemchep.keyguard.common.model.DFilter
 interface ExportAccount : (
     DFilter,
     String,
+    Boolean,
 ) -> IO<Unit>

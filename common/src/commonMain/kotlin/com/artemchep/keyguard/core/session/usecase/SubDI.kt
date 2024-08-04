@@ -66,6 +66,7 @@ import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
+import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.ExportAccount
 import com.artemchep.keyguard.common.usecase.ExportLogs
@@ -139,6 +140,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddEmailRelayImpl
 import com.artemchep.keyguard.common.usecase.impl.AddGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
+import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentMetadataImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
@@ -275,6 +277,12 @@ fun DI.Builder.createSubDi2(
 ) {
     bindSingleton<DownloadAttachment> {
         DownloadAttachmentImpl2(this)
+    }
+    bindSingleton<DownloadAttachmentMetadata> {
+        DownloadAttachmentMetadataImpl2(this)
+    }
+    bindSingleton<ExportAccount> {
+        ExportAccountImpl(this)
     }
     bindSingleton<GetCanAddAccount> {
         GetCanAddAccountImpl(this)
@@ -532,9 +540,6 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<AddFolder> {
         AddFolderImpl(this)
-    }
-    bindSingleton<ExportAccount> {
-        ExportAccountImpl(this)
     }
     bindSingleton<ExportLogs> {
         ExportLogsImpl(this)

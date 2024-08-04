@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteOpenHelper
 import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import com.artemchep.keyguard.android.downloader.ExportManagerImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.io.IO
@@ -14,6 +15,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.copy.QueueSyncAllAndroid
@@ -43,6 +45,11 @@ actual fun DI.Builder.createSubDi(
     }
     bindSingleton<QueueSyncById> {
         QueueSyncByIdAndroid(this)
+    }
+    bindSingleton<ExportManager> {
+        ExportManagerImpl(
+            directDI = this,
+        )
     }
 
     bindSingleton<NotificationsWorker> {

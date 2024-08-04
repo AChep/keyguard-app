@@ -4,10 +4,14 @@ import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.fileSize
+import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.permission.PermissionState
@@ -22,6 +26,7 @@ import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.ah
@@ -58,7 +63,7 @@ fun produceExportScreenState(
         getCollections = instance(),
         getOrganizations = instance(),
         permissionService = instance(),
-        exportAccount = instance(),
+        exportManager = instance(),
     )
 }
 
@@ -78,11 +83,15 @@ fun produceExportScreenState(
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     permissionService: PermissionService,
-    exportAccount: ExportAccount,
+    exportManager: ExportManager,
 ): Loadable<ExportState> = produceScreenState(
     key = "export",
     initial = Loadable.Loading,
 ) {
+    val attachmentsSink = mutablePersistedFlow(
+        key = "attachments",
+    ) { false }
+
     val passwordSink = mutablePersistedFlow(
         key = "password",
     ) { "" }
@@ -91,15 +100,20 @@ fun produceExportScreenState(
     fun onExport(
         password: String,
         filter: DFilter,
+        attachments: Boolean,
     ) {
-        exportAccount(
-            filter,
-            password,
+        val request = ExportRequest(
+            filter = filter,
+            password = password,
+            attachments = attachments,
         )
+        ioEffect {
+            exportManager.queue(request)
+        }
             .effectTap {
                 val msg = ToastMessage(
-                    title = translate(Res.string.exportaccount_export_success),
-                    type = ToastMessage.Type.SUCCESS,
+                    title = translate(Res.string.exportaccount_export_started),
+                    type = ToastMessage.Type.INFO,
                 )
                 message(msg)
 
@@ -223,6 +237,54 @@ fun produceExportScreenState(
             )
         }
         .stateIn(screenScope)
+    val attachmentsFlow = filteredCiphersFlow
+        .map { state ->
+            val attachments = state.list
+                .flatMap { it.attachments }
+            val attachmentsTotalSizeByte = attachments.sumOf { it.fileSize() ?: 0L }
+                .takeIf { it > 0L }
+                ?.let { humanReadableByteCountSI(it) }
+            ExportState.Attachments(
+                revision = state.filterConfig?.id ?: 0,
+                list = attachments,
+                size = attachmentsTotalSizeByte,
+                count = attachments.size,
+                onView = onClick {
+                    val filter = DFilter.And(
+                        listOfNotNull(
+                            DFilter.ByAttachments,
+                            state.filterConfig?.filter,
+                        ),
+                    )
+                    val route = VaultRoute(
+                        args = VaultRoute.Args(
+                            appBar = VaultRoute.Args.AppBar(
+                                title = translate(Res.string.exportaccount_header_title),
+                            ),
+                            filter = filter,
+                            trash = false,
+                            preselect = false,
+                            canAddSecrets = false,
+                        ),
+                    )
+                    val intent = NavigationIntent.NavigateToRoute(route)
+                    navigate(intent)
+                },
+                enabled = false,
+                onToggle = null,
+            )
+        }
+        .combine(attachmentsSink) { state, enableAttachments ->
+            if (state.count == 0) {
+                return@combine state
+            }
+            state.copy(
+                enabled = enableAttachments,
+                onToggle = attachmentsSink::value::set
+                    .partially1(!enableAttachments),
+            )
+        }
+        .stateIn(screenScope)
     val passwordRawFlow = passwordSink
         .validatedPassword(
             scope = this,
@@ -242,10 +304,11 @@ fun produceExportScreenState(
         .stateIn(screenScope)
     val contentFlow = combine(
         writeDownloadsPermissionFlow,
+        attachmentsSink,
         passwordRawFlow,
         filterResult
             .filterFlow,
-    ) { writeDownloadsPermission, passwordValidated, filterHolder ->
+    ) { writeDownloadsPermission, enableAttachments, passwordValidated, filterHolder ->
         val export = kotlin.run {
             val canExport = passwordValidated is Validated.Success &&
                     writeDownloadsPermission is PermissionState.Granted
@@ -263,6 +326,7 @@ fun produceExportScreenState(
                 ::onExport
                     .partially1(passwordValidated.model)
                     .partially1(filter)
+                    .partially1(enableAttachments)
             } else {
                 null
             }
@@ -276,6 +340,7 @@ fun produceExportScreenState(
 
     val state = ExportState(
         itemsFlow = itemsFlow,
+        attachmentsFlow = attachmentsFlow,
         filterFlow = filterFlow,
         passwordFlow = passwordFlow,
         contentFlow = contentFlow,

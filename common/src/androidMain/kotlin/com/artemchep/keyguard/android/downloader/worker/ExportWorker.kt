@@ -7,47 +7,46 @@ import android.content.Context
 import android.content.pm.ServiceInfo
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.ForegroundInfo
-import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.Operation
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.artemchep.keyguard.android.Notifications
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
-import com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver
+import com.artemchep.keyguard.android.downloader.receiver.VaultExportActionReceiver
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.timeout
 import com.artemchep.keyguard.common.io.toIO
-import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.download.DownloadProgress
+import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
-import com.artemchep.keyguard.common.util.canRetry
-import com.artemchep.keyguard.common.util.getHttpCode
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transformWhile
+import org.jetbrains.compose.resources.getString
 import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI
 import org.kodein.di.instance
-import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
-class AttachmentDownloadWorker(
+class ExportWorker(
     context: Context,
     params: WorkerParameters,
 ) : CoroutineWorker(context, params), DIAware {
     companion object {
-        private const val WORK_ID = "AttachmentDownloadWorker"
+        private const val WORK_ID = "VaultExportWorker"
 
         private const val PROGRESS_MAX = 100
 
@@ -60,16 +59,11 @@ class AttachmentDownloadWorker(
                     args.populate(this)
                 }
                 .build()
-            val request = OneTimeWorkRequestBuilder<AttachmentDownloadWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                )
+            val request = OneTimeWorkRequestBuilder<ExportWorker>()
+                .setExpedited(OutOfQuotaPolicy.DROP_WORK_REQUEST)
                 .setInputData(data)
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
                 .build()
-            val workId = buildWorkKey(args.downloadId)
+            val workId = buildWorkKey(args.exportId)
             return WorkManager
                 .getInstance(context)
                 .enqueueUniqueWork(workId, ExistingWorkPolicy.KEEP, request)
@@ -79,18 +73,18 @@ class AttachmentDownloadWorker(
     }
 
     data class Args(
-        val downloadId: String,
+        val exportId: String,
     ) {
         companion object {
-            private const val KEY_DOWNLOAD_ID = "download_id"
+            private const val KEY_EXPORT_ID = "export_id"
 
             fun of(data: Data) = Args(
-                downloadId = data.getString(KEY_DOWNLOAD_ID)!!,
+                exportId = data.getString(KEY_EXPORT_ID)!!,
             )
         }
 
         fun populate(builder: Data.Builder) {
-            builder.putString(KEY_DOWNLOAD_ID, downloadId)
+            builder.putString(KEY_EXPORT_ID, exportId)
         }
     }
 
@@ -98,7 +92,7 @@ class AttachmentDownloadWorker(
 
     private val notificationManager = context.getSystemService<NotificationManager>()!!
 
-    private var notificationId = Notifications.downloads.obtainId()
+    private var notificationId = Notifications.export.obtainId()
 
     override suspend fun doWork(): Result = run {
         val args = Args.of(inputData)
@@ -112,49 +106,33 @@ class AttachmentDownloadWorker(
         notificationId: Int,
         args: Args,
     ): Result {
-        val downloadManager: DownloadManager by instance()
-        val downloadRepository: DownloadRepository by instance()
+        val ea: GetVaultSession by instance()
+        val s = ea.valueOrNull as? MasterSession.Key
+            ?: return Result.success()
 
-        val downloadInfo = downloadRepository.getById(id = args.downloadId)
-            .bind()
-        // Failed to start the downloading. This happens mostly if you cancel the
-        // downloading immediately after clicking download.
-            ?: return Result.failure()
-        // Check if we are allowed to start downloading.
-
-        val downloadStatusFlow = kotlin.run {
-            val downloadIsOneTime = downloadInfo.urlIsOneTime
-            val downloadFailed = downloadInfo.error != null && !downloadInfo.error.canRetry()
-            if (downloadIsOneTime || downloadFailed) {
-                // We can not restart the download, but we
-                // can check if it's already there.
-                val downloadStatusFlow = downloadManager
-                    .statusByDownloadId2(downloadId = downloadInfo.id)
-                // ...check if the status is other then None.
-                val result = downloadStatusFlow
-                    .filter { it !is DownloadProgress.None }
-                    .toIO()
-                    .timeout(500L)
-                    .attempt()
-                    .bind()
-                if (result.isLeft()) {
-                    return Result.failure()
-                }
-                downloadStatusFlow
-            } else {
-                // Start downloading.
-                downloadManager
-                    .queue(downloadInfo = downloadInfo)
-                    .flow
+        val exportManager: ExportManager by s.di.instance()
+        val exportStatusFlow = exportManager
+            .statusByExportId(exportId = args.exportId)
+        kotlin.run {
+            // ...check if the status is other then None.
+            val result = exportStatusFlow
+                .filter { it !is DownloadProgress.None }
+                .toIO()
+                .timeout(500L)
+                .attempt()
+                .bind()
+            if (result.isLeft()) {
+                return Result.success()
             }
         }
 
-        val result = downloadStatusFlow
+        val title = applicationContext.getString(R.string.notification_vault_export_title)
+        val result = exportStatusFlow
             .onStart {
                 val foregroundInfo = createForegroundInfo(
                     id = notificationId,
-                    downloadId = downloadInfo.id,
-                    name = downloadInfo.name,
+                    exportId = args.exportId,
+                    name = title,
                     progress = null,
                 )
                 setForeground(foregroundInfo)
@@ -164,8 +142,8 @@ class AttachmentDownloadWorker(
                     is DownloadProgress.None -> {
                         val foregroundInfo = createForegroundInfo(
                             id = notificationId,
-                            downloadId = downloadInfo.id,
-                            name = downloadInfo.name,
+                            exportId = args.exportId,
+                            name = title,
                             progress = null,
                         )
                         setForeground(foregroundInfo)
@@ -180,8 +158,8 @@ class AttachmentDownloadWorker(
                         val p = progress.percentage
                         val foregroundInfo = createForegroundInfo(
                             id = notificationId,
-                            downloadId = downloadInfo.id,
-                            name = downloadInfo.name,
+                            exportId = args.exportId,
+                            name = title,
                             progress = p,
                             downloaded = downloadedFormatted,
                             total = totalFormatted,
@@ -202,15 +180,25 @@ class AttachmentDownloadWorker(
             }
             .last()
         require(result is DownloadProgress.Complete)
+        // Send a complete notification.
+        result.result.fold(
+            ifLeft = { e ->
+                sendFailureNotification(
+                    exportId = args.exportId,
+                )
+            },
+            ifRight = {
+                sendSuccessNotification(
+                    exportId = args.exportId,
+                )
+            },
+        )
         return result.result
             .fold(
                 ifLeft = { e ->
-                    val canRetry = e.getHttpCode().canRetry()
-                    if (canRetry) {
-                        Result.retry()
-                    } else {
-                        Result.failure()
-                    }
+                    // We don't want to automatically retry exporting a
+                    // vault, just notify a user and bail out.
+                    Result.success()
                 },
                 ifRight = {
                     Result.success()
@@ -224,11 +212,43 @@ class AttachmentDownloadWorker(
     // Notification
     //
 
+    private suspend fun sendFailureNotification(
+        exportId: String,
+    ) = sendCompleteNotification(exportId) { builder ->
+        val name = getString(Res.string.exportaccount_export_failure)
+        builder
+            .setContentTitle(name)
+            .setTicker(name)
+            .setSmallIcon(android.R.drawable.stat_sys_warning)
+    }
+
+    private suspend fun sendSuccessNotification(
+        exportId: String,
+    ) = sendCompleteNotification(exportId) { builder ->
+        val name = getString(Res.string.exportaccount_export_success)
+        builder
+            .setContentTitle(name)
+            .setTicker(name)
+            .setSmallIcon(android.R.drawable.stat_sys_download_done)
+    }
+
+    private inline fun sendCompleteNotification(
+        exportId: String,
+        block: (NotificationCompat.Builder) -> NotificationCompat.Builder,
+    ) {
+        val channelId = createNotificationChannel()
+        val notification = NotificationCompat.Builder(applicationContext, channelId)
+            .run(block)
+            .setGroup(WORK_ID)
+            .build()
+        notificationManager.notify(exportId, notificationId, notification)
+    }
+
     // Creates an instance of ForegroundInfo which can be used to update the
     // ongoing notification.
     private fun createForegroundInfo(
         id: Int,
-        downloadId: String,
+        exportId: String,
         name: String,
         progress: Float? = null,
         downloaded: String? = null,
@@ -246,9 +266,9 @@ class AttachmentDownloadWorker(
             // Action
             val cancelAction = kotlin.run {
                 val cancelAction = kotlin.run {
-                    val intent = AttachmentDownloadActionReceiver.cancel(
+                    val intent = VaultExportActionReceiver.cancel(
                         context = applicationContext,
-                        downloadId = downloadId,
+                        exportId = exportId,
                     )
                     PendingIntent.getBroadcast(
                         applicationContext,
@@ -295,7 +315,7 @@ class AttachmentDownloadWorker(
         id: Int,
     ): ForegroundInfo {
         val notification = kotlin.run {
-            val title = applicationContext.getString(R.string.notification_attachment_download_title)
+            val title = applicationContext.getString(R.string.notification_vault_export_title)
             val channelId = createNotificationChannel()
             NotificationCompat.Builder(applicationContext, channelId)
                 .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_DEFERRED)
@@ -316,10 +336,10 @@ class AttachmentDownloadWorker(
     private fun createNotificationChannel(): String {
         val channel = kotlin.run {
             val id =
-                applicationContext.getString(R.string.notification_attachment_download_channel_id)
+                applicationContext.getString(R.string.notification_vault_export_channel_id)
             val name =
-                applicationContext.getString(R.string.notification_attachment_download_channel_name)
-            NotificationChannel(id, name, NotificationManager.IMPORTANCE_LOW)
+                applicationContext.getString(R.string.notification_vault_export_channel_name)
+            NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH)
         }
         channel.enableVibration(false)
         notificationManager.createNotificationChannel(channel)

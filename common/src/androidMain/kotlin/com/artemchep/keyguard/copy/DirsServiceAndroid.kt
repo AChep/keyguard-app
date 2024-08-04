@@ -52,10 +52,15 @@ class DirsServiceAndroid(
         // Ensure the parent directory does exist
         // before writing the file.
         file.parentFile?.mkdirs()
-        file.outputStream()
-            .use {
-                write(it)
-            }
+        try {
+            file.outputStream()
+                .use {
+                    write(it)
+                }
+        } catch (e: Exception) {
+            file.delete()
+            throw e
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -112,8 +117,8 @@ class DirsServiceAndroid(
             values.put(MediaStore.MediaColumns.IS_PENDING, false)
             contentResolver.update(fileUri, values, null, null)
         } catch (e: Exception) {
-            e.printStackTrace()
             contentResolver.delete(fileUri, null, null)
+            throw e
         }
     }
 

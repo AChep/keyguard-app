@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.export.ExportService
+import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.entity.CollectionExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemFieldExportEntity
 import com.artemchep.keyguard.common.service.export.entity.FolderExportEntity
@@ -36,9 +36,9 @@ import kotlinx.serialization.json.putJsonArray
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-class ExportServiceImpl(
+class JsonExportServiceImpl(
     private val json: Json,
-) : ExportService {
+) : JsonExportService {
     constructor(
         directDI: DirectDI,
     ) : this(
@@ -156,7 +156,7 @@ class ExportServiceImpl(
                 putJsonArray(key) {
                     remoteAttachments.forEach { attachment ->
                         val obj = buildJsonObject {
-                            put("id", attachment.remoteCipherId)
+                            put("id", attachment.id)
                             put("size", attachment.size)
                             put("fileName", attachment.fileName)
                         }

@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Es sei denn, Sie vermuten unbefugten Zugriff oder eine Malware auf dem Gerät zu entdecken, es gibt keine Notwendigkeit, das Passwort zu ändern, wenn es ein starkes und einzigartiges Passwort ist.</string>
     <string name="exportaccount_header_title">Elemente exportieren</string>
     <string name="exportaccount_password_label">Passwort archivieren</string>
-    <string name="exportaccount_no_attachments_note">Nur Tresor Informationen werden exportiert und werden keine zugehörigen Anhänge enthalten.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exportieren</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export abgeschlossen</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Kontaktiere uns</string>
     <string name="contactus_message_label">Ihre Nachricht</string>
     <string name="contactus_english_note">Benutzen Sie Englisch um sicherzustellen, dass Ihr Feedback nicht missverstanden wird.</string>

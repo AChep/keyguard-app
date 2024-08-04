@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">除非你怀疑有未经授权的访问或在设备上发现了恶意软件，否则如果密码强大且唯一则没有必要更改。</string>
     <string name="exportaccount_header_title">导出项目</string>
     <string name="exportaccount_password_label">归档密码</string>
-    <string name="exportaccount_no_attachments_note">只导出密码库条目信息，不包含相关附件。</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">导出</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">导出完成</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">联系我们</string>
     <string name="contactus_message_label">您的留言</string>
     <string name="contactus_english_note">使用英语来确保您的反馈不会被误解。</string>

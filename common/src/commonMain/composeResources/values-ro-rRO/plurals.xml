@@ -3,41 +3,41 @@
     <plurals name="emailleak_breach_accounts_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> conturi</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> apariții</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> cuvinte</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> rezultate</item>
     </plurals>
     <plurals name="seconds_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> secunde</item>
     </plurals>
     <plurals name="minutes_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minute</item>
     </plurals>
     <plurals name="hours_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ore</item>
     </plurals>
     <plurals name="days_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> zile</item>
     </plurals>
 </resources>

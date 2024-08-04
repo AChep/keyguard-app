@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">不正アクセスが疑われる場合やデバイスにマルウェアを発見した場合を除いて、強力で一意のパスワードであれば、変更する必要はありません。</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">お問い合わせ</string>
     <string name="contactus_message_label">メッセージ</string>
     <string name="contactus_english_note">フィードバックが誤解されないように、英語を使用してください。</string>

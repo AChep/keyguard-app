@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Если вы не подозреваете, что к вашему устройству был несанкционированный доступ, или вы не нашли вредоносное программное обеспечение, то не нужно изменять текущий пароль приложения, если он достаточно надежный и уникальный.</string>
     <string name="exportaccount_header_title">Экспорт элементов</string>
     <string name="exportaccount_password_label">Пароль архива</string>
-    <string name="exportaccount_no_attachments_note">Будут экспортированы только данные элементов хранилища, и они не будут включать связанные с ними вложения.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Экспортировать</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Экспорт завершён</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Связаться с нами</string>
     <string name="contactus_message_label">Ваше сообщение</string>
     <string name="contactus_english_note">Пишите на английском, чтобы убедиться, что ваше сообщение не будет понято неправильно.</string>

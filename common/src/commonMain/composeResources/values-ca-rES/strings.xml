@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">A no ser que sospites d'un accés no autoritzat, o descobreixis programari maliciós al teu dispositiu, no hi ha cap necessitat de canviar la contrasenya si és una forta i única.</string>
     <string name="exportaccount_header_title">Exportar elements</string>
     <string name="exportaccount_password_label">Arxivar contrasenya</string>
-    <string name="exportaccount_no_attachments_note">Només s'exportarà la informació de la caixa forta, sense adjunts.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exportar</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">S'ha completat l'exportació</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Contacta'ns</string>
     <string name="contactus_message_label">El teu missatge</string>
     <string name="contactus_english_note">Fes servir l'anglès per assegurar-nos que no hi ha malentesos.</string>

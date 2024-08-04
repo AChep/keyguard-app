@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Sauf si vous soupçonnez un accès non autorisé ou si vous découvrez un logiciel malveillant sur l'appareil, il n'est pas nécessaire de changer le mot de passe si c'est un mot de passe fort et unique.</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
-    <string name="exportaccount_no_attachments_note">Seules les informations sur l'élément du coffre-fort seront exportées et n'incluront pas les pièces jointes associées.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exporter</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Exportation terminée</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Contactez-nous</string>
     <string name="contactus_message_label">Votre message</string>
     <string name="contactus_english_note">Utilisez l'Anglais pour vous assurer que vos commentaires ne sont pas mal compris.</string>

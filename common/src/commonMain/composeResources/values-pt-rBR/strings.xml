@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">A menos que você suspeite de acesso não autorizado ou descubra um malware no dispositivo, não há necessidade de alterar a senha se ela for uma senha forte e única.</string>
     <string name="exportaccount_header_title">Exportar itens</string>
     <string name="exportaccount_password_label">Senha do arquivo</string>
-    <string name="exportaccount_no_attachments_note">Somente as informações do item do cofre serão exportadas e não incluirão os anexos associados.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exportar</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Exportação concluída</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Contate-nos</string>
     <string name="contactus_message_label">Sua mensagem</string>
     <string name="contactus_english_note">Comunique-se em inglês para garantir que seu feedback não seja mal interpretado.</string>

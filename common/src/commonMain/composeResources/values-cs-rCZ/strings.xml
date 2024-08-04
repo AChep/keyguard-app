@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Pokud nemáte podezření na neoprávněný přístup nebo v zařízení neobjevíte škodlivý software, není třeba heslo měnit, pokud je silné a jedinečné.</string>
     <string name="exportaccount_header_title">Export položek</string>
     <string name="exportaccount_password_label">Heslo archivu</string>
-    <string name="exportaccount_no_attachments_note">Budou exportovány pouze informace o položkách v trezoru a nebudou zahrnovat připojené přílohy.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exportovat</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export dokončen</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Kontaktujte nás</string>
     <string name="contactus_message_label">Vaše zpráva</string>
     <string name="contactus_english_note">Používejte angličtinu, aby vaše zpětná vazba nebyla špatně pochopena.</string>

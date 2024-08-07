@@ -99,7 +99,7 @@ licenseCheckPlugin = "1.11.0"
 # https://github.com/tony19/logback-android
 logback = "3.0.0"
 # https://developers.google.com/android/guides/setup
-mlkitBarcodeScanning = "18.3.0"
+mlkitBarcodeScanning = "18.3.1"
 # https://github.com/WonderzGmbH/nativefiledialog-java
 nfd = "1.0.3"
 # https://square.github.io/okhttp/changelogs/changelog/

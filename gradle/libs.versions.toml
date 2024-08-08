@@ -72,7 +72,7 @@ kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.22.0"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.3.7"
 # https://github.com/Kotlin/kotlinx.coroutines

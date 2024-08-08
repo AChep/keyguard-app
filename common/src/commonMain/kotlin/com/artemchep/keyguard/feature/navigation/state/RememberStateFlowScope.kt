@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
 import org.jetbrains.compose.resources.StringResource
@@ -14,6 +15,10 @@ import kotlinx.coroutines.flow.shareIn
 import org.jetbrains.compose.resources.PluralStringResource
 
 interface TranslatorScope {
+    companion object {
+        fun of(context: LeContext) = TranslatorScopeContext(context)
+    }
+
     suspend fun translate(
         res: StringResource,
     ): String
@@ -28,6 +33,22 @@ interface TranslatorScope {
         quantity: Int,
         vararg args: Any,
     ): String
+}
+
+class TranslatorScopeContext(
+    private val context: LeContext,
+) : TranslatorScope {
+    override suspend fun translate(res: StringResource): String =
+        textResource(res, context)
+
+    override suspend fun translate(res: StringResource, vararg args: Any): String =
+        textResource(res, context, *args)
+
+    override suspend fun translate(
+        res: PluralStringResource,
+        quantity: Int,
+        vararg args: Any,
+    ): String = textResource(res, context, quantity, *args)
 }
 
 suspend fun TranslatorScope.translate(text: TextHolder) = when (text) {

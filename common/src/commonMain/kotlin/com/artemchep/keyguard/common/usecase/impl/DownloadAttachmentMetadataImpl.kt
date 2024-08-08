@@ -33,6 +33,7 @@ import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import java.net.UnknownHostException
 
 /**
  * @author Artem Chepurnyi
@@ -192,6 +193,10 @@ class DownloadAttachmentMetadataImpl2(
                 encryptionKey = base64Service.decode(model.keyBase64),
             )
         }.getOrElse {
+            // TODO: Throw properly!
+            if (it is UnknownHostException) {
+                throw it
+            }
             it.printStackTrace()
             AttachmentData(
                 url = requireNotNull(attachment.url),

@@ -58,7 +58,9 @@ class RememberStateFlowScopeImpl(
     private val colorSchemeState: State<ColorScheme>,
     override val screenName: String,
     override val context: LeContext,
-) : RememberStateFlowScopeZygote, CoroutineScope by scope {
+) : RememberStateFlowScopeZygote,
+    TranslatorScope by TranslatorScope.of(context),
+    CoroutineScope by scope {
     private val registry = mutableMapOf<String, Entry<Any?, Any?>>()
 
     override val colorScheme get() = colorSchemeState.value
@@ -148,18 +150,6 @@ class RememberStateFlowScopeImpl(
             message(message)
         }
     }
-
-    override suspend fun translate(res: StringResource): String =
-        textResource(res, context)
-
-    override suspend fun translate(res: StringResource, vararg args: Any): String =
-        textResource(res, context, *args)
-
-    override suspend fun translate(
-        res: PluralStringResource,
-        quantity: Int,
-        vararg args: Any,
-    ): String = textResource(res, context, quantity, *args)
 
     override fun screenExecutor(): LoadingTask {
         val executor = LoadingTask(this, appScope)

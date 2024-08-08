@@ -19,18 +19,19 @@ import androidx.work.WorkerParameters
 import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.downloader.receiver.VaultExportActionReceiver
 import com.artemchep.keyguard.common.R
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.timeout
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -90,6 +91,11 @@ class ExportWorker(
 
     override val di by closestDI { applicationContext }
 
+    private val translator by lazy {
+        val ctx = LeContext(applicationContext)
+        TranslatorScope.of(ctx)
+    }
+
     private val notificationManager = context.getSystemService<NotificationManager>()!!
 
     private var notificationId = Notifications.export.obtainId()
@@ -102,6 +108,7 @@ class ExportWorker(
         )
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun internalDoWork(
         notificationId: Int,
         args: Args,
@@ -111,23 +118,17 @@ class ExportWorker(
             ?: return Result.success()
 
         val exportManager: ExportManager by s.di.instance()
-        val exportStatusFlow = exportManager
-            .statusByExportId(exportId = args.exportId)
-        kotlin.run {
-            // ...check if the status is other then None.
-            val result = exportStatusFlow
-                .filter { it !is DownloadProgress.None }
-                .toIO()
-                .timeout(500L)
-                .attempt()
-                .bind()
-            if (result.isLeft()) {
-                return Result.success()
+        val exportProgressFlow = exportManager
+            .getProgressFlowByExportId(exportId = args.exportId)
+            // Return None if the progress flow doesn't
+            // exist anymore. Notice how we use the concat here,
+            // this is intended.
+            .flatMapConcat { flow ->
+                flow ?: flowOf(DownloadProgress.None)
             }
-        }
 
         val title = applicationContext.getString(R.string.notification_vault_export_title)
-        val result = exportStatusFlow
+        val result = exportProgressFlow
             .onStart {
                 val foregroundInfo = createForegroundInfo(
                     id = notificationId,
@@ -140,13 +141,7 @@ class ExportWorker(
             .onEach { progress ->
                 when (progress) {
                     is DownloadProgress.None -> {
-                        val foregroundInfo = createForegroundInfo(
-                            id = notificationId,
-                            exportId = args.exportId,
-                            name = title,
-                            progress = null,
-                        )
-                        setForeground(foregroundInfo)
+                        // Do nothing
                     }
 
                     is DownloadProgress.Loading -> {
@@ -169,22 +164,30 @@ class ExportWorker(
 
                     is DownloadProgress.Complete -> {
                         // Do nothing
-                        return@onEach
                     }
                 }
             }
             // complete once we finish the download
             .transformWhile { progress ->
                 emit(progress) // always emit progress
-                progress !is DownloadProgress.Complete
+                progress !is DownloadProgress.Complete &&
+                        progress !is DownloadProgress.None
             }
             .last()
+        // None means that the progress flow doesn't exist
+        // anymore. This is most likely to happen because
+        // someone has cancelled the export.
+        if (result is DownloadProgress.None) {
+            return Result.success()
+        }
+
         require(result is DownloadProgress.Complete)
         // Send a complete notification.
         result.result.fold(
             ifLeft = { e ->
                 sendFailureNotification(
                     exportId = args.exportId,
+                    reason = e,
                 )
             },
             ifRight = {
@@ -195,7 +198,7 @@ class ExportWorker(
         )
         return result.result
             .fold(
-                ifLeft = { e ->
+                ifLeft = {
                     // We don't want to automatically retry exporting a
                     // vault, just notify a user and bail out.
                     Result.success()
@@ -214,10 +217,13 @@ class ExportWorker(
 
     private suspend fun sendFailureNotification(
         exportId: String,
+        reason: Throwable,
     ) = sendCompleteNotification(exportId) { builder ->
         val name = getString(Res.string.exportaccount_export_failure)
+        val message = getErrorReadableMessage(reason, translator)
         builder
             .setContentTitle(name)
+            .setContentText(message.text ?: message.title)
             .setTicker(name)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
     }

@@ -4,13 +4,9 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import androidx.work.ListenableWorker.Result
-import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import org.kodein.di.android.closestDI
 import org.kodein.di.direct
@@ -66,16 +62,7 @@ class VaultExportActionReceiver : BroadcastReceiver() {
                         ?: return@run null
                     s.di.direct.instance()
                 } ?: return
-
-                // TODO:
-                val removeIo = kotlin.run {
-                    val request = RemoveAttachmentRequest.ByDownloadId(
-                        downloadId = exportId,
-                    )
-                    val removeAttachment: RemoveAttachment by di.instance()
-                    removeAttachment(listOf(request))
-                }
-                removeIo.launchIn(windowCoroutineScope)
+                exportManager.cancel(exportId)
             }
         }
     }

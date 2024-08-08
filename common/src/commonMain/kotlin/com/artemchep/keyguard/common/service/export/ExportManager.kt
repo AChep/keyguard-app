@@ -5,7 +5,13 @@ import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import kotlinx.coroutines.flow.Flow
 
 interface ExportManager {
-    fun statusByExportId(exportId: String): Flow<DownloadProgress>
+    /**
+     * Returns currently a progress flow for a given [exportId],
+     * returns `null` if the export is not active.
+     */
+    fun getProgressFlowByExportId(exportId: String): Flow<Flow<DownloadProgress>?>
+
+    fun cancel(exportId: String)
 
     class QueueResult(
         val exportId: String,

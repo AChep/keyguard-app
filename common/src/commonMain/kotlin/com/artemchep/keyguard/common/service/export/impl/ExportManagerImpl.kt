@@ -36,6 +36,7 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
@@ -44,12 +45,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -96,8 +94,6 @@ open class ExportManagerBase(
 
     private val mutex = Mutex()
 
-    private val flowOfNone = flowOf(DownloadProgress.None)
-
     constructor(
         directDI: DirectDI,
         onLaunch: ExportManager.(String) -> Unit,
@@ -119,18 +115,19 @@ open class ExportManagerBase(
         onLaunch = onLaunch,
     )
 
-    private fun fileStatusBy(predicate: (PoolEntry) -> Boolean) = sink
-        .map { state ->
-            val entryOrNull = state.values.firstOrNull(predicate)
-            entryOrNull?.flow
-                ?: flowOfNone
-        }
-        .distinctUntilChanged()
-        .flatMapLatest { it }
-
-    override fun statusByExportId(
+    override fun getProgressFlowByExportId(
         exportId: String,
-    ): Flow<DownloadProgress> = fileStatusBy { it.id == exportId }
+    ): Flow<Flow<DownloadProgress>?> = sink
+        .map { state ->
+            state.values
+                .firstOrNull { it.id == exportId }?.flow
+        }
+
+    override fun cancel(exportId: String) {
+        val entry = sink.value.values
+                .firstOrNull { it.id == exportId }
+        entry?.scope?.cancel()
+    }
 
     override suspend fun queue(
         request: ExportRequest,

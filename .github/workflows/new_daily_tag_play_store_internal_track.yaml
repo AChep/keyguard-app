@@ -24,7 +24,7 @@ jobs:
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat >> service-account-google.json
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Check and Build licenses"
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         with:
@@ -33,7 +33,7 @@ jobs:
         run: |
           mv -f androidApp/build/reports/licensee/androidPlayStoreRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Build"

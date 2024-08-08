@@ -324,7 +324,7 @@ class ExportWorker(
             val title = applicationContext.getString(R.string.notification_vault_export_title)
             val channelId = createNotificationChannel()
             NotificationCompat.Builder(applicationContext, channelId)
-                .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_DEFERRED)
+                .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                 .setContentTitle(title)
                 .setGroup(WORK_ID)
                 .setSmallIcon(android.R.drawable.stat_sys_download)

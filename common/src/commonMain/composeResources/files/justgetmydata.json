@@ -218,9 +218,9 @@
   {
     "name": "Facebook",
     "domains": [],
-    "url": "https://www.facebook.com/help/1701730696756992",
+    "url": "https://accountscenter.facebook.com/info_and_permissions",
     "difficulty": "easy",
-    "notes": "Go to the url provided above and follow the instructions. Logging into your account, you can access a summary of your data or download a copy. The data are categorized by type to help the search and you can download it in JSON or HTML formats."
+    "notes": "Go to the profile icon, click \"Settings & privacy\", then \"Settings\", and click \"See more in Accounts Center\". You can access a summary of your data or download a copy. The data are categorized by type to help the search. You can download it in JSON or HTML formats."
   },
   {
     "name": "Fandom",

@@ -5087,22 +5087,27 @@ ngo.ph
 mil.ph
 i.ph
 
-// pk : http://pk5.pknic.net.pk/pk5/msgNamepk.PK
+// pk : https://pknic.net.pk
+// pk : http://pk5.pknic.net.pk/pk5/msgNamepk.PK + grandfathered old gon.pk
+// Contact Email: staff@pknic.net.pk    PKNIC .PK Registry
+
 pk
-com.pk
-net.pk
-edu.pk
-org.pk
-fam.pk
+ac.pk
 biz.pk
-web.pk
-gov.pk
+com.pk
+edu.pk
+fam.pk
+gkp.pk
 gob.pk
+gog.pk
 gok.pk
 gon.pk
 gop.pk
 gos.pk
-info.pk
+gov.pk
+net.pk
+org.pk
+web.pk
 
 // pl http://www.dns.pl/english/index.html
 // Submitted by registry
@@ -11210,10 +11215,6 @@ aaa.vodka
 a2hosted.com
 cpserver.com
 
-// accesso Technology Group, plc. : https://accesso.com/
-// Submitted by accesso Team <accessoecommerce@accesso.com>
-*.devcdnaccesso.com
-
 // Acorn Labs : https://acorn.io
 // Submitted by Craig Jellick <domains@acorn.io>
 *.on-acorn.io
@@ -12075,11 +12076,6 @@ eero-stage.online
 
 // concludes Amazon
 
-// Amune : https://amune.org/
-// Submitted by Team Amune <cert@amune.org>
-t3l3p0rt.net
-tele.amune.org
-
 // Apigee : https://apigee.com/
 // Submitted by Apigee Security Team <security@apigee.com>
 apigee.io
@@ -12405,11 +12401,6 @@ cloudaccess.host
 freesite.host
 cloudaccess.net
 
-// cloudControl : https://www.cloudcontrol.com/
-// Submitted by Tobias Wilken <tw@cloudcontrol.com>
-cloudcontrolapp.com
-cloudcontrolled.com
-
 // Cloudera, Inc. : https://www.cloudera.com/
 // Submitted by Kedarnath Waikar <security@cloudera.com>
 *.cloudera.site
@@ -12544,10 +12535,6 @@ on.crisp.email
 // Cryptonomic : https://cryptonomic.net/
 // Submitted by Andrew Cady <public-suffix-list@cryptonomic.net>
 *.cryptonomic.net
-
-// Cupcake : https://cupcake.io/
-// Submitted by Jonathan Rudenberg <jonathan@cupcake.io>
-cupcake.is
 
 // Curv UG : https://curv-labs.de/
 // Submitted by Marvin Wiesner <Marvin@curv-labs.de>
@@ -12704,9 +12691,6 @@ duckdns.org
 // Bip : https://bip.sh
 // Submitted by Joel Kennedy <joel@bip.sh>
 bip.sh
-
-// bitbridge.net : Submitted by Craig Welch, abeliidev@gmail.com
-bitbridge.net
 
 // dy.fi : http://dy.fi/
 // Submitted by Heikki Hannikainen <hessu@hes.iki.fi>
@@ -13356,10 +13340,6 @@ fly.dev
 shw.io
 edgeapp.net
 
-// Flynn : https://flynn.io
-// Submitted by Jonathan Rudenberg <jonathan@flynn.io>
-flynnhosting.net
-
 // Forgerock : https://www.forgerock.com
 // Submitted by Roderick Parr <roderick.parr@forgerock.com>
 forgeblocks.com
@@ -13741,10 +13721,6 @@ gov.nl
 // Submitted by Matt Yamkowy <info@grayjaysports.ca>
 grayjayleagues.com
 
-// Group 53, LLC : https://www.group53.com
-// Submitted by Tyler Todd <noc@nova53.net>
-awsmppl.com
-
 // GünstigBestellen : https://günstigbestellen.de
 // Submitted by Furkan Akkoc <info@hendelzon.de>
 günstigbestellen.de
@@ -13945,7 +13921,7 @@ iopsys.se
 ipifony.net
 
 // is-a.dev : https://www.is-a.dev
-// Submitted by William Harrison <admin@maintainers.is-a.dev>
+// Submitted by William Harrison <admin@m.is-a.dev>
 is-a.dev
 
 // ir.md : https://nic.ir.md
@@ -15230,6 +15206,10 @@ streamlitapp.com
 // Submitted by Ian Streeter <ian@snowplowanalytics.com>
 try-snowplow.com
 
+// Software Consulting Michal Zalewski : https://www.mafelo.com
+// Submitted by Michal Zalewski <security@mafelo.com>
+mafelo.net
+
 // SourceHut : https://sourcehut.org
 // Submitted by Drew DeVault <sir@cmpwn.com>
 srht.site
@@ -15261,12 +15241,6 @@ stackit.zone
 // Submitted by Matthias Merkel <matthias.merkel@staclar.com>
 musician.io
 novecore.site
-
-// staticland : https://static.land
-// Submitted by Seth Vincent <sethvincent@gmail.com>
-static.land
-dev.static.land
-sites.static.land
 
 // Storebase : https://www.storebase.io
 // Submitted by Tony Schirmer <tony@storebase.io>
@@ -15652,12 +15626,6 @@ wpsquared.site
 // WebWaddle Ltd: https://webwaddle.com/
 // Submitted by Merlin Glander <hostmaster@webwaddle.com>
 *.wadl.top
-
-// WeDeploy by Liferay, Inc. : https://www.wedeploy.com
-// Submitted by Henrique Vicente <security@wedeploy.com>
-wedeploy.io
-wedeploy.me
-wedeploy.sh
 
 // Western Digital Technologies, Inc : https://www.wdc.com
 // Submitted by Jung Jin <jungseok.jin@wdc.com>

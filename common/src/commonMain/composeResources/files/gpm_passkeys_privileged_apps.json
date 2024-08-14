@@ -551,7 +551,7 @@
         "signatures": [
           {
             "build": "release",
-            "sha256_cert_fingerprints": "FC:98:DA:E6:3A:D3:96:26:C8:C6:7F:BE:83:F2:F0:6F:74:93:2A:9C:D1:46:B9:2C:EC:FC:6A:04:7A:90:43:86"
+            "cert_fingerprint_sha256": "FC:98:DA:E6:3A:D3:96:26:C8:C6:7F:BE:83:F2:F0:6F:74:93:2A:9C:D1:46:B9:2C:EC:FC:6A:04:7A:90:43:86"
           }
         ]
       }
@@ -563,11 +563,11 @@
         "signatures": [
           {
             "build": "release",
-            "sha256_cert_fingerprints": "AF:F8:A7:49:CF:0E:7D:75:44:65:D0:FB:FA:7B:8D:0C:64:5E:22:5C:10:C6:E2:32:AD:A0:D9:74:88:36:B8:E5"
+            "cert_fingerprint_sha256": "AF:F8:A7:49:CF:0E:7D:75:44:65:D0:FB:FA:7B:8D:0C:64:5E:22:5C:10:C6:E2:32:AD:A0:D9:74:88:36:B8:E5"
           },
           {
             "build": "release",
-            "sha256_cert_fingerprints": "A8:FE:A4:CA:FB:93:32:DA:26:B8:E6:81:08:17:C1:DA:90:A5:03:0E:35:A6:0A:79:E0:6C:90:97:AA:C6:A4:42"
+            "cert_fingerprint_sha256": "A8:FE:A4:CA:FB:93:32:DA:26:B8:E6:81:08:17:C1:DA:90:A5:03:0E:35:A6:0A:79:E0:6C:90:97:AA:C6:A4:42"
           }
         ]
       }

@@ -422,6 +422,14 @@
     "email": "support_uk@elyland.net"
   },
   {
+    "name": "myWorld",
+    "domains": [],
+    "url": "https://www.myworld.com/",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data.",
+    "email": "data.protection@myworld.com"
+  },
+  {
     "name": "Netflix",
     "domains": [],
     "url": "https://www.netflix.com/",

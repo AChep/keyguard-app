@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -96,6 +97,11 @@ class JsonKeyValueStore(
                 .map {
                     val value = it[key] as? T
                     value ?: default
+                }
+                // This should never happen. If it does it would crash the
+                // app, so instead we just fall back to the default value.
+                .catch {
+                    emit(default)
                 }
                 .distinctUntilChanged()
                 .collect(collector)

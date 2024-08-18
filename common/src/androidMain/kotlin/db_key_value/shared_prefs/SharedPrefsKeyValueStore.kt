@@ -7,11 +7,9 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.fredporciuncula.flow.preferences.FlowSharedPreferences
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class SharedPrefsKeyValueStore(
     private val createPrefs: suspend () -> SharedPreferences,
 ) : KeyValueStore {
@@ -43,27 +41,27 @@ class SharedPrefsKeyValueStore(
         .map { it.keys }
 
     override fun getInt(key: String, defaultValue: Int): KeyValuePreference<Int> =
-        SharedPrefsKeyValuePreference {
+        SharedPrefsKeyValuePreference(key, defaultValue) {
             getFlowPrefs().getInt(key, defaultValue)
         }
 
     override fun getFloat(key: String, defaultValue: Float): KeyValuePreference<Float> =
-        SharedPrefsKeyValuePreference {
+        SharedPrefsKeyValuePreference(key, defaultValue) {
             getFlowPrefs().getFloat(key, defaultValue)
         }
 
     override fun getBoolean(key: String, defaultValue: Boolean): KeyValuePreference<Boolean> =
-        SharedPrefsKeyValuePreference {
+        SharedPrefsKeyValuePreference(key, defaultValue) {
             getFlowPrefs().getBoolean(key, defaultValue)
         }
 
     override fun getLong(key: String, defaultValue: Long): KeyValuePreference<Long> =
-        SharedPrefsKeyValuePreference {
+        SharedPrefsKeyValuePreference(key, defaultValue) {
             getFlowPrefs().getLong(key, defaultValue)
         }
 
     override fun getString(key: String, defaultValue: String): KeyValuePreference<String> =
-        SharedPrefsKeyValuePreference {
+        SharedPrefsKeyValuePreference(key, defaultValue) {
             getFlowPrefs().getString(key, defaultValue)
         }
 }

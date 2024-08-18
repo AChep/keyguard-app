@@ -19,6 +19,7 @@ import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.common.AppWorker
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
@@ -178,7 +179,9 @@ fun main() {
             } else {
                 null
             }
-            keyReadWriteRepository.put(persistedSession).bind()
+            keyReadWriteRepository.put(persistedSession)
+                .attempt()
+                .bind()
         }
         .launchIn(GlobalScope)
 

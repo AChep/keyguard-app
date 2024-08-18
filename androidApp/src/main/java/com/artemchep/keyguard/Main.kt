@@ -154,7 +154,9 @@ class Main : BaseApp(), DIAware {
                     } else {
                         null
                     }
-                    keyReadWriteRepository.put(persistedSession).bind()
+                    keyReadWriteRepository.put(persistedSession)
+                        .attempt()
+                        .bind()
                 }
                 .collect()
         }

@@ -948,6 +948,18 @@
     "notes": "You need to send them a message through [Whatsapp](https://wa.me/+5511912074002) requesting deletion. It takes roughly 20 days."
   },
   {
+    "name": "Amso",
+    "domains": [
+      "amso.eu"
+    ],
+    "url": "https://amso.eu/en/contact",
+    "difficulty": "hard",
+    "notes": "You need to write an email to ask them to delete your account. After 1 day the deletion is confirmed.",
+    "email": "contact@amso.eu",
+    "email_subject": "Request to Close Account and Delete Personal Data",
+    "email_body": "Dear AMSO Data Protection Team, I hope this message finds you well. I would like to formally request the closure of my account and the deletion of all associated personal data as per the GDPR guidelines. Below are my account details: Email Address: xxxxx, Account ID: xxxxxxx, Phone Number: xxxxxx I kindly ask that you process this request at your earliest convenience and confirm once the account has been closed and all data has been deleted. Thank you for your attention to this matter. Best regards, xxxxx"
+  },
+  {
     "name": "Anaconda Nucleus",
     "domains": [
       "anaconda.cloud"
@@ -17165,6 +17177,15 @@
     "notes": "Click 'Continue' \u2b95 Click 'Register to delete' \u2b95 Enter verification code sent to your email \u2b95 Click 'Proceed' to confirm deletion."
   },
   {
+    "name": "TCL \u00e0 la demande",
+    "domains": [
+      "tad.tcl.fr"
+    ],
+    "url": "https://tad.tcl.fr/profile",
+    "difficulty": "easy",
+    "notes": "On your account settings, unroll the \"Personal Data\" Section, and click on \"Delete my Account\"."
+  },
+  {
     "name": "Teachable",
     "domains": [
       "teachable.com",
@@ -19034,6 +19055,21 @@
     "url": "https://account.wbgames.com/account",
     "difficulty": "medium",
     "notes": "Click the \"Delete my account\" button and enter a confirmation code sent yo your email."
+  },
+  {
+    "name": "Wasabi Hosting",
+    "domains": [
+      "wasabihosting.com",
+      "lg.wasabihosting.com",
+      "firewall.wasabihosting.com",
+      "panel.wasabihosting.com",
+      "status.wasabihosting.com",
+      "vps.wasabihosting.com",
+      "web.wasabihosting.com"
+    ],
+    "url": "https://wasabihosting.com/clientarea.php",
+    "difficulty": "hard",
+    "notes": "Create a ticket to the Billing department and request your account to be deleted."
   },
   {
     "name": "The Washington Post",

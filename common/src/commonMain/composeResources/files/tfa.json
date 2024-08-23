@@ -17491,6 +17491,13 @@
     "name": "Zapier"
   },
   {
+    "domain": "zapsplat.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Zapsplat"
+  },
+  {
     "domain": "zendesk.com",
     "url": "https://www.zendesk.com",
     "tfa": [

@@ -4012,9 +4012,9 @@
     "domains": [
       "curriculum.com.br"
     ],
-    "url": "https://curriculum.zendesk.com/hc/pt-br/requests/new",
-    "difficulty": "hard",
-    "notes": "Access the link above and fill the form requesting the account deletion."
+    "url": "https://www.curriculum.com.br/01_02_habilitacao1.asp",
+    "difficulty": "impossible",
+    "notes": "There's no way to delete an account. The maximum that can be done is to hide the curriculum."
   },
   {
     "name": "CurseForge",
@@ -4140,7 +4140,7 @@
     "domains": [
       "dashlane.com"
     ],
-    "url": "https://www.dashlane.com/deleteaccount",
+    "url": "https://app.dashlane.com/#/delete-account",
     "difficulty": "easy",
     "notes": "After entering the email address and selecting a reason for deletion, you will receive a security code by email. Enter the security code. After that, the account will be irretrievably deleted."
   },
@@ -5063,6 +5063,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "e-T\u00e9c\u00e9ly",
+    "domains": [
+      "e-tecely.tcl.fr"
+    ],
+    "url": "https://e-tecely.tcl.fr/tcl/supprimerSonCompte.do",
+    "difficulty": "easy",
+    "notes": "On your profile page, click on \"Supprimer mon compte\"."
+  },
+  {
     "name": "e621",
     "domains": [
       "e621.net"
@@ -5914,6 +5923,15 @@
     "url": "https://feverup.com/",
     "difficulty": "easy",
     "notes": "On the app, tap 'profile' at the bottom right, then the gear icon at the upper right, scroll to the end and click 'Delete Account'. State the reason why and confirm. Deletion is immediate"
+  },
+  {
+    "name": "Fid\u00e9lit\u00e9 TCL",
+    "domains": [
+      "fidelite.tcl.fr"
+    ],
+    "url": "https://fidelite.tcl.fr/dashboard/profile/documentation/deleteAccount",
+    "difficulty": "easy",
+    "notes": "On your profile page, go to \"Confidentialit\u00e9\", then \"Supprimer mon compte\"."
   },
   {
     "name": "Figma",
@@ -8553,6 +8571,15 @@
     "notes": "You must use the mobile app to delete your account without contacting support."
   },
   {
+    "name": "IKEA",
+    "domains": [
+      "ikea.com"
+    ],
+    "url": "https://www.ikea.com/gb/en/profile/dashboard/#login",
+    "difficulty": "easy",
+    "notes": "Visit the linked page (or go to the Login & Security section in 'Manage Account') and click 'Delete Account', then enter your password."
+  },
+  {
     "name": "illa / ILLA Cloud",
     "domains": [
       "illa.ai",
@@ -9734,6 +9761,18 @@
     "notes": "Go to Account settings and click Delete account."
   },
   {
+    "name": "Langfuse",
+    "domains": [
+      "langfuse.com",
+      "cloud.langfuse.com",
+      "us.cloud.langfuse.com"
+    ],
+    "url": "https://langfuse.com/support",
+    "difficulty": "hard",
+    "notes": "Contact them via e-mail and ask for your account to be deleted.",
+    "email": "security@langfuse.com"
+  },
+  {
     "name": "LanguageTool",
     "domains": [
       "languagetool.org"
@@ -10488,6 +10527,15 @@
     "url": "https://account.lyft.com/privacy/data",
     "difficulty": "medium",
     "notes": "Log-in to your Lyft account on the website and request for deletion. Cannot be done via the app"
+  },
+  {
+    "name": "M Tag / Appli M",
+    "domains": [
+      "pass.mobilites-m.fr"
+    ],
+    "url": "https://pass.mobilites-m.fr/mypass/account/profile",
+    "difficulty": "easy",
+    "notes": "From your profile page, click on \"Cl\u00f4turer mon compte M\""
   },
   {
     "name": "Macrumors",
@@ -13793,6 +13841,15 @@
     "url": "https://plex.tv/users/edit",
     "difficulty": "easy",
     "notes": "Under 'Danger Zone', click 'Delete your account'."
+  },
+  {
+    "name": "Plexus",
+    "domains": [
+      "plexus.techlore.tech"
+    ],
+    "url": "https://plexus.techlore.tech/",
+    "difficulty": "easy",
+    "notes": "In the app, go into the menu, then under \"My account\", click on \"Delete account\"."
   },
   {
     "name": "Plugin Boutique",
@@ -17794,6 +17851,16 @@
     "notes": "Login to your account, go to your Settings, choose Tab 'Meine Einstellungen' and click on 'Konto l\u00f6schen'"
   },
   {
+    "name": "Trabalha Brasil",
+    "domains": [
+      "trabalhabrasil.com.br"
+    ],
+    "url": "https://www.trabalhabrasil.com.br/fale-conosco",
+    "difficulty": "hard",
+    "notes": "Send an e-mail to them requesting the account exclusion.",
+    "email": "atendimento@trabalhabrasil.com.br"
+  },
+  {
     "name": "The Tracktor",
     "domains": [
       "thetracktor.com"
@@ -20107,6 +20174,15 @@
     "url": "https://youlookfab.com",
     "difficulty": "easy",
     "notes": "Login \u2b95 Profile Dropdown \u2b95 Profile \u2b95 Account \u2b95 Delete Your Account"
+  },
+  {
+    "name": "YouSee.dk",
+    "domains": [
+      "yousee.dk"
+    ],
+    "url": "https://etray.yousee.dk/Privat/N/Portal/Master.html?token=Jhzav0yLEx1=1x/hWwg2lMi0OYiUyMQ4HsKy",
+    "difficulty": "hard",
+    "notes": "Fill out the form and request account deletion. Verification of your identity is required via MitID. Processing of the request takes up to 30 days. Payment history is kept for 5 years."
   },
   {
     "name": "Yousician",

@@ -336,6 +336,14 @@
     "notes": "According to item 12, you have to send an e-mail to [privacy@kwai.com](mailto:privacy@kwai.com), with your Kwai ID user to request your data."
   },
   {
+    "name": "Liberty Lines",
+    "domains": [],
+    "url": "https://www.libertylines.it/en/privacy-policy/",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data.",
+    "email": "privacy@libertylines.it"
+  },
+  {
     "name": "Linkedin",
     "domains": [],
     "url": "https://www.linkedin.com/",
@@ -361,6 +369,14 @@
     "url": "https://www.lolja.com.br/privacidade/",
     "difficulty": "hard",
     "notes": "Send an email to [sac@lolja.com.br](mailto:sac@lolja.com.br) with all relevant information (name, email address, etc)."
+  },
+  {
+    "name": "Lyconet",
+    "domains": [],
+    "url": "https://www.lyconet.com/",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data.",
+    "email": "data.protection@lyconet.com"
   },
   {
     "name": "Lyft",

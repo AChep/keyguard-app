@@ -175,7 +175,7 @@
     <string name="passkey_available">Geçiş anahtarı mevcut</string>
     <string name="twofa_available">İki faktörlü kimlik doğrulama mevcut</string>
     <string name="custom">Özel</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Hesap oluştur</string>
     <string name="follow_system_settings">Sistem ayarlarına uy</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Çok yakında</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Yetkisiz erişimden şüphelenmediğiniz veya cihazda bir kötü amaçlı yazılım keşfetmediğiniz sürece, güçlü ve benzersiz bir şifreyse şifreyi değiştirmenize gerek yoktur.</string>
     <string name="exportaccount_header_title">Öğeleri dışa aktar</string>
     <string name="exportaccount_password_label">Arşiv şifresi</string>
-    <string name="exportaccount_no_attachments_note">Yalnızca kasa öğesi bilgileri dışa aktarılacak ve ilişkili ekleri içermeyecektir.</string>
+    <string name="exportaccount_attachments_note">Dışa aktarma işlemi sırasında kasanın kilidi açık tutulacaktır. Ekler kasanın verilerinde referans olarak gösterilir. Ekler işlem sırasında asla şifrelenmemiş bir biçimde saklanmaz.</string>
+    <string name="exportaccount_include_attachments_title">Ekleri dışa aktar</string>
     <string name="exportaccount_export_button">Dışa Aktar</string>
+    <string name="exportaccount_export_started">Dışa aktarma başladı</string>
     <string name="exportaccount_export_success">Dışa aktarma tamamlandı</string>
+    <string name="exportaccount_export_failure">Dışa aktarma başarısız</string>
     <string name="contactus_header_title">Bize ulaşın</string>
     <string name="contactus_message_label">Mesajınız</string>
     <string name="contactus_english_note">Geri bildiriminizin yanlış anlaşılmadığından emin olmak için İngilizce kullanın.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Abonelik listesi yüklenemedi</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Ürün listesi yüklenemedi</string>
     <string name="pref_item_premium_status_active">Aktif</string>
-    <string name="pref_item_premium_status_free_trial">Ücretsiz deneme</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Yenilenmeyecek</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play Store'da yönet</string>
     <string name="pref_item_permission_post_notifications_title">Bildirim gönderme</string>

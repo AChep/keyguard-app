@@ -175,7 +175,7 @@
     <string name="passkey_available">Доступен Passkey</string>
     <string name="twofa_available">Доступна двухфакторная аутентификация</string>
     <string name="custom">Пользовательское</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Создать учётную запись</string>
     <string name="follow_system_settings">Как в системе</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">В ближайшее время</string>
@@ -302,7 +302,7 @@
     <string name="file_action_delete_local_many_title">Удалить локальные файлы</string>
     <string name="file_action_view_cipher_title">Просмотр родительского элемента</string>
     <string name="vault_action_always_show_keyboard_title">Всегда показывать клавиатуру</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Запомнить метод сортировки</string>
     <string name="vault_action_sync_vault_title">Синхронизировать хранилище</string>
     <string name="vault_action_lock_vault_title">Заблокировать хранилище</string>
     <string name="vault_action_rename_folder_title">Переименовать папку</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Если вы не подозреваете, что к вашему устройству был несанкционированный доступ, или вы не нашли вредоносное программное обеспечение, то не нужно изменять текущий пароль приложения, если он достаточно надежный и уникальный.</string>
     <string name="exportaccount_header_title">Экспорт элементов</string>
     <string name="exportaccount_password_label">Пароль архива</string>
-    <string name="exportaccount_no_attachments_note">Будут экспортированы только данные элементов хранилища, и они не будут включать связанные с ними вложения.</string>
+    <string name="exportaccount_attachments_note">Хранилище будет разблокировано пока экспорт не закончится. Данные хранилища включают в себя информацию об экспортированных файлах. Файлы в процессе экспорта не сохраняются в не зашифрованном формате.</string>
+    <string name="exportaccount_include_attachments_title">Экспортировать файлы</string>
     <string name="exportaccount_export_button">Экспортировать</string>
+    <string name="exportaccount_export_started">Экспорт начат</string>
     <string name="exportaccount_export_success">Экспорт завершён</string>
+    <string name="exportaccount_export_failure">Экспорт не удался</string>
     <string name="contactus_header_title">Связаться с нами</string>
     <string name="contactus_message_label">Ваше сообщение</string>
     <string name="contactus_english_note">Пишите на английском, чтобы убедиться, что ваше сообщение не будет понято неправильно.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
     <string name="pref_item_premium_status_active">Активно</string>
-    <string name="pref_item_premium_status_free_trial">Бесплатный пробный период</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Не будет продлеваться</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>

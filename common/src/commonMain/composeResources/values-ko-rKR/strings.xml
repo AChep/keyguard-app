@@ -31,7 +31,7 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">최대 접근 횟수</string>
     <string name="learn_more">자세히 알아보기</string>
     <string name="phone_number">전화번호</string>
     <string name="passport_number">여권 번호</string>
@@ -131,7 +131,7 @@
     <string name="deletion_date_custom">사용자 지정</string>
     <string name="expiration_date">만료 날짜</string>
     <string name="expiration_date_custom">사용자 지정</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="expiration_date_never">없음</string>
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
     <string name="autofill">자동 완성</string>
@@ -175,7 +175,7 @@
     <string name="passkey_available">패스키 사용 가능</string>
     <string name="twofa_available">2단계 인증 사용 가능</string>
     <string name="custom">사용자 지정</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">계정 만들기</string>
     <string name="follow_system_settings">시스템 설정에 따름</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">출시 예정</string>
@@ -287,10 +287,10 @@
     <string name="sends_action_hide_email_title">이메일 숨기기</string>
     <string name="sends_action_show_email_title">이메일 표시</string>
     <string name="sends_action_enable_title">활성화</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
+    <string name="sends_action_enable_text">활성화된 Send는 공개 URL로 접근할 수 있음</string>
     <string name="sends_action_enable_confirmation_title">Activate?</string>
     <string name="sends_action_disable_title">비활성화</string>
-    <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
+    <string name="sends_action_disable_text">비활성화된 Send는 공개 URL로 접근할 수 없음</string>
     <string name="sends_action_disable_confirmation_title">비활성화하시겠습니까?</string>
     <string name="sends_action_disabled_note">이 Send는 비활성화되었습니다. 아무도 볼 수 없습니다.</string>
     <string name="sends_action_delete_title">완전히 삭제</string>
@@ -302,7 +302,7 @@
     <string name="file_action_delete_local_many_title">로컬 파일 삭제</string>
     <string name="file_action_view_cipher_title">상위 항목 보기</string>
     <string name="vault_action_always_show_keyboard_title">키보드 항상 보이기</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">정렬 방식 기억</string>
     <string name="vault_action_sync_vault_title">보관함 동기화</string>
     <string name="vault_action_lock_vault_title">보관함 잠그기</string>
     <string name="vault_action_rename_folder_title">폴더 이름 바꾸기</string>
@@ -447,8 +447,8 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">비워둘 수 없는 칸입니다.</string>
     <string name="error_must_be_custom_domain">사용자 지정 도메인을 입력해야 합니다.</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_number">숫자만 가능합니다.</string>
+    <string name="error_must_be_less_than_days">현재 시간으로부터 <xliff:g id="days" example="15">%1$d</xliff:g>일 이내여야 합니다.</string>
     <string name="error_must_contain_only_us_ascii_chars">US-ASCII 문자만 사용할 수 있습니다.</string>
     <string name="error_must_have_at_least_n_symbols">최소 <xliff:g id="length" example="15">%1$d</xliff:g>글자 이상이어야 합니다.</string>
     <string name="error_must_have_exactly_n_symbols">정확히 <xliff:g id="length" example="15">%1$d</xliff:g>글자여야 합니다.</string>
@@ -593,7 +593,7 @@
     <string name="additem_header_merge_title">항목 병합</string>
     <string name="additem_merge_remove_origin_ciphers_title">원본 항목을 휴지통으로 이동</string>
     <string name="additem_merge_attachments_note">항목을 병합할 때 첨부파일은 병합되지 않습니다! 병합한 항목은 첨부파일 없이 생성됩니다.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">이 항목에 대한 메모 추가</string>
     <string name="additem_markdown_note"><xliff:g id="italic" example="italic">%1$s</xliff:g> 또는 <xliff:g id="bold" example="bold">%2$s</xliff:g> 등을 사용하여 텍스트를 꾸밀 수 있습니다. 일부 마크다운 문법을 지원합니다.</string>
     <string name="additem_markdown_note_italic">기울임꼴</string>
     <string name="additem_markdown_note_bold">굵게</string>
@@ -602,10 +602,10 @@
     <string name="additem_auth_reprompt_text">비밀번호를 보거나 자동 완성할 때 다시 인증 요청</string>
     <string name="addsend_header_new_title">새 항목</string>
     <string name="addsend_header_edit_title">항목 편집</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
+    <string name="addsend_text_hide_by_default_title">항목에 접근할 때 기본적으로 텍스트를 숨김</string>
+    <string name="addsend_hide_text_by_default_title">항목에 접근할 때 기본적으로 텍스트를 숨김</string>
     <string name="addsend_hide_email_title">이메일 주소 숨기기</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_max_access_count_note">이 값을 설정하면 최대 접근 횟수에 도달했을 때 이 항목에 접근할 수 없게 됩니다.</string>
     <string name="addaccount_header_title">Bitwarden 계정 추가</string>
     <string name="addaccount_disclaimer_bitwarden_label">Keyguard 팀은 Bitwarden, Inc. 또는 그 계열사와 제휴, 연관, 승인, 보증 또는 공식적으로 어떤 식으로든 연결되어 있지 않습니다.</string>
     <!--
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">강력한 비밀번호를 웹사이트마다 다르게 사용하고 있다면, 무단 접속이 의심되거나 기기에서 악성 코드가 발견되지 않는 한 비밀번호를 변경할 필요가 없습니다.</string>
     <string name="exportaccount_header_title">항목 내보내기</string>
     <string name="exportaccount_password_label">압축 파일 비밀번호</string>
-    <string name="exportaccount_no_attachments_note">보관함 항목 정보만 내보낼 수 있습니다. 첨부 파일은 포함하지 않습니다.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">첨부 파일 내보내기</string>
     <string name="exportaccount_export_button">내보내기</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">내보내기 완료</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">고객 지원</string>
     <string name="contactus_message_label">메시지 입력</string>
     <string name="contactus_english_note">메시지가 정확히 전달될 수 있도록 영어를 사용해 주세요.</string>
@@ -912,7 +915,7 @@
     <string name="pref_item_load_website_icons_text">웹사이트 아이콘을 불러오면 인터넷 제공사에 웹사이트 주소가 노출될 수 있습니다.</string>
     <string name="pref_item_load_gravatar_icons_title">Gravatar 아이콘 불러오기</string>
     <string name="pref_item_markdown_title">리치 텍스트 포맷</string>
-    <string name="pref_item_markdown_text">메모에 마크다운 문법을 사용합니다.</string>
+    <string name="pref_item_markdown_text">메모에 마크다운 문법 사용</string>
     <string name="pref_item_locale_title">언어</string>
     <string name="pref_item_locale_help_translation_button">번역 제안</string>
     <string name="pref_item_font_title">글꼴</string>
@@ -951,7 +954,7 @@
     <string name="pref_item_allow_screenshots_text_on">앱 전환 화면에 앱 내용을 표시하고 스크린샷 캡처를 허용합니다.</string>
     <string name="pref_item_allow_screenshots_text_off">앱 전환 화면에서 앱 내용을 숨기고 스크린샷 캡처를 금지합니다.</string>
     <string name="pref_item_data_safety_title">데이터 안전성</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">로그</string>
     <string name="pref_item_lock_vault_title">보관함 잠그기</string>
     <string name="pref_item_lock_vault_after_reboot_title">다시 시작 이후 잠그기</string>
     <string name="pref_item_lock_vault_after_reboot_text">기기 다시 시작 이후 보관함을 잠급니다.</string>
@@ -1000,21 +1003,21 @@
     <string name="pref_item_premium_membership_title">Keyguard 멤버십 정보</string>
     <string name="pref_item_premium_membership_text">프리미엄을 구매하시면 추가 기능을 사용할 수 있으며 앱 개발에 도움이 됩니다. 구매해 주셔서 감사합니다! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">구독</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">구독은 만료 24시간 전에 갱신되며, 그때 Google Play 계정에 자동으로 요금이 청구됩니다. 자동 갱신을 켜거나 끌 수 있으며, Google Play에서 언제든지 구독을 취소할 수 있습니다. 구독한 적이 없다면 무료 체험판을 이용할 수 있습니다. 무료 체험판이 끝나기 전에 취소하면 요금이 청구되지 않습니다.</string>
     <string name="pref_item_premium_membership_section_products_title">상품</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">구독 목록을 불러오지 못했습니다.</string>
     <string name="pref_item_premium_membership_failed_to_load_products">상품 목록을 불러오지 못했습니다.</string>
     <string name="pref_item_premium_status_active">사용 중</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">갱신 안 함</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play 스토어에서 관리</string>
     <string name="pref_item_permission_post_notifications_title">알림 게시</string>
-    <string name="pref_item_permission_post_notifications_text">다은로드 중 알림을 게시하는 데 사용합니다.</string>
+    <string name="pref_item_permission_post_notifications_text">다운로드 중 알림을 게시하는 데 사용</string>
     <string name="pref_item_permission_write_external_storage_title">외부 저장소에 쓰기</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
+    <string name="pref_item_permission_write_external_storage_text">내보낸 보관함을 다운로드 폴더에 저장하는 데 사용</string>
     <string name="pref_item_permission_write_external_storage_grant">외부 저장소에 쓰기 권한 허용</string>
     <string name="pref_item_permission_camera_title">카메라</string>
-    <string name="pref_item_permission_camera_text">QR 코드를 스캔하는 데 사용합니다.</string>
+    <string name="pref_item_permission_camera_text">QR 코드를 스캔하는 데 사용</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">가로 모드에서 이중 패널 허용</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">세로 모드에서 이중 패널 허용</string>
     <string name="theme_dark">다크</string>
@@ -1074,9 +1077,9 @@
     <string name="datasafety_local_unlocking_vault">보관함을 잠금 해제한다는 것은 기기의 RAM에 올바른 키를 저장하여 암호화된 보관함을 읽고 편집할 수 있게 하는 것입니다.</string>
     <string name="datasafety_remote_section">원격 데이터</string>
     <string name="datasafety_remote_text">원격 데이터는 영지식 증명으로 암호화한 뒤 Bitwarden 서버에 저장됩니다.</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="logs_header_title">로그</string>
+    <string name="logs_start_recording_fab_title">기록 시작</string>
+    <string name="logs_stop_recording_fab_title">기록 중지</string>
+    <string name="logs_export_button">내보내기</string>
+    <string name="logs_export_success">내보내기 완료</string>
 </resources>

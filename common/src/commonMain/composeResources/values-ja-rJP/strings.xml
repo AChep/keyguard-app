@@ -6,7 +6,7 @@
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Show Keyguard</string>
+    <string name="show_keyguard">キーボードを表示</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名前</string>
     <string name="account_name">アカウント名</string>
@@ -86,7 +86,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> アイテム</string>
     <string name="items_all">すべてのアイテム</string>
     <string name="items_empty_label">アイテムなし</string>
-    <string name="sends">Sends</string>
+    <string name="sends"></string>
     <string name="folder_none">フォルダーなし</string>
     <string name="folder_new">新しいフォルダー</string>
     <string name="folder">フォルダー</string>
@@ -101,7 +101,7 @@
     <string name="organizations">組織</string>
     <string name="organizations_empty_label">組織なし</string>
     <string name="misc">その他</string>
-    <string name="category">Category</string>
+    <string name="category">カテゴリー</string>
     <string name="command">コマンド</string>
     <string name="execute_command">実行</string>
     <!-- Add (something) -->
@@ -139,7 +139,7 @@
     <string name="passkey">パスキー</string>
     <string name="passkey_create_header">Create a passkey</string>
     <string name="passkey_unlock_header">Unlock Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
+    <string name="passkey_auth_via_header">認証リクエストの確認…</string>
     <string name="passkeys">パスキー</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
@@ -151,7 +151,7 @@
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Relying party</string>
+    <string name="passkey_relying_party"></string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
@@ -214,7 +214,7 @@
     <string name="fingerprint_phrase">フィンガープリントフレーズ</string>
     <string name="fingerprint_phrase_help_title">フィンガープリントとは</string>
     <string name="filter_auth_reprompt_items">Auth re-prompt</string>
-    <string name="filter_pending_items">Pending</string>
+    <string name="filter_pending_items"></string>
     <string name="filter_failed_items">Failed</string>
     <string name="bitwarden_premium">Bitwarden プレミアム</string>
     <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">不正アクセスが疑われる場合やデバイスにマルウェアを発見した場合を除いて、強力で一意のパスワードであれば、変更する必要はありません。</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">お問い合わせ</string>
     <string name="contactus_message_label">メッセージ</string>
     <string name="contactus_english_note">フィードバックが誤解されないように、英語を使用してください。</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">サブスクリプションのリストの読み込みに失敗しました</string>
     <string name="pref_item_premium_membership_failed_to_load_products">プロダクトのリストの読み込みに失敗しました</string>
     <string name="pref_item_premium_status_active">アクティブ</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">更新されません</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play ストアで管理</string>
     <string name="pref_item_permission_post_notifications_title">通知</string>

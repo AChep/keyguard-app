@@ -490,6 +490,15 @@
     "notes": "On your account settings, scroll down to 'Manage Account' and click 'Delete Account'"
   },
   {
+    "name": "ADN",
+    "domains": [
+      "animationdigitalnetwork.com"
+    ],
+    "url": "https://animationdigitalnetwork.com/account?view=deleteaccount",
+    "difficulty": "easy",
+    "notes": "On your \"G\u00e9rer le compte\" page, in the \"Supprimer le compte\" category, enter your password and click on \"Valider\""
+  },
+  {
     "name": "Adobe",
     "domains": [
       "adobe.com",
@@ -1620,7 +1629,7 @@
     "domains": [
       "avito.ru"
     ],
-    "url": "https://www.avito.ru/registration/remove",
+    "url": "https://www.avito.ru/profile/settings/remove",
     "difficulty": "easy",
     "notes": "Enter any reason to delete"
   },
@@ -2515,6 +2524,15 @@
     "email_subject": "Account Deletion Request"
   },
   {
+    "name": "Brandpad",
+    "domains": [
+      "create.brandpad.io"
+    ],
+    "url": "https://create.brandpad.io/account/delete-account",
+    "difficulty": "easy",
+    "notes": "You need to cancel your subscription first, as deleting your account does not automatically unpublish or delete the brands connected to your account. Then on Account-Circle on the top right \u2b95 Account \u2b95 Delete Account."
+  },
+  {
     "name": "Brilliant",
     "domains": [
       "brilliant.org"
@@ -2571,6 +2589,18 @@
     "email": "bonjour@brutx.com"
   },
   {
+    "name": "Bruun-rasmussen.dk",
+    "domains": [
+      "bruun-rasmussen.dk"
+    ],
+    "url": "https://bruun-rasmussen.dk/m/about/privacy",
+    "difficulty": "hard",
+    "notes": "Contact customer support to request account deletion.",
+    "email": "privacy@bruun-rasmussen.dk",
+    "email_subject": "Request for the deletion of personal information",
+    "email_body": "I would like to request the deletion of my personal information as allowed per your privacy policy. My customer number is XXXXXXX. Thank you"
+  },
+  {
     "name": "Bubbl.us",
     "domains": [
       "bubbl.us",
@@ -2599,6 +2629,18 @@
     ],
     "url": "https://bufferapp.com/app/account/leave",
     "difficulty": "easy"
+  },
+  {
+    "name": "Builder.io",
+    "domains": [
+      "builder.io"
+    ],
+    "url": "https://builder.io/spaces",
+    "difficulty": "hard",
+    "notes": "Either you can write them a support ticket from their built-in application under the question mark or write them a mail.",
+    "email": "support@builder.io",
+    "email_subject": "Account Deletion Request and Data Erasure",
+    "email_body": "Dear Builder.io Support Team, I am requesting the deletion of my account and all associated personal data in accordance with your Privacy Policy and GDPR. Below are my account details: Account Email: XXXX Account Name: XXXX Please ensure the permanent removal of my data from your systems and any third-party services. Kindly confirm once this has been completed."
   },
   {
     "name": "Buildspace",
@@ -3541,6 +3583,18 @@
     "notes": "Go to your 'Settings' and scroll to the bottom to find the 'Danger Zone' section. However, the source code one has published will be kept in the system with a GPLv3 license."
   },
   {
+    "name": "CoffeeCup",
+    "domains": [
+      "coffeecup.com"
+    ],
+    "url": "https://www.coffeecup.com/contact/",
+    "difficulty": "hard",
+    "notes": "You need to contact them via email. They usually reply quickly.",
+    "email": "helpme@coffeecup.com",
+    "email_subject": "Account Deletion Request and Data Erasure",
+    "email_body": "Dear CoffeeCup Support Team, I am requesting the deletion of my account and all associated personal data in accordance with your Privacy Policy and GDPR. Below are my account details: Account Email: XXXX Title: XXXX Please ensure the permanent removal of my data from your systems and any third-party services. Kindly confirm once this has been completed."
+  },
+  {
     "name": "Cohost",
     "domains": [
       "cohost.org"
@@ -3611,6 +3665,15 @@
     "url": "https://www.coinpayments.net/help-support",
     "difficulty": "impossible",
     "notes": "According to their own policy, accounts can never be deleted."
+  },
+  {
+    "name": "CoinSpot",
+    "domains": [
+      "coinspot.com.au"
+    ],
+    "url": "https://coinspot.zendesk.com/hc/en-us/articles/360001328796-Closing-your-Account",
+    "difficulty": "hard",
+    "notes": "Once you have removed all wallet balances, you need to create a ticket. "
   },
   {
     "name": "Cointree",
@@ -3711,6 +3774,15 @@
     "url": "https://www.coolshop.dk/my/gdpr/",
     "difficulty": "easy",
     "notes": "Account deletion can be requested from within ones account settings. It takes them up to 24 hours to process the request."
+  },
+  {
+    "name": "Copyleaks",
+    "domains": [
+      "copyleaks.com"
+    ],
+    "url": "https://id.copyleaks.com/security",
+    "difficulty": "medium",
+    "notes": "Account \u2b95 Security \u2b95 Delete Account (On the bottom of the page). If you wish to delete all data, use [this page](https://id.copyleaks.com/security/delete-internal-data)."
   },
   {
     "name": "Copyrighted",
@@ -4012,9 +4084,9 @@
     "domains": [
       "curriculum.com.br"
     ],
-    "url": "https://curriculum.zendesk.com/hc/pt-br/requests/new",
-    "difficulty": "hard",
-    "notes": "Access the link above and fill the form requesting the account deletion."
+    "url": "https://www.curriculum.com.br/01_02_habilitacao1.asp",
+    "difficulty": "impossible",
+    "notes": "There's no way to delete an account. The maximum that can be done is to hide the curriculum."
   },
   {
     "name": "CurseForge",
@@ -4140,7 +4212,7 @@
     "domains": [
       "dashlane.com"
     ],
-    "url": "https://www.dashlane.com/deleteaccount",
+    "url": "https://app.dashlane.com/#/delete-account",
     "difficulty": "easy",
     "notes": "After entering the email address and selecting a reason for deletion, you will receive a security code by email. Enter the security code. After that, the account will be irretrievably deleted."
   },
@@ -4438,7 +4510,7 @@
       "digitalocean.com",
       "cloud.digitalocean.com"
     ],
-    "url": "https://cloud.digitalocean.com/account/profile/deactivate",
+    "url": "https://cloud.digitalocean.com/deactivate",
     "difficulty": "easy",
     "notes": "Click in the checkbox \"Purge all of my account data\" and confirm your action by clicking \"Deactivate Account\"."
   },
@@ -5061,6 +5133,15 @@
     ],
     "url": "https://account.dyn.com/profile/close.html",
     "difficulty": "easy"
+  },
+  {
+    "name": "e-T\u00e9c\u00e9ly",
+    "domains": [
+      "e-tecely.tcl.fr"
+    ],
+    "url": "https://e-tecely.tcl.fr/tcl/supprimerSonCompte.do",
+    "difficulty": "easy",
+    "notes": "On your profile page, click on \"Supprimer mon compte\"."
   },
   {
     "name": "e621",
@@ -5916,6 +5997,15 @@
     "notes": "On the app, tap 'profile' at the bottom right, then the gear icon at the upper right, scroll to the end and click 'Delete Account'. State the reason why and confirm. Deletion is immediate"
   },
   {
+    "name": "Fid\u00e9lit\u00e9 TCL",
+    "domains": [
+      "fidelite.tcl.fr"
+    ],
+    "url": "https://fidelite.tcl.fr/dashboard/profile/documentation/deleteAccount",
+    "difficulty": "easy",
+    "notes": "On your profile page, go to \"Confidentialit\u00e9\", then \"Supprimer mon compte\"."
+  },
+  {
     "name": "Figma",
     "domains": [
       "figma.com"
@@ -6027,6 +6117,16 @@
     "url": "https://fixer.io/account",
     "difficulty": "easy",
     "notes": "Go to your account page, click 'delete account' at the bottom."
+  },
+  {
+    "name": "FixMyCar",
+    "domains": [
+      "whocanfixmycar.com"
+    ],
+    "url": "https://www.whocanfixmycar.com/terms#termination-of-services",
+    "difficulty": "hard",
+    "notes": "You must contact support.",
+    "email": "team@whocanfixmycar.com"
   },
   {
     "name": "Flat",
@@ -7043,8 +7143,8 @@
       "help.glassdoor.com"
     ],
     "url": "https://help.glassdoor.com/s/privacyrequest",
-    "difficulty": "medium",
-    "notes": "Submit the form on the linked page. Under the field \"<b>What is your personal data request?</b>\", be sure to select \"Delete my personal data\". You'll be asked to verify your email, then your account will be deleted within 30 days."
+    "difficulty": "hard",
+    "notes": "Fill out the form on the linked page. Under the field \"What is your personal data request?\", select \"Delete my personal data\". You will be asked to verify your email and then your account will be deleted within 30 days."
   },
   {
     "name": "Glitch",
@@ -7233,6 +7333,16 @@
     "url": "https://goodnoows.com",
     "difficulty": "easy",
     "notes": "On the top bar, click on 'Your name', then click on the 'Delete Account' button at the bottom of the dialog."
+  },
+  {
+    "name": "Goodlord",
+    "domains": [
+      "goodlord.co"
+    ],
+    "url": "https://www.goodlord.co/privacy-policy",
+    "difficulty": "hard",
+    "notes": "You must send an e-mail to the privacy team.",
+    "email": "privacy@goodlord.co"
   },
   {
     "name": "Goodreads",
@@ -8553,6 +8663,15 @@
     "notes": "You must use the mobile app to delete your account without contacting support."
   },
   {
+    "name": "IKEA",
+    "domains": [
+      "ikea.com"
+    ],
+    "url": "https://www.ikea.com/gb/en/profile/dashboard/#login",
+    "difficulty": "easy",
+    "notes": "Visit the linked page (or go to the Login & Security section in 'Manage Account') and click 'Delete Account', then enter your password."
+  },
+  {
     "name": "illa / ILLA Cloud",
     "domains": [
       "illa.ai",
@@ -9171,6 +9290,14 @@
     "notes": "You can instantly delete your free account. The paid version requires you to first cancel your subscription."
   },
   {
+    "name": "Jobindex.dk",
+    "domains": [
+      "jobindex.dk"
+    ],
+    "url": "https://www.jobindex.dk/bruger/slet",
+    "difficulty": "easy"
+  },
+  {
     "name": "Jobscan",
     "domains": [
       "jobscan.co"
@@ -9734,6 +9861,18 @@
     "notes": "Go to Account settings and click Delete account."
   },
   {
+    "name": "Langfuse",
+    "domains": [
+      "langfuse.com",
+      "cloud.langfuse.com",
+      "us.cloud.langfuse.com"
+    ],
+    "url": "https://langfuse.com/support",
+    "difficulty": "hard",
+    "notes": "Contact them via e-mail and ask for your account to be deleted.",
+    "email": "security@langfuse.com"
+  },
+  {
     "name": "LanguageTool",
     "domains": [
       "languagetool.org"
@@ -10071,6 +10210,17 @@
     "url": "https://liberland.org",
     "difficulty": "impossible",
     "notes": "You can only disable the account, but never delete it."
+  },
+  {
+    "name": "Liberty Lines",
+    "domains": [
+      "libertylines.it",
+      "booking.libertylines.it",
+      "agenzia.libertylines.it"
+    ],
+    "url": "https://booking.libertylines.it/delete/",
+    "difficulty": "easy",
+    "notes": "Go to the customer area and delete your account. Your tickets will be anonymized."
   },
   {
     "name": "LibraryThing",
@@ -10490,6 +10640,15 @@
     "notes": "Log-in to your Lyft account on the website and request for deletion. Cannot be done via the app"
   },
   {
+    "name": "M Tag / Appli M",
+    "domains": [
+      "pass.mobilites-m.fr"
+    ],
+    "url": "https://pass.mobilites-m.fr/mypass/account/profile",
+    "difficulty": "easy",
+    "notes": "From your profile page, click on \"Cl\u00f4turer mon compte M\""
+  },
+  {
     "name": "Macrumors",
     "domains": [
       "forums.macrumors.com"
@@ -10778,6 +10937,16 @@
     "url": "https://www.mathway.com/settings",
     "difficulty": "easy",
     "notes": "Use the link to navigate to your account settings page. Click account, type your password and click delete."
+  },
+  {
+    "name": "Mathworks",
+    "domains": [
+      "se.mathworks.com",
+      "mathworks.com"
+    ],
+    "url": "https://se.mathworks.com/company/aboutus/data-subject-access-request-form.html",
+    "difficulty": "hard",
+    "notes": "Follow the link and use the form to request the deletion of your personal data. Subsequent identity verification may be required. The deletion process should complete within 30 days."
   },
   {
     "name": "Maxdome",
@@ -12604,6 +12773,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "Odeon",
+    "domains": [
+      "odeon.co.uk"
+    ],
+    "url": "https://help.odeon.co.uk/hc/requests/new",
+    "difficulty": "hard",
+    "notes": "You must submit a request to support. Live chat also works. The process takes 30 days to complete."
+  },
+  {
     "name": "The Odin Project",
     "domains": [
       "theodinproject.com"
@@ -13286,6 +13464,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "Payback",
+    "domains": [
+      "payback.de"
+    ],
+    "url": "https://www.payback.de/info/mein-payback/kontakt",
+    "difficulty": "hard",
+    "notes": "According to their help page, you need to contanct their Service-Center"
+  },
+  {
     "name": "Payoneer",
     "domains": [
       "payoneer.com",
@@ -13795,6 +13982,15 @@
     "notes": "Under 'Danger Zone', click 'Delete your account'."
   },
   {
+    "name": "Plexus",
+    "domains": [
+      "plexus.techlore.tech"
+    ],
+    "url": "https://plexus.techlore.tech/",
+    "difficulty": "easy",
+    "notes": "In the app, go into the menu, then under \"My account\", click on \"Delete account\"."
+  },
+  {
     "name": "Plugin Boutique",
     "domains": [
       "pluginboutique.com",
@@ -14100,6 +14296,15 @@
     "notes": "Visit the linked page and click 'Delete Account'"
   },
   {
+    "name": "Programiz PRO",
+    "domains": [
+      "programiz.pro"
+    ],
+    "url": "https://programiz.pro",
+    "difficulty": "easy",
+    "notes": "Login to the website and tap on your profile icon. Click on 'My Profile' and navigate to the 'Account' section. Hit the 'Delete My Account' button."
+  },
+  {
     "name": "ProMods",
     "domains": [
       "https://promods.net/"
@@ -14143,10 +14348,12 @@
       "calendar.proton.me",
       "drive.proton.me",
       "mail.proton.me",
+      "pass.proton.me",
       "protonapps.com",
       "protonmail.com",
       "protonvpn.com",
-      "account.protonvpn.com"
+      "account.protonvpn.com",
+      "wallet.proton.me"
     ],
     "url": "https://account.proton.me/u/0/mail/account-password",
     "difficulty": "medium",
@@ -15170,6 +15377,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "Salad",
+    "domains": [
+      "salad.com",
+      "salad.io"
+    ],
+    "url": "https://support.salad.com/article/45-how-can-i-delete-my-account",
+    "difficulty": "hard",
+    "notes": "You need to create a ticket."
+  },
+  {
     "name": "SamMobile",
     "domains": [
       "sammobile.com"
@@ -15949,6 +16166,15 @@
     "url": "https://support.smoothcomp.com/article/193-please-remove-delete-hide-my-account-gdpr",
     "difficulty": "easy",
     "notes": "Click on your name at the top right of the website, which opens a dropdown. Then, click Settings and click the Delete Account button at the bottom of the page."
+  },
+  {
+    "name": "SMSPool",
+    "domains": [
+      "smspool.net"
+    ],
+    "url": "https://www.smspool.net/my/settings",
+    "difficulty": "easy",
+    "notes": "In order to delete your account you have to head over to the settings page and click on the 'Delete Account' button after filling in your password. Keep in mind that the site does not allow you to delete the account if a card transaction has been made within the last 14 days."
   },
   {
     "name": "Smule",
@@ -17794,6 +18020,16 @@
     "notes": "Login to your account, go to your Settings, choose Tab 'Meine Einstellungen' and click on 'Konto l\u00f6schen'"
   },
   {
+    "name": "Trabalha Brasil",
+    "domains": [
+      "trabalhabrasil.com.br"
+    ],
+    "url": "https://www.trabalhabrasil.com.br/fale-conosco",
+    "difficulty": "hard",
+    "notes": "Send an e-mail to them requesting the account exclusion.",
+    "email": "atendimento@trabalhabrasil.com.br"
+  },
+  {
     "name": "The Tracktor",
     "domains": [
       "thetracktor.com"
@@ -18260,6 +18496,16 @@
     "url": "https://www.udemy.com/user/edit-danger-zone/",
     "difficulty": "medium",
     "notes": "In order to delete your account, you need to first unsubscribe from all of your courses."
+  },
+  {
+    "name": "UGC",
+    "domains": [
+      "ugc.com",
+      "ugc.be"
+    ],
+    "url": "https://www.ugc.fr/aide.html?question=supprimer-compte-ugc",
+    "difficulty": "easy",
+    "notes": "Login to My account/My profile and select \"Supprimer mon compte\"."
   },
   {
     "name": "Ultimate Guitar",
@@ -20107,6 +20353,15 @@
     "url": "https://youlookfab.com",
     "difficulty": "easy",
     "notes": "Login \u2b95 Profile Dropdown \u2b95 Profile \u2b95 Account \u2b95 Delete Your Account"
+  },
+  {
+    "name": "YouSee.dk",
+    "domains": [
+      "yousee.dk"
+    ],
+    "url": "https://etray.yousee.dk/Privat/N/Portal/Master.html?token=Jhzav0yLEx1=1x/hWwg2lMi0OYiUyMQ4HsKy",
+    "difficulty": "hard",
+    "notes": "Fill out the form and request account deletion. Verification of your identity is required via MitID. Processing of the request takes up to 30 days. Payment history is kept for 5 years."
   },
   {
     "name": "Yousician",

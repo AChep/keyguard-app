@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.optics.optics
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Immutable
 @optics
@@ -15,7 +15,7 @@ sealed interface LogsItem {
 
     @Immutable
     data class Section(
-        override val id: String = UUID.randomUUID().toString(),
+        override val id: String = Uuid.random().toString(),
         val text: String? = null,
         val caps: Boolean = true,
     ) : LogsItem {

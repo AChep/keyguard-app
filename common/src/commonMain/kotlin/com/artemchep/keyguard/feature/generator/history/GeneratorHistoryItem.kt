@@ -8,7 +8,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.Instant
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Immutable
 @optics
@@ -19,7 +19,7 @@ sealed interface GeneratorHistoryItem {
 
     @Immutable
     data class Section(
-        override val id: String = UUID.randomUUID().toString(),
+        override val id: String = Uuid.random().toString(),
         val text: String? = null,
         val caps: Boolean = true,
     ) : GeneratorHistoryItem {

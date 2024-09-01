@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.id.IdRepository
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 class DeviceIdUseCase(
     private val deviceIdRepository: IdRepository,
@@ -45,4 +45,4 @@ class DeviceIdUseCase(
         }
 }
 
-private fun getDeviceId() = UUID.randomUUID().toString()
+private fun getDeviceId() = Uuid.random().toString()

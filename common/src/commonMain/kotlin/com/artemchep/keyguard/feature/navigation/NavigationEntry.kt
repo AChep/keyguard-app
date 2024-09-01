@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 interface NavigationEntry : BackPressInterceptorHost {
     companion object {
@@ -83,7 +83,7 @@ data class NavigationEntryImpl(
     override fun interceptBackPress(
         block: () -> Unit,
     ): () -> Unit {
-        val id = UUID.randomUUID().toString()
+        val id = Uuid.random().toString()
         val entry = BackPressInterceptorRegistration(
             id = id,
             block = block,

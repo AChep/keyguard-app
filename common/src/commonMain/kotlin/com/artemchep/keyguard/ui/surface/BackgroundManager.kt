@@ -6,7 +6,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 class BackgroundManager {
     private val surfaceColorsState = mutableStateMapOf<String, Color>()
@@ -42,7 +42,7 @@ class BackgroundManager {
     fun register(
         color: Color,
     ): () -> Unit {
-        val key = UUID.randomUUID().toString()
+        val key = Uuid.random().toString()
         surfaceColorsState[key] = color
 
         return {

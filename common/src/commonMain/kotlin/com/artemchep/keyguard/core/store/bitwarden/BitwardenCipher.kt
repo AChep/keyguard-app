@@ -5,8 +5,8 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.UUID
 import kotlin.time.Duration.Companion.days
+import kotlin.uuid.Uuid
 
 @Serializable
 @optics
@@ -317,7 +317,7 @@ fun BitwardenCipher.Companion.generated(): BitwardenCipher {
                 "Cum ita esset affecta, secundum non recte, si voluptas esset bonum, fuisse desideraturam. Idcirco enim non desideraret, quia, quod dolore caret, id in hominum consuetudine facilius fieri poterit et iustius?",
     )
     return BitwardenCipher(
-        cipherId = UUID.randomUUID().toString(),
+        cipherId = Uuid.random().toString(),
         accountId = accountIds.random(),
         folderId = folderIds.random(),
         revisionDate = Clock.System.now().minus(20L.days),

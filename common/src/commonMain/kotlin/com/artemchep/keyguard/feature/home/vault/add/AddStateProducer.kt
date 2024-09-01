@@ -178,7 +178,7 @@ import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.io.Serializable
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
 @Composable
@@ -468,7 +468,7 @@ fun produceAddScreenState(
                         if (info != null) {
                             val model = SkeletonAttachment.Local(
                                 identity = SkeletonAttachment.Local.Identity(
-                                    id = UUID.randomUUID().toString(),
+                                    id = Uuid.random().toString(),
                                     uri = info.uri,
                                     size = info.size,
                                 ),
@@ -1593,7 +1593,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     val initialState = Foo2InitialState(
         items = initial
             .associateBy {
-                UUID.randomUUID().toString()
+                Uuid.random().toString()
             }
             .map { entry ->
                 Foo2InitialState.Item(
@@ -1760,7 +1760,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
     }
 
     fun add(type: String, arg: Argument?) {
-        val key = "$scope.items." + UUID.randomUUID().toString()
+        val key = "$scope.items." + Uuid.random().toString()
         // Remember the argument, so we can grab it and construct something
         // persistent from it.
         if (arg != null) {

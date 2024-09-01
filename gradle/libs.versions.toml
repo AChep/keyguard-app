@@ -72,7 +72,7 @@ kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.22.0"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.0.10"
+kotlin = "2.0.20"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.3.7"
 # https://github.com/Kotlin/kotlinx.coroutines
@@ -81,9 +81,9 @@ kotlinCoroutines = "1.8.1"
 kotlinDatetime = "0.6.1"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinSerialization = "1.7.1"
+kotlinSerialization = "1.7.2"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.0.10-1.0.24"
+kspPlugin = "2.0.20-1.0.24"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"

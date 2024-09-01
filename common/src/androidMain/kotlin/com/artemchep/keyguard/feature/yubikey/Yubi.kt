@@ -37,7 +37,7 @@ import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableSet
 import java.io.IOException
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 actual fun rememberYubiKey(
@@ -127,7 +127,7 @@ private fun YubiKitManager.rememberYubiKeyUsbState(
     DisposableEffect(context, this) {
         val callback = Callback<UsbYubiKeyDevice> { device: UsbYubiKeyDevice ->
             val info = ActiveDevice(
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 pid = device.pid,
             )
 

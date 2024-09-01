@@ -5,7 +5,7 @@ import androidx.compose.ui.text.AnnotatedString
 import arrow.optics.optics
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.ui.FlatItemAction
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @optics
 sealed interface AccountItem {
@@ -15,7 +15,7 @@ sealed interface AccountItem {
 
     @optics
     data class Section(
-        override val id: String = UUID.randomUUID().toString(),
+        override val id: String = Uuid.random().toString(),
         val text: String? = null,
     ) : AccountItem {
         companion object

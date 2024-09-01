@@ -9,7 +9,7 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.Instant
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Immutable
 @optics
@@ -20,7 +20,7 @@ sealed interface SendItem {
 
     @Immutable
     data class Section(
-        override val id: String = UUID.randomUUID().toString(),
+        override val id: String = Uuid.random().toString(),
         val text: String? = null,
         val caps: Boolean = true,
     ) : SendItem {

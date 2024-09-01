@@ -18,7 +18,7 @@ import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.Instant
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Immutable
 @optics
@@ -35,7 +35,7 @@ sealed interface VaultItem2 {
         companion object;
 
         data class Item(
-            val key: String = UUID.randomUUID().toString(),
+            val key: String = Uuid.random().toString(),
             val leading: (@Composable () -> Unit)? = null,
             val imageVector: ImageVector? = null,
             val title: String,
@@ -67,7 +67,7 @@ sealed interface VaultItem2 {
 
     @Immutable
     data class Section(
-        override val id: String = UUID.randomUUID().toString(),
+        override val id: String = Uuid.random().toString(),
         val text: TextHolder? = null,
         val caps: Boolean = true,
     ) : VaultItem2 {

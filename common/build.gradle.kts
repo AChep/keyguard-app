@@ -91,6 +91,7 @@ kotlin {
         all {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
             languageSettings.optIn("kotlin.time.ExperimentalTime")
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
             languageSettings.optIn("androidx.compose.animation.ExperimentalAnimationApi")
             languageSettings.optIn("androidx.compose.material.ExperimentalMaterialApi")
             languageSettings.optIn("androidx.compose.foundation.ExperimentalFoundationApi")

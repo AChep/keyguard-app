@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.timeout
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.DurationSimple
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.Subscription
@@ -24,6 +25,8 @@ import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.common.model.orNull
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.ui.format
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +40,7 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class SubscriptionServiceAndroid(
+    private val context: LeContext,
     private val billingManager: BillingManager,
 ) : SubscriptionService {
     companion object {
@@ -53,6 +57,7 @@ class SubscriptionServiceAndroid(
     constructor(
         directDI: DirectDI,
     ) : this(
+        context = directDI.instance(),
         billingManager = directDI.instance(),
     )
 
@@ -92,16 +97,23 @@ class SubscriptionServiceAndroid(
                 .pricingPhaseList
                 .last()
 
+            val period = DurationSimple.parse(finalPrice.billingPeriod)
+            val periodFormatted = period.format(context)
             val status = kotlin.run {
                 val skuReceipt =
                     receipts?.firstOrNull { purchase -> it.productId in purchase.products }
                         ?: return@run kotlin.run {
-                            val hasTrialAvailable = bestOffer?.pricingPhases
+                            val trialPeriodStr = bestOffer?.pricingPhases
                                 ?.pricingPhaseList
                                 ?.firstOrNull()
-                                ?.priceAmountMicros == 0L
+                                ?.takeIf { it.priceAmountMicros == 0L }
+                                ?.billingPeriod
+                            val trialPeriod = trialPeriodStr
+                                ?.let { DurationSimple.parse(it) }
+                            val trialPeriodFormatted = trialPeriod?.format(context)
                             Subscription.Status.Inactive(
-                                hasTrialAvailable = hasTrialAvailable,
+                                trialPeriod = trialPeriod,
+                                trialPeriodFormatted = trialPeriodFormatted,
                             )
                         }
                 Subscription.Status.Active(
@@ -114,6 +126,8 @@ class SubscriptionServiceAndroid(
                 description = it.description,
                 price = finalPrice.formattedPrice,
                 status = status,
+                period = period,
+                periodFormatted = periodFormatted,
                 purchase = { context ->
                     val activity = context.context.closestActivityOrNull
                         ?: return@Subscription

@@ -8,11 +8,14 @@ data class Subscription(
     val description: String?,
     val price: String,
     val status: Status,
+    val period: DurationSimple,
+    val periodFormatted: String,
     val purchase: (LeContext) -> Unit,
 ) {
     sealed interface Status {
         data class Inactive(
-            val hasTrialAvailable: Boolean,
+            val trialPeriod: DurationSimple?,
+            val trialPeriodFormatted: String?,
         ) : Status
 
         data class Active(

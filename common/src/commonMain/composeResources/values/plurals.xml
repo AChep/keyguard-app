@@ -64,4 +64,28 @@
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> days</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
     </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
+        <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> weeks</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
+        <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> months</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="zero"><xliff:g id="number" example="0">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
+        <item quantity="two"><xliff:g id="number" example="2">%1$s</xliff:g> years</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+    </plurals>
 </resources>

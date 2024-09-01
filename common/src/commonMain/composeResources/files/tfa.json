@@ -8,6 +8,16 @@
     "name": "101domain"
   },
   {
+    "domain": "123-reg.co.uk",
+    "tfa": [
+      "sms",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://www.123-reg.co.uk/support/my-account/how-do-i-enable-2-step-verification-on-my-account/",
+    "name": "123 Reg"
+  },
+  {
     "domain": "123formbuilder.com",
     "tfa": [
       "totp"
@@ -2031,7 +2041,8 @@
     "domain": "booking.com",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "totp"
     ],
     "notes": "Setup requires SMS verification. Email is available via 'other options' at login.",
     "name": "Booking.com"
@@ -2102,7 +2113,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://articles.braintreepayments.com/reference/security/two-factor-authentication",
+    "documentation": "https://developer.paypal.com/braintree/articles/risk-and-security/control-panel-security/two-factor-authentication",
     "name": "Braintree"
   },
   {
@@ -5423,6 +5434,19 @@
     "name": "Evernote"
   },
   {
+    "domain": "everyday.com.au",
+    "additional-domains": [
+      "woolworthsrewards.com.au",
+      "everydayrewards.com.au",
+      "everydayrewards.co.nz"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Everyday Rewards"
+  },
+  {
     "domain": "exact.com",
     "tfa": [
       "totp"
@@ -5692,12 +5716,13 @@
     "tfa": [
       "sms",
       "call",
+      "totp",
       "custom-software"
     ],
     "custom-software": [
       "Symantec VIP Access"
     ],
-    "documentation": "https://www.fidelity.com/security/how-two-factor-authentication-works",
+    "documentation": "https://www.fidelity.com/security/extra-security-login",
     "notes": "Specific support varies between account types",
     "name": "Fidelity Investments"
   },
@@ -5911,6 +5936,13 @@
       "totp"
     ],
     "name": "Fly.io"
+  },
+  {
+    "domain": "flybuys.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Flybuys"
   },
   {
     "domain": "fogbugz.com",
@@ -8500,6 +8532,14 @@
     "name": "Lenovo"
   },
   {
+    "domain": "letsdothis.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://intercom.help/ldt-partner-help/en/articles/9423487",
+    "name": "Let's Do This"
+  },
+  {
     "domain": "letterboxd.com",
     "additional-domains": [
       "ltrbxd.com"
@@ -10028,15 +10068,19 @@
   },
   {
     "domain": "nandos.co.uk",
-    "additional-domains": [
-      "id.nandos.co.uk"
-    ],
     "tfa": [
       "sms",
       "email"
     ],
-    "documentation": "https://help.nandos.co.uk/hc/en-gb/articles/4417183221521",
-    "name": "Nando's UK"
+    "documentation": "https://help.nandos.co.uk/hc/articles/4417183221521",
+    "name": "Nando's [UK]"
+  },
+  {
+    "domain": "nandos.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Nando's [AU]"
   },
   {
     "domain": "nasafcu.com",
@@ -12442,6 +12486,14 @@
       "totp"
     ],
     "name": "Raisin"
+  },
+  {
+    "domain": "raizinvest.com.au",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://raizinvest.com.au/blog/verifying-raiz-account-multifactor-authentication/",
+    "name": "Raiz"
   },
   {
     "domain": "ramnode.com",
@@ -14934,6 +14986,11 @@
   },
   {
     "domain": "telstra.com.au",
+    "additional-domains": [
+      "telstra.com",
+      "bigpond.com",
+      "bigpond.com.au"
+    ],
     "tfa": [
       "sms",
       "email",
@@ -15335,6 +15392,18 @@
     "documentation": "https://www.transip.nl/knowledgebase/artikel/162",
     "notes": "While both the main control panel and STACK support 2FA, each system is separate and requires its own setup.",
     "name": "TransIP"
+  },
+  {
+    "domain": "transperth.wa.gov.au",
+    "tfa": [
+      "sms",
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Transperth app"
+    ],
+    "name": "Transperth"
   },
   {
     "domain": "travala.com",
@@ -15960,6 +16029,19 @@
     "documentation": "https://help.united-domains.de/faq-article/wie-aktiviere-ich-die-zweistufige-verifizierung-und-mache-mein-portfolio-login-sicherer",
     "notes": "A phone number is required to enable two-factor authentication.",
     "name": "united-domains.de"
+  },
+  {
+    "domain": "united.com",
+    "tfa": [
+      "email",
+      "sms",
+      "call",
+      "custom-software"
+    ],
+    "custom-software": [
+      "United App"
+    ],
+    "name": "United"
   },
   {
     "domain": "uniteddomains.com",
@@ -17489,6 +17571,13 @@
     ],
     "documentation": "https://zapier.com/help/two-factor-authentication/",
     "name": "Zapier"
+  },
+  {
+    "domain": "zapsplat.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Zapsplat"
   },
   {
     "domain": "zendesk.com",

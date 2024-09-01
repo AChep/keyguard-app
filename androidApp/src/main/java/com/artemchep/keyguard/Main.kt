@@ -253,6 +253,7 @@ class Main : BaseApp(), DIAware {
                                 filter = filter,
                             )
                         }
+                        .take(ShortcutManagerCompat.getMaxShortcutCountPerActivity(this@Main))
                     ShortcutManagerCompat.addDynamicShortcuts(this@Main, shortcuts)
                 }
                 .launchIn(this)

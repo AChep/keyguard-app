@@ -15,7 +15,7 @@ appVersionCode = "6"
 accompanist = "0.34.0"
 androidBillingClient = "7.0.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
-androidDesugar = "2.0.4"
+androidDesugar = "2.1.2"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
 androidPlugin = "8.5.2"
 androidxActivity = "1.9.1"

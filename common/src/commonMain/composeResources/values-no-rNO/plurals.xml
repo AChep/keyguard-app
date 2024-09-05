@@ -32,4 +32,16 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
     </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+    </plurals>
 </resources>

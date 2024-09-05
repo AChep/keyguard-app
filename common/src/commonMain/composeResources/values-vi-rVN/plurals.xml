@@ -24,4 +24,13 @@
     <plurals name="days_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ngày</item>
     </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+    </plurals>
 </resources>

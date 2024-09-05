@@ -175,7 +175,7 @@
     <string name="passkey_available">通行密钥可用</string>
     <string name="twofa_available">双因素认证可用</string>
     <string name="custom">自定义</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">创建帐号</string>
     <string name="follow_system_settings">跟随系统设置</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">即将上线</string>
@@ -243,7 +243,7 @@
     <string name="folder_action_merge_title">合并到…</string>
     <string name="folder_delete_one_confirmation_title">确认删除文件夹？</string>
     <string name="folder_delete_many_confirmation_title">确认删除全部选中的文件夹？</string>
-    <string name="folder_delete_confirmation_text">此条目将被立即删除，且此操作不可恢复。</string>
+    <string name="folder_delete_confirmation_text">此项目将被立即删除，且此操作不可恢复。</string>
     <string name="ciphers_recently_opened">最近打开</string>
     <string name="ciphers_often_opened">经常打开</string>
     <string name="ciphers_view_details">查看详情</string>
@@ -255,7 +255,7 @@
     <string name="ciphers_action_edit_title">编辑</string>
     <string name="ciphers_action_merge_title">合并到…</string>
     <string name="ciphers_action_copy_title">复制到…</string>
-    <string name="ciphers_action_export_title">导出...</string>
+    <string name="ciphers_action_export_title">导出…</string>
     <string name="ciphers_action_change_folder_title">移动至文件夹</string>
     <string name="ciphers_action_change_name_title">修改名称</string>
     <string name="ciphers_action_change_names_title">修改名称</string>
@@ -296,13 +296,13 @@
     <string name="sends_action_delete_title">永久删除</string>
     <string name="sends_action_delete_confirmation_title">确认永久删除?</string>
     <string name="file_action_open_with_title">通过…打开</string>
-    <string name="file_action_send_with_title">通过...发送</string>
+    <string name="file_action_send_with_title">通过…发送</string>
     <string name="file_action_open_in_file_manager_title">通过文件管理器打开</string>
     <string name="file_action_delete_local_title">删除本地文件</string>
     <string name="file_action_delete_local_many_title">删除本地文件</string>
     <string name="file_action_view_cipher_title">查看父项目</string>
     <string name="vault_action_always_show_keyboard_title">总是显示键盘</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">记住排序方法</string>
     <string name="vault_action_sync_vault_title">同步密码库</string>
     <string name="vault_action_lock_vault_title">锁定密码库</string>
     <string name="vault_action_rename_folder_title">重命名文件夹</string>
@@ -317,7 +317,7 @@
     <string name="uri_action_launch_browser_main_page_title">打开主页</string>
     <string name="uri_action_launch_play_store_title">启动 Play 商店</string>
     <string name="uri_action_launch_in_app_title">启动 <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
-    <string name="uri_action_launch_in_smth_title">使用...启动</string>
+    <string name="uri_action_launch_in_smth_title">使用…启动</string>
     <string name="uri_action_how_to_delete_account_title">如何删除账户？</string>
     <string name="uri_action_get_my_data_account_title">如何获取我的数据？</string>
     <string name="uri_action_autofix_unsecure_title">自动修正不安全的 URL</string>
@@ -402,7 +402,7 @@
     <string name="copied_expiration_year">已复制过期年份</string>
     <string name="copied_expiration_month">已复制过期月份</string>
     <string name="copied_cvv_code">已复制安全码（CVV）</string>
-    <string name="copied_otp_code">复制动态密码</string>
+    <string name="copied_otp_code">复制一次性密码</string>
     <string name="copied_otp_secret_code">复制私钥</string>
     <string name="autofill_unlock_keyguard">解锁 Keyguard</string>
     <string name="autofill_open_keyguard">打开 Keyguard</string>
@@ -847,9 +847,14 @@
     <string name="changepassword_disclaimer_abuse_note">除非你怀疑有未经授权的访问或在设备上发现了恶意软件，否则如果密码强大且唯一则没有必要更改。</string>
     <string name="exportaccount_header_title">导出项目</string>
     <string name="exportaccount_password_label">归档密码</string>
-    <string name="exportaccount_no_attachments_note">只导出密码库条目信息，不包含相关附件。</string>
+    <string name="exportaccount_attachments_note">密码库将在导出过程中保持解锁。
+附件将会在导出的密码库数据中被引用。
+在此过程中附件永远不会以未加密的形式存储。</string>
+    <string name="exportaccount_include_attachments_title">导出附件</string>
     <string name="exportaccount_export_button">导出</string>
+    <string name="exportaccount_export_started">导出已开始</string>
     <string name="exportaccount_export_success">导出完成</string>
+    <string name="exportaccount_export_failure">导出失败</string>
     <string name="contactus_header_title">联系我们</string>
     <string name="contactus_message_label">您的留言</string>
     <string name="contactus_english_note">使用英语来确保您的反馈不会被误解。</string>
@@ -934,7 +939,7 @@
     <string name="pref_item_crash_title">程序崩溃</string>
     <string name="pref_item_credential_provider_title">凭据提供商</string>
     <string name="pref_item_credential_provider_text">通行密钥、密码和数据服务</string>
-    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
+    <string name="pref_item_credential_provider_no_feature_note">设备不支持通过与凭据管理器集成以检索用户凭据。请联系制造商获取更多信息。</string>
     <string name="pref_item_privacy_policy_title">隐私政策</string>
     <string name="pref_item_contact_us_title">联系我们</string>
     <string name="pref_item_experimental_title">实验性功能</string>
@@ -1005,7 +1010,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">无法加载订阅列表</string>
     <string name="pref_item_premium_membership_failed_to_load_products">无法加载产品列表</string>
     <string name="pref_item_premium_status_active">已激活</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">将不续订</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">在 Play 商店管理</string>
     <string name="pref_item_permission_post_notifications_title">发送通知</string>

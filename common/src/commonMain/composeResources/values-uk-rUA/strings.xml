@@ -175,7 +175,7 @@
     <string name="passkey_available">Доступний ключ доступу</string>
     <string name="twofa_available">Доступна двофакторна автентифікація</string>
     <string name="custom">Користувацьке</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Створити обліковий запис</string>
     <string name="follow_system_settings">Як у системі</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Незабаром</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Якщо ви не підозрюєте що до вашого пристрою був несанкціонований доступ, або не знайшли шкідливе програмне забезпечення, то не треба змінювати поточний пароль застосунку, якщо він достатньо надійний та унікальний.</string>
     <string name="exportaccount_header_title">Експорт записів</string>
     <string name="exportaccount_password_label">Пароль архіву</string>
-    <string name="exportaccount_no_attachments_note">Експортується тільки інформація про сховище, вкладення не будуть збережені.</string>
+    <string name="exportaccount_attachments_note">Сховище буде розблоковано поки експорт не завершиться. Дані сховища включають інформацію про експортовані файли. Файли в процесі експорту ніколи не зберігаються у не зашифрованому форматі.</string>
+    <string name="exportaccount_include_attachments_title">Експортувати файли</string>
     <string name="exportaccount_export_button">Експортувати</string>
+    <string name="exportaccount_export_started">Експорт розпочато</string>
     <string name="exportaccount_export_success">Експорт завершено</string>
+    <string name="exportaccount_export_failure">Експорт не вдався</string>
     <string name="contactus_header_title">Зв'язатися з нами</string>
     <string name="contactus_message_label">Ваше повідомлення</string>
     <string name="contactus_english_note">Пишіть англійською, щоб переконатися, що ваше повідомлення не буде сприйнято неправильно.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не вдалося завантажити список підписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не вдалося завантажити список продуктів</string>
     <string name="pref_item_premium_status_active">Активний</string>
-    <string name="pref_item_premium_status_free_trial">Безплатний пробний період</string>
+    <string name="pref_item_premium_status_free_trial_n">Безплатний пробний період: <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Не буде продовжено</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Керувати на Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Публікувати сповіщення</string>

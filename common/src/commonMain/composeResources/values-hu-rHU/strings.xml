@@ -6,7 +6,7 @@
     <string name="yes">Igen</string>
     <string name="no">Nem</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">Show Keyguard</string>
+    <string name="show_keyguard">Keyguard megjelenítése</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Név</string>
     <string name="account_name">Fiók neve</string>
@@ -18,7 +18,7 @@
     <string name="app_password">Alkalmazásjelszó</string>
     <string name="current_password">Jelenlegi jelszó</string>
     <string name="new_password">Új jelszó</string>
-    <string name="no_password">No password</string>
+    <string name="no_password">Nincs jelszó</string>
     <string name="email">Email cím</string>
     <string name="email_verified">Megerősítve</string>
     <string name="email_not_verified">Nincs megerősítve</string>
@@ -31,11 +31,11 @@
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Maximális hozzáférési szám</string>
     <string name="learn_more">További információ</string>
     <string name="phone_number">Telefonszám</string>
     <string name="passport_number">Útlevélszám</string>
-    <string name="license_number">Jogsi száma</string>
+    <string name="license_number">Vezetői engedély száma</string>
     <string name="card_number">Kártya száma</string>
     <string name="card_number_empty_label">Nincs kártyaszám</string>
     <string name="card_type">Márka</string>
@@ -56,16 +56,16 @@
     <!-- Shows up instead of a value if a value is an empty text -->
     <string name="empty_value">Üres</string>
     <!-- Social Security Number -->
-    <string name="ssn">SSN (TB szám)</string>
+    <string name="ssn">Társadalombiztosítási szám</string>
     <string name="city">Település</string>
-    <string name="state">Megye</string>
+    <string name="state">Állam/Megye</string>
     <string name="info">Infó</string>
     <string name="cancel">Mégsem</string>
     <string name="continue_">Folytatás</string>
     <string name="country">Ország</string>
     <string name="address">Cím</string>
     <string name="postal_code">Irányítószám</string>
-    <string name="pull_to_search">Pull to search</string>
+    <string name="pull_to_search">Húzás a kereséshez</string>
     <string name="save">Mentés</string>
     <string name="save_to">Mentés helye</string>
     <string name="uri">URI</string>
@@ -76,62 +76,62 @@
     <string name="time">Idő</string>
     <string name="attachments">Mellékletek</string>
     <string name="attachments_empty_label">Nincsenek mellékletek</string>
-    <string name="deactivated">Deactivated</string>
+    <string name="deactivated">Deaktiválva</string>
     <string name="expired">Lejárt</string>
-    <string name="expiring_soon">Expiring soon</string>
+    <string name="expiring_soon">Hamarosan lejár</string>
     <string name="item_incomplete_title">Hiányos adatok</string>
     <string name="item_incomplete_text">Ebből az elemből hiányzik néhány fontos információ.</string>
     <string name="item">Elem</string>
     <string name="items">Elemek</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elem</string>
     <string name="items_all">Minden elem</string>
-    <string name="items_empty_label">No items</string>
-    <string name="sends">Sends</string>
-    <string name="folder_none">No folder</string>
+    <string name="items_empty_label">Nincsenek elemek</string>
+    <string name="sends">Küldések</string>
+    <string name="folder_none">Nincs mappa</string>
     <string name="folder_new">Új mappa</string>
     <string name="folder">Mappa</string>
     <string name="folders">Mappák</string>
-    <string name="folders_empty_label">No folders</string>
-    <string name="collection_none">No collection</string>
+    <string name="folders_empty_label">Nincsenek mappák</string>
+    <string name="collection_none">Nincs gyűjtemény</string>
     <string name="collection">Gyűjtemény</string>
     <string name="collections">Gyűjtemények</string>
-    <string name="collections_empty_label">No collections</string>
+    <string name="collections_empty_label">Nincsenek gyűjtemények</string>
     <string name="organization_none">Saját széf</string>
     <string name="organization">Szervezet</string>
     <string name="organizations">Szervezetek</string>
-    <string name="organizations_empty_label">No organizations</string>
+    <string name="organizations_empty_label">Nincsenek szervezetek</string>
     <string name="misc">Egyéb</string>
     <string name="category">Kategória</string>
     <string name="command">Parancs</string>
-    <string name="execute_command">Execute</string>
+    <string name="execute_command">Végrahajtás</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
+    <string name="add">Hozzáad</string>
     <string name="add_integration">Integráció hozzáadása</string>
-    <string name="account">Account</string>
-    <string name="accounts">Accounts</string>
-    <string name="accounts_empty_label">No accounts</string>
-    <string name="account_none">No account</string>
+    <string name="account">Fiók</string>
+    <string name="accounts">Fiókok</string>
+    <string name="accounts_empty_label">Nincsenek fiókok</string>
+    <string name="account_none">Nincs fiók</string>
     <string name="type">Típus</string>
     <string name="options">Opciók</string>
     <string name="send">Küldés</string>
     <string name="reset">Visszaállítás</string>
     <string name="length">Hosszúság</string>
     <string name="security">Biztonság</string>
-    <string name="contact_info">Contact info</string>
+    <string name="contact_info">Elérhetőségi adatok</string>
     <string name="identity_title">Titulus</string>
     <string name="identity_first_name">Keresztnév</string>
-    <string name="identity_middle_name">Middle name</string>
+    <string name="identity_middle_name">Középső név</string>
     <string name="identity_last_name">Vezetéknév</string>
     <string name="identity_full_name">Teljes név</string>
     <string name="address1">Cím 1. sor</string>
     <string name="address2">Cím 2. sor</string>
     <string name="address3">Cím 3. sor</string>
     <string name="rename">Átnevezés</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="deletion_date">Törlési dátum</string>
+    <string name="deletion_date_custom">Egyéni</string>
+    <string name="expiration_date">Lejárati dátum</string>
+    <string name="expiration_date_custom">Egyéni</string>
+    <string name="expiration_date_never">Soha</string>
     <string name="select_linked_type">Típus kiválasztása</string>
     <string name="select_file">Fájl kiválasztása</string>
     <string name="autofill">Automatikus kitöltés</string>
@@ -161,7 +161,7 @@
     <string name="ignored_alerts">Mellőzött figyelmeztetések</string>
     <string name="api_key">API kulcs</string>
     <string name="domain">Domain név</string>
-    <string name="add_to_home_screen">Add to Home screen</string>
+    <string name="add_to_home_screen">Hozzáadás a kezdőképernyőhöz</string>
     <string name="edit">Szerkesztés</string>
     <string name="delete">Törlés</string>
     <string name="remove">Eltávolítás</string>
@@ -175,7 +175,7 @@
     <string name="passkey_available">Hozzáférési kulcs elérhető</string>
     <string name="twofa_available">Kétfaktoros hitelesítés elérhető</string>
     <string name="custom">Egyéni</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Fiók létrehozása</string>
     <string name="follow_system_settings">Rendszerbeállítások követése</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Hamarosan</string>
@@ -194,55 +194,55 @@
     <string name="downloads">Letöltések</string>
     <string name="downloads_empty_label">Nincsenek letöltések</string>
     <string name="duplicates_empty_label">Nincsenek ismétlődések</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
-    <string name="encryption">Encryption</string>
+    <string name="duplicate">Másolás</string>
+    <string name="regex">Reguláris kifejezés</string>
+    <string name="encryption">Titkosítás</string>
     <!-- Encryption key -->
-    <string name="encryption_key">Key</string>
-    <string name="encryption_hash">Hash</string>
-    <string name="encryption_salt">Salt</string>
+    <string name="encryption_key">Kulcs</string>
+    <string name="encryption_hash">Ellenőrzőösszeg</string>
+    <string name="encryption_salt">Só</string>
     <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
-    <string name="encryption_random_bits_data">Random <xliff:g id="length" example="64">%1$d</xliff:g>-bits of data</string>
-    <string name="none">None</string>
-    <string name="text">Text</string>
-    <string name="linked_apps">Linked apps</string>
-    <string name="linked_uris">Linked URIs</string>
-    <string name="custom_fields">Custom fields</string>
-    <string name="reveal_secure_note">Reveal a secure note</string>
-    <string name="hide_secure_note">Hide a secure note</string>
+    <string name="encryption_random_bits_data">Véletlenszerű <xliff:g id="length" example="64">%1$d</xliff:g> bites adat</string>
+    <string name="none">Semmi</string>
+    <string name="text">Szöveg</string>
+    <string name="linked_apps">Kapcsolt alkalmazások</string>
+    <string name="linked_uris">Kapcsolt URI-k</string>
+    <string name="custom_fields">Egyéni mezők</string>
+    <string name="reveal_secure_note">Biztonságos jegyzet megjelenítése</string>
+    <string name="hide_secure_note">Biztonságos jegyzet elrejtése</string>
     <string name="master_password_hint">Mesterjelszó emlékeztető</string>
-    <string name="fingerprint_phrase">Fingerprint phrase</string>
-    <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
-    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
-    <string name="filter_pending_items">Pending</string>
-    <string name="filter_failed_items">Failed</string>
-    <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="fingerprint_phrase">Ujjlenyomat kifejezés</string>
+    <string name="fingerprint_phrase_help_title">Mi az ujjlenyomat?</string>
+    <string name="filter_auth_reprompt_items">Újra-hitelesítési kérés</string>
+    <string name="filter_pending_items">Függőben levő</string>
+    <string name="filter_failed_items">Sikertelen</string>
+    <string name="bitwarden_premium">Bitwarden prémium</string>
+    <string name="bitwarden_premium_required">Bitwarden prémium szükséges</string>
     <string name="bitwarden_unofficial_server">Nem hivatalos Bitwarden szerver</string>
     <string name="account_last_synced_at">Utoljára szinkronizálva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Név módosítása</string>
     <string name="account_action_change_color_title">Szín módosítása</string>
     <string name="account_action_change_master_password_hint_title">Mesterjelszó-emlékeztető módosítása</string>
-    <string name="account_action_sign_out_title">Sign out</string>
-    <string name="account_action_sign_in_title">Sign in</string>
+    <string name="account_action_sign_out_title">Kijelentkezés</string>
+    <string name="account_action_sign_in_title">Bejelentkezés</string>
     <string name="account_action_export_vault_title">Széf exportálása</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
-    <string name="account_action_hide_title">Hide items</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
-    <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
-    <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
+    <string name="account_action_export_individual_vault_title">Egyéni széf exportálása</string>
+    <string name="account_action_hide_title">Elemek elrejtése</string>
+    <string name="account_action_hide_text">Az elemek elrejtése az alkalmazás fő képernyőiről</string>
+    <string name="account_action_email_verify_instructions_title">Látogasson el a Webes széfhez az e-mail címe megerősítéséhez</string>
+    <string name="account_action_premium_purchase_instructions_title">Frissítse fiókját prémium tagságra, és oldjon fel további nagyszerű funkciókat</string>
     <string name="account_action_tfa_title">Kétlépcsős hitelesítés</string>
     <string name="account_action_tfa_text">Más eszközzel, például biztonsági kulccsal, hitelesítő alkalmazással, SMS-el vagy e-maillel történő bejelentkezési ellenőrzés megkövetelése</string>
     <string name="account_action_tfa_active_status">Aktív</string>
-    <string name="account_action_items_title">Items</string>
+    <string name="account_action_items_title">Elemek</string>
     <string name="account_action_log_out_title">Kijelentkezés</string>
-    <string name="account_log_out_confirmation_title">Biztosan ki szeretnél jelentkezni?</string>
+    <string name="account_log_out_confirmation_title">Kijelentkezik?</string>
     <string name="account_log_out_confirmation_text">Az összes nem szinkronizált módosítás elveszik!</string>
     <string name="folder_action_change_name_title">Név módosítása</string>
     <string name="folder_action_change_names_title">Nevek módosítása</string>
     <string name="folder_action_merge_title">Egyesítés…</string>
-    <string name="folder_delete_one_confirmation_title">Biztosan törli a mappát?</string>
-    <string name="folder_delete_many_confirmation_title">Biztosan törli a mappákat?</string>
+    <string name="folder_delete_one_confirmation_title">Törli a mappát?</string>
+    <string name="folder_delete_many_confirmation_title">Törli a mappákat?</string>
     <string name="folder_delete_confirmation_text">Ez(ek) az elem(ek) azonnal törlésre kerül(nek). Ez a művelet nem vonható vissza.</string>
     <string name="ciphers_recently_opened">Legutóbb megnyitott</string>
     <string name="ciphers_often_opened">Gyakran megnyitott</string>
@@ -250,8 +250,8 @@
     <string name="ciphers_save_to">Mentés helye</string>
     <string name="ciphers_action_add_to_favorites_title">Hozzáadás a kedvencekhez</string>
     <string name="ciphers_action_remove_from_favorites_title">Törlés a kedvencekből</string>
-    <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
-    <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Újra-hitelesítési kérés engedélyezése</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Újra-hitelesítési kérés letiltása</string>
     <string name="ciphers_action_edit_title">Szerkesztés</string>
     <string name="ciphers_action_merge_title">Egyesítés…</string>
     <string name="ciphers_action_copy_title">Másolás ide…</string>
@@ -268,7 +268,7 @@
     <string name="ciphers_action_restore_title">Visszaállítás</string>
     <string name="ciphers_action_delete_title">Végleges törlés</string>
     <string name="ciphers_action_delete_confirmation_title">Biztosan törli véglegesen?</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Őrtorony riasztások konfigurálása</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Társított elemek áthelyezése a lomtárba</string>
     <string name="sends_action_change_name_title">Név módosítása</string>
     <string name="sends_action_change_names_title">Nevek módosítása</string>
@@ -283,127 +283,127 @@
     <string name="sends_action_remove_passwords_title">Jelszavak eltávolítása</string>
     <string name="sends_action_remove_password_confirmation_title">Eltávolítja a jelszót?</string>
     <string name="sends_action_remove_passwords_confirmation_title">Eltávolítja a jelszavakat?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
+    <string name="sends_action_remove_password_confirmation_message">Ne kérjen jelszót a felhasználóktól az elem eléréséhez</string>
     <string name="sends_action_hide_email_title">Email elrejtése</string>
     <string name="sends_action_show_email_title">Email megjelenítése</string>
     <string name="sends_action_enable_title">Aktiválás</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
+    <string name="sends_action_enable_text">Az aktív küldés nyilvános URL-címen elérhető</string>
+    <string name="sends_action_enable_confirmation_title">Aktiválás?</string>
     <string name="sends_action_disable_title">Deaktiválás</string>
-    <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disable_text">A deaktivált küldés nyilvános URL-címmel nem érhető el</string>
+    <string name="sends_action_disable_confirmation_title">Deaktiválás?</string>
+    <string name="sends_action_disabled_note">Ez a küldés deaktiválva van, senki sem férhet hozzá.</string>
     <string name="sends_action_delete_title">Végleges törlés</string>
     <string name="sends_action_delete_confirmation_title">Biztosan törli véglegesen?</string>
-    <string name="file_action_open_with_title">Megnyitás a következővel…</string>
-    <string name="file_action_send_with_title">Send with…</string>
+    <string name="file_action_open_with_title">Megnyitás ezzel…</string>
+    <string name="file_action_send_with_title">Küldés a ezzel…</string>
     <string name="file_action_open_in_file_manager_title">Megnyitás fájlkezelőben</string>
-    <string name="file_action_delete_local_title">Delete local file</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
-    <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="file_action_delete_local_title">Helyi fájl törlése</string>
+    <string name="file_action_delete_local_many_title">Helyi fájlok törlése</string>
+    <string name="file_action_view_cipher_title">Szülő elem megtekintése</string>
     <string name="vault_action_always_show_keyboard_title">Mindig jelenítse meg a billentyűzetet</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Emlékezzen a rendezési módra</string>
     <string name="vault_action_sync_vault_title">Széf szinkronizálása</string>
     <string name="vault_action_lock_vault_title">Széf zárolása</string>
-    <string name="vault_action_rename_folder_title">Rename folder</string>
-    <string name="email_action_check_data_breach_title">Check the email in known data breaches</string>
-    <string name="username_action_check_data_breach_title">Check the username in known data breaches</string>
-    <string name="password_action_check_data_breach_title">Check the password in known data breaches</string>
-    <string name="website_action_check_data_breach_title">Check the website in known data breaches</string>
-    <string name="uri_action_launch_app_title">Launch app</string>
-    <string name="uri_action_launch_website_title">Launch website</string>
-    <string name="uri_action_launch_docs_title">Launch docs</string>
-    <string name="uri_action_launch_browser_title">Launch browser</string>
-    <string name="uri_action_launch_browser_main_page_title">Launch main page</string>
-    <string name="uri_action_launch_play_store_title">Launch Play store</string>
-    <string name="uri_action_launch_in_app_title">Launch with <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
-    <string name="uri_action_launch_in_smth_title">Launch with…</string>
-    <string name="uri_action_how_to_delete_account_title">How to delete an account?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
-    <string name="uri_unsecure">Unsecure</string>
-    <string name="uri_match_app_title">Match app</string>
+    <string name="vault_action_rename_folder_title">Mappa átnevezése</string>
+    <string name="email_action_check_data_breach_title">Email cím ellenőrzése ismert adatszivárgásokban</string>
+    <string name="username_action_check_data_breach_title">Felhasználónév ellenőrzése ismert adatszivárgásokban</string>
+    <string name="password_action_check_data_breach_title">Jelszó ellenőrzése ismert adatszivárgásokban</string>
+    <string name="website_action_check_data_breach_title">Weboldal ellenőrzése ismert adatszivárgásokban</string>
+    <string name="uri_action_launch_app_title">Alkalmazás megnyitása</string>
+    <string name="uri_action_launch_website_title">Weboldal megnyitása</string>
+    <string name="uri_action_launch_docs_title">Dokumentumok megnyitása</string>
+    <string name="uri_action_launch_browser_title">Böngésző megnyitása</string>
+    <string name="uri_action_launch_browser_main_page_title">Főoldal megnyitása</string>
+    <string name="uri_action_launch_play_store_title">Play áruház megnyitása</string>
+    <string name="uri_action_launch_in_app_title">Megnyitás ezzel: <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_smth_title">Megnyitás ezzel…</string>
+    <string name="uri_action_how_to_delete_account_title">Hogyan lehet törölni egy fiókot?</string>
+    <string name="uri_action_get_my_data_account_title">Hogyan juthatok hozzá az adataimhoz?</string>
+    <string name="uri_action_autofix_unsecure_title">Nem biztonságos URL automatikus javítása</string>
+    <string name="uri_action_autofix_unsecure_text">A protokollt biztonságos változatra módosítja, ha az elérhető</string>
+    <string name="uri_unsecure">Nem biztonságos</string>
+    <string name="uri_match_app_title">Alkalmazás összekapcsolása</string>
     <string name="uri_match_detection_title">Match detection</string>
-    <string name="uri_match_detection_domain_title">Base domain</string>
+    <string name="uri_match_detection_domain_title">Alap domain</string>
     <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
-    <string name="uri_match_detection_host_title">Host</string>
+    <string name="uri_match_detection_host_title">Kiszolgáló</string>
     <string name="uri_match_detection_host_note">Match resources by hostname and (if specified) port.</string>
-    <string name="uri_match_detection_startswith_title">Starts with</string>
+    <string name="uri_match_detection_startswith_title">Ezzel kezdődik</string>
     <string name="uri_match_detection_startswith_note">Match resources when the detected resource starts with the URI.</string>
-    <string name="uri_match_detection_exact_title">Exact</string>
+    <string name="uri_match_detection_exact_title">Ugyanaz</string>
     <string name="uri_match_detection_exact_note">Match resources when the detected resource exactly matches the URI.</string>
-    <string name="uri_match_detection_regex_title">Regular expression</string>
+    <string name="uri_match_detection_regex_title">Reguláris kifejezés</string>
     <string name="uri_match_detection_regex_note">Match resources by regular expression. Advanced option.</string>
     <string name="uri_match_detection_never_title">Soha</string>
-    <string name="uri_match_detection_never_note">Ignore URI during auto-fill item search.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="uri_match_detection_never_note">Az URI figyelmen kívül hagyása az automatikus kitöltési elemkeresés során.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> a jelszóhoz kapcsolva</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a felhasználónévhez kapcsolva</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a kártyabirtokos nevéhez kapcsolva</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a lejárati hónaphoz kapcsolva</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a lejárati évhez kapcsolva</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a kártyakódhoz kapcsolva</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a kártya márkához kapcsolva</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a kártyaszámhoz kapcsolva</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a titulushoz kapcsolva</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a középső névhez kapcsolva</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a postai cím 1-hez kapcsolva</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a postai cím 2-höz kapcsolva</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a postai cím 3-hoz kapcsolva</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a városhoz kapcsolva</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> az állam/megyéhez kapcsolva</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> az irányítószámhoz kapcsolva</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> az országhoz kapcsolva</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a céghez kapcsolva</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> az email címhez kapcsolva</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a telefonszámhoz kapcsolva</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a társadalombiztosítási számhoz kapcsolva</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a felhasználónévhez kapcsolva</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> az útlevélszámhoz kapcsolva</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a vezetői engedély számhoz kapcsolva</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a keresztnévhez kapcsolva</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a vezetéknévhez kapcsolva</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> a teljes névhez kapcsolva</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> egy ismeretlen mezőhöz kapcsolva</string>
     <string name="text_action_share_with_title">Megosztás ezzel…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Küldés létrehozása</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> kiválasztva</string>
     <string name="copy">Másolás</string>
     <string name="copy_value">Érték másolása</string>
     <string name="copy_url">URL másolása</string>
     <string name="copy_uri">URI másolása</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">Küldés másolása</string>
     <string name="copy_package_name">Csomagnév másolása</string>
     <string name="copy_password">Jelszó másolása</string>
     <string name="copy_username">Felhasználónév másolása</string>
     <string name="copy_email">Email cím másolása</string>
     <string name="copy_phone_number">Telefonszám másolása</string>
     <string name="copy_passport_number">Útlevélszám másolása</string>
-    <string name="copy_license_number">Copy license number</string>
+    <string name="copy_license_number">Vezetői engedély szám másolása</string>
     <string name="copy_card_number">Kártyaszám másolása</string>
     <string name="copy_cardholder_name">Kártyabirtokos név másolása</string>
     <string name="copy_expiration_year">Lejárati év másolása</string>
     <string name="copy_expiration_month">Lejárati hónap másolása</string>
     <string name="copy_cvv_code">Biztonsági kód másolása</string>
-    <string name="copy_otp_code">Copy one-time password</string>
-    <string name="copy_otp_secret_code">Copy secret key</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied a one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
+    <string name="copy_otp_code">Egyszeri jelszó másolása</string>
+    <string name="copy_otp_secret_code">Titkos kulcs másolása</string>
+    <string name="copied_value">Érték másolva</string>
+    <string name="copied_url">URL másolva</string>
+    <string name="copied_uri">URI másolva</string>
+    <string name="copied_package_name">Csomagnév másolva</string>
+    <string name="copied_password">Jelszó másolva</string>
+    <string name="copied_username">Felhasználónév másolva</string>
+    <string name="copied_email">Email cím másolva</string>
+    <string name="copied_phone_number">Telefonszám másolva</string>
+    <string name="copied_passport_number">Útlevélszám másolva</string>
+    <string name="copied_license_number">Vezetői engedély szám másolva</string>
+    <string name="copied_card_number">Kártyaszám másolva</string>
+    <string name="copied_cardholder_name">Kártyabirtokos név másolva</string>
+    <string name="copied_expiration_year">Lejárati év másolva</string>
+    <string name="copied_expiration_month">Lejárati hónap másolva</string>
+    <string name="copied_cvv_code">Biztonsági kód másolva</string>
+    <string name="copied_otp_code">Egyszeri jelszó másolva</string>
+    <string name="copied_otp_secret_code">Titkos kulcs másolva</string>
     <string name="autofill_unlock_keyguard">Keyguard feloldása</string>
     <string name="autofill_open_keyguard">Keyguard megnyitása</string>
     <string name="january">Január</string>
@@ -418,7 +418,7 @@
     <string name="october">Október</string>
     <string name="november">November</string>
     <string name="december">December</string>
-    <string name="tolerance">Tolerance</string>
+    <string name="tolerance">Tűréshatár</string>
     <string name="tolerance_min">Minimum</string>
     <string name="tolerance_low">Alacsony</string>
     <string name="tolerance_normal">Közepes</string>
@@ -430,7 +430,7 @@
     <string name="list_remove_confirmation_title">Elem eltávolítása?</string>
     <string name="list_add">További hozzáadása</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">Authenticate WebAuthn</string>
+    <string name="fido2webauthn_action_go_title">WebAutn hitelesítés</string>
     <string name="fido2webauthn_action_return_title">Vissza az alkalmazásba</string>
     <string name="expiry_tips_item_line1">Ez az elem <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>-én le fog járni.</string>
     <string name="expiry_tips_card_line1">Ez a kártya <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>-én jár le. Van néhány dolog, amit megtehet a zökkenőmentes átállás érdekében:</string>
@@ -446,7 +446,7 @@
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Nem lehet üres</string>
-    <string name="error_must_be_custom_domain">Must be custom domain</string>
+    <string name="error_must_be_custom_domain">Egyéni domainnek kell lennie</string>
     <string name="error_must_be_number">Számot kell megadnia</string>
     <string name="error_must_be_less_than_days">Kevesebbnek kell lennie, mint <xliff:g id="days" example="15">%1$d</xliff:g> nap a jelenlegi időtől számítva</string>
     <string name="error_must_contain_only_us_ascii_chars">Csak US-ASCII karaktereket tartalmazhat</string>
@@ -463,184 +463,184 @@
     <string name="error_failed_create_passkey">Nem sikerült létrehozni hozzáférési kulcsot</string>
     <string name="error_failed_use_passkey">Nem sikerült hitelesíteni a kérelmet</string>
     <string name="error_failed_open_uri">Nem sikerült megnyitni az URI-t</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
-    <string name="scanqr_title">Scan QR code</string>
-    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
+    <string name="error_failed_format_placeholder">Nem sikerült formázni a helyettesítőt</string>
+    <string name="scanqr_title">QR kód beolvasása</string>
+    <string name="scanqr_load_from_image_note">QR-kód betöltése és elemzése egy képfájlból.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
-    <string name="barcodetype_title">Barcode</string>
-    <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Copy this authenticator to another device by scanning the QR code.</string>
+    <string name="barcodetype_title">Vonalkód</string>
+    <string name="barcodetype_action_show_in_barcode_title">Megjelenítés vonalkódként</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Másolja ezt a hitelesítőt egy másik eszközre a QR-kód beolvasásával.</string>
     <!-- Title of the 'Date picker' dialog -->
-    <string name="datepicker_title">Date picker</string>
+    <string name="datepicker_title">Dátumválasztó</string>
     <!-- Title of the 'Color picker' dialog -->
-    <string name="colorpicker_title">Color picker</string>
+    <string name="colorpicker_title">Színválasztó</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justdeleteme_title">How to delete an account?</string>
-    <string name="justdeleteme_subtitle">A collection of info of how to delete your account from web services</string>
+    <string name="justdeleteme_title">Hogyan lehet törölni egy fiókot?</string>
+    <string name="justdeleteme_subtitle">Információk gyűjteménye arról, hogyan törölheti fiókját webes szolgáltatásokból</string>
     <!-- Simple process -->
-    <string name="justdeleteme_difficulty_easy_label">Easy</string>
+    <string name="justdeleteme_difficulty_easy_label">Könnyű</string>
     <!-- Some extra steps involved -->
-    <string name="justdeleteme_difficulty_medium_label">Medium</string>
+    <string name="justdeleteme_difficulty_medium_label">Közepes</string>
     <!-- Cannot be fully deleted without contacting customer services -->
-    <string name="justdeleteme_difficulty_hard_label">Hard</string>
+    <string name="justdeleteme_difficulty_hard_label">Nehéz</string>
     <!-- Account can only be deleted if you live in a location with privacy rights -->
-    <string name="justdeleteme_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justdeleteme_difficulty_limited_availability_label">Korlátozott elérhetőség</string>
     <!-- Cannot be deleted -->
-    <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
-    <string name="justdeleteme_send_email_title">Send email</string>
-    <string name="justdeleteme_search_placeholder">Search websites</string>
-    <string name="justdeleteme_empty_label">No instructions</string>
+    <string name="justdeleteme_difficulty_impossible_label">Lehetetlen</string>
+    <string name="justdeleteme_send_email_title">Email küldése</string>
+    <string name="justdeleteme_search_placeholder">Weboldalak keresése</string>
+    <string name="justdeleteme_empty_label">Nincsenek utasítások</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_title">Hogyan juthatok hozzá az adataimhoz?</string>
+    <string name="justgetmydata_subtitle">Információk gyűjteménye arról, hogyan juthat hozzá az adataihoz webes szolgáltatásokból</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Könnyű</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Közepes</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Nehéz</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Korlátozott elérhetőség</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
-    <string name="tfa_directory_title">Two-factor authentication</string>
-    <string name="tfa_directory_text">List of websites with two-factor authentication support</string>
-    <string name="tfa_directory_search_placeholder">Search websites</string>
-    <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">List of websites with passkeys support</string>
-    <string name="passkeys_directory_search_placeholder">Search websites</string>
+    <string name="justgetmydata_difficulty_impossible_label">Lehetetlen</string>
+    <string name="justgetmydata_send_email_title">Email küldése</string>
+    <string name="justgetmydata_search_placeholder">Weboldalak keresése</string>
+    <string name="justgetmydata_empty_label">Nincsenek utasítások</string>
+    <string name="tfa_directory_title">Kétlépcsős hitelesítés</string>
+    <string name="tfa_directory_text">A kétlépcsős hitelesítést támogató weboldalak listája</string>
+    <string name="tfa_directory_search_placeholder">Weboldalak keresése</string>
+    <string name="passkeys_directory_title">Hozzáférési kulcsok</string>
+    <string name="passkeys_directory_text">A hozzáférési kulcsokat támogató weboldalak listája</string>
+    <string name="passkeys_directory_search_placeholder">Weboldalak keresése</string>
     <!-- Title of the 'Email data breach' dialog -->
-    <string name="emailleak_title">Data breach</string>
-    <string name="emailleak_note">Breached account data can provide malicious actors with access to sensitive personal and financial information, potentially leading to identity theft, financial fraud, and other forms of cybercrime.</string>
-    <string name="emailleak_breach_not_found_title">No breaches found</string>
-    <string name="emailleak_breach_found_title">Breached accounts found</string>
-    <string name="emailleak_breach_section">Breaches</string>
-    <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
-    <string name="passwordleak_title">Data breach</string>
-    <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
-    <string name="passwordleak_occurrences_found_title">Password is compromised</string>
-    <string name="passwordleak_occurrences_found_text">The password has been identified in known data breaches. Please change it immediately to protect your online security</string>
+    <string name="emailleak_title">Adatszivárgás</string>
+    <string name="emailleak_note">A feltört fiókadatok rosszindulatú szereplők számára hozzáférést biztosíthatnak érzékeny személyes és pénzügyi információkhoz, ami személyazonosság-lopáshoz, pénzügyi csaláshoz és a kiberbűnözés más formáihoz vezethet.</string>
+    <string name="emailleak_breach_not_found_title">Nem található adatszivárgás</string>
+    <string name="emailleak_breach_found_title">Kiszivárgott fiókok találhatók</string>
+    <string name="emailleak_breach_section">Adatszivárgások</string>
+    <string name="emailleak_breach_occurred_at">Bekövetkezett ekkor: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Jelentve ekkor: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Nem sikerült ellenőrizni az adatszivárgást. Lehet, hogy jelenleg offline állapotban van</string>
+    <string name="passwordleak_title">Adatszivárgás</string>
+    <string name="passwordleak_note">Az adatszivárgásokban előforduló jelszavak feltörése lényegesen kevesebb időt vesz igénybe, ezért azokat soha nem szabad használni.</string>
+    <string name="passwordleak_occurrences_found_title">A jelszó veszélybe került</string>
+    <string name="passwordleak_occurrences_found_text">A jelszót ismert adatszivárgások során azonosították. Kérjük, azonnal módosítsa online biztonságának védelme érdekében</string>
     <string name="passwordleak_occurrences_not_found_title">Nem található kiszivárgás</string>
     <string name="passwordleak_failed_to_load_status_text">Nem sikerült ellenőrizni az adatszivárgást. Lehet, hogy jelenleg offline állapotban van</string>
     <!-- Title of the 'Show in Large Type' dialog -->
-    <string name="largetype_title">Large Type</string>
-    <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
-    <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
-    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
+    <string name="largetype_title">Nagy Típus</string>
+    <string name="largetype_action_show_in_large_type_title">Nagy Típusként megjelenítés</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Nagy Típusként megjelenítés és széf zárolása</string>
+    <string name="largetype_unicode_surrogate_note">A szöveg összetett Unicode szimbólumokat tartalmaz!</string>
     <string name="apppicker_header_title">Alkalmazás választó</string>
     <string name="apppicker_search_placeholder">Telepített alkalmazások keresése</string>
     <string name="apppicker_system_app_label">Rendszeralkalmazás</string>
-    <string name="apppicker_empty_label">No apps</string>
-    <string name="folderpicker_header_title">Choose a folder</string>
-    <string name="folderpicker_create_new_folder">Create a new folder:</string>
+    <string name="apppicker_empty_label">Nincsenek alkalmazások</string>
+    <string name="folderpicker_header_title">Válasszon egy mappát</string>
+    <string name="folderpicker_create_new_folder">Hozzon létre egy új mappát:</string>
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">This organization will have an ownership of the copy. You will not be the direct owner.</string>
-    <string name="emailrelay_list_header_title">Email forwarders</string>
-    <string name="emailrelay_list_section_title">Email forwarders</string>
-    <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
-    <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
-    <string name="emailrelay_integration_title">Email forwarder integration</string>
-    <string name="emailrelay_empty_label">No email forwarders</string>
+    <string name="destinationpicker_organization_ownership_note">Ennek a szervezetnek lesz tulajdonjoga a másolathoz. Nem ön lesz a közvetlen tulajdonos.</string>
+    <string name="emailrelay_list_header_title">Email továbbítók</string>
+    <string name="emailrelay_list_section_title">Email továbbítók</string>
+    <string name="emailrelay_delete_one_confirmation_title">Törli az email továbbítót?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Törli az email továbbítókat?</string>
+    <string name="emailrelay_integration_title">Email továbbító integráció</string>
+    <string name="emailrelay_empty_label">Nincsenek Email továbbítók</string>
     <string name="emailrelay_base_env_server_url_label">Szerver URL</string>
     <string name="emailrelay_base_env_note">Adja meg a saját hosztolt telepítésének alap URL-jét.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_list_header_title">Szólisták</string>
+    <string name="wordlist_list_section_title">Szólisták</string>
+    <string name="wordlist_delete_one_confirmation_title">Törli a szólistát?</string>
+    <string name="wordlist_delete_many_confirmation_title">Törli a szólistákat?</string>
+    <string name="wordlist_edit_wordlist_title">Szólista szerkesztése</string>
+    <string name="wordlist_add_wordlist_title">Szólista hozzáadása</string>
     <string name="wordlist_add_wordlist_via_file_title">Betöltés fájlból</string>
     <string name="wordlist_add_wordlist_via_url_title">Betöltés URL-ből</string>
-    <string name="wordlist_empty_label">No wordlists</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
-    <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
+    <string name="wordlist_empty_label">Nincsenek szólisták</string>
+    <string name="wordlist_word_search_placeholder">Szavak keresése</string>
+    <string name="urloverride_header_title">URL felülírás</string>
+    <string name="urloverride_list_header_title">URL felülírások</string>
+    <string name="urloverride_list_section_title">URL felülírások</string>
+    <string name="urloverride_regex_note">A felülírás a reguláris kifejezésnek megfelelő URL-címekre kerül alkalmazásra.</string>
+    <string name="urloverride_delete_one_confirmation_title">Törli az URL felülírást?</string>
+    <string name="urloverride_delete_many_confirmation_title">Törli az URL felülírásokat?</string>
+    <string name="urloverride_empty_label">Nincsenek URL felülírások</string>
+    <string name="setup_header_text">Hozzon létre egy titkosított széfet, ahol a helyi adatok tárolásra kerülnek.</string>
     <string name="setup_field_app_password_label">Alkalmazásjelszó</string>
     <string name="setup_checkbox_biometric_auth">Biometrikus azonosítás</string>
-    <string name="setup_biometric_auth_confirm_title">Create a vault</string>
+    <string name="setup_biometric_auth_confirm_title">Széf létrehozása</string>
     <string name="setup_button_send_crash_reports">Hibajelentések küldése</string>
-    <string name="setup_button_create_vault">Create a vault</string>
+    <string name="setup_button_create_vault">Széf létrehozása</string>
     <string name="setup_action_erase_data_title">Alkalmazás-adat törlése</string>
-    <string name="setup_action_erase_data_text">Close the app and erase all local app data</string>
+    <string name="setup_action_erase_data_text">Alkalmazás bezárása, és az összes helyi alkalmazásadat törlése</string>
     <string name="unlock_header_text">A széf zárolva van. A folytatáshoz adja meg az alkalmazás jelszavát.</string>
     <string name="unlock_button_unlock">Feloldás</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">Széf feloldása</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Biometrikus hitelesítés használata a széf feloldásához.</string>
-    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
-    <string name="userverification_button_go">Verify</string>
-    <string name="syncstatus_header_title">Sync status</string>
-    <string name="syncstatus_status_up_to_date">Up to date</string>
-    <string name="syncstatus_status_pending">Pending</string>
-    <string name="syncstatus_status_syncing">Syncing</string>
-    <string name="syncstatus_status_failed">Sync failed</string>
-    <string name="additem_header_new_title">New item</string>
-    <string name="additem_header_edit_title">Edit item</string>
-    <string name="additem_header_merge_title">Merge items</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
-    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
-    <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
-    <string name="additem_markdown_note_italic">italic</string>
-    <string name="additem_markdown_note_bold">bold</string>
-    <string name="additem_markdown_render_preview">Render preview</string>
-    <string name="additem_auth_reprompt_title">Auth re-prompt</string>
-    <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New send</string>
-    <string name="addsend_header_edit_title">Edit send</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
-    <string name="addaccount_header_title">Add Bitwarden account</string>
-    <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
+    <string name="userverification_header_text">Felhasználói ellenőrzés szükséges. A folytatáshoz adja meg az alkalmazás jelszavát.</string>
+    <string name="userverification_button_go">Hitelesítés</string>
+    <string name="syncstatus_header_title">Szinkronizálás állapota</string>
+    <string name="syncstatus_status_up_to_date">Naprakész</string>
+    <string name="syncstatus_status_pending">Függőben levő</string>
+    <string name="syncstatus_status_syncing">Szinkronizálás</string>
+    <string name="syncstatus_status_failed">Szinkronizálás sikertelen</string>
+    <string name="additem_header_new_title">Új elem</string>
+    <string name="additem_header_edit_title">Elem szerkesztése</string>
+    <string name="additem_header_merge_title">Elemek egyesítése</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Eredeti elemek áthelyezése a lomtárba</string>
+    <string name="additem_merge_attachments_note">Az elemek egyesítése nem egyesíti a mellékleteiket! A létrehozott elemhez nem lesznek hozzáadva mellékletek.</string>
+    <string name="additem_note_placeholder">Adjon hozzá bármilyen megjegyzést az elemhez itt</string>
+    <string name="additem_markdown_note">Formázd a szöveget <xliff:g id="italic" example="italic">%1$s</xliff:g> vagy <xliff:g id="bold" example="bold">%2$s</xliff:g> stílusban és még többféleképpen. Korlátozott Markdown szintaxis támogatott.</string>
+    <string name="additem_markdown_note_italic">dőlt</string>
+    <string name="additem_markdown_note_bold">félkövér</string>
+    <string name="additem_markdown_render_preview">Előnézet megjelenítése</string>
+    <string name="additem_auth_reprompt_title">Újra-hitelesítési kérés</string>
+    <string name="additem_auth_reprompt_text">Kérjen újbóli hitelesítést, amikor megtekinti vagy automatikusan kitölti a titkosítást</string>
+    <string name="addsend_header_new_title">Új küldés</string>
+    <string name="addsend_header_edit_title">Küldés szerkesztése</string>
+    <string name="addsend_text_hide_by_default_title">Az elem elérésekor alapértelmezés szerint rejtse el a szöveget</string>
+    <string name="addsend_hide_text_by_default_title">Az elem elérésekor alapértelmezés szerint rejtse el a szöveget</string>
+    <string name="addsend_hide_email_title">Email cím elrejtése</string>
+    <string name="addsend_max_access_count_note">Amennyiben be van állítva, az elem elérhetetlen lesz, amint eléri a meghatározott hozzáférések számát.</string>
+    <string name="addaccount_header_title">Bitwarden fiók hozzáadása</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Nem állunk kapcsolatban, társulásban, nem rendelkezünk felhatalmazással, támogatással vagy semmilyen hivatalos kapcsolattal a Bitwarden, Inc.-vel, annak leányvállalataival vagy partnereivel.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
+    <string name="addaccount_captcha_need_client_secret_note">Ahhoz, hogy egy nem hivatalos Bitwarden kliens átmenjen a captcha ellenőrzésen, meg kell adnia az kliens titkot (client secret). Ennek megtalálásához látogasson el a Webes széfbe / Beállítások / API kulcs.</string>
     <!-- A label on top of the Client secret field -->
-    <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
-    <string name="addaccount_sign_in_button">Sign in</string>
-    <string name="addaccount_region_section">Region</string>
-    <string name="addaccount_region_us_type">United States</string>
-    <string name="addaccount_region_eu_type">Europe</string>
-    <string name="addaccount_region_custom_type">Custom (self-hosted)</string>
-    <string name="addaccount_http_header_section">HTTP headers</string>
-    <string name="addaccount_http_header_type">HTTP header</string>
-    <string name="addaccount_http_header_note">You can add custom HTTP headers that will be sent with every request to the server.</string>
-    <string name="addaccount_http_header_key_label">Key</string>
-    <string name="addaccount_http_header_value_label">Value</string>
-    <string name="addaccount_http_header_add_more_button">Add more</string>
-    <string name="addaccount_base_env_server_url_label">Server URL</string>
-    <string name="addaccount_base_env_note">Specify the base URL of your self-hosted Bitwarden installation.</string>
-    <string name="addaccount_custom_env_section">Custom environment</string>
-    <string name="addaccount_custom_env_note">You can specify the base URL of each service independently.</string>
-    <string name="addaccount_custom_env_web_vault_url_label">Web Vault Server URL</string>
-    <string name="addaccount_custom_env_api_url_label">API Server URL</string>
-    <string name="addaccount_custom_env_icons_url_label">Icons Server URL</string>
-    <string name="addaccount_custom_env_identity_url_label">Identity Server URL</string>
-    <string name="addaccount2fa_header_title">Verification</string>
-    <string name="addaccount2fa_unsupported_note">This authentication method is not supported yet.</string>
-    <string name="addaccount2fa_otp_note">Enter the verification code from your authenticator app.</string>
-    <string name="addaccount2fa_email_note">Enter the verification code that was emailed to <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
-    <string name="addaccount2fa_yubikey_manual_text">Enter the YubiKey authentication code manually. Place the cursor on the field below and trigger the YubiKey.</string>
-    <string name="provider_2fa_authenticator">Authenticator</string>
-    <string name="provider_2fa_duo_organization">Duo (Organization)</string>
-    <string name="provider_2fa_fido2_webauthn">FIDO2 Web Authentication</string>
+    <string name="addaccount_captcha_need_client_secret_label">Kliens titok</string>
+    <string name="addaccount_sign_in_button">Bejelentkezés</string>
+    <string name="addaccount_region_section">Régió</string>
+    <string name="addaccount_region_us_type">Egyesült Államok</string>
+    <string name="addaccount_region_eu_type">Európa</string>
+    <string name="addaccount_region_custom_type">Egyéni (saját üzemeltetésű)</string>
+    <string name="addaccount_http_header_section">HTTP fejlécek</string>
+    <string name="addaccount_http_header_type">HTTP fejléc</string>
+    <string name="addaccount_http_header_note">Egyéni HTTP-fejléceket adhat hozzá, amelyek minden egyes kérelemmel együtt elküldésre kerülnek a kiszolgálónak.</string>
+    <string name="addaccount_http_header_key_label">Kulcs</string>
+    <string name="addaccount_http_header_value_label">Érték</string>
+    <string name="addaccount_http_header_add_more_button">További hozzáadása</string>
+    <string name="addaccount_base_env_server_url_label">Szerver URL</string>
+    <string name="addaccount_base_env_note">Adja meg a saját üzemeltetésű Bitwarden telepítésének alap URL-címét.</string>
+    <string name="addaccount_custom_env_section">Egyéni környezet</string>
+    <string name="addaccount_custom_env_note">Az egyes szolgáltatások alap URL-címét egymástól függetlenül is megadhatja.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Webes széf szerver URL</string>
+    <string name="addaccount_custom_env_api_url_label">API szerver URL</string>
+    <string name="addaccount_custom_env_icons_url_label">Ikonok szerver URL</string>
+    <string name="addaccount_custom_env_identity_url_label">Identitás szerver URL</string>
+    <string name="addaccount2fa_header_title">Hitelesítés</string>
+    <string name="addaccount2fa_unsupported_note">Ez a hitelesítési módszer még nem támogatott.</string>
+    <string name="addaccount2fa_otp_note">Adja meg az ellenőrző kódot a hitelesítő alkalmazásából.</string>
+    <string name="addaccount2fa_email_note">Írja be a <xliff:g id="email" example="username@example.com">%1$s</xliff:g> email címre elküldött ellenőrző kódot.</string>
+    <string name="addaccount2fa_yubikey_manual_text">Adja meg a YubiKey hitelesítési kódot kézzel. Helyezze a kurzort az alábbi mezőre, és indítsa el a YubiKey-t.</string>
+    <string name="provider_2fa_authenticator">Hitelesítő</string>
+    <string name="provider_2fa_duo_organization">Duo (Szervezet)</string>
+    <string name="provider_2fa_fido2_webauthn">FIDO2 webes hitelesítés</string>
     <string name="provider_2fa_email">Email cím</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
     <string name="yubikey_usb_title">Csatlakoztassa a YubiKey-t USB-n keresztül</string>
@@ -649,29 +649,29 @@
     <string name="yubikey_nfc_title">Tartsa a YubiKey-t laposan a készülék hátuljához</string>
     <string name="yubikey_nfc_text">NFC támogatást igényel.</string>
     <string name="yubikey_error_failed_to_read">Nem sikerült beolvasni a YubiKey-t</string>
-    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Using FIDO2 WebAuthn requires using the Bitwarden Web vault version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> or higher. On older versions the authentication result will incorrectly be forwarded to the official Bitwarden app.</string>
-    <string name="elevatedaccess_header_title">Confirm access</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">A FIDO2 WebAuthn használatához a Bitwarden Webes széf <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> vagy magasabb verziója szükséges. A régebbi verziók esetén a hitelesítési eredmény helytelenül kerül továbbításra a hivatalos Bitwarden alkalmazáshoz.</string>
+    <string name="elevatedaccess_header_title">Hozzáférés megerősítése</string>
     <string name="elevatedaccess_header_text">Ez az adat védett, a folytatáshoz kérjük, adja meg az alkalmazás jelszavát.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_title">Confirm access</string>
+    <string name="elevatedaccess_biometric_auth_confirm_title">Hozzáférés megerősítése</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_text">Use biometric authentication to confirm your access and unlock this data.</string>
-    <string name="home_vault_label">Vault</string>
-    <string name="home_send_label">Send</string>
-    <string name="home_generator_label">Generator</string>
-    <string name="home_watchtower_label">Watchtower</string>
-    <string name="home_settings_label">Settings</string>
-    <string name="lock_reason_inactivity">Locked due to inactivity</string>
-    <string name="send_type_text">Text</string>
+    <string name="elevatedaccess_biometric_auth_confirm_text">Használjon biometrikus hitelesítést a hozzáférés megerősítéséhez és az adatok zárolásának feloldásához.</string>
+    <string name="home_vault_label">Széf</string>
+    <string name="home_send_label">Küldés</string>
+    <string name="home_generator_label">Generátor</string>
+    <string name="home_watchtower_label">Őrtorony</string>
+    <string name="home_settings_label">Beállítások</string>
+    <string name="lock_reason_inactivity">Tétlenség miatt zárolva van</string>
+    <string name="send_type_text">Szöveg</string>
     <string name="send_type_file">Fájl</string>
-    <string name="cipher_type_login">Login</string>
+    <string name="cipher_type_login">Bejelentkezés</string>
     <string name="cipher_type_card">Kártya</string>
     <string name="cipher_type_identity">Személyazonosság</string>
     <string name="cipher_type_note">Jegyzet</string>
     <string name="cipher_type_passkey">Hozzáférési kulcs</string>
     <string name="field_type_text">Szöveg</string>
     <string name="field_type_boolean">Logikai érték</string>
-    <string name="field_type_linked">Linked</string>
+    <string name="field_type_linked">Csatolt</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
         ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
@@ -687,27 +687,27 @@
     <string name="passwords_fair_label">Megfelelő jelszavak</string>
     <string name="passwords_weak_label">Gyenge jelszavak</string>
     <string name="customfilters_header_title">Egyedi szűrők</string>
-    <string name="customfilters_search_placeholder">Search filters</string>
-    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_search_placeholder">Szűrők keresése</string>
+    <string name="customfilters_dynamic_shortcut_tip">Gyorsan alkalmazhat szűrőket, ha parancsikont ad hozzá a kezdőképernyőhöz.</string>
     <string name="customfilters_delete_one_confirmation_title">Törli a szűrőt?</string>
     <string name="customfilters_delete_many_confirmation_title">Törli a szűrőket?</string>
-    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
-    <string name="customfilters_add_filter_title">Add a custom filter</string>
+    <string name="customfilters_edit_filter_title">Egyéni szűrő szerkesztése</string>
+    <string name="customfilters_add_filter_title">Egyéni szűrő hozzáadása</string>
     <string name="filter_header_title">Szűrő</string>
     <string name="filter_empty_label">Nincs elérhető szűrő</string>
     <string name="sort_header_title">Rendezés</string>
-    <string name="sort_empty_label">No sorting available</string>
+    <string name="sort_empty_label">Nincs elérhető szortírozás</string>
     <string name="sortby_title_title">Cím</string>
     <string name="sortby_title_normal_mode">Betűrendben</string>
     <string name="sortby_title_reverse_mode">Fordított betűrendben</string>
-    <string name="sortby_access_count_title">Access count</string>
-    <string name="sortby_access_count_normal_mode">Largest First</string>
-    <string name="sortby_access_count_reverse_mode">Smallest First</string>
+    <string name="sortby_access_count_title">Hozzáférések száma</string>
+    <string name="sortby_access_count_normal_mode">Legnagyobb elöl</string>
+    <string name="sortby_access_count_reverse_mode">Legkisebb elöl</string>
     <string name="sortby_modification_date_title">Módosítás dátuma</string>
     <string name="sortby_modification_date_normal_mode">Legújabbak felül</string>
     <string name="sortby_modification_date_reverse_mode">Legrégebbiek felül</string>
     <string name="sortby_installation_date_title">Telepítés ideje</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_normal_mode">Legújabb elöl</string>
     <string name="sortby_installation_date_reverse_mode">Legrégebbiek felül</string>
     <string name="sortby_expiration_date_title">Lejárati dátum</string>
     <string name="sortby_expiration_date_normal_mode">Legújabbak felül</string>
@@ -716,367 +716,370 @@
     <string name="sortby_deletion_date_normal_mode">Legújabbak felül</string>
     <string name="sortby_deletion_date_reverse_mode">Legrégebbiek felül</string>
     <string name="sortby_password_title">Jelszó</string>
-    <string name="sortby_password_normal_mode">Alphabetically</string>
-    <string name="sortby_password_reverse_mode">Reverse Alphabetically</string>
-    <string name="sortby_password_modification_date_title">Password modification date</string>
-    <string name="sortby_password_modification_date_normal_mode">Newest First</string>
-    <string name="sortby_password_modification_date_reverse_mode">Oldest First</string>
-    <string name="sortby_password_strength_title">Password strength</string>
-    <string name="sortby_password_strength_normal_mode">Weakest First</string>
-    <string name="sortby_password_strength_reverse_mode">Strongest First</string>
-    <string name="vault_main_search_placeholder">Search vault</string>
-    <string name="vault_main_new_item_button">New item</string>
-    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <string name="sortby_password_normal_mode">Betűrendben</string>
+    <string name="sortby_password_reverse_mode">Fordított betűrendben</string>
+    <string name="sortby_password_modification_date_title">Jelszó módosításának dátuma</string>
+    <string name="sortby_password_modification_date_normal_mode">Legújabb elöl</string>
+    <string name="sortby_password_modification_date_reverse_mode">Legrégebbi elöl</string>
+    <string name="sortby_password_strength_title">Jelszó erőssége</string>
+    <string name="sortby_password_strength_normal_mode">Leggyengébb elöl</string>
+    <string name="sortby_password_strength_reverse_mode">Legerősebb elöl</string>
+    <string name="vault_main_search_placeholder">Keresés a széfben</string>
+    <string name="vault_main_new_item_button">Új elem</string>
+    <string name="vault_main_no_suggested_items">Ehhez a kontextushoz nincsenek javasolt elemek</string>
     <!-- A label for the CVV code of the card -->
-    <string name="vault_view_card_cvv_label">Security code</string>
-    <string name="vault_view_saved_to_label">Saved to <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_password_revision_label">Password last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Passkey created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_revision_label">Last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_created_at_label">Created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expired_at_label">Expired at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deletion_scheduled_at_label">Deleting scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_card_cvv_label">Biztonsági kód</string>
+    <string name="vault_view_saved_to_label">Elmentve ide: <xliff:g id="email" example="username@example.com">%1$s</xliff:g> ezen a helyen: <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Jelszó utoljára módosítva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Hozzáférési kulcs létrehozva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">Utoljára módosítva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">Létrehozva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">Törölve lett: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Lejárt ekkor: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Lejárat ütemezve ekkorra: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Törlés ütemezve ekkorra: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
-    <string name="vault_view_call_phone_action">Call</string>
+    <string name="vault_view_call_phone_action">Hívás</string>
     <!-- Text the phone number (SMS). The text should be as short as possible! -->
-    <string name="vault_view_text_phone_action">Text</string>
+    <string name="vault_view_text_phone_action">SMS küldése</string>
     <!-- Compose an email. The text should be as short as possible! -->
-    <string name="vault_view_email_action">Email</string>
+    <string name="vault_view_email_action">Email küldése</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
-    <string name="vault_view_navigate_action">Directions</string>
-    <string name="send_main_header_title">Sends</string>
-    <string name="send_main_search_placeholder">Search sends</string>
-    <string name="send_main_new_item_button">New item</string>
-    <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
-    <string name="generator_header_title">Generator</string>
-    <string name="generator_header_username_title">Username generator</string>
-    <string name="generator_header_password_title">Password generator</string>
-    <string name="generator_generate_button">Generate</string>
-    <string name="generator_regenerate_button">Regenerate</string>
-    <string name="generator_passphrase_type">Passphrase</string>
-    <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
-    <string name="generator_passphrase_delimiter_title">Delimiter</string>
-    <string name="generator_passphrase_capitalize_title">Capitalize</string>
-    <string name="generator_passphrase_number_title">Number</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
-    <string name="generator_username_type">Username</string>
-    <string name="generator_username_delimiter_title">Delimiter</string>
-    <string name="generator_username_custom_word_title">Custom word</string>
-    <string name="generator_username_capitalize_title">Capitalize</string>
-    <string name="generator_username_number_title">Number</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
-    <string name="generator_password_type">Random symbols</string>
-    <string name="generator_password_note">A strong password has at least <xliff:g id="length" example="15">%1$d</xliff:g> characters, uppercase &amp; lowercase letters, digits and symbols.</string>
-    <string name="generator_password_numbers_title">Digits</string>
-    <string name="generator_password_symbols_title">Symbols</string>
-    <string name="generator_password_uppercase_letters_title">Uppercase letters</string>
-    <string name="generator_password_lowercase_letters_title">Lowercase letters</string>
+    <string name="vault_view_navigate_action">Útvonal</string>
+    <string name="send_main_header_title">Küldések</string>
+    <string name="send_main_search_placeholder">Küldés keresése</string>
+    <string name="send_main_new_item_button">Új elem</string>
+    <string name="send_password_is_required_to_access_label">A megosztás eléréséhez jelszó szükséges</string>
+    <string name="generator_header_title">Generátor</string>
+    <string name="generator_header_username_title">Felhasználónév generátor</string>
+    <string name="generator_header_password_title">Jelszó generátor</string>
+    <string name="generator_generate_button">Generálás</string>
+    <string name="generator_regenerate_button">Újra generálás</string>
+    <string name="generator_passphrase_type">Jelmondat</string>
+    <string name="generator_passphrase_note">A véletlenszerű jelmondatok a legjobb kombinációt nyújtják emlékezhetőség és biztonság szempontjából.</string>
+    <string name="generator_passphrase_delimiter_title">Elválasztójel</string>
+    <string name="generator_passphrase_capitalize_title">Nagy kezdőbetű</string>
+    <string name="generator_passphrase_number_title">Szám</string>
+    <string name="generator_passphrase_wordlist_title">Szólista</string>
+    <string name="generator_username_type">Felhasználónév</string>
+    <string name="generator_username_delimiter_title">Elválasztójel</string>
+    <string name="generator_username_custom_word_title">Egyéni szó</string>
+    <string name="generator_username_capitalize_title">Nagy kezdőbetű</string>
+    <string name="generator_username_number_title">Szám</string>
+    <string name="generator_username_wordlist_title">Szólista</string>
+    <string name="generator_password_type">Véletlenszerű szimbólumok</string>
+    <string name="generator_password_note">Egy erős jelszónak legalább <xliff:g id="length" example="15">%1$d</xliff:g> karakter hosszúnak kell lennie, nagy- és kisbetűket, számjegyeket és szimbólumokat kell tartalmaznia.</string>
+    <string name="generator_password_numbers_title">Számjegyek</string>
+    <string name="generator_password_symbols_title">Szimbólumok</string>
+    <string name="generator_password_uppercase_letters_title">Nagybetűk</string>
+    <string name="generator_password_lowercase_letters_title">Kisbetűk</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
-    <string name="generator_password_exclude_similar_symbols_title">Exclude similar symbols</string>
+    <string name="generator_password_exclude_similar_symbols_title">Hasonló szimbólumok kizárása</string>
     <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
-    <string name="generator_password_exclude_ambiguous_symbols_title">Exclude ambiguous symbols</string>
-    <string name="generator_email_catch_all_type">Catch-all email</string>
-    <string name="generator_email_catch_all_note">A catch-all email address provides users the option to receive all mail sent to their domain, even if they are sent to an email address that has not been set up for their domain. Ensure that your email hosting supports this feature before using it.</string>
+    <string name="generator_password_exclude_ambiguous_symbols_title">Zavaró szimbólumok kizárása</string>
+    <string name="generator_email_catch_all_type">Gyűjtő e-mail</string>
+    <string name="generator_email_catch_all_note">A gyűjtő e-mail cím lehetővé teszi a felhasználók számára, hogy minden, a domainjükre küldött e-mailt megkapjanak, még akkor is, ha azokat olyan e-mail címre küldték, amelyet nem állítottak be a domainjükhöz. Mielőtt használná, győződjön meg róla, hogy az e-mail tárhelyszolgáltatója támogatja ezt a funkciót.</string>
     <!-- Referring to a website domain -->
-    <string name="generator_email_catch_all_domain_title">Domain</string>
-    <string name="generator_email_plus_addressing_type">Plus addressing email</string>
-    <string name="generator_email_plus_addressing_note">Plus addressing means any email sent to <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
-    <string name="generator_email_plus_addressing_email_title">Email</string>
-    <string name="generator_email_subdomain_addressing_type">Subdomain addressing email</string>
-    <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
-    <string name="generator_email_subdomain_addressing_email_title">Email</string>
-    <string name="generator_email_forward_alias_type">Forwarded email alias</string>
-    <string name="generator_create_item_with_password_title">Create new login with the password</string>
-    <string name="generator_create_item_with_username_title">Create new login with the username</string>
-    <string name="generator_password_history_title">Password history</string>
-    <string name="generator_show_tips_title">Show tips</string>
-    <string name="generatorhistory_header_title">Generator history</string>
-    <string name="generatorhistory_clear_history_title">Clear history</string>
-    <string name="generatorhistory_clear_history_confirmation_title">Clear generator history?</string>
-    <string name="generatorhistory_clear_history_confirmation_text">This will remove all items from the history.</string>
-    <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
-    <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
-    <string name="passwordhistory_header_title">Password history</string>
-    <string name="passwordhistory_clear_history_title">Clear history</string>
-    <string name="passwordhistory_clear_history_confirmation_title">Clear password history?</string>
-    <string name="passwordhistory_clear_history_confirmation_text">This will remove all passwords from the history.</string>
-    <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
-    <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
-    <string name="watchtower_header_title">Watchtower</string>
-    <string name="watchtower_section_password_strength_label">Password strength</string>
-    <string name="watchtower_section_security_label">Security</string>
-    <string name="watchtower_section_maintenance_label">Maintenance</string>
-    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
-    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
-    <string name="watchtower_item_pwned_passwords_title">Pwned Passwords</string>
-    <string name="watchtower_item_pwned_passwords_text">Passwords that have been exposed in data breaches. Such passwords should be changed immediately.</string>
-    <string name="watchtower_item_reused_passwords_title">Reused Passwords</string>
-    <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
-    <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
-    <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
-    <string name="watchtower_item_unsecure_websites_title">Unsecure Websites</string>
-    <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
-    <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
-    <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
-    <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure then a password.</string>
-    <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
-    <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>
-    <string name="watchtower_item_expiring_items_title">Expiring Items</string>
-    <string name="watchtower_item_expiring_items_text">Items that have expired or are expiring soon.</string>
-    <string name="watchtower_item_duplicate_websites_title">Duplicate URIs</string>
+    <string name="generator_email_catch_all_domain_title">Domain név</string>
+    <string name="generator_email_plus_addressing_type">Plusz címzéses email</string>
+    <string name="generator_email_plus_addressing_note">A plusz címzés azt jelenti, hogy minden, a <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> címre küldött e-mail még mindig a fiókjába érkezik. Ez lehetővé teszi, hogy különböző változatokat használjon az e-mail címéből, amelyeket különböző embereknek, webhelyeknek vagy levelezőlistáknak adhat meg. Mielőtt használná, győződjön meg róla, hogy az e-mail tárhelyszolgáltatója támogatja ezt a funkciót.</string>
+    <string name="generator_email_plus_addressing_email_title">Email cím</string>
+    <string name="generator_email_subdomain_addressing_type">Aldomain-címzéses email</string>
+    <string name="generator_email_subdomain_addressing_note">Az aldomain-címzés azt jelenti, hogy minden e-mail, amelyet a <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> címre küldenek, továbbra is az Ön fiókjába érkezik. Ez lehetővé teszi, hogy e-mail címének számos változatát használja különböző embereknek, weboldalaknak vagy levelezőlistáknak való kiadásra. Mielőtt használná ezt a funkciót, győződjön meg róla, hogy az e-mail szolgáltatója támogatja ezt a lehetőséget.</string>
+    <string name="generator_email_subdomain_addressing_email_title">Email cím</string>
+    <string name="generator_email_forward_alias_type">Továbbított email álnevek</string>
+    <string name="generator_create_item_with_password_title">Új bejelentkezés létrehozása a jelszóval</string>
+    <string name="generator_create_item_with_username_title">Új bejelentkezés létrehozása a felhasználónévvel</string>
+    <string name="generator_password_history_title">Jelszó előzmények</string>
+    <string name="generator_show_tips_title">Tippek megjelenítése</string>
+    <string name="generatorhistory_header_title">Generátor előzmények</string>
+    <string name="generatorhistory_clear_history_title">Előzmények törlése</string>
+    <string name="generatorhistory_clear_history_confirmation_title">Törli az előzményeket?</string>
+    <string name="generatorhistory_clear_history_confirmation_text">Ezzel az összes elemet eltávolítja az előzményekből.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Törli az elemet az előzményekből?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Törli az elemeket az előzményekből?</string>
+    <string name="passwordhistory_header_title">Jelszó előzmények</string>
+    <string name="passwordhistory_clear_history_title">Előzmények törlése</string>
+    <string name="passwordhistory_clear_history_confirmation_title">Törli a jelszó előzményeket?</string>
+    <string name="passwordhistory_clear_history_confirmation_text">Ezzel az összes jelszót eltávolítja az előzményekből.</string>
+    <string name="passwordhistory_delete_one_confirmation_title">Törli a jelszót az előzményekből?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">Törli a jelszavakat az előzményekből?</string>
+    <string name="watchtower_header_title">Őrtorony</string>
+    <string name="watchtower_section_password_strength_label">Jelszavak erőssége</string>
+    <string name="watchtower_section_security_label">Biztonság</string>
+    <string name="watchtower_section_maintenance_label">Karbantartás</string>
+    <string name="watchtower_item_new_alerts_title">Új figyelmeztetések áttekintése</string>
+    <string name="watchtower_item_weak_passwords_title">Gyenge jelszavak</string>
+    <string name="watchtower_item_pwned_passwords_title">Feltört Jelszavak</string>
+    <string name="watchtower_item_pwned_passwords_text">Az adatszivárgások során nyilvánosságra került jelszavak. Az ilyen jelszavakat azonnal meg kell változtatni.</string>
+    <string name="watchtower_item_reused_passwords_title">Újrahasznált jelszavak</string>
+    <string name="watchtower_item_reused_passwords_text">Ne használja ugyanazt a jelszót több weboldalon. A biztonság növelése érdekében hozzon létre egyedi jelszavakat.</string>
+    <string name="watchtower_item_vulnerable_accounts_title">Veszélyeztetett fiókok</string>
+    <string name="watchtower_item_vulnerable_accounts_text">Olyan webhelyek, amelyeket az utolsó jelszómódosítás óta adatszivárgás érintett. Fiókja biztonságának megőrzése érdekében változtassa meg jelszavát.</string>
+    <string name="watchtower_item_unsecure_websites_title">Nem biztonságos webhelyek</string>
+    <string name="watchtower_item_unsecure_websites_text">Módosítsa a HTTP protokollt használó URL-címeket HTTPS protokoll használatára, mivel az utóbbi az elérhető legfejlettebb titkosítást használja.</string>
+    <string name="watchtower_item_inactive_2fa_title">Inaktív kétlépcsős hitelesítés</string>
+    <string name="watchtower_item_inactive_2fa_text">Olyan webhelyek, amelyeken elérhető a kétlépcsős hitelesítés, de Ön még nem állította be.</string>
+    <string name="watchtower_item_inactive_passkey_title">Elérhető Hozzáférési kulcsok</string>
+    <string name="watchtower_item_inactive_passkey_text">Olyan webhelyek, amelyek rendelkeznek hozzáférési kulcsal, de Ön még nem állította be. Ez egyszerűbb és biztonságosabb, mint egy jelszó.</string>
+    <string name="watchtower_item_incomplete_items_title">Hiányos elemek</string>
+    <string name="watchtower_item_incomplete_items_text">Segít azonosítani a tárolóban hiányzó vagy hiányos adatokat. Ez utalhat hiányzó névvel rendelkező személyazonosságokra vagy felhasználónév nélküli bejelentkezésekre.</string>
+    <string name="watchtower_item_expiring_items_title">Lejáró elemek</string>
+    <string name="watchtower_item_expiring_items_text">Lejárt vagy hamarosan lejáró elemek.</string>
+    <string name="watchtower_item_duplicate_websites_title">Ismétlődő URI-k</string>
     <string name="watchtower_item_duplicate_websites_text">Items that have one or more URIs that cover the same websites after applying the match detection.</string>
-    <string name="watchtower_item_trashed_items_title">Trashed Items</string>
-    <string name="watchtower_item_trashed_items_text">Items that have been moved into the trash. Having too many items in the trash may slow down operations with your vault.</string>
-    <string name="watchtower_item_empty_folders_title">Empty Folders</string>
-    <string name="watchtower_item_empty_folders_text">Folders that do not have any items in them.</string>
-    <string name="watchtower_item_duplicate_items_title">Duplicate Items</string>
-    <string name="watchtower_item_duplicate_items_text">Helps you identify and eliminate duplicate items in your vault.</string>
-    <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
-    <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
-    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
-    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
-    <string name="changepassword_header_title">Change app password</string>
-    <string name="changepassword_change_password_button">Change password</string>
-    <string name="changepassword_biometric_auth_checkbox">Biometric authentication</string>
+    <string name="watchtower_item_trashed_items_title">Lomtárba helyezett elemek</string>
+    <string name="watchtower_item_trashed_items_text">A lomtárba helyezett elemek. Ha túl sok elem van a lomtárban, lelassulhat a széf működése.</string>
+    <string name="watchtower_item_empty_folders_title">Üres Mappák</string>
+    <string name="watchtower_item_empty_folders_text">Mappák, amelyekben nincsenek elemek.</string>
+    <string name="watchtower_item_duplicate_items_title">Ismétlődő elemek</string>
+    <string name="watchtower_item_duplicate_items_text">Segít azonosítani és törölni az ismétlődő elemeket a széfben.</string>
+    <string name="watchtower_item_compromised_accounts_title">Veszélyben Lévő Fiókok</string>
+    <string name="watchtower_item_compromised_accounts_text">Ellenőrizze az adatszivárgásokat felhasználónév vagy e-mail cím alapján.</string>
+    <string name="watchtower_alerts_header_title">Új őrtorony figyelmeztetések</string>
+    <string name="watchtower_mark_all_as_read_title">Összes megjelölése olvasottként</string>
+    <string name="changepassword_header_title">Alkalmazás jelszó módosítása</string>
+    <string name="changepassword_change_password_button">Jelszó módosítása</string>
+    <string name="changepassword_biometric_auth_checkbox">Biometrikus azonosítás</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
-    <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
-    <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
-    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
-    <string name="exportaccount_header_title">Export items</string>
-    <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
-    <string name="exportaccount_export_button">Export</string>
-    <string name="exportaccount_export_success">Export complete</string>
-    <string name="contactus_header_title">Contact us</string>
-    <string name="contactus_message_label">Your message</string>
-    <string name="contactus_english_note">Use English to ensure that your feedback doesn't get misunderstood.</string>
-    <string name="contactus_thanks_note">We appreciate the time that you spend sending us a message. Your message goes directly to us and we use it to troubleshoot issues, make product improvements and fix problems. While we may not reply to every report, we're reviewing and working on improvements &amp; fixing issues as fast as we can.</string>
-    <string name="account_main_header_title">Accounts</string>
-    <string name="account_main_add_account_title">Add account</string>
-    <string name="team_header_title">Team behind the app</string>
-    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize on app design and development.</string>
-    <string name="team_follow_me_section">Follow me</string>
-    <string name="settingssearch_header_title">Search</string>
-    <string name="settingssearch_header_subtitle">Settings</string>
-    <string name="settingssearch_search_placeholder">Search settings</string>
-    <string name="settings_appearance_header_title">Appearance</string>
-    <string name="settings_autofill_header_title">Autofill</string>
-    <string name="settings_dev_header_title">Development</string>
-    <string name="settings_experimental_header_title">Experimental</string>
-    <string name="settings_main_header_title">Settings</string>
-    <string name="settings_notifications_header_title">Notifications</string>
-    <string name="settings_other_header_title">Other</string>
-    <string name="settings_permissions_header_title">Permissions</string>
-    <string name="settings_security_header_title">Security</string>
-    <string name="settings_subscriptions_header_title">Keyguard Premium</string>
-    <string name="settings_watchtower_header_title">Watchtower</string>
-    <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
-    <string name="pref_item_accounts_title">Accounts</string>
-    <string name="pref_item_accounts_text">Add &amp; view accounts</string>
-    <string name="pref_item_autofill_title">Autofill</string>
-    <string name="pref_item_autofill_text">Android Autofill &amp; Credential services</string>
-    <string name="pref_item_security_title">Security</string>
-    <string name="pref_item_security_text">Biometrics, change password, vault timeout</string>
-    <string name="pref_item_subscription_title">Keyguard Premium</string>
-    <string name="pref_item_subscription_text">Unlock features &amp; support app development</string>
-    <string name="pref_item_watchtower_title">Watchtower</string>
-    <string name="pref_item_watchtower_text">Compromised services, vulnerable passwords</string>
-    <string name="pref_item_notifications_title">Notifications</string>
-    <string name="pref_item_notifications_text">Alerts</string>
-    <string name="pref_item_appearance_title">Appearance</string>
-    <string name="pref_item_appearance_text">Language, theme and animations</string>
-    <string name="pref_item_dev_title">Development</string>
-    <string name="pref_item_dev_text">Test settings for development</string>
-    <string name="pref_item_other_title">Other</string>
-    <string name="pref_item_other_text">Community websites, app info</string>
-    <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
-    <string name="pref_item_app_version_title">App version</string>
-    <string name="pref_item_app_build_date_title">App build date</string>
+    <string name="changepassword_biometric_auth_confirm_title">Alkalmazás jelszó módosítása</string>
+    <string name="changepassword_disclaimer_local_note">Az alkalmazásjelszó soha nem kerül tárolásra az eszközön, és nem kerül elküldésre a hálózaton keresztül. Ez egy titkos kulcs létrehozására szolgál, amely a helyi adatok titkosítására szolgál.</string>
+    <string name="changepassword_disclaimer_abuse_note">Hacsak nem gyanít jogosulatlan hozzáférést, vagy nem fedez fel vírust az eszközön, nincs szükség a jelszó megváltoztatására, ha az egy erős, egyedi jelszó.</string>
+    <string name="exportaccount_header_title">Elemek exportálása</string>
+    <string name="exportaccount_password_label">Archívum jelszó</string>
+    <string name="exportaccount_attachments_note">A széf az exportálási folyamat során nyitva marad. A mellékletek a széf adatainál vannak hivatkozva. A mellékletek soha nincsenek titkosítatlan formában tárolva a folyamat során.</string>
+    <string name="exportaccount_include_attachments_title">Mellékletek exportálása</string>
+    <string name="exportaccount_export_button">Exportálás</string>
+    <string name="exportaccount_export_started">Exportálás megkezdődött</string>
+    <string name="exportaccount_export_success">Exportálás befejezve</string>
+    <string name="exportaccount_export_failure">Exportálás sikertelen</string>
+    <string name="contactus_header_title">Lépjen velünk kapcsolatba</string>
+    <string name="contactus_message_label">Az Ön üzenete</string>
+    <string name="contactus_english_note">Használjon angol nyelvet, hogy visszajelzése ne legyen félreérthető.</string>
+    <string name="contactus_thanks_note">Nagyra értékeljük az időt, amit az üzenet elküldésével tölt. Üzenete közvetlenül hozzánk kerül, és mi felhasználjuk a hibaelhárításhoz, a termékfejlesztéshez és a problémák kijavításához. Bár lehet, hogy nem válaszolunk minden bejelentésre, de a lehető leggyorsabban felülvizsgáljuk és dolgozunk a fejlesztéseken és a problémák kijavításán.</string>
+    <string name="account_main_header_title">Fiókok</string>
+    <string name="account_main_add_account_title">Fiók hozzáadása</string>
+    <string name="team_header_title">Az alkalmazás mögött álló csapat</string>
+    <string name="team_artem_whoami_text">Szoftvermérnök vagyok Ukrajnából. Alkalmazások tervezésére és fejlesztésére specializálódok.</string>
+    <string name="team_follow_me_section">Kövess engem</string>
+    <string name="settingssearch_header_title">Keresés</string>
+    <string name="settingssearch_header_subtitle">Beállítások</string>
+    <string name="settingssearch_search_placeholder">Keresés a Beállításokban</string>
+    <string name="settings_appearance_header_title">Kinézet</string>
+    <string name="settings_autofill_header_title">Automatikus kitöltés</string>
+    <string name="settings_dev_header_title">Fejlesztés</string>
+    <string name="settings_experimental_header_title">Kísérleti</string>
+    <string name="settings_main_header_title">Beállítások</string>
+    <string name="settings_notifications_header_title">Értesítések</string>
+    <string name="settings_other_header_title">Egyéb</string>
+    <string name="settings_permissions_header_title">Engedélyek</string>
+    <string name="settings_security_header_title">Biztonság</string>
+    <string name="settings_subscriptions_header_title">Keyguard Prémium</string>
+    <string name="settings_watchtower_header_title">Őrtorony</string>
+    <string name="settings_open_source_licenses_header_title">Nyílt forráskódú licencek</string>
+    <string name="pref_item_accounts_title">Fiókok</string>
+    <string name="pref_item_accounts_text">Fiókok hozzáadása és megtekintése</string>
+    <string name="pref_item_autofill_title">Automatikus kitöltés</string>
+    <string name="pref_item_autofill_text">Android automatikus kitöltés és hitelesítési szolgáltatások</string>
+    <string name="pref_item_security_title">Biztonság</string>
+    <string name="pref_item_security_text">Biometrikus adatok, jelszómódosítás, széf időtúllépés</string>
+    <string name="pref_item_subscription_title">Keyguard Prémium</string>
+    <string name="pref_item_subscription_text">Funkciók feloldása és alkalmazásfejlesztés támogatása</string>
+    <string name="pref_item_watchtower_title">Őrtorony</string>
+    <string name="pref_item_watchtower_text">Feltört szolgáltatások, veszélyben lévő jelszavak</string>
+    <string name="pref_item_notifications_title">Értesítések</string>
+    <string name="pref_item_notifications_text">Figyelmeztetések</string>
+    <string name="pref_item_appearance_title">Kinézet</string>
+    <string name="pref_item_appearance_text">Nyelv, téma és animációk</string>
+    <string name="pref_item_dev_title">Fejlesztés</string>
+    <string name="pref_item_dev_text">Tesztbeállítások a fejlesztéshez</string>
+    <string name="pref_item_other_title">Egyéb</string>
+    <string name="pref_item_other_text">Közösségi weboldalak, alkalmazásinformációk</string>
+    <string name="pref_item_nav_label_title">Címkék megjelenítése a navigációs gombokon</string>
+    <string name="pref_item_app_version_title">Alkalmazás verzió</string>
+    <string name="pref_item_app_build_date_title">Alkalmazás build dátuma</string>
     <!--
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
         -->
-    <string name="pref_item_app_build_ref_title">App build ref</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
-    <string name="pref_item_app_team_title">Team behind the app</string>
-    <string name="pref_item_reddit_community_title">Reddit community</string>
-    <string name="pref_item_github_title">GitHub project</string>
-    <string name="pref_item_crowdin_title">Crowdin project</string>
-    <string name="pref_item_open_source_licenses_title">Open-source licenses</string>
-    <string name="pref_item_download_apk_title">Download APK file</string>
-    <string name="pref_item_load_app_icons_title">Load App icons</string>
-    <string name="pref_item_load_website_icons_title">Load Website icons</string>
-    <string name="pref_item_load_website_icons_text">Queuing website icon might leak the website address to internet provider</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
-    <string name="pref_item_markdown_title">Rich text formatting</string>
-    <string name="pref_item_markdown_text">Use Markdown to format notes</string>
-    <string name="pref_item_locale_title">Language</string>
-    <string name="pref_item_locale_help_translation_button">Suggest translation</string>
-    <string name="pref_item_font_title">Font</string>
-    <string name="pref_item_rate_on_play_store_title">Rate on Play Store</string>
-    <string name="pref_item_color_accent_title">Tint color</string>
-    <string name="pref_item_color_scheme_title">Theme</string>
-    <string name="pref_item_color_scheme_amoled_dark_title">Use contrast black theme</string>
-    <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
-    <string name="pref_item_close_to_tray_title">Close to system tray</string>
-    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
-    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
-    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
-    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
-    <string name="pref_item_conceal_fields_title">Conceal fields</string>
-    <string name="pref_item_conceal_fields_text">Conceal sensitive info, such as passwords and credit card numbers</string>
+    <string name="pref_item_app_build_ref_title">Alkalmazás build referencia</string>
+    <string name="pref_item_app_changelog_title">Alkalmazás változásnapló</string>
+    <string name="pref_item_app_team_title">Az alkalmazás mögött álló csapat</string>
+    <string name="pref_item_reddit_community_title">Reddit Közösség</string>
+    <string name="pref_item_github_title">GitHub projekt</string>
+    <string name="pref_item_crowdin_title">Crowdin projekt</string>
+    <string name="pref_item_open_source_licenses_title">Nyílt forráskódú licencek</string>
+    <string name="pref_item_download_apk_title">APK fájl letöltése</string>
+    <string name="pref_item_load_app_icons_title">Alkalmazás ikonok betöltése</string>
+    <string name="pref_item_load_website_icons_title">Webhely ikonok betöltése</string>
+    <string name="pref_item_load_website_icons_text">A webhely ikonok betöltésekor a webhely címe kiszivároghat az internetszolgáltatójához</string>
+    <string name="pref_item_load_gravatar_icons_title">Gravatar ikonok betöltése</string>
+    <string name="pref_item_markdown_title">Szövegformázás</string>
+    <string name="pref_item_markdown_text">Markdown használata a jegyzetek formázásához</string>
+    <string name="pref_item_locale_title">Nyelv</string>
+    <string name="pref_item_locale_help_translation_button">Javasoljon fordítást</string>
+    <string name="pref_item_font_title">Betűtípus</string>
+    <string name="pref_item_rate_on_play_store_title">Értékelés a Play Áruházban</string>
+    <string name="pref_item_color_accent_title">Tónus</string>
+    <string name="pref_item_color_scheme_title">Téma</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">Kontrasztos fekete téma használata</string>
+    <string name="pref_item_open_links_in_external_browser_title">Hivatkozások megnyitása külső böngészőben</string>
+    <string name="pref_item_close_to_tray_title">Bezárás az értesítési területre</string>
+    <string name="pref_item_check_pwned_passwords_title">Feltört jelszavak keresése</string>
+    <string name="pref_item_check_pwned_services_title">Adatszivárgások ellenőrzése</string>
+    <string name="pref_item_check_inactive_2fa_title">Inaktív kétlépcsős hitelesítések ellenőrzése</string>
+    <string name="pref_item_check_inactive_passkeys_title">Inaktív hozzáférési kulcsok ellenőrzése</string>
+    <string name="pref_item_conceal_fields_title">Mezők elrejtése</string>
+    <string name="pref_item_conceal_fields_text">Érzékeny információk, például jelszavak és bankkártyaszámok elrejtése</string>
     <!--
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
-    <string name="pref_item_crash_title">Crash</string>
-    <string name="pref_item_credential_provider_title">Credential provider</string>
-    <string name="pref_item_credential_provider_text">Passkeys, passwords and data services</string>
-    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
-    <string name="pref_item_privacy_policy_title">Privacy policy</string>
-    <string name="pref_item_contact_us_title">Contact us</string>
-    <string name="pref_item_experimental_title">Experimental</string>
-    <string name="pref_item_change_app_password_title">Change app password</string>
-    <string name="pref_item_require_app_password_title">Require app password</string>
-    <string name="pref_item_require_app_password_note">In addition to your regular security settings, your app password will be required after this time or when biometry settings are changed</string>
-    <string name="pref_item_require_app_password_immediately_text">Immediately</string>
-    <string name="pref_item_require_app_password_never_text">Never</string>
-    <string name="pref_item_send_crash_reports_title">Send crash reports</string>
-    <string name="pref_item_nav_animation_title">Transition animation</string>
-    <string name="pref_item_erase_data_title">Erase app data</string>
-    <string name="pref_item_erase_data_text">Close the app and erase all local app data</string>
-    <string name="pref_item_allow_screenshots_title">Allow screenshots</string>
-    <string name="pref_item_allow_screenshots_text_on">Show the content of the app when switching between recent apps and allow capturing a screen</string>
-    <string name="pref_item_allow_screenshots_text_off">Hide the content of the app when switching between recent apps and forbid capturing a screen</string>
-    <string name="pref_item_data_safety_title">Data safety</string>
-    <string name="pref_item_logs_title">Logs</string>
-    <string name="pref_item_lock_vault_title">Lock vault</string>
-    <string name="pref_item_lock_vault_after_reboot_title">Lock after a reboot</string>
-    <string name="pref_item_lock_vault_after_reboot_text">Lock the vault after a device reboot</string>
-    <string name="pref_item_lock_vault_after_screen_off_title">Lock when screen turns off</string>
-    <string name="pref_item_lock_vault_after_screen_off_text">Lock the vault after a few seconds once the screen is off</string>
-    <string name="pref_item_lock_vault_after_delay_title">Lock after a delay</string>
-    <string name="pref_item_lock_vault_after_delay_immediately_text">Immediately</string>
-    <string name="pref_item_lock_vault_after_delay_never_text">Never</string>
-    <string name="pref_item_persist_vault_key_title">Persist vault key on a disk</string>
-    <string name="pref_item_persist_vault_key_text_on">Vault key is persisted on an internal storage</string>
-    <string name="pref_item_persist_vault_key_text_off">Vault is locked after the app is unloaded from the memory</string>
-    <string name="pref_item_persist_vault_key_note">Storing a vault key on a disk is a security risk. If the device's internal storage is compromised, the attacker will gain access to the local vault data.</string>
-    <string name="pref_item_permissions_title">Permissions</string>
-    <string name="pref_item_features_overview_title">Features overview</string>
-    <string name="pref_item_url_override_title">URL overrides</string>
-    <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_crash_title">Összeomlás</string>
+    <string name="pref_item_credential_provider_title">Hitelesítés-szolgáltató</string>
+    <string name="pref_item_credential_provider_text">Hozzáférési kulcsok, jelszavak és adatszolgáltatások</string>
+    <string name="pref_item_credential_provider_no_feature_note">Ez az eszköz nem támogatja a felhasználói hitelesítő adatok lekérdezését hitelesítő szolgáltatókkal való integrációval. További információért forduljon a gyártóhoz.</string>
+    <string name="pref_item_privacy_policy_title">Adatvédelmi irányelvek</string>
+    <string name="pref_item_contact_us_title">Kapcsolat</string>
+    <string name="pref_item_experimental_title">Kísérleti</string>
+    <string name="pref_item_change_app_password_title">Alkalmazás jelszó módosítása</string>
+    <string name="pref_item_require_app_password_title">Alkalmazás jelszó megkövetelése</string>
+    <string name="pref_item_require_app_password_note">A szokásos biztonsági beállításokon túlmenően az alkalmazás jelszavára is szükség lesz ezen idő letelte után, vagy ha módosítják a biometrikus beállításokat</string>
+    <string name="pref_item_require_app_password_immediately_text">Azonnal</string>
+    <string name="pref_item_require_app_password_never_text">Soha</string>
+    <string name="pref_item_send_crash_reports_title">Hibajelentések küldése</string>
+    <string name="pref_item_nav_animation_title">Átmeneti animáció</string>
+    <string name="pref_item_erase_data_title">Alkalmazás-adat törlése</string>
+    <string name="pref_item_erase_data_text">Alkalmazás bezárása, és az összes helyi alkalmazásadat törlése</string>
+    <string name="pref_item_allow_screenshots_title">Képernyőkép engedélyezése</string>
+    <string name="pref_item_allow_screenshots_text_on">Az alkalmazás tartalmának megjelenítése a legutóbbi alkalmazások közötti váltáskor és a képernyő rögzítésének lehetővé tétele</string>
+    <string name="pref_item_allow_screenshots_text_off">Az alkalmazás tartalmának elrejtése a legutóbbi alkalmazások közötti váltáskor és a képernyő rögzítésének megtiltása</string>
+    <string name="pref_item_data_safety_title">Adat biztonság</string>
+    <string name="pref_item_logs_title">Naplók</string>
+    <string name="pref_item_lock_vault_title">Széf zárolása</string>
+    <string name="pref_item_lock_vault_after_reboot_title">Zárolás újraindítás után</string>
+    <string name="pref_item_lock_vault_after_reboot_text">Széf zárolása az eszköz újraindítása után</string>
+    <string name="pref_item_lock_vault_after_screen_off_title">Zárolás a képernyő kikapcsolásakor</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">Széf zárolása néhány másodperccel azután, hogy a képernyő kikapcsolt</string>
+    <string name="pref_item_lock_vault_after_delay_title">Zárolás késleltetéssel</string>
+    <string name="pref_item_lock_vault_after_delay_immediately_text">Azonnal</string>
+    <string name="pref_item_lock_vault_after_delay_never_text">Soha</string>
+    <string name="pref_item_persist_vault_key_title">Széfkulcs tárhelyen tárolása</string>
+    <string name="pref_item_persist_vault_key_text_on">A széfkulcs az eszköz belső tárhelyén van tárolva</string>
+    <string name="pref_item_persist_vault_key_text_off">A széf zárolva lesz, miután az alkalmazás ki lett ürítve a memóriából</string>
+    <string name="pref_item_persist_vault_key_note">A trezorkulcs tárhelyen történő tárolása biztonsági kockázatot jelent. Ha az eszköz belső tárhelye veszélybe kerül, a támadó hozzáférhet a helyi széf adataihoz.</string>
+    <string name="pref_item_permissions_title">Engedélyek</string>
+    <string name="pref_item_features_overview_title">Funkciók áttekintése</string>
+    <string name="pref_item_url_override_title">URL felülírások</string>
+    <string name="pref_item_biometric_unlock_title">Biometrikus feloldás</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Megerősítést követelése</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Követeljen meg egy további megerősítő gombnyomást a sikeres biometrikus hitelesítés után</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
-    <string name="pref_item_biometric_unlock_confirm_title">Biometric unlock</string>
-    <string name="pref_item_keep_screen_on_title">Keep the screen on while viewing items</string>
-    <string name="pref_item_autofill_service_title">Autofill service</string>
-    <string name="pref_item_autofill_service_text">Use the Android Autofill Framework to assist in filling login information into other apps on the device</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
-    <string name="pref_item_autofill_auto_copy_otp_title">Auto-copy one-time passwords</string>
-    <string name="pref_item_autofill_auto_copy_otp_text">When filling a login information, automatically copy one-time passwords</string>
-    <string name="pref_item_autofill_inline_suggestions_title">Inline suggestions</string>
-    <string name="pref_item_autofill_inline_suggestions_text">Embeds autofill suggestions directly into compatible keyboards</string>
-    <string name="pref_item_autofill_manual_selection_title">Manual selection</string>
-    <string name="pref_item_autofill_manual_selection_text">Displays an option to manually search a vault for an entry</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_title">Respect Autofill disabled flag</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_text">Disables autofill for a browser field that has autofill disabled flag set</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are notorious for disabling autofill for a password field as well as some browsers are notorious for ignoring the autofill disabled flag</string>
-    <string name="pref_item_autofill_save_request_title">Ask to save data</string>
-    <string name="pref_item_autofill_save_request_text">Asks for updating the vault when filling of a form has completed</string>
-    <string name="pref_item_autofill_auto_save_source_title">Auto-save app or website info</string>
-    <string name="pref_item_clipboard_auto_clear_title">Automatically clear clipboard</string>
-    <string name="pref_item_clipboard_auto_clear_immediately_text">Immediately</string>
-    <string name="pref_item_clipboard_auto_clear_never_text">Never</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">One-time password notification duration</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">When you autofill a login item that has a one-time password, the notification with verification code will popup for at least the defined duration</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Never</string>
-    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
-    <string name="pref_item_premium_membership_title">About Keyguard membership</string>
-    <string name="pref_item_premium_membership_text">The Premium unlocks extra features and funds a development of the app. Thank you for supporting us! ❤️</string>
-    <string name="pref_item_premium_membership_section_subscriptions_title">Subscriptions</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
-    <string name="pref_item_premium_membership_section_products_title">Products</string>
-    <string name="pref_item_premium_membership_failed_to_load_subscriptions">Failed to load a list of subscriptions</string>
-    <string name="pref_item_premium_membership_failed_to_load_products">Failed to load a list of products</string>
-    <string name="pref_item_premium_status_active">Active</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
-    <string name="pref_item_premium_status_will_not_renew">Will not renew</string>
-    <string name="pref_item_premium_manage_subscription_on_play_store_title">Manage on Play Store</string>
-    <string name="pref_item_permission_post_notifications_title">Post notifications</string>
-    <string name="pref_item_permission_post_notifications_text">Used to post downloading notifications</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
-    <string name="pref_item_permission_camera_title">Camera</string>
-    <string name="pref_item_permission_camera_text">Used to scan QR codes</string>
-    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Allow two panel layout in landscape mode</string>
-    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Allow two panel layout in portrait mode</string>
-    <string name="theme_dark">Dark</string>
-    <string name="theme_light">Light</string>
-    <string name="nav_animation_disabled">Disabled</string>
-    <string name="nav_animation_dynamic">Dynamic</string>
-    <string name="nav_animation_crossfade">Crossfade</string>
-    <string name="font_atkinson_hyperlegible_text">Developed specifically to increase legibility for readers with low vision, and to improve comprehension</string>
-    <string name="feat_header_title">Features Overview</string>
-    <string name="feat_keyguard_premium_label">Keyguard Premium</string>
-    <string name="feat_item_multiple_accounts_title">Multiple Accounts</string>
-    <string name="feat_item_multiple_accounts_text">Sign-in to multiple accounts simultaneously.</string>
-    <string name="feat_item_two_way_sync_title">Two-way sync</string>
-    <string name="feat_item_two_way_sync_text">Add or edit items and sync the changes back.</string>
-    <string name="feat_item_offline_editing_title">Offline editing</string>
-    <string name="feat_item_offline_editing_text">Add or edit items without internet connection.</string>
-    <string name="feat_section_search_title">Search</string>
-    <string name="feat_item_search_by_anything_title">Search by anything</string>
-    <string name="feat_item_search_by_anything_text">Name, email, password, phone number etc.</string>
-    <string name="feat_item_filter_title">Filter</string>
-    <string name="feat_item_filter_text">Filter by folder, organization, type etc.</string>
-    <string name="feat_item_multiple_keywords_title">Multiple keywords</string>
-    <string name="feat_item_multiple_keywords_text">Search by 'bitw test' to find your 'Bitwarden Test Account' item.</string>
-    <string name="feat_section_watchtower_title">Watchtower</string>
-    <string name="feat_item_pwned_passwords_title">Pwned passwords</string>
-    <string name="feat_item_pwned_passwords_text">Find items with exposed in data breaches passwords.</string>
-    <string name="feat_item_password_strength_title">Password strength</string>
-    <string name="feat_item_password_strength_text">Find items with weak passwords.</string>
-    <string name="feat_item_reused_passwords_title">Reused passwords</string>
-    <string name="feat_item_reused_passwords_text">Find items with reused passwords.</string>
-    <string name="feat_item_inactive_totp_title">Inactive 2FA</string>
-    <string name="feat_item_inactive_totp_text">Find logins with available TOTP two-factor authentication.</string>
-    <string name="feat_item_unsecure_websites_title">Unsecure websites</string>
-    <string name="feat_item_unsecure_websites_text">Find websites that use HTTP protocol, auto-fix to HTTPS.</string>
-    <string name="feat_item_incomplete_items_title">Incomplete items</string>
-    <string name="feat_item_incomplete_items_text">Find empty items that might need updates.</string>
-    <string name="feat_item_expiring_items_title">Expiring items</string>
-    <string name="feat_item_expiring_items_text">Find expired or soon to be expired items.</string>
-    <string name="feat_item_duplicate_items_title">Duplicate items</string>
-    <string name="feat_item_duplicate_items_text">Find and merge duplicate items.</string>
-    <string name="feat_section_misc_title">Misc</string>
-    <string name="feat_item_multi_selection_title">Multi-selection</string>
-    <string name="feat_item_multi_selection_text">Merge ciphers, fasten the refactoring with batch operations.</string>
-    <string name="feat_item_show_barcode_title">Show as Barcode</string>
-    <string name="feat_item_show_barcode_text">Encode a text as different barcodes.</string>
-    <string name="feat_item_generator_title">Generator</string>
-    <string name="feat_item_generator_text">Generate passwords or usernames.</string>
-    <string name="datasafety_header_title">Data safety</string>
-    <string name="datasafety_local_section">Local data</string>
-    <string name="datasafety_local_text">Local data consists of Downloads, User settings, Vault. They are stored in the internal storage of a device, which can only be accessed by the Android system or the Keyguard.</string>
-    <string name="datasafety_local_downloads_section">Downloads</string>
-    <string name="datasafety_local_settings_section">User settings</string>
-    <string name="datasafety_local_settings_note">The User settings are encrypted using a device-specific key.</string>
-    <string name="datasafety_local_vault_section">Vault</string>
-    <string name="datasafety_local_encryption_algorithm_intro">The Vault is encrypted using a Key, derived from the App password using following steps:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">The Salt and the Hash is then stored locally on a device, to later generate a master key to unlock the vault.</string>
-    <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
-    <string name="datasafety_remote_section">Remote data</string>
-    <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="pref_item_biometric_unlock_confirm_title">Biometrikus feloldás</string>
+    <string name="pref_item_keep_screen_on_title">Tartsa bekapcsolva a képernyőt az elemek megtekintése közben</string>
+    <string name="pref_item_autofill_service_title">Automatikus kitöltés szolgáltatás</string>
+    <string name="pref_item_autofill_service_text">Használja az Android automatikus kitöltési keretrendszert, hogy segítse a bejelentkezési adatok kitöltését az eszköz más alkalmazásaiban</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Egyes Xiaomi eszközökön manuálisan engedélyezni kell a "Felugró ablakok megjelenítése a háttérben futás közben" engedélyt. Kérjük, nyissa meg a beállításokat, és ellenőrizze, hogy az engedély meg van-e adva.</string>
+    <string name="pref_item_autofill_auto_copy_otp_title">Egyszeri jelszavak automatikus másolása</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">Bejelentkezési adatok kitöltésekor automatikusan másolja az egyszer használatos jelszavakat</string>
+    <string name="pref_item_autofill_inline_suggestions_title">Beágyazott javaslatok</string>
+    <string name="pref_item_autofill_inline_suggestions_text">Automatikus kitöltési javaslatokat ágyaz be közvetlenül a kompatibilis billentyűzetekbe</string>
+    <string name="pref_item_autofill_manual_selection_title">Manuális Választás</string>
+    <string name="pref_item_autofill_manual_selection_text">Megjelenít egy lehetőséget egy elem manuális keresésére a széfben</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Automatikus kitöltés letiltási jelzés tiszteletben tartása</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">Letiltja az automatikus kitöltést azoknál a böngészőmezőknél, amelyeknél az automatikus kitöltés letiltási jelzés be van állítva</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Megjegyzés: Néhány weboldal hírhedt arról, hogy letiltja az automatikus kitöltést a jelszómezőknél, valamint néhány böngésző hírhedt arról, hogy figyelmen kívül hagyja az automatikus kitöltés letiltási jelzést</string>
+    <string name="pref_item_autofill_save_request_title">Adatok mentésének kérése</string>
+    <string name="pref_item_autofill_save_request_text">Rákérdez a széf frissítésére, amikor egy űrlap kitöltése befejeződött</string>
+    <string name="pref_item_autofill_auto_save_source_title">Alkalmazás- vagy webhelyadatok automatikus mentése</string>
+    <string name="pref_item_clipboard_auto_clear_title">Vágólap automatikus törlése</string>
+    <string name="pref_item_clipboard_auto_clear_immediately_text">Azonnal</string>
+    <string name="pref_item_clipboard_auto_clear_never_text">Soha</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Egyszeri jelszó értesítés időtartama</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Amikor egy egyszeri jelszóval rendelkező bejelentkezési elemet automatikusan kitölt, az ellenőrző kódot tartalmazó értesítés legalább a meghatározott ideig megjelenik</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Soha</string>
+    <string name="pref_item_clipboard_notification_settings_title">Egyszeri jelszó értesítési beállítások</string>
+    <string name="pref_item_premium_membership_title">A Keyguard tagságról</string>
+    <string name="pref_item_premium_membership_text">A Prémium feloldja a további funkciókat és támogatja az alkalmazás fejlesztését. Köszönjük, hogy támogatsz minket! ❤️</string>
+    <string name="pref_item_premium_membership_section_subscriptions_title">Előfizetések</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Előfizetése a lejárata előtt 24 órával megújul, és ekkor automatikusan megterheljük Google Play-fiókját. Az automatikus megújítást be- és kikapcsolhatja, és bármikor lemondhatja előfizetését a Google Playen. Ha még soha nem fizetett elő, jogosult lehet az ingyenes próbaidőszakra. Nem számítunk fel díjat, ha az ingyenes próbaidőszak vége előtt mondja le az előfizetést.</string>
+    <string name="pref_item_premium_membership_section_products_title">Termékek</string>
+    <string name="pref_item_premium_membership_failed_to_load_subscriptions">Nem sikerült betölteni az előfizetések listáját</string>
+    <string name="pref_item_premium_membership_failed_to_load_products">Nem sikerült betölteni a termékek listáját</string>
+    <string name="pref_item_premium_status_active">Aktív</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_will_not_renew">Nem fog megújulni</string>
+    <string name="pref_item_premium_manage_subscription_on_play_store_title">Kezelés a Play Áruházban</string>
+    <string name="pref_item_permission_post_notifications_title">Értesítések közzététele</string>
+    <string name="pref_item_permission_post_notifications_text">Letöltési értesítések közzétételére használva</string>
+    <string name="pref_item_permission_write_external_storage_title">Külső tárolóra írás</string>
+    <string name="pref_item_permission_write_external_storage_text">A széf exportok letöltési könyvtárba mentésére szolgál</string>
+    <string name="pref_item_permission_write_external_storage_grant">Külső tárhely írási engedélyének megadása</string>
+    <string name="pref_item_permission_camera_title">Kamera</string>
+    <string name="pref_item_permission_camera_text">QR kódok beolvasására szolgál</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Két panel elrendezés engedélyezése fekvő módban</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Két panel elrendezés engedélyezése álló módban</string>
+    <string name="theme_dark">Sötét</string>
+    <string name="theme_light">Világos</string>
+    <string name="nav_animation_disabled">Letiltva</string>
+    <string name="nav_animation_dynamic">Dinamikus</string>
+    <string name="nav_animation_crossfade">Átfedés</string>
+    <string name="font_atkinson_hyperlegible_text">Kifejezetten az olvasási nehézségekkel küzdő emberek számára fejlesztették ki az olvashatóság növelése és a szövegértés javítása érdekében</string>
+    <string name="feat_header_title">Funkciók áttekintése</string>
+    <string name="feat_keyguard_premium_label">Keyguard Prémium</string>
+    <string name="feat_item_multiple_accounts_title">Több fiók</string>
+    <string name="feat_item_multiple_accounts_text">Jelentkezzen be egyszerre több fiókba.</string>
+    <string name="feat_item_two_way_sync_title">Kétirányú szinkronizálás</string>
+    <string name="feat_item_two_way_sync_text">Adjon hozzá vagy szerkesszen elemeket, és szinkronizálja vissza a változtatásokat.</string>
+    <string name="feat_item_offline_editing_title">Offline szerkesztés</string>
+    <string name="feat_item_offline_editing_text">Elemek hozzáadása vagy szerkesztése internetkapcsolat nélkül.</string>
+    <string name="feat_section_search_title">Keresés</string>
+    <string name="feat_item_search_by_anything_title">Keressen bármi alapján</string>
+    <string name="feat_item_search_by_anything_text">Név, email cím, jelszó, telefonszám stb.</string>
+    <string name="feat_item_filter_title">Szűrő</string>
+    <string name="feat_item_filter_text">Szűrés mappa, szervezet, típus stb. szerint.</string>
+    <string name="feat_item_multiple_keywords_title">Több kulcsszó</string>
+    <string name="feat_item_multiple_keywords_text">A 'bitw test' keresővel találja meg a 'Bitwarden Test Account' elemet.</string>
+    <string name="feat_section_watchtower_title">Őrtorony</string>
+    <string name="feat_item_pwned_passwords_title">Feltört jelszavak</string>
+    <string name="feat_item_pwned_passwords_text">Keressen olyan elemeket, amelyek jelszavai adatszivárgások során nyilvánosságra kerültek.</string>
+    <string name="feat_item_password_strength_title">Jelszavak erőssége</string>
+    <string name="feat_item_password_strength_text">Keresse meg a gyenge jelszavakkal rendelkező elemeket.</string>
+    <string name="feat_item_reused_passwords_title">Újrahasznált jelszavak</string>
+    <string name="feat_item_reused_passwords_text">Keresse meg az újrahasznált jelszavakkal rendelkező elemeket.</string>
+    <string name="feat_item_inactive_totp_title">Inaktív 2FA</string>
+    <string name="feat_item_inactive_totp_text">Keressen bejelentkezéseket a rendelkezésre álló kétlépcsős TOTP hitelesítéssel.</string>
+    <string name="feat_item_unsecure_websites_title">Nem biztonságos webhelyek</string>
+    <string name="feat_item_unsecure_websites_text">Keresse meg a HTTP protokollt használó webhelyeket, és automatikusan állítsa át a HTTPS protokollra.</string>
+    <string name="feat_item_incomplete_items_title">Hiányos elemek</string>
+    <string name="feat_item_incomplete_items_text">Keresse meg az üres elemeket, amelyek frissítésre szorulhatnak.</string>
+    <string name="feat_item_expiring_items_title">Lejáró elemek</string>
+    <string name="feat_item_expiring_items_text">Lejárt vagy hamarosan lejáró termékek keresése.</string>
+    <string name="feat_item_duplicate_items_title">Ismétlődő elemek</string>
+    <string name="feat_item_duplicate_items_text">Ismétlődő elemek keresése és egyesítése.</string>
+    <string name="feat_section_misc_title">Egyéb</string>
+    <string name="feat_item_multi_selection_title">Többszörös kiválasztás</string>
+    <string name="feat_item_multi_selection_text">A kódok egyesítése, a refaktorálás gyorsítása kötegelt műveletekkel.</string>
+    <string name="feat_item_show_barcode_title">Megjelenítés vonalkódként</string>
+    <string name="feat_item_show_barcode_text">Kódolja a szöveget különböző vonalkódokként.</string>
+    <string name="feat_item_generator_title">Generátor</string>
+    <string name="feat_item_generator_text">Jelszavak vagy felhasználónevek generálása.</string>
+    <string name="datasafety_header_title">Adat biztonság</string>
+    <string name="datasafety_local_section">Helyi adatok</string>
+    <string name="datasafety_local_text">A helyi adatok a Letöltésekből, a Felhasználói beállításokból és a Széfből állnak. Ezek a készülék belső tárhelyén vannak tárolva, amelyhez csak az Android rendszer vagy a Keyguard férhet hozzá.</string>
+    <string name="datasafety_local_downloads_section">Letöltések</string>
+    <string name="datasafety_local_settings_section">Felhasználói beállítások</string>
+    <string name="datasafety_local_settings_note">A felhasználói beállítások egy eszközspecifikus kulccsal vannak titkosítva.</string>
+    <string name="datasafety_local_vault_section">Széf</string>
+    <string name="datasafety_local_encryption_algorithm_intro">A Széf titkosítása az alkalmazásjelszóból származó kulccsal történik a következő lépésekkel:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">A Só és az Ellenőrzőösszeg ezután helyileg egy eszközön tárolódik, hogy később generáljon egy mesterkulcsot a széf feloldásához.</string>
+    <string name="datasafety_local_unlocking_vault">A Széf feloldása a megfelelő kulcs tárolását jelenti az eszköz memóriájában, ami lehetővé teszi a titkosított Széf olvasását és módosítását.</string>
+    <string name="datasafety_remote_section">Távoli adatok</string>
+    <string name="datasafety_remote_text">A távoli adatokat a Bitwarden szerverein tárolják zéró-tudomású titkosítással.</string>
+    <string name="logs_header_title">Naplók</string>
+    <string name="logs_start_recording_fab_title">Rögzítés indítása</string>
+    <string name="logs_stop_recording_fab_title">Rögzítés leállítása</string>
+    <string name="logs_export_button">Exportálás</string>
+    <string name="logs_export_success">Exportálás befejezve</string>
 </resources>

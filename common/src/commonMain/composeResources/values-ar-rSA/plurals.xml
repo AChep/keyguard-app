@@ -1,67 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> حسابات</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> حساب</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> حسابين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> حسابات</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> حسابات</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> حسابات</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> مرات</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> مرة</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> مرتين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> مرات</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> مرات</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> مرات</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> كلمات</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> كلمة</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> كلمتين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> كلمات</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> كلمات</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> كلمات</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> نتائج</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> نتيجة</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> نتيجتين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> نتائج</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> نتائج</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> نتائج</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> ثواني</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ثانية</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> ثانيتين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> ثواني</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> ثواني</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ثواني</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> دقائق</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> دقيقة</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> دقيقتين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> دقائق</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> دقائق</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> دقائق</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> ساعات</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ساعة</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> ساعتين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> ساعات</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> ساعات</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ساعات</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> أيام</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> يوم</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> يومين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> أيام</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> أيام</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> أيام</item>
+    </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
     </plurals>
 </resources>

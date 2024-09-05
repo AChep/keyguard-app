@@ -175,7 +175,7 @@
     <string name="passkey_available">Chave de acesso disponível</string>
     <string name="twofa_available">Autenticação com 2FA disponível</string>
     <string name="custom">Personalizado</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Criar conta</string>
     <string name="follow_system_settings">Seguir definições do sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Brevemente</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">A menos que você suspeite de acesso não autorizado ou descubra um malware no dispositivo, não há necessidade de alterar a senha se ela for uma senha forte e única.</string>
     <string name="exportaccount_header_title">Exportar entradas</string>
     <string name="exportaccount_password_label">Palavra-passe do ficheiro</string>
-    <string name="exportaccount_no_attachments_note">Apenas as informações de entradas do cofre serão exportadas e não incluirão anexos associados.</string>
+    <string name="exportaccount_attachments_note">O cofre será mantido desbloqueado durante o processo de exportação. Os anexos são referenciados nos dados do cofre. Os anexos nunca são armazenados sem encriptação durante o processo.</string>
+    <string name="exportaccount_include_attachments_title">Exportar anexos</string>
     <string name="exportaccount_export_button">Exportar</string>
+    <string name="exportaccount_export_started">Exportação iniciada</string>
     <string name="exportaccount_export_success">Exportação concluída</string>
+    <string name="exportaccount_export_failure">Falha na exportação</string>
     <string name="contactus_header_title">Contacte-nos</string>
     <string name="contactus_message_label">A sua mensagem</string>
     <string name="contactus_english_note">Use Inglês para garantir que o seu relato não fique mal entendido.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Falha ao carregar lista de subscrições</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Falha ao carregar lista de produtos</string>
     <string name="pref_item_premium_status_active">Ativo</string>
-    <string name="pref_item_premium_status_free_trial">Avalaiação gratuita</string>
+    <string name="pref_item_premium_status_free_trial_n">Teste gratuito <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Não renovará</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gerir na Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Mostrar notificações</string>

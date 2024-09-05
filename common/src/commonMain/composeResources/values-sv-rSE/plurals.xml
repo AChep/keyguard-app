@@ -32,4 +32,16 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> dag</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dagar</item>
     </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> vecka</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> veckor</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> månad</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> månader</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> år</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> år</item>
+    </plurals>
 </resources>

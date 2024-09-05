@@ -18,7 +18,7 @@
     <string name="app_password">Mot de passe de l'application</string>
     <string name="current_password">Mot de passe actuel</string>
     <string name="new_password">Nouveau mot de passe</string>
-    <string name="no_password">No password</string>
+    <string name="no_password">Aucun mot de passe</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Vérifié</string>
     <string name="email_not_verified">Non vérifié</string>
@@ -175,7 +175,7 @@
     <string name="passkey_available">Clé d'authentification disponible</string>
     <string name="twofa_available">Authentification à deux facteurs (2FA) disponible</string>
     <string name="custom">Personnalisé</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Créer un compte</string>
     <string name="follow_system_settings">Suivre les paramètres système</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Bientôt disponible</string>
@@ -240,7 +240,7 @@
     <string name="account_log_out_confirmation_text">Toutes les modifications non synchronisées seront perdues !</string>
     <string name="folder_action_change_name_title">Modifier le nom</string>
     <string name="folder_action_change_names_title">Changer les noms</string>
-    <string name="folder_action_merge_title">Merge into…</string>
+    <string name="folder_action_merge_title">Fusionner dans…</string>
     <string name="folder_delete_one_confirmation_title">Supprimer le dossier ?</string>
     <string name="folder_delete_many_confirmation_title">Supprimer les dossiers ?</string>
     <string name="folder_delete_confirmation_text">Ces élément(s) seront supprimés immédiatement. Vous ne pouvez pas annuler cette action.</string>
@@ -299,10 +299,10 @@
     <string name="file_action_send_with_title">Envoyer avec…</string>
     <string name="file_action_open_in_file_manager_title">Ouvrir dans un gestionnaire de fichiers</string>
     <string name="file_action_delete_local_title">Supprimer le fichier local</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
+    <string name="file_action_delete_local_many_title">Supprimer les fichiers locaux</string>
     <string name="file_action_view_cipher_title">Voir l'élément parent</string>
     <string name="vault_action_always_show_keyboard_title">Toujours afficher le clavier</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Se souvenir de la méthode de tri</string>
     <string name="vault_action_sync_vault_title">Synchroniser le coffre-fort</string>
     <string name="vault_action_lock_vault_title">Verrouiller le coffre-fort</string>
     <string name="vault_action_rename_folder_title">Renommer le coffre-fort</string>
@@ -706,9 +706,9 @@
     <string name="sortby_modification_date_title">Date de modification</string>
     <string name="sortby_modification_date_normal_mode">Les plus récents en premier</string>
     <string name="sortby_modification_date_reverse_mode">Plus ancien en premier</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
-    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
+    <string name="sortby_installation_date_title">Date d’installation</string>
+    <string name="sortby_installation_date_normal_mode">Plus récent d'abord</string>
+    <string name="sortby_installation_date_reverse_mode">Plus ancien d'abord</string>
     <string name="sortby_expiration_date_title">Date d'expiration</string>
     <string name="sortby_expiration_date_normal_mode">Les plus récents en premier</string>
     <string name="sortby_expiration_date_reverse_mode">Plus ancien en premier</string>
@@ -808,8 +808,8 @@
     <string name="watchtower_section_password_strength_label">Robustesse du mot de passe</string>
     <string name="watchtower_section_security_label">Sécurité</string>
     <string name="watchtower_section_maintenance_label">Maintenance</string>
-    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
-    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
+    <string name="watchtower_item_new_alerts_title">Examiner les nouvelles alertes</string>
+    <string name="watchtower_item_weak_passwords_title">Mots de passe faibles</string>
     <string name="watchtower_item_pwned_passwords_title">Mots de passe pwned</string>
     <string name="watchtower_item_pwned_passwords_text">Les mots de passe qui ont été exposés dans des violations de données. Ces mots de passe devraient être modifiés immédiatement.</string>
     <string name="watchtower_item_reused_passwords_title">Mot de passe réutilisé</string>
@@ -836,8 +836,8 @@
     <string name="watchtower_item_duplicate_items_text">Vous aide à identifier et à éliminer les doublons dans votre coffre.</string>
     <string name="watchtower_item_compromised_accounts_title">Comptes Compromis</string>
     <string name="watchtower_item_compromised_accounts_text">Vérifier les violations de données par un nom d'utilisateur ou une adresse e-mail.</string>
-    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
-    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
+    <string name="watchtower_alerts_header_title">Nouvelles alertes de watchtower</string>
+    <string name="watchtower_mark_all_as_read_title">Tout marquer comme lu</string>
     <string name="changepassword_header_title">Modifier le mot de passe de l'application</string>
     <string name="changepassword_change_password_button">Modifier le mot de passe</string>
     <string name="changepassword_biometric_auth_checkbox">Authentification biométrique</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Sauf si vous soupçonnez un accès non autorisé ou si vous découvrez un logiciel malveillant sur l'appareil, il n'est pas nécessaire de changer le mot de passe si c'est un mot de passe fort et unique.</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
-    <string name="exportaccount_no_attachments_note">Seules les informations sur l'élément du coffre-fort seront exportées et n'incluront pas les pièces jointes associées.</string>
+    <string name="exportaccount_attachments_note">Le coffre-fort restera déverrouillé pendant le processus d'exportation. Les pièces jointes sont référencées dans les données du coffre-fort. Les pièces jointes ne sont jamais stockées en clair au cours du processus.</string>
+    <string name="exportaccount_include_attachments_title">Exporter les pièces jointes</string>
     <string name="exportaccount_export_button">Exporter</string>
+    <string name="exportaccount_export_started">L'exportation a commencé</string>
     <string name="exportaccount_export_success">Exportation terminée</string>
+    <string name="exportaccount_export_failure">Échec de l'exportation</string>
     <string name="contactus_header_title">Contactez-nous</string>
     <string name="contactus_message_label">Votre message</string>
     <string name="contactus_english_note">Utilisez l'Anglais pour vous assurer que vos commentaires ne sont pas mal compris.</string>
@@ -934,7 +937,7 @@
     <string name="pref_item_crash_title">Plantage</string>
     <string name="pref_item_credential_provider_title">Fournisseur d’informations d’identification</string>
     <string name="pref_item_credential_provider_text">Clés d'accès, mots de passe et services de données</string>
-    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
+    <string name="pref_item_credential_provider_no_feature_note">L'appareil ne prend pas en charge la récupération des informations d'identification de l'utilisateur via l'intégration avec des fournisseurs d'informations d'identification. Contactez le fabricant pour plus d'informations.</string>
     <string name="pref_item_privacy_policy_title">Politique de confidentialité</string>
     <string name="pref_item_contact_us_title">Contactez-nous</string>
     <string name="pref_item_experimental_title">Expérimental</string>
@@ -951,7 +954,7 @@
     <string name="pref_item_allow_screenshots_text_on">Afficher le contenu de l'application lors du basculement entre les applications récentes et permettre la capture d'écran</string>
     <string name="pref_item_allow_screenshots_text_off">Masquer le contenu de l'application lors du basculement entre les applications récentes et interdire la capture d'écran</string>
     <string name="pref_item_data_safety_title">Sécurité des données</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">Activité</string>
     <string name="pref_item_lock_vault_title">Verrouiller le coffre-fort</string>
     <string name="pref_item_lock_vault_after_reboot_title">Verrouiller après un redémarrage</string>
     <string name="pref_item_lock_vault_after_reboot_text">Verrouiller le coffre après le redémarrage de l'appareil</string>
@@ -1000,12 +1003,12 @@
     <string name="pref_item_premium_membership_title">À propos de l'adhésion à Keyguard</string>
     <string name="pref_item_premium_membership_text">Le Premium débloque des fonctionnalités supplémentaires et finance un développement de l'application. Merci de nous soutenir ! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonnements</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Votre abonnement sera renouvelé 24 heures avant son expiration et votre compte Google Play sera automatiquement débité à ce moment-là. Vous pouvez activer ou désactiver le renouvellement automatique et annuler votre abonnement à tout moment sur Google Play. Si vous n'avez jamais souscrit d'abonnement, vous pouvez bénéficier d'un essai gratuit. Vous ne serez pas facturé si vous annulez votre abonnement avant la fin de la période d'essai gratuite.</string>
     <string name="pref_item_premium_membership_section_products_title">Produits</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Impossible de charger une liste d'abonnements</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Impossible de charger la liste de produits</string>
     <string name="pref_item_premium_status_active">Actif</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Ne sera renouvelé</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gérer sur le Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Publier des notifications</string>
@@ -1074,9 +1077,9 @@
     <string name="datasafety_local_unlocking_vault">Déverrouiller un coffre-fort signifie stocker une clé correcte dans la mémoire vive d'un appareil, en obtenant une capacité de lire et de modifier le coffre chiffré.</string>
     <string name="datasafety_remote_section">Données à distance</string>
     <string name="datasafety_remote_text">Les données distantes sont stockées sur les serveurs Bitwarden avec un chiffrement zéro connaissance.</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="logs_header_title">Activité</string>
+    <string name="logs_start_recording_fab_title">Démarrer l'enregistrement</string>
+    <string name="logs_stop_recording_fab_title">Arrêter l'enregistrement</string>
+    <string name="logs_export_button">Exporter</string>
+    <string name="logs_export_success">Exportation terminée</string>
 </resources>

@@ -175,7 +175,7 @@
     <string name="passkey_available">Passkey verfügbar</string>
     <string name="twofa_available">Zwei-Faktor-Authentifizierung verfügbar</string>
     <string name="custom">Benutzerdefiniert</string>
-    <string name="create_account">Create account</string>
+    <string name="create_account">Konto erstellen</string>
     <string name="follow_system_settings">Systemeinstellungen folgen</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Demnächst</string>
@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Es sei denn, Sie vermuten unbefugten Zugriff oder eine Malware auf dem Gerät zu entdecken, es gibt keine Notwendigkeit, das Passwort zu ändern, wenn es ein starkes und einzigartiges Passwort ist.</string>
     <string name="exportaccount_header_title">Elemente exportieren</string>
     <string name="exportaccount_password_label">Passwort archivieren</string>
-    <string name="exportaccount_no_attachments_note">Nur Tresor Informationen werden exportiert und werden keine zugehörigen Anhänge enthalten.</string>
+    <string name="exportaccount_attachments_note">Der Tresor wird während des Exportprozesses entsperrt bleiben. Die Anhänge werden in den Daten des Tresors referenziert. Die Anhänge werden niemals in einer unverschlüsselt gespeichert.</string>
+    <string name="exportaccount_include_attachments_title">Anhänge exportieren</string>
     <string name="exportaccount_export_button">Exportieren</string>
+    <string name="exportaccount_export_started">Export gestartet</string>
     <string name="exportaccount_export_success">Export abgeschlossen</string>
+    <string name="exportaccount_export_failure">Export fehlgeschlagen</string>
     <string name="contactus_header_title">Kontaktiere uns</string>
     <string name="contactus_message_label">Ihre Nachricht</string>
     <string name="contactus_english_note">Benutzen Sie Englisch um sicherzustellen, dass Ihr Feedback nicht missverstanden wird.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Fehler beim Laden einer Liste von Abonnements</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Fehler beim Laden einer Liste von Produkten</string>
     <string name="pref_item_premium_status_active">Aktiv</string>
-    <string name="pref_item_premium_status_free_trial">Kostenlose Testphase</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Wird nicht erneuert</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Im Play Store verwalten</string>
     <string name="pref_item_permission_post_notifications_title">Benachrichtigungen</string>

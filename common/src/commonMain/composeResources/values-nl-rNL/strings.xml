@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Zolang u geen onbevoegde toegang vermoedt of malware hebt ontdekt op uw apparaat is het niet nodig om het wachtwoord te wijzigen als u een sterk en uniek wachtwoord gebruikt.</string>
     <string name="exportaccount_header_title">Items exporteren</string>
     <string name="exportaccount_password_label">Wachtwoord voor archief</string>
-    <string name="exportaccount_no_attachments_note">Enkel de kluis items worden geëxporteerd, deze bevatten geen bijlagen.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exporteer</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Exporteren voltooid</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Contacteer ons</string>
     <string name="contactus_message_label">Jouw bericht</string>
     <string name="contactus_english_note">Gebruik Engels om ervoor te zorgen dat je feedback niet verkeerd wordt begrepen.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Fout bij het laden van de lijst met abonnementen</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Fout bij het laden van de lijst met producten</string>
     <string name="pref_item_premium_status_active">Actief</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Wordt niet verlengd</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Beheren in Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Meldingen sturen</string>

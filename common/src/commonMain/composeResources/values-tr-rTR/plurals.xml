@@ -32,4 +32,16 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> gün</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> gün</item>
     </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hafta</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hafta</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ay</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ay</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> yıl</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> yıl</item>
+    </plurals>
 </resources>

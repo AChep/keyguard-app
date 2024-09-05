@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
-    <string name="exportaccount_no_attachments_note">Only vault item information will be exported and will not include associated attachments.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn't get misunderstood.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Failed to load a list of subscriptions</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Failed to load a list of products</string>
     <string name="pref_item_premium_status_active">Active</string>
-    <string name="pref_item_premium_status_free_trial">Free trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Will not renew</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Manage on Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Post notifications</string>

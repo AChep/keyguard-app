@@ -267,6 +267,10 @@
   },
   {
     "domain": "adguard.com",
+    "additional-domains": [
+      "adguard-vpn.com",
+      "adguard-dns.io"
+    ],
     "tfa": [
       "totp"
     ],
@@ -4385,6 +4389,15 @@
     "name": "Vonage"
   },
   {
+    "domain": "deviantart.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.deviantartsupport.com/kb/en/article/what-is-two-factor-authentication-and-how-do-i-enable-or-disable-it",
+    "notes": "2FA can only be setup if you have a Core membership. 2FA setup is required in order to withdraw earnings regardless of membership status",
+    "name": "DeviantArt"
+  },
+  {
     "domain": "dext.com",
     "tfa": [
       "totp"
@@ -5061,6 +5074,15 @@
     ],
     "documentation": "https://www.edwardjones.com/sites/default/files/acquiadam/2020-10/online-access-user-guide-MKT-11935A-A.pdf",
     "name": "Edward Jones"
+  },
+  {
+    "domain": "ee.co.uk",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://ee.co.uk/help/profile/registration-setup/account-authentication",
+    "notes": "Once enabled you cannot disable it again. You can only change the phone number you receive the code on.",
+    "name": "EE"
   },
   {
     "domain": "efirstbank.com",
@@ -12200,6 +12222,14 @@
       "sms"
     ],
     "name": "Prudential Financial"
+  },
+  {
+    "domain": "psnprofiles.com",
+    "tfa": [
+      "totp"
+    ],
+    "notes": "2FA is configured via your linked PSNProfiles forum profile settings.",
+    "name": "PSNProfiles"
   },
   {
     "domain": "psu.edu",

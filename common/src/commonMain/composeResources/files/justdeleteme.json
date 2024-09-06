@@ -1411,6 +1411,19 @@
     "difficulty": "easy"
   },
   {
+    "name": "ASUS",
+    "domains": [
+      "asus.com",
+      "account.asus.com"
+    ],
+    "url": "https://www.asus.com/us/terms_of_use_notice_privacy_policy/privacy_policy/",
+    "difficulty": "hard",
+    "notes": "One must contact customer support via email to request account deletion.",
+    "email": "privacy@asus.com",
+    "email_subject": "Data Deletion Request",
+    "email_body": "Please delete my account registered with this email address."
+  },
+  {
     "name": "ASUS WebStorage",
     "domains": [
       "asuswebstorage.com",
@@ -4098,6 +4111,16 @@
     "notes": "Send a support ticket from the email associated with your account and include the following information: your account username; a screenshot of you logged in to account settings / authors dashboard."
   },
   {
+    "name": "Cursor",
+    "domains": [
+      "cursor.sh",
+      "cursor.com"
+    ],
+    "url": "https://www.cursor.com/settings",
+    "difficulty": "easy",
+    "notes": "Follow the link. Expand the \"Advanced\" section. Click \"Delete Account\"."
+  },
+  {
     "name": "Curve",
     "domains": [
       "curve.app",
@@ -5738,6 +5761,15 @@
     "url": "https://exercism.io/my/settings",
     "difficulty": "easy",
     "notes": "Login and click 'Delete my Account'. Then click again on the next page to confirm deletion."
+  },
+  {
+    "name": "Exophase",
+    "domains": [
+      "exophase.com"
+    ],
+    "url": "https://www.exophase.com/account/removal/",
+    "difficulty": "hard",
+    "notes": "They delete your account in 72 hours and it also includes the forum account attached, but the posts are kept and *not* anonymized. You must keep your connected services attached during this time so they can be fully removed by an admin. Your connected services (Playstation, Xbox etc) also cannot be added to a future account without contacting a staff member."
   },
   {
     "name": "Expedia",
@@ -10640,7 +10672,7 @@
     "notes": "Log-in to your Lyft account on the website and request for deletion. Cannot be done via the app"
   },
   {
-    "name": "M Tag / Appli M",
+    "name": "M R\u00e9so / Appli M",
     "domains": [
       "pass.mobilites-m.fr"
     ],
@@ -12984,14 +13016,17 @@
     "notes": "On settings tab, select the option 'Delete Account' and enter the captcha. After that, you'll receive an e-mail with the confirmation."
   },
   {
-    "name": "OpenAI",
+    "name": "OpenAI / ChatGPT",
     "domains": [
+      "chatgpt.com",
       "openai.com",
-      "chat.openai.com"
+      "privacy.openai.com",
+      "auth.openai.com",
+      "platform.openai.com"
     ],
-    "url": "https://help.openai.com/en/articles/6378407-how-can-i-delete-my-account",
+    "url": "https://chatgpt.com/#settings/DataControls",
     "difficulty": "easy",
-    "notes": "There are two methods: Sign in to ChatGPT, click on settings at the bottom left, click on 'Delete Account', or using OpenAI's help chat."
+    "notes": "Follow the link and under \"Delete account\" click \"Delete\"."
   },
   {
     "name": "OpenCores",
@@ -13210,8 +13245,7 @@
     ],
     "url": "https://www.overleaf.com/user/settings",
     "difficulty": "easy",
-    "notes": "Select 'Delete your account' at the bottom of the account settings page.",
-    "email": "privacy@overleaf.com"
+    "notes": "Select 'Delete your account' at the bottom of the account settings page."
   },
   {
     "name": "Overstock",
@@ -15755,15 +15789,6 @@
     "url": "https://account.shadow.tech/home/security",
     "difficulty": "easy",
     "notes": "Click the \"Delete my shadow account\" at the bottom of the security page. Confirm by clicking yes and enter your password."
-  },
-  {
-    "name": "ShareLaTeX",
-    "domains": [
-      "sharelatex.com"
-    ],
-    "url": "https://www.sharelatex.com/user/settings",
-    "difficulty": "easy",
-    "notes": "Click the \"Delete your account\" at the bottom of the settings page and type \"DELETE\" in the popup box."
   },
   {
     "name": "Sharesome",
@@ -20128,17 +20153,21 @@
       "wordpress.com"
     ],
     "url": "https://wordpress.com/me/account",
-    "difficulty": "easy",
-    "notes": "You can permanently close your WordPress.com account from your Account Settings screen by clicking on 'Close your account permanently'"
+    "difficulty": "medium",
+    "notes": "First cancel any active subscriptions in your account. Then go to Account Settings and click on \"Close your account permanently\"."
   },
   {
     "name": "WordPress.org",
     "domains": [
-      "wordpress.org"
+      "wordpress.org",
+      "WordPress.net",
+      "WordCamp.org",
+      "BuddyPress.org",
+      "bbPress.org"
     ],
-    "url": "https://wordpress.org/about/privacy/data-erasure-request",
-    "difficulty": "impossible",
-    "notes": "You can't delete your \"wordpress.org\" account but you can anonymize your data [https://wordpress.org/support/forum-user-guide/faq/#can-you-delete-my-account](https://wordpress.org/support/forum-user-guide/faq/#can-you-delete-my-account)"
+    "url": "https://wordpress.org/about/privacy/data-erasure-request/",
+    "difficulty": "easy",
+    "notes": "Use the linked form to request account deletion. This will prompt an automatic request for verification of email-address ownership. Once you verify ownership of the email-address, then the account is deleted. Forum activity will be anonymized rather than deleted."
   },
   {
     "name": "workupload",
@@ -20402,6 +20431,17 @@
     "url": "https://www.yris.eu/en/frequently-asked-questions/",
     "difficulty": "medium",
     "notes": "To unsubscribe from YRIS, open the application on your smartphone, log in, go to \"Settings\" (the icon at the bottom right of the main screen), then click on \"Delete my account\". If you are unable to log in, you can request to unsubscribe via the contact form."
+  },
+  {
+    "name": "Yuka",
+    "domains": [
+      "yuka.io",
+      "app.yuka.io",
+      "help.yuka.io"
+    ],
+    "url": "https://app.yuka.io/deleteAccount",
+    "difficulty": "easy",
+    "notes": "After logging in the application, on your mobile device, visit the link and follow the instructions provided."
   },
   {
     "name": "Yummly",

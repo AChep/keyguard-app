@@ -119,6 +119,7 @@ kotlin {
                 api(libs.kotlinx.datetime)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.serialization.cbor)
+                api(libs.kotlinx.serialization.protobuf)
                 api(libs.arrow.arrow.core)
                 api(libs.arrow.arrow.optics)
                 api(libs.kodein.kodein.di)

@@ -197,6 +197,7 @@ class TotpServiceImpl(
             CryptoHashAlgorithm.SHA_1 -> "HmacSHA1"
             CryptoHashAlgorithm.SHA_256 -> "HmacSHA256"
             CryptoHashAlgorithm.SHA_512 -> "HmacSHA512"
+            CryptoHashAlgorithm.MD5 -> "MD5"
         }
         val hash = Mac.getInstance(algorithmName).run {
             init(SecretKeySpec(key, "RAW")) // The hard-coded value 'RAW' is specified in the RFC

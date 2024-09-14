@@ -455,7 +455,7 @@ private fun TotpTextField(
         maxLines = 1,
         trailing = {
             ScanQrButton(
-                onValueChange = state.value.onChange,
+                onValueChange = state.onScanned,
             )
         },
         leading = {

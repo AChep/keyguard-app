@@ -79,6 +79,7 @@ import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
@@ -198,6 +199,7 @@ fun produceAddScreenState(
         getMarkdown = instance(),
         logRepository = instance(),
         clipboardService = instance(),
+        otpMigrationService = instance(),
         cipherUnsecureUrlCheck = instance(),
         showMessage = instance(),
         addCipher = instance(),
@@ -227,6 +229,7 @@ fun produceAddScreenState(
     getMarkdown: GetMarkdown,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
+    otpMigrationService: OtpMigrationService,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     showMessage: ShowMessage,
     addCipher: AddCipher,
@@ -300,6 +303,7 @@ fun produceAddScreenState(
         copyText = copyText,
         getTotpCode = getTotpCode,
         getGravatarUrl = getGravatarUrl,
+        otpMigrationService = otpMigrationService,
     )
     val cardHolder = produceCardState(
         args = args,
@@ -2160,6 +2164,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     copyText: CopyText,
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
+    otpMigrationService: OtpMigrationService,
 ): TmpLogin {
     val prefix = "login"
 
@@ -2328,6 +2333,13 @@ private suspend fun RememberStateFlowScope.produceLoginState(
             AddStateItem.Totp.State(
                 value = value,
                 copyText = copyText,
+                onScanned = { uri ->
+                    val convertedUri = otpMigrationService.handler(uri)
+                        ?.convert(uri)
+                        ?.getOrNull()
+                        ?: uri
+                    state.value = convertedUri
+                },
                 totpToken = totp,
             )
         }

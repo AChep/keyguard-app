@@ -34,7 +34,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
@@ -712,7 +712,7 @@ fun FlatItemLayout2(
         ) {
             if (leading != null) {
                 CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentEnforcement provides false,
+                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
                 ) {
                     leading()
                 }

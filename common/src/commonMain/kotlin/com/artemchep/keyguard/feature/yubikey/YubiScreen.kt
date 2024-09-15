@@ -145,7 +145,7 @@ fun YubiKeyManual(
             label = stringResource(Res.string.verification_code),
             value = fieldState.value,
             keyboardOptions = KeyboardOptions(
-                autoCorrect = true,
+                autoCorrectEnabled = true,
                 keyboardType = KeyboardType.Text,
             ),
         )

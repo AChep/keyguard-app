@@ -226,7 +226,7 @@ fun EmailRelayListScreen(
                         ) { item ->
                             AppItem(
                                 modifier = Modifier
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                                 item = item,
                             )
                         }

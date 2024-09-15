@@ -110,7 +110,7 @@ private fun FeedbackContent(
                     label = stringResource(Res.string.contactus_message_label),
                     value = state.message,
                     keyboardOptions = KeyboardOptions(
-                        autoCorrect = true,
+                        autoCorrectEnabled = true,
                         keyboardType = KeyboardType.Text,
                     ),
                 )

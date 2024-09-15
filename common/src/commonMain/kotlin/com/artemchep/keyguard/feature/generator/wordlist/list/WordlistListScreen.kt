@@ -250,7 +250,7 @@ fun WordlistListScreen(
                         ) { item ->
                             WordlistItem(
                                 modifier = Modifier
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                                 item = item,
                             )
                         }

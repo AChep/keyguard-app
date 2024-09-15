@@ -228,7 +228,7 @@ fun PasskeysListScreen(
                         ) { item ->
                             AppItem(
                                 modifier = Modifier
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                                 item = item,
                             )
                         }

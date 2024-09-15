@@ -57,7 +57,7 @@ class CipherInputStreamDecoder(
         }
 
         val type = buffer[offset].let { byte ->
-            CipherEncryptor.Type.values()
+            CipherEncryptor.Type.entries
                 .first { it.byte == byte }
         }
         return when (type) {

@@ -672,7 +672,7 @@ private fun AttachmentTextField(
         placeholder = "File name",
         value = state.name,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Text,
         ),
         singleLine = true,

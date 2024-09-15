@@ -143,7 +143,7 @@ fun SearchTextField(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done,
-                    autoCorrect = false,
+                    autoCorrectEnabled = false,
                 ),
                 singleLine = true,
             )

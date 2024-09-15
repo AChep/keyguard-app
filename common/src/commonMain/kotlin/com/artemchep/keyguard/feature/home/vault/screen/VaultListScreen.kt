@@ -553,7 +553,7 @@ fun VaultHomeScreenListPane(
                     if (model is VaultItem2.QuickFilters && !tabletUi) {
                         Box(
                             modifier = Modifier
-                                .animateItemPlacement(),
+                                .animateItem(),
                         ) {
                             val arg2 = LocalAppMode.current
                             val llll = remember(state.filters) {
@@ -587,7 +587,7 @@ fun VaultHomeScreenListPane(
                     } else {
                         VaultListItem(
                             modifier = Modifier
-                                .animateItemPlacement(),
+                                .animateItem(),
                             item = model,
                         )
                     }

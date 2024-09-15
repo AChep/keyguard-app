@@ -194,7 +194,7 @@ private fun LogsScreenContent(
         items(items, key = { it.id }) { item ->
             LogItem(
                 modifier = Modifier
-                    .animateItemPlacement(),
+                    .animateItem(),
                 item = item,
             )
         }

@@ -400,7 +400,7 @@ private fun SendScreenContent(
                 ) { model ->
                     VaultSendItemText(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = model,
                     )
                 }

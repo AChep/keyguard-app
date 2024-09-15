@@ -267,7 +267,7 @@ private fun ConfirmationStringItem(
             keyboardOptions = when {
                 item.password ->
                     KeyboardOptions(
-                        autoCorrect = false,
+                        autoCorrectEnabled = false,
                         keyboardType = KeyboardType.Password,
                     )
 

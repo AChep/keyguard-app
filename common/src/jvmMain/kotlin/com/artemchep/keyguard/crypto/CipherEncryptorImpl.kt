@@ -83,7 +83,7 @@ class CipherEncryptorImpl(
             "Cipher-text '$c.???' is not valid!"
         }
         val (cipherTypeRaw, cipherContent) = cipherSeq
-        val cipherType = CipherEncryptor.Type.values()
+        val cipherType = CipherEncryptor.Type.entries
             .firstOrNull { it.type == cipherTypeRaw }
             ?: error("Cipher type $cipherTypeRaw is not supported!")
         val cipherArgs = cipherContent

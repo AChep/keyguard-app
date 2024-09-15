@@ -154,7 +154,7 @@ fun FoldersScreenContent(
                 ) {
                     OrganizationsScreenItem(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = it,
                     )
                 }

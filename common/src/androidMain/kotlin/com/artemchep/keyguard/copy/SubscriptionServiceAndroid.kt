@@ -44,12 +44,12 @@ class SubscriptionServiceAndroid(
     private val billingManager: BillingManager,
 ) : SubscriptionService {
     companion object {
-        private val SkuListSubscription = listOf(
+        private val SkuListSubscription = setOf(
             "premium",
             "premium_3m",
         )
 
-        private val SkuListProduct = listOf(
+        private val SkuListProduct = setOf(
             "premium_lifetime",
         )
     }
@@ -144,7 +144,7 @@ class SubscriptionServiceAndroid(
                         .run {
                             val existingPurchase = receipts
                                 ?.firstOrNull {
-                                    SkuListSubscription.intersect(it.products)
+                                    it.products.intersect(SkuListSubscription)
                                         .isNotEmpty()
                                 }
                             if (existingPurchase != null && it.productId !in existingPurchase.products) {

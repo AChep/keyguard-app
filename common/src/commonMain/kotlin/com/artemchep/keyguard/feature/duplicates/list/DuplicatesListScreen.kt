@@ -214,7 +214,7 @@ fun DuplicatesListScreen(
                 ) { model ->
                     VaultListItem(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = model,
                     )
                 }

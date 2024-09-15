@@ -34,7 +34,7 @@ data class SendListState(
     companion object;
 
     sealed interface Content {
-        companion object
+        companion object;
 
         data object Skeleton : Content
 

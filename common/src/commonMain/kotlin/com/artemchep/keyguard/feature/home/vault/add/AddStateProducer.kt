@@ -2632,7 +2632,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         label = translate(Res.string.card_number),
         initialValue = card?.number,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Number,
         ),
         visualTransformation = GenericSeparatorVisualTransformation(),
@@ -2791,7 +2791,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         initialValue = card?.code,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Number,
         ),
         lens = CreateRequest.card.code,
@@ -3049,7 +3049,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         initialValue = args.autofill?.email ?: identity?.email,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Email,
         ),
         lens = CreateRequest.identity.email,
@@ -3067,7 +3067,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         initialValue = args.autofill?.phone ?: identity?.phone,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Phone,
         ),
         lens = CreateRequest.identity.phone,
@@ -3113,7 +3113,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         initialValue = identity?.passportNumber,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
         ),
         lens = CreateRequest.identity.passportNumber,
     )

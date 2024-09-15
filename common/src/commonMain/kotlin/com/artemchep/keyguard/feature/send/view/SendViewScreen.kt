@@ -237,7 +237,7 @@ fun SendViewScreen(
                 ) { model ->
                     VaultViewItem(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = model,
                     )
                 }

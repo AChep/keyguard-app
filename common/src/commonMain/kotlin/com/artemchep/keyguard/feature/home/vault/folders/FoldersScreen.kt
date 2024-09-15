@@ -162,7 +162,7 @@ fun FoldersScreenContent(
                 ) {
                     FoldersScreenItem(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = it,
                     )
                 }

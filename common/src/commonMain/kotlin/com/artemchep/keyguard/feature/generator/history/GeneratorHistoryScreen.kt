@@ -131,7 +131,7 @@ private fun LazyListScope.populateGeneratorPaneMasterContent(
     items(state.items, key = { it.id }) { item ->
         GeneratorHistoryItem(
             modifier = Modifier
-                .animateItemPlacement(),
+                .animateItem(),
             item = item,
         )
     }

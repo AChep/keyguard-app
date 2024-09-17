@@ -54,7 +54,7 @@ commonsLang3 = "3.17.0"
 # https://github.com/JetBrains/compose-multiplatform
 composeMultiplatform = "1.7.0-beta02"
 # https://github.com/DevSrSouza/compose-icons
-composeOpenIcons = "1.1.0"
+composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.2"
 firebase = "33.3.0"

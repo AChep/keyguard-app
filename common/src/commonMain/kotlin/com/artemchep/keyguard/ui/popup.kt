@@ -3,6 +3,7 @@ package com.artemchep.keyguard.ui
 //import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
@@ -62,7 +63,7 @@ fun WunderPopup(
     }
 
     // Menu open/close animation.
-    val transition = updateTransition(expandedStates, "DropDownMenu")
+    val transition = rememberTransition(expandedStates, "DropDownMenu")
     val alpha by transition.animateFloat(
         transitionSpec = {
             if (false isTransitioningTo true) {

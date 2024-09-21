@@ -2,43 +2,44 @@
 # @keep
 androidMinSdk = "26"
 # @keep
-androidCompileSdk = "34"
+androidCompileSdk = "35"
 # @keep
-androidTargetSdk = "34"
+androidTargetSdk = "35"
 # @keep
 jdk = "17"
 # @keep
-appVersionName = "1.4.1"
+appVersionName = "1.5.2"
 # @keep
 appVersionCode = "6"
 # https://github.com/google/accompanist
-accompanist = "0.34.0"
+accompanist = "0.36.0"
 androidBillingClient = "7.0.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
-androidDesugar = "2.0.4"
+androidDesugar = "2.1.2"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "8.5.1"
-androidxActivity = "1.9.1"
+androidPlugin = "8.6.1"
+androidxActivity = "1.9.2"
 androidxAppCompat = "1.7.0"
-androidxAutofill = "1.3.0-alpha01"
-androidxBaselineProfile = "1.2.4"
 androidxBenchmarkMacroJUnit4 = "1.2.4"
+androidxAutofill = "1.3.0-beta01"
+androidxBaselineProfile = "1.3.1"
+androidxBenchmarkMacroJUnit4 = "1.3.0"
 androidxBiometricKtx = "1.4.0-alpha02"
 androidxBrowser = "1.8.0"
-androidxCamera = "1.4.0-beta02"
+androidxCamera = "1.4.0-rc01"
 androidxCoreKtx = "1.13.1"
-androidxCoreSplash = "1.2.0-alpha01"
+androidxCoreSplash = "1.2.0-alpha02"
 androidxCoreShortcuts = "1.1.0"
 androidxCredentials = "1.2.2"
 androidxDatastore = "1.1.1"
-androidxLifecycle = "2.8.4"
-androidxProfileInstaller = "1.3.1"
+androidxLifecycle = "2.8.6"
+androidxProfileInstaller = "1.4.0"
 androidxRoom = "2.6.1"
 androidxSecurityCryptoKtx = "1.1.0-alpha06"
-androidxTestEspresso = "3.6.0-alpha01"
-androidxTestExtJUnit = "1.2.0-alpha01"
-androidxTestUiAutomator = "2.3.0-alpha05"
-androidxWork = "2.9.0"
+androidxTestEspresso = "3.6.1"
+androidxTestExtJUnit = "1.2.1"
+androidxTestUiAutomator = "2.3.0"
+androidxWork = "2.9.1"
 # https://github.com/harawata/appdirs
 appDirs = "1.2.2"
 # https://github.com/arrow-kt/arrow
@@ -46,18 +47,18 @@ arrow = "1.2.4"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
-buildkonfigPlugin = "0.15.1"
+buildkonfigPlugin = "0.15.2"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
 commonsCodec = "1.17.1"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-commonsLang3 = "3.15.0"
+commonsLang3 = "3.17.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.7.0-alpha02"
+composeMultiplatform = "1.7.0-beta02"
 # https://github.com/DevSrSouza/compose-icons
-composeOpenIcons = "1.1.0"
+composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.2"
-firebase = "33.1.2"
+firebase = "33.3.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
@@ -72,18 +73,18 @@ kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.22.0"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.0.10"
+kotlin = "2.0.20"
 # https://github.com/Kotlin/kotlinx.collections.immutable
-kotlinCollections = "0.3.7"
+kotlinCollections = "0.3.8"
 # https://github.com/Kotlin/kotlinx.coroutines
-kotlinCoroutines = "1.8.1"
+kotlinCoroutines = "1.9.0"
 # https://github.com/Kotlin/kotlinx-datetime
-kotlinDatetime = "0.6.0"
+kotlinDatetime = "0.6.1"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinSerialization = "1.7.1"
+kotlinSerialization = "1.7.2"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.0.10-1.0.24"
+kspPlugin = "2.0.20-1.0.25"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"
@@ -93,7 +94,7 @@ ktlintPlugin = "12.1.1"
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
 ktor = "2.3.12"
 # https://github.com/skydoves/landscapist
-landscapist = "2.3.6"
+landscapist = "2.3.8"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.11.0"
 # https://github.com/tony19/logback-android
@@ -111,17 +112,17 @@ playServicesBase = "18.5.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha01"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "8.0.7"
+signalr = "8.0.8"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.13"
+slf4j = "2.0.16"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.78.1"
 # https://github.com/sqlcipher/sqlcipher-android
-sqlcipherAndroid = "4.6.0"
+sqlcipherAndroid = "4.6.1"
 # https://github.com/cashapp/sqldelight
 sqldelight = "2.0.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
-sqliteJdbcCrypt = "3.46.0.0"
+sqliteJdbcCrypt = "3.46.1.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
@@ -133,7 +134,7 @@ versionsPlugin = "0.51.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
-yubiKit = "2.6.0"
+yubiKit = "2.7.0"
 # https://github.com/srikanth-lingala/zip4j
 zip4j = "2.11.5"
 # https://github.com/nulab/zxcvbn4j
@@ -167,6 +168,7 @@ androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", vers
 androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJUnit" }
 androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
@@ -222,6 +224,7 @@ kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor", version.ref = "kotlinSerialization" }
+kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinSerialization" }
 ktor-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

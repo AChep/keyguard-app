@@ -24,4 +24,13 @@
     <plurals name="days_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g>일</item>
     </plurals>
+    <plurals name="weeks_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g>주</item>
+    </plurals>
+    <plurals name="months_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g>개월</item>
+    </plurals>
+    <plurals name="years_plural">
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g>년</item>
+    </plurals>
 </resources>

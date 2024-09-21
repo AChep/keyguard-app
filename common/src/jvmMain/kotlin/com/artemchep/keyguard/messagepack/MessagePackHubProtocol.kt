@@ -81,7 +81,7 @@ class MessagePackHubProtocol : HubProtocol {
             try {
                 MessagePack.newDefaultUnpacker(payload).use { unpacker ->
                     val itemCount = unpacker.unpackArrayHeader()
-                    val messageType = HubMessageType.values()[unpacker.unpackInt() - 1]
+                    val messageType = HubMessageType.entries[unpacker.unpackInt() - 1]
                     when (messageType) {
                         HubMessageType.INVOCATION -> hubMessages.add(
                             createInvocationMessage(
@@ -545,7 +545,7 @@ class MessagePackHubProtocol : HubProtocol {
                         if (itemClass == Short::class.java || itemClass == Short::class.javaPrimitiveType) {
                             item = item.toShort()
                         } else if (itemClass == Char::class.java || itemClass == Char::class.javaPrimitiveType) {
-                            item = item.toShort().toChar()
+                            item = item.toInt().toChar()
                         } else if (itemClass == Byte::class.java || itemClass == Byte::class.javaPrimitiveType) {
                             item = item.toByte()
                         }

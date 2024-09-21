@@ -10,9 +10,9 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.params.Argon2Parameters
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.util.UUID
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
+import kotlin.uuid.Uuid
 
 class CryptoGeneratorJvm() : CryptoGenerator {
     companion object {
@@ -92,7 +92,7 @@ class CryptoGeneratorJvm() : CryptoGenerator {
         return md.digest()
     }
 
-    override fun uuid(): String = UUID.randomUUID().toString()
+    override fun uuid(): String = Uuid.random().toString()
 
     override fun random(): Int = secureRandom.nextInt()
 

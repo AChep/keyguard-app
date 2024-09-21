@@ -204,7 +204,7 @@ fun EmailRelayListScreen(
                         ) { item ->
                             UrlOverrideItem(
                                 modifier = Modifier
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                                 item = item,
                             )
                         }

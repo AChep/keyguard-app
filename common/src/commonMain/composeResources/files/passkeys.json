@@ -795,6 +795,18 @@
     "created_at": "2024-04-25T10:16:01.030988+00:00"
   },
   {
+    "id": "84686033c8a0f1b4d864c366f03f6078",
+    "name": "Fastmail",
+    "domain": "fastmail.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.fastmail.help/hc/en-us/articles/10351615144335-Passkeys",
+    "setup": "https://app.fastmail.com/settings/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-22T02:00:46.325842+00:00"
+  },
+  {
     "id": "ffedf5be9581c59c6692beadc6bd3353",
     "name": "Finom",
     "domain": "finom.co",
@@ -1488,6 +1500,17 @@
     "created_at": "2023-12-13T17:41:30.823092+00:00"
   },
   {
+    "id": "56ce27b430db4ba495ca5450ecb125b9",
+    "name": "MyGov AU",
+    "domain": "my.gov.au",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://my.gov.au/en/myaccount/settings/sign-in-settings/manage-passkeys",
+    "category": "Government",
+    "created_at": "2023-05-05T10:52:21.615314+00:00"
+  },
+  {
     "id": "7099aaec5857886524b38410f5dcebe6",
     "name": "KEMBA Financial Credit Union",
     "domain": "my.kemba.org",
@@ -1629,6 +1652,18 @@
     "notes": "Passkeys Support can be enabled by an Administrator of a OneLogin environment by enabling the Webauthn authentication factor on a User Security policy which is then allocated to either a group of users or all users in the environment. "
   },
   {
+    "id": "8358d185439587fe430a7b8e5029d010",
+    "name": "Online Scout Manager (OSM)",
+    "domain": "onlinescoutmanager.co.uk",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.onlinescoutmanager.co.uk/main.php",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2024-08-22T12:31:45.186972+00:00",
+    "notes": "Enroll passkeys at: \n\n- Settings > My Account Details > Login Details > Biometrics & Security Keys.   \n\nTo sign in with passkey: \n- Enable One-Tap Log In from this same section.\n\nYou will need to enable the One-Tap Log In from each device you wish to sign in with a passkey. "
+  },
+  {
     "id": "fce676b9097aaab8a7532ecda190b8ba",
     "name": "OnlyFans",
     "domain": "onlyfans.com",
@@ -1664,6 +1699,17 @@
     "category": "Information Technology",
     "created_at": "2023-07-29T16:59:20.073416+00:00",
     "notes": "Outlook uses a Microsoft Account to sign in.\n\nMicrosoft Account's have passkey support:\n\nhttps://passkeys.directory/details/microsoft-account\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+  },
+  {
+    "id": "f6c39603d2c270b9f016f86301d86c40",
+    "name": "Papermark",
+    "domain": "papermark.io",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.papermark.io/settings/general",
+    "category": "Information Technology",
+    "created_at": "2024-08-02T15:50:24.610213+00:00"
   },
   {
     "id": "af97abd5ad298fb6170be7985252a455",
@@ -1941,6 +1987,18 @@
     "setup": "https://app.skiff.com/mail/inbox?settingTab=security",
     "category": "Information Technology",
     "created_at": "2023-04-02T06:36:23.978722+00:00"
+  },
+  {
+    "id": "346e533f75794479922eb69976686668",
+    "name": "Snapchat",
+    "domain": "snapchat.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.snapchat.com/hc/en-us/articles/27317385968532-How-do-I-use-Passkeys-on-Snapchat",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-03-21T21:21:09.645073+00:00",
+    "notes": "1. Tap \u2699\ufe0f in your Profile to open Settings\n2. Scroll down to \u2018My Account\u2019 and find \u2018Passkeys\u2019\n3. Tap \u2018Add Passkey\u2019 and follow the instructions in the app\n"
   },
   {
     "id": "99b12ded197fe076d262078402601076",

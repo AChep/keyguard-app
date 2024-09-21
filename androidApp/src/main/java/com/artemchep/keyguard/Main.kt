@@ -154,7 +154,9 @@ class Main : BaseApp(), DIAware {
                     } else {
                         null
                     }
-                    keyReadWriteRepository.put(persistedSession).bind()
+                    keyReadWriteRepository.put(persistedSession)
+                        .attempt()
+                        .bind()
                 }
                 .collect()
         }
@@ -251,6 +253,7 @@ class Main : BaseApp(), DIAware {
                                 filter = filter,
                             )
                         }
+                        .take(ShortcutManagerCompat.getMaxShortcutCountPerActivity(this@Main))
                     ShortcutManagerCompat.addDynamicShortcuts(this@Main, shortcuts)
                 }
                 .launchIn(this)

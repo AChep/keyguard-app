@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import org.kodein.di.DirectDI
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 class MessageHubImpl() : MessageHub, ShowMessage {
     constructor(directDI: DirectDI) : this()
@@ -21,7 +21,7 @@ class MessageHubImpl() : MessageHub, ShowMessage {
         key: String,
         onMessage: (ToastMessage) -> Unit,
     ): () -> Unit {
-        val id = UUID.randomUUID().toString()
+        val id = Uuid.random().toString()
         val entry = Entry(
             id = id,
             key = key,

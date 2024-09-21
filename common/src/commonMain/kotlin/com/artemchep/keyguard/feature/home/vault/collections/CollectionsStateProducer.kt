@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun collectionsScreenState(
@@ -358,7 +358,7 @@ private class OrganizationDecorator : Decorator {
         lastOrganization = organization
         if (organization != null) {
             val itemKey = if (organization.id in seenOrganizationIds) {
-                val randomId = UUID.randomUUID().toString()
+                val randomId = Uuid.random().toString()
                 "duplicate.$randomId"
             } else {
                 organization.id

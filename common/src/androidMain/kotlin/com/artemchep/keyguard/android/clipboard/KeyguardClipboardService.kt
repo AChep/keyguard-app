@@ -114,7 +114,7 @@ class KeyguardClipboardService : Service(), DIAware {
         ) : Args
 
         @Parcelize
-        object Cancel : Args
+        data object Cancel : Args
     }
 
     private data class CopyValueEvent(

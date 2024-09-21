@@ -151,7 +151,7 @@ fun CollectionsScreenContent(
                 ) {
                     OrganizationsScreenItem(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = it,
                     )
                 }

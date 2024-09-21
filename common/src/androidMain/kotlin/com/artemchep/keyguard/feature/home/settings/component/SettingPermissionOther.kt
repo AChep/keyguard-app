@@ -114,6 +114,7 @@ private fun getPermissionItems(context: Context) = kotlin.run {
 
     val result = info
         .requestedPermissions
+        .orEmpty()
         .mapNotNull { permission ->
             kotlin.runCatching {
                 val permissionInfo = pm.getPermissionInfo(permission, 0)

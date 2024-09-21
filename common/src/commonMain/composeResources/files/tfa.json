@@ -8,6 +8,16 @@
     "name": "101domain"
   },
   {
+    "domain": "123-reg.co.uk",
+    "tfa": [
+      "sms",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://www.123-reg.co.uk/support/my-account/how-do-i-enable-2-step-verification-on-my-account/",
+    "name": "123 Reg"
+  },
+  {
     "domain": "123formbuilder.com",
     "tfa": [
       "totp"
@@ -82,14 +92,6 @@
     ],
     "documentation": "https://knowledgecenter.2checkout.com/Onboarding/Activate-and-set-up-your-2Checkout-account/Two-factor-authentication",
     "name": "2Checkout"
-  },
-  {
-    "domain": "34SP.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://www.34sp.com/kb/142/how-to-enable-two-factor-authentication-on-your-account",
-    "name": "34SP.com"
   },
   {
     "domain": "3commas.io",
@@ -2039,7 +2041,8 @@
     "domain": "booking.com",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "totp"
     ],
     "notes": "Setup requires SMS verification. Email is available via 'other options' at login.",
     "name": "Booking.com"
@@ -2110,7 +2113,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://articles.braintreepayments.com/reference/security/two-factor-authentication",
+    "documentation": "https://developer.paypal.com/braintree/articles/risk-and-security/control-panel-security/two-factor-authentication",
     "name": "Braintree"
   },
   {
@@ -2157,6 +2160,24 @@
     ],
     "documentation": "https://www.brex.com/support/two-factor-authentication",
     "name": "Brex"
+  },
+  {
+    "domain": "broadcom.com",
+    "additional-domains": [
+      "vmware.com"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Okta Verify",
+      "Symantec VIP"
+    ],
+    "documentation": "https://knowledge.broadcom.com/external/article?articleId=216428",
+    "name": "Broadcom"
   },
   {
     "domain": "bsky.app",
@@ -2345,6 +2366,17 @@
     ],
     "documentation": "https://www.bullionvault.com/help/two_factor_auth.html",
     "name": "BullionVault"
+  },
+  {
+    "domain": "bunnings.com.au",
+    "additional-domains": [
+      "bunnings.co.nz"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Bunnings Warehouse"
   },
   {
     "domain": "bunny.net",
@@ -5209,7 +5241,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.market.envato.com/hc/en-us/articles/115005592963",
+    "documentation": "https://help.market.envato.com/hc/articles/115005592963",
     "name": "Envato"
   },
   {
@@ -5400,6 +5432,19 @@
     "documentation": "https://help.evernote.com/hc/en-us/articles/208314238",
     "notes": "SMS and phone call are always enabled as backup methods for TOTP.",
     "name": "Evernote"
+  },
+  {
+    "domain": "everyday.com.au",
+    "additional-domains": [
+      "woolworthsrewards.com.au",
+      "everydayrewards.com.au",
+      "everydayrewards.co.nz"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Everyday Rewards"
   },
   {
     "domain": "exact.com",
@@ -5671,12 +5716,13 @@
     "tfa": [
       "sms",
       "call",
+      "totp",
       "custom-software"
     ],
     "custom-software": [
       "Symantec VIP Access"
     ],
-    "documentation": "https://www.fidelity.com/security/how-two-factor-authentication-works",
+    "documentation": "https://www.fidelity.com/security/extra-security-login",
     "notes": "Specific support varies between account types",
     "name": "Fidelity Investments"
   },
@@ -5890,6 +5936,13 @@
       "totp"
     ],
     "name": "Fly.io"
+  },
+  {
+    "domain": "flybuys.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Flybuys"
   },
   {
     "domain": "fogbugz.com",
@@ -6686,6 +6739,13 @@
     "name": "Hatena"
   },
   {
+    "domain": "hcaptcha.com",
+    "tfa": [
+      "u2f"
+    ],
+    "name": "hCaptcha"
+  },
+  {
     "domain": "he.net",
     "url": "https://www.he.net/",
     "tfa": [
@@ -7096,6 +7156,14 @@
       "totp"
     ],
     "name": "Hostwinds"
+  },
+  {
+    "domain": "hotdoc.com.au",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://help.hotdoc.com.au/hc/articles/9565844108175",
+    "name": "HotDoc"
   },
   {
     "domain": "hotjar.com",
@@ -8462,6 +8530,14 @@
       "totp"
     ],
     "name": "Lenovo"
+  },
+  {
+    "domain": "letsdothis.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://intercom.help/ldt-partner-help/en/articles/9423487",
+    "name": "Let's Do This"
   },
   {
     "domain": "letterboxd.com",
@@ -9992,15 +10068,19 @@
   },
   {
     "domain": "nandos.co.uk",
-    "additional-domains": [
-      "id.nandos.co.uk"
-    ],
     "tfa": [
       "sms",
       "email"
     ],
-    "documentation": "https://help.nandos.co.uk/hc/en-gb/articles/4417183221521",
-    "name": "Nando's UK"
+    "documentation": "https://help.nandos.co.uk/hc/articles/4417183221521",
+    "name": "Nando's [UK]"
+  },
+  {
+    "domain": "nandos.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Nando's [AU]"
   },
   {
     "domain": "nasafcu.com",
@@ -12406,6 +12486,14 @@
       "totp"
     ],
     "name": "Raisin"
+  },
+  {
+    "domain": "raizinvest.com.au",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://raizinvest.com.au/blog/verifying-raiz-account-multifactor-authentication/",
+    "name": "Raiz"
   },
   {
     "domain": "ramnode.com",
@@ -14898,6 +14986,11 @@
   },
   {
     "domain": "telstra.com.au",
+    "additional-domains": [
+      "telstra.com",
+      "bigpond.com",
+      "bigpond.com.au"
+    ],
     "tfa": [
       "sms",
       "email",
@@ -15299,6 +15392,18 @@
     "documentation": "https://www.transip.nl/knowledgebase/artikel/162",
     "notes": "While both the main control panel and STACK support 2FA, each system is separate and requires its own setup.",
     "name": "TransIP"
+  },
+  {
+    "domain": "transperth.wa.gov.au",
+    "tfa": [
+      "sms",
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Transperth app"
+    ],
+    "name": "Transperth"
   },
   {
     "domain": "travala.com",
@@ -15926,6 +16031,19 @@
     "name": "united-domains.de"
   },
   {
+    "domain": "united.com",
+    "tfa": [
+      "email",
+      "sms",
+      "call",
+      "custom-software"
+    ],
+    "custom-software": [
+      "United App"
+    ],
+    "name": "United"
+  },
+  {
     "domain": "uniteddomains.com",
     "additional-domains": [
       "ud.com"
@@ -16303,6 +16421,19 @@
     "name": "Laravel Vapor"
   },
   {
+    "domain": "vaultcord.com",
+    "additional-domains": [
+      "novanode.win"
+    ],
+    "tfa": [
+      "email",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://docs.vaultcord.com/misc/multi-factor-authentication",
+    "name": "VaultCord"
+  },
+  {
     "domain": "vcu.edu",
     "tfa": [
       "custom-software",
@@ -16493,14 +16624,6 @@
     "documentation": "https://vk.com/page-777107_53677752",
     "notes": "SMS is required for TOTP",
     "name": "VK"
-  },
-  {
-    "domain": "vmware.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://kb.vmware.com/s/article/74603",
-    "name": "VMware"
   },
   {
     "domain": "vodafone.co.uk",
@@ -16712,6 +16835,14 @@
     ],
     "documentation": "https://www.watchguard.com/help/docs/help-center/en-US/Content/en-US/my_products/portal_users-manage-mfa.html",
     "name": "WatchGuard"
+  },
+  {
+    "domain": "waveapps.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.waveapps.com/hc/articles/26445936336660",
+    "name": "Wave"
   },
   {
     "domain": "wazirx.com",
@@ -17440,6 +17571,13 @@
     ],
     "documentation": "https://zapier.com/help/two-factor-authentication/",
     "name": "Zapier"
+  },
+  {
+    "domain": "zapsplat.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Zapsplat"
   },
   {
     "domain": "zendesk.com",

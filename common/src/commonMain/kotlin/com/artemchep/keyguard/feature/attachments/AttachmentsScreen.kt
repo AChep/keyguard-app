@@ -139,7 +139,7 @@ fun AttachmentsScreen(
                 items(items, key = { it.key }) { item ->
                     Item(
                         modifier = Modifier
-                            .animateItemPlacement(),
+                            .animateItem(),
                         item = item,
                     )
                 }

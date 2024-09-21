@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 /**
  * A definition of the distinct application component that
@@ -48,7 +48,7 @@ class BackHandler(
         controller: NavigationController,
         backStack: List<NavigationEntry>,
     ): () -> Unit {
-        val id = UUID.randomUUID().toString()
+        val id = Uuid.random().toString()
         eek.value = eek.value.put(
             key = id,
             value = Entry(
@@ -67,7 +67,7 @@ class BackHandler(
         onBack: () -> Unit,
         priority: Int,
     ): () -> Unit {
-        val id = UUID.randomUUID().toString()
+        val id = Uuid.random().toString()
         eek2.value = eek2.value.put(
             key = id,
             value = Entry2(

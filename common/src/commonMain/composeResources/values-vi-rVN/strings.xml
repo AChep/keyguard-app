@@ -847,9 +847,12 @@
     <string name="changepassword_disclaimer_abuse_note">Trừ khi bạn nghi ngờ có sự truy cập trái phép hoặc phát hiện phần mềm độc hại trên thiết bị, không cần phải thay đổi mật khẩu nếu đó là mật khẩu mạnh, duy nhất.</string>
     <string name="exportaccount_header_title">Xuất các mục</string>
     <string name="exportaccount_password_label">Lưu trữ mật khẩu</string>
-    <string name="exportaccount_no_attachments_note">Chỉ thông tin mục kho mới được xuất và sẽ không bao gồm các tệp đính kèm liên quan.</string>
+    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Xuất</string>
+    <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Xuất hoàn tất</string>
+    <string name="exportaccount_export_failure">Export failed</string>
     <string name="contactus_header_title">Liên hệ chúng tôi</string>
     <string name="contactus_message_label">Tin nhắn của bạn</string>
     <string name="contactus_english_note">Sử dụng tiếng Anh để đảm bảo rằng phản hồi của bạn không bị hiểu lầm.</string>
@@ -1005,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Không tải được một danh sách đăng ký</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Không tải được một danh sách sản phẩm</string>
     <string name="pref_item_premium_status_active">Hiệu lực</string>
-    <string name="pref_item_premium_status_free_trial">Dùng thử miễn phí</string>
+    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
     <string name="pref_item_premium_status_will_not_renew">Sẽ không gia hạn</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Quản lý trên Cửa hàng Play</string>
     <string name="pref_item_permission_post_notifications_title">Đăng thông báo</string>

@@ -101,6 +101,7 @@ sealed interface AddStateItem {
         data class State(
             val copyText: CopyText,
             val value: TextFieldModel2,
+            val onScanned: ((String) -> Unit)? = null,
             val totpToken: TotpToken? = null,
         )
     }

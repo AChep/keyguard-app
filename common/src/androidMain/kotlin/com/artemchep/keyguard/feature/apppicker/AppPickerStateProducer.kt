@@ -409,7 +409,7 @@ private fun getApps(
                     ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
                 applicationInfo.flags.and(mask) != 0
             }
-            val label = info.loadLabel(pm)?.toString().orEmpty()
+            val label = info.loadLabel(pm).toString()
             val installTime = packageInfo.firstInstallTime
             AppInfo(
                 packageName = info.activityInfo.packageName,

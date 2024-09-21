@@ -11,7 +11,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 fun settingEmitMessageProvider(
     directDI: DirectDI,
@@ -31,7 +31,7 @@ fun settingEmitMessageProvider(
                 val model = ToastMessage(
                     title = "Test message",
                     type = type,
-                    text = UUID.randomUUID().toString(),
+                    text = Uuid.random().toString(),
                 )
                 showMessage.copy(model)
             },

@@ -455,7 +455,7 @@ private fun TotpTextField(
         maxLines = 1,
         trailing = {
             ScanQrButton(
-                onValueChange = state.value.onChange,
+                onValueChange = state.onScanned,
             )
         },
         leading = {
@@ -672,7 +672,7 @@ private fun AttachmentTextField(
         placeholder = "File name",
         value = state.name,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Text,
         ),
         singleLine = true,

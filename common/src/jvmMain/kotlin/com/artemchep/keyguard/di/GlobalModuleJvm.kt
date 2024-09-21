@@ -16,6 +16,9 @@ import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoPlatformExtractor
+import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
+import com.artemchep.keyguard.common.service.googleauthenticator.impl.OtpMigrationServiceImpl
+import com.artemchep.keyguard.common.service.googleauthenticator.util.OtpMigrationParser
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.service.gpmprivapps.impl.PrivilegedAppsServiceImpl
 import com.artemchep.keyguard.common.service.id.IdRepository
@@ -1197,6 +1200,16 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<JustDeleteMeService> {
         JustDeleteMeServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<OtpMigrationService> {
+        OtpMigrationServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<OtpMigrationParser> {
+        OtpMigrationParser(
             directDI = this,
         )
     }

@@ -5,11 +5,11 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Serializable
 data class BitwardenToken(
-    val id: String = UUID.randomUUID().toString(),
+    val id: String = Uuid.random().toString(),
     val key: Key,
     val token: Token? = null,
     val user: User,

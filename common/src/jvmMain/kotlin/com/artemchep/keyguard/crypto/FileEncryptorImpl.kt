@@ -36,7 +36,7 @@ class FileEncryptorImpl(
         key: ByteArray,
     ): ByteArray {
         val type = data[0].let { byte ->
-            CipherEncryptor.Type.values().first { it.byte == byte }
+            CipherEncryptor.Type.entries.first { it.byte == byte }
         }
 
         return when (type) {

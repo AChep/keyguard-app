@@ -157,12 +157,8 @@ private fun parseTotpAuth(
         keyBase32 = secretParam
     }
     params["algorithm"]?.also { algorithmParam ->
-        val alg = when (algorithmParam.lowercase()) {
-            "sha1" -> CryptoHashAlgorithm.SHA_1
-            "sha256" -> CryptoHashAlgorithm.SHA_256
-            "sha512" -> CryptoHashAlgorithm.SHA_512
-            else -> return@also
-        }
+        val alg = parseHashAlgorithmOrNull(algorithmParam)
+            ?: return@also
         builder.algorithm = alg
     }
 
@@ -201,12 +197,8 @@ private fun parseHotpAuth(
         keyBase32 = secretParam
     }
     params["algorithm"]?.also { algorithmParam ->
-        val alg = when (algorithmParam.lowercase()) {
-            "sha1" -> CryptoHashAlgorithm.SHA_1
-            "sha256" -> CryptoHashAlgorithm.SHA_256
-            "sha512" -> CryptoHashAlgorithm.SHA_512
-            else -> return@also
-        }
+        val alg = parseHashAlgorithmOrNull(algorithmParam)
+            ?: return@also
         builder.algorithm = alg
     }
 
@@ -218,6 +210,14 @@ private fun parseHotpAuth(
         keyBase32 = keyBase32,
         raw = raw,
     )
+}
+
+private fun parseHashAlgorithmOrNull(name: String) = when (name.lowercase()) {
+    "sha1" -> CryptoHashAlgorithm.SHA_1
+    "sha256" -> CryptoHashAlgorithm.SHA_256
+    "sha512" -> CryptoHashAlgorithm.SHA_512
+    "md5" -> CryptoHashAlgorithm.MD5
+    else -> null
 }
 
 private fun parseOtpSteam(

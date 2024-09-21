@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.worker.impl
 
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
@@ -92,7 +93,9 @@ class WrkerImpl(
                         } else {
                             null
                         }
-                        keyReadWriteRepository.put(persistedSession).bind()
+                        keyReadWriteRepository.put(persistedSession)
+                            .attempt()
+                            .bind()
                     }
                     .collect()
             }
@@ -119,7 +122,9 @@ class WrkerImpl(
                         } else {
                             null
                         }
-                        keyReadWriteRepository.put(persistedSession).bind()
+                        keyReadWriteRepository.put(persistedSession)
+                            .attempt()
+                            .bind()
                     }
                     .collect()
             }

@@ -79,6 +79,7 @@ import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
@@ -178,7 +179,7 @@ import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.io.Serializable
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
 @Composable
@@ -198,6 +199,7 @@ fun produceAddScreenState(
         getMarkdown = instance(),
         logRepository = instance(),
         clipboardService = instance(),
+        otpMigrationService = instance(),
         cipherUnsecureUrlCheck = instance(),
         showMessage = instance(),
         addCipher = instance(),
@@ -227,6 +229,7 @@ fun produceAddScreenState(
     getMarkdown: GetMarkdown,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
+    otpMigrationService: OtpMigrationService,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     showMessage: ShowMessage,
     addCipher: AddCipher,
@@ -300,6 +303,7 @@ fun produceAddScreenState(
         copyText = copyText,
         getTotpCode = getTotpCode,
         getGravatarUrl = getGravatarUrl,
+        otpMigrationService = otpMigrationService,
     )
     val cardHolder = produceCardState(
         args = args,
@@ -468,7 +472,7 @@ fun produceAddScreenState(
                         if (info != null) {
                             val model = SkeletonAttachment.Local(
                                 identity = SkeletonAttachment.Local.Identity(
-                                    id = UUID.randomUUID().toString(),
+                                    id = Uuid.random().toString(),
                                     uri = info.uri,
                                     size = info.size,
                                 ),
@@ -1593,7 +1597,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     val initialState = Foo2InitialState(
         items = initial
             .associateBy {
-                UUID.randomUUID().toString()
+                Uuid.random().toString()
             }
             .map { entry ->
                 Foo2InitialState.Item(
@@ -1760,7 +1764,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
     }
 
     fun add(type: String, arg: Argument?) {
-        val key = "$scope.items." + UUID.randomUUID().toString()
+        val key = "$scope.items." + Uuid.random().toString()
         // Remember the argument, so we can grab it and construct something
         // persistent from it.
         if (arg != null) {
@@ -2160,6 +2164,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     copyText: CopyText,
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
+    otpMigrationService: OtpMigrationService,
 ): TmpLogin {
     val prefix = "login"
 
@@ -2328,6 +2333,13 @@ private suspend fun RememberStateFlowScope.produceLoginState(
             AddStateItem.Totp.State(
                 value = value,
                 copyText = copyText,
+                onScanned = { uri ->
+                    val convertedUri = otpMigrationService.handler(uri)
+                        ?.convert(uri)
+                        ?.getOrNull()
+                        ?: uri
+                    state.value = convertedUri
+                },
                 totpToken = totp,
             )
         }
@@ -2620,7 +2632,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         label = translate(Res.string.card_number),
         initialValue = card?.number,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Number,
         ),
         visualTransformation = GenericSeparatorVisualTransformation(),
@@ -2779,7 +2791,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         initialValue = card?.code,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Number,
         ),
         lens = CreateRequest.card.code,
@@ -3037,7 +3049,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         initialValue = args.autofill?.email ?: identity?.email,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Email,
         ),
         lens = CreateRequest.identity.email,
@@ -3055,7 +3067,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         initialValue = args.autofill?.phone ?: identity?.phone,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Phone,
         ),
         lens = CreateRequest.identity.phone,
@@ -3101,7 +3113,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         initialValue = identity?.passportNumber,
         singleLine = true,
         keyboardOptions = KeyboardOptions(
-            autoCorrect = false,
+            autoCorrectEnabled = false,
         ),
         lens = CreateRequest.identity.passportNumber,
     )

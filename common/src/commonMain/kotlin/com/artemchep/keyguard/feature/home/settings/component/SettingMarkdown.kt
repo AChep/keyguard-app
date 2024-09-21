@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TextFormat
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -14,6 +14,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
@@ -86,7 +87,7 @@ private fun SettingMarkdown(
             leading = icon<RowScope>(Icons.Outlined.TextFormat),
             trailing = {
                 CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentEnforcement provides false,
+                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
                 ) {
                     Switch(
                         checked = checked,

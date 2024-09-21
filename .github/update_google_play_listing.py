@@ -52,6 +52,7 @@ language_mapping = {
     'ca-ES': 'ca',
     'vi-VN': 'vi',
     'ar-SA': 'ar',
+    'ro-RO': 'ro',
 }
 
 listing_base = load_listing(language_base)

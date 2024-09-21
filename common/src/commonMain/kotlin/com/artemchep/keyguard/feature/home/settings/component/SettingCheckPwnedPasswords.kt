@@ -2,12 +2,13 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
@@ -60,7 +61,7 @@ private fun SettingCheckPwnedPasswords(
         FlatItem(
             trailing = {
                 CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentEnforcement provides false,
+                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
                 ) {
                     Switch(
                         checked = checked,

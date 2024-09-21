@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.fredporciuncula.flow.preferences.Preference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
@@ -13,6 +14,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class SharedPrefsKeyValuePreference<T : Any>(
+    private val key: String,
+    private val defaultValue: T,
     private val prefFactory: suspend () -> Preference<T>,
 ) : KeyValuePreference<T> {
     private var pref: Preference<T>? = null
@@ -34,6 +37,11 @@ class SharedPrefsKeyValuePreference<T : Any>(
 
     override suspend fun collect(collector: FlowCollector<T>) {
         flowOfPref()
+            // This should never happen. If it does it would crash the
+            // app, so instead we just fall back to the default value.
+            .catch {
+                emit(defaultValue)
+            }
             .distinctUntilChanged()
             .collect(collector)
     }

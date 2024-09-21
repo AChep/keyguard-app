@@ -608,7 +608,7 @@ fun DSecret.gett(
                 return@forEach
             }
 
-            val variant = variants.removeFirst()
+            val variant = variants.removeAt(0)
             val value = get(
                 hint = variant.hint,
                 getTotpCode = getTotpCode,

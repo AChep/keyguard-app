@@ -104,7 +104,7 @@ private fun SyncContent(
             }
             TestK(
                 modifier = Modifier
-                    .animateItemPlacement(),
+                    .animateItem(),
                 item = item,
             )
         }

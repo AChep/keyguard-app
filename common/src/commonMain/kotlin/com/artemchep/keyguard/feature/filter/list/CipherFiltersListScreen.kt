@@ -245,7 +245,7 @@ fun CipherFiltersListScreen(
                         ) { item ->
                             FilterItem(
                                 modifier = Modifier
-                                    .animateItemPlacement(),
+                                    .animateItem(),
                                 item = item,
                             )
                         }

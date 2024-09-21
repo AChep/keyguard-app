@@ -9,7 +9,7 @@ import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun annotatedResource(
@@ -20,7 +20,7 @@ fun annotatedResource(
     // arguments. Later, we will replace those with
     // actual values.
     val placeholders = remember {
-        Array(args.size) { UUID.randomUUID().toString() }
+        Array(args.size) { Uuid.random().toString() }
     }
     val value = stringResource(resource, *placeholders)
     return remember(value) {
@@ -40,7 +40,7 @@ suspend fun TranslatorScope.annotate(
     // arguments. Later, we will replace those with
     // actual values.
     val placeholders =
-        Array(args.size) { UUID.randomUUID().toString() }
+        Array(args.size) { Uuid.random().toString() }
     val value = translate(resource, *placeholders)
     return rebuild(
         value,

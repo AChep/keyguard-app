@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun NavigationRouter(
@@ -295,7 +295,7 @@ private fun NavigationIntentScope.exec(
         val r = intent.route
         val e = NavigationEntryImpl(
             source = "router",
-            id = UUID.randomUUID().toString(),
+            id = Uuid.random().toString(),
             parent = scope,
             route = r,
         )
@@ -308,7 +308,7 @@ private fun NavigationIntentScope.exec(
         val r = intent.route
         val e = NavigationEntryImpl(
             source = "router",
-            id = UUID.randomUUID().toString(),
+            id = Uuid.random().toString(),
             parent = scope,
             route = r,
         )
@@ -343,7 +343,7 @@ private fun NavigationIntentScope.exec(
         val factory = fun(route: Route): NavigationEntry =
             NavigationEntryImpl(
                 source = "router",
-                id = UUID.randomUUID().toString(),
+                id = Uuid.random().toString(),
                 parent = scope,
                 route = route,
             )

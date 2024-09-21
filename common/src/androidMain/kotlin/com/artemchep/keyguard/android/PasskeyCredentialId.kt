@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.android
 
 import java.nio.ByteBuffer
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 object PasskeyCredentialId {
     private const val UUID_SIZE_BYTES = Long.SIZE_BYTES * 2
@@ -11,7 +11,7 @@ object PasskeyCredentialId {
     ): ByteArray {
         val uuid = kotlin
             .runCatching {
-                UUID.fromString(credentialId)
+                Uuid.parse(credentialId)
             }
             // The credential id is not conforming to UUID rules,
             // this is fine for us (although should not happen), we
@@ -20,8 +20,13 @@ object PasskeyCredentialId {
                 return PasskeyBase64.decode(credentialId)
             }
         return ByteBuffer.allocate(UUID_SIZE_BYTES)
-            .putLong(uuid.mostSignificantBits)
-            .putLong(uuid.leastSignificantBits)
+            .apply {
+                uuid.toLongs { m, l ->
+                    putLong(m)
+                    putLong(l)
+                    Unit
+                }
+            }
             .array()
     }
 
@@ -30,7 +35,7 @@ object PasskeyCredentialId {
     ): String {
         if (data.size == UUID_SIZE_BYTES) {
             val bb = ByteBuffer.wrap(data)
-            return UUID(
+            return Uuid.fromLongs(
                 bb.getLong(),
                 bb.getLong(),
             ).toString()

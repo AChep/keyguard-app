@@ -24,7 +24,6 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.common.service.googleauthenticator.model.OtpAuthMigrationData
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -77,9 +76,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
-import kotlinx.serialization.protobuf.schema.ProtoBufSchemaGenerator
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import org.jetbrains.compose.resources.painterResource
@@ -93,11 +89,8 @@ import org.kodein.di.direct
 import org.kodein.di.instance
 import java.security.Security
 import java.util.Locale
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.reflect.KClass
 
-@OptIn(ExperimentalEncodingApi::class)
 fun main() {
     // Add BouncyCastle as the first security provider
     // to make OkHTTP use its TLS instead of a platform
@@ -105,13 +98,6 @@ fun main() {
     // https://github.com/square/okhttp?tab=readme-ov-file#requirements
     Security.insertProviderAt(BouncyCastleProvider(), 1)
     Security.insertProviderAt(BouncyCastleJsseProvider(), 2)
-
-    val g = ProtoBufSchemaGenerator.generateSchemaText(listOf(OtpAuthMigrationData.serializer().descriptor))
-    println("help!")
-    println(g)
-    println("help!")
-    val f = ProtoBuf.decodeFromByteArray<OtpAuthMigrationData>(Base64.decode("Cj4KCpgu67BGYPX7QLkSH01pY3Jvc29mdDphcnRlbWNoZXBAb3V0bG9vay5jb20aCU1pY3Jvc29mdCABKAEwAgoxChRAhdYwy3lUa0se1A2wvpXq5vZnlxIJYXJ0ZW1jaGVwGghGYWNlYm9vayABKAEwAhABGAEgACjeyrmK/f////8B"))
-    println(f)
 
     val kamelConfig = KamelConfig {
         this.takeFrom(KamelConfig.Default)

@@ -1,12 +1,15 @@
 package com.artemchep.keyguard.feature.navigation.state
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.service.state.impl.toSchema
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.util.flow.combineToList
+import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +21,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.IOException
 
 class DiskHandleImpl private constructor(
     private val scope: CoroutineScope,
@@ -50,6 +56,11 @@ class DiskHandleImpl private constructor(
         }
     }
 
+    private class FailedToSerializeScreenStateException(
+        message: String,
+        e: Throwable,
+    ) : IOException(message, e)
+
     private val registrySink = MutableStateFlow(persistentMapOf<String, Flow<Any?>>())
 
     init {
@@ -61,12 +72,32 @@ class DiskHandleImpl private constructor(
                         // key of the variable.
                         value
                             .map { f -> key to f }
+                            .crashlyticsAttempt { e ->
+                                val schema = Json.encodeToString(state.toSchema())
+                                FailedToSerializeScreenStateException(
+                                    message = schema,
+                                    e = e,
+                                )
+                            }
                     }
                     .combineToList()
             }
             .debounce(SAVE_DEBOUNCE_MS) // no need to save all of the events
             .onEach { entries ->
-                val state = entries.toMap()
+                // Start by using the restored state. This is needed because
+                // of this flow:
+                // 1. A user has all of options configured.
+                // 2. A user opens a screen for a super brief moment, that
+                // either loads a different set of options or loads only
+                // a set of all options.
+                // 3. Previous state gets overwritten.
+                val state = restoredState.toMutableMap()
+                entries.forEach { result ->
+                    val entry = result.getOrElse {
+                        return@forEach
+                    }
+                    state[entry.first] = entry.second
+                }
                 val result = tryWrite(state)
                 if (result is Either.Left) {
                     val e = result.value

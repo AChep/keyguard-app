@@ -73,6 +73,27 @@ fun JsonObject.toMap(): Map<String, Any?> = this
         element.extractedContent
     }
 
+fun Any?.toSchema(): JsonElement {
+    return when (this) {
+        null -> JsonNull
+        is String -> JsonPrimitive("string")
+        is Number -> JsonPrimitive("number")
+        is Boolean -> JsonPrimitive("boolean")
+        is Map<*, *> -> {
+            val content = map { (k, v) -> k.toString() to v.toSchema() }
+            JsonObject(content.toMap())
+        }
+
+        is List<*> -> {
+            val content = map { it.toSchema() }
+            JsonArray(content)
+        }
+
+        is JsonElement -> JsonPrimitive(this::class.qualifiedName)
+        else -> JsonPrimitive("unknown:" + this::class.qualifiedName)
+    }
+}
+
 fun Any?.toJson(): JsonElement = when (this) {
     null -> JsonNull
     is String -> JsonPrimitive(this)

@@ -267,6 +267,10 @@
   },
   {
     "domain": "adguard.com",
+    "additional-domains": [
+      "adguard-vpn.com",
+      "adguard-dns.io"
+    ],
     "tfa": [
       "totp"
     ],
@@ -782,6 +786,14 @@
     "documentation": "https://support.apple.com/en-us/HT204915",
     "notes": "U2F requires a minimum of two security keys to be registered.",
     "name": "Apple"
+  },
+  {
+    "domain": "appodeal.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "name": "Appodeal"
   },
   {
     "domain": "appsignal.com",
@@ -1785,13 +1797,6 @@
     ],
     "documentation": "https://helpdesk.bitrix24.com/open/9800171/",
     "name": "Bitrix24"
-  },
-  {
-    "domain": "bitsight.com",
-    "tfa": [
-      "totp"
-    ],
-    "name": "BitSight"
   },
   {
     "domain": "bitski.com",
@@ -4385,6 +4390,15 @@
     "name": "Vonage"
   },
   {
+    "domain": "deviantart.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.deviantartsupport.com/kb/en/article/what-is-two-factor-authentication-and-how-do-i-enable-or-disable-it",
+    "notes": "2FA can only be setup if you have a Core membership. 2FA setup is required in order to withdraw earnings regardless of membership status",
+    "name": "DeviantArt"
+  },
+  {
     "domain": "dext.com",
     "tfa": [
       "totp"
@@ -5061,6 +5075,15 @@
     ],
     "documentation": "https://www.edwardjones.com/sites/default/files/acquiadam/2020-10/online-access-user-guide-MKT-11935A-A.pdf",
     "name": "Edward Jones"
+  },
+  {
+    "domain": "ee.co.uk",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://ee.co.uk/help/profile/registration-setup/account-authentication",
+    "notes": "Once enabled you cannot disable it again. You can only change the phone number you receive the code on.",
+    "name": "EE"
   },
   {
     "domain": "efirstbank.com",
@@ -6100,6 +6123,14 @@
     ],
     "documentation": "https://freewallet.org/blog/2fa-faq",
     "name": "Freewallet"
+  },
+  {
+    "domain": "freshbooks.com",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://www.freshbooks.com/blog/2fa-two-factor-authentication",
+    "name": "FreshBooks"
   },
   {
     "domain": "freshworks.com",
@@ -9241,6 +9272,14 @@
     "name": "MBNA [UK]"
   },
   {
+    "domain": "mcafee.com",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://www.mcafee.com/support/s/article/000002100",
+    "name": "McAfee"
+  },
+  {
     "domain": "mcgill.ca",
     "tfa": [
       "totp",
@@ -10224,6 +10263,18 @@
     "notes": "Non-migrated accounts only have SMS & Email 2FA available.",
     "documentation": "https://support.google.com/googlenest/answer/9295081",
     "name": "Google Nest"
+  },
+  {
+    "domain": "netacad.com",
+    "tfa": [
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://www.cisco.com/c/en/us/about/help/login-account-help.html#~change-password",
+    "name": "Cisco Network Academy"
   },
   {
     "domain": "netbk.co.jp",
@@ -12202,6 +12253,14 @@
     "name": "Prudential Financial"
   },
   {
+    "domain": "psnprofiles.com",
+    "tfa": [
+      "totp"
+    ],
+    "notes": "2FA is configured via your linked PSNProfiles forum profile settings.",
+    "name": "PSNProfiles"
+  },
+  {
     "domain": "psu.edu",
     "tfa": [
       "sms",
@@ -13525,6 +13584,15 @@
     "name": "Sentry"
   },
   {
+    "domain": "serif.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://store.serif.com/help/two-step-verification/",
+    "name": "Affinity"
+  },
+  {
     "domain": "server.nitrado.net",
     "tfa": [
       "totp",
@@ -13700,6 +13768,14 @@
     ],
     "documentation": "https://tech-shu-edu.refined.site/space/PUBLICKBA/2096431118/Guide%20to%20Enrolling%20a%20Device%20in%20Duo",
     "name": "Seton Hall University"
+  },
+  {
+    "domain": "sidequestvr.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "name": "SideQuest"
   },
   {
     "domain": "sign.plus",
@@ -14540,6 +14616,14 @@
     ],
     "documentation": "https://support.substack.com/hc/en-us/articles/4785929336980",
     "name": "Substack"
+  },
+  {
+    "domain": "sucuri.net",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.sucuri.net/billing/two-factor-authentication/",
+    "name": "Sucuri"
   },
   {
     "domain": "sugarsync.com",
@@ -17604,6 +17688,15 @@
     ],
     "documentation": "https://support.zerodha.com/category/your-zerodha-account/login-credentials/login-credentials-of-trading-platforms/articles/time-based-otp-setup",
     "name": "Zerodha Kite"
+  },
+  {
+    "domain": "zillow.com",
+    "tfa": [
+      "sms",
+      "call"
+    ],
+    "documentation": "https://zillow.zendesk.com/hc/articles/360057432754",
+    "name": "Zillow"
   },
   {
     "domain": "zimbra.com",

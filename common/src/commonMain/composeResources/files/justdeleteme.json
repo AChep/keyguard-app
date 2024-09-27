@@ -428,6 +428,15 @@
     "notes": "Just click delete and confirm."
   },
   {
+    "name": "Addicting Games",
+    "domains": [
+      "addictinggames.com"
+    ],
+    "url": "https://addictinggameshelp.zendesk.com/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": " Fill their form for account deletion and they'll contact you again through mail for confirmation before deleting it."
+  },
+  {
     "name": "AddMeFast",
     "domains": [
       "addmefast.com"
@@ -567,6 +576,15 @@
     "url": "https://aiqfome.com/",
     "difficulty": "hard",
     "notes": "Open a ticket on their chat requesting for your account to be deleted. They might reply first asking why, but will then proceed"
+  },
+  {
+    "name": "airBaltic",
+    "domains": [
+      "airbaltic.com"
+    ],
+    "url": "https://www.airbaltic.com/en-GB/club-program-privacy-policy",
+    "difficulty": "hard",
+    "email": "gdpr@airBalticclub.com"
   },
   {
     "name": "Airbnb",
@@ -1411,6 +1429,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "ASUS",
+    "domains": [
+      "asus.com",
+      "account.asus.com"
+    ],
+    "url": "https://privacy.asus.com/pi/global/privacy",
+    "difficulty": "easy",
+    "notes": "Go to the website, select your type of account and select which data you want to remove."
+  },
+  {
     "name": "ASUS WebStorage",
     "domains": [
       "asuswebstorage.com",
@@ -1711,6 +1739,18 @@
     "difficulty": "hard",
     "notes": "If you are protected under the GDPR or CCPA, complete the linked form. Otherwise, you must send an email.",
     "email": "privacy_babycenter@everydayhealth.com"
+  },
+  {
+    "name": "back4app",
+    "domains": [
+      "back4app.com",
+      "blog.back4app.com",
+      "dashboard.back4app.com",
+      "help.back4app.com"
+    ],
+    "url": "https://help.back4app.com/hc/en-us/articles/4423268883597",
+    "difficulty": "hard",
+    "notes": "[Delete all apps from your dashboard](https://help.back4app.com/hc/en-us/articles/115000755572), then [create a Support ticket](https://help.back4app.com/hc/en-us/requests/new) and ask them to delete your account."
   },
   {
     "name": "Backblaze",
@@ -3599,9 +3639,9 @@
     "domains": [
       "cohost.org"
     ],
-    "url": "https://help.antisoftware.club/support/solutions/articles/62000225460-how-do-i-delete-a-page-my-account-",
-    "difficulty": "hard",
-    "notes": "Contact support from the email associated with your account and ask for your account to be deleted.",
+    "url": "https://cohost.org/rc/user/settings",
+    "difficulty": "easy",
+    "notes": "Click settings on the left, scroll to the bottom of the page, confirm your email address and password, and wait for 3 days. Accounts can be deleted faster than the default 3 days by emailing Cohost.",
     "email": "support@cohost.org"
   },
   {
@@ -4096,6 +4136,16 @@
     "url": "https://support.curseforge.com/en/support/tickets/new",
     "difficulty": "hard",
     "notes": "Send a support ticket from the email associated with your account and include the following information: your account username; a screenshot of you logged in to account settings / authors dashboard."
+  },
+  {
+    "name": "Cursor",
+    "domains": [
+      "cursor.sh",
+      "cursor.com"
+    ],
+    "url": "https://www.cursor.com/settings",
+    "difficulty": "easy",
+    "notes": "Follow the link. Expand the \"Advanced\" section. Click \"Delete Account\"."
   },
   {
     "name": "Curve",
@@ -5740,6 +5790,15 @@
     "notes": "Login and click 'Delete my Account'. Then click again on the next page to confirm deletion."
   },
   {
+    "name": "Exophase",
+    "domains": [
+      "exophase.com"
+    ],
+    "url": "https://www.exophase.com/account/removal/",
+    "difficulty": "hard",
+    "notes": "They delete your account in 72 hours and it also includes the forum account attached, but the posts are kept and *not* anonymized. You must keep your connected services attached during this time so they can be fully removed by an admin. Your connected services (Playstation, Xbox etc) also cannot be added to a future account without contacting a staff member."
+  },
+  {
     "name": "Expedia",
     "domains": [
       "expedia.com",
@@ -7145,6 +7204,19 @@
     "url": "https://help.glassdoor.com/s/privacyrequest",
     "difficulty": "hard",
     "notes": "Fill out the form on the linked page. Under the field \"What is your personal data request?\", select \"Delete my personal data\". You will be asked to verify your email and then your account will be deleted within 30 days."
+  },
+  {
+    "name": "Glide (UK)",
+    "domains": [
+      "glidestudent.co.uk",
+      "studentglide.co.uk",
+      "glide.co.uk"
+    ],
+    "url": "https://prearrival.glidestudent.co.uk/privacy-policy",
+    "difficulty": "hard",
+    "email": "dpo@glide.co.uk",
+    "email_subject": "Data Deletion Request",
+    "email_body": "Please delete my account and data registered with this email address."
   },
   {
     "name": "Glitch",
@@ -8607,6 +8679,15 @@
     "notes": "Visit the linked page. Select the 'Privacy' tab, scroll down, click \"Delete Account, Files, and Data\" then confirm your password."
   },
   {
+    "name": "Iceland",
+    "domains": [
+      "iceland.co.uk"
+    ],
+    "url": "https://www.iceland.co.uk/privacy-policy",
+    "difficulty": "hard",
+    "email": "dataprotection@iceland.co.uk"
+  },
+  {
     "name": "Icontem",
     "domains": [
       "icontem.com",
@@ -8776,6 +8857,18 @@
     "url": "https://www.impots.gouv.fr/",
     "difficulty": "impossible",
     "notes": "Your account depends on your fiscal number, you cannot delete it."
+  },
+  {
+    "name": "Incogni",
+    "domains": [
+      "incogni.com"
+    ],
+    "url": "https://incogni.com/",
+    "difficulty": "hard",
+    "notes": "Must email Customer Support to delete account. No official help documentation exists for account deletion.",
+    "email": "support@incogni.com",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Hello,\n\nI am requesting the deletion of my Incogni account and information associated with this email. I would also like to withdraw the consent given in the Authorization Form.\n\nI understand that by terminating my account I will lose any remaining time on my current subscription and I wish to proceed anyway.\n\nThanks."
   },
   {
     "name": "Indeed",
@@ -9403,6 +9496,15 @@
     ],
     "url": "https://jstris.jezevec10.com/settings/delete-account",
     "difficulty": "easy"
+  },
+  {
+    "name": "Just Giving",
+    "domains": [
+      "justgiving.com"
+    ],
+    "url": "https://help.justgiving.com/hc/en-us/articles/200670321-How-do-I-delete-my-account",
+    "difficulty": "hard",
+    "notes": "Must contact customer support to delete account"
   },
   {
     "name": "Kaggle",
@@ -10593,6 +10695,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "LuminPDF",
+    "domains": [
+      "luminpdf.com",
+      "status.luminpdf.com"
+    ],
+    "url": "https://account.luminpdf.com/profile-settings",
+    "difficulty": "easy",
+    "notes": "Go to profile settings and under Account click 'Delete My Account' button"
+  },
+  {
     "name": "Lumosity",
     "domains": [
       "lumosity.com"
@@ -10630,6 +10742,16 @@
     "notes": "Log in to Lutris, then click on the linked page and scroll down to the 'Delete my account.' button."
   },
   {
+    "name": "Lyconet",
+    "domains": [
+      "lyconet.com"
+    ],
+    "url": "https://www.lyconet.com/",
+    "difficulty": "hard",
+    "notes": "Send an email requesting account deletion.",
+    "email": "data.protection@lyconet.com"
+  },
+  {
     "name": "Lyft",
     "domains": [
       "lyft.com",
@@ -10640,7 +10762,7 @@
     "notes": "Log-in to your Lyft account on the website and request for deletion. Cannot be done via the app"
   },
   {
-    "name": "M Tag / Appli M",
+    "name": "M R\u00e9so / Appli M",
     "domains": [
       "pass.mobilites-m.fr"
     ],
@@ -12062,6 +12184,19 @@
     "difficulty": "easy"
   },
   {
+    "name": "myWorld",
+    "domains": [
+      "myworld.com",
+      "corporate.myworld.com",
+      "partner.myworld.com",
+      "partnerapp.myworld.com"
+    ],
+    "url": "https://www.myworld.com/",
+    "difficulty": "hard",
+    "notes": "Send an email requesting account deletion.",
+    "email": "data.protection@myworld.com"
+  },
+  {
     "name": "M\u00e9liuz",
     "domains": [
       "meliuz.com.br"
@@ -12984,14 +13119,17 @@
     "notes": "On settings tab, select the option 'Delete Account' and enter the captcha. After that, you'll receive an e-mail with the confirmation."
   },
   {
-    "name": "OpenAI",
+    "name": "OpenAI / ChatGPT",
     "domains": [
+      "chatgpt.com",
       "openai.com",
-      "chat.openai.com"
+      "privacy.openai.com",
+      "auth.openai.com",
+      "platform.openai.com"
     ],
-    "url": "https://help.openai.com/en/articles/6378407-how-can-i-delete-my-account",
+    "url": "https://chatgpt.com/#settings/DataControls",
     "difficulty": "easy",
-    "notes": "There are two methods: Sign in to ChatGPT, click on settings at the bottom left, click on 'Delete Account', or using OpenAI's help chat."
+    "notes": "Follow the link and under \"Delete account\" click \"Delete\"."
   },
   {
     "name": "OpenCores",
@@ -13032,6 +13170,15 @@
     "difficulty": "impossible",
     "notes": "In order to delete your OpenFoodFacts account, you need to fill out the form and send an email. Though there is a form to delete your OpenFoodFacts account, it seems no one is tending to it.",
     "email": "contact@openfoodfacts.org"
+  },
+  {
+    "name": "OpenGuessr",
+    "domains": [
+      "openguessr.com"
+    ],
+    "url": "https://openguessr.com/",
+    "difficulty": "easy",
+    "notes": "Log in, click on your username at the top of the page, select 'Delete Acccount' under 'Account Management'."
   },
   {
     "name": "OpenInvest",
@@ -13210,8 +13357,7 @@
     ],
     "url": "https://www.overleaf.com/user/settings",
     "difficulty": "easy",
-    "notes": "Select 'Delete your account' at the bottom of the account settings page.",
-    "email": "privacy@overleaf.com"
+    "notes": "Select 'Delete your account' at the bottom of the account settings page."
   },
   {
     "name": "Overstock",
@@ -15757,15 +15903,6 @@
     "notes": "Click the \"Delete my shadow account\" at the bottom of the security page. Confirm by clicking yes and enter your password."
   },
   {
-    "name": "ShareLaTeX",
-    "domains": [
-      "sharelatex.com"
-    ],
-    "url": "https://www.sharelatex.com/user/settings",
-    "difficulty": "easy",
-    "notes": "Click the \"Delete your account\" at the bottom of the settings page and type \"DELETE\" in the popup box."
-  },
-  {
     "name": "Sharesome",
     "domains": [
       "sharesome.com"
@@ -15992,6 +16129,15 @@
     "url": "https://www.simpleplanes.com/Account/DeleteAccount",
     "difficulty": "easy",
     "notes": "Login to your account, open your profile page and follow these steps: click 'Manage Account' \u2b95 click 'Close Account' \u2b95 click 'OK' \u2b95 type 'CLOSE' \u2b95 click 'CLOSE' \u2b95 click 'OK'. Using the link from here also skips every step before \"type 'CLOSE'\"."
+  },
+  {
+    "name": "Simply Plural",
+    "domains": [
+      "app.apparyllis.com"
+    ],
+    "url": "https://app.apparyllis.com/#/Settings/Account/UserSettings",
+    "difficulty": "easy",
+    "notes": "On your settings page, go to \"Account\" \u2b95 \"Account Settings\", Scroll down to \"Danger zone\" and click on \"Delete Account\""
   },
   {
     "name": "SitePoint",
@@ -16221,7 +16367,8 @@
       "sncf-connect.com",
       "tgvinoui.sncf",
       "ouigo.com",
-      "monidentifiant.sncf"
+      "monidentifiant.sncf",
+      "abonnement-regional.sncf"
     ],
     "url": "https://www.sncf-connect.com/en-en/help/your-customer-account",
     "difficulty": "easy",
@@ -17878,8 +18025,8 @@
       "tlauncher.org"
     ],
     "url": "https://tlauncher.org/en/how-remove-tl-account.html",
-    "difficulty": "impossible",
-    "notes": "They say they are working on it but planned to support it in March 2023. Sending an email leads to nothing"
+    "difficulty": "limited",
+    "notes": "They say they are working on it but planned to support it in March 2023. Sending an email leads to nothing. Contanting TLauncher administration regarding account deletion and possibly involving your country privacy laws through the Discord server is possible."
   },
   {
     "name": "Todo Cloud",
@@ -20128,17 +20275,21 @@
       "wordpress.com"
     ],
     "url": "https://wordpress.com/me/account",
-    "difficulty": "easy",
-    "notes": "You can permanently close your WordPress.com account from your Account Settings screen by clicking on 'Close your account permanently'"
+    "difficulty": "medium",
+    "notes": "First cancel any active subscriptions in your account. Then go to Account Settings and click on \"Close your account permanently\"."
   },
   {
     "name": "WordPress.org",
     "domains": [
-      "wordpress.org"
+      "wordpress.org",
+      "WordPress.net",
+      "WordCamp.org",
+      "BuddyPress.org",
+      "bbPress.org"
     ],
-    "url": "https://wordpress.org/about/privacy/data-erasure-request",
-    "difficulty": "impossible",
-    "notes": "You can't delete your \"wordpress.org\" account but you can anonymize your data [https://wordpress.org/support/forum-user-guide/faq/#can-you-delete-my-account](https://wordpress.org/support/forum-user-guide/faq/#can-you-delete-my-account)"
+    "url": "https://wordpress.org/about/privacy/data-erasure-request/",
+    "difficulty": "easy",
+    "notes": "Use the linked form to request account deletion. This will prompt an automatic request for verification of email-address ownership. Once you verify ownership of the email-address, then the account is deleted. Forum activity will be anonymized rather than deleted."
   },
   {
     "name": "workupload",
@@ -20402,6 +20553,17 @@
     "url": "https://www.yris.eu/en/frequently-asked-questions/",
     "difficulty": "medium",
     "notes": "To unsubscribe from YRIS, open the application on your smartphone, log in, go to \"Settings\" (the icon at the bottom right of the main screen), then click on \"Delete my account\". If you are unable to log in, you can request to unsubscribe via the contact form."
+  },
+  {
+    "name": "Yuka",
+    "domains": [
+      "yuka.io",
+      "app.yuka.io",
+      "help.yuka.io"
+    ],
+    "url": "https://app.yuka.io/deleteAccount",
+    "difficulty": "easy",
+    "notes": "After logging in the application, on your mobile device, visit the link and follow the instructions provided."
   },
   {
     "name": "Yummly",

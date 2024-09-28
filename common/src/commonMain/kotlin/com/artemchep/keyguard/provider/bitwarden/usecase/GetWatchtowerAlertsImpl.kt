@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
@@ -40,10 +41,12 @@ class GetWatchtowerAlertsImpl(
                         .mapNotNull { item ->
                             val type = DWatchtowerAlertType.of(item.type)
                                 ?: return@mapNotNull null
+                            val accountId = AccountId(item.accountId!!)
                             val cipherId = CipherId(item.cipherId)
                             DWatchtowerAlert(
                                 alertId = item.cipherId + "|" + item.type,
                                 cipherId = cipherId,
+                                accountId = accountId,
                                 type = type,
                                 reportedAt = item.reportedAt,
                                 read = item.read,

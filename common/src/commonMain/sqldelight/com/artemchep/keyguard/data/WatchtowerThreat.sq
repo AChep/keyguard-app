@@ -59,11 +59,12 @@ markAsRead {
 }
 
 getThreats:
-SELECT *
+SELECT watchtowerThreat.*, cipher.accountId AS accountId
 FROM watchtowerThreat
+LEFT JOIN cipher ON cipher.cipherId = watchtowerThreat.cipherId
 WHERE
-  threat > 0
-ORDER BY reportedAt DESC;
+  watchtowerThreat.threat > 0
+ORDER BY watchtowerThreat.reportedAt DESC;
 
 getPendingCipherIds:
 SELECT DISTINCT

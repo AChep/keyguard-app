@@ -929,10 +929,10 @@ fun vaultListScreenState(
                         },
                     )
                     val indexed = mutableListOf<SearchToken>()
-                    indexed += SearchToken(
-                        priority = 2f,
-                        value = secret.name,
-                    )
+                    //indexed += SearchToken(
+                    //    priority = 2f,
+                    //    value = secret.name,
+                    //)
                     if (secret.login != null) {
                         // Make username searchable
                         if (secret.login.username != null) {
@@ -2005,7 +2005,8 @@ private suspend fun List<IndexedModel<VaultItem2.Item>>.search(
                         source = x.tokens,
                         query = queryComponents,
                     )
-                }.div(it.indexedOther.size.coerceAtLeast(1))
+                }
+                .div(it.indexedOther.size.coerceAtLeast(1))
             val r = it.indexedText.find(
                 query = query,
                 colorBackground = highlightBackgroundColor,
@@ -2014,15 +2015,24 @@ private suspend fun List<IndexedModel<VaultItem2.Item>>.search(
             if (r == null && q <= 0.0001f) {
                 return@parallelSearch null
             }
+            // Slightly prefer favorite items, but by a very small
+            // margin. The idea is that favorite items are show on top
+            // anyway, so if a user is using the search, then he probably
+            // searches for something other than the favorite items.
+            val favoriteScoreModifier = if (it.model.favourite) 1.35f else 1f
+            val finalScore = if (r != null) {
+                r.score + r.score * q / 10f
+            } else {
+                q / 15f
+            } * favoriteScoreModifier
             FilteredModel(
                 model = it.model,
-                score = q + (r?.score ?: 0f),
+                score = finalScore,
                 result = r,
             )
         }
             .sortedWith(
                 compareBy(
-                    { !it.model.favourite },
                     { -it.score },
                 ),
             )

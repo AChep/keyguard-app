@@ -54,7 +54,7 @@ fun IndexedText.find(
         return null
     }
 
-    var x = query.components.map { false }.toMutableList()
+    val x = MutableList(query.components.size) { false }
 
     var score = 0f
     val text = buildAnnotatedString {
@@ -77,14 +77,20 @@ fun IndexedText.find(
                     return@forEachIndexed
                 }
 
-                val queryPositionScore = 1f - i.toFloat() / comp.lowercase.length.toFloat()
-                val queryLengthScore =
-                    queryComp.lowercase.length.toFloat() / comp.lowercase.length.toFloat()
-                val s = 0f +
-                        queryPositionScore +
+                // We want to prefer results that start with a given query
+                val queryPositionScore = if (i == 0) { // starts with a query
+                    1f
+                } else {
+                    val penalty = 0.25f
+                    val ratio = i.toFloat() / comp.lowercase.length.toFloat()
+                    (1f - penalty) * (1f - ratio)
+                }
+                val queryLengthScore = queryComp.lowercase.length.toFloat()
+                val totalScore = 0f +
+                        queryPositionScore *
                         queryLengthScore
-                if (s > max) {
-                    max = s
+                if (totalScore > max) {
+                    max = totalScore
                     // remember the position of the match, so we can draw it.
                     start = i
                     end = i + queryComp.lowercase.length
@@ -104,19 +110,21 @@ fun IndexedText.find(
                     end = offset + end,
                 )
             }
-            score += max *
-                    // We want to prioritize when the component starts with
-                    // a given query.
-                    ((1f - compIndex.toFloat() / components.size.toFloat()) / 5f + 0.8f)
+
+            val componentPositionScoreModifier = kotlin.run {
+                val compIndexNormalized = compIndex.toFloat() / components.size.toFloat()
+                (1f - compIndexNormalized) * 0.5f + 0.5f
+            }
+            score += max * componentPositionScoreModifier
         }
 
-        if (score < 0.01f || !x.all { it } && requireAll) return null
+        if (score < 0.01f || requireAll && !x.all { it }) return null
     }
 
     return IndexedText.FindResult(
         text = this.text,
         components = this.components,
         highlightedText = text,
-        score = score / components.size.toFloat(),
+        score = score / this.text.length.toFloat(),
     )
 }

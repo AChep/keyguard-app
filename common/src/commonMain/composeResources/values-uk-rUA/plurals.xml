@@ -49,21 +49,21 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> днів</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> тиждень</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> тижня</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> тижнів</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> тижня</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> місяць</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> місяця</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> місяців</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> місяця</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> рік</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> роки</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> років</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> років</item>
     </plurals>
 </resources>

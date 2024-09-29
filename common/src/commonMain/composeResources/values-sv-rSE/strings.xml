@@ -123,9 +123,9 @@
     <string name="identity_middle_name">Mellannamn</string>
     <string name="identity_last_name">Efternamn</string>
     <string name="identity_full_name">Fullständigt namn</string>
-    <string name="address1">Address line 1</string>
-    <string name="address2">Address line 2</string>
-    <string name="address3">Address line 3</string>
+    <string name="address1">Adressrad 1</string>
+    <string name="address2">Adressrad 2</string>
+    <string name="address3">Adressrad 3</string>
     <string name="rename">Rename</string>
     <string name="deletion_date">Deletion date</string>
     <string name="deletion_date_custom">Custom</string>
@@ -136,11 +136,11 @@
     <string name="select_file">Välj en fil</string>
     <string name="autofill">Autofyll</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
+    <string name="passkey">Nyckel</string>
+    <string name="passkey_create_header">Skapa en nyckel</string>
+    <string name="passkey_unlock_header">Lås upp Keyguard</string>
     <string name="passkey_auth_via_header">Confirming auth request…</string>
-    <string name="passkeys">Passkeys</string>
+    <string name="passkeys">Nycklar</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
@@ -171,7 +171,7 @@
     <string name="one_time_password">Engångslösenord</string>
     <string name="one_time_password_authenticator_key">Autentiseringsnyckel</string>
     <string name="passkey_use_short">Use</string>
-    <string name="passkey_save">Save passkey</string>
+    <string name="passkey_save">Spara nyckel</string>
     <string name="passkey_available">Passkey available</string>
     <string name="twofa_available">Two-factor authentication available</string>
     <string name="custom">Custom</string>
@@ -233,7 +233,7 @@
     <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
     <string name="account_action_tfa_title">Tvåfaktorsautentisering</string>
     <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
-    <string name="account_action_tfa_active_status">Active</string>
+    <string name="account_action_tfa_active_status">Aktiv</string>
     <string name="account_action_items_title">Objekt</string>
     <string name="account_action_log_out_title">Logga ut</string>
     <string name="account_log_out_confirmation_title">Logga ut?</string>
@@ -378,7 +378,7 @@
     <string name="copy_username">Kopiera användarnamn</string>
     <string name="copy_email">Copy email</string>
     <string name="copy_phone_number">Kopiera telefonnummer</string>
-    <string name="copy_passport_number">Copy passport number</string>
+    <string name="copy_passport_number">Kopiera passnummer</string>
     <string name="copy_license_number">Copy license number</string>
     <string name="copy_card_number">Kopiera kortnummer</string>
     <string name="copy_cardholder_name">Kopiera kortinnehavarens namn</string>
@@ -509,7 +509,7 @@
     <string name="tfa_directory_title">Tvåfaktorsautentisering</string>
     <string name="tfa_directory_text">Lista över webbplatser med stöd för tvåfaktorsautentisering</string>
     <string name="tfa_directory_search_placeholder">Search websites</string>
-    <string name="passkeys_directory_title">Passkeys</string>
+    <string name="passkeys_directory_title">Nycklar</string>
     <string name="passkeys_directory_text">List of websites with passkeys support</string>
     <string name="passkeys_directory_search_placeholder">Search websites</string>
     <!-- Title of the 'Email data breach' dialog -->
@@ -668,7 +668,7 @@
     <string name="cipher_type_card">Kort</string>
     <string name="cipher_type_identity">Identitet</string>
     <string name="cipher_type_note">Anteckning</string>
-    <string name="cipher_type_passkey">Passkey</string>
+    <string name="cipher_type_passkey">Nyckel</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Boolean</string>
     <string name="field_type_linked">Länkad</string>
@@ -820,7 +820,7 @@
     <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Webbplatser som har tvåfaktorsautentisering tillgänglig men som du inte har konfigurerat än.</string>
-    <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
+    <string name="watchtower_item_inactive_passkey_title">Tillgängliga nycklar</string>
     <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure then a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
     <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>

@@ -49,21 +49,21 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dní</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> týden</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> týdny</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> týdnů</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> týdnů</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> měsíc</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> měsíce</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> měsíců</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> měsíců</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> rok</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> roky</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> let</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> let</item>
     </plurals>
 </resources>

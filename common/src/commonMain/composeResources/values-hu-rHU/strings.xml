@@ -827,7 +827,7 @@
     <string name="watchtower_item_expiring_items_title">Lejáró elemek</string>
     <string name="watchtower_item_expiring_items_text">Lejárt vagy hamarosan lejáró elemek.</string>
     <string name="watchtower_item_duplicate_websites_title">Ismétlődő URI-k</string>
-    <string name="watchtower_item_duplicate_websites_text">Items that have one or more URIs that cover the same websites after applying the match detection.</string>
+    <string name="watchtower_item_duplicate_websites_text">Olyan elemek, amelyek egy vagy több olyan URI-vel rendelkeznek, amelyek ugyanazokat a webhelyeket fedik le az egyezésészlelés alkalmazása után.</string>
     <string name="watchtower_item_trashed_items_title">Lomtárba helyezett elemek</string>
     <string name="watchtower_item_trashed_items_text">A lomtárba helyezett elemek. Ha túl sok elem van a lomtárban, lelassulhat a széf működése.</string>
     <string name="watchtower_item_empty_folders_title">Üres Mappák</string>
@@ -1008,7 +1008,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Nem sikerült betölteni az előfizetések listáját</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Nem sikerült betölteni a termékek listáját</string>
     <string name="pref_item_premium_status_active">Aktív</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Ingyenes <xliff:g id="period" example="1 month">%1$s</xliff:g> próbaidőszak</string>
     <string name="pref_item_premium_status_will_not_renew">Nem fog megújulni</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Kezelés a Play Áruházban</string>
     <string name="pref_item_permission_post_notifications_title">Értesítések közzététele</string>

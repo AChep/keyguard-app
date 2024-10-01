@@ -8,12 +8,11 @@ import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.artemchep.keyguard.android.downloader.ExportManagerImpl
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
@@ -21,14 +20,11 @@ import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.copy.QueueSyncAllAndroid
 import com.artemchep.keyguard.copy.QueueSyncByIdAndroid
 import com.artemchep.keyguard.core.store.DatabaseManager
-import com.artemchep.keyguard.core.store.DatabaseManagerAndroid
 import com.artemchep.keyguard.core.store.DatabaseManagerImpl
 import com.artemchep.keyguard.core.store.SqlHelper
 import com.artemchep.keyguard.core.store.SqlManager
 import com.artemchep.keyguard.data.Database
-import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
-import com.artemchep.keyguard.room.RoomMigrationException
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import org.kodein.di.DI
@@ -56,26 +52,10 @@ actual fun DI.Builder.createSubDi(
         NotificationsImpl(this)
     }
     bindSingleton<DatabaseManager> {
-        val downloadDb = instance<DownloadDatabaseManager>()
-        val roomDb = DatabaseManagerAndroid(
-            applicationContext = instance(),
-            json = instance(),
-            name = "database",
-            masterKey = masterKey,
-        )
         val sqlManager: SqlManager = SqlManagerFile2(
             context = instance<Application>(),
             onCreate = { database ->
-                roomDb
-                    .migrateIfExists(database)
-                    .flatMap {
-                        downloadDb.migrateIfExists(database)
-                    }
-                    // Log this exception, it's important to see how the migration
-                    // process goes. It's okay if it fails, but not great.
-                    .crashlyticsTap { e ->
-                        RoomMigrationException(e)
-                    }
+                ioUnit()
             },
         )
 

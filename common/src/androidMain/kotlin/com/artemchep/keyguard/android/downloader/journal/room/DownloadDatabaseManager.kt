@@ -3,17 +3,11 @@ package com.artemchep.keyguard.android.downloader.journal.room
 import android.content.Context
 import android.database.SQLException
 import androidx.room.Room
-import androidx.room.withTransaction
-import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.retry
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.usecase.DeviceEncryptionKeyUseCase
-import com.artemchep.keyguard.data.Database
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
@@ -70,27 +64,4 @@ class DownloadDatabaseManager(
                 block(db)
             }
         }
-
-    fun migrateIfExists(
-        sqld: Database,
-    ): IO<Unit> = ioEffect(Dispatchers.IO) {
-        val room = dbIo.bind()
-        // Nothing to migrate.
-            ?: return@ioEffect
-        room.withTransaction {
-            val generatorHistory = room.generatorDao().getAll().first()
-            sqld.transaction {
-                generatorHistory.forEach { item ->
-                    sqld.generatorHistoryQueries.insert(
-                        value_ = item.value,
-                        createdAt = item.createdDate,
-                        isPassword = item.isPassword,
-                        isUsername = item.isUsername,
-                        isEmailRelay = false,
-                    )
-                }
-            }
-            room.generatorDao().removeAll()
-        }
-    }
 }

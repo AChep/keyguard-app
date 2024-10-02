@@ -36,10 +36,10 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
 
-- Android;
-- Linux _(via Flatpak)_;
+- [Android](#android);
+- [macOS](#linux) _(via Flatpak)_;
 - Windows;
-- macOS.
+- [macOS](#macos).
 
 you can find artifacts for your platform on the [releases](https://github.com/AChep/keyguard-app/releases) page.
 
@@ -59,6 +59,21 @@ you can find artifacts for your platform on the [releases](https://github.com/AC
 
  [Help us to translate the app](https://crowdin.com/project/keyguard). Even a short glance is helpful. 
  If you do not see the language you want to translate to, do not hesitate to [open an issue](https://github.com/AChep/AcDisplay/issues/new) with a request to add it.
+
+ 
+## Install
+
+The app is available in multiple package repositories:
+
+#### Android
+- [Play Store](https://play.google.com/store/apps/details?id=com.artemchep.keyguard);
+- [F-Droid](https://gh.artemchep.com/keyguard-repo-fdroid/repo) (custom F-Droid repository).
+
+#### Linux
+- [AUR](https://aur.archlinux.org/packages/keyguard) (_unofficial package_). 
+
+#### macOS
+- [brew](https://formulae.brew.sh/cask/keyguard).
 
 ## License
 

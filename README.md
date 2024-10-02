@@ -15,7 +15,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
   <img src="https://github.com/AChep/keyguard-app/blob/master/artwork/badge_fdroid.png"
        alt="Get Keyguard F-Droid repository"
        vspace="20"
-       height="60">
+       height="60" />
 </a>
 
 #### Highlights
@@ -27,7 +27,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - add items 🌠 and sends 🌠, modify 🌠, and view your vault **offline**;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;
-- a generator with **Email forwarders**, **Custom wordlists** support and many other features; 
+- a generator with **Email forwarders**, **Custom wordlists** support, and many other features; 
 - a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!
 
@@ -37,11 +37,11 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
 
 - [Android](#android);
-- [macOS](#linux) _(via Flatpak)_;
+- [Linux](#linux) _(via Flatpak)_;
 - Windows;
 - [macOS](#macos).
 
-you can find artifacts for your platform on the [releases](https://github.com/AChep/keyguard-app/releases) page.
+You can find artifacts for your platform on the [releases](https://github.com/AChep/keyguard-app/releases) page.
 
 
 #### Looks

@@ -241,11 +241,14 @@
     <string name="folder_action_change_name_title">Modifier le nom</string>
     <string name="folder_action_change_names_title">Changer les noms</string>
     <string name="folder_action_merge_title">Fusionner dans…</string>
+    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
+    <string name="folder_action_create_title">Create a folder</string>
     <string name="folder_delete_one_confirmation_title">Supprimer le dossier ?</string>
     <string name="folder_delete_many_confirmation_title">Supprimer les dossiers ?</string>
     <string name="folder_delete_confirmation_text">Ces élément(s) seront supprimés immédiatement. Vous ne pouvez pas annuler cette action.</string>
     <string name="ciphers_recently_opened">Ouvert récemment</string>
     <string name="ciphers_often_opened">Souvent consulté</string>
+    <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">Voir les détails</string>
     <string name="ciphers_save_to">Sauvegarder dans</string>
     <string name="ciphers_action_add_to_favorites_title">Ajouter aux favoris</string>
@@ -265,7 +268,10 @@
     <string name="ciphers_action_change_passwords_title">Modifier les mots de passe</string>
     <string name="ciphers_action_view_password_history_title">Voir l'historique des mots de passe</string>
     <string name="ciphers_action_trash_title">Corbeille</string>
+    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Restaurer</string>
+    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Supprimer définitivement</string>
     <string name="ciphers_action_delete_confirmation_title">Supprimer définitivement ?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configurer les alertes Watchtower</string>

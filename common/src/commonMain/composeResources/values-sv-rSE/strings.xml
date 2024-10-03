@@ -241,11 +241,14 @@
     <string name="folder_action_change_name_title">Ändra namn</string>
     <string name="folder_action_change_names_title">Ändra namn</string>
     <string name="folder_action_merge_title">Merge into…</string>
+    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
+    <string name="folder_action_create_title">Create a folder</string>
     <string name="folder_delete_one_confirmation_title">Radera mapp?</string>
     <string name="folder_delete_many_confirmation_title">Radera mappar?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
     <string name="ciphers_recently_opened">Recently opened</string>
     <string name="ciphers_often_opened">Often opened</string>
+    <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">View details</string>
     <string name="ciphers_save_to">Save to</string>
     <string name="ciphers_action_add_to_favorites_title">Lägg till i favoriter</string>
@@ -265,7 +268,10 @@
     <string name="ciphers_action_change_passwords_title">Ändra lösenord</string>
     <string name="ciphers_action_view_password_history_title">Visa lösenordshistorik</string>
     <string name="ciphers_action_trash_title">Papperskorg</string>
+    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Återställ</string>
+    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
     <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>

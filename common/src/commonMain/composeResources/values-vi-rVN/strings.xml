@@ -241,11 +241,14 @@
     <string name="folder_action_change_name_title">Đổi tên</string>
     <string name="folder_action_change_names_title">Đổi các tên</string>
     <string name="folder_action_merge_title">Gộp vào…</string>
+    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
+    <string name="folder_action_create_title">Create a folder</string>
     <string name="folder_delete_one_confirmation_title">Xóa thư mục?</string>
     <string name="folder_delete_many_confirmation_title">Xóa các thư mục?</string>
     <string name="folder_delete_confirmation_text">(Các) mục này sẽ bị xóa ngay lập tức. Bạn không thể hoàn tác hành động này.</string>
     <string name="ciphers_recently_opened">Mở gần đây</string>
     <string name="ciphers_often_opened">Mở thường xuyên</string>
+    <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">Xem chi tiết</string>
     <string name="ciphers_save_to">Lưu vào</string>
     <string name="ciphers_action_add_to_favorites_title">Thêm vào mục yêu thích</string>
@@ -265,7 +268,10 @@
     <string name="ciphers_action_change_passwords_title">Đổi mật khẩu</string>
     <string name="ciphers_action_view_password_history_title">Xem lịch sử mật khẩu</string>
     <string name="ciphers_action_trash_title">Vứt bỏ</string>
+    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Khôi phục</string>
+    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Xóa vĩnh viễn</string>
     <string name="ciphers_action_delete_confirmation_title">Xóa vĩnh viễn?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Định cấu hình cảnh báo của Tháp Canh</string>

@@ -241,11 +241,14 @@
     <string name="folder_action_change_name_title">Изменить название</string>
     <string name="folder_action_change_names_title">Изменить названия</string>
     <string name="folder_action_merge_title">Объединить в…</string>
+    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
+    <string name="folder_action_create_title">Create a folder</string>
     <string name="folder_delete_one_confirmation_title">Удалить папку?</string>
     <string name="folder_delete_many_confirmation_title">Удалить папки?</string>
     <string name="folder_delete_confirmation_text">Эта запись(и) будет удалено. Вы не можете отменить это действие.</string>
     <string name="ciphers_recently_opened">Недавно открытые</string>
     <string name="ciphers_often_opened">Часто открытые</string>
+    <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">Подробнее</string>
     <string name="ciphers_save_to">Сохранить в</string>
     <string name="ciphers_action_add_to_favorites_title">Добавить в избранное</string>
@@ -265,7 +268,10 @@
     <string name="ciphers_action_change_passwords_title">Изменить пароли</string>
     <string name="ciphers_action_view_password_history_title">Просмотреть историю паролей</string>
     <string name="ciphers_action_trash_title">Корзина</string>
+    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Восстановить</string>
+    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Удалить навсегда</string>
     <string name="ciphers_action_delete_confirmation_title">Удалить навсегда?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Настроить оповещения безопасности</string>
@@ -1008,7 +1014,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
     <string name="pref_item_premium_status_active">Активно</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Бесплатный <xliff:g id="period" example="1 month">%1$s</xliff:g> триал</string>
     <string name="pref_item_premium_status_will_not_renew">Не будет продлеваться</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Управлять в Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Создание уведомлений</string>

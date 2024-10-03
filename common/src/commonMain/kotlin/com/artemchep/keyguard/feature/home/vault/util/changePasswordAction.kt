@@ -584,15 +584,15 @@ fun RememberStateFlowScope.cipherTrashAction(
     FlatItemAction(
         leading = icon,
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val route = registerRouteResultReceiver(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon(Icons.Outlined.Delete),
-                        title = "Move to trash?",
-                        message = "Items that have been in Trash more than 30 days will be automatically deleted.",
+                        title = translate(Res.string.ciphers_action_trash_confirmation_title.wrap()),
+                        message = translate(Res.string.ciphers_action_trash_confirmation_text.wrap()),
                     ),
                 ),
             ) { result ->
@@ -630,14 +630,14 @@ fun RememberStateFlowScope.cipherRestoreAction(
     FlatItemAction(
         leading = icon,
         title = title,
-        onClick = {
+        onClick = onClick {
             before?.invoke()
 
             val route = registerRouteResultReceiver(
                 route = ConfirmationRoute(
                     args = ConfirmationRoute.Args(
                         icon = icon(Icons.Outlined.RestoreFromTrash),
-                        title = "Restore from trash?",
+                        title = translate(Res.string.ciphers_action_restore_confirmation_title.wrap()),
                     ),
                 ),
             ) { result ->

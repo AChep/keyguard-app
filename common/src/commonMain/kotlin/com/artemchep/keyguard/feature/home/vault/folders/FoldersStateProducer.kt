@@ -157,7 +157,7 @@ fun foldersScreenState(
         }
         ?.id
 
-    fun onAdd() {
+    suspend fun onAdd() {
         accountId
             ?: // Should not happen, we should not
             // call this function if the account id
@@ -166,11 +166,11 @@ fun foldersScreenState(
         val intent = createConfirmationDialogIntent(
             item = ConfirmationRoute.Args.Item.StringItem(
                 key = "name",
-                title = "Folder name",
+                title = translate(Res.string.generic_name),
                 // Folder must have a non-empty name!
                 canBeEmpty = false,
             ),
-            title = "Create a folder",
+            title = translate(Res.string.folder_action_create_title),
         ) { name ->
             val accountIdsToNames = mapOf(
                 AccountId(accountId) to name,
@@ -218,7 +218,7 @@ fun foldersScreenState(
         navigate(intent)
     }
 
-    fun onMerge(
+    suspend fun onMerge(
         folderName: String,
         folderIds: Set<String>,
     ) {
@@ -226,7 +226,7 @@ fun foldersScreenState(
         val folderNameItem = ConfirmationRoute.Args.Item.StringItem(
             key = folderNameKey,
             value = folderName,
-            title = "Folder name",
+            title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
         )
@@ -235,7 +235,7 @@ fun foldersScreenState(
             route = ConfirmationRoute(
                 args = ConfirmationRoute.Args(
                     icon = icon(Icons.Outlined.Merge),
-                    title = "Are you sure you want to merge these folders?",
+                    title = translate(Res.string.folder_action_merge_confirmation_title),
                     items = listOfNotNull(
                         folderNameItem,
                     ),
@@ -382,9 +382,9 @@ fun foldersScreenState(
                             this += FlatItemAction(
                                 icon = Icons.Outlined.Merge,
                                 title = Res.string.folder_action_merge_title.wrap(),
-                                onClick = ::onMerge
-                                    .partially1(folderName)
-                                    .partially1(selectedFolderIds),
+                                onClick = onClick {
+                                    onMerge(folderName, selectedFolderIds)
+                                },
                             )
                         }
                     }
@@ -511,7 +511,9 @@ fun foldersScreenState(
         FoldersState(
             selection = selection,
             content = Loadable.Ok(content),
-            onAdd = ::onAdd.takeUnless { selection != null || accountId == null },
+            onAdd = onClick {
+                onAdd()
+            }.takeUnless { selection != null || accountId == null },
         )
     }
 }

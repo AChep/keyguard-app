@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
 import com.artemchep.keyguard.ui.Placeholder
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -38,6 +39,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonSegmented
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun RecentsButton(
@@ -221,7 +223,7 @@ fun ColumnScope.RecentsWindowOk(
                 ) {
                     Placeholder(
                         icon = Icons.Outlined.HistoryToggleOff,
-                        title = "No recently opened items yet.",
+                        title = stringResource(Res.string.ciphers_history_empty),
                     )
                 }
             }

@@ -241,11 +241,14 @@
     <string name="folder_action_change_name_title">Змінити назву</string>
     <string name="folder_action_change_names_title">Змінити назви</string>
     <string name="folder_action_merge_title">Об'єднати в…</string>
+    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
+    <string name="folder_action_create_title">Create a folder</string>
     <string name="folder_delete_one_confirmation_title">Видалити теку?</string>
     <string name="folder_delete_many_confirmation_title">Видалити теки?</string>
     <string name="folder_delete_confirmation_text">Цей запис(и) буде видалено. Ви не зможете скасовувати цю дію.</string>
     <string name="ciphers_recently_opened">Нещодавно відкриті</string>
     <string name="ciphers_often_opened">Часто відкриті</string>
+    <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">Переглянути деталі</string>
     <string name="ciphers_save_to">Зберегти в…</string>
     <string name="ciphers_action_add_to_favorites_title">Додати до обраного</string>
@@ -265,7 +268,10 @@
     <string name="ciphers_action_change_passwords_title">Змінити паролі</string>
     <string name="ciphers_action_view_password_history_title">Переглянути історію паролів</string>
     <string name="ciphers_action_trash_title">Відправити у кошик</string>
+    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Відновити з кошика</string>
+    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Видалити назавжди</string>
     <string name="ciphers_action_delete_confirmation_title">Видалити назавжди?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Налаштувати сповіщення вартової вежі</string>

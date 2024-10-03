@@ -72,6 +72,10 @@ class SqlManagerFile2(
     private val context: Context,
     private val onCreate: (Database) -> IO<Unit>,
 ) : SqlManager {
+    init {
+        System.loadLibrary("sqlcipher")
+    }
+
     override fun create(
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,

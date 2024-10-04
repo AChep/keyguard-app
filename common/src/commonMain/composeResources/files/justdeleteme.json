@@ -582,8 +582,9 @@
     "domains": [
       "airbaltic.com"
     ],
-    "url": "https://www.airbaltic.com/en-GB/club-program-privacy-policy",
-    "difficulty": "hard",
+    "url": "https://www.airbaltic.com/en/edit-profile-new#",
+    "difficulty": "easy",
+    "notes": "1) Go to [the airbaltic page](https://www.airbaltic.com/en-LV/index). 2) Sign in to your airBaltic Club account. 3) Go to Profile section 'Edit profile'. 4) Click 'Close profile'.",
     "email": "gdpr@airBalticclub.com"
   },
   {
@@ -5118,6 +5119,15 @@
     "difficulty": "hard",
     "notes": "Delete all applications, users and other administrators in the Admin Panel according to the [support article](https://help.duo.com/s/article/2162), then contact support via email.",
     "email": "support@duosecurity.com"
+  },
+  {
+    "name": "Duolicious",
+    "domains": [
+      "duolicious.app"
+    ],
+    "url": "https://web.duolicious.app/",
+    "difficulty": "easy",
+    "notes": "Log into your account. Go to the \"Profile\" tab. Scroll down and press \"Delete My Account\". Type \"delete\" then press \"Done\"."
   },
   {
     "name": "Duolingo",
@@ -10396,6 +10406,15 @@
     "notes": "On you account page, go to the 'Close Account & Delete Data' tab."
   },
   {
+    "name": "Lil'bots",
+    "domains": [
+      "lilbots.io"
+    ],
+    "url": "https://www.lilbots.io/pages/contact-us",
+    "difficulty": "hard",
+    "notes": "You must contact support and request the account deletion per the privacy policy."
+  },
+  {
     "name": "Lime",
     "domains": [
       "li.me",
@@ -10814,6 +10833,18 @@
     "url": "https://magicflow.com/profile/account",
     "difficulty": "easy",
     "notes": "On your account page, click in 'Delete Account' then confirm."
+  },
+  {
+    "name": "MAGIX",
+    "domains": [
+      "magix.com",
+      "magix.net",
+      "magix.info"
+    ],
+    "url": "https://www.magix.com/us/support/my-service-center/",
+    "difficulty": "hard",
+    "notes": "Since there is no button, you must contact them through E-Mail. Subsequently, after inclusion in their ticket system, they will resolve the matter soon; however, this may differ from one to another.",
+    "email": "infoservice@magix.net"
   },
   {
     "name": "Magoosh",
@@ -16757,6 +16788,14 @@
     "notes": "Click the lower right position messenger to request for account deletion."
   },
   {
+    "name": "Stake",
+    "domains": [
+      "hellostake.com"
+    ],
+    "url": "https://trading.hellostake.com/platform/update-profile/close-account",
+    "difficulty": "easy"
+  },
+  {
     "name": "Stan",
     "domains": [
       "stan.com.au"
@@ -18165,6 +18204,18 @@
     "url": "https://www.toyota.de/apps/customerportal#/publish/customer_portal_profile",
     "difficulty": "easy",
     "notes": "Login to your account, go to your Settings, choose Tab 'Meine Einstellungen' and click on 'Konto l\u00f6schen'"
+  },
+  {
+    "name": "TP-Link Cloud",
+    "domains": [
+      "tp-link.com",
+      "community.tp-link.com",
+      "tplinkcloud.com",
+      "account-delete.tplinkcloud.com"
+    ],
+    "url": "https://account-delete.tplinkcloud.com/",
+    "difficulty": "easy",
+    "notes": "Visit the linked form, select 'Continue', enter your account credentials, then select 'Send Verification Email'. Follow the directions in the email that arrives to verify your email. Then return to the form and select 'Verified & Continue'. Finish the confirmation form, select a reason for leaving, then select 'Permanently Delete Account'. Wait for an email confirming the account was deleted."
   },
   {
     "name": "Trabalha Brasil",
@@ -19638,6 +19689,16 @@
     "notes": "To delete your profile, [contact](https://www.westernunion.com/us/en/contactus.html) Customer Care or send an email from the account you registered with containing your name, registered phone number, My WU number (if applicable), and reason for deleting your profile.",
     "email": "customercare@westernunion.com",
     "email_body": "My name is XXXXXX%0AMy registered phone number is XXXXXX%0AMy WU number is XXXXXX%0AI would like to delete my WU profile because XXXXXX"
+  },
+  {
+    "name": "Westfield",
+    "domains": [
+      "westfield.com",
+      "id.westfield.com"
+    ],
+    "url": "https://www.westfield.com/account",
+    "difficulty": "easy",
+    "notes": "On your account page, go to \"My personal information\", scroll down, click on \"Delete my account\", then click \"Yes\" to confirm."
   },
   {
     "name": "WG-Gesucht.de",

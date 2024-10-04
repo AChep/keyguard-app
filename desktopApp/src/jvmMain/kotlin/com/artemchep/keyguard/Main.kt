@@ -17,7 +17,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
-import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -35,6 +34,7 @@ import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
+import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.util.navigateToBrowser
 import com.artemchep.keyguard.desktop.util.navigateToEmail
 import com.artemchep.keyguard.desktop.util.navigateToFile
@@ -107,6 +107,9 @@ fun main() {
         import(diFingerprintRepositoryModule())
         bindSingleton {
             kamelConfig
+        }
+        bindSingleton {
+            WindowStateManager(this)
         }
     }
 
@@ -208,6 +211,7 @@ fun main() {
 
     val getCloseToTray: GetCloseToTray = appDi.direct.instance()
 
+    val windowStateManager by appDi.di.instance<WindowStateManager>()
     application(exitProcessOnExit = true) {
         withDI(appDi) {
             val isWindowOpenState = remember {
@@ -258,6 +262,7 @@ fun main() {
             if (isWindowOpenState.value) {
                 KeyguardWindow(
                     processLifecycleProvider = processLifecycleProvider,
+                    windowStateManager = windowStateManager,
                     onCloseRequest = {
                         val shouldCloseToTray = getCloseToTrayState.value
                         if (shouldCloseToTray) {
@@ -275,9 +280,10 @@ fun main() {
 @Composable
 private fun ApplicationScope.KeyguardWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
+    windowStateManager: WindowStateManager,
     onCloseRequest: () -> Unit,
 ) {
-    val windowState = rememberWindowState()
+    val windowState = windowStateManager.rememberWindowState()
     Window(
         onCloseRequest = onCloseRequest,
         icon = painterResource(Res.drawable.ic_keyguard),

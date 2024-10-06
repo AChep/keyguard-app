@@ -63,6 +63,10 @@ jobs:
           name: binaries-mac
           path: desktopApp/build/compose/binaries/main/**
           retention-days: 1
+      - name: "Add a suffix to the artifacts"
+        run: |
+          cd desktopApp/build/compose/binaries/main/dmg
+          for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-arm64\2/p')" ; done
       - name: "Upload .dmg"
         uses: actions/upload-artifact@v4
         with:

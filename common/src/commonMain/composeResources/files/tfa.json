@@ -8148,6 +8148,14 @@
     "name": "Justworks"
   },
   {
+    "domain": "kagi.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.kagi.com/kagi/privacy/two-factor-authentication.html",
+    "name": "Kagi"
+  },
+  {
     "domain": "kajabi.com",
     "tfa": [
       "totp"
@@ -11742,12 +11750,16 @@
   },
   {
     "domain": "pkobp.pl",
-    "url": "https://www.pkobp.pl/",
+    "additional-domains": [
+      "ipko.pl"
+    ],
     "tfa": [
       "sms",
+      "u2f",
       "custom-software"
     ],
     "documentation": "https://iko.pkobp.pl/funkcje/mobilna-autoryzacja/",
+    "notes": "You can only register one U2F security key to your bank account",
     "custom-software": [
       "IKO App"
     ],

@@ -2341,6 +2341,19 @@
     "created_at": "2024-04-02T09:40:56.495819+00:00"
   },
   {
+    "id": "05a04193e366be2a6786c0368bc7ae0b",
+    "name": "Walmart",
+    "domain": "walmart.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.walmart.com/help/article/passkeys/79bc4a57374146c497ebe3bf8d4f9b10",
+    "setup": "https://www.walmart.com/help/article/passkeys/79bc4a57374146c497ebe3bf8d4f9b10",
+    "category": "eCommerce",
+    "created_at": "2023-04-17T03:59:34.286021+00:00",
+    "notes": "Only available through the mobile app and on consumer accounts"
+  },
+  {
     "id": "ffe0c8cc238d5545af34bcdde2e1c523",
     "name": "WebAuthn.io",
     "domain": "webauthn.io",

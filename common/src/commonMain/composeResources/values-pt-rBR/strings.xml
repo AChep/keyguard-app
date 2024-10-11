@@ -175,6 +175,7 @@
     <string name="passkey_available">Passkey disponível</string>
     <string name="twofa_available">Autenticação de dois fatores disponível</string>
     <string name="custom">Personalizado</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">Create account</string>
     <string name="follow_system_settings">Usar as configurações do sistema</string>
     <!-- A feature is coming soon! -->
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="scanqr_title">Escanear código QR</string>
     <string name="scanqr_load_from_image_note">Carregar e analisar um código QR a partir de um arquivo de imagem.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Exibir como código de barras</string>

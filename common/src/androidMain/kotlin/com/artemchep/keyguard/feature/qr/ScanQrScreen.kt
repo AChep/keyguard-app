@@ -112,24 +112,18 @@ private fun ScanQrCamera2(
                 modifier = Modifier
                     .padding(horizontal = Dimens.horizontalPadding),
             ) {
-                val textToShow = if (status.shouldShowRationale) {
-                    // If the user has denied the permission but the rationale can be shown,
-                    // then gently explain why the app requires this permission
-                    "The camera is important for this app. Please grant the permission."
-                } else {
-                    // If it's the first time the user lands on this feature, or the user
-                    // doesn't want to be asked again for this permission, explain that the
-                    // permission is required
-                    "Camera permission required for this feature to be available. " +
-                            "Please grant the permission"
-                }
+                val textToShow = stringResource(Res.string.scanqr_camera_permission_required_text)
                 Text(textToShow)
                 Button(
+                    modifier = Modifier
+                        .padding(top = Dimens.verticalPadding),
                     onClick = {
                         cameraPermissionState.launchPermissionRequest()
                     },
                 ) {
-                    Text("Request permission")
+                    Text(
+                        text = stringResource(Res.string.grant_permission),
+                    )
                 }
             }
         }

@@ -38,6 +38,10 @@ jobs:
         working-directory: ./deploy_fdroid
         run: |
           python deploy_fdroid.py
+      - name: "Clean-up env"
+        working-directory: ./deploy_fdroid
+        run: |
+          rm deploy_fdroid.py
       - name: "Check if any changes"
         working-directory: ./deploy_fdroid
         id: check-changes

@@ -1,0 +1,55 @@
+name: "⬆️ GitHub release -> F-Droid deployment"
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  new-update:
+    name: Deploy F-Droid
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout main repo"
+      - uses: actions/checkout@v4
+      - name: "Checkout F-Droid repo"
+        uses: actions/checkout@v4
+        with:
+          repository: AChep/keyguard-repo-fdroid
+          fetch-depth: 0
+          lfs: true
+          path: deploy_fdroid
+          token: ${{ secrets.DEPLOY_FDROID_GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: "Download dependencies"
+        run: |
+          pip install -r .github/deploy_fdroid.requirements.txt
+      - name: "Prepare env"
+        working-directory: ./deploy_fdroid
+        run: |
+          mv ../.github/deploy_fdroid.py deploy_fdroid.py
+          echo ${{ secrets.DEPLOY_FDROID_KEYSTORE_B64 }} | base64 -d | zcat >> keystore.p12
+          echo ${{ secrets.DEPLOY_FDROID_CONFIG_B64 }} | base64 -d | zcat >> config.yml
+      - name: "Update repo"
+        working-directory: ./deploy_fdroid
+        run: |
+          python deploy_fdroid.py
+      - name: "Check if any changes"
+        working-directory: ./deploy_fdroid
+        id: check-changes
+        run: |
+          has_changes=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)
+          echo "$has_changes"
+          echo "HAS_CHANGES=$has_changes" >> "$GITHUB_OUTPUT"
+      - name: "Commit and push changes"
+        working-directory: ./deploy_fdroid
+        if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
+        run: |
+          git config user.email github-actions@github.com
+          git config user.name "${{ github.actor }}"
+          git add .
+          git commit -m "Mirror latest Keyguard artifact from GitHub Releases"
+          git push origin master

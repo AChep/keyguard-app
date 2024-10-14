@@ -27,6 +27,7 @@ jobs:
       - name: "Download dependencies"
         run: |
           pip install -r .github/deploy_fdroid.requirements.txt
+          pip install git+https://gitlab.com/fdroid/fdroidserver.git
       - name: "Prepare env"
         working-directory: ./deploy_fdroid
         run: |

@@ -175,6 +175,7 @@
     <string name="passkey_available">Passkey available</string>
     <string name="twofa_available">Two-factor authentication available</string>
     <string name="custom">Custom</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">Skapa konto</string>
     <string name="follow_system_settings">Follow system settings</string>
     <!-- A feature is coming soon! -->
@@ -242,7 +243,7 @@
     <string name="folder_action_change_names_title">Ändra namn</string>
     <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_create_title">Skapa en mapp</string>
     <string name="folder_delete_one_confirmation_title">Radera mapp?</string>
     <string name="folder_delete_many_confirmation_title">Radera mappar?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
@@ -372,7 +373,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
     <string name="text_action_share_with_title">Dela med…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Skapa en Send</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
     <string name="copy">Kopiera</string>
     <string name="copy_value">Kopiera värde</string>
@@ -410,7 +411,7 @@
     <string name="copied_cvv_code">Copied a security code</string>
     <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
-    <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
+    <string name="autofill_unlock_keyguard">Lås upp Keyguard</string>
     <string name="autofill_open_keyguard">Öppna Keyguard</string>
     <string name="january">Januari</string>
     <string name="february">Februari</string>
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="scanqr_title">Skanna QR-kod</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Streckkod</string>
     <string name="barcodetype_action_show_in_barcode_title">Visa som streckkod</string>
@@ -554,14 +556,14 @@
     <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
     <string name="emailrelay_integration_title">Email forwarder integration</string>
     <string name="emailrelay_empty_label">No email forwarders</string>
-    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_server_url_label">Server-URL</string>
     <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
     <string name="wordlist_list_header_title">Ordlistor</string>
     <string name="wordlist_list_section_title">Ordlistor</string>
     <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
     <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
+    <string name="wordlist_edit_wordlist_title">Redigera en ordlista</string>
+    <string name="wordlist_add_wordlist_title">Lägg till en ordlista</string>
     <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
     <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
     <string name="wordlist_empty_label">Inga ordlistor</string>
@@ -607,7 +609,7 @@
     <string name="additem_auth_reprompt_title">Auth re-prompt</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
     <string name="addsend_header_new_title">New send</string>
-    <string name="addsend_header_edit_title">Redigera objekt</string>
+    <string name="addsend_header_edit_title">Redigera Send</string>
     <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_email_title">Dölj e-postadress</string>
@@ -628,7 +630,7 @@
     <string name="addaccount_http_header_section">HTTP headers</string>
     <string name="addaccount_http_header_type">HTTP header</string>
     <string name="addaccount_http_header_note">You can add custom HTTP headers that will be sent with every request to the server.</string>
-    <string name="addaccount_http_header_key_label">Key</string>
+    <string name="addaccount_http_header_key_label">Nyckel</string>
     <string name="addaccount_http_header_value_label">Värde</string>
     <string name="addaccount_http_header_add_more_button">Add more</string>
     <string name="addaccount_base_env_server_url_label">Server URL</string>

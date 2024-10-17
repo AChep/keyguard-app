@@ -175,6 +175,7 @@
     <string name="passkey_available">Passkey verfügbar</string>
     <string name="twofa_available">Zwei-Faktor-Authentifizierung verfügbar</string>
     <string name="custom">Benutzerdefiniert</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">Konto erstellen</string>
     <string name="follow_system_settings">Systemeinstellungen folgen</string>
     <!-- A feature is coming soon! -->
@@ -241,14 +242,14 @@
     <string name="folder_action_change_name_title">Name ändern</string>
     <string name="folder_action_change_names_title">Namen ändern</string>
     <string name="folder_action_merge_title">Zusammenführen…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Sind Sie sicher, dass Sie diese Ordner zusammenführen möchten?</string>
+    <string name="folder_action_create_title">Ordner erstellen</string>
     <string name="folder_delete_one_confirmation_title">Ordner löschen?</string>
     <string name="folder_delete_many_confirmation_title">Ordner löschen?</string>
     <string name="folder_delete_confirmation_text">Diese Elemente werden sofort gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.</string>
     <string name="ciphers_recently_opened">Kürzlich geöffnet</string>
     <string name="ciphers_often_opened">Oft geöffnet</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Noch kein Verlauf vorhanden</string>
     <string name="ciphers_view_details">Details anzeigen</string>
     <string name="ciphers_save_to">Speichern unter</string>
     <string name="ciphers_action_add_to_favorites_title">Zu Favoriten hinzufügen</string>
@@ -268,10 +269,10 @@
     <string name="ciphers_action_change_passwords_title">Passwörter ändern</string>
     <string name="ciphers_action_view_password_history_title">Passwortverlauf anzeigen</string>
     <string name="ciphers_action_trash_title">Papierkorb</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">In den Papierkorb verschieben?</string>
+    <string name="ciphers_action_trash_confirmation_text">Einträge, die länger als 30 Tage im Papierkorb waren, werden automatisch gelöscht.</string>
     <string name="ciphers_action_restore_title">Wiederherstellen</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Aus dem Papierkorb wiederherstellen?</string>
     <string name="ciphers_action_delete_title">Für immer löschen</string>
     <string name="ciphers_action_delete_confirmation_title">Endgültig löschen?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Wachturm Alarme konfigurieren</string>
@@ -440,7 +441,7 @@
     <string name="fido2webauthn_action_return_title">Zurück zur App</string>
     <string name="expiry_tips_item_line1">Dieses Element läuft am <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> ab.</string>
     <string name="expiry_tips_card_line1">Diese Karte läuft am <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>ab. Es gibt ein paar Dinge, die Sie tun können, um einen reibungslosen Übergang zu gewährleisten:</string>
-    <string name="expiry_tips_card_line2">1. Erhalten Sie eine neue Karte: Ihr Kartenaussteller hat Ihnen möglicherweise bereits eine Ersatzkarte mit einem neuen Ablaufdatum geschickt. Wenn nicht, wenden Sie sich an Ihren Kartenaussteller, um zu sehen, ob er plant, Ihnen eine neue Karte zu senden und wann sie zu erwarten.</string>
+    <string name="expiry_tips_card_line2">1. Eine neue Karte erhalten: Ihr Kartenaussteller hat Ihnen möglicherweise bereits eine Ersatzkarte mit einem neuen Ablaufdatum geschickt. Wenn nicht, wenden Sie sich an Ihren Kartenaussteller, um zu sehen, ob er plant, Ihnen eine neue Karte zu senden und wann sie zu erwarten.</string>
     <string name="expiry_tips_card_line3">2. Automatische Zahlungen aktualisieren: Wenn Sie automatische Zahlungen mit Ihrer Karte haben B. eine monatliche Fitness-Mitgliedschaft oder ein Netflix-Abonnement, stellen Sie sicher, dass die Informationen mit der neuen Kartennummer und dem Ablaufdatum aktualisiert werden.</string>
     <string name="expiry_tips_card_line4">3. Zerstören Sie die alte Karte: Sobald Ihre neue Karte eintrifft und Sie alle notwendigen Informationen aktualisiert haben Achten Sie darauf, die alte abgelaufene Karte sicher zu entsorgen, um Identitätsdiebstahl zu verhindern.</string>
     <!--
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
     <string name="scanqr_title">QR-Code scannen</string>
     <string name="scanqr_load_from_image_note">Laden und Analysieren eines QR-Codes aus einer Bilddatei.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Als Barcode anzeigen</string>
@@ -1014,7 +1016,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Fehler beim Laden einer Liste von Abonnements</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Fehler beim Laden einer Liste von Produkten</string>
     <string name="pref_item_premium_status_active">Aktiv</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Kostenlose <xliff:g id="period" example="1 month">%1$s</xliff:g> Testversion</string>
     <string name="pref_item_premium_status_will_not_renew">Wird nicht erneuert</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Im Play Store verwalten</string>
     <string name="pref_item_permission_post_notifications_title">Benachrichtigungen</string>

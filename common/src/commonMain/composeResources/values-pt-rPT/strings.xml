@@ -175,6 +175,7 @@
     <string name="passkey_available">Chave de acesso disponível</string>
     <string name="twofa_available">Autenticação com 2FA disponível</string>
     <string name="custom">Personalizado</string>
+    <string name="grant_permission">Conceder permissão</string>
     <string name="create_account">Criar conta</string>
     <string name="follow_system_settings">Seguir definições do sistema</string>
     <!-- A feature is coming soon! -->
@@ -241,14 +242,14 @@
     <string name="folder_action_change_name_title">Alterar nome</string>
     <string name="folder_action_change_names_title">Alterar nomes</string>
     <string name="folder_action_merge_title">Combinar com…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Tem a certeza que deseja juntar estas pastas?</string>
+    <string name="folder_action_create_title">Criar uma pasta</string>
     <string name="folder_delete_one_confirmation_title">Eliminar pasta?</string>
     <string name="folder_delete_many_confirmation_title">Eliminar pastas?</string>
     <string name="folder_delete_confirmation_text">Esta entrada(s) vai ser excluída imediatamente. Não pode reverter esta ação.</string>
     <string name="ciphers_recently_opened">Recentemente acedido</string>
     <string name="ciphers_often_opened">Acedido com frequência</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Ainda não há histórico</string>
     <string name="ciphers_view_details">Ver detalhes</string>
     <string name="ciphers_save_to">Guardar em</string>
     <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
@@ -268,10 +269,10 @@
     <string name="ciphers_action_change_passwords_title">Alterar palavras-passe</string>
     <string name="ciphers_action_view_password_history_title">Ver histórico de palavras-passe</string>
     <string name="ciphers_action_trash_title">Reciclagem</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Mover para a reciclagem?</string>
+    <string name="ciphers_action_trash_confirmation_text">Os dados que estiverem na reciclagem há mais de 30 dias, serão automaticamente eliminados.</string>
     <string name="ciphers_action_restore_title">Restaurar</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Restaurar da reciclagem?</string>
     <string name="ciphers_action_delete_title">Eliminar definitivamente</string>
     <string name="ciphers_action_delete_confirmation_title">Eliminar definitivamente?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configurar alertas do guardião</string>
@@ -472,6 +473,8 @@
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="scanqr_title">Ler código QR</string>
     <string name="scanqr_load_from_image_note">Abrir e analisar um código QR a partir de uma imagem.</string>
+    <string name="scanqr_camera_permission_required_text">É necessária permissão de acesso 
+à câmera para ler códigos QR.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostrar como código de barras</string>

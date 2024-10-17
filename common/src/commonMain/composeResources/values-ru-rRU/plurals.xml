@@ -10,7 +10,7 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> вхождение</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> вхождения</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> вхождений</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> вхождений</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> случаев</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> слово</item>
@@ -40,7 +40,7 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> час</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> часа</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> часов</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> часа</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> часов</item>
     </plurals>
     <plurals name="days_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> день</item>
@@ -52,10 +52,10 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Неделя</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Недели</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> недели</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Месяц</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> месяц</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Месяцы</item>
@@ -64,6 +64,6 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
         <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Годы</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> лет</item>
     </plurals>
 </resources>

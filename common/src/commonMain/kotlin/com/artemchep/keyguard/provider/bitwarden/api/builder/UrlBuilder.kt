@@ -32,8 +32,8 @@ fun ServerEnv.buildIdentityUrl() = buildUrl(
     url = identityUrl,
     suffix = "identity/",
     default = when (region) {
-        ServerEnv.Region.US -> "https://vault.$BITWARDEN_DOMAIN_US/identity/"
-        ServerEnv.Region.EU -> "https://vault.$BITWARDEN_DOMAIN_EU/identity/"
+        ServerEnv.Region.US -> "https://identity.$BITWARDEN_DOMAIN_US/"
+        ServerEnv.Region.EU -> "https://identity.$BITWARDEN_DOMAIN_EU/"
     },
 )
 

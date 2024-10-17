@@ -175,6 +175,7 @@
     <string name="passkey_available">패스키 사용 가능</string>
     <string name="twofa_available">2단계 인증 사용 가능</string>
     <string name="custom">사용자 지정</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">계정 만들기</string>
     <string name="follow_system_settings">시스템 설정에 따름</string>
     <!-- A feature is coming soon! -->
@@ -241,14 +242,14 @@
     <string name="folder_action_change_name_title">이름 바꾸기</string>
     <string name="folder_action_change_names_title">이름 바꾸기</string>
     <string name="folder_action_merge_title">…에 병합</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">정말 이 폴더를 병합하시겠습니까?</string>
+    <string name="folder_action_create_title">폴더 만들기</string>
     <string name="folder_delete_one_confirmation_title">폴더를 삭제하시겠습니까?</string>
     <string name="folder_delete_many_confirmation_title">폴더를 삭제하시겠습니까?</string>
     <string name="folder_delete_confirmation_text">항목이 즉시 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</string>
     <string name="ciphers_recently_opened">최근에 연 항목</string>
     <string name="ciphers_often_opened">자주 연 항목</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">아직 기록 없음</string>
     <string name="ciphers_view_details">자세히 보기</string>
     <string name="ciphers_save_to">이 항목에 저장</string>
     <string name="ciphers_action_add_to_favorites_title">즐겨찾기에 추가</string>
@@ -268,10 +269,10 @@
     <string name="ciphers_action_change_passwords_title">비밀번호 변경</string>
     <string name="ciphers_action_view_password_history_title">비밀번호 생성 기록</string>
     <string name="ciphers_action_trash_title">휴지통</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">휴지통으로 보내시겠습니까?</string>
+    <string name="ciphers_action_trash_confirmation_text">휴지통으로 간 항목은 30일 이후 자동으로 삭제됩니다.</string>
     <string name="ciphers_action_restore_title">복원</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">휴지통에서 복원하시겠습니까?</string>
     <string name="ciphers_action_delete_title">완전히 삭제</string>
     <string name="ciphers_action_delete_confirmation_title">완전히 삭제하시겠습니까?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Watchtower 경고 설정</string>
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
     <string name="scanqr_title">QR 코드 스캔</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>

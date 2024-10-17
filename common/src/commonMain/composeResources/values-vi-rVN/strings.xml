@@ -175,6 +175,7 @@
     <string name="passkey_available">Khóa truy cập có sẵn</string>
     <string name="twofa_available">Xác thực hai yếu tố có sẵn</string>
     <string name="custom">Tùy chỉnh</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">Create account</string>
     <string name="follow_system_settings">Theo thiết đặt hệ thống</string>
     <!-- A feature is coming soon! -->
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Không thể định dạng phần thay thế</string>
     <string name="scanqr_title">Quét mã QR</string>
     <string name="scanqr_load_from_image_note">Tải và phân tích mã QR từ tệp hình ảnh.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Mã vạch</string>
     <string name="barcodetype_action_show_in_barcode_title">Hiển thị dưới dạng mã vạch</string>

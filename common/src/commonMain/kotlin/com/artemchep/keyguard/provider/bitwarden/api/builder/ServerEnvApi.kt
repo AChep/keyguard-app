@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.CHROME_MAJOR_VERSION
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.api.entity.SyncResponse
@@ -31,6 +32,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.util.AttributeKey
+import java.util.Locale
 
 val routeAttribute = AttributeKey<String>("route")
 
@@ -559,6 +561,19 @@ fun HttpRequestBuilder.headers(env: ServerEnv) {
         .let(BitwardenPersona::of)
     header("Bitwarden-Client-Name", persona.clientName)
     header("Bitwarden-Client-Version", persona.clientVersion)
+    // Cloudflare-pleasing headers that do
+    // nothing except let Keyguard pass their
+    // bot detection.
+    val language = Locale.getDefault().toLanguageTag()
+        ?: "en-US"
+    header("Accept-Language", language)
+    header("Sec-Ch-Ua", """"Not.A/Brand";v="8", "Chromium";v="$CHROME_MAJOR_VERSION"""")
+    header("Sec-Ch-Ua-Mobile", persona.chUaMobile)
+    header("Sec-Ch-Ua-Platform", persona.chUaPlatform)
+    // Potentially needs those:
+    // header("Sec-Fetch-Dest", "empty")
+    // header("Sec-Fetch-Mode", "cors")
+    // header("Sec-Fetch-Site", "cross-site")
     // App does not work if hidden behind reverse-proxy under
     // a subdirectory. We should specify the 'referer' so the server
     // generates correct urls for us.

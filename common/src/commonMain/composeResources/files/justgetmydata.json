@@ -72,6 +72,13 @@
     "notes": "Depending on where you live, you either have to select \"Submit a CPRA or VCDPA Data request\" or \"Submit an EEA Data Request\"."
   },
   {
+    "name": "Badlion",
+    "domains": [],
+    "url": "https://www.badlion.net/settings?lang=en",
+    "difficulty": "easy",
+    "notes": "Go to the url provided above and submit a data request at the bottom of the page"
+  },
+  {
     "name": "Badoo",
     "domains": [],
     "url": "https://badoo.com/feedback",
@@ -342,6 +349,14 @@
     "difficulty": "hard",
     "notes": "Send an email requesting a copy of your data.",
     "email": "privacy@libertylines.it"
+  },
+  {
+    "name": "Lil'bots",
+    "domains": [],
+    "url": "https://www.lilbots.io/pages/privacy-policy",
+    "difficulty": "hard",
+    "notes": "Send an email requesting a copy of your data.",
+    "email": "privacy@lilbots.io"
   },
   {
     "name": "Linkedin",

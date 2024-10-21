@@ -25,6 +25,9 @@
     <string name="email_visibility">이메일 보기 권한</string>
     <string name="public_url">공개 URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">조회수</string>
     <!--
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">비공식 Bitwarden 클라이언트에서 캡차 인증을 통과하려면 클라이언트 비밀 키를 설정해야 합니다. 웹 보관함의 설정 / API 키 페이지에서 클라이언트 비밀 키를 확인할 수 있습니다.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">클라이언트 비밀 키</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">로그인</string>
     <string name="addaccount_region_section">리전</string>
     <string name="addaccount_region_us_type">미국</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">비밀번호 생성기</string>
     <string name="generator_generate_button">생성</string>
     <string name="generator_regenerate_button">다시 생성</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">비밀번호 문구</string>
     <string name="generator_passphrase_note">무작위 비밀번호 문구는 외우기 쉽고 보안성이 뛰어난 문구 조합을 제공합니다.</string>
     <string name="generator_passphrase_delimiter_title">구분 기호</string>

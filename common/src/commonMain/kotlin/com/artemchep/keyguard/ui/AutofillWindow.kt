@@ -343,7 +343,9 @@ private fun ColumnScope.GeneratorValue2(
                         )
                     },
                     text = {
-                        Text("Use")
+                        Text(
+                            text = stringResource(Res.string.generator_use_button),
+                        )
                     },
                 )
             },

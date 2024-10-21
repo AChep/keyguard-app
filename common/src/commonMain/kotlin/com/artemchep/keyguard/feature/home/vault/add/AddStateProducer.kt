@@ -159,6 +159,7 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -1319,10 +1320,16 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
             initial?.name.orEmpty()
         }
         val labelMutableState = mutableComposeState(labelSink)
-        val labelFlow = labelSink.map { label ->
+        val labelHintFlow = ioEffect {
+            translate(Res.string.field_label)
+        }.asFlow()
+        val labelFlow = combine(
+            labelSink,
+            labelHintFlow,
+        ) { labelValue, labelHint ->
             TextFieldModel2(
-                text = label,
-                hint = "Label",
+                text = labelValue,
+                hint = labelHint,
                 state = labelMutableState,
                 onChange = labelMutableState::value::set,
             )
@@ -1332,10 +1339,16 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
             initial?.value.orEmpty()
         }
         val textMutableState = mutableComposeState(textSink)
-        val textFlow = textSink.map { text ->
+        val textHintFlow = ioEffect {
+            translate(Res.string.field_value)
+        }.asFlow()
+        val textFlow = combine(
+            textSink,
+            textHintFlow,
+        ) { textValue, textHint ->
             TextFieldModel2(
-                text = text,
-                hint = "Value",
+                text = textValue,
+                hint = textHint,
                 state = textMutableState,
                 onChange = textMutableState::value::set,
             )
@@ -1360,7 +1373,7 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
                             )
                         }
                     },
-                    title = TextHolder.Value("Conceal value"),
+                    title = TextHolder.Res(Res.string.conceal_value),
                     trailing = {
                         Checkbox(
                             checked = conceal,

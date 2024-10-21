@@ -410,7 +410,7 @@ fun LoginContent(
                     FlatItemTextContent(
                         title = {
                             Text(
-                                text = "Create an account",
+                                text = stringResource(Res.string.addaccount_create_an_account_title),
                             )
                         },
                     )

@@ -175,6 +175,7 @@
     <string name="passkey_available">Dostupný přístupový klíč</string>
     <string name="twofa_available">Dvoufaktorové ověření je k dispozici</string>
     <string name="custom">Vlastní</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">Vytvořit účet</string>
     <string name="follow_system_settings">Dle nastavení systému</string>
     <!-- A feature is coming soon! -->
@@ -241,14 +242,14 @@
     <string name="folder_action_change_name_title">Změnit název</string>
     <string name="folder_action_change_names_title">Změnit názvy</string>
     <string name="folder_action_merge_title">Sloučit do…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Opravdu chcete sloučit tyto složky?</string>
+    <string name="folder_action_create_title">Vytvořit složku</string>
     <string name="folder_delete_one_confirmation_title">Odstranit složku?</string>
     <string name="folder_delete_many_confirmation_title">Odstranit složky?</string>
     <string name="folder_delete_confirmation_text">Tyto položky budou okamžitě odstraněny. Tato akce je nevratná.</string>
     <string name="ciphers_recently_opened">Nedávno otevřené</string>
     <string name="ciphers_often_opened">Často otevírané</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Zatím žádná historie</string>
     <string name="ciphers_view_details">Zobrazit podrobnosti</string>
     <string name="ciphers_save_to">Uložit do</string>
     <string name="ciphers_action_add_to_favorites_title">Přidat do oblíbených</string>
@@ -268,10 +269,10 @@
     <string name="ciphers_action_change_passwords_title">Změnit hesla</string>
     <string name="ciphers_action_view_password_history_title">Zobrazit historii hesel</string>
     <string name="ciphers_action_trash_title">Koš</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Přesunout do koše?</string>
+    <string name="ciphers_action_trash_confirmation_text">Položky, které se nacházejí v koši více než 30 dní, budou automaticky smazány.</string>
     <string name="ciphers_action_restore_title">Obnovit</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Obnovit z koše?</string>
     <string name="ciphers_action_delete_title">Trvale smazat</string>
     <string name="ciphers_action_delete_confirmation_title">Navždy odstranit?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Konfigurace Watchtower upozornění</string>
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Nepodařilo se naformátovat proměnnou</string>
     <string name="scanqr_title">Načíst QR kód</string>
     <string name="scanqr_load_from_image_note">Načíst a zpracovat QR kód z obrázku.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Čárový kód</string>
     <string name="barcodetype_action_show_in_barcode_title">Zobrazit jako čárový kód</string>

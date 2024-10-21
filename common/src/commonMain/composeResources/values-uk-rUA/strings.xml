@@ -175,6 +175,7 @@
     <string name="passkey_available">Доступний ключ доступу</string>
     <string name="twofa_available">Доступна двофакторна автентифікація</string>
     <string name="custom">Користувацьке</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">Створити обліковий запис</string>
     <string name="follow_system_settings">Як у системі</string>
     <!-- A feature is coming soon! -->
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Не вдалося відформатувати поле</string>
     <string name="scanqr_title">Сканувати QR-код</string>
     <string name="scanqr_load_from_image_note">Завантажте з файлу та проаналізуйте QR-код.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Штрих-код</string>

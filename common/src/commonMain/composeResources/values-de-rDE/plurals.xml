@@ -33,15 +33,15 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Tage</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Woche</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Wochen</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Monat</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Monate</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Jahr</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Jahre</item>
     </plurals>
 </resources>

@@ -175,6 +175,7 @@
     <string name="passkey_available">Доступен Passkey</string>
     <string name="twofa_available">Доступна двухфакторная аутентификация</string>
     <string name="custom">Пользовательское</string>
+    <string name="grant_permission">Выдать разрешение</string>
     <string name="create_account">Создать учётную запись</string>
     <string name="follow_system_settings">Как в системе</string>
     <!-- A feature is coming soon! -->
@@ -241,14 +242,14 @@
     <string name="folder_action_change_name_title">Изменить название</string>
     <string name="folder_action_change_names_title">Изменить названия</string>
     <string name="folder_action_merge_title">Объединить в…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Вы уверены, что хотите объединить эти папки?</string>
+    <string name="folder_action_create_title">Создать папку</string>
     <string name="folder_delete_one_confirmation_title">Удалить папку?</string>
     <string name="folder_delete_many_confirmation_title">Удалить папки?</string>
     <string name="folder_delete_confirmation_text">Эта запись(и) будет удалено. Вы не можете отменить это действие.</string>
     <string name="ciphers_recently_opened">Недавно открытые</string>
     <string name="ciphers_often_opened">Часто открытые</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Истории пока нет</string>
     <string name="ciphers_view_details">Подробнее</string>
     <string name="ciphers_save_to">Сохранить в</string>
     <string name="ciphers_action_add_to_favorites_title">Добавить в избранное</string>
@@ -268,10 +269,10 @@
     <string name="ciphers_action_change_passwords_title">Изменить пароли</string>
     <string name="ciphers_action_view_password_history_title">Просмотреть историю паролей</string>
     <string name="ciphers_action_trash_title">Корзина</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Переместить в корзину?</string>
+    <string name="ciphers_action_trash_confirmation_text">Элементы, находящиеся в корзине более 30 дней, будут автоматически удалены.</string>
     <string name="ciphers_action_restore_title">Восстановить</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Восстановить из корзины?</string>
     <string name="ciphers_action_delete_title">Удалить навсегда</string>
     <string name="ciphers_action_delete_confirmation_title">Удалить навсегда?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Настроить оповещения безопасности</string>
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
+    <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>

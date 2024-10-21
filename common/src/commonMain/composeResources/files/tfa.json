@@ -4577,6 +4577,15 @@
     "name": "Yandex.Disk"
   },
   {
+    "domain": "disqus.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.disqus.com/articles/9768685",
+    "name": "Disqus"
+  },
+  {
     "domain": "dkb.de",
     "tfa": [
       "custom-software",
@@ -5735,7 +5744,6 @@
   },
   {
     "domain": "fidelity.com",
-    "url": "https://www.fidelity.com",
     "tfa": [
       "sms",
       "call",
@@ -5743,10 +5751,9 @@
       "custom-software"
     ],
     "custom-software": [
-      "Symantec VIP Access"
+      "Fidelity Investments app"
     ],
     "documentation": "https://www.fidelity.com/security/extra-security-login",
-    "notes": "Specific support varies between account types",
     "name": "Fidelity Investments"
   },
   {
@@ -8146,6 +8153,14 @@
     ],
     "documentation": "https://help.justworks.com/hc/en-us/articles/360004477492",
     "name": "Justworks"
+  },
+  {
+    "domain": "kagi.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.kagi.com/kagi/privacy/two-factor-authentication.html",
+    "name": "Kagi"
   },
   {
     "domain": "kajabi.com",
@@ -11742,12 +11757,16 @@
   },
   {
     "domain": "pkobp.pl",
-    "url": "https://www.pkobp.pl/",
+    "additional-domains": [
+      "ipko.pl"
+    ],
     "tfa": [
       "sms",
+      "u2f",
       "custom-software"
     ],
     "documentation": "https://iko.pkobp.pl/funkcje/mobilna-autoryzacja/",
+    "notes": "You can only register one U2F security key to your bank account",
     "custom-software": [
       "IKO App"
     ],
@@ -14610,6 +14629,15 @@
     "name": "Studio Ninja"
   },
   {
+    "domain": "subscribestar.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://www.subscribestar.com/posts/1320999",
+    "name": "SubscribeStar.com"
+  },
+  {
     "domain": "substack.com",
     "tfa": [
       "totp"
@@ -15812,7 +15840,7 @@
     "custom-hardware": [
       "Duo token"
     ],
-    "documentation": "https://privacymatters.ubc.ca/test-faqs",
+    "documentation": "https://it.ubc.ca/mfa",
     "name": "University of British Columbia"
   },
   {
@@ -17688,6 +17716,14 @@
     ],
     "documentation": "https://support.zerodha.com/category/your-zerodha-account/login-credentials/login-credentials-of-trading-platforms/articles/time-based-otp-setup",
     "name": "Zerodha Kite"
+  },
+  {
+    "domain": "zerotier.com",
+    "tfa": [
+      "totp",
+      "u2f"
+    ],
+    "name": "ZeroTier"
   },
   {
     "domain": "zillow.com",

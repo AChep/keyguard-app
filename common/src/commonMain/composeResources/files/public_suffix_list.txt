@@ -495,6 +495,7 @@ ato.br
 b.br
 barueri.br
 belem.br
+bet.br
 bhz.br
 bib.br
 bio.br
@@ -582,6 +583,7 @@ joinville.br
 jor.br
 jus.br
 leg.br
+leilao.br
 lel.br
 log.br
 londrina.br
@@ -4100,7 +4102,6 @@ coop.mw
 edu.mw
 gov.mw
 int.mw
-museum.mw
 net.mw
 org.mw
 
@@ -4138,24 +4139,12 @@ net.mz
 org.mz
 
 // na : http://www.na-nic.com.na/
-// http://www.info.na/domain/
 na
-info.na
-pro.na
-name.na
-school.na
-or.na
-dr.na
-us.na
-mx.na
-ca.na
-in.na
-cc.na
-tv.na
-ws.na
-mobi.na
+alt.na
 co.na
 com.na
+gov.na
+net.na
 org.na
 
 // name : has 2nd-level tlds, but there's no list of them
@@ -5396,7 +5385,6 @@ nome.pt
 // pw : https://www.iana.org/domains/root/db/pw.html
 pw
 co.pw
-ne.pw
 or.pw
 ed.pw
 go.pw
@@ -6725,7 +6713,7 @@ org.zw
 
 // newGTLDs
 
-// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2024-09-26T15:17:07Z
+// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2024-10-15T15:17:29Z
 // This list is auto-generated, don't edit it manually.
 // aaa : American Automobile Association, Inc.
 // https://www.iana.org/domains/root/db/aaa.html
@@ -8403,11 +8391,11 @@ haus
 // https://www.iana.org/domains/root/db/hbo.html
 hbo
 
-// hdfc : HOUSING DEVELOPMENT FINANCE CORPORATION LIMITED
+// hdfc : HDFC BANK LIMITED
 // https://www.iana.org/domains/root/db/hdfc.html
 hdfc
 
-// hdfcbank : HDFC Bank Limited
+// hdfcbank : HDFC BANK LIMITED
 // https://www.iana.org/domains/root/db/hdfcbank.html
 hdfcbank
 
@@ -11328,7 +11316,7 @@ myamaze.net
 
 // Amazon API Gateway
 // Submitted by AWS Security <psl-maintainers@amazon.com>
-// Reference: 9e37648f-a66c-4655-9ab1-5981f8737197
+// Reference: 6a4f5a95-8c7d-4077-a7af-9cf1abec0a53
 execute-api.cn-north-1.amazonaws.com.cn
 execute-api.cn-northwest-1.amazonaws.com.cn
 execute-api.af-south-1.amazonaws.com
@@ -11342,6 +11330,7 @@ execute-api.ap-southeast-1.amazonaws.com
 execute-api.ap-southeast-2.amazonaws.com
 execute-api.ap-southeast-3.amazonaws.com
 execute-api.ap-southeast-4.amazonaws.com
+execute-api.ap-southeast-5.amazonaws.com
 execute-api.ca-central-1.amazonaws.com
 execute-api.ca-west-1.amazonaws.com
 execute-api.eu-central-1.amazonaws.com
@@ -11554,7 +11543,7 @@ emrstudio-prod.us-west-2.amazonaws.com
 
 // Amazon S3
 // Submitted by AWS Security <psl-maintainers@amazon.com>
-// Reference: cd5c8b3a-67b7-4b40-9236-c87ce81a3d10
+// Reference: ada5c9df-55e1-4195-a1ce-732d6c81e357
 s3.dualstack.cn-north-1.amazonaws.com.cn
 s3-accesspoint.dualstack.cn-north-1.amazonaws.com.cn
 s3-website.dualstack.cn-north-1.amazonaws.com.cn
@@ -11612,6 +11601,7 @@ s3-object-lambda.ap-south-1.amazonaws.com
 s3-website.ap-south-1.amazonaws.com
 s3.dualstack.ap-south-2.amazonaws.com
 s3-accesspoint.dualstack.ap-south-2.amazonaws.com
+s3-website.dualstack.ap-south-2.amazonaws.com
 s3.ap-south-2.amazonaws.com
 s3-accesspoint.ap-south-2.amazonaws.com
 s3-object-lambda.ap-south-2.amazonaws.com
@@ -11632,16 +11622,26 @@ s3-object-lambda.ap-southeast-2.amazonaws.com
 s3-website.ap-southeast-2.amazonaws.com
 s3.dualstack.ap-southeast-3.amazonaws.com
 s3-accesspoint.dualstack.ap-southeast-3.amazonaws.com
+s3-website.dualstack.ap-southeast-3.amazonaws.com
 s3.ap-southeast-3.amazonaws.com
 s3-accesspoint.ap-southeast-3.amazonaws.com
 s3-object-lambda.ap-southeast-3.amazonaws.com
 s3-website.ap-southeast-3.amazonaws.com
 s3.dualstack.ap-southeast-4.amazonaws.com
 s3-accesspoint.dualstack.ap-southeast-4.amazonaws.com
+s3-website.dualstack.ap-southeast-4.amazonaws.com
 s3.ap-southeast-4.amazonaws.com
 s3-accesspoint.ap-southeast-4.amazonaws.com
 s3-object-lambda.ap-southeast-4.amazonaws.com
 s3-website.ap-southeast-4.amazonaws.com
+s3.dualstack.ap-southeast-5.amazonaws.com
+s3-accesspoint.dualstack.ap-southeast-5.amazonaws.com
+s3-website.dualstack.ap-southeast-5.amazonaws.com
+s3.ap-southeast-5.amazonaws.com
+s3-accesspoint.ap-southeast-5.amazonaws.com
+s3-deprecated.ap-southeast-5.amazonaws.com
+s3-object-lambda.ap-southeast-5.amazonaws.com
+s3-website.ap-southeast-5.amazonaws.com
 s3.dualstack.ca-central-1.amazonaws.com
 s3-accesspoint.dualstack.ca-central-1.amazonaws.com
 s3-accesspoint-fips.dualstack.ca-central-1.amazonaws.com
@@ -11662,6 +11662,7 @@ s3.ca-west-1.amazonaws.com
 s3-accesspoint.ca-west-1.amazonaws.com
 s3-accesspoint-fips.ca-west-1.amazonaws.com
 s3-fips.ca-west-1.amazonaws.com
+s3-object-lambda.ca-west-1.amazonaws.com
 s3-website.ca-west-1.amazonaws.com
 s3.dualstack.eu-central-1.amazonaws.com
 s3-accesspoint.dualstack.eu-central-1.amazonaws.com
@@ -11672,6 +11673,7 @@ s3-object-lambda.eu-central-1.amazonaws.com
 s3-website.eu-central-1.amazonaws.com
 s3.dualstack.eu-central-2.amazonaws.com
 s3-accesspoint.dualstack.eu-central-2.amazonaws.com
+s3-website.dualstack.eu-central-2.amazonaws.com
 s3.eu-central-2.amazonaws.com
 s3-accesspoint.eu-central-2.amazonaws.com
 s3-object-lambda.eu-central-2.amazonaws.com
@@ -11691,6 +11693,7 @@ s3-object-lambda.eu-south-1.amazonaws.com
 s3-website.eu-south-1.amazonaws.com
 s3.dualstack.eu-south-2.amazonaws.com
 s3-accesspoint.dualstack.eu-south-2.amazonaws.com
+s3-website.dualstack.eu-south-2.amazonaws.com
 s3.eu-south-2.amazonaws.com
 s3-accesspoint.eu-south-2.amazonaws.com
 s3-object-lambda.eu-south-2.amazonaws.com
@@ -11718,12 +11721,14 @@ s3-object-lambda.eu-west-3.amazonaws.com
 s3-website.eu-west-3.amazonaws.com
 s3.dualstack.il-central-1.amazonaws.com
 s3-accesspoint.dualstack.il-central-1.amazonaws.com
+s3-website.dualstack.il-central-1.amazonaws.com
 s3.il-central-1.amazonaws.com
 s3-accesspoint.il-central-1.amazonaws.com
 s3-object-lambda.il-central-1.amazonaws.com
 s3-website.il-central-1.amazonaws.com
 s3.dualstack.me-central-1.amazonaws.com
 s3-accesspoint.dualstack.me-central-1.amazonaws.com
+s3-website.dualstack.me-central-1.amazonaws.com
 s3.me-central-1.amazonaws.com
 s3-accesspoint.me-central-1.amazonaws.com
 s3-object-lambda.me-central-1.amazonaws.com
@@ -11792,6 +11797,7 @@ s3.dualstack.us-east-2.amazonaws.com
 s3-accesspoint.dualstack.us-east-2.amazonaws.com
 s3-accesspoint-fips.dualstack.us-east-2.amazonaws.com
 s3-fips.dualstack.us-east-2.amazonaws.com
+s3-website.dualstack.us-east-2.amazonaws.com
 s3.us-east-2.amazonaws.com
 s3-accesspoint.us-east-2.amazonaws.com
 s3-accesspoint-fips.us-east-2.amazonaws.com
@@ -12127,6 +12133,10 @@ on-aptible.com
 // Submitted by Aki Ueno <admin@aquapal.net>
 f5.si
 
+// ArvanCloud EdgeCompute
+// Submitted by ArvanCloud CDN <cdn@arvancloud.ir>
+arvanedge.ir
+
 // ASEINet : https://www.aseinet.com/
 // Submitted by Asei SEKIGUCHI <mail@aseinet.com>
 user.aseinet.ne.jp
@@ -12181,12 +12191,6 @@ b-data.io
 // Balena : https://www.balena.io
 // Submitted by Petros Angelatos <petrosagg@balena.io>
 balena-devices.com
-
-// Banzai Cloud
-// Submitted by Janos Matyas <info@banzaicloud.com>
-*.banzai.cloud
-app.banzaicloud.io
-*.backyards.banzaicloud.io
 
 // BASE, Inc. : https://binc.jp
 // Submitted by Yuya NAGASAWA <public-suffix-list@binc.jp>
@@ -12563,10 +12567,6 @@ dattoweb.com
 mydatto.com
 dattolocal.net
 mydatto.net
-
-// DDNS5 : https://ddns5.com
-// Submitted by Cameron Elliott <cameron@cameronelliott.com>
-ddns5.com
 
 // ddnss.de : https://www.ddnss.de/
 // Submitted by Robert Niedziela <webmaster@ddnss.de>
@@ -13088,10 +13088,8 @@ ng.eu.org
 nl.eu.org
 no.eu.org
 nz.eu.org
-paris.eu.org
 pl.eu.org
 pt.eu.org
-q-a.eu.org
 ro.eu.org
 ru.eu.org
 se.eu.org
@@ -13603,7 +13601,6 @@ blogspot.lt
 blogspot.lu
 blogspot.md
 blogspot.mk
-blogspot.mr
 blogspot.com.mt
 blogspot.mx
 blogspot.my
@@ -13679,10 +13676,7 @@ hs.zone
 // Harrison Network : https://hrsn.net
 // Submitted by William Harrison <psl@hrsn.net>
 wdh.app
-preview.wdh.app
 hrsn.dev
-t.hrsn.dev
-t.hrsn.net
 
 // Hashbang : https://hashbang.sh
 hashbang.sh
@@ -14222,6 +14216,10 @@ mediatech.dev
 // Submitted by Michael Olson <molson@medicomhealth.com>
 hra.health
 
+// MedusaJS, Inc : https://medusajs.com/
+// Submitted by Stevche Radevski <engineering@medusajs.com>
+medusajs.app
+
 // Memset hosting : https://www.memset.com
 // Submitted by Tom Whitwell <domains@memset.com>
 miniserver.com
@@ -14289,6 +14287,15 @@ routingthecloud.org
 // minion.systems : http://minion.systems
 // Submitted by Robert Böttinger <r@minion.systems>
 csx.cc
+
+// Mittwald CM Service GmbH & Co. KG : https://mittwald.de
+// Submitted by Marco Rieger <security@mittwald.de>
+mydbserver.com
+webspaceconfig.de
+mittwald.info
+mittwaldserver.info
+typo3server.info
+project.space
 
 // MODX Systems LLC : https://modx.com
 // Submitted by Elizabeth Southwell <elizabeth@modx.com>
@@ -15143,12 +15150,6 @@ vipsinaapp.com
 // Submitted by Skylar Challand <support@siteleaf.com>
 siteleaf.net
 
-// Skyhat : http://www.skyhat.io
-// Submitted by Shante Adam <shante@skyhat.io>
-bounty-full.com
-alpha.bounty-full.com
-beta.bounty-full.com
-
 // Small Technology Foundation : https://small-tech.org
 // Submitted by Aral Balkan <aral@small-tech.org>
 small-web.org
@@ -15357,8 +15358,7 @@ tabitorder.co.il
 taifun-dns.de
 
 // Tailscale Inc. : https://www.tailscale.com
-// Submitted by David Anderson <danderson@tailscale.com>
-beta.tailscale.net
+// Submitted by David Anderson <infra+public-suffix-list@tailscale.com>
 ts.net
 *.c.ts.net
 
@@ -15420,7 +15420,6 @@ pages.torproject.net
 
 // TownNews.com : http://www.townnews.com
 // Submitted by Dustin Ward <dward@townnews.com>
-bloxcms.com
 townnews-staging.com
 
 // TrafficPlex GmbH : https://www.trafficplex.de/
@@ -15694,13 +15693,7 @@ yolasite.com
 
 // Yombo : https://yombo.net
 // Submitted by Mitch Schwenk <mitch@yombo.net>
-ybo.faith
 yombo.me
-homelink.one
-ybo.party
-ybo.review
-ybo.science
-ybo.trade
 
 // Yunohost : https://yunohost.org
 // Submitted by Valentin Grimaud <security@yunohost.org>

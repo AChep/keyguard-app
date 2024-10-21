@@ -8,7 +8,7 @@ androidTargetSdk = "35"
 # @keep
 jdk = "17"
 # @keep
-appVersionName = "1.6.2"
+appVersionName = "1.6.3"
 # @keep
 appVersionCode = "6"
 # https://github.com/google/accompanist
@@ -21,7 +21,7 @@ androidPlugin = "8.7.0"
 androidxActivity = "1.9.2"
 androidxAppCompat = "1.7.0"
 androidxAutofill = "1.3.0-beta01"
-androidxBaselineProfile = "1.3.1"
+androidxBaselineProfile = "1.3.3"
 androidxBenchmarkMacroJUnit4 = "1.3.3"
 androidxBiometricKtx = "1.4.0-alpha02"
 androidxBrowser = "1.8.0"
@@ -52,7 +52,7 @@ commonsCodec = "1.17.1"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.17.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.7.0-rc01"
+composeMultiplatform = "1.7.0"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
@@ -72,7 +72,7 @@ kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.22.0"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.0.20"
+kotlin = "2.0.21"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.3.8"
 # https://github.com/Kotlin/kotlinx.coroutines
@@ -111,7 +111,7 @@ playServicesBase = "18.5.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha01"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "8.0.8"
+signalr = "8.0.10"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.16"
 # https://github.com/bcgit/bc-java

@@ -20,13 +20,16 @@ jobs:
           lfs: true
           path: deploy_fdroid
           token: ${{ secrets.DEPLOY_FDROID_GITHUB_TOKEN }}
+      - name: "Prepare dependencies declaration"
+        run: |
+          mv .github/deploy_fdroid.requirements.txt requirements.txt
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
       - name: "Download dependencies"
         run: |
-          pip install -r .github/deploy_fdroid.requirements.txt
+          pip install -r requirements.txt
           pip install git+https://gitlab.com/fdroid/fdroidserver.git
       - name: "Prepare env"
         working-directory: ./deploy_fdroid
@@ -38,6 +41,10 @@ jobs:
         working-directory: ./deploy_fdroid
         run: |
           python deploy_fdroid.py
+      - name: "Clean-up env"
+        working-directory: ./deploy_fdroid
+        run: |
+          rm deploy_fdroid.py
       - name: "Check if any changes"
         working-directory: ./deploy_fdroid
         id: check-changes

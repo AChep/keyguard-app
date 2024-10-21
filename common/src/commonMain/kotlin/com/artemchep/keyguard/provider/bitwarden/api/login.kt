@@ -52,6 +52,10 @@ data class BitwardenPersona(
     val deviceType: String,
     val deviceName: String,
     val userAgent: String,
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Mobile
+    val chUaMobile: String,
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform
+    val chUaPlatform: String,
 ) {
     companion object {
         const val CLIENT_VERSION = "2024.4.0"
@@ -78,6 +82,8 @@ data class BitwardenPersona(
             deviceType = "8",
             deviceName = "linux",
             userAgent = defaultUserAgent,
+            chUaMobile = "?0",
+            chUaPlatform = "Linux",
         )
 
         private fun Platform.Desktop.MacOS.bitwardenPersona(
@@ -88,6 +94,8 @@ data class BitwardenPersona(
             deviceType = "7",
             deviceName = "macos",
             userAgent = defaultUserAgent,
+            chUaMobile = "?0",
+            chUaPlatform = "macOS",
         )
 
         private fun Platform.Desktop.Windows.bitwardenPersona(
@@ -98,6 +106,8 @@ data class BitwardenPersona(
             deviceType = "6",
             deviceName = "windows",
             userAgent = defaultUserAgent,
+            chUaMobile = "?0",
+            chUaPlatform = "Windows",
         )
     }
 }

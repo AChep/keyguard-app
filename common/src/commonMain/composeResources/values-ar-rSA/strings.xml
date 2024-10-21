@@ -175,6 +175,7 @@
     <string name="passkey_available">مفتاح المرور متاح</string>
     <string name="twofa_available">المصادقة الثنائية متاحة</string>
     <string name="custom">مخصص</string>
+    <string name="grant_permission">Grant permission</string>
     <string name="create_account">إنشاء حساب</string>
     <string name="follow_system_settings">اتبع إعدادات النظام</string>
     <!-- A feature is coming soon! -->
@@ -472,6 +473,7 @@
     <string name="error_failed_format_placeholder">فشل تنسيق العنصر النائب</string>
     <string name="scanqr_title">مسح رمز الاستجابة السريعة</string>
     <string name="scanqr_load_from_image_note">تحميل وتحليل رمز الاستجابة السريعة من ملف صورة.</string>
+    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">الباركود</string>
     <string name="barcodetype_action_show_in_barcode_title">إظهار كرمز شريطي</string>

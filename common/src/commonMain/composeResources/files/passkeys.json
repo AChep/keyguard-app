@@ -560,6 +560,17 @@
     "created_at": "2024-03-19T18:45:03.016947+00:00"
   },
   {
+    "id": "ae3ca7b522d2801ee58e10c32fb8f3de",
+    "name": "ComputerBase",
+    "domain": "computerbase.de",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.computerbase.de/forum/account/security",
+    "category": "Information Technology",
+    "created_at": "2023-06-08T20:52:04.5741+00:00"
+  },
+  {
     "id": "e7d20319ad3baa0d8460a62338c95fad",
     "name": "Corbado",
     "domain": "corbado.com",
@@ -569,6 +580,18 @@
     "setup": "https://app.corbado.com/",
     "category": "Authentication Provider",
     "created_at": "2022-12-13T00:00:00+00:00"
+  },
+  {
+    "id": "bf5e91b8d80c17557dc7dd4785b63523",
+    "name": "Coveto Recruiting Software",
+    "domain": "coveto.de",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "category": "Information Technology",
+    "created_at": "2024-10-17T11:32:38.118645+00:00",
+    "notes": "Setup link not available.\n\nManage passkeys from user menu in top right, Settings,  MFA"
   },
   {
     "id": "b879b19164a17f191673985d1d88058f",
@@ -1220,6 +1243,18 @@
     "created_at": "2023-02-11T00:00:00+00:00"
   },
   {
+    "id": "069865f6b878e6c8e0f5ff82d2603fa5",
+    "name": "larksuite.com",
+    "domain": "larksuite.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.larksuite.com/hc/en-US/articles/701640811546-add-passkey",
+    "setup": "https://accounts-jp.larksuite.com/accounts/security/page/credential_list/",
+    "category": "Information Technology",
+    "created_at": "2024-07-14T17:11:40.581639+00:00"
+  },
+  {
     "id": "1f048345499b71dfd0977d7d7ad0c5b9",
     "name": "LGTM.lol",
     "domain": "lgtm.lol",
@@ -1358,6 +1393,18 @@
     "created_at": "2023-03-22T20:31:28.756285+00:00"
   },
   {
+    "id": "5b9030218f1bee1e295009ad2a4fc6f9",
+    "name": "Luno",
+    "domain": "luno.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://guide.luno.com/hc/en-gb/articles/11035620246429-How-do-I-sign-in-with-a-passkey-on-Luno",
+    "setup": "https://www.luno.com/wallet/security/passkeys",
+    "category": "Finance",
+    "created_at": "2023-04-21T12:22:25.77787+00:00"
+  },
+  {
     "id": "2a2917c1fb4dc789b98d3d14fd5b0f24",
     "name": "LuxID",
     "domain": "luxid.lu",
@@ -1449,8 +1496,19 @@
     "created_at": "2024-01-05T12:56:56.072443+00:00"
   },
   {
-    "id": "113160fdb63798c69be2641c1ec28905",
-    "name": "Microsoft account",
+    "id": "3d53f13bac265dc6d29846b76ad568b0",
+    "name": "Micro Center",
+    "domain": "microcenter.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://account.microcenter.com/account/security/Index",
+    "category": "eCommerce",
+    "created_at": "2023-12-14T17:10:53.683321+00:00"
+  },
+  {
+    "id": "a1f8ba9c8ee6f6e353a4d92b729a1da0",
+    "name": "Microsoft",
     "domain": "microsoft.com",
     "features": [
       "mfa",
@@ -1895,6 +1953,18 @@
     "notes": "### Setting up passkeys: \n\n- Navigate to Settings on your iOS app or web browser. Log in if prompted.\n*Note: Android support will be coming soon*\n- Under Account Info > Login Methods > Passkeys, press the \u201cAdd passkey\u201d button.\n- Note: You may need to verify your identity with your password or a one-time code sent to your email.\n\nTo complete adding a passkey, you will be asked to unlock your device.\n\n\n### Manage your passkeys\n\nGo to Settings on your iOS app or web browser. Login to your account if prompted.\n\n*Note: Android support will be coming soon*\n- Under Account Info > Login Methods > Passkeys, press the \u201cManage\u201d button.\n- Press the trashcan icon next to the passkey you want to remove.\n- You may be asked to verify your identity using passwords or an email one-time code."
   },
   {
+    "id": "1f97cd7c52deac6789e66b6c2cd99aec",
+    "name": "Salad",
+    "domain": "salad.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.salad.com/article/501-salad-app-passkeys",
+    "setup": "https://salad.com/account/summary",
+    "category": "Information Technology",
+    "created_at": "2023-09-27T03:19:29.950353+00:00"
+  },
+  {
     "id": "a3b5a03b7d7a6fbe75a856ee353a9b97",
     "name": "Scrooge Games",
     "domain": "scrooge.games",
@@ -2115,6 +2185,19 @@
     "setup": "https://www.target.com/account/settings/signinsecurity",
     "category": "eCommerce",
     "created_at": "2024-02-13T17:48:19+00:00"
+  },
+  {
+    "id": "11290699cf419fcc16db8dfa1d2d9242",
+    "name": "Deutsche Telekom",
+    "domain": "telekom.de",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.telekom.de/hilfe/vertrag-rechnung/telekom-login/passkey/telekom-login-einrichten?samChecked=true",
+    "setup": "https://account.idm.telekom.com/account-manager/security/passkeys",
+    "category": "Telecommunications",
+    "created_at": "2023-08-02T15:35:11.762777+00:00",
+    "notes": "Passkeys can be set up through a prompt directly after login"
   },
   {
     "id": "04114ec1ed821090f4a47772a1125857",
@@ -2339,6 +2422,19 @@
     ],
     "category": "Finance",
     "created_at": "2024-04-02T09:40:56.495819+00:00"
+  },
+  {
+    "id": "05a04193e366be2a6786c0368bc7ae0b",
+    "name": "Walmart",
+    "domain": "walmart.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.walmart.com/help/article/passkeys/79bc4a57374146c497ebe3bf8d4f9b10",
+    "setup": "https://www.walmart.com/help/article/passkeys/79bc4a57374146c497ebe3bf8d4f9b10",
+    "category": "eCommerce",
+    "created_at": "2023-04-17T03:59:34.286021+00:00",
+    "notes": "Only available through the mobile app and on consumer accounts"
   },
   {
     "id": "ffe0c8cc238d5545af34bcdde2e1c523",

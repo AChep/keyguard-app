@@ -25,6 +25,9 @@
     <string name="email_visibility">E-mail zichtbaarheid</string>
     <string name="public_url">Publieke URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Aantal keer bekeken</string>
     <!--
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Om de captcha verificatie te voltooien in een niet-officiële Bitwarden client moet je een API-sleutel invullen, deze is te vinden in je Bitwarden account. Bezoek de Bitwarden Web kluis / Instellingen / Beveiliging / Sleutels / API-sleutel, en kopieer de getoonde client secret waarde.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Inloggen</string>
     <string name="addaccount_region_section">Regio</string>
     <string name="addaccount_region_us_type">Verenigde Staten</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">Wachtwoord generator</string>
     <string name="generator_generate_button">Genereren</string>
     <string name="generator_regenerate_button">Opnieuw genereren</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Wachtwoordzin</string>
     <string name="generator_passphrase_note">Willekeurige wachtwoordzinnen bieden de beste combinatie van geheugen en veiligheid.</string>
     <string name="generator_passphrase_delimiter_title">Scheidingsteken</string>

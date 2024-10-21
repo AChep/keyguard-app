@@ -25,6 +25,9 @@
     <string name="email_visibility">Visibilidade do e-mail</string>
     <string name="public_url">URL público</string>
     <string name="url">Ligação</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Contagem de acessos</string>
     <!--
@@ -623,6 +626,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Para passar a verificação captcha num cliente do Bitwarden não oficial, deve especificar a chave secreta de cliente. Para encontrá-la, visite o Web vault em / Configurações / Chave de API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Chave secreta</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Início sessão</string>
     <string name="addaccount_region_section">Região</string>
     <string name="addaccount_region_us_type">Estados Unidos</string>
@@ -764,6 +768,8 @@
     <string name="generator_header_password_title">Gerador de palavra-passe</string>
     <string name="generator_generate_button">Gerar</string>
     <string name="generator_regenerate_button">Gerar novamente</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Frase-chave</string>
     <string name="generator_passphrase_note">Senhas de palavras aleatórias fornecem a melhor combinação de memorização e segurança.</string>
     <string name="generator_passphrase_delimiter_title">Limite de caracteres</string>

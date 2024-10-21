@@ -25,6 +25,9 @@
     <string name="email_visibility">メールアドレスの表示</string>
     <string name="public_url">公開 URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">アクセス数</string>
     <!--
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">非公式の Bitwarden クライアントで CAPTCHA 認証を通過するには、クライアントシークレットを指定する必要があります。クライアントシークレットを取得するには、ウェブ保管庫 / 設定 / API キー にアクセスしてください。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">クライアントシークレット</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">サインイン</string>
     <string name="addaccount_region_section">地域</string>
     <string name="addaccount_region_us_type">アメリカ合衆国</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">パスワード生成</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">再生成</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">パスフレーズ</string>
     <string name="generator_passphrase_note">ランダムなパスフレーズは、記憶性とセキュリティの最良の組み合わせを提供します。</string>
     <string name="generator_passphrase_delimiter_title">区切り文字</string>

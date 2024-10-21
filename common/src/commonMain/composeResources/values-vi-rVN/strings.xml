@@ -25,6 +25,9 @@
     <string name="email_visibility">Khả năng hiển thị email</string>
     <string name="public_url">URL công khai</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Lượt truy cập</string>
     <!--
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Để vượt qua xác minh captcha trên ứng dụng khách Bitwarden không chính thức, bạn phải chỉ định client secret. Để tìm thấy nó, hãy truy cập kho Web / Thiết đặt / Khóa API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Đăng nhập</string>
     <string name="addaccount_region_section">Khu vực</string>
     <string name="addaccount_region_us_type">Hoa Kỳ</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">Bộ tạo mật khẩu</string>
     <string name="generator_generate_button">Tạo</string>
     <string name="generator_regenerate_button">Tạo lại</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Cụm mật khẩu</string>
     <string name="generator_passphrase_note">Cụm mật khẩu ngẫu nhiên cung cấp sự kết hợp tốt nhất giữa khả năng ghi nhớ và bảo mật.</string>
     <string name="generator_passphrase_delimiter_title">Dấu phân cách</string>

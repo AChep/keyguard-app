@@ -25,6 +25,9 @@
     <string name="email_visibility">電子郵件可見性</string>
     <string name="public_url">公共URL</string>
     <string name="url">網址</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">訪問次數</string>
     <!--
@@ -132,13 +135,13 @@
     <string name="expiration_date">Expiration date</string>
     <string name="expiration_date_custom">自訂</string>
     <string name="expiration_date_never">Never</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
+    <string name="select_linked_type">選擇類型</string>
+    <string name="select_file">選取檔案</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
+    <string name="passkey">Passkeys</string>
+    <string name="passkey_create_header">建立 Passkeys</string>
+    <string name="passkey_unlock_header">解鎖 Keyguard</string>
     <string name="passkey_auth_via_header">Confirming auth request…</string>
     <string name="passkeys">Passkeys</string>
     <!--
@@ -156,7 +159,7 @@
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
     <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
+    <string name="passkey_user_username">使用者名稱</string>
     <string name="passkey_user_display_name">Display name</string>
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API 金鑰</string>
@@ -224,20 +227,20 @@
     <string name="account_action_change_name_title">Change name</string>
     <string name="account_action_change_color_title">Change color</string>
     <string name="account_action_change_master_password_hint_title">Change master password hint</string>
-    <string name="account_action_sign_out_title">Sign out</string>
-    <string name="account_action_sign_in_title">Sign in</string>
-    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_sign_out_title">登出</string>
+    <string name="account_action_sign_in_title">登入</string>
+    <string name="account_action_export_vault_title">匯出密碼庫</string>
     <string name="account_action_export_individual_vault_title">Export individual vault</string>
     <string name="account_action_hide_title">Hide items</string>
     <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
-    <string name="account_action_tfa_title">Two-factor authentication</string>
+    <string name="account_action_tfa_title">兩步驟驗證</string>
     <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
     <string name="account_action_tfa_active_status">Active</string>
     <string name="account_action_items_title">Items</string>
-    <string name="account_action_log_out_title">Log out</string>
-    <string name="account_log_out_confirmation_title">Log out?</string>
+    <string name="account_action_log_out_title">退出</string>
+    <string name="account_log_out_confirmation_title">您確定要退出嗎？</string>
     <string name="account_log_out_confirmation_text">All of the not synchronized changes will be lost!</string>
     <string name="folder_action_change_name_title">Change name</string>
     <string name="folder_action_change_names_title">Change names</string>
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Sign in</string>
     <string name="addaccount_region_section">Region</string>
     <string name="addaccount_region_us_type">United States</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">Password generator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Passphrase</string>
     <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
     <string name="generator_passphrase_delimiter_title">Delimiter</string>

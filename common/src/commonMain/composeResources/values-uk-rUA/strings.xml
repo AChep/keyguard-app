@@ -25,6 +25,9 @@
     <string name="email_visibility">Видимість електронної пошти</string>
     <string name="public_url">Загальнодоступна URL-адреса</string>
     <string name="url">URL-адреса</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Кількість відвідувань</string>
     <!--
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Щоб пройти перевірку Captcha на неофіційному клієнті Bitwarden, вам необхідно вказати клієнтський секрет (Client secret). Щоб знайти його, відвідайте Вебсторінку сховища / Налаштування / Ключ API (Web vault / Settings / API Key).</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Секретний ключ клієнта</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Увійти</string>
     <string name="addaccount_region_section">Регіон</string>
     <string name="addaccount_region_us_type">США</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">Генератор паролів</string>
     <string name="generator_generate_button">Згенерувати</string>
     <string name="generator_regenerate_button">Перегенерувати</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Парольна фраза</string>
     <string name="generator_passphrase_note">Випадкові парольні фрази забезпечують найкраще поєднання запам'ятовуваності та безпеки.</string>
     <string name="generator_passphrase_delimiter_title">Роздільник</string>

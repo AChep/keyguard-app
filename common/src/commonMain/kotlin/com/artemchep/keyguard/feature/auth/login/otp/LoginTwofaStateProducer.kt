@@ -272,10 +272,10 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
         .map { rawCode ->
             val code = rawCode
                 .trim()
-            if (code.length != 6) {
+            if (code.isEmpty()) {
                 Validated.Failure(
                     model = code,
-                    error = translate(Res.string.error_must_have_exactly_n_symbols, 6),
+                    error = translate(Res.string.error_must_not_be_blank),
                 )
             } else {
                 Validated.Success(
@@ -423,10 +423,10 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
         .map { rawCode ->
             val code = rawCode
                 .trim()
-            if (code.length != 6) {
+            if (code.isEmpty()) {
                 Validated.Failure(
                     model = code,
-                    error = translate(Res.string.error_must_have_exactly_n_symbols, 6),
+                    error = translate(Res.string.error_must_not_be_blank),
                 )
             } else {
                 Validated.Success(

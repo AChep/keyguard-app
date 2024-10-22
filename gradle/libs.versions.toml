@@ -105,7 +105,7 @@ nfd = "1.0.3"
 # https://square.github.io/okhttp/changelogs/changelog/
 okHttp = "4.12.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
-playReviewKtx = "2.0.1"
+playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
 playServicesBase = "18.5.0"
 # https://github.com/halilozercan/compose-richtext/releases

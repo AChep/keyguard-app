@@ -90,12 +90,6 @@ fun RememberStateFlowScope.cipherEnableConfirmAccessAction(
                 filteredCipherIds,
                 true,
             )
-                .effectMap {
-                    val message = ToastMessage(
-                        title = "Auth re-prompt enabled",
-                    )
-                    message(message)
-                }
                 .launchIn(appScope)
         },
     )
@@ -122,12 +116,6 @@ fun RememberStateFlowScope.cipherDisableConfirmAccessAction(
                 filteredCipherIds,
                 false,
             )
-                .effectMap {
-                    val message = ToastMessage(
-                        title = "Auth re-prompt disabled",
-                    )
-                    message(message)
-                }
                 .biFlatTap(
                     ifException = {
                         ioEffect { after?.invoke(false) }
@@ -299,12 +287,6 @@ fun RememberStateFlowScope.cipherCopyToAction(
                             cipher.id to ownership
                         }
                     copyCipherById(cipherIdsToOwnership)
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Copied ciphers!",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 
@@ -383,12 +365,6 @@ fun RememberStateFlowScope.cipherMoveToFolderAction(
                         cipherIds,
                         destination,
                     )
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Moved to the folder",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 
@@ -444,12 +420,6 @@ fun RememberStateFlowScope.cipherChangeNameAction(
                         .data
                         .mapValues { it.value as String }
                     changeCipherNameById(cipherIdsToNames)
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Changed names",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 
@@ -518,12 +488,6 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
                         .data
                         .mapValues { it.value as String }
                     changeCipherPasswordById(cipherIdsToPasswords)
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Changed passwords",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 
@@ -601,12 +565,6 @@ fun RememberStateFlowScope.cipherTrashAction(
                         .map { it.id }
                         .toSet()
                     trashCipherById(cipherIds)
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Trashed",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 
@@ -646,12 +604,6 @@ fun RememberStateFlowScope.cipherRestoreAction(
                         .map { it.id }
                         .toSet()
                     restoreCipherById(cipherIds)
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Restored",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 
@@ -691,12 +643,6 @@ fun RememberStateFlowScope.cipherDeleteAction(
                         .map { it.id }
                         .toSet()
                     removeCipherById(cipherIds)
-                        .effectMap {
-                            val message = ToastMessage(
-                                title = "Deleted",
-                            )
-                            message(message)
-                        }
                         .launchIn(appScope)
                 }
 

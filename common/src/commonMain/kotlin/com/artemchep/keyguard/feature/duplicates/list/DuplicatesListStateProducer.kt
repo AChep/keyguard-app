@@ -451,12 +451,6 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
                         filteredCipherIds,
                         true,
                     )
-                    .effectMap {
-                        val message = ToastMessage(
-                            title = "Add to favourites",
-                        )
-                        message(message)
-                    }
                     .launchIn(appScope)
             },
         )
@@ -478,12 +472,6 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
                         filteredCipherIds,
                         false,
                     )
-                    .effectMap {
-                        val message = ToastMessage(
-                            title = "Removed from favourites",
-                        )
-                        message(message)
-                    }
                     .launchIn(appScope)
             },
         )

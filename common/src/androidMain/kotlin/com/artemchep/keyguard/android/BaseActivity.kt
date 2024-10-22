@@ -41,20 +41,26 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
+import com.artemchep.keyguard.feature.loading.ReadableExceptionMessage
+import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.N
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
-import com.google.firebase.crashlytics.ktx.crashlytics
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI
 import org.kodein.di.compose.rememberInstance
@@ -74,6 +80,11 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
      * `false` if we should use the chrome tab.
      */
     private var lastUseExternalBrowser: Boolean = false
+
+    protected val translatorScope by lazy {
+        val context = LeContext(this)
+        TranslatorScope.of(context)
+    }
 
     @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -472,18 +483,26 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     }
 
     private fun ShowMessage.internalShowNavigationErrorMessage(e: Throwable) {
-        Firebase.crashlytics.recordException(e)
+        recordException(e)
 
-        e.printStackTrace()
+        // Show an error message
+        lifecycleScope.launch {
+            val msg = when (e) {
+                is ActivityNotFoundException -> {
+                    val title = translatorScope.translate(Res.string.error_failed_open_app_for)
+                    ReadableExceptionMessage(title = title)
+                }
 
-        val model = ToastMessage(
-            type = ToastMessage.Type.ERROR,
-            title = when (e) {
-                is ActivityNotFoundException -> "No installed app can handle this request."
-                else -> "Something went wrong"
-            },
-        )
-        copy(model)
+                else -> getErrorReadableMessage(e, translatorScope)
+            }
+
+            val model = ToastMessage(
+                type = ToastMessage.Type.ERROR,
+                title = msg.title,
+                text = msg.text,
+            )
+            copy(model)
+        }
     }
 
     @Composable

@@ -495,6 +495,8 @@
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
 
     <string name="scanqr_title">Scan QR code</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
@@ -611,6 +613,7 @@
     <string name="urloverride_empty_label">No URL overrides</string>
 
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App password</string>
     <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>
@@ -927,6 +930,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
 
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>

@@ -304,7 +304,7 @@ private fun ColumnScope.SetupScreenCreateVaultTitle() {
     if (isStandalone) {
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "By continuing you confirm that you have purchased the Keyguard or have had an active license.",
+            text = stringResource(Res.string.setup_free_text),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(DisabledEmphasisAlpha),

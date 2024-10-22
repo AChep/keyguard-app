@@ -8,11 +8,12 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.translate
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class LoadingTask(
@@ -94,7 +95,8 @@ suspend fun getErrorReadableMessage(e: Throwable, translator: TranslatorScope) =
         }
 
         else -> {
-            val title = e.message.orEmpty()
+            val title = e.message
+                ?: translator.translate(Res.string.error_failed_unknown)
             ReadableExceptionMessage(
                 title = title,
             )

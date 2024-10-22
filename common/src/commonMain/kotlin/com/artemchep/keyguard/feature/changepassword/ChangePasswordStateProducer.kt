@@ -173,7 +173,7 @@ private fun RememberStateFlowScope.ah(
             .getCreateIo(currentPassword, newPassword)
             .effectTap {
                 val msg = ToastMessage(
-                    title = "Changed the password",
+                    title = translate(Res.string.changepassword_password_changed_successfully),
                     type = ToastMessage.Type.SUCCESS,
                 )
                 message(msg)
@@ -207,7 +207,7 @@ private fun RememberStateFlowScope.ah(
                                 .getCreateIo(currentPassword, newPassword)
                                 .effectTap {
                                     val msg = ToastMessage(
-                                        title = "Changed the password",
+                                        title = translate(Res.string.changepassword_password_changed_successfully),
                                         type = ToastMessage.Type.SUCCESS,
                                     )
                                     message(msg)

@@ -301,7 +301,7 @@ class CipherDuplicatesCheckImpl(
         if (
             a.processed.identity != null &&
             b.processed.identity != null &&
-            a.processed.type == DSecret.Type.Card
+            a.processed.type == DSecret.Type.Identity
         ) {
             val aIdentity = a.processed.identity
             val bIdentity = b.processed.identity

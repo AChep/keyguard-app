@@ -1334,7 +1334,7 @@ fun globalModuleJvm() = DI.Module(
                 register(ContentType.Application.Json, KotlinxSerializationConverter(json))
             }
             install(WebSockets) {
-                pingInterval = 20_000
+                pingIntervalMillis = 20_000
             }
             install(HttpCache) {
                 // In memory.
@@ -1366,7 +1366,7 @@ fun globalModuleJvm() = DI.Module(
                 register(ContentType.Application.Json, KotlinxSerializationConverter(json))
             }
             install(WebSockets) {
-                pingInterval = 20_000
+                pingIntervalMillis = 20_000
             }
             install(HttpCache) {
                 // In memory.

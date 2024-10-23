@@ -66,7 +66,7 @@ googleServicesPlugin = "4.4.2"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
-kamel = "0.9.5"
+kamel = "1.0.1"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
@@ -91,7 +91,7 @@ ktlint = "0.50.0"
 ktlintPlugin = "12.1.1"
 # https://github.com/ktorio/ktor
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
-ktor = "2.3.12"
+ktor = "3.0.0"
 # https://github.com/skydoves/landscapist
 landscapist = "2.4.1"
 # https://github.com/cashapp/licensee
@@ -211,7 +211,7 @@ halilibo-richtext-markdown = { module = "com.halilibo.compose-richtext:richtext-
 halilibo-richtext-ui-material3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
 html-text = { module = "de.charlex.compose.material3:material3-html-text", version.ref = "htmlText" }
-kamel-image = { module = "media.kamel:kamel-image", version.ref = "kamel" }
+kamel-image = { module = "media.kamel:kamel-image-default", version.ref = "kamel" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }
 kodein-kodein-di-framework-android-x-viewmodel-savedstate = { module = "org.kodein.di:kodein-di-framework-android-x-viewmodel-savedstate", version.ref = "kodeinDi" }

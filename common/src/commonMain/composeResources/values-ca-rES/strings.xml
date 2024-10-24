@@ -25,6 +25,9 @@
     <string name="email_visibility">Visibilitat del correu electrònic</string>
     <string name="public_url">URL pública</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Recompte d'accessos</string>
     <!--
@@ -622,6 +625,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Per a passar la verificació del captcha en un client de Bitwarden no oficial, has d'especificar un secret de client. Per a trobar-lo ves a Caixa Forta Web / Configuració / Clau d'API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Secret del client</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Inicia sessió</string>
     <string name="addaccount_region_section">Regió</string>
     <string name="addaccount_region_us_type">Estats Units</string>
@@ -763,6 +767,8 @@
     <string name="generator_header_password_title">Generador de contrasenya</string>
     <string name="generator_generate_button">Genera</string>
     <string name="generator_regenerate_button">Regenerar</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Contrasenya</string>
     <string name="generator_passphrase_note">Les contrasenyes aleatòries proporcionen la millor combinació de memoritzabilitat i seguretat.</string>
     <string name="generator_passphrase_delimiter_title">Delimitador</string>

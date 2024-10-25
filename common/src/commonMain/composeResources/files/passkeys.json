@@ -455,6 +455,17 @@
     "created_at": "2023-05-17T07:54:25.211309+00:00"
   },
   {
+    "id": "adfe1ed2d061a9128bb90ed52991b1ac",
+    "name": "Bread Financial",
+    "domain": "breadfinancial.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://mysavings.breadfinancial.com/settings/security",
+    "category": "Finance",
+    "created_at": "2024-10-22T10:38:33.489855+00:00"
+  },
+  {
     "id": "b95c3108788a4f21eee1b1148b182f11",
     "name": "Bridgecrest",
     "domain": "bridgecrest.com",
@@ -547,6 +558,17 @@
     "documentation": "https://help.coinbase.com/en/coinbase/getting-started/getting-started-with-coinbase/passkeys",
     "category": "Finance",
     "created_at": "2023-03-31T12:34:31.154201+00:00"
+  },
+  {
+    "id": "44b3a6a92cc7593f4012bdd01770e45c",
+    "name": "Bitwarden Community Forums",
+    "domain": "community.bitwarden.com",
+    "features": [
+      "signin"
+    ],
+    "category": "Information Technology",
+    "created_at": "2023-06-06T20:08:23.166492+00:00",
+    "notes": "Visit preferences, security after signing in to manage passkeys."
   },
   {
     "id": "7ef932e057e4c50ae54f2f075ec51c2c",
@@ -1867,6 +1889,17 @@
     "notes": "Go password-free with your account for PlayStation Network. Passkeys offer a faster and more secure account sign-in experience by letting you sign in through your mobile device or computer using the same convenient device unlocking method, like a fingerprint, face scan or PIN. Visit www.playstation.com/passkey to learn more. \n\n[Watch: Introducing Passkey for PlayStation on Youtube](https://www.youtube.com/watch?v=uKfQrqMS9s8 )\n"
   },
   {
+    "id": "fe30a06575c0c1620357fb5a3b91eebb",
+    "name": "Poblano",
+    "domain": "poblano.jp",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://poblano.jp/settings/passkey",
+    "category": "Information Technology",
+    "created_at": "2024-10-22T10:36:53.314749+00:00"
+  },
+  {
     "id": "71f0bbc2a1844dce91fc9080f99a3e80",
     "name": "Poloniex",
     "domain": "poloniex.com",
@@ -1926,6 +1959,18 @@
     "setup": "https://reader.miniflux.app/settings",
     "category": "Information Technology",
     "created_at": "2024-05-19T10:40:00.923041+00:00"
+  },
+  {
+    "id": "99c0e1911b689a3c74d38e9539247fd0",
+    "name": "Ring",
+    "domain": "ring.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://ring.com/gb/en/support/articles/jix7u/passwordless-sign-in-passkeys",
+    "category": "Other",
+    "created_at": "2024-10-18T19:23:15+00:00",
+    "notes": "Signing in with passkeys is only supported in the Ring app on iOS 16 or later and Android 9 or later."
   },
   {
     "id": "59e0672f73f2c88fd2440c79f7f601b8",
@@ -2248,6 +2293,17 @@
     "created_at": "2024-05-07T16:43:26.618806+00:00"
   },
   {
+    "id": "ac1aa7796b8aa9cdf4302c776255554b",
+    "name": "Ticketeer",
+    "domain": "ticketeer.se",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.ticketeer.se/dashboard",
+    "category": "Information Technology",
+    "created_at": "2024-10-21T10:21:31.859732+00:00"
+  },
+  {
     "id": "612bd0e58e15286297be5e907f906288",
     "name": "TikTok",
     "domain": "tiktok.com",
@@ -2317,6 +2373,18 @@
     "setup": "https://twitter.com/settings/security",
     "category": "Social Networking",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "7b2aaaa93ec382e661600008b809b5f2",
+    "name": "Ubank",
+    "domain": "ubank.com.au",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.ubank.com.au/newsroom/ubank-introduces-passkeys",
+    "category": "Finance",
+    "created_at": "2024-07-05T11:34:36.995771+00:00",
+    "notes": "Available in ubank app"
   },
   {
     "id": "0adc8411272286b5f40a3c71cc2c22bf",

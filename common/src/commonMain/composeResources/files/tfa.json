@@ -1042,6 +1042,19 @@
     "name": "Aura"
   },
   {
+    "domain": "australianretirementtrust.com.au",
+    "additional-domains": [
+      "sunsuper.com.au",
+      "qsuper.qld.gov.au"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "notes": "Requires contacting customer service to activate",
+    "name": "Australian Retirement Trust"
+  },
+  {
     "domain": "auth.opera.com",
     "tfa": [
       "totp"
@@ -2466,6 +2479,14 @@
       "totp"
     ],
     "name": "Cal.com"
+  },
+  {
+    "domain": "calendly.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.calendly.com/hc/articles/26682031653399",
+    "name": "Calendly"
   },
   {
     "domain": "callcentric.com",

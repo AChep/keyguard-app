@@ -2897,6 +2897,15 @@
     "notes": "At the bottom of the page click on the button that says 'Delete account.' There will be a 14 day waiting period, after this period, all your account data will be deleted."
   },
   {
+    "name": "Capcut",
+    "domains": [
+      "capcut.com"
+    ],
+    "url": "https://www.capcut.com/settings?current_page=landing_page&enter_from=click_view_personal_page&from_page=personal_page&start_tab=video&settings_tab=info_page",
+    "difficulty": "easy",
+    "notes": "In the 'Delete Account' section of the 'Account settings', click the red colored 'Ok' button. After 30 Days your account will be deleted."
+  },
+  {
     "name": "Capsule",
     "domains": [
       "capsule.com"
@@ -5204,15 +5213,6 @@
     "difficulty": "easy"
   },
   {
-    "name": "e-T\u00e9c\u00e9ly",
-    "domains": [
-      "e-tecely.tcl.fr"
-    ],
-    "url": "https://e-tecely.tcl.fr/tcl/supprimerSonCompte.do",
-    "difficulty": "easy",
-    "notes": "On your profile page, click on \"Supprimer mon compte\"."
-  },
-  {
     "name": "e621",
     "domains": [
       "e621.net"
@@ -5359,6 +5359,15 @@
     "url": "https://myaccount.economist.com/s/contact-us",
     "difficulty": "hard",
     "notes": "There are two ways to contact this website, such as calling a phone number that is based on where you reside, or use the live chat."
+  },
+  {
+    "name": "Ecwid",
+    "domains": [
+      "ecwid.com"
+    ],
+    "url": "https://my.ecwid.com/cp/#profile",
+    "difficulty": "easy",
+    "notes": "Click 'Close Account' in profile settings and then click 'Yes'."
   },
   {
     "name": "Edabit",
@@ -5707,6 +5716,15 @@
     "url": "https://www.etoro.com/settings/account",
     "difficulty": "easy",
     "notes": "At the bottom of the page, click the button to close your account, select the reason for your deletion and continue to confirm it."
+  },
+  {
+    "name": "ETS Global",
+    "domains": [
+      "etsglobal.org"
+    ],
+    "url": "https://www.etsglobal.org/fr/en/contact/individual",
+    "difficulty": "hard",
+    "notes": "You need to send a support request to delete your account."
   },
   {
     "name": "Etsy",
@@ -6367,6 +6385,15 @@
     "email": "support@fluidui.com"
   },
   {
+    "name": "Fly.io",
+    "domains": [
+      "fly.io"
+    ],
+    "url": "https://fly.io/user/deactivate",
+    "difficulty": "medium",
+    "notes": "Go to Account \u2b95 Settings \u2b95 Delete Account. Some steps need to be completed before deleting the account, e.g. delete apps and remove certificates. Then, just click 'Delete'."
+  },
+  {
     "name": "FMOD",
     "domains": [
       "fmod.com"
@@ -6374,6 +6401,15 @@
     "url": "https://fmod.com/profile",
     "difficulty": "easy",
     "notes": "On the linked page under Profile select 'To delete your account, click here'."
+  },
+  {
+    "name": "Fnac",
+    "domains": [
+      "fnac.com"
+    ],
+    "url": "https://www.fnac.com/aide?question=comment-reinitialiser-mon-mot-de-passe",
+    "difficulty": "hard",
+    "notes": "Send a GDPR rights request to support."
   },
   {
     "name": "Foap",
@@ -11544,6 +11580,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "Midjourney",
+    "domains": [
+      "midjourney.com"
+    ],
+    "url": "https://www.midjourney.com/account/",
+    "difficulty": "easy",
+    "notes": "Go to your account page, scroll down to the 'How can I delete my account?' section in the FAQ and click on the 'Click here' button."
+  },
+  {
     "name": "Milanote",
     "domains": [
       "milanote.com",
@@ -11869,9 +11914,9 @@
     "domains": [
       "tcl.fr"
     ],
-    "url": "https://www.tcl.fr/user/delete/confirmation",
+    "url": "https://boutique.tcl.fr/en/account/personal-data",
     "difficulty": "easy",
-    "notes": "Go to your account settings, scroll down and click on \"Delete my account\"."
+    "notes": "Go to your account settings, select \"My personal data\" and click on \"Confirm the deletion of my monTCL account\". You can also ask for deletion of all data related to you by clicking on \"Request deletion of all my personal data\""
   },
   {
     "name": "Moodle",
@@ -12235,6 +12280,17 @@
     "difficulty": "hard",
     "notes": "Send an email requesting account deletion.",
     "email": "data.protection@myworld.com"
+  },
+  {
+    "name": "M\u00e1s Renfe",
+    "domains": [
+      "renfe.com"
+    ],
+    "url": "https://www.renfe.com/es/en/legal-information/renfe-operadora/privacidad-cookies/politica-privacidad",
+    "difficulty": "hard",
+    "notes": "You need to send an email to delete your account.",
+    "email": "derechos.renfeepe@renfe.es",
+    "email_body": "Quiero suprimir mi M\u00e1s Renfe cuenta"
   },
   {
     "name": "M\u00e9liuz",
@@ -14982,6 +15038,14 @@
     "difficulty": "easy"
   },
   {
+    "name": "RealVNC",
+    "domains": [
+      "realvnc.com"
+    ],
+    "url": "https://manage.realvnc.com/en/close_account",
+    "difficulty": "easy"
+  },
+  {
     "name": "Rebelsmarket",
     "domains": [
       "rebelsmarket.com"
@@ -16059,9 +16123,9 @@
     "domains": [
       "shopify.com"
     ],
-    "url": "https://shopify.com/admin/settings/account",
-    "difficulty": "impossible",
-    "notes": "The account is never deleted, just deactivated. If you want to deactivate it, select 'Please cancel my account'. Choose a reason then select 'close my shopify store'."
+    "url": "https://privacy.shopify.com/dsr_submission/subject_types?selected=erasure",
+    "difficulty": "hard",
+    "notes": "Go to the linked URL and follow the steps to send a data deletion request. You may be asked to provide additional details at some point."
   },
   {
     "name": "Shorte.st",
@@ -16189,6 +16253,15 @@
     "url": "https://www.simpleplanes.com/Account/DeleteAccount",
     "difficulty": "easy",
     "notes": "Login to your account, open your profile page and follow these steps: click 'Manage Account' \u2b95 click 'Close Account' \u2b95 click 'OK' \u2b95 type 'CLOSE' \u2b95 click 'CLOSE' \u2b95 click 'OK'. Using the link from here also skips every step before \"type 'CLOSE'\"."
+  },
+  {
+    "name": "Simplified",
+    "domains": [
+      "simplified.com"
+    ],
+    "url": "https://app.simplified.com/settings",
+    "difficulty": "easy",
+    "notes": "Click the 'Danger Zone' and then click 'Delete Account'."
   },
   {
     "name": "Simply Plural",
@@ -16428,7 +16501,8 @@
       "tgvinoui.sncf",
       "ouigo.com",
       "monidentifiant.sncf",
-      "abonnement-regional.sncf"
+      "abonnement-regional.sncf",
+      "maxjeune-tgvinoui.sncf"
     ],
     "url": "https://www.sncf-connect.com/en-en/help/your-customer-account",
     "difficulty": "easy",
@@ -18180,6 +18254,14 @@
     "notes": "Click on Delete your account, enter your email. Then click on the confirmation link in the email. Alternatively, you can delete your account in the app settings."
   },
   {
+    "name": "ToolsForImage",
+    "domains": [
+      "toolsforimage.com"
+    ],
+    "url": "https://www.toolsforimage.com/contact-us",
+    "difficulty": "hard"
+  },
+  {
     "name": "Topcoder",
     "domains": [
       "topcoder.com"
@@ -19216,6 +19298,15 @@
     "notes": "Accounts are deleted after 18 months of inactivity, although it is possible to request deletion earlier via email.",
     "email": "ciq@digital.go.jp",
     "email_body": "Please delete my Visit Japan Web account."
+  },
+  {
+    "name": "Visme",
+    "domains": [
+      "visme.co"
+    ],
+    "url": "https://dashboard.visme.co/v2/account-settings",
+    "difficulty": "easy",
+    "notes": "Click 'Delete Account' and then you will receive email for confirmation of deletion, click on the link in the email to confirm deletion, and then again click on 'confirm' on that page."
   },
   {
     "name": "Visualping",

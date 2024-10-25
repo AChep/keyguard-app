@@ -300,6 +300,13 @@
     "notes": "Go to [Google Takeout](https://takeout.google.com/) while logged in to a Google Account and select the data from every Google Service you need/want and click \"Next Step\". Then you can choose between export now or once every 2 months for 1 year, the file type and size. Click \"Create Export\" and wait until the process is finished. Then, just download your data."
   },
   {
+    "name": "Gravatar",
+    "domains": [],
+    "url": "https://gravatar.com/",
+    "difficulty": "easy",
+    "notes": "While logged in click on your email, then \"Account settings\", then \"Security & data\" and export your data."
+  },
+  {
     "name": "Huawei",
     "domains": [],
     "url": "https://consumer.huawei.com/en/support/content/en-us00746223/",

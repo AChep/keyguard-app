@@ -25,6 +25,9 @@
     <string name="email_visibility">Видимість електронної пошти</string>
     <string name="public_url">Загальнодоступна URL-адреса</string>
     <string name="url">URL-адреса</string>
+    <string name="conceal_value">Скрити значення</string>
+    <string name="field_label">Підпис</string>
+    <string name="field_value">Значення</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Кількість відвідувань</string>
     <!--
@@ -175,7 +178,7 @@
     <string name="passkey_available">Доступний ключ доступу</string>
     <string name="twofa_available">Доступна двофакторна автентифікація</string>
     <string name="custom">Користувацьке</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Надати дозвіл</string>
     <string name="create_account">Створити обліковий запис</string>
     <string name="follow_system_settings">Як у системі</string>
     <!-- A feature is coming soon! -->
@@ -242,14 +245,14 @@
     <string name="folder_action_change_name_title">Змінити назву</string>
     <string name="folder_action_change_names_title">Змінити назви</string>
     <string name="folder_action_merge_title">Об'єднати в…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Ви впевнені, що хочете об'єднати ці теки?</string>
+    <string name="folder_action_create_title">Створити теку</string>
     <string name="folder_delete_one_confirmation_title">Видалити теку?</string>
     <string name="folder_delete_many_confirmation_title">Видалити теки?</string>
     <string name="folder_delete_confirmation_text">Цей запис(и) буде видалено. Ви не зможете скасовувати цю дію.</string>
     <string name="ciphers_recently_opened">Нещодавно відкриті</string>
     <string name="ciphers_often_opened">Часто відкриті</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Ще немає історії</string>
     <string name="ciphers_view_details">Переглянути деталі</string>
     <string name="ciphers_save_to">Зберегти в…</string>
     <string name="ciphers_action_add_to_favorites_title">Додати до обраного</string>
@@ -269,10 +272,10 @@
     <string name="ciphers_action_change_passwords_title">Змінити паролі</string>
     <string name="ciphers_action_view_password_history_title">Переглянути історію паролів</string>
     <string name="ciphers_action_trash_title">Відправити у кошик</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Перемістити до кошика?</string>
+    <string name="ciphers_action_trash_confirmation_text">Записи, що знаходяться в кошику понад 30 днів, будуть автоматично видалені.</string>
     <string name="ciphers_action_restore_title">Відновити з кошика</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Відновити з кошика?</string>
     <string name="ciphers_action_delete_title">Видалити назавжди</string>
     <string name="ciphers_action_delete_confirmation_title">Видалити назавжди?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Налаштувати сповіщення вартової вежі</string>
@@ -471,9 +474,11 @@
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>
     <string name="error_failed_open_uri">Не вдалося відкрити посилання</string>
     <string name="error_failed_format_placeholder">Не вдалося відформатувати поле</string>
+    <string name="error_failed_open_app_for">Немає встановленого застосунку, що може обробити цей запит</string>
+    <string name="error_failed_unknown">Сталася помилка</string>
     <string name="scanqr_title">Сканувати QR-код</string>
     <string name="scanqr_load_from_image_note">Завантажте з файлу та проаналізуйте QR-код.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">Для сканування QR-кодів необхідний дозвіл на камеру.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Штрих-код</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Видалити перевизначення URL-адреси?</string>
     <string name="urloverride_empty_label">Немає перевизначених URL-адрес</string>
     <string name="setup_header_text">Створити зашифроване сховище локальних даних.</string>
+    <string name="setup_free_text">Продовжуючи ви підтверджуєте, що придбали Keyguard або мали активну ліцензію.</string>
     <string name="setup_field_app_password_label">Пароль застосунку</string>
     <string name="setup_checkbox_biometric_auth">Біометрична автентифікація</string>
     <string name="setup_biometric_auth_confirm_title">Створити сховище</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Щоб пройти перевірку Captcha на неофіційному клієнті Bitwarden, вам необхідно вказати клієнтський секрет (Client secret). Щоб знайти його, відвідайте Вебсторінку сховища / Налаштування / Ключ API (Web vault / Settings / API Key).</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Секретний ключ клієнта</string>
+    <string name="addaccount_create_an_account_title">Створити обліковий запис</string>
     <string name="addaccount_sign_in_button">Увійти</string>
     <string name="addaccount_region_section">Регіон</string>
     <string name="addaccount_region_us_type">США</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Генератор паролів</string>
     <string name="generator_generate_button">Згенерувати</string>
     <string name="generator_regenerate_button">Перегенерувати</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Використати</string>
     <string name="generator_passphrase_type">Парольна фраза</string>
     <string name="generator_passphrase_note">Випадкові парольні фрази забезпечують найкраще поєднання запам'ятовуваності та безпеки.</string>
     <string name="generator_passphrase_delimiter_title">Роздільник</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Змінити пароль застосунку</string>
     <string name="changepassword_disclaimer_local_note">Пароль застосунку ніколи не зберігається на пристрої або відправляється мережею. Він використовується для генерації секретного ключа яким шифрується локальне сховище.</string>
     <string name="changepassword_disclaimer_abuse_note">Якщо ви не підозрюєте що до вашого пристрою був несанкціонований доступ, або не знайшли шкідливе програмне забезпечення, то не треба змінювати поточний пароль застосунку, якщо він достатньо надійний та унікальний.</string>
+    <string name="changepassword_password_changed_successfully">Пароль успішно змінено</string>
     <string name="exportaccount_header_title">Експорт записів</string>
     <string name="exportaccount_password_label">Пароль архіву</string>
     <string name="exportaccount_attachments_note">Сховище буде розблоковано поки експорт не завершиться. Дані сховища включають інформацію про експортовані файли. Файли в процесі експорту ніколи не зберігаються у не зашифрованому форматі.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit спільнота</string>
     <string name="pref_item_github_title">Проєкт на GitHub</string>
     <string name="pref_item_crowdin_title">Проєкт на Crowdin</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Ліцензії відкритого програмного забезпечення</string>
     <string name="pref_item_download_apk_title">Завантажити APK-файл</string>
     <string name="pref_item_load_app_icons_title">Завантажувати іконки застосунків</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Розблокування сховища означає збереження коректного майстер-ключа в оперативній пам'яті пристрою, що дає можливість читати та редагувати зашифроване сховище.</string>
     <string name="datasafety_remote_section">Віддалені дані</string>
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Журнал подій</string>
     <string name="logs_start_recording_fab_title">Почати запис</string>
     <string name="logs_stop_recording_fab_title">Припинити запис</string>

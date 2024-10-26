@@ -25,6 +25,9 @@
     <string name="email_visibility">E-mail zichtbaarheid</string>
     <string name="public_url">Publieke URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Aantal keer bekeken</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Autoriseren van een aanvraag mislukt</string>
     <string name="error_failed_open_uri">Kan URI niet openen</string>
     <string name="error_failed_format_placeholder">Formatteren van de placeholder is mislukt</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Scan QR code</string>
     <string name="scanqr_load_from_image_note">Laad een QR-code uit een afbeelding.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Verwijder URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Maak een versleutelde kluis aan waar de lokale gegevens worden opgeslagen.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App-wachtwoord</string>
     <string name="setup_checkbox_biometric_auth">Biometrische authenticatie</string>
     <string name="setup_biometric_auth_confirm_title">Nieuwe kluis aanmaken</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Om de captcha verificatie te voltooien in een niet-officiële Bitwarden client moet je een API-sleutel invullen, deze is te vinden in je Bitwarden account. Bezoek de Bitwarden Web kluis / Instellingen / Beveiliging / Sleutels / API-sleutel, en kopieer de getoonde client secret waarde.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Inloggen</string>
     <string name="addaccount_region_section">Regio</string>
     <string name="addaccount_region_us_type">Verenigde Staten</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Wachtwoord generator</string>
     <string name="generator_generate_button">Genereren</string>
     <string name="generator_regenerate_button">Opnieuw genereren</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Wachtwoordzin</string>
     <string name="generator_passphrase_note">Willekeurige wachtwoordzinnen bieden de beste combinatie van geheugen en veiligheid.</string>
     <string name="generator_passphrase_delimiter_title">Scheidingsteken</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">App-wachtwoord wijzigen</string>
     <string name="changepassword_disclaimer_local_note">Het app-wachtwoord wordt nooit op het apparaat opgeslagen of via het netwerk verzonden. Het wordt gebruikt om een geheime sleutel te genereren die wordt gebruikt om de lokale gegevens te versleutelen.</string>
     <string name="changepassword_disclaimer_abuse_note">Zolang u geen onbevoegde toegang vermoedt of malware hebt ontdekt op uw apparaat is het niet nodig om het wachtwoord te wijzigen als u een sterk en uniek wachtwoord gebruikt.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Items exporteren</string>
     <string name="exportaccount_password_label">Wachtwoord voor archief</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>
     <string name="pref_item_crowdin_title">Crowdin project</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Open-source licenties</string>
     <string name="pref_item_download_apk_title">APK-bestand downloaden</string>
     <string name="pref_item_load_app_icons_title">Laad app iconen</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Een kluis ontgrendelen betekent dat een correcte sleutel opgeslagen wordt in de RAM van het apparaat, zodat u de mogelijkheid krijgt om de versleutelde kluis te lezen en aan te passen.</string>
     <string name="datasafety_remote_section">Externe gegevens</string>
     <string name="datasafety_remote_text">Externe gegevens worden opgeslagen op Bitwarden servers met zero-knowledge encryptie.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Logs</string>
     <string name="logs_start_recording_fab_title">Start recording</string>
     <string name="logs_stop_recording_fab_title">Stop recording</string>

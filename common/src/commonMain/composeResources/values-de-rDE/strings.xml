@@ -25,6 +25,9 @@
     <string name="email_visibility">E-Mail Sichtbarkeit</string>
     <string name="public_url">Öffentliche URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Verstecke den Wert</string>
+    <string name="field_label">Bezeichnung</string>
+    <string name="field_value">Wert</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Anzahl der Ansichten</string>
     <!--
@@ -175,7 +178,7 @@
     <string name="passkey_available">Passkey verfügbar</string>
     <string name="twofa_available">Zwei-Faktor-Authentifizierung verfügbar</string>
     <string name="custom">Benutzerdefiniert</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Zugriff gewähren</string>
     <string name="create_account">Konto erstellen</string>
     <string name="follow_system_settings">Systemeinstellungen folgen</string>
     <!-- A feature is coming soon! -->
@@ -471,9 +474,11 @@
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
     <string name="error_failed_open_uri">Fehler beim Öffnen einer URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">QR-Code scannen</string>
     <string name="scanqr_load_from_image_note">Laden und Analysieren eines QR-Codes aus einer Bilddatei.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">Kamera-Berechtigung wird benötigt, um die QR-Codes zu scannen.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Als Barcode anzeigen</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">URL Überschreibung löschen?</string>
     <string name="urloverride_empty_label">Keine URL Überschreibungen</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in dem lokale Daten gespeichert werden.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
     <string name="setup_checkbox_biometric_auth">Biometrische Authentifizierung</string>
     <string name="setup_biometric_auth_confirm_title">Tresor erstellen</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Um die Captcha Verifizierung auf einem inoffiziellen Bitwarden Client zu bestehen, muss das Client-Geheimnis angeben werden. Um es zu finden, rufe Web Tresor / Einstellungen / API-Schlüssel auf.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client-Geheimnis</string>
+    <string name="addaccount_create_an_account_title">Konto erstellen</string>
     <string name="addaccount_sign_in_button">Anmelden</string>
     <string name="addaccount_region_section">Region</string>
     <string name="addaccount_region_us_type">Vereinigte Staaten</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Passwortgenerator</string>
     <string name="generator_generate_button">Generieren</string>
     <string name="generator_regenerate_button">Neu generieren</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Verwenden</string>
     <string name="generator_passphrase_type">Passphrase</string>
     <string name="generator_passphrase_note">Zufällige Passphrasen bieten die beste Kombination aus Gedächtnisfähigkeit und Sicherheit.</string>
     <string name="generator_passphrase_delimiter_title">Trennzeichen</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">App-Passwort ändern</string>
     <string name="changepassword_disclaimer_local_note">App-Passwort wird nie auf dem Gerät gespeichert oder über das Netzwerk versendet. Es wird verwendet, um einen geheimen Schlüssel zu generieren, der zur Verschlüsselung der lokalen Daten verwendet wird.</string>
     <string name="changepassword_disclaimer_abuse_note">Es sei denn, Sie vermuten unbefugten Zugriff oder eine Malware auf dem Gerät zu entdecken, es gibt keine Notwendigkeit, das Passwort zu ändern, wenn es ein starkes und einzigartiges Passwort ist.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Elemente exportieren</string>
     <string name="exportaccount_password_label">Passwort archivieren</string>
     <string name="exportaccount_attachments_note">Der Tresor wird während des Exportprozesses entsperrt bleiben. Die Anhänge werden in den Daten des Tresors referenziert. Die Anhänge werden niemals in einer unverschlüsselt gespeichert.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit-Community</string>
     <string name="pref_item_github_title">GitHub-Projekt</string>
     <string name="pref_item_crowdin_title">Crowdin-Projekt</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Open-Source-Lizenzen</string>
     <string name="pref_item_download_apk_title">APK-Datei herunterladen</string>
     <string name="pref_item_load_app_icons_title">App-Symbole laden</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Das Entsperren eines Tresors bedeutet, dass ein korrekter Schlüssel im Arbeitsspeicher eines Geräts gespeichert wird, wodurch die Fähigkeit erlangt wird, verschlüsselte Tresore zu lesen und zu ändern.</string>
     <string name="datasafety_remote_section">Externe Daten</string>
     <string name="datasafety_remote_text">Externe Daten werden auf Bitwarden Servern mit Null-Kenntnis-Verschlüsselung gespeichert.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Protokolle</string>
     <string name="logs_start_recording_fab_title">Aufnahme starten</string>
     <string name="logs_stop_recording_fab_title">Aufnahme stoppen</string>

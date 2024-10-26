@@ -25,6 +25,9 @@
     <string name="email_visibility">Email láthatóság</string>
     <string name="public_url">Nyilvános URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Hozzáférések száma</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Nem sikerült hitelesíteni a kérelmet</string>
     <string name="error_failed_open_uri">Nem sikerült megnyitni az URI-t</string>
     <string name="error_failed_format_placeholder">Nem sikerült formázni a helyettesítőt</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">QR kód beolvasása</string>
     <string name="scanqr_load_from_image_note">QR-kód betöltése és elemzése egy képfájlból.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Törli az URL felülírásokat?</string>
     <string name="urloverride_empty_label">Nincsenek URL felülírások</string>
     <string name="setup_header_text">Hozzon létre egy titkosított széfet, ahol a helyi adatok tárolásra kerülnek.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">Alkalmazásjelszó</string>
     <string name="setup_checkbox_biometric_auth">Biometrikus azonosítás</string>
     <string name="setup_biometric_auth_confirm_title">Széf létrehozása</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Ahhoz, hogy egy nem hivatalos Bitwarden kliens átmenjen a captcha ellenőrzésen, meg kell adnia az kliens titkot (client secret). Ennek megtalálásához látogasson el a Webes széfbe / Beállítások / API kulcs.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Kliens titok</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Bejelentkezés</string>
     <string name="addaccount_region_section">Régió</string>
     <string name="addaccount_region_us_type">Egyesült Államok</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Jelszó generátor</string>
     <string name="generator_generate_button">Generálás</string>
     <string name="generator_regenerate_button">Újra generálás</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Jelmondat</string>
     <string name="generator_passphrase_note">A véletlenszerű jelmondatok a legjobb kombinációt nyújtják emlékezhetőség és biztonság szempontjából.</string>
     <string name="generator_passphrase_delimiter_title">Elválasztójel</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Alkalmazás jelszó módosítása</string>
     <string name="changepassword_disclaimer_local_note">Az alkalmazásjelszó soha nem kerül tárolásra az eszközön, és nem kerül elküldésre a hálózaton keresztül. Ez egy titkos kulcs létrehozására szolgál, amely a helyi adatok titkosítására szolgál.</string>
     <string name="changepassword_disclaimer_abuse_note">Hacsak nem gyanít jogosulatlan hozzáférést, vagy nem fedez fel vírust az eszközön, nincs szükség a jelszó megváltoztatására, ha az egy erős, egyedi jelszó.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Elemek exportálása</string>
     <string name="exportaccount_password_label">Archívum jelszó</string>
     <string name="exportaccount_attachments_note">A széf az exportálási folyamat során nyitva marad. A mellékletek a széf adatainál vannak hivatkozva. A mellékletek soha nincsenek titkosítatlan formában tárolva a folyamat során.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit Közösség</string>
     <string name="pref_item_github_title">GitHub projekt</string>
     <string name="pref_item_crowdin_title">Crowdin projekt</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Nyílt forráskódú licencek</string>
     <string name="pref_item_download_apk_title">APK fájl letöltése</string>
     <string name="pref_item_load_app_icons_title">Alkalmazás ikonok betöltése</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">A Széf feloldása a megfelelő kulcs tárolását jelenti az eszköz memóriájában, ami lehetővé teszi a titkosított Széf olvasását és módosítását.</string>
     <string name="datasafety_remote_section">Távoli adatok</string>
     <string name="datasafety_remote_text">A távoli adatokat a Bitwarden szerverein tárolják zéró-tudomású titkosítással.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Naplók</string>
     <string name="logs_start_recording_fab_title">Rögzítés indítása</string>
     <string name="logs_stop_recording_fab_title">Rögzítés leállítása</string>

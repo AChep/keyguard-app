@@ -25,6 +25,9 @@
     <string name="email_visibility">رؤية البريد الإلكتروني</string>
     <string name="public_url">عنوان URL عام</string>
     <string name="url">الرابط</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">عدد الوصول</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">فشل في اعتماد الطلب</string>
     <string name="error_failed_open_uri">فشل في فتح URI</string>
     <string name="error_failed_format_placeholder">فشل تنسيق العنصر النائب</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">مسح رمز الاستجابة السريعة</string>
     <string name="scanqr_load_from_image_note">تحميل وتحليل رمز الاستجابة السريعة من ملف صورة.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">هل تريد حذف تجاوزات عنوان URL؟</string>
     <string name="urloverride_empty_label">لا يوجد تجاوزات لعنوان URL</string>
     <string name="setup_header_text">قم بإنشاء قبو مشفر حيث سيتم تخزين البيانات المحلية.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">كلمة مرور التطبيق</string>
     <string name="setup_checkbox_biometric_auth">المصادقة البيومترية</string>
     <string name="setup_biometric_auth_confirm_title">إنشاء قبو</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">لتمرير التحقق من كلمة التحقق على عميل Bitwarden غير رسمي، يجب عليك تحديد سر العميل. للعثور عليه، قم بزيارة قبو الويب / الإعدادات / مفتاح API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">سر العميل</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">تسجيل الدخول</string>
     <string name="addaccount_region_section">منطقة</string>
     <string name="addaccount_region_us_type">الولايات المتحدة</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">مولد كلمة المرور</string>
     <string name="generator_generate_button">يولد</string>
     <string name="generator_regenerate_button">تجديد</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">عبارة المرور</string>
     <string name="generator_passphrase_note">توفر عبارات المرور العشوائية أفضل مزيج من سهولة التذكر والأمان.</string>
     <string name="generator_passphrase_delimiter_title">محدد</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">تغيير كلمة مرور التطبيق</string>
     <string name="changepassword_disclaimer_local_note">لا يتم تخزين كلمة مرور التطبيق مطلقًا على الجهاز ولا يتم إرسالها عبر الشبكة. يتم استخدامه لإنشاء مفتاح سري يستخدم لتشفير البيانات المحلية.</string>
     <string name="changepassword_disclaimer_abuse_note">ما لم تكن تشك في الوصول غير المصرح به أو تكتشف برامج ضارة على الجهاز، فليست هناك حاجة لتغيير كلمة المرور إذا كانت كلمة مرور قوية وفريدة من نوعها.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">تصدير العناصر</string>
     <string name="exportaccount_password_label">كلمة مرور الأرشيف</string>
     <string name="exportaccount_attachments_note">سيتم إبقاء Vault مفتوحًا أثناء عملية التصدير. تتم الإشارة إلى المرفقات في بيانات المخزن. لا يتم تخزين المرفقات أبدًا في شكل غير مشفر أثناء هذه العملية.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">مجتمع رديت</string>
     <string name="pref_item_github_title">مشروع جيثب</string>
     <string name="pref_item_crowdin_title">مشروع كراودين</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">تراخيص مفتوحة المصدر</string>
     <string name="pref_item_download_apk_title">تنزيل ملف APK</string>
     <string name="pref_item_load_app_icons_title">تحميل أيقونات التطبيقات</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">يعني فتح Vault تخزين المفتاح الصحيح في ذاكرة الوصول العشوائي (RAM) الخاصة بالجهاز، واكتساب القدرة على قراءة Vault المشفر وتعديله.</string>
     <string name="datasafety_remote_section">البيانات عن بعد</string>
     <string name="datasafety_remote_text">يتم تخزين البيانات عن بعد على خوادم Bitwarden بتشفير المعرفة الصفرية.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">سجلات</string>
     <string name="logs_start_recording_fab_title">ابدأ التسجيل</string>
     <string name="logs_stop_recording_fab_title">توقف عن التسجيل</string>

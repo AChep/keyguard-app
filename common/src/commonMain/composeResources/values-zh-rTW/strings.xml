@@ -25,6 +25,9 @@
     <string name="email_visibility">電子郵件可見性</string>
     <string name="public_url">公共URL</string>
     <string name="url">網址</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">標籤</string>
+    <string name="field_value">值</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">訪問次數</string>
     <!--
@@ -101,9 +104,9 @@
     <string name="organizations">組織</string>
     <string name="organizations_empty_label">No organizations</string>
     <string name="misc">雜項</string>
-    <string name="category">Category</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
+    <string name="category">類別</string>
+    <string name="command">命令</string>
+    <string name="execute_command">執行</string>
     <!-- Add (something) -->
     <string name="add">新增</string>
     <string name="add_integration">Add integration</string>
@@ -111,14 +114,14 @@
     <string name="accounts">帳號</string>
     <string name="accounts_empty_label">無帳號</string>
     <string name="account_none">無帳號</string>
-    <string name="type">Type</string>
+    <string name="type">類型</string>
     <string name="options">選項</string>
     <string name="send">發送</string>
     <string name="reset">重設</string>
-    <string name="length">Length</string>
+    <string name="length">長度</string>
     <string name="security">安全性</string>
     <string name="contact_info">聯繫方式</string>
-    <string name="identity_title">Title</string>
+    <string name="identity_title">標題</string>
     <string name="identity_first_name">名字</string>
     <string name="identity_middle_name">中間名</string>
     <string name="identity_last_name">姓氏</string>
@@ -132,13 +135,13 @@
     <string name="expiration_date">Expiration date</string>
     <string name="expiration_date_custom">自訂</string>
     <string name="expiration_date_never">Never</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
+    <string name="select_linked_type">選擇類型</string>
+    <string name="select_file">選取檔案</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
+    <string name="passkey">Passkeys</string>
+    <string name="passkey_create_header">建立 Passkeys</string>
+    <string name="passkey_unlock_header">解鎖 Keyguard</string>
     <string name="passkey_auth_via_header">Confirming auth request…</string>
     <string name="passkeys">Passkeys</string>
     <!--
@@ -156,7 +159,7 @@
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
     <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
+    <string name="passkey_user_username">使用者名稱</string>
     <string name="passkey_user_display_name">Display name</string>
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API 金鑰</string>
@@ -221,29 +224,29 @@
     <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="account_action_change_name_title">Change name</string>
-    <string name="account_action_change_color_title">Change color</string>
+    <string name="account_action_change_name_title">變更名稱</string>
+    <string name="account_action_change_color_title">變更顏色</string>
     <string name="account_action_change_master_password_hint_title">Change master password hint</string>
-    <string name="account_action_sign_out_title">Sign out</string>
-    <string name="account_action_sign_in_title">Sign in</string>
-    <string name="account_action_export_vault_title">Export vault</string>
+    <string name="account_action_sign_out_title">登出</string>
+    <string name="account_action_sign_in_title">登入</string>
+    <string name="account_action_export_vault_title">匯出密碼庫</string>
     <string name="account_action_export_individual_vault_title">Export individual vault</string>
-    <string name="account_action_hide_title">Hide items</string>
+    <string name="account_action_hide_title">隱藏項目</string>
     <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
     <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
-    <string name="account_action_tfa_title">Two-factor authentication</string>
+    <string name="account_action_tfa_title">兩步驟驗證</string>
     <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
     <string name="account_action_tfa_active_status">Active</string>
-    <string name="account_action_items_title">Items</string>
-    <string name="account_action_log_out_title">Log out</string>
-    <string name="account_log_out_confirmation_title">Log out?</string>
+    <string name="account_action_items_title">項目</string>
+    <string name="account_action_log_out_title">退出</string>
+    <string name="account_log_out_confirmation_title">您確定要退出嗎？</string>
     <string name="account_log_out_confirmation_text">All of the not synchronized changes will be lost!</string>
-    <string name="folder_action_change_name_title">Change name</string>
-    <string name="folder_action_change_names_title">Change names</string>
+    <string name="folder_action_change_name_title">變更名稱</string>
+    <string name="folder_action_change_names_title">變更名稱</string>
     <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_create_title">新增資料夾</string>
     <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
     <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You can not undo this action.</string>
@@ -251,22 +254,22 @@
     <string name="ciphers_often_opened">Often opened</string>
     <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">View details</string>
-    <string name="ciphers_save_to">Save to</string>
+    <string name="ciphers_save_to">儲存至</string>
     <string name="ciphers_action_add_to_favorites_title">Add to favourites</string>
     <string name="ciphers_action_remove_from_favorites_title">Remove from favourites</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
     <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
-    <string name="ciphers_action_edit_title">Edit</string>
+    <string name="ciphers_action_edit_title">編輯</string>
     <string name="ciphers_action_merge_title">Merge into…</string>
     <string name="ciphers_action_copy_title">Copy to…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">匯出…</string>
     <string name="ciphers_action_change_folder_title">Move to folder</string>
-    <string name="ciphers_action_change_name_title">Change name</string>
-    <string name="ciphers_action_change_names_title">Change names</string>
-    <string name="ciphers_action_add_password_title">Add password</string>
-    <string name="ciphers_action_add_passwords_title">Add passwords</string>
-    <string name="ciphers_action_change_password_title">Change password</string>
-    <string name="ciphers_action_change_passwords_title">Change passwords</string>
+    <string name="ciphers_action_change_name_title">變更名稱</string>
+    <string name="ciphers_action_change_names_title">變更名稱</string>
+    <string name="ciphers_action_add_password_title">新增密碼</string>
+    <string name="ciphers_action_add_passwords_title">新增密碼</string>
+    <string name="ciphers_action_change_password_title">變更密碼</string>
+    <string name="ciphers_action_change_passwords_title">變更密碼</string>
     <string name="ciphers_action_view_password_history_title">View password history</string>
     <string name="ciphers_action_trash_title">垃圾桶</string>
     <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
@@ -380,7 +383,7 @@
     <string name="copy_url">複製網址</string>
     <string name="copy_uri">複製網址</string>
     <string name="copy_send">Copy send</string>
-    <string name="copy_package_name">Copy package name</string>
+    <string name="copy_package_name">複製套件名稱</string>
     <string name="copy_password">複製密碼</string>
     <string name="copy_username">複製使用者名稱</string>
     <string name="copy_email">複製電子信箱</string>
@@ -460,22 +463,24 @@
     <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_invalid_domain">Invalid domain</string>
-    <string name="error_invalid_email">Invalid email</string>
-    <string name="error_invalid_url">Invalid URL</string>
-    <string name="error_invalid_uri">Invalid URI</string>
+    <string name="error_invalid_email">無效的電子郵件</string>
+    <string name="error_invalid_url">無效的網址</string>
+    <string name="error_invalid_uri">無效的網址</string>
     <string name="error_invalid_card_number">Invalid card number</string>
-    <string name="error_incorrect_password">Incorrect password</string>
+    <string name="error_incorrect_password">不正確的密碼</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
-    <string name="scanqr_title">Scan QR code</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="scanqr_title">掃描 QR 圖碼</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
-    <string name="barcodetype_title">Barcode</string>
+    <string name="barcodetype_title">條碼</string>
     <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>
     <string name="barcodetype_copy_otp_secret_code_note">Copy this authenticator to another device by scanning the QR code.</string>
     <!-- Title of the 'Date picker' dialog -->
@@ -486,15 +491,15 @@
     <string name="justdeleteme_title">How to delete an account?</string>
     <string name="justdeleteme_subtitle">A collection of info of how to delete your account from web services</string>
     <!-- Simple process -->
-    <string name="justdeleteme_difficulty_easy_label">Easy</string>
+    <string name="justdeleteme_difficulty_easy_label">簡單</string>
     <!-- Some extra steps involved -->
-    <string name="justdeleteme_difficulty_medium_label">Medium</string>
+    <string name="justdeleteme_difficulty_medium_label">中等</string>
     <!-- Cannot be fully deleted without contacting customer services -->
-    <string name="justdeleteme_difficulty_hard_label">Hard</string>
+    <string name="justdeleteme_difficulty_hard_label">困難</string>
     <!-- Account can only be deleted if you live in a location with privacy rights -->
     <string name="justdeleteme_difficulty_limited_availability_label">Limited availability</string>
     <!-- Cannot be deleted -->
-    <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
+    <string name="justdeleteme_difficulty_impossible_label">不可能</string>
     <string name="justdeleteme_send_email_title">Send email</string>
     <string name="justdeleteme_search_placeholder">Search websites</string>
     <string name="justdeleteme_empty_label">No instructions</string>
@@ -502,16 +507,16 @@
     <string name="justgetmydata_title">How to get my data?</string>
     <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">簡單</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">中等</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">困難</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
     <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
+    <string name="justgetmydata_difficulty_impossible_label">不可能</string>
+    <string name="justgetmydata_send_email_title">傳送電子郵件</string>
     <string name="justgetmydata_search_placeholder">Search websites</string>
     <string name="justgetmydata_empty_label">No instructions</string>
     <string name="tfa_directory_title">Two-factor authentication</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App password</string>
     <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Sign in</string>
     <string name="addaccount_region_section">Region</string>
     <string name="addaccount_region_us_type">United States</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Password generator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Passphrase</string>
     <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
     <string name="generator_passphrase_delimiter_title">Delimiter</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>
     <string name="pref_item_crowdin_title">Crowdin project</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Open-source licenses</string>
     <string name="pref_item_download_apk_title">Download APK file</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Logs</string>
     <string name="logs_start_recording_fab_title">Start recording</string>
     <string name="logs_stop_recording_fab_title">Stop recording</string>

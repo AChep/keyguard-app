@@ -25,6 +25,9 @@
     <string name="email_visibility">Visibilitat del correu electrònic</string>
     <string name="public_url">URL pública</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conciliar valor</string>
+    <string name="field_label">Etiqueta</string>
+    <string name="field_value">Valor</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Recompte d'accessos</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">No s'ha pogut autoritzar la petició</string>
     <string name="error_failed_open_uri">No s'ha pogut obrir una URI</string>
     <string name="error_failed_format_placeholder">No s'ha pogut formatar el marcador</string>
+    <string name="error_failed_open_app_for">Cap aplicació instal·lada pot gestionar aquesta sol·licitud</string>
+    <string name="error_failed_unknown">Alguna cosa ha anat malament</string>
     <string name="scanqr_title">Escaneja un codi QR</string>
     <string name="scanqr_load_from_image_note">Carrega i processa un codi QR des d'un fitxer d'imatge.</string>
     <string name="scanqr_camera_permission_required_text">Cal tenir accés a la càmera per a escanejar codis QR.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Eliminar les sobreescriptures d'URL?</string>
     <string name="urloverride_empty_label">Cap sobreescriptura d'URL</string>
     <string name="setup_header_text">Crea una caixa forta encriptada on es desaran totes les dades locals.</string>
+    <string name="setup_free_text">Continuant confirmes que has comprat Keyguard o tens una llicència activa.</string>
     <string name="setup_field_app_password_label">Contrasenya d'aplicació</string>
     <string name="setup_checkbox_biometric_auth">Autenticació biomètrica</string>
     <string name="setup_biometric_auth_confirm_title">Crea una caixa forta</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Per a passar la verificació del captcha en un client de Bitwarden no oficial, has d'especificar un secret de client. Per a trobar-lo ves a Caixa Forta Web / Configuració / Clau d'API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Secret del client</string>
+    <string name="addaccount_create_an_account_title">Crea un compte</string>
     <string name="addaccount_sign_in_button">Inicia sessió</string>
     <string name="addaccount_region_section">Regió</string>
     <string name="addaccount_region_us_type">Estats Units</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Generador de contrasenya</string>
     <string name="generator_generate_button">Genera</string>
     <string name="generator_regenerate_button">Regenerar</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Utilitza</string>
     <string name="generator_passphrase_type">Contrasenya</string>
     <string name="generator_passphrase_note">Les contrasenyes aleatòries proporcionen la millor combinació de memoritzabilitat i seguretat.</string>
     <string name="generator_passphrase_delimiter_title">Delimitador</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Canvia la contrasenya de l'app</string>
     <string name="changepassword_disclaimer_local_note">La contrasenya d'aplicació mai es desa al dispositiu ni s'envia a través de la xarxa. Es fa servir per a generar un secret que s'utilitza per a encriptar les dades locals.</string>
     <string name="changepassword_disclaimer_abuse_note">A no ser que sospites d'un accés no autoritzat, o descobreixis programari maliciós al teu dispositiu, no hi ha cap necessitat de canviar la contrasenya si és una forta i única.</string>
+    <string name="changepassword_password_changed_successfully">La contrasenya s'ha canviat correctament</string>
     <string name="exportaccount_header_title">Exportar elements</string>
     <string name="exportaccount_password_label">Arxivar contrasenya</string>
     <string name="exportaccount_attachments_note">La caixa forta es mantindrà desbloquejada durant el procés d'exportació. Els adjunts estan referenciats a les dades de la caixa forta. Els adjunts mai es guarden de manera desencriptada durant el procés.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Comunitat de Reddit</string>
     <string name="pref_item_github_title">Projecte de GitHub</string>
     <string name="pref_item_crowdin_title">Projecte de Crowdin</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Llicències de programari lliure</string>
     <string name="pref_item_download_apk_title">Descarrega l'arxiu APK</string>
     <string name="pref_item_load_app_icons_title">Carrega icones d'App</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Desbloquejar una caixa forta vol dir desar una clau correcta a la RAM del dispositiu, guanyant l'habilitat de llegir i modificar la caixa forta encriptada.</string>
     <string name="datasafety_remote_section">Dades remotes</string>
     <string name="datasafety_remote_text">Les dades es desen remotament als servidors de Bitwarden amb encriptació de zero-coneixement.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Registres</string>
     <string name="logs_start_recording_fab_title">Inicia la gravació</string>
     <string name="logs_stop_recording_fab_title">Atura la gravació</string>

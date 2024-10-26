@@ -25,6 +25,9 @@
     <string name="email_visibility">Widoczność e-mail</string>
     <string name="public_url">Publiczny adres URL</string>
     <string name="url">Adres URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Ilość dostępów</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Scan QR code</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App password</string>
     <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Sign in</string>
     <string name="addaccount_region_section">Region</string>
     <string name="addaccount_region_us_type">United States</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Password generator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Passphrase</string>
     <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
     <string name="generator_passphrase_delimiter_title">Delimiter</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>
     <string name="pref_item_crowdin_title">Crowdin project</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Open-source licenses</string>
     <string name="pref_item_download_apk_title">Download APK file</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Logs</string>
     <string name="logs_start_recording_fab_title">Start recording</string>
     <string name="logs_stop_recording_fab_title">Stop recording</string>

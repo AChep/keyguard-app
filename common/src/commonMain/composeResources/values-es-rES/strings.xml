@@ -25,6 +25,9 @@
     <string name="email_visibility">Visibilidad del correo</string>
     <string name="public_url">URL Pública</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Recuento de acceso</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Error al autorizar una solicitud</string>
     <string name="error_failed_open_uri">Error al abrir una URI</string>
     <string name="error_failed_format_placeholder">Error al formatear el marcador de posición</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Escanear código QR</string>
     <string name="scanqr_load_from_image_note">Carga y analiza un código QR desde un archivo de imagen.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">¿Eliminar la anulación de la URL?</string>
     <string name="urloverride_empty_label">No hay anulaciones de URL</string>
     <string name="setup_header_text">Crear una bóveda cifrada donde se almacenarán los datos locales.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">Contraseña de la app</string>
     <string name="setup_checkbox_biometric_auth">Autenticación biométrica</string>
     <string name="setup_biometric_auth_confirm_title">Crear caja fuerte</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Para pasar la verificación captcha a un cliente no oficial de Bitwarden, debe especificar la clave secreta. Para encontrarla, ve a Web Vault / Configuración / Clave API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Iniciar sesión</string>
     <string name="addaccount_region_section">Región</string>
     <string name="addaccount_region_us_type">Estados Unidos</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Generador de contraseñas</string>
     <string name="generator_generate_button">Generar</string>
     <string name="generator_regenerate_button">Regenerar</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Frase de contraseña</string>
     <string name="generator_passphrase_note">Las contraseñas aleatorias proporcionan la mejor combinación de memoria y seguridad.</string>
     <string name="generator_passphrase_delimiter_title">Delimitador</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Cambiar contraseña de la app</string>
     <string name="changepassword_disclaimer_local_note">La contraseña de la app nunca se almacena en el dispositivo ni se envía a través de la red. Se utiliza para generar una clave secreta que se utiliza para cifrar los datos locales.</string>
     <string name="changepassword_disclaimer_abuse_note">A menos que sospeche acceso no autorizado o descubra un malware en el dispositivo, no hay necesidad de cambiar la contraseña más si es una contraseña única y fuerte.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Exportar elementos</string>
     <string name="exportaccount_password_label">Archivar contraseña</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Comunidad de Reddit</string>
     <string name="pref_item_github_title">Proyecto en GitHub</string>
     <string name="pref_item_crowdin_title">Proyecto de Crowdin</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Licencias de código abierto</string>
     <string name="pref_item_download_apk_title">Descargar archivo APK</string>
     <string name="pref_item_load_app_icons_title">Cargar iconos de aplicación</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Desbloquear una caja fuerte significa almacenar una clave correcta en la RAM de un dispositivo, ganando la capacidad de leer y modificar la caja fuerte cifrada.</string>
     <string name="datasafety_remote_section">Datos remotos</string>
     <string name="datasafety_remote_text">Los datos remotos se almacenan en servidores Bitwarden con cifrado de conocimiento cero.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Registros</string>
     <string name="logs_start_recording_fab_title">Empezar a grabar</string>
     <string name="logs_stop_recording_fab_title">Dejar de grabar</string>

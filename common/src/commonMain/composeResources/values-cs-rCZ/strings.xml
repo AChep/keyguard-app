@@ -25,6 +25,9 @@
     <string name="email_visibility">Viditelnost e-mailu</string>
     <string name="public_url">Veřejná adresa URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Počet přihlášení</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Nepodařilo se autorizovat požadavek</string>
     <string name="error_failed_open_uri">Nepodařilo se otevřít URI</string>
     <string name="error_failed_format_placeholder">Nepodařilo se naformátovat proměnnou</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Načíst QR kód</string>
     <string name="scanqr_load_from_image_note">Načíst a zpracovat QR kód z obrázku.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Odstranit přepsání adresy URL?</string>
     <string name="urloverride_empty_label">Žádná přepsání adres URL</string>
     <string name="setup_header_text">Vytvořit šifrovaný trezor, kam budou ukládána lokální data.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">Heslo aplikace</string>
     <string name="setup_checkbox_biometric_auth">Biometrické přihlašování</string>
     <string name="setup_biometric_auth_confirm_title">Vytvořit trezor</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Chcete-li projít ověřením captcha v neoficiálním klientovi Bitwarden, musíte zadat tajný klíč klienta. Chcete-li jej zjistit, navštivte Webový trezor / Nastavení / Zabezpečení / Klíče / Klíč API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Tajný klíč klienta</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Přihlásit se</string>
     <string name="addaccount_region_section">Oblast</string>
     <string name="addaccount_region_us_type">Spojené státy</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Generátor hesel</string>
     <string name="generator_generate_button">Generovat</string>
     <string name="generator_regenerate_button">Vygenerovat znovu</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Heslová fráze</string>
     <string name="generator_passphrase_note">Náhodné heslové fráze poskytují nejlepší kombinaci zapamatovatelnosti a bezpečnosti.</string>
     <string name="generator_passphrase_delimiter_title">Oddělovač</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Změnit heslo aplikace</string>
     <string name="changepassword_disclaimer_local_note">Heslo aplikace se nikdy neukládá do zařízení ani není posíláno přes síť. Je používáno k vygenerování tajného klíče, kterým jsou zašifrována lokální data.</string>
     <string name="changepassword_disclaimer_abuse_note">Pokud nemáte podezření na neoprávněný přístup nebo v zařízení neobjevíte škodlivý software, není třeba heslo měnit, pokud je silné a jedinečné.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Export položek</string>
     <string name="exportaccount_password_label">Heslo archivu</string>
     <string name="exportaccount_attachments_note">Trezor zůstane během procesu exportu odemčený. Na přílohy se odkazuje v datech trezoru. Přílohy se v procesu nikdy neukládají v nezašifrované podobě.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Komunita na Redditu</string>
     <string name="pref_item_github_title">GitHub projekt</string>
     <string name="pref_item_crowdin_title">Crowdin projekt</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Licence open source</string>
     <string name="pref_item_download_apk_title">Stáhnout soubor APK</string>
     <string name="pref_item_load_app_icons_title">Načítat ikony aplikací</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Odemknutí trezoru znamená uložení správného klíče v operační paměti zařízení, čímž získáte schopnost zobrazit a upravovat obsah šifrovaného trezoru.</string>
     <string name="datasafety_remote_section">Vzdálená data</string>
     <string name="datasafety_remote_text">Vzdálená data jsou uložena na serverech společnosti Bitwarden s šifrováním s nulovým přístupem.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Protokoly</string>
     <string name="logs_start_recording_fab_title">Spustit nahrávání</string>
     <string name="logs_stop_recording_fab_title">Zastavit nahrávání</string>

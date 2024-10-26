@@ -25,6 +25,9 @@
     <string name="email_visibility">Visibilité de l'e-mail</string>
     <string name="public_url">Lien public</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Masquer la valeur</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Valeur</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Nombre d'accès</string>
     <!--
@@ -175,7 +178,7 @@
     <string name="passkey_available">Clé d'authentification disponible</string>
     <string name="twofa_available">Authentification à deux facteurs (2FA) disponible</string>
     <string name="custom">Personnalisé</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Accorder la permission</string>
     <string name="create_account">Créer un compte</string>
     <string name="follow_system_settings">Suivre les paramètres système</string>
     <!-- A feature is coming soon! -->
@@ -242,14 +245,14 @@
     <string name="folder_action_change_name_title">Modifier le nom</string>
     <string name="folder_action_change_names_title">Changer les noms</string>
     <string name="folder_action_merge_title">Fusionner dans…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Êtes-vous sûr de vouloir fusionner ces dossiers ?</string>
+    <string name="folder_action_create_title">Créer un dossier</string>
     <string name="folder_delete_one_confirmation_title">Supprimer le dossier ?</string>
     <string name="folder_delete_many_confirmation_title">Supprimer les dossiers ?</string>
     <string name="folder_delete_confirmation_text">Ces élément(s) seront supprimés immédiatement. Vous ne pouvez pas annuler cette action.</string>
     <string name="ciphers_recently_opened">Ouvert récemment</string>
     <string name="ciphers_often_opened">Souvent consulté</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">L'historique est vide</string>
     <string name="ciphers_view_details">Voir les détails</string>
     <string name="ciphers_save_to">Sauvegarder dans</string>
     <string name="ciphers_action_add_to_favorites_title">Ajouter aux favoris</string>
@@ -269,10 +272,10 @@
     <string name="ciphers_action_change_passwords_title">Modifier les mots de passe</string>
     <string name="ciphers_action_view_password_history_title">Voir l'historique des mots de passe</string>
     <string name="ciphers_action_trash_title">Corbeille</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Mettre à la corbeille ?</string>
+    <string name="ciphers_action_trash_confirmation_text">Les éléments qui se trouvent dans la corbeille depuis plus de 30 jours sont automatiquement supprimés.</string>
     <string name="ciphers_action_restore_title">Restaurer</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Restaurer depuis la corbeille ?</string>
     <string name="ciphers_action_delete_title">Supprimer définitivement</string>
     <string name="ciphers_action_delete_confirmation_title">Supprimer définitivement ?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configurer les alertes Watchtower</string>
@@ -471,9 +474,11 @@
     <string name="error_failed_use_passkey">Impossible d'autoriser une demande</string>
     <string name="error_failed_open_uri">Échec de l'ouverture de l'URL</string>
     <string name="error_failed_format_placeholder">Impossible de formater l'emplacement</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Scanner le code QR</string>
     <string name="scanqr_load_from_image_note">Charger et analyser un code QR à partir d'un fichier image.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">L'autorisation d'accéder à la caméra est nécessaire pour scanner les codes QR.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Code barre</string>
     <string name="barcodetype_action_show_in_barcode_title">Afficher en tant que code-barre</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Supprimer les remplacements d'URL ?</string>
     <string name="urloverride_empty_label">Aucun remplacement d'URL</string>
     <string name="setup_header_text">Créez un coffre-fort chiffré où les données locales seront stockées.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">Mot de passe de l'application</string>
     <string name="setup_checkbox_biometric_auth">Authentification biométrique</string>
     <string name="setup_biometric_auth_confirm_title">Créer un coffre-fort</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Pour passer la vérification captcha sur un client Bitwarden non officiel, vous devez spécifier le secret du client. Pour le trouver, allez dans le coffre Web / Paramètres / Clé API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Créer un compte</string>
     <string name="addaccount_sign_in_button">S'inscrire</string>
     <string name="addaccount_region_section">Région</string>
     <string name="addaccount_region_us_type">États-Unis</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Générateur de mots de passe</string>
     <string name="generator_generate_button">Générer</string>
     <string name="generator_regenerate_button">Regénérer</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Utiliser</string>
     <string name="generator_passphrase_type">Phrase de passe</string>
     <string name="generator_passphrase_note">Les phrases de passe aléatoires fournissent la meilleure combinaison de mémorabilité et de sécurité.</string>
     <string name="generator_passphrase_delimiter_title">Délimiteur</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Modifier le mot de passe de l'application</string>
     <string name="changepassword_disclaimer_local_note">Le mot de passe de l'application ne sera jamais stocké sur l'appareil ni envoyé sur le réseau. Il est utilisé pour générer une clé secrète qui est utilisée pour chiffrer les données locales.</string>
     <string name="changepassword_disclaimer_abuse_note">Sauf si vous soupçonnez un accès non autorisé ou si vous découvrez un logiciel malveillant sur l'appareil, il n'est pas nécessaire de changer le mot de passe si c'est un mot de passe fort et unique.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
     <string name="exportaccount_attachments_note">Le coffre-fort restera déverrouillé pendant le processus d'exportation. Les pièces jointes sont référencées dans les données du coffre-fort. Les pièces jointes ne sont jamais stockées en clair au cours du processus.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Communauté Reddit</string>
     <string name="pref_item_github_title">Projet GitHub</string>
     <string name="pref_item_crowdin_title">Projet Crowdin</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Licences Open Source</string>
     <string name="pref_item_download_apk_title">Télécharger le fichier APK</string>
     <string name="pref_item_load_app_icons_title">Charger les icônes d'applications</string>
@@ -1016,7 +1027,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Impossible de charger une liste d'abonnements</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Impossible de charger la liste de produits</string>
     <string name="pref_item_premium_status_active">Actif</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Essai gratuit de <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Ne sera renouvelé</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gérer sur le Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Publier des notifications</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Déverrouiller un coffre-fort signifie stocker une clé correcte dans la mémoire vive d'un appareil, en obtenant une capacité de lire et de modifier le coffre chiffré.</string>
     <string name="datasafety_remote_section">Données à distance</string>
     <string name="datasafety_remote_text">Les données distantes sont stockées sur les serveurs Bitwarden avec un chiffrement zéro connaissance.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Activité</string>
     <string name="logs_start_recording_fab_title">Démarrer l'enregistrement</string>
     <string name="logs_stop_recording_fab_title">Arrêter l'enregistrement</string>

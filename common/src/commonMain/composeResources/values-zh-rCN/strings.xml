@@ -25,6 +25,9 @@
     <string name="email_visibility">电子邮件可见性</string>
     <string name="public_url">公开网址</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">访问次数</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">授权请求失败</string>
     <string name="error_failed_open_uri">无法打开 URI</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">扫描二维码</string>
     <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">确定要删除这些 URL 覆写吗？</string>
     <string name="urloverride_empty_label">暂无 URL 覆写</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
     <string name="setup_checkbox_biometric_auth">生物识别认证</string>
     <string name="setup_biometric_auth_confirm_title">创建一个密码库</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">要通过非官方 Bitwarden 客户端上的验证码验证，您必须指定客户端密钥。 请访问 网页密码库 / 设置 / 安全 / API 密钥以找到它。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">客户端密钥</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">登录</string>
     <string name="addaccount_region_section">选择区域</string>
     <string name="addaccount_region_us_type">美国</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">密码生成器</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">重新生成</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">口令</string>
     <string name="generator_passphrase_note">随机口令是可记忆性和安全性的最佳组合。</string>
     <string name="generator_passphrase_delimiter_title">分隔符</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">更改应用专用密码</string>
     <string name="changepassword_disclaimer_local_note">应用专用密码不会存储在设备上，更不会上传到服务器。它仅用于生成密钥以加密本地数据。</string>
     <string name="changepassword_disclaimer_abuse_note">除非你怀疑有未经授权的访问或在设备上发现了恶意软件，否则如果密码强大且唯一则没有必要更改。</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">导出项目</string>
     <string name="exportaccount_password_label">归档密码</string>
     <string name="exportaccount_attachments_note">密码库将在导出过程中保持解锁。
@@ -918,6 +928,7 @@
     <string name="pref_item_reddit_community_title">Reddit 社区</string>
     <string name="pref_item_github_title">GitHub 项目</string>
     <string name="pref_item_crowdin_title">Crowdin 项目</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">开放源代码许可</string>
     <string name="pref_item_download_apk_title">下载 APK 文件</string>
     <string name="pref_item_load_app_icons_title">加载应用图标</string>
@@ -1087,6 +1098,10 @@
     <string name="datasafety_local_unlocking_vault">解锁密码库意味着在设备的内存中存储正确的密钥，从而获得读取和修改加密密码库的能力。</string>
     <string name="datasafety_remote_section">远程路径</string>
     <string name="datasafety_remote_text">远程数据以零知识加密方式存储在 Bitwarden 服务器上。</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">日志</string>
     <string name="logs_start_recording_fab_title">开始录制</string>
     <string name="logs_stop_recording_fab_title">停止录制</string>

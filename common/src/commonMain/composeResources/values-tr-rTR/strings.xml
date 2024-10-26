@@ -25,6 +25,9 @@
     <string name="email_visibility">E-posta görünürlüğü</string>
     <string name="public_url">Genel URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Değeri gizle</string>
+    <string name="field_label">Etiket</string>
+    <string name="field_value">Değer</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Erişim sayısı</string>
     <!--
@@ -175,7 +178,7 @@
     <string name="passkey_available">Geçiş anahtarı mevcut</string>
     <string name="twofa_available">İki faktörlü kimlik doğrulama mevcut</string>
     <string name="custom">Özel</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">İzin ver</string>
     <string name="create_account">Hesap oluştur</string>
     <string name="follow_system_settings">Sistem ayarlarını takip et</string>
     <!-- A feature is coming soon! -->
@@ -471,9 +474,11 @@
     <string name="error_failed_use_passkey">İstek yetkilendirme başarısız oldu</string>
     <string name="error_failed_open_uri">URI açma başarısız oldu</string>
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirme başarısız oldu</string>
+    <string name="error_failed_open_app_for">Yüklü hiçbir uygulama bu isteği karşılayamaz</string>
+    <string name="error_failed_unknown">Bir şeyler ters gitti</string>
     <string name="scanqr_title">QR kodunu tarayın</string>
     <string name="scanqr_load_from_image_note">Bir resim dosyasından QR kodu yükleyin ve analiz edin.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
     <string name="barcodetype_action_show_in_barcode_title">Barkod olarak göster</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">URL geçersiz kılmaları sil?</string>
     <string name="urloverride_empty_label">URL geçersiz kılma yok</string>
     <string name="setup_header_text">Yerel verilerin saklanacağı şifreli bir kasa oluşturun.</string>
+    <string name="setup_free_text">Devam ederek Keyguard'ı satın aldığınızı veya aktif bir lisansa sahip olduğunuzu onaylamış olursunuz.</string>
     <string name="setup_field_app_password_label">Uygulama parolası</string>
     <string name="setup_checkbox_biometric_auth">Biyometrik kimlik doğrulama</string>
     <string name="setup_biometric_auth_confirm_title">Bir kasa oluşturun</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Resmi olmayan bir Bitwarden istemcisinde Captcha doğrulamasını geçmek için müşteri sırrını belirtmelisiniz. Bulmak için Web kasası / Ayarlar / API Anahtarı'na gidin.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Müşteri sırrı</string>
+    <string name="addaccount_create_an_account_title">Hesap oluştur</string>
     <string name="addaccount_sign_in_button">Giriş yap</string>
     <string name="addaccount_region_section">Bölge</string>
     <string name="addaccount_region_us_type">Birleşik Devletler</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Parola üretici</string>
     <string name="generator_generate_button">Üret</string>
     <string name="generator_regenerate_button">Yeniden üret</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Kullan</string>
     <string name="generator_passphrase_type">Parola cümlesi</string>
     <string name="generator_passphrase_note">Rastgele parola cümleleri, unutulmazlık ve güvenlik açısından en iyi kombinasyonu sunar.</string>
     <string name="generator_passphrase_delimiter_title">Ayırıcı</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Uygulama şifresini değiştir</string>
     <string name="changepassword_disclaimer_local_note">Uygulama şifresi hiçbir zaman cihazda saklanmaz veya ağ üzerinden gönderilmez. Yerel verilerin şifrelenmesinde kullanılan gizli bir anahtar oluşturmak için kullanılır.</string>
     <string name="changepassword_disclaimer_abuse_note">Yetkisiz erişimden şüphelenmediğiniz veya cihazda bir kötü amaçlı yazılım bulmadığınız sürece, güçlü ve benzersiz bir şifre olduğu sürece şifreyi değiştirmenize gerek yoktur.</string>
+    <string name="changepassword_password_changed_successfully">Parola başarıyla değiştirildi</string>
     <string name="exportaccount_header_title">Öğeleri dışa aktar</string>
     <string name="exportaccount_password_label">Arşiv şifresi</string>
     <string name="exportaccount_attachments_note">Dışa aktarma işlemi sırasında kasa kilidi açık tutulacaktır. Ekler, kasanın verilerinde referans alınır. Ekler, süreçte hiçbir zaman şifrelenmemiş halde saklanmaz.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit topluluğu</string>
     <string name="pref_item_github_title">GitHub projesi</string>
     <string name="pref_item_crowdin_title">Crowdin projesi</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Açık kaynak lisansları</string>
     <string name="pref_item_download_apk_title">APK dosyasını indir</string>
     <string name="pref_item_load_app_icons_title">Uygulama simgelerini yükle</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Bir Kasayı açmak, cihazın RAM'inde doğru bir Anahtar saklamak ve şifrelenmiş Kasayı okuma ve değiştirme yeteneği kazanmak anlamına gelir.</string>
     <string name="datasafety_remote_section">Uzaktan veri</string>
     <string name="datasafety_remote_text">Uzaktan veri, Bitwarden sunucularında sıfır bilgi ile şifrelenmiş olarak saklanır.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Kayıtlar</string>
     <string name="logs_start_recording_fab_title">Kaydı başlat</string>
     <string name="logs_stop_recording_fab_title">Kaydı durdur</string>

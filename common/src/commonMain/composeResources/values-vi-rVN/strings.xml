@@ -25,6 +25,9 @@
     <string name="email_visibility">Khả năng hiển thị email</string>
     <string name="public_url">URL công khai</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Lượt truy cập</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Không thể cấp phép cho yêu cầu</string>
     <string name="error_failed_open_uri">Không mở được URI</string>
     <string name="error_failed_format_placeholder">Không thể định dạng phần thay thế</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Quét mã QR</string>
     <string name="scanqr_load_from_image_note">Tải và phân tích mã QR từ tệp hình ảnh.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Xóa ghi đè URL?</string>
     <string name="urloverride_empty_label">Không có ghi đè URL</string>
     <string name="setup_header_text">Tạo một kho được mã hóa nơi dữ liệu cục bộ sẽ được lưu trữ.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">Mật khẩu ứng dụng</string>
     <string name="setup_checkbox_biometric_auth">Xác thực sinh trắc học</string>
     <string name="setup_biometric_auth_confirm_title">Tạo một kho</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Để vượt qua xác minh captcha trên ứng dụng khách Bitwarden không chính thức, bạn phải chỉ định client secret. Để tìm thấy nó, hãy truy cập kho Web / Thiết đặt / Khóa API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">Đăng nhập</string>
     <string name="addaccount_region_section">Khu vực</string>
     <string name="addaccount_region_us_type">Hoa Kỳ</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">Bộ tạo mật khẩu</string>
     <string name="generator_generate_button">Tạo</string>
     <string name="generator_regenerate_button">Tạo lại</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">Cụm mật khẩu</string>
     <string name="generator_passphrase_note">Cụm mật khẩu ngẫu nhiên cung cấp sự kết hợp tốt nhất giữa khả năng ghi nhớ và bảo mật.</string>
     <string name="generator_passphrase_delimiter_title">Dấu phân cách</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Thay đổi mật khẩu ứng dụng</string>
     <string name="changepassword_disclaimer_local_note">Mật khẩu ứng dụng không bao giờ được lưu trữ trên thiết bị cũng như không được gửi qua mạng. Nó được sử dụng để tạo khóa bí mật dùng để mã hóa dữ liệu cục bộ.</string>
     <string name="changepassword_disclaimer_abuse_note">Trừ khi bạn nghi ngờ có sự truy cập trái phép hoặc phát hiện phần mềm độc hại trên thiết bị, không cần phải thay đổi mật khẩu nếu đó là mật khẩu mạnh, duy nhất.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Xuất các mục</string>
     <string name="exportaccount_password_label">Lưu trữ mật khẩu</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Cộng đồng Reddit</string>
     <string name="pref_item_github_title">Dự án GitHub</string>
     <string name="pref_item_crowdin_title">Dự án Crowdin</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Giấy phép nguồn mở</string>
     <string name="pref_item_download_apk_title">Tải xuống tệp APK</string>
     <string name="pref_item_load_app_icons_title">Tải các biểu tượng ứng dụng</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">Mở khóa một kho có nghĩa là lưu trữ một Chìa khóa chính xác trong RAM của thiết bị, có được khả năng đọc và sửa đổi Kho đã mã hóa.</string>
     <string name="datasafety_remote_section">Dữ liệu từ xa</string>
     <string name="datasafety_remote_text">Dữ liệu từ xa được lưu trữ trên máy chủ Bitwarden với mã hóa không-kiến ​​thức.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Nhật ký</string>
     <string name="logs_start_recording_fab_title">Bắt đầu ghi</string>
     <string name="logs_stop_recording_fab_title">Dừng ghi</string>

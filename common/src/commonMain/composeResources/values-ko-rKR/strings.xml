@@ -25,6 +25,9 @@
     <string name="email_visibility">이메일 보기 권한</string>
     <string name="public_url">공개 URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">값 숨기기</string>
+    <string name="field_label">라벨</string>
+    <string name="field_value">값</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">조회수</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
     <string name="error_failed_open_uri">URI를 열지 못했습니다.</string>
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">QR 코드 스캔</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
     <string name="urloverride_empty_label">URL 덮어쓰기 없음</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>
     <string name="setup_checkbox_biometric_auth">생체 정보 인증</string>
     <string name="setup_biometric_auth_confirm_title">보관함 만들기</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">비공식 Bitwarden 클라이언트에서 캡차 인증을 통과하려면 클라이언트 비밀 키를 설정해야 합니다. 웹 보관함의 설정 / API 키 페이지에서 클라이언트 비밀 키를 확인할 수 있습니다.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">클라이언트 비밀 키</string>
+    <string name="addaccount_create_an_account_title">계정 만들기</string>
     <string name="addaccount_sign_in_button">로그인</string>
     <string name="addaccount_region_section">리전</string>
     <string name="addaccount_region_us_type">미국</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">비밀번호 생성기</string>
     <string name="generator_generate_button">생성</string>
     <string name="generator_regenerate_button">다시 생성</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">사용</string>
     <string name="generator_passphrase_type">비밀번호 문구</string>
     <string name="generator_passphrase_note">무작위 비밀번호 문구는 외우기 쉽고 보안성이 뛰어난 문구 조합을 제공합니다.</string>
     <string name="generator_passphrase_delimiter_title">구분 기호</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">앱 비밀번호 변경</string>
     <string name="changepassword_disclaimer_local_note">앱 비밀번호는 기기에 저장되거나 인터넷으로 전송되지 않습니다. 로컬 데이터를 암호화하기 위한 비밀 키를 생성하는 데에만 사용됩니다.</string>
     <string name="changepassword_disclaimer_abuse_note">강력한 비밀번호를 웹사이트마다 다르게 사용하고 있다면, 무단 접속이 의심되거나 기기에서 악성 코드가 발견되지 않는 한 비밀번호를 변경할 필요가 없습니다.</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">항목 내보내기</string>
     <string name="exportaccount_password_label">압축 파일 비밀번호</string>
     <string name="exportaccount_attachments_note">보관함은 내보내기 진행 중에 잠금 해제 상태로 유지됩니다. 첨부 파일은 보관함 데이터에 포함되며, 내보내기 과정에서 암호화되지 않은 형식으로는 저장되지 않습니다.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit 커뮤니티</string>
     <string name="pref_item_github_title">GitHub 프로젝트</string>
     <string name="pref_item_crowdin_title">CrowdIn 프로젝트</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">오픈 소스 라이선스</string>
     <string name="pref_item_download_apk_title">APK 파일 다운로드</string>
     <string name="pref_item_load_app_icons_title">앱 아이콘 불러오기</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">보관함을 잠금 해제한다는 것은 기기의 RAM에 올바른 키를 저장하여 암호화된 보관함을 읽고 편집할 수 있게 하는 것입니다.</string>
     <string name="datasafety_remote_section">원격 데이터</string>
     <string name="datasafety_remote_text">원격 데이터는 영지식 증명으로 암호화한 뒤 Bitwarden 서버에 저장됩니다.</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">로그</string>
     <string name="logs_start_recording_fab_title">기록 시작</string>
     <string name="logs_stop_recording_fab_title">기록 중지</string>

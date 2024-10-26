@@ -25,6 +25,9 @@
     <string name="email_visibility">メールアドレスの表示</string>
     <string name="public_url">公開 URL</string>
     <string name="url">URL</string>
+    <string name="conceal_value">Conceal value</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">アクセス数</string>
     <!--
@@ -471,6 +474,8 @@
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Failed to open a URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
+    <string name="error_failed_open_app_for">No installed app can handle this request</string>
+    <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">Scan QR code</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
@@ -576,6 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">URL の上書きルールを削除しますか？</string>
     <string name="urloverride_empty_label">URL の上書きルールはありません</string>
     <string name="setup_header_text">ローカルデータを保存するための暗号化された保管庫を作成します。</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">アプリのパスワード</string>
     <string name="setup_checkbox_biometric_auth">生体認証</string>
     <string name="setup_biometric_auth_confirm_title">保管庫の作成</string>
@@ -622,6 +628,7 @@
     <string name="addaccount_captcha_need_client_secret_note">非公式の Bitwarden クライアントで CAPTCHA 認証を通過するには、クライアントシークレットを指定する必要があります。クライアントシークレットを取得するには、ウェブ保管庫 / 設定 / API キー にアクセスしてください。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">クライアントシークレット</string>
+    <string name="addaccount_create_an_account_title">Create an account</string>
     <string name="addaccount_sign_in_button">サインイン</string>
     <string name="addaccount_region_section">地域</string>
     <string name="addaccount_region_us_type">アメリカ合衆国</string>
@@ -763,6 +770,8 @@
     <string name="generator_header_password_title">パスワード生成</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">再生成</string>
+    <!-- 'Use' generated password as a password -->
+    <string name="generator_use_button">Use</string>
     <string name="generator_passphrase_type">パスフレーズ</string>
     <string name="generator_passphrase_note">ランダムなパスフレーズは、記憶性とセキュリティの最良の組み合わせを提供します。</string>
     <string name="generator_passphrase_delimiter_title">区切り文字</string>
@@ -853,6 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">アプリパスワードの変更</string>
     <string name="changepassword_disclaimer_local_note">アプリのパスワードは、デバイスに保存されることも、ネットワーク経由で送信されることもありません。ローカルデータを暗号化するために使用される秘密鍵を生成するために使用されます。</string>
     <string name="changepassword_disclaimer_abuse_note">不正アクセスが疑われる場合やデバイスにマルウェアを発見した場合を除いて、強力で一意のパスワードであれば、変更する必要はありません。</string>
+    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
@@ -916,6 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit コミュニティ</string>
     <string name="pref_item_github_title">GitHub プロジェクト</string>
     <string name="pref_item_crowdin_title">Crowdin プロジェクト</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">オープンソースライセンス</string>
     <string name="pref_item_download_apk_title">APK ファイルのダウンロード</string>
     <string name="pref_item_load_app_icons_title">アプリアイコンの読み込み</string>
@@ -1085,6 +1096,10 @@
     <string name="datasafety_local_unlocking_vault">保管庫のロック解除とは、デバイスの RAM に正しいキーを保存し、暗号化された保管庫を読み書きできるようになることを意味します。</string>
     <string name="datasafety_remote_section">リモートデータ</string>
     <string name="datasafety_remote_text">リモートデータは、ゼロ知識暗号化を使用して Bitwarden のサーバー上に保存されます。</string>
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
     <string name="logs_header_title">Logs</string>
     <string name="logs_start_recording_fab_title">Start recording</string>
     <string name="logs_stop_recording_fab_title">Stop recording</string>

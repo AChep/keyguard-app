@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonNames
 data class FieldEntity(
     @JsonNames("type")
     @SerialName("Type")
-    val type: FieldTypeEntity,
+    val type: FieldTypeEntity = FieldTypeEntity.Text,
     @JsonNames("name")
     @SerialName("Name")
     val name: String? = null,

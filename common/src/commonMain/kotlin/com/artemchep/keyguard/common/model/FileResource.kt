@@ -9,6 +9,10 @@ value class FileResource(
             get() = "files/gpm_passkeys_privileged_apps.json"
                 .let(::FileResource)
 
+        val localizationContributors: FileResource
+            get() = "files/localization_contributors.json"
+                .let(::FileResource)
+
         val justDeleteMe: FileResource
             get() = "files/justdeleteme.json"
                 .let(::FileResource)

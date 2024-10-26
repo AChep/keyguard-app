@@ -30,6 +30,8 @@ import com.artemchep.keyguard.common.service.justgetmydata.impl.JustGetMyDataSer
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.license.LicenseService
 import com.artemchep.keyguard.common.service.license.impl.LicenseServiceImpl
+import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
+import com.artemchep.keyguard.common.service.localizationcontributors.impl.LocalizationContributorsServiceImpl
 import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepository
 import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepositoryImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -1200,6 +1202,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<JustDeleteMeService> {
         JustDeleteMeServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<LocalizationContributorsService> {
+        LocalizationContributorsServiceImpl(
             directDI = this,
         )
     }

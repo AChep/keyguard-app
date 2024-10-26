@@ -1001,6 +1001,7 @@
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>
     <string name="pref_item_crowdin_title">Crowdin project</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
     <string name="pref_item_open_source_licenses_title">Open-source licenses</string>
     <string name="pref_item_download_apk_title">Download APK file</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
@@ -1175,6 +1176,11 @@
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
+
+    <!-- Title of the 'Localization contributors' screen -->
+    <string name="localization_contributors_title">Localization contributors</string>
+    <string name="localization_contributors_search_placeholder">Search contributors</string>
+    <string name="localization_contributors_empty_label">No contributors</string>
 
     <string name="logs_header_title">Logs</string>
     <string name="logs_start_recording_fab_title">Start recording</string>

@@ -1,7 +1,8 @@
 package com.artemchep.keyguard.ui.icons
 
+import android.net.Uri
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.LocalContentColor
@@ -13,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.feature.favicon.GravatarUrl
+import com.artemchep.keyguard.feature.favicon.PictureUrl
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.skydoves.landscapist.ImageOptions
@@ -23,9 +24,9 @@ import com.skydoves.landscapist.placeholder.shimmer.Shimmer
 import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
 @Composable
-actual fun EmailIcon(
+actual fun UserIcon(
     modifier: Modifier,
-    gravatarUrl: GravatarUrl?,
+    pictureUrl: PictureUrl?,
 ) {
     val surfaceColor = MaterialTheme.colorScheme
         .surfaceColorAtElevation(LocalAbsoluteTonalElevation.current + 16.dp)
@@ -35,7 +36,7 @@ actual fun EmailIcon(
         .compositeOver(surfaceColor)
     GlideImage(
         modifier = modifier,
-        imageModel = { gravatarUrl },
+        imageModel = { pictureUrl },
         imageOptions = ImageOptions(contentScale = ContentScale.Crop),
         component = rememberImageComponent {
             // Shows a shimmering effect when loading an image
@@ -50,7 +51,7 @@ actual fun EmailIcon(
             Icon(
                 modifier = Modifier
                     .align(Alignment.Center),
-                imageVector = Icons.Outlined.Email,
+                imageVector = Icons.Outlined.PersonOutline,
                 contentDescription = null,
                 tint = contentColor,
             )

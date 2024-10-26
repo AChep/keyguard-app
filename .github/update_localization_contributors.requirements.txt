@@ -1,0 +1,2 @@
+crowdin-api-client
+requests

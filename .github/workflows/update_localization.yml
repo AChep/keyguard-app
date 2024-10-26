@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: pip install -r .github/update_localization_contributors.requirements.txt
       - uses: crowdin/github-action@v2
         with:
           upload_sources: true
@@ -39,6 +40,9 @@ jobs:
       - name: "Update library"
         run: |
           python .github/update_localization.py
+      - name: "Update contributors"
+        run: |
+          python .github/update_localization_contributors.py ${{ secrets.CROWDIN_PERSONAL_TOKEN }} ${{ secrets.CROWDIN_PROJECT_ID }}
       - name: "Check if any changes"
         id: check-changes
         run: |

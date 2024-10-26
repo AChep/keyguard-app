@@ -5,12 +5,14 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import com.artemchep.keyguard.android.glide.app.AppIconLoader
 import com.artemchep.keyguard.android.glide.gravatar.GravatarLoader
+import com.artemchep.keyguard.android.glide.picture.PictureLoader
 import com.artemchep.keyguard.android.glide.qr.QrLoader
 import com.artemchep.keyguard.android.glide.website.FaviconLoader
 import com.artemchep.keyguard.common.model.BarcodeImageRequest
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.favicon.GravatarUrl
+import com.artemchep.keyguard.feature.favicon.PictureUrl
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
@@ -40,5 +42,6 @@ class KeyguardGlideModule : AppGlideModule() {
         )
         registry.prepend(FaviconUrl::class.java, InputStream::class.java, FaviconLoader.Factory())
         registry.prepend(GravatarUrl::class.java, InputStream::class.java, GravatarLoader.Factory())
+        registry.prepend(PictureUrl::class.java, InputStream::class.java, PictureLoader.Factory())
     }
 }

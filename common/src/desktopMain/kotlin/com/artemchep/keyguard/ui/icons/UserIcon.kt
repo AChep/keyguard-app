@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.ui.icons
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.Icon
@@ -13,19 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.feature.favicon.GravatarUrl
+import com.artemchep.keyguard.feature.favicon.PictureUrl
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.placeholder.shimmer.Shimmer
-import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 
 @Composable
-actual fun EmailIcon(
+actual fun UserIcon(
     modifier: Modifier,
-    gravatarUrl: GravatarUrl?,
+    pictureUrl: PictureUrl?,
 ) {
     val surfaceColor = MaterialTheme.colorScheme
         .surfaceColorAtElevation(LocalAbsoluteTonalElevation.current + 16.dp)
@@ -33,20 +34,23 @@ actual fun EmailIcon(
     val highlightColor = contentColor
         .combineAlpha(MediumEmphasisAlpha)
         .compositeOver(surfaceColor)
-    GlideImage(
+
+    val painterResource =
+        asyncPainterResource(data = pictureUrl?.url ?: Any())
+    KamelImage(
         modifier = modifier,
-        imageModel = { gravatarUrl },
-        imageOptions = ImageOptions(contentScale = ContentScale.Crop),
-        component = rememberImageComponent {
-            // Shows a shimmering effect when loading an image
-            +ShimmerPlugin(
-                shimmer = Shimmer.Flash(
-                    baseColor = surfaceColor,
-                    highlightColor = highlightColor,
-                ),
+        contentScale = ContentScale.Crop,
+        resource = painterResource,
+        contentDescription = "Avatar",
+        onLoading = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .shimmer()
+                    .background(highlightColor),
             )
         },
-        failure = {
+        onFailure = {
             Icon(
                 modifier = Modifier
                     .align(Alignment.Center),

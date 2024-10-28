@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.ui
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
@@ -58,6 +59,7 @@ fun FlatSimpleNote(
     text: String? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
+    content: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ) {
@@ -122,6 +124,9 @@ fun FlatSimpleNote(
                     style = MaterialTheme.typography.bodySmall,
                     color = textColor,
                 )
+            }
+            if (content != null) {
+                content()
             }
         },
         trailing = trailing,

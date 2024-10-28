@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +24,10 @@ import arrow.core.partially1
 import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
+import com.artemchep.keyguard.feature.apppicker.flowOfInstalledAppsAnyOf
+import com.artemchep.keyguard.feature.navigation.LocalNavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -31,8 +36,9 @@ import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.BufferedReader
@@ -43,13 +49,18 @@ actual fun settingAutofillProvider(
     directDI: DirectDI,
 ): SettingComponent = settingAutofillProvider(
     autofillService = directDI.instance(),
+    appContext = directDI.instance(),
 )
 
 fun settingAutofillProvider(
     autofillService: AutofillService,
-): SettingComponent = autofillService
-    .status()
-    .map { status ->
+    appContext: LeContext,
+): SettingComponent =
+    combine(
+        autofillService
+            .status(),
+        flowOfIsChromiumInstalled(context = appContext.context),
+    ) { status, isChromeInstalled ->
         val platformWarning = when {
             isMiui() -> AutofillPlatformWarning.Miui
             else -> null
@@ -88,6 +99,12 @@ fun settingAutofillProvider(
                 },
                 platformWarning = platformWarning,
             )
+
+            ExpandedIfNotEmpty(
+                valueOrNull = isChromeInstalled.takeIf { it },
+            ) {
+                SettingAutofillChromeNativeAutofillWarning()
+            }
         }
     }
 
@@ -168,6 +185,37 @@ private fun SettingAutofillPlatformWarningMiui(
     )
 }
 
+@Composable
+private fun SettingAutofillChromeNativeAutofillWarning(
+) {
+    FlatSimpleNote(
+        modifier = Modifier
+            .padding(
+                top = 8.dp,
+                bottom = 8.dp,
+                start = Dimens.horizontalPadding * 1 + 24.dp,
+            ),
+        type = SimpleNote.Type.INFO,
+        title = stringResource(Res.string.pref_item_autofill_service_chrome_native_autofill_title),
+        text = stringResource(Res.string.pref_item_autofill_service_chrome_native_autofill_text),
+        trailing = {
+            val navController by rememberUpdatedState(LocalNavigationController.current)
+            IconButton(
+                onClick = {
+                    val url = "https://android-developers.googleblog.com/2024/10/chrome-3p-autofill-services.html"
+                    val intent = NavigationIntent.NavigateToBrowser(url)
+                    navController.queue(intent)
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.OpenInBrowser,
+                    contentDescription = null,
+                )
+            }
+        },
+    )
+}
+
 private sealed interface AutofillPlatformWarning {
     data object Miui : AutofillPlatformWarning {
         fun launchPermissionSettings(
@@ -194,6 +242,24 @@ private sealed interface AutofillPlatformWarning {
             }
         }
     }
+}
+
+private fun flowOfIsChromiumInstalled(
+    context: Context,
+): Flow<Boolean> {
+    val chromiumPackageNames = setOf(
+        "com.android.chrome",
+        "com.chrome.beta",
+        "com.chrome.canary",
+        "com.chrome.dev",
+        "com.google.android.apps.chrome",
+        "com.google.android.apps.chrome_dev",
+        "org.chromium.chrome",
+    )
+    return flowOfInstalledAppsAnyOf(
+        context,
+        packageNames = chromiumPackageNames,
+    )
 }
 
 private fun isMiui(): Boolean {

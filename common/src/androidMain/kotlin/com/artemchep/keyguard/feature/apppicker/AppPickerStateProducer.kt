@@ -35,6 +35,7 @@ import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -316,7 +317,7 @@ fun produceAppPickerState(
             }
     }
 
-    val itemsFlow = getAppsFlow(context.context)
+    val itemsFlow = flowOfInstalledApps(context.context)
         .combine(sortSink) { items, sort ->
             val comparator = Comparator<AppInfo> { a, b ->
                 val result = sort.comparator.compare(a, b)
@@ -370,7 +371,17 @@ fun produceAppPickerState(
         }
 }
 
-private fun getAppsFlow(
+fun flowOfInstalledAppsAnyOf(
+    context: Context,
+    packageNames: Iterable<String>,
+) = flowOfInstalledApps(context)
+    .map { installedApps ->
+        installedApps
+            .any { app -> app.packageName in packageNames }
+    }
+    .distinctUntilChanged()
+
+fun flowOfInstalledApps(
     context: Context,
 ) = broadcastFlow(
     context = context,

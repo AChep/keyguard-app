@@ -4,6 +4,30 @@ import requests
 URL_APPS = "https://www.gstatic.com/gpm-passkeys-privileged-apps/apps.json"
 
 EXTRA_APPS = [
+    {
+        "type": "android",
+        "info": {
+            "package_name": "org.chromium.chrome",
+            "signatures": [
+                {
+                    "build": "release",
+                    "cert_fingerprint_sha256": "A8:56:48:50:79:BC:B3:57:BF:BE:69:BA:19:A9:BA:43:CD:0A:D9:AB:22:67:52:C7:80:B6:88:8A:FD:48:21:6B"
+                }
+            ]
+        }
+    },
+    {
+        "type": "android",
+        "info": {
+            "package_name": "org.cromite.cromite",
+            "signatures": [
+                {
+                    "build": "release",
+                    "cert_fingerprint_sha256": "63:3F:A4:1D:82:11:D6:D0:91:6A:81:9B:89:66:8C:6D:E9:2E:64:23:2D:A6:7F:9D:16:FD:81:C3:B7:E9:23:FF"
+                }
+            ]
+        }
+    },
     # Firefox Nightly for Developers
     # https://play.google.com/store/apps/details?id=org.mozilla.fenix
     {

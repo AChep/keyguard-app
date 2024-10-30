@@ -25,8 +25,8 @@
         "name": "Ukrainian"
       }
     ],
-    "translated": 6283,
-    "target": 5929,
+    "translated": 6328,
+    "target": 5975,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -69,8 +69,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5117,
-    "target": 5589,
+    "translated": 5125,
+    "target": 5598,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -113,8 +113,8 @@
         "name": "Catalan"
       }
     ],
-    "translated": 5095,
-    "target": 5779,
+    "translated": 5103,
+    "target": 5789,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -510,8 +510,8 @@
   {
     "user": {
       "id": "15300208",
-      "username": "Night_cat",
-      "fullName": "\u591c\u8c93 (Night_cat)",
+      "username": "yorukot",
+      "fullName": "Yorukot (yorukot)",
       "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/15300208/medium/298fa868b95044d0e71185f880efdcde.jpeg",
       "joined": "2024-06-05 21:14:29"
     },
@@ -565,13 +565,13 @@
         "name": "Swedish"
       }
     ],
-    "translated": 1053,
-    "target": 978,
-    "approved": 1053,
+    "translated": 1055,
+    "target": 980,
+    "approved": 1055,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 1053
+    "winning": 1055
   },
   {
     "user": {

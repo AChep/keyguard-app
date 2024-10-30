@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">자동 완성 서비스</string>
     <string name="pref_item_autofill_service_text">Android 자동 완성 프레임워크를 사용하여 기기의 다른 앱에서 로그인 정보를 채울 수 있도록 합니다.</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">일부 샤오미 기기는 "백그라운드에서 실행되는 동안 팝업창 표시" 권한을 직접 허용해야 할 수 있습니다. 시스템 설정에서 권한이 허용되어 있는지 확인해 보세요.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">OTP 자동 복사</string>
     <string name="pref_item_autofill_auto_copy_otp_text">로그인 정보를 입력할 때 OTP를 자동으로 복사합니다.</string>
     <string name="pref_item_autofill_inline_suggestions_title">인라인 제안</string>

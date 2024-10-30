@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Automatikus kitöltés szolgáltatás</string>
     <string name="pref_item_autofill_service_text">Használja az Android automatikus kitöltési keretrendszert, hogy segítse a bejelentkezési adatok kitöltését az eszköz más alkalmazásaiban</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Egyes Xiaomi eszközökön manuálisan engedélyezni kell a "Felugró ablakok megjelenítése a háttérben futás közben" engedélyt. Kérjük, nyissa meg a beállításokat, és ellenőrizze, hogy az engedély meg van-e adva.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Egyszeri jelszavak automatikus másolása</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Bejelentkezési adatok kitöltésekor automatikusan másolja az egyszer használatos jelszavakat</string>
     <string name="pref_item_autofill_inline_suggestions_title">Beágyazott javaslatok</string>

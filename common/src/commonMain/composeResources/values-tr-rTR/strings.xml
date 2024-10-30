@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Otomatik doldurma hizmeti</string>
     <string name="pref_item_autofill_service_text">Diğer uygulamalara giriş bilgilerini doldurmaya yardımcı olmak için Android Otomatik Doldurma Çerçevesini kullanın</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Bazı Xiaomi cihazlarının "Arka planda çalışırken açılır pencereleri göster" iznini manuel olarak vermeniz gerekir. Lütfen ayarları açın ve bunun verildiğini doğrulayın.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tek seferlik şifreleri otomatik kopyala</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Giriş bilgilerini doldururken, tek seferlik şifreleri otomatik olarak kopyala</string>
     <string name="pref_item_autofill_inline_suggestions_title">Satır içi öneriler</string>

@@ -474,8 +474,8 @@
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
     <string name="error_failed_open_uri">Не удалось открыть URI</string>
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">Ни одно установленное приложение не может обработать этот запрос</string>
+    <string name="error_failed_unknown">Произошла ошибка</string>
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
@@ -581,7 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Удалить переопределение URL-адреса?</string>
     <string name="urloverride_empty_label">Нет переопределеных URL-адресов</string>
     <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">Продолжая вы подтверждаете, что купили Keyguard или имели активную лицензию.</string>
     <string name="setup_field_app_password_label">Пароль приложения</string>
     <string name="setup_checkbox_biometric_auth">Вход по биометрии</string>
     <string name="setup_biometric_auth_confirm_title">Создать хранилище</string>
@@ -862,7 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Изменить пароль приложения</string>
     <string name="changepassword_disclaimer_local_note">Пароль приложения никогда не хранится на устройстве и не отправляется по сети. Он используется для генерации секретного ключа, используемого для шифрования локальных данных.</string>
     <string name="changepassword_disclaimer_abuse_note">Если вы не подозреваете, что к вашему устройству был несанкционированный доступ, или вы не нашли вредоносное программное обеспечение, то не нужно изменять текущий пароль приложения, если он достаточно надежный и уникальный.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">Пароль успешно изменён</string>
     <string name="exportaccount_header_title">Экспорт элементов</string>
     <string name="exportaccount_password_label">Пароль архива</string>
     <string name="exportaccount_attachments_note">Хранилище будет разблокировано пока экспорт не закончится. Данные хранилища включают в себя информацию об экспортированных файлах. Файлы в процессе экспорта не сохраняются в не зашифрованном формате.</string>
@@ -926,7 +926,7 @@
     <string name="pref_item_reddit_community_title">Сообщество Reddit</string>
     <string name="pref_item_github_title">Проект на GitHub</string>
     <string name="pref_item_crowdin_title">Проект на Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Просмотреть всех</string>
     <string name="pref_item_open_source_licenses_title">Лицензии открытого программного обеспечения</string>
     <string name="pref_item_download_apk_title">Скачать APK файл</string>
     <string name="pref_item_load_app_icons_title">Загрузить значки приложений</string>
@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Служба автозаполнения</string>
     <string name="pref_item_autofill_service_text">Использовать фреймворк автозаполнения Android для заполнения информации о входе в другие приложения на устройстве</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Некоторые устройства Xiaomi требуют разрешения "Отображать всплывающие окна в фоновом режиме". Откройте настройки и убедитесь, что оно предоставлено.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автокопирование одноразовых паролей</string>
     <string name="pref_item_autofill_auto_copy_otp_text">При заполнении регистрационной информации автоматически копировать одноразовые пароли</string>
     <string name="pref_item_autofill_inline_suggestions_title">Встроенные предложения</string>
@@ -1097,9 +1101,9 @@
     <string name="datasafety_remote_section">Облачные данные</string>
     <string name="datasafety_remote_text">Облачные данные хранятся на серверах Bitwarden с шифрованием с нулевым знанием.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Участники проекта локализации</string>
+    <string name="localization_contributors_search_placeholder">Поиск участников</string>
+    <string name="localization_contributors_empty_label">Нет участников проекта локализации</string>
     <string name="logs_header_title">Логи</string>
     <string name="logs_start_recording_fab_title">Начать запись</string>
     <string name="logs_stop_recording_fab_title">Остановить запись</string>

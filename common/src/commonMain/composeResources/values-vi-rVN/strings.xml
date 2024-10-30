@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Dịch vụ tự động điền</string>
     <string name="pref_item_autofill_service_text">Sử dụng Khung tự động điền Android để hỗ trợ điền thông tin đăng nhập vào các ứng dụng khác trên thiết bị</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Một số thiết bị Xiaomi yêu cầu bạn phải cấp quyền "Hiển thị cửa sổ bật lên khi chạy ở chế độ nền" theo cách thủ công. Vui lòng mở cài đặt và xác minh rằng nó đã được cấp.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tự động sao chép mật khẩu một lần</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Khi điền thông tin đăng nhập, tự động sao chép mật khẩu một lần</string>
     <string name="pref_item_autofill_inline_suggestions_title">Đề xuất nội tuyến</string>

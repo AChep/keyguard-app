@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Service de remplissage automatique</string>
     <string name="pref_item_autofill_service_text">Utilisez le framework de saisie automatique d'Android pour vous accompagner à remplir les informations de connexion dans les autres applications de votre appareil</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Certains appareils Xiaomi exigent que vous autorisiez manuellement la permission "Afficher les fenêtres pop-up lors de l'exécution en arrière-plan". Veuillez ouvrir les paramètres et vérifier qu'ils sont accordés.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copier automatiquement le mot de passe unique</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Lors de la saisie des informations de connexion, copiez automatiquement les mots de passe uniques</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggestions</string>

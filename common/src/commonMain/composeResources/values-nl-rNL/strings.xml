@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Autofill service</string>
     <string name="pref_item_autofill_service_text">Gebruik het Android Autofill Framework voor het automatisch invullen van inloggegevens in andere apps op het apparaat</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Voor sommige Xiaomi apparaten moet je handmatig de toestemming "Toon pop-upvensters weergeven wanneer ze in de achtergrond draaien" toestaan. Open de instellingen en controleer of deze verleend zijn.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Automatisch verificatie codes kopiëren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Bij het invullen van inloggegevens worden eenmalige verificatie codes automatisch gekopieerd</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggesties</string>

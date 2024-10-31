@@ -195,7 +195,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 fredporciuncula-flow-preferences = { module = "com.fredporciuncula:flow-preferences", version.ref = "flowPreferences" }
 glide-annotations = { module = "com.github.bumptech.glide:annotations", version.ref = "glide" }
-glide-glide = { module = "com.github.bumptech.glide:annotations", version.ref = "glide" }
+glide-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
 google-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
 google-accompanist-navigation-material = { module = "com.google.accompanist:accompanist-navigation-material", version.ref = "accompanist" }

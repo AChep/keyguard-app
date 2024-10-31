@@ -2,8 +2,6 @@ name: "🕒 Synchronize TLD public suffix list"
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 5'
 
 jobs:
   sync-tld:

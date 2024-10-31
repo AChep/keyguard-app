@@ -9,8 +9,6 @@ on:
       # Configuration.
       - '.github/update_justdeleteme.py'
       - '.github/update_justdeleteme.requirements.txt'
-  schedule:
-    - cron: '0 0 * * 5'
 
 jobs:
   sync-passkeys:

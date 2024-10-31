@@ -9,8 +9,6 @@ on:
       # Configuration.
       - '.github/update_gpm_passkeys_priv_apps.py'
       - '.github/update_gpm_passkeys_priv_apps.requirements.txt'
-  schedule:
-    - cron: '0 0 * * 5'
 
 jobs:
   sync-gpm-passkeys-priv-apps:

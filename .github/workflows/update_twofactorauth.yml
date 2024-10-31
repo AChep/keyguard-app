@@ -8,8 +8,6 @@ on:
     paths:
       # Configuration.
       - '.github/update_twofactorauth.py'
-  schedule:
-    - cron: '0 0 * * 5'
 
 jobs:
   sync-2fa:

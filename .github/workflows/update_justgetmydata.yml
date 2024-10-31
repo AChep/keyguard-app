@@ -9,8 +9,6 @@ on:
       # Configuration.
       - '.github/update_justgetmydata.py'
       - '.github/update_justgetmydata.requirements.txt'
-  schedule:
-    - cron: '0 0 * * 5'
 
 jobs:
   sync-passkeys:

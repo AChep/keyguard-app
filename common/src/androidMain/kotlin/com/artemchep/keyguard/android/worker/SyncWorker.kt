@@ -48,7 +48,7 @@ class SyncWorker(
             accounts: Set<AccountId> = emptySet(),
         ): Operation {
             val accountIdsArray = accounts
-                .map { it.id }
+                .map { it.id as String? }
                 .toTypedArray()
             val uploadWorkRequest = OneTimeWorkRequestBuilder<SyncWorker>()
                 .setConstraints(constraints)

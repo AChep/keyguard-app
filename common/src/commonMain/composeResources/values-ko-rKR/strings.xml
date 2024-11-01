@@ -178,7 +178,7 @@
     <string name="passkey_available">패스키 사용 가능</string>
     <string name="twofa_available">2단계 인증 사용 가능</string>
     <string name="custom">사용자 지정</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">권한 허용</string>
     <string name="create_account">계정 만들기</string>
     <string name="follow_system_settings">시스템 설정에 따름</string>
     <!-- A feature is coming soon! -->
@@ -478,7 +478,7 @@
     <string name="error_failed_unknown">Something went wrong</string>
     <string name="scanqr_title">QR 코드 스캔</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">QR 코드를 스캔하기 위해 카메라 권한이 필요합니다.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>
@@ -926,7 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit 커뮤니티</string>
     <string name="pref_item_github_title">GitHub 프로젝트</string>
     <string name="pref_item_crowdin_title">CrowdIn 프로젝트</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">모두 보기</string>
     <string name="pref_item_open_source_licenses_title">오픈 소스 라이선스</string>
     <string name="pref_item_download_apk_title">APK 파일 다운로드</string>
     <string name="pref_item_load_app_icons_title">앱 아이콘 불러오기</string>
@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">자동 완성 서비스</string>
     <string name="pref_item_autofill_service_text">Android 자동 완성 프레임워크를 사용하여 기기의 다른 앱에서 로그인 정보를 채울 수 있도록 합니다.</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">일부 샤오미 기기는 "백그라운드에서 실행되는 동안 팝업창 표시" 권한을 직접 허용해야 할 수 있습니다. 시스템 설정에서 권한이 허용되어 있는지 확인해 보세요.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome에서 타사 자동 완성 서비스를 지원하도록 설정하는 방법</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Chrome 설정을 열고 자동 완성 서비스를 누릅니다.
+2. 다른 자동 완성 서비스를 선택합니다.
+3. 확인 후 Chrome을 다시 시작합니다.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">OTP 자동 복사</string>
     <string name="pref_item_autofill_auto_copy_otp_text">로그인 정보를 입력할 때 OTP를 자동으로 복사합니다.</string>
     <string name="pref_item_autofill_inline_suggestions_title">인라인 제안</string>
@@ -1097,9 +1101,9 @@
     <string name="datasafety_remote_section">원격 데이터</string>
     <string name="datasafety_remote_text">원격 데이터는 영지식 증명으로 암호화한 뒤 Bitwarden 서버에 저장됩니다.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">번역 기여자</string>
+    <string name="localization_contributors_search_placeholder">기여자 검색</string>
+    <string name="localization_contributors_empty_label">기여자 없음</string>
     <string name="logs_header_title">로그</string>
     <string name="logs_start_recording_fab_title">기록 시작</string>
     <string name="logs_stop_recording_fab_title">기록 중지</string>

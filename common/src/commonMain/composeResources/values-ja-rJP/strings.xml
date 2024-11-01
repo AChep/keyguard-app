@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">自動入力サービス</string>
     <string name="pref_item_autofill_service_text">Android 自動入力フレームワークを使用して、デバイス上の他のアプリにログイン情報を入力します。</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">一部の Xiaomi デバイスでは、「バックグラウンドで実行中にポップアップウィンドウを表示する」権限を手動で許可する必要があります。 設定を開き、許可されていることを確認してください。</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">ワンタイムパスワードの自動コピー</string>
     <string name="pref_item_autofill_auto_copy_otp_text">ログイン情報を入力するときに、ワンタイムパスワードを自動的にコピーします。</string>
     <string name="pref_item_autofill_inline_suggestions_title">インライン自動入力の候補</string>

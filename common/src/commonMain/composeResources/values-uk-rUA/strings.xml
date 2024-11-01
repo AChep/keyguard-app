@@ -926,7 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit спільнота</string>
     <string name="pref_item_github_title">Проєкт на GitHub</string>
     <string name="pref_item_crowdin_title">Проєкт на Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Переглянути всіх</string>
     <string name="pref_item_open_source_licenses_title">Ліцензії відкритого програмного забезпечення</string>
     <string name="pref_item_download_apk_title">Завантажити APK-файл</string>
     <string name="pref_item_load_app_icons_title">Завантажувати іконки застосунків</string>
@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Автозаповнення</string>
     <string name="pref_item_autofill_service_text">Заповнювати інформацію в інших програмах за допомогою Android Autofill Framework</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Деякі пристрої Xiaomi вимагають ручного надання дозволу "Показувати вікна під час роботи на задньому плані". Будь ласка, відкрийте налаштування та переконайтеся, що дозвіл надано.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Браузер Chrome додає підтримку сторонніх сервісів автозаповнення</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Відкрийте налаштування Chrome та тицьніть Автозаповнення
+2. Оберіть Автозаповнення за допомогою іншого сервісу
+3. Підтвердите та перезавантажте Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автоматично копіювати одноразові паролі</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Автоматично копіювати одноразові паролі при заповненні логіну</string>
     <string name="pref_item_autofill_inline_suggestions_title">Вбудовані підказки</string>
@@ -1097,9 +1101,9 @@
     <string name="datasafety_remote_section">Віддалені дані</string>
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Учасники проєкту локалізації</string>
+    <string name="localization_contributors_search_placeholder">Пошук учасників</string>
+    <string name="localization_contributors_empty_label">Немає учасників проєкту локалізації</string>
     <string name="logs_header_title">Журнал подій</string>
     <string name="logs_start_recording_fab_title">Почати запис</string>
     <string name="logs_stop_recording_fab_title">Припинити запис</string>

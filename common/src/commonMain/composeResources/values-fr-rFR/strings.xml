@@ -474,8 +474,8 @@
     <string name="error_failed_use_passkey">Impossible d'autoriser une demande</string>
     <string name="error_failed_open_uri">Échec de l'ouverture de l'URL</string>
     <string name="error_failed_format_placeholder">Impossible de formater l'emplacement</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">Aucune application installée ne peut gérer cette requête</string>
+    <string name="error_failed_unknown">Une erreur est survenue</string>
     <string name="scanqr_title">Scanner le code QR</string>
     <string name="scanqr_load_from_image_note">Charger et analyser un code QR à partir d'un fichier image.</string>
     <string name="scanqr_camera_permission_required_text">L'autorisation d'accéder à la caméra est nécessaire pour scanner les codes QR.</string>
@@ -581,7 +581,7 @@
     <string name="urloverride_delete_many_confirmation_title">Supprimer les remplacements d'URL ?</string>
     <string name="urloverride_empty_label">Aucun remplacement d'URL</string>
     <string name="setup_header_text">Créez un coffre-fort chiffré où les données locales seront stockées.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">En continuant, vous confirmez que vous avez acheté le Keyguard ou que vous disposez d'une licence active.</string>
     <string name="setup_field_app_password_label">Mot de passe de l'application</string>
     <string name="setup_checkbox_biometric_auth">Authentification biométrique</string>
     <string name="setup_biometric_auth_confirm_title">Créer un coffre-fort</string>
@@ -862,7 +862,7 @@
     <string name="changepassword_biometric_auth_confirm_title">Modifier le mot de passe de l'application</string>
     <string name="changepassword_disclaimer_local_note">Le mot de passe de l'application ne sera jamais stocké sur l'appareil ni envoyé sur le réseau. Il est utilisé pour générer une clé secrète qui est utilisée pour chiffrer les données locales.</string>
     <string name="changepassword_disclaimer_abuse_note">Sauf si vous soupçonnez un accès non autorisé ou si vous découvrez un logiciel malveillant sur l'appareil, il n'est pas nécessaire de changer le mot de passe si c'est un mot de passe fort et unique.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">Mot de passe modifié avec succès</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
     <string name="exportaccount_attachments_note">Le coffre-fort restera déverrouillé pendant le processus d'exportation. Les pièces jointes sont référencées dans les données du coffre-fort. Les pièces jointes ne sont jamais stockées en clair au cours du processus.</string>
@@ -926,7 +926,7 @@
     <string name="pref_item_reddit_community_title">Communauté Reddit</string>
     <string name="pref_item_github_title">Projet GitHub</string>
     <string name="pref_item_crowdin_title">Projet Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Tout afficher</string>
     <string name="pref_item_open_source_licenses_title">Licences Open Source</string>
     <string name="pref_item_download_apk_title">Télécharger le fichier APK</string>
     <string name="pref_item_load_app_icons_title">Charger les icônes d'applications</string>
@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Service de remplissage automatique</string>
     <string name="pref_item_autofill_service_text">Utilisez le framework de saisie automatique d'Android pour vous accompagner à remplir les informations de connexion dans les autres applications de votre appareil</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Certains appareils Xiaomi exigent que vous autorisiez manuellement la permission "Afficher les fenêtres pop-up lors de l'exécution en arrière-plan". Veuillez ouvrir les paramètres et vérifier qu'ils sont accordés.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome va prendre en charge les services de remplissage automatique de tiers nativement</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Ouvrez les paramètres de Chrome et appuyez sur Services de remplissage automatique
+2. Choisissez Remplissage automatique à l'aide d'un autre service
+3. Confirmez et redémarrez Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copier automatiquement le mot de passe unique</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Lors de la saisie des informations de connexion, copiez automatiquement les mots de passe uniques</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggestions</string>
@@ -1097,9 +1101,9 @@
     <string name="datasafety_remote_section">Données à distance</string>
     <string name="datasafety_remote_text">Les données distantes sont stockées sur les serveurs Bitwarden avec un chiffrement zéro connaissance.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Contributeurs à la traduction</string>
+    <string name="localization_contributors_search_placeholder">Rechercher des contributeurs</string>
+    <string name="localization_contributors_empty_label">Aucun contributeur</string>
     <string name="logs_header_title">Activité</string>
     <string name="logs_start_recording_fab_title">Démarrer l'enregistrement</string>
     <string name="logs_stop_recording_fab_title">Arrêter l'enregistrement</string>

@@ -926,7 +926,7 @@
     <string name="pref_item_reddit_community_title">Reddit topluluğu</string>
     <string name="pref_item_github_title">GitHub projesi</string>
     <string name="pref_item_crowdin_title">Crowdin projesi</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Tümünü görüntüle</string>
     <string name="pref_item_open_source_licenses_title">Açık kaynak lisansları</string>
     <string name="pref_item_download_apk_title">APK dosyasını indir</string>
     <string name="pref_item_load_app_icons_title">Uygulama simgelerini yükle</string>
@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Otomatik doldurma hizmeti</string>
     <string name="pref_item_autofill_service_text">Diğer uygulamalara giriş bilgilerini doldurmaya yardımcı olmak için Android Otomatik Doldurma Çerçevesini kullanın</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Bazı Xiaomi cihazlarının "Arka planda çalışırken açılır pencereleri göster" iznini manuel olarak vermeniz gerekir. Lütfen ayarları açın ve bunun verildiğini doğrulayın.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome üçüncü taraf otomatik doldurma hizmetlerini yerel olarak destekleyecek</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Chrome'un Ayarlar'ını açın ve Otomatik Doldurma Hizmetleri'ne dokunun
+2. Başka bir hizmet kullanarak otomatik doldur'u seçin
+3. Onaylayın ve Chrome'u yeniden başlatın</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tek seferlik şifreleri otomatik kopyala</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Giriş bilgilerini doldururken, tek seferlik şifreleri otomatik olarak kopyala</string>
     <string name="pref_item_autofill_inline_suggestions_title">Satır içi öneriler</string>
@@ -1097,9 +1101,9 @@
     <string name="datasafety_remote_section">Uzaktan veri</string>
     <string name="datasafety_remote_text">Uzaktan veri, Bitwarden sunucularında sıfır bilgi ile şifrelenmiş olarak saklanır.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Yerelleştirmeye katkı sağlayanlar</string>
+    <string name="localization_contributors_search_placeholder">Katkıda bulunanları ara</string>
+    <string name="localization_contributors_empty_label">Katkıda bulunan yok</string>
     <string name="logs_header_title">Kayıtlar</string>
     <string name="logs_start_recording_fab_title">Kaydı başlat</string>
     <string name="logs_stop_recording_fab_title">Kaydı durdur</string>

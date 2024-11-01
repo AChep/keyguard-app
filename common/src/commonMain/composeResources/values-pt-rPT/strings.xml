@@ -927,7 +927,7 @@
     <string name="pref_item_reddit_community_title">Comunidade Reddit</string>
     <string name="pref_item_github_title">Projeto no GitHub</string>
     <string name="pref_item_crowdin_title">Projeto no Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Ver tudo</string>
     <string name="pref_item_open_source_licenses_title">Licenças de código aberto</string>
     <string name="pref_item_download_apk_title">Transferir ficheiro APK</string>
     <string name="pref_item_load_app_icons_title">Carregar ícones das aplicações</string>
@@ -1001,6 +1001,10 @@
     <string name="pref_item_autofill_service_title">Preenchimento automático</string>
     <string name="pref_item_autofill_service_text">Usar a estrutura de preenchimento automático do Android para ajudar a preencher informações de login em outros aplicativos do dispositivo</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Alguns dispositivos Xiaomi requerem que permita manualmente a permissão "Mostrar janelas pop-up enquanto estiver executando em segundo plano". Abra as configurações e verifique se está concedida.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome para suportar serviços de auto preenchimento de terceiros nativamente</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Abrir as configurações do Chrome e tocar em serviços de auto preenchimento
+2. Escolher o preenchimento automático utilizando outro serviço
+3. Confirmar e reiniciar o Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copiar automaticamente códigos de verificação 2FA</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Ao preencher informações de login, copiar automaticamente códigos de uso único 2FA</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugestões automáticas</string>
@@ -1098,9 +1102,9 @@
     <string name="datasafety_remote_section">Dados remotos</string>
     <string name="datasafety_remote_text">Os dados remotos são armazenados nos servidores do Bitwarden com criptografia de conhecimento zero.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Contribuidores de tradução</string>
+    <string name="localization_contributors_search_placeholder">Pesquisar contribuidores</string>
+    <string name="localization_contributors_empty_label">Nenhum contribuidor</string>
     <string name="logs_header_title">Registos</string>
     <string name="logs_start_recording_fab_title">Iniciar gravação</string>
     <string name="logs_stop_recording_fab_title">Parar gravação</string>

@@ -25,8 +25,8 @@
         "name": "Ukrainian"
       }
     ],
-    "translated": 6283,
-    "target": 5929,
+    "translated": 6380,
+    "target": 6027,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -57,28 +57,6 @@
   },
   {
     "user": {
-      "id": "2618",
-      "username": "zecabra",
-      "fullName": "zecabra",
-      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/2618/medium/47461a1b1b3db95cf317d2ad4595a7f0_default.png",
-      "joined": "2023-09-02 11:29:43"
-    },
-    "languages": [
-      {
-        "id": "pt-PT",
-        "name": "Portuguese"
-      }
-    ],
-    "translated": 5117,
-    "target": 5589,
-    "approved": 0,
-    "voted": 0,
-    "positiveVotes": 0,
-    "negativeVotes": 0,
-    "winning": 29
-  },
-  {
-    "user": {
       "id": "13153679",
       "username": "pgrules7",
       "fullName": "pgrules7",
@@ -91,13 +69,35 @@
         "name": "Korean"
       }
     ],
-    "translated": 5111,
-    "target": 4385,
+    "translated": 5156,
+    "target": 4430,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
+  },
+  {
+    "user": {
+      "id": "2618",
+      "username": "zecabra",
+      "fullName": "zecabra",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/2618/medium/47461a1b1b3db95cf317d2ad4595a7f0_default.png",
+      "joined": "2023-09-02 11:29:43"
+    },
+    "languages": [
+      {
+        "id": "pt-PT",
+        "name": "Portuguese"
+      }
+    ],
+    "translated": 5151,
+    "target": 5635,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 29
   },
   {
     "user": {
@@ -113,8 +113,8 @@
         "name": "Catalan"
       }
     ],
-    "translated": 5095,
-    "target": 5779,
+    "translated": 5103,
+    "target": 5789,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -187,13 +187,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 4875,
-    "target": 4532,
-    "approved": 5103,
+    "translated": 4909,
+    "target": 4575,
+    "approved": 5137,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 4827
+    "winning": 4861
   },
   {
     "user": {
@@ -510,8 +510,8 @@
   {
     "user": {
       "id": "15300208",
-      "username": "Night_cat",
-      "fullName": "\u591c\u8c93 (Night_cat)",
+      "username": "yorukot",
+      "fullName": "Yorukot (yorukot)",
       "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/15300208/medium/298fa868b95044d0e71185f880efdcde.jpeg",
       "joined": "2024-06-05 21:14:29"
     },
@@ -565,13 +565,13 @@
         "name": "Swedish"
       }
     ],
-    "translated": 1053,
-    "target": 978,
-    "approved": 1053,
+    "translated": 1059,
+    "target": 984,
+    "approved": 1055,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 1053
+    "winning": 1055
   },
   {
     "user": {
@@ -597,6 +597,28 @@
   },
   {
     "user": {
+      "id": "16271182",
+      "username": "anaelle.dev",
+      "fullName": "Ana\u00eblle (anaelle.dev)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/16271182/medium/5bf6a630acd692aa55fed444852f28ff.png",
+      "joined": "2024-03-31 12:20:38"
+    },
+    "languages": [
+      {
+        "id": "fr",
+        "name": "French"
+      }
+    ],
+    "translated": 861,
+    "target": 1011,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 12,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "15910131",
       "username": "CDN",
       "fullName": "CDN",
@@ -614,28 +636,6 @@
     "approved": 0,
     "voted": 4,
     "positiveVotes": 7,
-    "negativeVotes": 0,
-    "winning": 0
-  },
-  {
-    "user": {
-      "id": "16271182",
-      "username": "anaelle.dev",
-      "fullName": "Ana\u00eblle (anaelle.dev)",
-      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/16271182/medium/5bf6a630acd692aa55fed444852f28ff.png",
-      "joined": "2024-03-31 12:20:38"
-    },
-    "languages": [
-      {
-        "id": "fr",
-        "name": "French"
-      }
-    ],
-    "translated": 798,
-    "target": 925,
-    "approved": 0,
-    "voted": 0,
-    "positiveVotes": 12,
     "negativeVotes": 0,
     "winning": 0
   },

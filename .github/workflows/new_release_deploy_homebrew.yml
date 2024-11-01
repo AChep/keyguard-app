@@ -1,0 +1,20 @@
+name: "⬆️ GitHub release -> Homebrew PR"
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  new-update:
+    name: Deploy Homebrew
+    runs-on: macos-latest
+    steps:
+      - name: "Checkout main repo"
+        uses: actions/checkout@v4
+      - name: Bump packages
+        uses: Homebrew/actions/bump-packages@master
+        with:
+          token: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
+          casks: >
+            keyguard

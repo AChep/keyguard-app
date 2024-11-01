@@ -304,7 +304,7 @@ jobs:
         with:
           name: Release ${{ steps.vars.outputs.date }}
           body: ${{ steps.changelog.outputs.changelog }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
           files: |
             artifacts/*
             artifacts/**/*.apk

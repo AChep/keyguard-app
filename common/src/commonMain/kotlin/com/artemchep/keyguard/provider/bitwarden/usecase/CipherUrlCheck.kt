@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
+import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.Url
 import io.ktor.http.hostWithPort
 import org.kodein.di.DirectDI
@@ -66,9 +67,15 @@ class CipherUrlCheckImpl(
         a: String,
         b: String,
     ): IO<Boolean> = ioEffect {
-        val aHost = urlOf(a).hostWithPort
-        val bHost = urlOf(b).hostWithPort
-        aHost == bHost
+        val aUrl = urlOf(a)
+        val bUrl = urlOf(b)
+        // If the url doesn't have a port specified, then
+        // match it with any port.
+        if (aUrl.specifiedPort == DEFAULT_PORT) {
+            return@ioEffect aUrl.host == bUrl.host
+        }
+
+        aUrl.hostWithPort == bUrl.hostWithPort
     }
 
     private fun checkUrlMatchByStartsWith(

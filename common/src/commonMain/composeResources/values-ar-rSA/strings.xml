@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">خدمة الملء التلقائي</string>
     <string name="pref_item_autofill_service_text">استخدم Android Autofill Framework للمساعدة في ملء معلومات تسجيل الدخول في التطبيقات الأخرى على الجهاز</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">تتطلب بعض أجهزة Xiaomi منك السماح يدويًا بإذن "عرض النوافذ المنبثقة أثناء التشغيل في الخلفية". يرجى فتح الإعدادات والتحقق من منحها.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">النسخ التلقائي لكلمات المرور لمرة واحدة</string>
     <string name="pref_item_autofill_auto_copy_otp_text">عند ملء معلومات تسجيل الدخول، قم تلقائيًا بنسخ كلمات المرور لمرة واحدة</string>
     <string name="pref_item_autofill_inline_suggestions_title">اقتراحات مضمنة</string>

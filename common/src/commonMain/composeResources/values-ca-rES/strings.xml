@@ -926,7 +926,7 @@
     <string name="pref_item_reddit_community_title">Comunitat de Reddit</string>
     <string name="pref_item_github_title">Projecte de GitHub</string>
     <string name="pref_item_crowdin_title">Projecte de Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Veure-ho tot</string>
     <string name="pref_item_open_source_licenses_title">Llicències de programari lliure</string>
     <string name="pref_item_download_apk_title">Descarrega l'arxiu APK</string>
     <string name="pref_item_load_app_icons_title">Carrega icones d'App</string>
@@ -1000,6 +1000,10 @@
     <string name="pref_item_autofill_service_title">Servei d'emplenament automàtic</string>
     <string name="pref_item_autofill_service_text">Fes servir el servei d'emplenament automàtic d'Android per ajudar-te emplenant informació d'inici de sessió a altres apps del dispositiu</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Alguns dispositius de Xiaomi necessiten que habilites manualment el permís per a "Mostrar finestres emergents durant l'execució en segon pla". Per favor, obre la configuració i comprova que és correcta.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
+2. Choose Autofill using another service
+3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copia contrasenyes d'un sol ús automàticament</string>
     <string name="pref_item_autofill_auto_copy_otp_text">En emplenar informació d'inici de sessió, còpia automàticament les contrasenyes d'un sol ús</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggeriments en línia</string>
@@ -1097,9 +1101,9 @@
     <string name="datasafety_remote_section">Dades remotes</string>
     <string name="datasafety_remote_text">Les dades es desen remotament als servidors de Bitwarden amb encriptació de zero-coneixement.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Contribuïdors a les traduccions</string>
+    <string name="localization_contributors_search_placeholder">Cercar contribuïdor</string>
+    <string name="localization_contributors_empty_label">Cap contribuïdor</string>
     <string name="logs_header_title">Registres</string>
     <string name="logs_start_recording_fab_title">Inicia la gravació</string>
     <string name="logs_stop_recording_fab_title">Atura la gravació</string>

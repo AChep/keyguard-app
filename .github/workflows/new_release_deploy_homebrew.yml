@@ -10,10 +10,10 @@ jobs:
     name: Deploy Homebrew
     runs-on: macos-latest
     steps:
-      - name: "Checkout main repo"
-        uses: actions/checkout@v4
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
+        with:
+          token: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
       - name: Set up Git
         run: |
           git config --global user.email mail@artemchep.com
@@ -22,6 +22,6 @@ jobs:
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
         run: |
-          brew tap AChep/cask
+          brew tap homebrew/cask --force
           brew update
-          brew bump-cask-pr keyguard
+          brew bump --open-pr --casks keyguard

@@ -142,7 +142,7 @@ jobs:
   build-linux-flatpak-app:
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-45
+      image: bilelmoussaoui/flatpak-github-actions:gnome-47
       options: --privileged
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

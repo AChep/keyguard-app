@@ -296,13 +296,13 @@ jobs:
           path: artifacts
       - id: vars
         run: |
-          date=$(python .github/convert_tag_release_name.py tag=${{ github.ref_name }})
-          echo "date=$date" >> $GITHUB_OUTPUT
+          release_name=$(python .github/get_release_name.py tag=${{ github.ref_name }})
+          echo "release_name=release_name" >> $GITHUB_OUTPUT
       - name: "Create release"
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: Release ${{ steps.vars.outputs.date }}
+          name: Release ${{ steps.vars.outputs.release_name }}
           body: ${{ steps.changelog.outputs.changelog }}
           token: ${{ secrets.PERSONAL_TOKEN }}
           files: |

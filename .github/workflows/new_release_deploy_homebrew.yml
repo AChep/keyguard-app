@@ -18,3 +18,4 @@ jobs:
           token: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
           casks: >
             keyguard
+          fork: true

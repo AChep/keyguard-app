@@ -14,11 +14,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
-      - run: brew tap AChep/cask
-      - name: Bump packages
-        uses: Homebrew/actions/bump-packages@master
-        with:
-          token: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
-          casks: >
-            keyguard
-          fork: true
+      - name: Set up Git
+        run: |
+          git config --global user.email mail@artemchep.com
+          git config --global user.name AChep
+      - name: Update Homebrew cask
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
+        run: |
+          brew tap AChep/cask
+          brew update
+          brew bump-cask-pr keyguard

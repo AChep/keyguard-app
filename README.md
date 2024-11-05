@@ -38,7 +38,7 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and large
 
 - [Android](#android);
 - [Linux](#linux) _(via Flatpak)_;
-- Windows;
+- [Windows](#windows);
 - [macOS](#macos).
 
 You can find artifacts for your platform on the [releases](https://github.com/AChep/keyguard-app/releases) page.
@@ -74,6 +74,9 @@ The app is available in multiple package repositories:
 
 #### macOS
 - [brew](https://formulae.brew.sh/cask/keyguard).
+
+#### Windows
+- [scoop](https://github.com/AChep/keyguard-repo-scoop) (custom [Scoop](https://scoop.sh/) bucket).
 
 ## License
 

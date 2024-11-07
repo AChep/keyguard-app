@@ -468,6 +468,7 @@
     <string name="error_invalid_uri">Neplatná URI</string>
     <string name="error_invalid_card_number">Neplatné číslo karty</string>
     <string name="error_incorrect_password">Neplatné heslo</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Nepodařilo se vytvořit klíč, nedostatek paměti. Zkontrolujte prosím nastavení vašeho serveru KDF.</string>
     <string name="error_failed_generate_otp_code">Nepodařilo se vygenerovat OTP kód</string>
     <string name="error_failed_create_passkey">Nepodařilo se vytvořit přístupový klíč</string>
@@ -476,9 +477,13 @@
     <string name="error_failed_format_placeholder">Nepodařilo se naformátovat proměnnou</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Načíst QR kód</string>
     <string name="scanqr_load_from_image_note">Načíst a zpracovat QR kód z obrázku.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Čárový kód</string>
     <string name="barcodetype_action_show_in_barcode_title">Zobrazit jako čárový kód</string>

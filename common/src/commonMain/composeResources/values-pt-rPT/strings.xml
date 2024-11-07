@@ -468,6 +468,7 @@
     <string name="error_invalid_uri">URI inválido</string>
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
@@ -476,10 +477,14 @@
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="error_failed_open_app_for">Nenhuma aplicação instalado pode realizar esta requisição</string>
     <string name="error_failed_unknown">Algo correu mal</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Ler código QR</string>
     <string name="scanqr_load_from_image_note">Abrir e analisar um código QR a partir de uma imagem.</string>
     <string name="scanqr_camera_permission_required_text">É necessária permissão de acesso 
 à câmera para ler códigos QR.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostrar como código de barras</string>

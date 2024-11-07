@@ -468,6 +468,7 @@
     <string name="error_invalid_uri">잘못된 URI입니다.</string>
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
@@ -476,9 +477,13 @@
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">QR 코드 스캔</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
     <string name="scanqr_camera_permission_required_text">QR 코드를 스캔하기 위해 카메라 권한이 필요합니다.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>

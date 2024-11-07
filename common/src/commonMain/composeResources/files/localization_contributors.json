@@ -267,6 +267,28 @@
   },
   {
     "user": {
+      "id": "15702713",
+      "username": "ngocanh.tve",
+      "fullName": "Ng\u1ecdc Anh TVE (ngocanh.tve)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/15702713/medium/5345702dee7e7d1745c56fb739d76af2.png",
+      "joined": "2024-03-06 19:50:14"
+    },
+    "languages": [
+      {
+        "id": "vi",
+        "name": "Vietnamese"
+      }
+    ],
+    "translated": 3652,
+    "target": 5452,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "16083674",
       "username": "charlotte.rose",
       "fullName": "charlotte (charlotte.rose)",
@@ -286,28 +308,6 @@
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 3044
-  },
-  {
-    "user": {
-      "id": "15702713",
-      "username": "ngocanh.tve",
-      "fullName": "Ng\u1ecdc Anh TVE (ngocanh.tve)",
-      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/15702713/medium/5345702dee7e7d1745c56fb739d76af2.png",
-      "joined": "2024-03-06 19:50:14"
-    },
-    "languages": [
-      {
-        "id": "vi",
-        "name": "Vietnamese"
-      }
-    ],
-    "translated": 3517,
-    "target": 5247,
-    "approved": 0,
-    "voted": 0,
-    "positiveVotes": 0,
-    "negativeVotes": 0,
-    "winning": 0
   },
   {
     "user": {
@@ -567,11 +567,11 @@
     ],
     "translated": 1059,
     "target": 984,
-    "approved": 1055,
+    "approved": 1059,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 1055
+    "winning": 1059
   },
   {
     "user": {
@@ -1239,6 +1239,28 @@
   },
   {
     "user": {
+      "id": "13223264",
+      "username": "kmahyyg",
+      "fullName": "kmahyyg",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/13223264/medium/43ef28850cb214d695c4278a1fca9450_default.png",
+      "joined": "2024-11-01 03:25:36"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 86,
+    "target": 124,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "16305746",
       "username": "akir45",
       "fullName": "akir45",
@@ -1304,6 +1326,28 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 1,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "16603361",
+      "username": "ThemanRonin",
+      "fullName": "themanronin (ThemanRonin)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/16603361/medium/ee753707d5a451402b39943e9951f85b.jpeg",
+      "joined": "2024-10-05 23:47:39"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 73,
+    "target": 117,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
   },

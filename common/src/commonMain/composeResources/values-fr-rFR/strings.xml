@@ -468,6 +468,7 @@
     <string name="error_invalid_uri">URI invalide</string>
     <string name="error_invalid_card_number">Numéro de carte invalide</string>
     <string name="error_incorrect_password">Mot de passe incorrect</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Impossible de créer une clé : il n'y a pas assez de mémoire, veuillez vérifier les paramètres de votre serveur KDF.</string>
     <string name="error_failed_generate_otp_code">Impossible de générer le code de mot de passe à usage unique (OTP)</string>
     <string name="error_failed_create_passkey">Impossible de créer une clé d'accès</string>
@@ -476,9 +477,13 @@
     <string name="error_failed_format_placeholder">Impossible de formater l'emplacement</string>
     <string name="error_failed_open_app_for">Aucune application installée ne peut gérer cette requête</string>
     <string name="error_failed_unknown">Une erreur est survenue</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Scanner le code QR</string>
     <string name="scanqr_load_from_image_note">Charger et analyser un code QR à partir d'un fichier image.</string>
     <string name="scanqr_camera_permission_required_text">L'autorisation d'accéder à la caméra est nécessaire pour scanner les codes QR.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Code barre</string>
     <string name="barcodetype_action_show_in_barcode_title">Afficher en tant que code-barre</string>

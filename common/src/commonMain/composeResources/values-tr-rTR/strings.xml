@@ -468,6 +468,7 @@
     <string name="error_invalid_uri">Geçersiz URI</string>
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
     <string name="error_incorrect_password">Hatalı parola</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturma başarısız oldu, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">OTP kodu oluşturma başarısız oldu</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturma başarısız oldu</string>
@@ -476,9 +477,13 @@
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirme başarısız oldu</string>
     <string name="error_failed_open_app_for">Yüklü hiçbir uygulama bu isteği karşılayamaz</string>
     <string name="error_failed_unknown">Bir şeyler ters gitti</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">QR kodunu tarayın</string>
     <string name="scanqr_load_from_image_note">Bir resim dosyasından QR kodu yükleyin ve analiz edin.</string>
     <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
     <string name="barcodetype_action_show_in_barcode_title">Barkod olarak göster</string>

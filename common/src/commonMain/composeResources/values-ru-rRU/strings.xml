@@ -468,6 +468,7 @@
     <string name="error_invalid_uri">Неверный URI</string>
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_incorrect_password">Неверный пароль</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Не удалось создать ключ, недостаточно памяти. Проверьте настройки KDF сервера.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
@@ -476,9 +477,13 @@
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <string name="error_failed_open_app_for">Ни одно установленное приложение не может обработать этот запрос</string>
     <string name="error_failed_unknown">Произошла ошибка</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>

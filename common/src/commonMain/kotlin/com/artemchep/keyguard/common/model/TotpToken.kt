@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.Either.Companion.catch
 import arrow.core.flatten
 import arrow.core.right
+import com.artemchep.keyguard.common.exception.OtpEmptySecretKeyException
 import io.ktor.http.Url
 
 private const val PREFIX_OTP_AUTH = "otpauth://"
@@ -163,7 +164,7 @@ private fun parseTotpAuth(
     }
 
     if (keyBase32.isBlank()) {
-        throw IllegalArgumentException("One time password key must not be empty.")
+        throw OtpEmptySecretKeyException()
     }
 
     builder.build(
@@ -203,7 +204,7 @@ private fun parseHotpAuth(
     }
 
     if (keyBase32.isBlank()) {
-        throw IllegalArgumentException("One time password key must not be empty.")
+        throw OtpEmptySecretKeyException()
     }
 
     builder.build(
@@ -266,8 +267,9 @@ private fun parseOtpMobile(
         )
     }
 
-    val secret = requireNotNull(params["secret"]) {
-        "URI must include the mOTP secret"
+    val secret = params["secret"]
+    if (secret.isNullOrBlank()) {
+        throw OtpEmptySecretKeyException()
     }
     val pin = params["pin"]
     TotpToken.MobileAuth(

@@ -5,6 +5,8 @@ import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.memoize
 import arrow.core.partially1
+import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
+import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.dispatchOn
@@ -214,8 +216,7 @@ class UnlockUseCaseImpl(
                                 }
                                 biometricKeyEncryptUseCase(cipherIo, masterKey)
                                     .handleErrorWith { e ->
-                                        val newMessage = "Failed to encrypt the biometric key!"
-                                        val newException = IllegalStateException(newMessage, e)
+                                        val newException = BiometricKeyEncryptException(e)
                                         ioRaise(newException)
                                     }
                                     .flatMap { encryptedMasterKey ->
@@ -296,8 +297,7 @@ class UnlockUseCaseImpl(
                         }
                         decryptBiometricKeyUseCase(cipherIo, encryptedMasterKey)
                             .handleErrorWith { e ->
-                                val newMessage = "Failed to decrypt the biometric key!"
-                                val newException = IllegalStateException(newMessage, e)
+                                val newException = BiometricKeyDecryptException(e)
                                 ioRaise(newException)
                             }
                             // Try to unlock the vault using decrypted
@@ -396,8 +396,7 @@ class UnlockUseCaseImpl(
                                 }
                                 biometricKeyEncryptUseCase(cipherIo, newMasterKey)
                                     .handleErrorWith { e ->
-                                        val newMessage = "Failed to encrypt the biometric key!"
-                                        val newException = IllegalStateException(newMessage, e)
+                                        val newException = BiometricKeyEncryptException(e)
                                         ioRaise(newException)
                                     }
                                     .flatMap { encryptedNewMasterKey ->

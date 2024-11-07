@@ -509,8 +509,8 @@ private fun BannerStatusBadge(
                     .isNotEmpty() -> {
                     BannerStatusBadgeContentModel(
                         count = 0,
-                        title = TextHolder.Value("Notifications are disabled"),
-                        text = TextHolder.Value("Grant the notification permission to allow Keyguard to show one-time passwords when autofilling & more."),
+                        title = TextHolder.Res(Res.string.post_notifications_permission_banner_title),
+                        text = TextHolder.Res(Res.string.post_notifications_permission_banner_text),
                         error = false,
                         onClick = {
                             val permission = statusState.value.pendingPermissions

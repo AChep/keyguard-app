@@ -37,12 +37,9 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
 
 - [Android](#android);
-- [Linux](#linux) _(via Flatpak)_;
+- [Linux](#linux);
 - [Windows](#windows);
 - [macOS](#macos).
-
-You can find artifacts for your platform on the [releases](https://github.com/AChep/keyguard-app/releases) page.
-
 
 #### Looks
 
@@ -65,18 +62,43 @@ You can find artifacts for your platform on the [releases](https://github.com/AC
 
 The app is available in multiple package repositories:
 
-#### Android
+### Android
+You can find the `.apk` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 - [Play Store](https://play.google.com/store/apps/details?id=com.artemchep.keyguard);
-- [F-Droid](https://gh.artemchep.com/keyguard-repo-fdroid/repo) (custom F-Droid repository).
+- [F-Droid custom repo](https://gh.artemchep.com/keyguard-repo-fdroid/repo).
 
-#### Linux
-- [AUR](https://aur.archlinux.org/packages/keyguard) (_unofficial package_). 
+### Linux
+You can find the `.flatpak` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 
-#### macOS
-- [brew](https://formulae.brew.sh/cask/keyguard).
+##### [AUR](https://aur.archlinux.org/) Keyguard [package](https://aur.archlinux.org/packages/keyguard)
+> [!NOTE]
+> The package is maintained by a volunteer
+```sh
+yay -S keyguard
+```
 
-#### Windows
-- [scoop](https://github.com/AChep/keyguard-repo-scoop) (custom [Scoop](https://scoop.sh/) bucket).
+### macOS
+You can find the `.dmg` binaries for Apple and Intel processors on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
+
+##### [Homebrew](https://brew.sh/) Keyguard [cask](https://formulae.brew.sh/cask/keyguard)
+```sh
+brew install --cask keyguard
+```
+
+### Windows
+You can find the `.msi` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
+
+##### [Scoop](https://scoop.sh/) Keyguard [bucket](https://github.com/AChep/keyguard-repo-scoop)
+```pwsh
+scoop bucket add keyguard https://github.com/AChep/keyguard-repo-scoop
+scoop install keyguard/keyguard
+```
+
+##### [Scoop](https://scoop.sh/) Extras [bucket](https://github.com/ScoopInstaller/Extras)
+```pwsh
+scoop bucket add extras
+scoop install keyguard
+```
 
 ## License
 

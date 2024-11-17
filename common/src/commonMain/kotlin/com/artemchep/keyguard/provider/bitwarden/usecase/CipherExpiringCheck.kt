@@ -26,7 +26,8 @@ class CipherExpiringCheckImpl() : CipherExpiringCheck {
             DSecret.Type.Card -> expiringCard(secret, soon)
             DSecret.Type.Identity -> null
             DSecret.Type.SecureNote -> null
-            else -> null
+            DSecret.Type.SshKey -> null
+            DSecret.Type.None -> null
         }
     }
 

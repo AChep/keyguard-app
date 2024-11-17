@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -228,6 +229,11 @@ sealed interface AddStateItem {
         override val state: LocalStateItem<TextFieldModel2, Request>,
         val markdown: Boolean,
     ) : AddStateItem, HasState<TextFieldModel2, Request>
+
+    data class SshKey<Request>(
+        override val id: String,
+        override val state: LocalStateItem<KeyPairDecor2Brr, Request>,
+    ) : AddStateItem, HasState<KeyPairDecor2Brr, Request>
 
     data class Enum<Request>(
         override val id: String,

@@ -9,7 +9,12 @@ import kotlin.time.Duration.Companion.days
 import kotlin.uuid.Uuid
 
 @Serializable
-@optics
+@optics(
+    [
+        arrow.optics.OpticsTarget.LENS,
+        arrow.optics.OpticsTarget.OPTIONAL,
+    ],
+)
 data class BitwardenCipher(
     /**
      * Id of the bitwarden account, generated on
@@ -40,6 +45,7 @@ data class BitwardenCipher(
     val secureNote: SecureNote? = null,
     val card: Card? = null,
     val identity: Identity? = null,
+    val sshKey: SshKey? = null,
 ) : BitwardenService.Has<BitwardenCipher> {
     companion object;
 
@@ -51,6 +57,7 @@ data class BitwardenCipher(
         SecureNote,
         Card,
         Identity,
+        SshKey,
     }
 
     @Serializable
@@ -294,6 +301,15 @@ data class BitwardenCipher(
         enum class Type {
             Generic,
         }
+    }
+
+    @Serializable
+    data class SshKey(
+        val privateKey: String? = null,
+        val publicKey: String? = null,
+        val fingerprint: String? = null,
+    ) {
+        companion object
     }
 }
 

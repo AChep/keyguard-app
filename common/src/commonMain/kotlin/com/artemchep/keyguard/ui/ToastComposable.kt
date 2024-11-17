@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -273,6 +274,20 @@ private fun ToastMessage(model: ToastMessage) {
                     )
                 }
             }
+            if (model.action != null) {
+                Spacer(
+                    modifier = Modifier
+                        .width(8.dp),
+                )
+                TextButton(
+                    onClick = model.action.onClick,
+                ) {
+                    Text(
+                        text = model.action.title,
+                        color = contentIconColor,
+                    )
+                }
+            }
             Spacer(
                 modifier = Modifier
                     .width(8.dp),
@@ -311,9 +326,17 @@ private fun ToastMessage(model: ToastMessage) {
 
 private const val MSG_ERROR_DURATION = 4500L
 private const val MSG_NORMAL_DURATION = 2500L
+private const val MSG_ACTION_DURATION = 4500L
 
 private val ToastMessage.duration
-    get() = when (type) {
-        ToastMessage.Type.ERROR -> MSG_ERROR_DURATION
-        else -> MSG_NORMAL_DURATION
+    get() = run {
+        val typeDurationMs = when (type) {
+            ToastMessage.Type.ERROR -> MSG_ERROR_DURATION
+            else -> MSG_NORMAL_DURATION
+        }
+        val actionDurationMs = if (action != null) MSG_ACTION_DURATION else 0L
+        maxOf(
+            typeDurationMs,
+            actionDurationMs,
+        )
     }

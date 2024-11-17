@@ -14,6 +14,7 @@ enum class CipherTypeEntity(
     SecureNote(2),
     Card(3),
     Identity(4),
+    SshKey(5),
     ;
 
     companion object
@@ -29,6 +30,7 @@ fun CipherTypeEntity.Companion.of(
     BitwardenCipher.Type.SecureNote -> CipherTypeEntity.SecureNote
     BitwardenCipher.Type.Card -> CipherTypeEntity.Card
     BitwardenCipher.Type.Identity -> CipherTypeEntity.Identity
+    BitwardenCipher.Type.SshKey -> CipherTypeEntity.SshKey
 }
 
 fun CipherTypeEntity.Companion.of(
@@ -38,6 +40,7 @@ fun CipherTypeEntity.Companion.of(
     DSecret.Type.SecureNote -> CipherTypeEntity.SecureNote
     DSecret.Type.Card -> CipherTypeEntity.Card
     DSecret.Type.Identity -> CipherTypeEntity.Identity
+    DSecret.Type.SshKey -> CipherTypeEntity.SshKey
     DSecret.Type.None -> null
 }
 
@@ -46,4 +49,5 @@ fun CipherTypeEntity.domain() = when (this) {
     CipherTypeEntity.SecureNote -> BitwardenCipher.Type.SecureNote
     CipherTypeEntity.Card -> BitwardenCipher.Type.Card
     CipherTypeEntity.Identity -> BitwardenCipher.Type.Identity
+    CipherTypeEntity.SshKey -> BitwardenCipher.Type.SshKey
 }

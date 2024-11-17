@@ -20,12 +20,12 @@ import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lens
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.ui.icons.custom.TwoFactorAuthentication
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.Globe
@@ -37,9 +37,12 @@ val Icons.Outlined.KeyguardView
     get() = FeatherIcons.Eye
 
 val Icons.Outlined.KeyguardTwoFa
-    get() = Numbers
+    get() = KeyguardIcons.TwoFactorAuthentication
 
 val Icons.Outlined.KeyguardPasskey
+    get() = Key
+
+val Icons.Outlined.KeyguardSshKey
     get() = Key
 
 val Icons.Outlined.KeyguardNote

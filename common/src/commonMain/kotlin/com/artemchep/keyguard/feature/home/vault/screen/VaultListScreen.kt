@@ -2,34 +2,26 @@ package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -37,22 +29,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
-import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
@@ -68,6 +56,7 @@ import com.artemchep.keyguard.feature.search.sort.SortButton
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.DropdownMenuExpandableContainer
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.Compose
 import com.artemchep.keyguard.ui.DefaultFab
@@ -77,20 +66,16 @@ import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.SmallFab
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
-import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
-import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import org.jetbrains.compose.resources.stringResource
@@ -466,7 +451,9 @@ fun VaultHomeScreenListPane(
                         ) {
                             val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
                             with(scope) {
-                                state.primaryActions.forEachIndexed { index, action ->
+                                DropdownMenuExpandableContainer(
+                                    list = state.primaryActions,
+                                ) { action ->
                                     DropdownMenuItemFlat(
                                         action = action,
                                     )

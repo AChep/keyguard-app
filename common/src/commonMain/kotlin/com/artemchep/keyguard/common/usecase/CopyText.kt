@@ -24,6 +24,8 @@ class CopyText(
         URL(Res.string.copied_url),
         URI(Res.string.copied_uri),
         PACKAGE_NAME(Res.string.copied_package_name),
+        KEY(Res.string.copied_key),
+        FINGERPRINT(Res.string.copied_fingerprint),
         PASSWORD(Res.string.copied_password),
         USERNAME(Res.string.copied_username),
         EMAIL(Res.string.copied_email),

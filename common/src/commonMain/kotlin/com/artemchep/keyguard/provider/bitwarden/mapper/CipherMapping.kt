@@ -17,6 +17,7 @@ suspend fun BitwardenCipher.toDomain(
         BitwardenCipher.Type.SecureNote -> DSecret.Type.SecureNote
         BitwardenCipher.Type.Card -> DSecret.Type.Card
         BitwardenCipher.Type.Identity -> DSecret.Type.Identity
+        BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
     }
     val ignoredAlerts = ignoredAlerts
         .map { (key, value) ->
@@ -63,6 +64,7 @@ suspend fun BitwardenCipher.toDomain(
         login = login?.toDomain(getPasswordStrength),
         card = card?.toDomain(),
         identity = identity?.toDomain(),
+        sshKey = sshKey?.toDomain(),
     )
 }
 
@@ -245,6 +247,12 @@ fun BitwardenCipher.Identity.toDomain() = DSecret.Identity(
     username = username.oh(),
     passportNumber = passportNumber.oh(),
     licenseNumber = licenseNumber.oh(),
+)
+
+fun BitwardenCipher.SshKey.toDomain() = DSecret.SshKey(
+    privateKey = privateKey.oh(),
+    publicKey = publicKey.oh(),
+    fingerprint = fingerprint.oh(),
 )
 
 private fun String?.oh() = this?.takeIf { it.isNotBlank() }

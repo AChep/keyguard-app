@@ -44,6 +44,7 @@ import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
@@ -76,6 +77,9 @@ import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
@@ -143,6 +147,7 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
+import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -184,6 +189,7 @@ import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
+import com.artemchep.keyguard.ui.ContextItemBuilder
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
@@ -203,6 +209,7 @@ import com.artemchep.keyguard.ui.totp.formatCode2
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -254,6 +261,9 @@ fun vaultViewScreenState(
         passkeyTargetCheck = instance(),
         getWatchtowerUnreadAlerts = instance(),
         markWatchtowerAlertAsRead = instance(),
+        keyPairGenerator = instance(),
+        keyPrivateExport = instance(),
+        keyPublicExport = instance(),
         cipherUnsecureUrlCheck = instance(),
         cipherUnsecureUrlAutoFix = instance(),
         cipherFieldSwitchToggle = instance(),
@@ -333,6 +343,9 @@ fun vaultViewScreenState(
     passkeyTargetCheck: PasskeyTargetCheck,
     getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
     markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
+    keyPairGenerator: KeyPairGenerator,
+    keyPrivateExport: KeyPrivateExport,
+    keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
@@ -770,6 +783,9 @@ fun vaultViewScreenState(
                         getTotpCode = getTotpCode,
                         getPasswordStrength = getPasswordStrength,
                         passkeyTargetCheck = passkeyTargetCheck,
+                        keyPairGenerator = keyPairGenerator,
+                        keyPrivateExport = keyPrivateExport,
+                        keyPublicExport = keyPublicExport,
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                         cipherFieldSwitchToggle = cipherFieldSwitchToggle,
@@ -823,6 +839,9 @@ private fun RememberStateFlowScope.oh(
     getTotpCode: GetTotpCode,
     getPasswordStrength: GetPasswordStrength,
     passkeyTargetCheck: PasskeyTargetCheck,
+    keyPairGenerator: KeyPairGenerator,
+    keyPrivateExport: KeyPrivateExport,
+    keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
@@ -929,6 +948,91 @@ private fun RememberStateFlowScope.oh(
             message = expiringMessage,
         )
         emit(model)
+    }
+
+    val sshKey = cipher.sshKey
+    if (sshKey != null) {
+        val keyPair = kotlin.run {
+            if (sshKey.publicKey == null ||
+                sshKey.privateKey == null
+            ) {
+                return@run null
+            }
+
+            ioEffect(Dispatchers.Default) {
+                val gen = keyPairGenerator.parse(
+                    privateKey = sshKey.privateKey,
+                    publicKey = sshKey.publicKey
+                )
+                keyPairGenerator.populate(gen)
+            }
+                .attempt()
+                .bind()
+                .getOrNull()
+        }
+        if (sshKey.publicKey != null) {
+            val publicKeyItem = create(
+                copy = copy,
+                id = "sshKey.publicKey",
+                accountId = account.id,
+                title = translate(Res.string.public_key),
+                value = sshKey.publicKey,
+                maxLines = 4, // public key is too long to always show
+                monospace = true,
+                colorize = true,
+                elevated = true,
+                onBuildActions = {
+                    if (keyPair == null) {
+                        return@create
+                    }
+
+                    this += SshKeyActions.savePublicKey(
+                        keyPair = keyPair,
+                        publicKeyExport = keyPublicExport,
+                    )
+                },
+            )
+            emit(publicKeyItem)
+        }
+        if (sshKey.fingerprint != null) {
+            val fingerprintItem = create(
+                copy = copy,
+                id = "sshKey.fingerprint",
+                accountId = account.id,
+                title = translate(Res.string.fingerprint),
+                value = sshKey.fingerprint,
+                monospace = true,
+                colorize = true,
+                elevated = true,
+            )
+            emit(fingerprintItem)
+        }
+        if (sshKey.privateKey != null) {
+            val privateKeyItem = create(
+                copy = copy,
+                id = "sshKey.privateKey",
+                accountId = account.id,
+                title = translate(Res.string.private_key),
+                value = sshKey.privateKey,
+                verify = verify.takeIf { concealFields },
+                monospace = true,
+                colorize = true,
+                elevated = true,
+                private = concealFields,
+                hidden = hasCanNotSeePassword,
+                onBuildActions = {
+                    if (keyPair == null) {
+                        return@create
+                    }
+
+                    this += SshKeyActions.savePrivateKey(
+                        keyPair = keyPair,
+                        privateKeyExport = keyPrivateExport,
+                    )
+                },
+            )
+            emit(privateKeyItem)
+        }
     }
 
     val cipherCard = cipher.card
@@ -2633,6 +2737,8 @@ suspend fun RememberStateFlowScope.create(
     badge2: List<StateFlow<VaultViewItem.Value.Badge?>> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
     verify: ((() -> Unit) -> Unit)? = null,
+    onBuildActions: (ContextItemBuilder.() -> Unit)? = null,
+    maxLines: Int = Int.MAX_VALUE,
     password: Boolean = false,
     username: Boolean = false,
     private: Boolean = false,
@@ -2649,6 +2755,11 @@ suspend fun RememberStateFlowScope.create(
                     value = value,
                     hidden = private,
                 )
+            }
+            if (onBuildActions != null) {
+                section {
+                    onBuildActions()
+                }
             }
             section {
                 this += LargeTypeRoute.showInLargeTypeActionOrNull(
@@ -2714,6 +2825,7 @@ suspend fun RememberStateFlowScope.create(
         title = title,
         value = value,
         verify = verify,
+        maxLines = maxLines,
         private = private,
         hidden = hidden,
         monospace = monospace,

@@ -37,6 +37,8 @@ data class CipherRequest(
     val card: CardRequest?,
     @SerialName("identity")
     val identity: IdentityRequest?,
+    @SerialName("sshKey")
+    val sshKey: SshKeyRequest?,
     @SerialName("fields")
     val fields: List<FieldApi>?,
     @SerialName("passwordHistory")
@@ -69,6 +71,8 @@ fun CipherRequest.Companion.of(
         ?.let(CardRequest::of)
     val identity = model.identity
         ?.let(IdentityRequest::of)
+    val sshKey = model.sshKey
+        ?.let(SshKeyRequest::of)
     val fields = model.fields
         .map { field ->
             FieldApi.of(field)
@@ -111,6 +115,7 @@ fun CipherRequest.Companion.of(
         secureNote = secureNote,
         card = card,
         identity = identity,
+        sshKey = sshKey,
         fields = fields,
         passwordHistory = passwordHistory,
         attachments = attachments,

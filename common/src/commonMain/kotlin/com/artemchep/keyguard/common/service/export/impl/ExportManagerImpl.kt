@@ -262,7 +262,7 @@ open class ExportManagerBase(
             val dt = dateFormatter.formatDateTimeMachine(now)
             "keyguard_export_$dt.zip"
         }
-        coroutineScope {
+        val fileUri = coroutineScope {
             val eventFlow = EventFlow<Unit>()
 
             val monitorJob = launch {
@@ -282,7 +282,7 @@ open class ExportManagerBase(
                     .collect()
             }
 
-            dirsService.saveToDownloads(fileName) { os ->
+            val uri = dirsService.saveToDownloads(fileName) { os ->
                 val entriesAttachments = attachments?.attachments.orEmpty()
                     .map { entry ->
                         createDownloadFileZipEntry(
@@ -309,6 +309,9 @@ open class ExportManagerBase(
                 )
             }.bind()
             monitorJob.cancelAndJoin()
+
+            // Return the URI to the file
+            uri
         }
 
         return DownloadProgress.Complete(File(".").right())

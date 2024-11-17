@@ -145,6 +145,14 @@ fun BitwardenCipher.Companion.encrypted(
                     licenseNumber = licenseNumber,
                 )
             },
+        sshKey = entity.sshKey
+            ?.run {
+                BitwardenCipher.SshKey(
+                    privateKey = privateKey,
+                    publicKey = publicKey,
+                    fingerprint = keyFingerprint,
+                )
+            },
     )
 }
 

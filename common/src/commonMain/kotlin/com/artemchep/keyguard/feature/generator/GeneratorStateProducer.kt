@@ -7,20 +7,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AlternateEmail
+import androidx.compose.material.icons.outlined.Domain
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import arrow.core.Either
 import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.AppMode
+import com.artemchep.keyguard.Emails
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.handleErrorTap
@@ -29,14 +35,24 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.io.toIO
-import com.artemchep.keyguard.common.model.DGeneratorWordlist
+import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.DGeneratorHistory
+import com.artemchep.keyguard.common.model.DGeneratorWordlist
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.KeyPair
+import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfigBuilder2
 import com.artemchep.keyguard.common.model.build
+import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.isExpensive
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.usecase.KeyPairExport
+import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.CopyText
@@ -55,9 +71,10 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
-import com.artemchep.keyguard.feature.generator.wordlist.list.WordlistListRoute
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListRoute
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
+import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
+import com.artemchep.keyguard.feature.generator.util.findBestUserEmailOrNull
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -65,22 +82,31 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
+import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
+import com.artemchep.keyguard.ui.icons.KeyguardIcons
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.icons.iconSmall
+import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseLower
+import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseUpper
+import com.artemchep.keyguard.ui.icons.custom.Numeric
+import com.artemchep.keyguard.ui.icons.custom.Symbol
 import com.artemchep.keyguard.ui.theme.isDark
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -91,10 +117,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.datetime.Clock
 import org.kodein.di.allInstances
 import org.kodein.di.compose.localDI
@@ -147,108 +175,7 @@ private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_DEFAULT = 5L
 private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MIN = 3
 private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MAX = 10
 
-private val popularEmailDomains = setOf(
-    "gmail.com",
-    "yahoo.com",
-    "hotmail.com",
-    "aol.com",
-    "hotmail.co.uk",
-    "hotmail.fr",
-    "msn.com",
-    "yahoo.fr",
-    "wanadoo.fr",
-    "orange.fr",
-    "comcast.net",
-    "yahoo.co.uk",
-    "yahoo.com.br",
-    "yahoo.co.in",
-    "live.com",
-    "rediffmail.com",
-    "free.fr",
-    "gmx.de",
-    "web.de",
-    "yandex.ru",
-    "ymail.com",
-    "libero.it",
-    "outlook.com",
-    "uol.com.br",
-    "bol.com.br",
-    "mail.ru",
-    "cox.net",
-    "hotmail.it",
-    "sbcglobal.net",
-    "sfr.fr",
-    "live.fr",
-    "verizon.net",
-    "live.co.uk",
-    "googlemail.com",
-    "yahoo.es",
-    "ig.com.br",
-    "live.nl",
-    "bigpond.com",
-    "terra.com.br",
-    "yahoo.it",
-    "neuf.fr",
-    "yahoo.de",
-    "alice.it",
-    "rocketmail.com",
-    "att.net",
-    "laposte.net",
-    "facebook.com",
-    "bellsouth.net",
-    "yahoo.in",
-    "hotmail.es",
-    "charter.net",
-    "yahoo.ca",
-    "yahoo.com.au",
-    "rambler.ru",
-    "hotmail.de",
-    "tiscali.it",
-    "shaw.ca",
-    "yahoo.co.jp",
-    "sky.com",
-    "earthlink.net",
-    "optonline.net",
-    "freenet.de",
-    "t-online.de",
-    "aliceadsl.fr",
-    "virgilio.it",
-    "home.nl",
-    "qq.com",
-    "telenet.be",
-    "me.com",
-    "yahoo.com.ar",
-    "tiscali.co.uk",
-    "yahoo.com.mx",
-    "voila.fr",
-    "gmx.net",
-    "mail.com",
-    "planet.nl",
-    "tin.it",
-    "live.it",
-    "ntlworld.com",
-    "arcor.de",
-    "yahoo.co.id",
-    "frontiernet.net",
-    "hetnet.nl",
-    "live.com.au",
-    "yahoo.com.sg",
-    "zonnet.nl",
-    "club-internet.fr",
-    "juno.com",
-    "optusnet.com.au",
-    "blueyonder.co.uk",
-    "bluewin.ch",
-    "skynet.be",
-    "sympatico.ca",
-    "windstream.net",
-    "mac.com",
-    "centurytel.net",
-    "chello.nl",
-    "live.ca",
-    "aim.com",
-    "bigpond.net.au",
-)
+private const val KEY_PAIR_RSA_LENGTH_DEFAULT = "4096"
 
 @Composable
 fun produceGeneratorState(
@@ -267,6 +194,10 @@ fun produceGeneratorState(
         getEmailRelays = instanceOrNull(),
         getWordlists = instanceOrNull(),
         getWordlistPrimitive = instanceOrNull(),
+        cryptoGenerator = instance(),
+        keyPairExport = instance(),
+        publicKeyExport = instance(),
+        privateKeyExport = instance(),
         numberFormatter = instance(),
         getCanWrite = instance(),
         clipboardService = instance(),
@@ -280,6 +211,7 @@ private const val PREFIX_USERNAME = "username"
 private const val PREFIX_EMAIL_CATCH_ALL = "email_catch_all"
 private const val PREFIX_EMAIL_PLUS_ADDRESSING = "email_plus_addressing"
 private const val PREFIX_EMAIL_SUBDOMAIN_ADDRESSING = "email_subdomain_addressing"
+private const val PREFIX_KEY_PAIR = "key_pair"
 
 private data class WordlistResult(
     val id: Long,
@@ -299,6 +231,10 @@ fun produceGeneratorState(
     getEmailRelays: GetEmailRelays?,
     getWordlists: GetWordlists?,
     getWordlistPrimitive: GetWordlistPrimitive?,
+    cryptoGenerator: CryptoGenerator,
+    keyPairExport: KeyPairExport,
+    publicKeyExport: KeyPublicExport,
+    privateKeyExport: KeyPrivateExport,
     numberFormatter: NumberFormatter,
     getCanWrite: GetCanWrite,
     clipboardService: ClipboardService,
@@ -319,6 +255,11 @@ fun produceGeneratorState(
         clipboardService = clipboardService,
     )
 
+    fun checkTypeMatchesArgs(type: GeneratorType2) =
+        (type.password && args.password) ||
+                (type.sshKey && args.sshKey) ||
+                (type.username && args.username)
+
     val typesAllStatic = listOf(
         GeneratorType2.Password,
         GeneratorType2.Passphrase,
@@ -326,54 +267,65 @@ fun produceGeneratorState(
         GeneratorType2.EmailCatchAll,
         GeneratorType2.EmailPlusAddressing,
         GeneratorType2.EmailSubdomainAddressing,
-    )
-    val typesRelay = getEmailRelays?.invoke()
-        ?: flowOf(emptyList())
-    val typesAllFlow = typesRelay
-        .map { list ->
-            val emailRelayItems = list
-                .mapNotNull { config ->
-                    val emailRelay = emailRelays
-                        .firstOrNull { it.type == config.type }
-                        ?: return@mapNotNull null
-                    GeneratorType2.EmailRelay(
-                        emailRelay = emailRelay,
-                        config = config,
-                    )
+        GeneratorType2.SshKey,
+    ).filter(::checkTypeMatchesArgs)
+    val typesRelayFlow = if (getEmailRelays != null && args.username) {
+        getEmailRelays()
+            .map { relays ->
+                relays
+                    .mapNotNull { config ->
+                        val emailRelay = emailRelays
+                            .firstOrNull { it.type == config.type }
+                            ?: return@mapNotNull null
+                        GeneratorType2.EmailRelay(
+                            emailRelay = emailRelay,
+                            config = config,
+                        )
+                    }
+            }
+    } else {
+        flowOf(emptyList())
+    }
+    val typesAllFlow = typesRelayFlow
+        .map { typesRelay ->
+            // Combine and filter all the possible
+            // generator types.
+            sequence<GeneratorType2> {
+                typesAllStatic.forEach { type ->
+                    yield(type)
                 }
-            typesAllStatic + emailRelayItems
-        }
-        .map { items ->
-            items
-                .filter {
-                    (it.password && args.password) ||
-                            (it.username && args.username)
+
+                typesRelay.forEach { type ->
+                    yield(type)
                 }
+            }
+                .run {
+                    // Double check that we do not emit
+                    // unsupported types.
+                    if (!isRelease) {
+                        onEach { type ->
+                            require(checkTypeMatchesArgs(type)) {
+                                "Generator type '${type.key}' doesn't match any of the " +
+                                        "types user wants: $args"
+                            }
+                        }
+                    } else {
+                        this
+                    }
+                }
+                .toPersistentList()
         }
 
-    val getUserEmailDefaultIo = (getProfiles?.invoke()?.toIO() ?: ioRaise(RuntimeException()))
+    val getUserEmailDefaultIo = if (getProfiles != null) {
+        getProfiles()
+            .toIO()
+    } else {
+        val e = RuntimeException()
+        ioRaise(e)
+    }
         .map { profiles ->
-            val emailOrNull = profiles
-                .asSequence()
-                .map { profile ->
-                    val priority = kotlin.run {
-                        var p = 0f
-                        if (profile.emailVerified) p += 10f
-                        p
-                    }
-                    profile.email to priority
-                }
-                .groupBy { (email, priority) -> email }
-                .mapValues { (email, values) ->
-                    values
-                        .asSequence()
-                        .map { it.second }
-                        .reduce { y, x -> y + x }
-                }
-                .toList()
-                .maxByOrNull { it.second }
-                ?.first
-            emailOrNull
+            profiles
+                .findBestUserEmailOrNull()
         }
         .shared("getUserEmailDefaultIo")
 
@@ -384,7 +336,7 @@ fun produceGeneratorState(
                 ?.takeUnless { domain ->
                     // Catch-all email can not be setup for a
                     // public email server.
-                    domain in popularEmailDomains
+                    domain in Emails
                 }
         }
         .shared("getUserDomainDefaultIo")
@@ -397,7 +349,10 @@ fun produceGeneratorState(
         PersistedStorage.InDisk(disk)
     }
     // common
-    val typeDefaultName = GeneratorType2.Password.key
+    val typeDefaultName = typesAllStatic
+        .firstOrNull()
+        ?.key
+        ?: GeneratorType2.Password.key
     val typeSink = mutablePersistedFlow(
         key = "type",
         storage = storage,
@@ -470,6 +425,7 @@ fun produceGeneratorState(
             }
             section {
                 wordlists.forEach { wordlist ->
+                    val selected = wordlistId == wordlist.idRaw
                     val quantity = wordlist.wordCount.toInt()
                     val text = translate(
                         Res.plurals.word_count_plural,
@@ -491,6 +447,7 @@ fun produceGeneratorState(
                             )
                         },
                         text = TextHolder.Value(text),
+                        selected = selected,
                         onClick = onSelect
                             .partially1(wordlist.idRaw)
                             .takeIf { quantity > 0 },
@@ -664,9 +621,69 @@ fun produceGeneratorState(
         emailSubdomainAddressingEmailState.value =
             getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
                 .takeIf { email ->
-                    email.substringAfterLast('@', "") !in popularEmailDomains
+                    email.substringAfterLast('@', "") !in Emails
                 }
                 .orEmpty()
+    }
+    // key pair
+    val keyPairTypeSink = mutablePersistedFlow(
+        key = "$PREFIX_KEY_PAIR.type",
+        storage = storage,
+    ) { KeyPair.Type.default.key }
+    val keyPairRsaLengthSink = mutablePersistedFlow(
+        key = "$PREFIX_KEY_PAIR.rsa.length",
+        storage = storage,
+    ) { KEY_PAIR_RSA_LENGTH_DEFAULT }
+
+    suspend fun keyPairTypeFilterItem(
+        keyType: String?,
+        onSelect: (String) -> Unit,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val dropdown = buildContextItems {
+            section {
+                KeyPair.Type.entries.forEach { type ->
+                    val selected = keyType == type.key
+                    val title = TextHolder.Value(type.title)
+                    this += FlatItemAction(
+                        title = title,
+                        text = type.shortDescription,
+                        selected = selected,
+                        onClick = onSelect
+                            .partially1(type.key),
+                    )
+                }
+            }
+        }
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = KeyPair.Type.getOrDefault(keyType).title,
+            dropdown = dropdown,
+        )
+    }
+
+    suspend fun keyPairRsaLengthFilterItem(
+        keyType: String,
+        onSelect: (String) -> Unit,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val dropdown = buildContextItems {
+            section {
+                KeyPairGenerator.RsaLength.entries.forEach { entityLength ->
+                    val length = entityLength.size.toString()
+                    val selected = length == keyType
+                    val title = translate(Res.string.generator_key_length_item, length)
+                    this += FlatItemAction(
+                        title = TextHolder.Value(title),
+                        selected = selected,
+                        onClick = onSelect
+                            .partially1(length),
+                    )
+                }
+            }
+        }
+        val title = translate(Res.string.generator_key_length_item, keyType)
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = title,
+            dropdown = dropdown,
+        )
     }
 
     val passphraseFilterTip = GeneratorState.Filter.Tip(
@@ -694,6 +711,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSPHRASE.capitalize",
+                icon = KeyguardIcons.FormatLetterCaseUpper,
                 title = translate(Res.string.generator_passphrase_capitalize_title),
                 model = SwitchFieldModel(
                     checked = config.capitalize,
@@ -702,6 +720,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSPHRASE.include_number",
+                icon = KeyguardIcons.Numeric,
                 title = translate(Res.string.generator_passphrase_number_title),
                 model = SwitchFieldModel(
                     checked = config.includeNumber,
@@ -755,6 +774,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_USERNAME.capitalize",
+                icon = KeyguardIcons.FormatLetterCaseUpper,
                 title = translate(Res.string.generator_username_capitalize_title),
                 model = SwitchFieldModel(
                     checked = config.capitalize,
@@ -763,6 +783,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_USERNAME.include_number",
+                icon = KeyguardIcons.Numeric,
                 title = translate(Res.string.generator_username_number_title),
                 model = SwitchFieldModel(
                     checked = config.includeNumber,
@@ -803,6 +824,7 @@ fun produceGeneratorState(
         val items = persistentListOf<GeneratorState.Filter.Item>(
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_numbers",
+                icon = KeyguardIcons.Numeric,
                 title = translate(Res.string.generator_password_numbers_title),
                 model = SwitchFieldModel(
                     checked = config.includeNumbers,
@@ -818,6 +840,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_symbols",
+                icon = KeyguardIcons.Symbol,
                 title = translate(Res.string.generator_password_symbols_title),
                 text = """!"#$%&'()*+-./:;<=>?@[\]^_`{|}~""",
                 model = SwitchFieldModel(
@@ -834,6 +857,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_uppercase_chars",
+                icon = KeyguardIcons.FormatLetterCaseUpper,
                 title = translate(Res.string.generator_password_uppercase_letters_title),
                 model = SwitchFieldModel(
                     checked = config.includeUppercaseCharacters,
@@ -849,6 +873,7 @@ fun produceGeneratorState(
             ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.include_lowercase_chars",
+                icon = KeyguardIcons.FormatLetterCaseLower,
                 title = translate(Res.string.generator_password_lowercase_letters_title),
                 model = SwitchFieldModel(
                     checked = config.includeLowercaseCharacters,
@@ -915,6 +940,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_EMAIL_CATCH_ALL.domain",
                 title = translate(Res.string.generator_email_catch_all_domain_title),
+                icon = Icons.Outlined.Domain,
                 model = TextFieldModel2(
                     state = emailCatchAllDomainState,
                     text = config.domain,
@@ -923,7 +949,7 @@ fun produceGeneratorState(
                         config.domain.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
 
-                        config.domain in popularEmailDomains ->
+                        config.domain in Emails ->
                             translate(Res.string.error_must_be_custom_domain)
 
                         !REGEX_DOMAIN.matches(config.domain.trim()) ->
@@ -963,6 +989,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_EMAIL_PLUS_ADDRESSING.email",
                 title = translate(Res.string.generator_email_plus_addressing_email_title),
+                icon = Icons.Outlined.Email,
                 model = TextFieldModel2(
                     state = emailPlusAddressingEmailState,
                     text = config.email,
@@ -1008,6 +1035,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.email",
                 title = translate(Res.string.generator_email_subdomain_addressing_email_title),
+                icon = Icons.Outlined.Email,
                 model = TextFieldModel2(
                     state = emailSubdomainAddressingEmailState,
                     text = config.email,
@@ -1016,7 +1044,7 @@ fun produceGeneratorState(
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
 
-                        config.email.substringAfterLast('@', "") in popularEmailDomains ->
+                        config.email.substringAfterLast('@', "") in Emails ->
                             translate(Res.string.error_must_be_custom_domain)
 
                         !REGEX_EMAIL.matches(config.email.trim()) ->
@@ -1053,6 +1081,67 @@ fun produceGeneratorState(
         )
     }
 
+    val keyPairRsaFilterTip = GeneratorState.Filter.Tip(
+        text = translate(Res.string.generator_key_rsa_note),
+        onHide = ::hideTip,
+        onLearnMore = {
+            val url = "https://en.wikipedia.org/wiki/RSA_(cryptosystem)"
+            val intent = NavigationIntent.NavigateToBrowser(url)
+            navigate(intent)
+        },
+    )
+    val keyPairEd25519FilterTip = GeneratorState.Filter.Tip(
+        text = translate(Res.string.generator_key_ed25519_note),
+        onHide = ::hideTip,
+        onLearnMore = {
+            val url = "https://en.wikipedia.org/wiki/EdDSA#Ed25519"
+            val intent = NavigationIntent.NavigateToBrowser(url)
+            navigate(intent)
+        },
+    )
+
+    suspend fun createFilter(
+        config: PasswordGeneratorConfigBuilder2.KeyPair,
+    ): GeneratorState.Filter {
+        val tip = when (config.config) {
+            is KeyPairConfig.Rsa -> keyPairRsaFilterTip
+            is KeyPairConfig.Ed25519 -> keyPairEd25519FilterTip
+        }
+
+        val items = mutableListOf<GeneratorState.Filter.Item>(
+            GeneratorState.Filter.Item.Enum(
+                key = "$PREFIX_KEY_PAIR.type",
+                icon = Icons.Outlined.Key,
+                title = translate(Res.string.key_type),
+                model = keyPairTypeFilterItem(
+                    keyType = config.config.type.key,
+                    onSelect = keyPairTypeSink::value::set,
+                ),
+            ),
+        )
+        when (val cfg = config.config) {
+            is KeyPairConfig.Rsa -> {
+                items += GeneratorState.Filter.Item.Enum(
+                    key = "$PREFIX_KEY_PAIR.rsa.length",
+                    title = translate(Res.string.generator_key_length_title),
+                    model = keyPairRsaLengthFilterItem(
+                        keyType = cfg.length.size.toString(),
+                        onSelect = keyPairRsaLengthSink::value::set,
+                    ),
+                )
+            }
+
+            is KeyPairConfig.Ed25519 -> {
+                // Do nothing
+            }
+        }
+        return GeneratorState.Filter(
+            tip = tip,
+            length = null,
+            items = items.toPersistentList(),
+        )
+    }
+
     suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2,
     ) = when (config) {
@@ -1063,6 +1152,7 @@ fun produceGeneratorState(
         is PasswordGeneratorConfigBuilder2.EmailPlusAddressing -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.EmailRelay -> createFilter(config)
+        is PasswordGeneratorConfigBuilder2.KeyPair -> createFilter(config)
     }
 
     fun createLoginWithUsername(
@@ -1093,8 +1183,25 @@ fun produceGeneratorState(
         navigate(intent)
     }
 
-    val refreshPasswordSink = EventFlow<Unit>()
-    val refreshPassword = refreshPasswordSink::emit.partially1(Unit)
+    fun createSshKeyWithKeyPair(
+        keyPair: KeyPair,
+    ) {
+        val type = DSecret.Type.SshKey
+        val route = LeAddRoute(
+            args = AddRoute.Args(
+                type = type,
+                keyPair = keyPair,
+            ),
+        )
+        val intent = NavigationIntent.NavigateToRoute(route)
+        navigate(intent)
+    }
+
+    val refreshValueSink = EventFlow<String>()
+    val refreshValue: () -> Unit = {
+        val eventId = cryptoGenerator.uuid()
+        refreshValueSink.emit(eventId)
+    }
 
     val configBuilderFlow = typeFlow
         .flatMapLatest { type ->
@@ -1229,78 +1336,36 @@ fun produceGeneratorState(
                     )
                     emit(m)
                 }
+
+                is GeneratorType2.SshKey -> keyPairTypeSink
+                    .flatMapLatest { keyPairType ->
+                        val config = when (KeyPair.Type.getOrDefault(keyPairType)) {
+                            KeyPair.Type.RSA -> return@flatMapLatest keyPairRsaLengthSink
+                                .map { rawLength ->
+                                    val length = KeyPairGenerator.RsaLength.getOrDefault(rawLength)
+                                    val config = KeyPairConfig.Rsa(length)
+                                    PasswordGeneratorConfigBuilder2.KeyPair(
+                                        config = config,
+                                    )
+                                }
+
+                            KeyPair.Type.ED25519 -> KeyPairConfig.Ed25519
+                        }
+                        val model = PasswordGeneratorConfigBuilder2.KeyPair(
+                            config = config,
+                        )
+                        flowOf(model)
+                    }
             }.map { it to type }
         }
         .distinctUntilChanged()
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val typesFlow = combine(
-        typesAllFlow,
-        typeFlow,
-    ) { types, type ->
-        val typeTitle = translate(type.title)
-        val typeItems = buildContextItems {
-            types.forEachIndexed { index, t ->
-                if (index > 0) {
-                    val groupChanged = types[index - 1].group != t.group
-                    if (groupChanged) {
-                        this += when (t.group) {
-                            GENERATOR_TYPE_GROUP_INTEGRATION ->
-                                ContextItem.Section(
-                                    title = translate(Res.string.emailrelay_list_section_title),
-                                )
-
-                            else -> ContextItem.Section()
-                        }
-                    }
-                }
-
-                when (t) {
-                    is GeneratorType2.EmailRelay -> {
-                        val emailRelay = t.config
-                        this += FlatItemAction(
-                            leading = {
-                                val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
-                                    emailRelay.accentColor.dark
-                                } else {
-                                    emailRelay.accentColor.light
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .background(backgroundColor, shape = CircleShape),
-                                )
-                            },
-                            title = TextHolder.Value(emailRelay.name),
-                            onClick = {
-                                typeSink.value = t.key
-                            },
-                        )
-                    }
-
-                    else -> {
-                        val imageVector = when {
-                            t.password -> Icons.Outlined.Password
-                            t is GeneratorType2.Username -> Icons.Outlined.AlternateEmail
-                            else -> Icons.Outlined.Mail
-                        }
-                        this += FlatItemAction(
-                            title = t.title,
-                            onClick = {
-                                typeSink.value = t.key
-                            },
-                            leading = icon(imageVector),
-                        )
-                    }
-                }
-            }
-        }
-        GeneratorState.Type(
-            title = typeTitle,
-            items = typeItems,
-        )
-    }
-        .stateIn(appScope)
+    val typesFlow = flowOfGeneratorType(
+        typesAllFlow = typesAllFlow,
+        typeFlow = typeFlow,
+        typeSink = typeSink,
+    ).stateIn(appScope)
     val filterFlow = configBuilderFlow
         .combine(tipVisibleSink) { (configBuilder, _), tipVisible ->
             createFilter(configBuilder)
@@ -1326,42 +1391,89 @@ fun produceGeneratorState(
         .flatMapLatest { (config, factory, type) ->
             val generateOnInit = !config.isExpensive()
             flow {
-                val initialValue = "".right()
-                emit(initialValue to type)
+                kotlin.run {
+                    val result = GetPasswordResult.Value("")
+                        .right()
+                    val data = ValueGenerationEvent.Data(
+                        result = result,
+                        type = type,
+                    )
+                    val event = ValueGenerationEvent(
+                        id = "",
+                        data = Loadable.Ok(data),
+                    )
+                    emit(event)
+                }
 
-                refreshPasswordSink
+                refreshValueSink
                     .onStart {
                         if (generateOnInit) {
-                            emit(Unit)
+                            val eventId = cryptoGenerator.uuid()
+                            emit(eventId)
                         }
                     }
-                    .map {
-                        val password = factory
+                    .transformLatest { eventId ->
+                        // 1. Emit the loading event, so the app
+                        // knows that we are processing a new
+                        // event at this moment.
+                        kotlin.run {
+                            val event = ValueGenerationEvent(
+                                id = eventId,
+                                data = Loadable.Loading,
+                            )
+                            emit(event)
+                        }
+
+                        // 2. Generate a new data and emit the
+                        // result with the same event id.
+                        val result = factory
                             .crashlyticsTap()
                             .handleErrorTap { e ->
                                 message(e)
                             }
                             .attempt()
                             .bind()
-                        password to type
+                        val data = ValueGenerationEvent.Data(
+                            result = result,
+                            type = type,
+                        )
+                        val event = ValueGenerationEvent(
+                            id = eventId,
+                            data = Loadable.Ok(data),
+                        )
+                        emit(event)
                     }
                     .collect(this)
             }
         }
         .flowOn(Dispatchers.Default)
         .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
+    val loadingFlow = passwordTextFlow
+        .map { event ->
+            val loaded = event.data is Loadable.Ok
+            GeneratorState.Loading(
+                loaded = loaded,
+            )
+        }
+        .stateIn(appScope)
     passwordTextFlow
-        .debounce(1000L)
-        .onEach { (passwordResult, type) ->
-            val password = passwordResult
+        .mapNotNull { event ->
+            event.data
                 .getOrNull()
-            if (!password.isNullOrEmpty() && addGeneratorHistory != null) {
+        }
+        .debounce(640L)
+        .onEach { data ->
+            val type = data.type
+            val value = data.result
+                .getOrNull()
+            if (value != null && value.isValid() && addGeneratorHistory != null) {
                 val model = DGeneratorHistory(
-                    value = password,
+                    value = value,
                     createdDate = Clock.System.now(),
                     isPassword = type.password && args.password,
                     isUsername = type.username && args.username,
                     isEmailRelay = type is GeneratorType2.EmailRelay,
+                    isSshKey = type is GeneratorType2.SshKey,
                 )
                 addGeneratorHistory(model)
                     .crashlyticsTap()
@@ -1373,72 +1485,120 @@ fun produceGeneratorState(
 
     val passwordFlow = combine(
         getCanWrite(),
-        passwordTextFlow,
-    ) { canWrite, (passwordResult, type) ->
+        (getProfiles?.invoke()?.map { it.isNotEmpty() } ?: flowOf(false)),
+        passwordTextFlow
+            .mapNotNull { event ->
+                event.data
+                    .getOrNull()
+            },
+    ) { canWrite, hasAccounts, (passwordResult, type) ->
         passwordResult.fold(
             ifLeft = { e ->
                 GeneratorState.Value(
+                    title = null,
                     password = "",
+                    source = GetPasswordResult.Value(""),
                     strength = type.password && args.password,
                     dropdown = persistentListOf(),
                     actions = persistentListOf(),
                     onCopy = null,
-                    onRefresh = refreshPassword,
+                    onRefresh = refreshValue,
                 )
             },
-            ifRight = { password ->
-                if (password == null) {
+            ifRight = { passwordw ->
+                if (passwordw == null) {
                     return@fold null
                 }
 
-                val dropdown = buildContextItems {
-                    this += copyItemFactory.FlatItemAction(
-                        title = Res.string.copy.wrap(),
-                        value = password,
-                        type = CopyText.Type.PASSWORD,
-                    )
-                }
-                val actions = kotlin.run {
-                    val list = mutableListOf<FlatItemAction>()
-                    if (canWrite && type.username) {
-                        list += FlatItemAction(
-                            leading = icon(Icons.Outlined.Add),
-                            title = Res.string.generator_create_item_with_username_title.wrap(),
-                            onClick = ::createLoginWithUsername.partially1(password),
+                when (passwordw) {
+                    is GetPasswordResult.Value -> {
+                        val password = passwordw.value
+                        val dropdown = buildContextItems {
+                            this += copyItemFactory.FlatItemAction(
+                                title = Res.string.copy.wrap(),
+                                value = password,
+                                type = CopyText.Type.PASSWORD,
+                            )
+                        }
+                        val actions = kotlin.run {
+                            val list = mutableListOf<FlatItemAction>()
+                            if (canWrite && hasAccounts && type.username) {
+                                list += FlatItemAction(
+                                    leading = icon(Icons.Outlined.Add),
+                                    title = Res.string.generator_create_item_with_username_title.wrap(),
+                                    onClick = ::createLoginWithUsername.partially1(password),
+                                )
+                            }
+                            if (canWrite && hasAccounts && type.password) {
+                                list += FlatItemAction(
+                                    leading = icon(Icons.Outlined.Add),
+                                    title = Res.string.generator_create_item_with_password_title.wrap(),
+                                    onClick = ::createLoginWithPassword.partially1(password),
+                                )
+                            }
+                            list.toPersistentList()
+                        }
+                        GeneratorState.Value(
+                            title = null,
+                            password = password,
+                            source = passwordw,
+                            strength = type.password && args.password,
+                            dropdown = if (password.isNotEmpty()) {
+                                dropdown
+                            } else {
+                                persistentListOf()
+                            },
+                            actions = if (password.isNotEmpty()) {
+                                actions
+                            } else {
+                                persistentListOf()
+                            },
+                            onCopy = if (password.isNotEmpty()) {
+                                copyItemFactory::copy
+                                    .partially1(password)
+                                    .partially1(false)
+                                    .partially1(CopyText.Type.PASSWORD)
+                            } else {
+                                null
+                            },
+                            onRefresh = refreshValue,
                         )
                     }
-                    if (canWrite && type.password) {
-                        list += FlatItemAction(
-                            leading = icon(Icons.Outlined.Add),
-                            title = Res.string.generator_create_item_with_password_title.wrap(),
-                            onClick = ::createLoginWithPassword.partially1(password),
+
+                    is GetPasswordResult.AsyncKey -> {
+                        val keyPair = passwordw.keyPair
+                        val dropdown = buildContextItems {
+                            SshKeyActions.addAll(
+                                keyPair = keyPair,
+                                keyPairExport = keyPairExport,
+                                publicKeyExport = publicKeyExport,
+                                privateKeyExport = privateKeyExport,
+                                copyItemFactory = copyItemFactory,
+                            )
+                        }
+                        val actions = kotlin.run {
+                            val list = mutableListOf<FlatItemAction>()
+                            if (canWrite && hasAccounts && type.sshKey) {
+                                list += FlatItemAction(
+                                    leading = icon(Icons.Outlined.Add),
+                                    title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
+                                    onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
+                                )
+                            }
+                            list.toPersistentList()
+                        }
+                        GeneratorState.Value(
+                            title = keyPair.type.title,
+                            password = keyPair.publicKey.fingerprint,
+                            source = passwordw,
+                            strength = false,
+                            dropdown = dropdown,
+                            actions = actions,
+                            onCopy = null,
+                            onRefresh = refreshValue,
                         )
                     }
-                    list.toPersistentList()
                 }
-                GeneratorState.Value(
-                    password = password,
-                    strength = type.password && args.password,
-                    dropdown = if (password.isNotEmpty()) {
-                        dropdown
-                    } else {
-                        persistentListOf()
-                    },
-                    actions = if (password.isNotEmpty()) {
-                        actions
-                    } else {
-                        persistentListOf()
-                    },
-                    onCopy = if (password.isNotEmpty()) {
-                        copyItemFactory::copy
-                            .partially1(password)
-                            .partially1(false)
-                            .partially1(CopyText.Type.PASSWORD)
-                    } else {
-                        null
-                    },
-                    onRefresh = refreshPassword,
-                )
             },
         )
     }.stateIn(screenScope)
@@ -1475,10 +1635,124 @@ fun produceGeneratorState(
             val state = GeneratorState(
                 onOpenHistory = ::onOpenHistory,
                 options = options,
+                loadedState = loadingFlow,
                 typeState = typesFlow,
                 valueState = passwordFlow,
                 filterState = filterFlow,
             )
             Loadable.Ok(state)
         }
+}
+
+private fun RememberStateFlowScope.flowOfGeneratorType(
+    typesAllFlow: Flow<List<GeneratorType2>>,
+    typeFlow: Flow<GeneratorType2>,
+    typeSink: MutableStateFlow<String>,
+): Flow<GeneratorState.Type> {
+    fun createEmailRelayAction(
+        emailRelay: DGeneratorEmailRelay,
+        selected: Boolean,
+        onClick: () -> Unit,
+    ): FlatItemAction {
+        return FlatItemAction(
+            leading = {
+                val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
+                    emailRelay.accentColor.dark
+                } else {
+                    emailRelay.accentColor.light
+                }
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(backgroundColor, shape = CircleShape),
+                )
+            },
+            title = TextHolder.Value(emailRelay.name),
+            selected = selected,
+            onClick = onClick,
+        )
+    }
+
+    fun createTypeAction(
+        type: GeneratorType2,
+        selected: Boolean,
+        onClick: () -> Unit,
+    ): FlatItemAction {
+        val primaryIcon = when {
+            type.password -> Icons.Outlined.Password
+            type.sshKey -> Icons.Outlined.Terminal
+            type is GeneratorType2.Username -> Icons.Outlined.AlternateEmail
+            else -> Icons.Outlined.Mail
+        }
+        val secondaryIcon = when {
+            type.sshKey -> Icons.Outlined.Key
+            else -> null
+        }
+        return FlatItemAction(
+            title = type.title,
+            leading = iconSmall(primaryIcon, secondaryIcon),
+            selected = selected,
+            onClick = onClick,
+        )
+    }
+
+    return combine(
+        typesAllFlow,
+        typeFlow,
+    ) { allTypes, type ->
+        val typeTitle = translate(type.title)
+        val typeItems = buildContextItems {
+            allTypes.forEachIndexed { index, item ->
+                if (index > 0) {
+                    val groupChanged = allTypes[index - 1].group != item.group
+                    if (groupChanged) {
+                        this += when (item.group) {
+                            GENERATOR_TYPE_GROUP_INTEGRATION ->
+                                ContextItem.Section(
+                                    title = translate(Res.string.emailrelay_list_section_title),
+                                )
+
+                            else -> ContextItem.Section()
+                        }
+                    }
+                }
+
+                val selected = item.key == type.key
+                val onClick: () -> Unit = {
+                    typeSink.value = item.key
+                }
+                when (item) {
+                    is GeneratorType2.EmailRelay -> {
+                        this += createEmailRelayAction(
+                            emailRelay = item.config,
+                            selected = selected,
+                            onClick = onClick,
+                        )
+                    }
+
+                    else -> {
+                        this += createTypeAction(
+                            type = item,
+                            selected = selected,
+                            onClick = onClick,
+                        )
+                    }
+                }
+            }
+        }
+        GeneratorState.Type(
+            title = typeTitle,
+            items = typeItems,
+        )
+    }
+}
+
+private data class ValueGenerationEvent(
+    val id: String,
+    val data: Loadable<Data>,
+) {
+    data class Data(
+        val result: Either<Throwable, GetPasswordResult?>,
+        val type: GeneratorType2,
+    )
 }

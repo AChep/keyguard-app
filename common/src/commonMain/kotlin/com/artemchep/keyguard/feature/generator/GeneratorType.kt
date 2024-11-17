@@ -7,14 +7,16 @@ import com.artemchep.keyguard.res.*
 
 const val GENERATOR_TYPE_GROUP_PASSWORD = "password"
 const val GENERATOR_TYPE_GROUP_USERNAME = "username"
+const val GENERATOR_TYPE_GROUP_KEY_PAIR = "key_pair"
 const val GENERATOR_TYPE_GROUP_INTEGRATION = "integration"
 
 sealed interface GeneratorType2 {
     val key: String
     val group: String
     val title: TextHolder
-    val username: Boolean
-    val password: Boolean
+    val username: Boolean get() = false
+    val password: Boolean get() = false
+    val sshKey: Boolean get() = false
 
     data object Password : GeneratorType2 {
         override val key: String = "PASSWORD"
@@ -28,7 +30,6 @@ sealed interface GeneratorType2 {
         override val key: String = "PASSPHRASE"
         override val group: String = GENERATOR_TYPE_GROUP_PASSWORD
         override val title: TextHolder = TextHolder.Res(Res.string.generator_passphrase_type)
-        override val username: Boolean = false
         override val password: Boolean = true
     }
 
@@ -37,7 +38,6 @@ sealed interface GeneratorType2 {
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME
         override val title: TextHolder = TextHolder.Res(Res.string.generator_username_type)
         override val username: Boolean = true
-        override val password: Boolean = false
     }
 
     data object EmailCatchAll : GeneratorType2 {
@@ -45,7 +45,6 @@ sealed interface GeneratorType2 {
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME
         override val title: TextHolder = TextHolder.Res(Res.string.generator_email_catch_all_type)
         override val username: Boolean = true
-        override val password: Boolean = false
     }
 
     data object EmailPlusAddressing : GeneratorType2 {
@@ -54,7 +53,6 @@ sealed interface GeneratorType2 {
         override val title: TextHolder =
             TextHolder.Res(Res.string.generator_email_plus_addressing_type)
         override val username: Boolean = true
-        override val password: Boolean = false
     }
 
     data object EmailSubdomainAddressing : GeneratorType2 {
@@ -63,7 +61,6 @@ sealed interface GeneratorType2 {
         override val title: TextHolder =
             TextHolder.Res(Res.string.generator_email_subdomain_addressing_type)
         override val username: Boolean = true
-        override val password: Boolean = false
     }
 
     data class EmailRelay(
@@ -74,6 +71,13 @@ sealed interface GeneratorType2 {
         override val group: String = GENERATOR_TYPE_GROUP_INTEGRATION
         override val title: TextHolder = TextHolder.Value(config.name)
         override val username: Boolean = true
-        override val password: Boolean = false
+    }
+
+    data object SshKey : GeneratorType2 {
+        override val key: String = "SSH_KEY"
+        override val group: String = GENERATOR_TYPE_GROUP_KEY_PAIR
+        override val title: TextHolder =
+            TextHolder.Res(Res.string.key_ssh)
+        override val sshKey: Boolean = true
     }
 }

@@ -1586,6 +1586,9 @@ fun vaultListScreenState(
                 createTypeAction(
                     type = DSecret.Type.SecureNote,
                 ),
+                createTypeAction(
+                    type = DSecret.Type.SshKey,
+                ),
             )
         }
         VaultListState(

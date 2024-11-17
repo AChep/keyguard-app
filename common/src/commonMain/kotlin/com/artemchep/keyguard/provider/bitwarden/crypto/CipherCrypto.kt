@@ -17,6 +17,7 @@ fun BitwardenCipher.transform(
     secureNote = secureNote?.transform(itemCrypto),
     card = card?.transform(itemCrypto),
     identity = identity?.transform(itemCrypto),
+    sshKey = sshKey?.transform(itemCrypto),
 )
 
 @JvmName("encryptListOfBitwardenCipherAttachment")
@@ -146,4 +147,12 @@ fun BitwardenCipher.Card.transform(
     expMonth = crypto.transformString(expMonth),
     expYear = crypto.transformString(expYear),
     code = crypto.transformString(code),
+)
+
+fun BitwardenCipher.SshKey.transform(
+    crypto: BitwardenCrCta,
+) = copy(
+    privateKey = crypto.transformString(privateKey),
+    publicKey = crypto.transformString(publicKey),
+    fingerprint = crypto.transformString(fingerprint),
 )

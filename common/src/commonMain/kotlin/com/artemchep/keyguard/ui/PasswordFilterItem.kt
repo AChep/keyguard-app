@@ -26,8 +26,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,7 +36,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.minimumInteractiveComponentSize
@@ -64,13 +63,10 @@ import androidx.compose.ui.unit.sp
 import arrow.core.andThen
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.home.vault.component.VaultItemIcon2
-import com.artemchep.keyguard.feature.home.vault.component.localSurfaceColorAtElevation
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
-import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
-import com.artemchep.keyguard.ui.surface.ProvideSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -109,6 +105,7 @@ data class FlatItemAction(
     val title: TextHolder,
     val text: TextHolder? = null,
     val type: Type? = null,
+    val selected: Boolean = false,
     val onClick: (() -> Unit)? = {},
 ) : ContextItem {
     companion object;
@@ -335,6 +332,43 @@ class DropdownScopeImpl(
     parent: ColumnScope,
     override val onDismissRequest: () -> Unit,
 ) : DropdownScope, ColumnScope by parent
+
+context(DropdownScope)
+@Composable
+fun <T> ColumnScope.DropdownMenuExpandableContainer(
+    list: List<T>,
+    maxItems: Int = 4,
+    render: @Composable (T) -> Unit,
+) {
+    var maximized by remember {
+        mutableStateOf(false)
+    }
+    list.forEachIndexed { i, el ->
+        if (!maximized) {
+            if (i == maxItems) {
+                DropdownMenuItemFlatLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            maximized = true
+                        },
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(18.dp),
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null,
+                    )
+                }
+            }
+            if (i >= maxItems) {
+                return@forEachIndexed
+            }
+        }
+        render(el)
+    }
+}
 
 @Composable
 fun FlatItem(

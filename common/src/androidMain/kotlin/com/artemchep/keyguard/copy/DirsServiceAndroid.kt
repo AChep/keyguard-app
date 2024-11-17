@@ -13,7 +13,6 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.dirs.DirsService
-import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.OutputStream
@@ -30,7 +29,7 @@ class DirsServiceAndroid(
     override fun saveToDownloads(
         fileName: String,
         write: suspend (OutputStream) -> Unit,
-    ): IO<Unit> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    ): IO<String?> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         saveToDownloadsApi29(
             fileName = fileName,
             write = write,
@@ -61,6 +60,7 @@ class DirsServiceAndroid(
             file.delete()
             throw e
         }
+        file.toURI().toString()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -82,7 +82,7 @@ class DirsServiceAndroid(
             // Save to external downloads
             MediaStore.Downloads.EXTERNAL_CONTENT_URI
         }.bind()
-        Unit
+        null
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)

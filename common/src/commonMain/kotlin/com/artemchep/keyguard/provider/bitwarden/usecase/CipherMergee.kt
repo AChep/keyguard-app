@@ -14,6 +14,10 @@ import com.artemchep.keyguard.common.model.country
 import com.artemchep.keyguard.common.model.email
 import com.artemchep.keyguard.common.model.favorite
 import com.artemchep.keyguard.common.model.fields
+import com.artemchep.keyguard.common.model.sshKey
+import com.artemchep.keyguard.common.model.privateKey
+import com.artemchep.keyguard.common.model.publicKey
+import com.artemchep.keyguard.common.model.fingerprint
 import com.artemchep.keyguard.common.model.firstName
 import com.artemchep.keyguard.common.model.identity
 import com.artemchep.keyguard.common.model.lastName
@@ -107,6 +111,14 @@ class CipherMergeImpl() : CipherMerge {
                     Node.Leaf(DSecret.Identity.licenseNumber),
                 ),
             ),
+            Node.Group<DSecret, DSecret.SshKey>(
+                lens = DSecret.sshKey,
+                children = listOf(
+                    Node.Leaf(DSecret.SshKey.privateKey),
+                    Node.Leaf(DSecret.SshKey.publicKey),
+                    Node.Leaf(DSecret.SshKey.fingerprint),
+                ),
+            ),
         ),
     )
 
@@ -189,6 +201,7 @@ class CipherMergeImpl() : CipherMerge {
                     login = login ?: DSecret.Login(),
                     identity = identity ?: DSecret.Identity(),
                     card = card ?: DSecret.Card(),
+                    sshKey = sshKey ?: DSecret.SshKey(),
                 )
             }
         mergeRules.merge(initialCipher, ciphers) as DSecret

@@ -6,8 +6,12 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorHistory
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.KeyPairExport
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
@@ -19,6 +23,7 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
+import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -60,6 +65,9 @@ fun produceGeneratorHistoryState() = with(localDI().direct) {
         getGeneratorHistory = instance(),
         removeGeneratorHistory = instance(),
         removeGeneratorHistoryById = instance(),
+        keyPairExport = instance(),
+        publicKeyExport = instance(),
+        privateKeyExport = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
     )
@@ -70,6 +78,9 @@ fun produceGeneratorHistoryState(
     getGeneratorHistory: GetGeneratorHistory,
     removeGeneratorHistory: RemoveGeneratorHistory,
     removeGeneratorHistoryById: RemoveGeneratorHistoryById,
+    keyPairExport: KeyPairExport,
+    publicKeyExport: KeyPublicExport,
+    privateKeyExport: KeyPrivateExport,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
 ): Loadable<GeneratorHistoryState> = produceScreenState(
@@ -115,7 +126,7 @@ fun produceGeneratorHistoryState(
             translate(Res.string.generatorhistory_delete_one_confirmation_title)
         }
         val message = items
-            .joinToString(separator = "\n") { it.value }
+            .joinToString(separator = "\n") { it.value.message() }
         val intent = createConfirmationDialogIntent(
             icon = icon(Icons.Outlined.Delete),
             title = title,
@@ -189,8 +200,8 @@ fun produceGeneratorHistoryState(
                 val type = when {
                     item.isPassword && item.isUsername -> null
                     item.isPassword -> GeneratorHistoryItem.Value.Type.PASSWORD
-                    item.isUsername -> kotlin.run {
-                        val isEmail = REGEX_EMAIL.matches(item.value)
+                    item.isUsername && item.value is GetPasswordResult.Value -> kotlin.run {
+                        val isEmail = REGEX_EMAIL.matches(item.value.value)
                         if (isEmail) {
                             if (item.isEmailRelay) {
                                 GeneratorHistoryItem.Value.Type.EMAIL_RELAY
@@ -202,30 +213,78 @@ fun produceGeneratorHistoryState(
                         }
                     }
 
+                    item.isSshKey -> GeneratorHistoryItem.Value.Type.SSH_KEY
+
                     else -> null
                 }
                 val actions = buildContextItems {
-                    section {
-                        val (copyTitle, copyType) = when (type) {
-                            GeneratorHistoryItem.Value.Type.PASSWORD ->
-                                translate(Res.string.copy_password) to CopyText.Type.PASSWORD
+                    when (val v = item.value) {
+                        is GetPasswordResult.Value -> {
+                            val content = v.value
+                            section {
+                                val (copyTitle, copyType) = when (type) {
+                                    GeneratorHistoryItem.Value.Type.PASSWORD ->
+                                        translate(Res.string.copy_password) to CopyText.Type.PASSWORD
 
-                            GeneratorHistoryItem.Value.Type.EMAIL,
-                            GeneratorHistoryItem.Value.Type.EMAIL_RELAY,
-                            ->
-                                translate(Res.string.copy_email) to CopyText.Type.EMAIL
+                                    GeneratorHistoryItem.Value.Type.EMAIL,
+                                    GeneratorHistoryItem.Value.Type.EMAIL_RELAY,
+                                        ->
+                                        translate(Res.string.copy_email) to CopyText.Type.EMAIL
 
-                            GeneratorHistoryItem.Value.Type.USERNAME ->
-                                translate(Res.string.copy_username) to CopyText.Type.USERNAME
+                                    GeneratorHistoryItem.Value.Type.USERNAME ->
+                                        translate(Res.string.copy_username) to CopyText.Type.USERNAME
 
-                            null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
+                                    GeneratorHistoryItem.Value.Type.SSH_KEY ->
+                                        translate(Res.string.copy_value) to CopyText.Type.VALUE
+
+                                    null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
+                                }
+                                this += copyFactory.FlatItemAction(
+                                    title = TextHolder.Value(copyTitle),
+                                    value = content,
+                                    hidden = item.isPassword,
+                                    type = copyType,
+                                )
+                            }
+                            section {
+                                this += LargeTypeRoute.showInLargeTypeActionOrNull(
+                                    translator = this@produceScreenState,
+                                    text = content,
+                                    colorize = item.isPassword,
+                                    navigate = ::navigate,
+                                )
+                                this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
+                                    translator = this@produceScreenState,
+                                    text = content,
+                                    colorize = item.isPassword,
+                                    navigate = ::navigate,
+                                )
+                            }
+                            section {
+                                // If the value type is a password, then offer to
+                                // check it in the breaches.
+                                if (type == GeneratorHistoryItem.Value.Type.PASSWORD) {
+                                    this += PasswordLeakRoute.checkBreachesPasswordAction(
+                                        translator = this@produceScreenState,
+                                        password = content,
+                                        navigate = ::navigate,
+                                    )
+                                }
+                            }
                         }
-                        this += copyFactory.FlatItemAction(
-                            title = TextHolder.Value(copyTitle),
-                            value = item.value,
-                            hidden = item.isPassword,
-                            type = copyType,
-                        )
+
+                        is GetPasswordResult.AsyncKey -> {
+                            val keyPair = v.keyPair
+                            SshKeyActions.addAll(
+                                keyPair = keyPair,
+                                keyPairExport = keyPairExport,
+                                publicKeyExport = publicKeyExport,
+                                privateKeyExport = privateKeyExport,
+                                copyItemFactory = copyFactory,
+                            )
+                        }
+                    }
+                    section {
                         val items = listOfNotNull(
                             item,
                         )
@@ -236,31 +295,6 @@ fun produceGeneratorHistoryState(
                                 onDeleteByItems(items)
                             },
                         )
-                    }
-                    section {
-                        this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                            translator = this@produceScreenState,
-                            text = item.value,
-                            colorize = item.isPassword,
-                            navigate = ::navigate,
-                        )
-                        this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                            translator = this@produceScreenState,
-                            text = item.value,
-                            colorize = item.isPassword,
-                            navigate = ::navigate,
-                        )
-                    }
-                    section {
-                        // If the value type is a password, then offer to
-                        // check it in the breaches.
-                        if (type == GeneratorHistoryItem.Value.Type.PASSWORD) {
-                            this += PasswordLeakRoute.checkBreachesPasswordAction(
-                                translator = this@produceScreenState,
-                                password = item.value,
-                                navigate = ::navigate,
-                            )
-                        }
                     }
                 }
                 val selectableFlow = selectionHandle
@@ -301,7 +335,7 @@ fun produceGeneratorHistoryState(
                     }
                 GeneratorHistoryItem.Value(
                     id = item.id.orEmpty(),
-                    title = item.value,
+                    title = item.value.message(),
                     text = dateFormatter.formatDateTime(item.createdDate),
                     type = type,
                     createdDate = item.createdDate,

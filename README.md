@@ -27,7 +27,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - add items 🌠 and sends 🌠, modify 🌠, and view your vault **offline**;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;
-- a generator with **Email forwarders**, **Custom wordlists** support, and many other features; 
+- a generator with **SSH keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
 - a support for [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
 - and much more!
 

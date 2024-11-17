@@ -79,6 +79,7 @@ sealed interface VaultViewItem {
         val elevation: Dp = 0.dp,
         val title: String?,
         val value: String,
+        val maxLines: Int = Int.MAX_VALUE,
         val private: Boolean = false,
         val hidden: Boolean = false,
         val monospace: Boolean = false,

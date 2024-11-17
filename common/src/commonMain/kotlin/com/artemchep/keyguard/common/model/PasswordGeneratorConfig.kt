@@ -29,6 +29,10 @@ sealed interface PasswordGeneratorConfig {
         val config: DGeneratorEmailRelay,
     ) : PasswordGeneratorConfig
 
+    data class KeyPair(
+        val config: KeyPairConfig,
+    ) : PasswordGeneratorConfig
+
     data class Composite(
         val config: PasswordGeneratorConfig,
         val transform: (String) -> String?,
@@ -39,5 +43,6 @@ fun PasswordGeneratorConfig.isExpensive(): Boolean = when (this) {
     is PasswordGeneratorConfig.Passphrase -> false
     is PasswordGeneratorConfig.Password -> false
     is PasswordGeneratorConfig.EmailRelay -> true
+    is PasswordGeneratorConfig.KeyPair -> true
     is PasswordGeneratorConfig.Composite -> config.isExpensive()
 }

@@ -42,7 +42,7 @@ class DataDirectory(
     override fun saveToDownloads(
         fileName: String,
         write: suspend (OutputStream) -> Unit,
-    ): IO<Unit> = ioEffect {
+    ): IO<String?> = ioEffect {
         val downloadsDir = downloads()
             .bind()
             .let(::File)
@@ -54,6 +54,6 @@ class DataDirectory(
             .use {
                 write(it)
             }
-        Unit
+        file.toURI().toString()
     }
 }

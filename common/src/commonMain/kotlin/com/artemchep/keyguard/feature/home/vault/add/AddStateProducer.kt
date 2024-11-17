@@ -28,19 +28,17 @@ import arrow.core.partially1
 import arrow.core.partially2
 import arrow.core.widen
 import arrow.optics.Optional
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.KeyPair
+import com.artemchep.keyguard.common.model.KeyPairDecor
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
-import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -67,16 +65,14 @@ import com.artemchep.keyguard.common.model.create.number
 import com.artemchep.keyguard.common.model.create.passportNumber
 import com.artemchep.keyguard.common.model.create.phone
 import com.artemchep.keyguard.common.model.create.postalCode
+import com.artemchep.keyguard.common.model.create.sshKey
 import com.artemchep.keyguard.common.model.create.ssn
 import com.artemchep.keyguard.common.model.create.state
 import com.artemchep.keyguard.common.model.create.title
 import com.artemchep.keyguard.common.model.create.username
 import com.artemchep.keyguard.common.model.creditCards
-import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
-import com.artemchep.keyguard.common.model.firstOrNull
-import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
@@ -124,6 +120,7 @@ import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.vault.add.AddStateItemPasskeyFactory.PasskeyHolder
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
@@ -132,7 +129,6 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
-import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -166,7 +162,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -175,11 +170,13 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.encodeToString
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.io.Serializable
+import kotlin.math.sin
 import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
@@ -315,6 +312,9 @@ fun produceAddScreenState(
     val noteHolder = produceNoteState(
         args = args,
         markdown = markdown,
+    )
+    val sshKeyHolder = produceSshKeyState(
+        args = args,
     )
 
     val typeFlow = kotlin.run {
@@ -509,6 +509,7 @@ fun produceAddScreenState(
                 DSecret.Type.Card -> flowOf(cardHolder.items)
                 DSecret.Type.Identity -> flowOf(identityHolder.items)
                 DSecret.Type.SecureNote -> flowOf(noteHolder.items)
+                DSecret.Type.SshKey -> flowOf(sshKeyHolder.items)
                 DSecret.Type.None -> flowOf(emptyList())
             }
         }
@@ -674,7 +675,8 @@ fun produceAddScreenState(
                                 booleanType,
                             )
 
-                            DSecret.Type.None -> emptyList()
+                            DSecret.Type.SshKey,
+                            DSecret.Type.None, -> emptyList()
                         }
                     },
             )
@@ -2171,6 +2173,11 @@ data class TmpNote(
     val items: List<AddStateItem>,
 )
 
+data class TmpSshKey(
+    val sshKey: AddStateItem.SshKey<CreateRequest>,
+    val items: List<AddStateItem>,
+)
+
 private suspend fun RememberStateFlowScope.produceLoginState(
     args: AddRoute.Args,
     profileFlow: Flow<DProfile?>,
@@ -3271,6 +3278,101 @@ private suspend fun RememberStateFlowScope.produceNoteState(
         items = listOfNotNull<AddStateItem>(
             note,
             noteSuggestions,
+        ),
+    )
+}
+
+@kotlinx.serialization.Serializable
+data class KeyPairDecor2(
+    @SerialName("privateKey")
+    val privateKey: String,
+    @SerialName("publicKey")
+    val publicKey: String,
+    @SerialName("fingerprint")
+    val fingerprint: String,
+)
+
+data class KeyPairDecor2Brr(
+    val keyPair: KeyPairDecor2? = null,
+    val onChange: (KeyPair) -> Unit,
+)
+
+private suspend fun RememberStateFlowScope.produceSshKeyState(
+    args: AddRoute.Args,
+): TmpSshKey {
+    val prefix = "sshKey"
+
+    val sshKey = kotlin.run {
+        val id = "$prefix.sshKey"
+
+        val sink = mutablePersistedFlow(
+            id,
+            serialize = { json, m: KeyPairDecor2 ->
+                json.encodeToString(m)
+            },
+            deserialize = { json, m: String ->
+                json.decodeFromString(m)
+            },
+        ) {
+            KeyPairDecor2(
+                privateKey = args.keyPair?.privateKey?.ssh ?: args.initialValue?.sshKey?.privateKey ?: "",
+                publicKey = args.keyPair?.publicKey?.ssh ?: args.initialValue?.sshKey?.publicKey ?: "",
+                fingerprint = args.keyPair?.publicKey?.fingerprint ?: args.initialValue?.sshKey?.fingerprint ?: "",
+            )
+        }
+        val stateItem = LocalStateItem<KeyPairDecor2Brr, CreateRequest>(
+            flow = sink
+                .map { value ->
+                    KeyPairDecor2Brr(
+                        keyPair = value,
+                        onChange = {
+                            val new = KeyPairDecor2(
+                                privateKey = it.privateKey.ssh,
+                                publicKey = it.publicKey.ssh,
+                                fingerprint = it.publicKey.fingerprint,
+                            )
+                            sink.value = new
+                        },
+                    )
+                }
+                .persistingStateIn(
+                    scope = screenScope,
+                    started = SharingStarted.WhileSubscribed(),
+                    initialValue = KeyPairDecor2Brr(
+                        onChange = {
+                            // Do nothing
+                        },
+                    ),
+                ),
+            populator = { state ->
+                val sshKey = CreateRequest.SshKey(
+                    privateKey = state.keyPair?.privateKey,
+                    publicKey = state.keyPair?.publicKey,
+                    fingerprint = state.keyPair?.fingerprint,
+                )
+                CreateRequest.sshKey.set(this, sshKey)
+            },
+        )
+        AddStateItem.SshKey(
+            id = id,
+            state = stateItem,
+        )
+    }
+//    val sshKeySuggestions = createItem2(
+//        prefix = prefix,
+//        key = "sshKey",
+//        args = args,
+//        getSuggestion = { it.notes },
+//        selectedFlow = sshKey.state.flow.map { it.text },
+//        onClick = {
+//            sshKey.state.flow.value.onChange?.invoke(it)
+//        },
+//    )
+    return TmpSshKey(
+        sshKey = sshKey,
+        items = listOfNotNull<AddStateItem>(
+            sshKey,
+//            sshKeySuggestions,
         ),
     )
 }

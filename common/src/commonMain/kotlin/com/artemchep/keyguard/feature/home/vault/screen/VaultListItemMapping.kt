@@ -78,6 +78,13 @@ suspend fun DSecret.toVaultListItem(
                 concealFields = cf,
             )
 
+        DSecret.Type.SshKey ->
+            createSshKey(
+                copy = copy,
+                translator = translator,
+                concealFields = cf,
+            )
+
         else -> createUnknown()
     }
 
@@ -329,6 +336,17 @@ private fun DSecret.createNote(
     } else {
         notes
     }
+    return TypeSpecific(
+        text = text,
+    )
+}
+
+private fun DSecret.createSshKey(
+    copy: CopyText,
+    translator: TranslatorScope,
+    concealFields: Boolean,
+): TypeSpecific {
+    val text = sshKey?.fingerprint.orEmpty()
     return TypeSpecific(
         text = text,
     )

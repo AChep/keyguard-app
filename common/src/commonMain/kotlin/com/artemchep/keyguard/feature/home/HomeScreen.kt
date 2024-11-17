@@ -157,6 +157,7 @@ private val generatorRoute = GeneratorRoute(
     args = GeneratorRoute.Args(
         password = true,
         username = true,
+        sshKey = true,
     ),
 )
 

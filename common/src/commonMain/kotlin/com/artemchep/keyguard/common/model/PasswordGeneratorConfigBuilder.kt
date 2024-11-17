@@ -59,6 +59,10 @@ sealed interface PasswordGeneratorConfigBuilder2 {
         val emailRelay: com.artemchep.keyguard.common.service.relays.api.EmailRelay,
         val config: DGeneratorEmailRelay,
     ) : PasswordGeneratorConfigBuilder2
+
+    data class KeyPair(
+        val config: KeyPairConfig,
+    ) : PasswordGeneratorConfigBuilder2
 }
 
 fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (this) {
@@ -69,6 +73,7 @@ fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (thi
     is PasswordGeneratorConfigBuilder2.EmailPlusAddressing -> build()
     is PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing -> build()
     is PasswordGeneratorConfigBuilder2.EmailRelay -> build()
+    is PasswordGeneratorConfigBuilder2.KeyPair -> build()
 }
 
 fun PasswordGeneratorConfigBuilder2.Password.build(): PasswordGeneratorConfig {
@@ -202,6 +207,12 @@ fun PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing.build(): PasswordGe
 fun PasswordGeneratorConfigBuilder2.EmailRelay.build(): PasswordGeneratorConfig {
     return PasswordGeneratorConfig.EmailRelay(
         emailRelay = emailRelay,
+        config = config,
+    )
+}
+
+fun PasswordGeneratorConfigBuilder2.KeyPair.build(): PasswordGeneratorConfig {
+    return PasswordGeneratorConfig.KeyPair(
         config = config,
     )
 }

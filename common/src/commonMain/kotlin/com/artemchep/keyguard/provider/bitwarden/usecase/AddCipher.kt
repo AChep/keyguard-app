@@ -271,6 +271,7 @@ private suspend fun BitwardenCipher.Companion.of(
         DSecret.Type.SecureNote -> BitwardenCipher.Type.SecureNote
         DSecret.Type.Card -> BitwardenCipher.Type.Card
         DSecret.Type.Identity -> BitwardenCipher.Type.Identity
+        DSecret.Type.SshKey -> BitwardenCipher.Type.SshKey
         null,
         DSecret.Type.None,
         -> error("Cipher must have a type!")
@@ -280,6 +281,7 @@ private suspend fun BitwardenCipher.Companion.of(
     var secureNote: BitwardenCipher.SecureNote? = null
     var card: BitwardenCipher.Card? = null
     var identity: BitwardenCipher.Identity? = null
+    var sshKey: BitwardenCipher.SshKey? = null
     when (type) {
         BitwardenCipher.Type.Login -> {
             login = BitwardenCipher.Login.of(
@@ -304,6 +306,12 @@ private suspend fun BitwardenCipher.Companion.of(
 
         BitwardenCipher.Type.Identity -> {
             identity = BitwardenCipher.Identity.of(
+                request = request,
+            )
+        }
+
+        BitwardenCipher.Type.SshKey -> {
+            sshKey = BitwardenCipher.SshKey.of(
                 request = request,
             )
         }
@@ -423,6 +431,7 @@ private suspend fun BitwardenCipher.Companion.of(
         secureNote = secureNote,
         card = card,
         identity = identity,
+        sshKey = sshKey,
     )
 }
 
@@ -571,6 +580,14 @@ private suspend fun BitwardenCipher.SecureNote.Companion.of(
     request: CreateRequest,
 ): BitwardenCipher.SecureNote = BitwardenCipher.SecureNote(
     type = BitwardenCipher.SecureNote.Type.Generic,
+)
+
+private suspend fun BitwardenCipher.SshKey.Companion.of(
+    request: CreateRequest,
+): BitwardenCipher.SshKey = BitwardenCipher.SshKey(
+    privateKey = request.sshKey.privateKey,
+    publicKey = request.sshKey.publicKey,
+    fingerprint = request.sshKey.fingerprint,
 )
 
 private suspend fun BitwardenCipher.Card.Companion.of(

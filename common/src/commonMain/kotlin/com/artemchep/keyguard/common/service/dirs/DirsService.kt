@@ -7,5 +7,5 @@ interface DirsService {
     fun saveToDownloads(
         fileName: String,
         write: suspend (OutputStream) -> Unit,
-    ): IO<Unit>
+    ): IO<String?>
 }

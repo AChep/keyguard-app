@@ -1,9 +1,12 @@
 package com.artemchep.keyguard.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
@@ -11,6 +14,7 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.ui.theme.selectedContainer
 
 @Composable
 fun DropdownScope.DropdownMenuItemFlat(
@@ -54,9 +59,17 @@ fun DropdownScope.DropdownMenuItemFlat(
 fun DropdownScope.DropdownMenuItemFlat(
     action: FlatItemAction,
 ) {
-    Row(
+    DropdownMenuItemFlatLayout(
         modifier = Modifier
-            .widthIn(max = DropdownMinWidth)
+            .then(
+                if (action.selected) {
+                    val background = MaterialTheme.colorScheme.selectedContainer
+                    Modifier
+                        .background(background)
+                } else {
+                    Modifier
+                }
+            )
             .then(
                 if (action.onClick != null) {
                     Modifier
@@ -68,17 +81,32 @@ fun DropdownScope.DropdownMenuItemFlat(
                     Modifier
                 },
             )
-            .minimumInteractiveComponentSize()
-            .padding(
-                horizontal = 8.dp,
-                vertical = 4.dp,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
+            .minimumInteractiveComponentSize(),
     ) {
         FlatItemActionContent(
             action = action,
             compact = true,
         )
+    }
+}
+
+@Composable
+fun DropdownScope.DropdownMenuItemFlatLayout(
+    modifier: Modifier = Modifier,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .widthIn(max = DropdownMinWidth)
+            .padding(
+                horizontal = 8.dp,
+                vertical = 4.dp,
+            ),
+        horizontalArrangement = horizontalArrangement,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        content()
     }
 }
 

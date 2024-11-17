@@ -9,6 +9,7 @@ data class GeneratorRoute(
     data class Args(
         val username: Boolean = false,
         val password: Boolean = false,
+        val sshKey: Boolean = false,
     )
 
     @Composable

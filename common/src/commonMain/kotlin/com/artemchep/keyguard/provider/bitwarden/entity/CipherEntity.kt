@@ -64,6 +64,9 @@ data class CipherEntity(
     @JsonNames("identity")
     @SerialName("Identity")
     val identity: IdentityEntity? = null,
+    @JsonNames("sshKey")
+    @SerialName("SshKey")
+    val sshKey: SshKeyEntity? = null,
     @JsonNames("fields")
     @SerialName("Fields")
     val fields: List<FieldEntity>? = null,

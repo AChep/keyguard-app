@@ -349,6 +349,35 @@ class CipherDuplicatesCheckImpl(
             ).let { yield(it) }
             return@sequence
         }
+
+        // SSH key
+        if (
+            a.processed.sshKey != null &&
+            b.processed.sshKey != null &&
+            a.processed.type == DSecret.Type.SshKey
+        ) {
+            val aSshKey = a.processed.sshKey
+            val bSshKey = b.processed.sshKey
+            compareStringsFuzzy(
+                a = aSshKey.privateKey,
+                b = bSshKey.privateKey,
+                strategy = ComparisonStrategy.Exact,
+                weight = 5f,
+            ).let { yield(it) }
+            compareStringsFuzzy(
+                a = aSshKey.publicKey,
+                b = bSshKey.publicKey,
+                strategy = ComparisonStrategy.Exact,
+                weight = 5f,
+            ).let { yield(it) }
+            compareStringsFuzzy(
+                a = aSshKey.fingerprint,
+                b = bSshKey.fingerprint,
+                strategy = ComparisonStrategy.Exact,
+                weight = 5f,
+            ).let { yield(it) }
+            return@sequence
+        }
     }
 
     private sealed interface ComparisonStrategy {
@@ -497,6 +526,7 @@ class CipherDuplicatesCheckImpl(
             login = cipher.login?.let(::processLogin),
             card = cipher.card?.let(::processCard),
             identity = cipher.identity?.let(::processIdentity),
+            sshKey = cipher.sshKey?.let(::processSshKey),
         )
         return ProcessedSecret(
             source = cipher,
@@ -539,6 +569,10 @@ class CipherDuplicatesCheckImpl(
             passportNumber = identity.passportNumber?.let(::processString),
             licenseNumber = identity.licenseNumber?.let(::processString),
         )
+    }
+
+    private fun processSshKey(sshKey: DSecret.SshKey): DSecret.SshKey {
+        return sshKey
     }
 
     private fun processString(str: String) = str

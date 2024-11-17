@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -72,8 +73,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -236,6 +237,13 @@ fun AnyField(
 
     is AddStateItem.Note<*> -> {
         NoteTextField(
+            modifier = modifier,
+            item = item,
+        )
+    }
+
+    is AddStateItem.SshKey<*> -> {
+        SshKeyField(
             modifier = modifier,
             item = item,
         )
@@ -609,6 +617,63 @@ private fun NoteTextField(
             )
         }
     }
+}
+
+context(AddScreenScope)
+@Composable
+private fun SshKeyField(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.SshKey<*>,
+) {
+    val state by item.state.flow.collectAsState()
+    FlatItemLayout(
+        modifier = modifier,
+        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+        leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
+        paddingValues = PaddingValues(
+            horizontal = 16.dp,
+        ),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 8.dp,
+            top = 8.dp,
+            bottom = 8.dp,
+        ),
+        content = {
+            val fingerprint = state.keyPair?.fingerprint
+            if (!fingerprint.isNullOrEmpty()) {
+                FlatItemTextContent(
+                    title = {
+                        Text(
+                            text = fingerprint,
+                        )
+                    },
+                )
+            } else {
+                FlatItemTextContent(
+                    title = {
+                        Text(
+                            modifier = Modifier
+                                .alpha(DisabledEmphasisAlpha),
+                            text = stringResource(Res.string.empty_value),
+                        )
+                    },
+                )
+            }
+        },
+        trailing = {
+            AutofillButton(
+                key = "sshKey",
+                sshKey = true,
+                onResultChange = {
+                    if (it is GetPasswordResult.AsyncKey) {
+                        state.onChange(it.keyPair)
+                    }
+                },
+            )
+        },
+        enabled = true,
+    )
 }
 
 context(AddScreenScope)
@@ -1151,7 +1216,7 @@ context(AddScreenScope)
 private fun DateTimeField(
     modifier: Modifier = Modifier,
     item: AddStateItem.DateTime<*>,
-) = Column (modifier = modifier) {
+) = Column(modifier = modifier) {
     val state by item.state.flow.collectAsState()
     Row(
         modifier = Modifier,

@@ -590,6 +590,9 @@ suspend fun <
         DSecret.Type.SecureNote to createTypeFilterAction(
             type = DSecret.Type.SecureNote,
         ),
+        DSecret.Type.SshKey to createTypeFilterAction(
+            type = DSecret.Type.SshKey,
+        ),
     )
 
     val filterTypeListFlow = filterTypesWithCiphers

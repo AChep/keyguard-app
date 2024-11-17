@@ -26,6 +26,7 @@ data class CreateRequest(
     val login: Login = Login(),
     val card: Card = Card(),
     val identity: Identity = Identity(),
+    val sshKey: SshKey = SshKey(),
     // other
     val now: Instant,
 ) {
@@ -127,6 +128,15 @@ data class CreateRequest(
         val username: String? = null,
         val passportNumber: String? = null,
         val licenseNumber: String? = null,
+    ) {
+        companion object;
+    }
+
+    @optics
+    data class SshKey(
+        val privateKey: String? = null,
+        val publicKey: String? = null,
+        val fingerprint: String? = null,
     ) {
         companion object;
     }

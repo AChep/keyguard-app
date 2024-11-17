@@ -14,15 +14,12 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetConcealFields
-import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsRead
-import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
-import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
@@ -72,9 +69,6 @@ fun produceGeneratorHistoryState(
     produceGeneratorHistoryState(
         directDI = this,
         args = args,
-        getGeneratorHistory = instance(),
-        removeGeneratorHistory = instance(),
-        removeGeneratorHistoryById = instance(),
         markAllWatchtowerAlertAsRead = instance(),
         getProfiles = instance(),
         getOrganizations = instance(),
@@ -93,9 +87,6 @@ fun produceGeneratorHistoryState(
 fun produceGeneratorHistoryState(
     directDI: DirectDI,
     args: WatchtowerAlertsRoute.Args,
-    getGeneratorHistory: GetGeneratorHistory,
-    removeGeneratorHistory: RemoveGeneratorHistory,
-    removeGeneratorHistoryById: RemoveGeneratorHistoryById,
     markAllWatchtowerAlertAsRead: MarkAllWatchtowerAlertAsRead,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
@@ -111,9 +102,6 @@ fun produceGeneratorHistoryState(
     initial = Loadable.Loading,
     key = "watchtower_new_alerts",
     args = arrayOf(
-        getGeneratorHistory,
-        removeGeneratorHistory,
-        removeGeneratorHistoryById,
         dateFormatter,
         clipboardService,
     ),

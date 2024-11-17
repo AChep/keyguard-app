@@ -6,6 +6,10 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.usecase.KeyPairExport
+import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.deeplink.impl.DeeplinkServiceImpl
 import com.artemchep.keyguard.common.service.download.DownloadService
@@ -297,6 +301,9 @@ import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWebsiteIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWriteAccessImpl
+import com.artemchep.keyguard.common.usecase.impl.KeyPairExportImpl
+import com.artemchep.keyguard.common.usecase.impl.KeyPrivateExportImpl
+import com.artemchep.keyguard.common.usecase.impl.KeyPublicExportImpl
 import com.artemchep.keyguard.common.usecase.impl.MessageHubImpl
 import com.artemchep.keyguard.common.usecase.impl.PasskeyTargetCheckImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAllowScreenshotsImpl
@@ -365,6 +372,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorImpl
+import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
@@ -1185,6 +1193,21 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<KeyPairExport> {
+        KeyPairExportImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<KeyPublicExport> {
+        KeyPublicExportImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<KeyPrivateExport> {
+        KeyPrivateExportImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<WordlistService> {
         WordlistServiceImpl(
             directDI = this,
@@ -1310,6 +1333,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<CryptoGenerator> {
         CryptoGeneratorJvm()
+    }
+    bindSingleton<KeyPairGenerator> {
+        KeyPairGeneratorJvm(
+            directDI = this,
+        )
     }
     bindSingleton<TotpService> {
         TotpServiceImpl(

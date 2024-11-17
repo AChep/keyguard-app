@@ -59,7 +59,8 @@ class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
             DSecret.Type.Card -> incompleteCard(secret)
             DSecret.Type.Identity -> incompleteIdentity(secret)
             DSecret.Type.SecureNote -> incompleteNote(secret)
-            else -> false
+            DSecret.Type.SshKey -> incompleteSshKey(secret)
+            DSecret.Type.None -> false
         }
     }
 
@@ -102,17 +103,18 @@ class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
     }
 
     private fun incompleteNote(secret: DSecret): Boolean {
-        if (secret.notes.isBlank()) {
-            return true
-        }
-        return false
+        return secret.notes.isBlank()
     }
 
     private fun incompleteCard(secret: DSecret): Boolean {
         val card = secret.card ?: return true
-        if (card.number.isNullOrBlank()) {
-            return true
-        }
-        return false
+        return card.number.isNullOrBlank()
+    }
+
+    private fun incompleteSshKey(secret: DSecret): Boolean {
+        val sshKey = secret.sshKey ?: return true
+        return sshKey.privateKey.isNullOrBlank() ||
+                sshKey.publicKey.isNullOrBlank() ||
+                sshKey.fingerprint.isNullOrBlank()
     }
 }

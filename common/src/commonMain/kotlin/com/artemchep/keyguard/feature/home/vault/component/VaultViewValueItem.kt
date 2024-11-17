@@ -25,6 +25,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
@@ -39,6 +40,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlin.Int
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -89,6 +91,8 @@ fun VaultViewValueItem(
                                 .animateContentSize(),
                             text = shownValue,
                             fontFamily = if (item.monospace) monoFontFamily else null,
+                            maxLines = item.maxLines,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 } else {

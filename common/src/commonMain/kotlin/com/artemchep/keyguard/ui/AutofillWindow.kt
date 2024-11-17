@@ -16,7 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +39,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.LocalAppMode
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.generator.AutoResizeText
 import com.artemchep.keyguard.feature.generator.DecoratedSlider
@@ -62,13 +63,15 @@ fun AutofillButton(
     key: String,
     username: Boolean = false,
     password: Boolean = false,
+    sshKey: Boolean = false,
     onValueChange: ((String) -> Unit)? = null,
+    onResultChange: ((GetPasswordResult) -> Unit)? = null,
 ) {
     var isAutofillWindowShowing by remember {
         mutableStateOf(false)
     }
 
-    val enabled = onValueChange != null
+    val enabled = onValueChange != null || onResultChange != null
     if (!enabled) {
         // We can not autofill disabled text fields and we can not
         // tease user with it.
@@ -76,7 +79,7 @@ fun AutofillButton(
     }
 
     IconButton(
-        enabled = onValueChange != null,
+        enabled = enabled,
         onClick = {
             isAutofillWindowShowing = !isAutofillWindowShowing
         },
@@ -105,9 +108,13 @@ fun AutofillButton(
                 key = key,
                 username = username,
                 password = password,
-                onComplete = { password ->
-                    if (onValueChange != null && password != null) {
-                        onValueChange(password)
+                sshKey = sshKey,
+                onComplete = { result ->
+                    if (onValueChange != null && result != null && result is GetPasswordResult.Value) {
+                        onValueChange(result.value)
+                    }
+                    if (onResultChange != null && result != null) {
+                        onResultChange(result)
                     }
                     // Hide the dropdown window on click on one
                     // of the buttons.
@@ -130,12 +137,14 @@ fun ColumnScope.AutofillWindow(
     key: String,
     username: Boolean = false,
     password: Boolean = false,
-    onComplete: (String?) -> Unit,
+    sshKey: Boolean = false,
+    onComplete: (GetPasswordResult?) -> Unit,
 ) {
-    val args = remember(username, password) {
+    val args = remember(username, password, sshKey) {
         GeneratorRoute.Args(
             username = username,
             password = password,
+            sshKey = sshKey,
         )
     }
     val loadableState = produceGeneratorState(
@@ -152,6 +161,7 @@ fun ColumnScope.AutofillWindow(
                 username && password -> stringResource(Res.string.generator_header_title)
                 username -> stringResource(Res.string.generator_header_username_title)
                 password -> stringResource(Res.string.generator_header_password_title)
+                sshKey -> stringResource(Res.string.generator_header_ssh_key_title)
                 else -> stringResource(Res.string.generator_header_title)
             }
             Text(
@@ -174,7 +184,7 @@ fun ColumnScope.AutofillWindow(
 @Composable
 fun ColumnScope.AutofillWindow(
     state: GeneratorState,
-    onComplete: (String?) -> Unit,
+    onComplete: (GetPasswordResult?) -> Unit,
 ) {
     AutofillWindowContent(
         state = state,
@@ -186,7 +196,7 @@ fun ColumnScope.AutofillWindow(
 @Composable
 fun ColumnScope.AutofillWindowContent(
     state: GeneratorState,
-    onComplete: (String?) -> Unit,
+    onComplete: (GetPasswordResult?) -> Unit,
 ) {
     val filter by state.filterState.collectAsState()
     val filterLengthSliderInteractionSource = remember {
@@ -198,6 +208,7 @@ fun ColumnScope.AutofillWindowContent(
     )
 
     GeneratorValue2(
+        loadedFlow = state.loadedState,
         valueFlow = state.valueState,
         sliderInteractionSource = filterLengthSliderInteractionSource,
         onComplete = onComplete,
@@ -237,37 +248,54 @@ fun ColumnScope.AutofillWindowContent(
 
 @Composable
 private fun ColumnScope.GeneratorValue2(
+    loadedFlow: StateFlow<GeneratorState.Loading?>,
     valueFlow: StateFlow<GeneratorState.Value?>,
     sliderInteractionSource: MutableInteractionSource,
-    onComplete: (String?) -> Unit,
+    onComplete: (GetPasswordResult?) -> Unit,
 ) {
+    val loadedState = loadedFlow.collectAsState()
     val valueState = valueFlow.collectAsState()
     ExpandedIfNotEmpty(
         valueOrNull = valueState.value,
     ) { value ->
         val updatedOnRefresh by rememberUpdatedState(value.onRefresh)
-
         val actions by remember(valueState) {
             derivedStateOf {
+                val loaded = loadedState.value?.loaded == true
+                val leading: @Composable () -> Unit = if (loaded) {
+                    icon(Icons.Outlined.Refresh)
+                } else {
+                    // composable
+                    {
+                        CircularProgressIndicator(
+                            color = LocalContentColor.current,
+                        )
+                    }
+                }
+                val onClick: (() -> Unit)? = if (loaded) {
+                    // lambda
+                    {
+                        updatedOnRefresh?.invoke()
+                    }
+                } else {
+                    null
+                }
+
                 val valueExists = !valueState.value?.password.isNullOrEmpty()
                 if (valueExists) {
                     listOf(
                         FlatItemAction(
-                            leading = icon(Icons.Outlined.Refresh),
+                            leading = leading,
                             title = Res.string.generator_regenerate_button.wrap(),
-                            onClick = {
-                                updatedOnRefresh?.invoke()
-                            },
+                            onClick = onClick,
                         ),
                     )
                 } else {
                     listOf(
                         FlatItemAction(
-                            leading = icon(Icons.Outlined.Refresh),
+                            leading = leading,
                             title = Res.string.generator_generate_button.wrap(),
-                            onClick = {
-                                updatedOnRefresh?.invoke()
-                            },
+                            onClick = onClick,
                         ),
                     )
                 }
@@ -279,6 +307,16 @@ private fun ColumnScope.GeneratorValue2(
         FlatDropdown(
             elevation = 8.dp,
             content = {
+                ExpandedIfNotEmpty(
+                    valueOrNull = value.title,
+                ) { title ->
+                    Text(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp),
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
                 Crossfade(
                     targetState = value.password,
                     modifier = Modifier
@@ -320,6 +358,7 @@ private fun ColumnScope.GeneratorValue2(
             },
             trailing = {
                 val updatedPassword by rememberUpdatedState(value.password)
+                val updatedSource by rememberUpdatedState(value.source)
                 val updatedOnClick by rememberUpdatedState(onComplete)
                 ExtendedFloatingActionButton(
                     modifier = Modifier
@@ -331,9 +370,7 @@ private fun ColumnScope.GeneratorValue2(
                             },
                         ),
                     onClick = {
-                        if (updatedPassword.isNotEmpty()) {
-                            updatedOnClick.invoke(updatedPassword)
-                        }
+                        updatedOnClick.invoke(updatedSource)
                     },
                     containerColor = MaterialTheme.colorScheme.primary,
                     icon = {

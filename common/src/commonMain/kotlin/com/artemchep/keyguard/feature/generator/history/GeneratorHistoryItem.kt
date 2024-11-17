@@ -47,6 +47,7 @@ sealed interface GeneratorHistoryItem {
             USERNAME,
             EMAIL,
             EMAIL_RELAY,
+            SSH_KEY,
         }
     }
 }

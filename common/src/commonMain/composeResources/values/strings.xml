@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Reveal a secure note</string>
     <string name="hide_secure_note">Hide a secure note</string>
     <string name="master_password_hint">Master password hint</string>
+    <string name="public_key">Public key</string>
+    <string name="private_key">Private key</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="key_type">Key type</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH Key</string>
     <string name="fingerprint_phrase">Fingerprint phrase</string>
     <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
     <string name="filter_auth_reprompt_items">Auth re-prompt</string>
@@ -316,6 +322,7 @@
     <string name="file_action_delete_local_title">Delete local file</string>
     <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="file_action_reveal_title">Reveal</string>
 
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>
@@ -389,6 +396,15 @@
     <string name="text_action_share_with_title">Share with…</string>
     <string name="text_action_send_title">Create a send</string>
 
+    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Add keys</string>
+    <string name="ssh_key_action_replace_key_title">Replace keys</string>
+
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
 
     <string name="copy">Copy</string>
@@ -410,11 +426,16 @@
     <string name="copy_cvv_code">Copy security code</string>
     <string name="copy_otp_code">Copy one-time password</string>
     <string name="copy_otp_secret_code">Copy secret key</string>
+    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
+    <string name="copy_ssh_public_key">Copy public key</string>
+    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
 
     <string name="copied_value">Copied a value</string>
     <string name="copied_url">Copied a URL</string>
     <string name="copied_uri">Copied a URI</string>
     <string name="copied_package_name">Copied a package name</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">Copied a password</string>
     <string name="copied_username">Copied a username</string>
     <string name="copied_email">Copied an email</string>
@@ -739,6 +760,7 @@
     <string name="cipher_type_card">Card</string>
     <string name="cipher_type_identity">Identity</string>
     <string name="cipher_type_note">Note</string>
+    <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="cipher_type_unknown" translatable="false">Unknown</string>
 
@@ -837,6 +859,7 @@
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Username generator</string>
     <string name="generator_header_password_title">Password generator</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
     <!-- 'Use' generated password as a password -->
@@ -874,8 +897,15 @@
     <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">Create new login with the password</string>
     <string name="generator_create_item_with_username_title">Create new login with the username</string>
+    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
     <string name="generator_password_history_title">Password history</string>
     <string name="generator_show_tips_title">Show tips</string>
 

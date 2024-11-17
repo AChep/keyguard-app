@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.vault.add
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.feature.navigation.Route
 
 fun LeAddRoute(
@@ -32,6 +33,7 @@ interface AddRoute {
         val name: String? = null,
         val username: String? = null,
         val password: String? = null,
+        val keyPair: KeyPair? = null,
         val autofill: Autofill? = null,
     ) {
         data class Behavior(

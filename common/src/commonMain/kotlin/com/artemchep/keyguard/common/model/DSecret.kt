@@ -23,12 +23,18 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardNote
+import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 
-@optics
+@optics(
+    [
+        arrow.optics.OpticsTarget.LENS,
+        arrow.optics.OpticsTarget.OPTIONAL,
+    ],
+)
 data class DSecret(
     val id: String,
     val accountId: String,
@@ -54,6 +60,7 @@ data class DSecret(
     val login: Login? = null,
     val card: Card? = null,
     val identity: Identity? = null,
+    val sshKey: SshKey? = null,
 ) : HasAccountId, HasCipherId {
     companion object {
         private const val ignoreLength = 3
@@ -183,6 +190,7 @@ data class DSecret(
         SecureNote,
         Card,
         Identity,
+        SshKey,
     }
 
     sealed interface Attachment {
@@ -376,6 +384,15 @@ data class DSecret(
     ) {
         companion object
     }
+
+    @optics
+    data class SshKey(
+        val privateKey: String? = null,
+        val publicKey: String? = null,
+        val fingerprint: String? = null,
+    ) {
+        companion object
+    }
 }
 
 fun DSecret.ignores(alertType: DWatchtowerAlertType) = alertType in ignoredAlerts
@@ -399,6 +416,7 @@ fun DSecret.Type.iconImageVector() = when (this) {
     DSecret.Type.Card -> Icons.Outlined.CreditCard
     DSecret.Type.Identity -> Icons.Outlined.PermIdentity
     DSecret.Type.SecureNote -> Icons.Outlined.KeyguardNote
+    DSecret.Type.SshKey -> Icons.Outlined.KeyguardSshKey
     DSecret.Type.None -> Icons.Stub
 }
 
@@ -407,6 +425,7 @@ fun DSecret.Type.titleH() = when (this) {
     DSecret.Type.Card -> Res.string.cipher_type_card
     DSecret.Type.Identity -> Res.string.cipher_type_identity
     DSecret.Type.SecureNote -> Res.string.cipher_type_note
+    DSecret.Type.SshKey -> Res.string.cipher_type_ssh_key
     DSecret.Type.None -> Res.string.cipher_type_unknown
 }
 

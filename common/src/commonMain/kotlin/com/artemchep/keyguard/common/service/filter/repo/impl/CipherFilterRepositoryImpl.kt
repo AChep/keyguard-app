@@ -46,6 +46,7 @@ class CipherFilterRepositoryImpl(
         private const val TYPE_CARD = "card"
         private const val TYPE_IDENTITY = "identity"
         private const val TYPE_NOTE = "note"
+        private const val TYPE_SSH_KEY = "sshKey"
         private const val TYPE_OTP = "otp"
     }
 
@@ -115,6 +116,15 @@ class CipherFilterRepositoryImpl(
             state = mapOf(
                 FilterSection.TYPE.id to setOf(
                     DFilter.ByType(DSecret.Type.SecureNote),
+                ),
+            ),
+        ),
+        TYPE_SSH_KEY to BaseFilterEntityMapper(
+            icon = DSecret.Type.SshKey.iconImageVector(),
+            name = Res.string.cipher_type_ssh_key,
+            state = mapOf(
+                FilterSection.TYPE.id to setOf(
+                    DFilter.ByType(DSecret.Type.SshKey),
                 ),
             ),
         ),

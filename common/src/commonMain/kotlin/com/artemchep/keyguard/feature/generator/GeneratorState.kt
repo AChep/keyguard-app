@@ -4,6 +4,8 @@ package com.artemchep.keyguard.feature.generator
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -16,11 +18,17 @@ import kotlinx.coroutines.flow.StateFlow
 data class GeneratorState(
     val onOpenHistory: () -> Unit,
     val options: ImmutableList<ContextItem>,
+    val loadedState: StateFlow<Loading>,
     val typeState: StateFlow<Type>,
     val valueState: StateFlow<Value?>,
     val filterState: StateFlow<Filter>,
 ) {
     companion object;
+
+    @Immutable
+    data class Loading(
+        val loaded: Boolean,
+    )
 
     @Immutable
     data class Type(
@@ -52,6 +60,7 @@ data class GeneratorState(
                 override val key: String,
                 val title: String,
                 val text: String? = null,
+                val icon: ImageVector? = null,
                 val model: SwitchFieldModel,
                 val counter: IntFieldModel? = null,
             ) : Item
@@ -60,6 +69,7 @@ data class GeneratorState(
             data class Text(
                 override val key: String,
                 val title: String,
+                val icon: ImageVector? = null,
                 val model: TextFieldModel2,
             ) : Item
 
@@ -67,6 +77,7 @@ data class GeneratorState(
             data class Enum(
                 override val key: String,
                 val title: String,
+                val icon: ImageVector? = null,
                 val model: Model,
             ) : Item {
                 @Immutable
@@ -93,7 +104,9 @@ data class GeneratorState(
 
     @Immutable
     data class Value(
+        val title: String?,
         val password: String,
+        val source: GetPasswordResult,
         val strength: Boolean,
         val actions: ImmutableList<FlatItemAction>,
         val dropdown: ImmutableList<ContextItem>,

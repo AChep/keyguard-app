@@ -38,9 +38,6 @@ private const val MESSAGE_LENGTH_LIMIT = 300
 @Composable
 fun produceLogsState() = with(localDI().direct) {
     produceLogsState(
-        getGeneratorHistory = instance(),
-        removeGeneratorHistory = instance(),
-        removeGeneratorHistoryById = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
         getInMemoryLogs = instance(),
@@ -53,9 +50,6 @@ fun produceLogsState() = with(localDI().direct) {
 
 @Composable
 fun produceLogsState(
-    getGeneratorHistory: GetGeneratorHistory,
-    removeGeneratorHistory: RemoveGeneratorHistory,
-    removeGeneratorHistoryById: RemoveGeneratorHistoryById,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
     getInMemoryLogs: GetInMemoryLogs,
@@ -67,9 +61,6 @@ fun produceLogsState(
     initial = Loadable.Loading,
     key = "generator_history",
     args = arrayOf(
-        getGeneratorHistory,
-        removeGeneratorHistory,
-        removeGeneratorHistoryById,
         dateFormatter,
         clipboardService,
     ),

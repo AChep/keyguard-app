@@ -7,4 +7,4 @@ interface ExportAccount : (
     DFilter,
     String,
     Boolean,
-) -> IO<Unit>
+) -> IO<String?>

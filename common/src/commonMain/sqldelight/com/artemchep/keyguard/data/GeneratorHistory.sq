@@ -7,12 +7,13 @@ CREATE TABLE generatorHistory (
   createdAt INTEGER AS Instant NOT NULL,
   isPassword INTEGER AS Boolean NOT NULL,
   isUsername INTEGER AS Boolean NOT NULL,
-  isEmailRelay INTEGER AS Boolean
+  isEmailRelay INTEGER AS Boolean,
+  isSshKey INTEGER AS Boolean
 );
 
 insert:
-INSERT INTO generatorHistory(value, createdAt, isPassword, isUsername, isEmailRelay)
-VALUES (?, ?, ?,?, ?);
+INSERT INTO generatorHistory(value, createdAt, isPassword, isUsername, isEmailRelay, isSshKey)
+VALUES (?, ?, ?, ?, ?, ?);
 
 get:
 SELECT *

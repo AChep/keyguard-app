@@ -11,6 +11,8 @@ import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material.icons.outlined.Terrain
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -18,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +43,8 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.colorizePassword
+import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.monoFontFamily
@@ -180,14 +183,22 @@ private fun GeneratorHistoryItem(
         backgroundColor = backgroundColor,
         leading = {
             Crossfade(targetState = item.type) { type ->
-                val icon = when (type) {
+                val primaryIcon = when (type) {
                     GeneratorHistoryItem.Value.Type.USERNAME -> Icons.Outlined.AlternateEmail
                     GeneratorHistoryItem.Value.Type.EMAIL -> Icons.Outlined.Email
                     GeneratorHistoryItem.Value.Type.EMAIL_RELAY -> Icons.AutoMirrored.Outlined.ForwardToInbox
                     GeneratorHistoryItem.Value.Type.PASSWORD -> Icons.Outlined.Password
+                    GeneratorHistoryItem.Value.Type.SSH_KEY -> Icons.Outlined.Terminal
                     null -> Icons.Stub
                 }
-                Icon(icon, null)
+                val secondaryIcon = when (type) {
+                    GeneratorHistoryItem.Value.Type.SSH_KEY -> Icons.Outlined.KeyguardSshKey
+                    else -> null
+                }
+                IconBox(
+                    main = primaryIcon,
+                    secondary = secondaryIcon,
+                )
             }
         },
         content = {

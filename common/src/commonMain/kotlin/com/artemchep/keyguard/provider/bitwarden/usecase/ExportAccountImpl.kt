@@ -65,7 +65,7 @@ class ExportAccountImpl(
         filter: DFilter,
         password: String,
         attachments: Boolean,
-    ): IO<Unit> = ioEffect {
+    ) = ioEffect {
         val ciphers = getCiphersByFilter(filter)
         val folders = kotlin.run {
             val foldersLocalIds = ciphers

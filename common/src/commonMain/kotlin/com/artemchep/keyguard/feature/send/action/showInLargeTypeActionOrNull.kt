@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.send.action
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Share
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.localization.wrap
@@ -15,6 +16,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.icons.iconSmall
 
 suspend fun createSendActionOrNull(
     translator: TranslatorScope,
@@ -34,7 +36,7 @@ suspend fun createSendAction(
     text: String,
     navigate: (NavigationIntent) -> Unit,
 ) = FlatItemAction(
-    leading = icon(Icons.AutoMirrored.Outlined.Send),
+    leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
     title = Res.string.text_action_send_title.wrap(),
     onClick = {
         val args = SendAddRoute.Args(

@@ -99,6 +99,10 @@ fun main() {
     Security.insertProviderAt(BouncyCastleProvider(), 1)
     Security.insertProviderAt(BouncyCastleJsseProvider(), 2)
 
+    // Allow the app to use system default proxies:
+    // https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
+    System.setProperty("java.net.useSystemProxies", "true")
+
     val kamelConfig = KamelConfig {
         this.takeFrom(KamelConfig.Default)
         mapper(FaviconUrlMapper)

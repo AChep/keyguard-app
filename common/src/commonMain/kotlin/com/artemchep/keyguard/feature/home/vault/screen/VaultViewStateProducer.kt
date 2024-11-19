@@ -1015,6 +1015,10 @@ private fun RememberStateFlowScope.oh(
                 title = translate(Res.string.private_key),
                 value = sshKey.privateKey,
                 verify = verify.takeIf { concealFields },
+                // Private key might be too long to show if you
+                // select a 4096-bit RSA. There's no point in
+                // torturing the device rendering that string.
+                maxLines = 24,
                 monospace = true,
                 colorize = true,
                 elevated = true,

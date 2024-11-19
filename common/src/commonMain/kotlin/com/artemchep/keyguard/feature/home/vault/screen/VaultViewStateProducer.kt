@@ -2742,7 +2742,7 @@ suspend fun RememberStateFlowScope.create(
     leading: (@Composable RowScope.() -> Unit)? = null,
     verify: ((() -> Unit) -> Unit)? = null,
     onBuildActions: (ContextItemBuilder.() -> Unit)? = null,
-    maxLines: Int = Int.MAX_VALUE,
+    maxLines: Int = 64,
     password: Boolean = false,
     username: Boolean = false,
     private: Boolean = false,

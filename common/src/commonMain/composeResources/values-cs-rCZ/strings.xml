@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Odhalit zabezpečenou poznámku</string>
     <string name="hide_secure_note">Skrýt zabezpečenou poznámku</string>
     <string name="master_password_hint">Nápověda k hlavnímu heslu</string>
+    <string name="public_key">Public key</string>
+    <string name="private_key">Private key</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="key_type">Key type</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH Key</string>
     <string name="fingerprint_phrase">Fráze otisku prstu</string>
     <string name="fingerprint_phrase_help_title">Co je to otisk prstu?</string>
     <string name="filter_auth_reprompt_items">Opakovaná výzva k ověření</string>
@@ -311,6 +317,7 @@
     <string name="file_action_delete_local_title">Odstranit místní soubor</string>
     <string name="file_action_delete_local_many_title">Odstranit místní soubory</string>
     <string name="file_action_view_cipher_title">Zobrazit nadřazenou položku</string>
+    <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">Vždy zobrazit klávesnici</string>
     <string name="vault_action_remember_sorting_title">Zapamatovat způsob řazení</string>
     <string name="vault_action_sync_vault_title">Synchronizovat trezor</string>
@@ -335,6 +342,8 @@
     <string name="uri_unsecure">Nezabezpečené</string>
     <string name="uri_match_app_title">Shoda aplikace</string>
     <string name="uri_match_detection_title">Detekce shody</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Základní doména</string>
     <string name="uri_match_detection_domain_note">Shoda zdrojů podle domény nejvyšší a druhé úrovně.</string>
     <string name="uri_match_detection_host_title">Hostitel</string>
@@ -377,6 +386,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s neznámým polem</string>
     <string name="text_action_share_with_title">Sdílet s…</string>
     <string name="text_action_send_title">Vytvořit Send</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Add keys</string>
+    <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="selection_n_selected">Vybráno <xliff:g id="size" example="15">%1$d</xliff:g></string>
     <string name="copy">Kopírovat</string>
     <string name="copy_value">Kopírovat hodnotu</string>
@@ -397,10 +414,15 @@
     <string name="copy_cvv_code">Kopírovat bezpečnostní kód</string>
     <string name="copy_otp_code">Kopírovat jednorázové heslo</string>
     <string name="copy_otp_secret_code">Kopírovat bezpečnostní klíč</string>
+    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
+    <string name="copy_ssh_public_key">Copy public key</string>
+    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
     <string name="copied_value">Hodnota zkopírována</string>
     <string name="copied_url">Adresa URL zkopírována</string>
     <string name="copied_uri">URI zkopírována</string>
     <string name="copied_package_name">Název balíčku zkopírován</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">Heslo zkopírováno</string>
     <string name="copied_username">Uživatelské jméno zkopírováno</string>
     <string name="copied_email">E-mail zkopírován</string>
@@ -468,6 +490,7 @@
     <string name="error_invalid_uri">Neplatná URI</string>
     <string name="error_invalid_card_number">Neplatné číslo karty</string>
     <string name="error_incorrect_password">Neplatné heslo</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Nepodařilo se vytvořit klíč, nedostatek paměti. Zkontrolujte prosím nastavení vašeho serveru KDF.</string>
     <string name="error_failed_generate_otp_code">Nepodařilo se vygenerovat OTP kód</string>
     <string name="error_failed_create_passkey">Nepodařilo se vytvořit přístupový klíč</string>
@@ -476,9 +499,13 @@
     <string name="error_failed_format_placeholder">Nepodařilo se naformátovat proměnnou</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Načíst QR kód</string>
     <string name="scanqr_load_from_image_note">Načíst a zpracovat QR kód z obrázku.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Čárový kód</string>
     <string name="barcodetype_action_show_in_barcode_title">Zobrazit jako čárový kód</string>
@@ -683,6 +710,7 @@
     <string name="cipher_type_card">Karta</string>
     <string name="cipher_type_identity">Identita</string>
     <string name="cipher_type_note">Poznámka</string>
+    <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_passkey">Přístupový klíč</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Logická hodnota</string>
@@ -768,6 +796,7 @@
     <string name="generator_header_title">Generátor</string>
     <string name="generator_header_username_title">Generátor uživatelských jmen</string>
     <string name="generator_header_password_title">Generátor hesel</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">Generovat</string>
     <string name="generator_regenerate_button">Vygenerovat znovu</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +834,15 @@
     <string name="generator_email_subdomain_addressing_note">Adresa se subdoménou znamená, že všechny e-maily poslané na adresu <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> stále přijdou na váš účet. Znamená to, že můžete mít spoustu variací vaší e-mailové adresy, které můžete dát různým lidem, webům nebo e-mailovým seznamům. Před použitím této funkce se ujistěte, že ji váš poskytovatel e-mailového hostingu podporuje.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Alias přeposílaného e-mailu</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">Vytvořit nové přihlášení s heslem</string>
     <string name="generator_create_item_with_username_title">Vytvořit nové přihlášení s uživatelským jménem</string>
+    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
     <string name="generator_password_history_title">Historie hesel</string>
     <string name="generator_show_tips_title">Zobrazovat tipy</string>
     <string name="generatorhistory_header_title">Historie generátoru</string>
@@ -1006,6 +1042,7 @@
 3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Automaticky kopírovat jednorázová hesla</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Při vyplňování přihlašovacích informací automaticky zkopírovat jednorázové heslo</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Návrhy v klávesnici</string>
     <string name="pref_item_autofill_inline_suggestions_text">Vloží návrhy na automatické vyplňování přímo do kompatibilních klávesnic</string>
     <string name="pref_item_autofill_manual_selection_title">Ruční výběr</string>

@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">顯示安全筆記</string>
     <string name="hide_secure_note">隱藏安全筆記</string>
     <string name="master_password_hint">主密碼提示</string>
+    <string name="public_key">Public key</string>
+    <string name="private_key">Private key</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="key_type">Key type</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH Key</string>
     <string name="fingerprint_phrase">指紋短語</string>
     <string name="fingerprint_phrase_help_title">什麼是指紋短語?</string>
     <string name="filter_auth_reprompt_items">身份驗證重新提示</string>
@@ -311,6 +317,7 @@
     <string name="file_action_delete_local_title">刪除本地檔案</string>
     <string name="file_action_delete_local_many_title">刪除本地檔案</string>
     <string name="file_action_view_cipher_title">查看父項目</string>
+    <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">總是顯示鍵盤</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">同步密碼庫</string>
@@ -335,6 +342,8 @@
     <string name="uri_unsecure">不安全的</string>
     <string name="uri_match_app_title">匹配程式</string>
     <string name="uri_match_detection_title">匹配檢測</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">主域名</string>
     <string name="uri_match_detection_domain_note">按頂級和次级域匹配資源</string>
     <string name="uri_match_detection_host_title">域</string>
@@ -377,6 +386,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
     <string name="text_action_share_with_title">Share with…</string>
     <string name="text_action_send_title">Create a send</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Add keys</string>
+    <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
     <string name="copy">複製</string>
     <string name="copy_value">複製值</string>
@@ -397,10 +414,15 @@
     <string name="copy_cvv_code">複製安全代碼</string>
     <string name="copy_otp_code">Copy one-time password</string>
     <string name="copy_otp_secret_code">Copy secret key</string>
+    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
+    <string name="copy_ssh_public_key">Copy public key</string>
+    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
     <string name="copied_value">Copied a value</string>
     <string name="copied_url">已複製 URL</string>
     <string name="copied_uri">已複製 URI</string>
     <string name="copied_package_name">已複製包名稱</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">已複製密碼</string>
     <string name="copied_username">已複製使用者名稱</string>
     <string name="copied_email">已複製電子郵件</string>
@@ -468,6 +490,7 @@
     <string name="error_invalid_uri">無效的網址</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">不正確的密碼</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
@@ -476,9 +499,13 @@
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">掃描 QR 圖碼</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">條碼</string>
     <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>
@@ -683,6 +710,7 @@
     <string name="cipher_type_card">Card</string>
     <string name="cipher_type_identity">Identity</string>
     <string name="cipher_type_note">Note</string>
+    <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Boolean</string>
@@ -768,6 +796,7 @@
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Username generator</string>
     <string name="generator_header_password_title">Password generator</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +834,15 @@
     <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">Create new login with the password</string>
     <string name="generator_create_item_with_username_title">Create new login with the username</string>
+    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
     <string name="generator_password_history_title">Password history</string>
     <string name="generator_show_tips_title">Show tips</string>
     <string name="generatorhistory_header_title">Generator history</string>
@@ -1006,6 +1042,7 @@
 3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copy one-time passwords</string>
     <string name="pref_item_autofill_auto_copy_otp_text">When filling a login information, automatically copy one-time passwords</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggestions</string>
     <string name="pref_item_autofill_inline_suggestions_text">Embeds autofill suggestions directly into compatible keyboards</string>
     <string name="pref_item_autofill_manual_selection_title">Manual selection</string>

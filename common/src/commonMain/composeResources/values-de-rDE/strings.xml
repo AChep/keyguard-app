@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Sichere Notiz anzeigen</string>
     <string name="hide_secure_note">Sichere Notiz ausblenden</string>
     <string name="master_password_hint">Master-Passwort-Hinweis</string>
+    <string name="public_key">Öffentlicher Schlüssel</string>
+    <string name="private_key">Privater Schlüssel</string>
+    <string name="fingerprint">Fingerabdruck</string>
+    <string name="key_type">Schlüssel-Typ</string>
+    <string name="key_pair">Schlüsselpaar</string>
+    <string name="key_ssh">SSH-Schlüssel</string>
     <string name="fingerprint_phrase">Fingerabdrucksatz</string>
     <string name="fingerprint_phrase_help_title">Was ist ein Fingerabdruck?</string>
     <string name="filter_auth_reprompt_items">Authentifizierung erneut anfordern</string>
@@ -311,6 +317,7 @@
     <string name="file_action_delete_local_title">Lokale Datei löschen</string>
     <string name="file_action_delete_local_many_title">Lokale Dateien löschen</string>
     <string name="file_action_view_cipher_title">Übergeordnetes Element anzeigen</string>
+    <string name="file_action_reveal_title">Einblenden</string>
     <string name="vault_action_always_show_keyboard_title">Tastatur immer anzeigen</string>
     <string name="vault_action_remember_sorting_title">Sortiermethode merken</string>
     <string name="vault_action_sync_vault_title">Tresor synchronisieren</string>
@@ -335,6 +342,8 @@
     <string name="uri_unsecure">Unsicher</string>
     <string name="uri_match_app_title">Passende App</string>
     <string name="uri_match_detection_title">Übereinstimmungserkennung</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Basisdomäne</string>
     <string name="uri_match_detection_domain_note">Ressourcen nach Top-Level- und Second-Level-Domäne abgleichen.</string>
     <string name="uri_match_detection_host_title">Host</string>
@@ -377,6 +386,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> mit einem unbekannten Feld verknüpft</string>
     <string name="text_action_share_with_title">Teilen mit…</string>
     <string name="text_action_send_title">Send erstellen</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Unverschlüsselte Schlüssel speichern</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Schlüssel in Downloads gespeichert</string>
+    <string name="ssh_key_action_save_public_key_title">Öffentlicher Schlüssel speichern</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Öffentlicher Schlüssel in Downloads gespeichert</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Unverschlüsselter privater Schlüssel speichern</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unverschlüsselter privater Schlüssel in Downloads gespeichert</string>
+    <string name="ssh_key_action_add_key_title">Schlüssel hinzufügen</string>
+    <string name="ssh_key_action_replace_key_title">Schlüssel ersetzen</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> ausgewählt</string>
     <string name="copy">Kopieren</string>
     <string name="copy_value">Inhalt kopieren</string>
@@ -397,10 +414,15 @@
     <string name="copy_cvv_code">CVV-Code kopieren</string>
     <string name="copy_otp_code">Einmalpasswort kopieren</string>
     <string name="copy_otp_secret_code">Geheimschlüssel kopieren</string>
+    <string name="copy_ssh_unencrypted_private_key">Unverschlüsselter privater Schlüssel kopieren</string>
+    <string name="copy_ssh_public_key">Öffentlicher Schlüssel kopieren</string>
+    <string name="copy_ssh_fingerprint">Fingerabdruck kopieren</string>
     <string name="copied_value">Wert kopiert</string>
     <string name="copied_url">URL kopiert</string>
     <string name="copied_uri">URI kopiert</string>
     <string name="copied_package_name">Paketname kopiert</string>
+    <string name="copied_key">Schlüssel kopiert</string>
+    <string name="copied_fingerprint">Fingerabdruck kopiert</string>
     <string name="copied_password">Passwort kopiert</string>
     <string name="copied_username">Benutzername kopiert</string>
     <string name="copied_email">E-Mail kopiert</string>
@@ -468,17 +490,22 @@
     <string name="error_invalid_uri">Ungültige URI</string>
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
+    <string name="error_otp_key_must_not_be_empty">Einmalkennwort darf nicht leer sein</string>
     <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des Einmalpassworts</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
     <string name="error_failed_open_uri">Fehler beim Öffnen einer URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">Keine installierte App kann diese Anfrage bearbeiten</string>
+    <string name="error_failed_unknown">Etwas ist schiefgelaufen</string>
+    <string name="error_failed_encrypt_biometric_key">Fehler beim Verschlüsseln des biometrischen Schlüssels</string>
+    <string name="error_failed_decrypt_biometric_key">Fehler beim Entschlüsseln des biometrischen Schlüssels</string>
     <string name="scanqr_title">QR-Code scannen</string>
     <string name="scanqr_load_from_image_note">Laden und Analysieren eines QR-Codes aus einer Bilddatei.</string>
     <string name="scanqr_camera_permission_required_text">Kamera-Berechtigung wird benötigt, um die QR-Codes zu scannen.</string>
+    <string name="post_notifications_permission_banner_title">Benachrichtigungen sind deaktiviert</string>
+    <string name="post_notifications_permission_banner_text">Erteilen Sie die Benachrichtigungsberechtigung um Keyguard zu erlauben, beim automatischen Ausfüllen Einmalkennwörter anzuzeigen und mehr.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Als Barcode anzeigen</string>
@@ -581,7 +608,7 @@
     <string name="urloverride_delete_many_confirmation_title">URL Überschreibung löschen?</string>
     <string name="urloverride_empty_label">Keine URL Überschreibungen</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in dem lokale Daten gespeichert werden.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">Indem Sie fortfahren bestätigen Sie, dass Sie den Keyguard gekauft haben oder eine aktive Lizenz besitzen.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
     <string name="setup_checkbox_biometric_auth">Biometrische Authentifizierung</string>
     <string name="setup_biometric_auth_confirm_title">Tresor erstellen</string>
@@ -683,6 +710,7 @@
     <string name="cipher_type_card">Karte</string>
     <string name="cipher_type_identity">Identität</string>
     <string name="cipher_type_note">Notiz</string>
+    <string name="cipher_type_ssh_key">SSH-Schlüssel</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Wahrheitswert</string>
@@ -768,6 +796,7 @@
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Benutzernamengenerator</string>
     <string name="generator_header_password_title">Passwortgenerator</string>
+    <string name="generator_header_ssh_key_title">SSH-Schlüsselgenerator</string>
     <string name="generator_generate_button">Generieren</string>
     <string name="generator_regenerate_button">Neu generieren</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +834,15 @@
     <string name="generator_email_subdomain_addressing_note">Subdomänenadressierung bedeutet, dass jede E-Mail, die an <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> gesendet wird, immer noch an Ihr Konto gesendet wird. Das bedeutet, dass Sie eine Vielzahl von Variationen an Ihre E-Mail-Adresse haben können, die Sie an verschiedene Personen, Sites oder Mailinglisten verteilen können. Stellen Sie sicher, dass Ihr E-Mail-Hosting diese Funktion unterstützt, bevor Sie sie verwenden.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-Mail</string>
     <string name="generator_email_forward_alias_type">Weitergeleiteter E-Mail-Alias</string>
+    <string name="generator_key_length_title">Länge</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-Bits</string>
+    <string name="generator_key_rsa_note">Alle SSH-Clients unterstützen diesen Algorithmus. Eine Schlüsselgröße von mindestens 2048 Bit wird für RSA empfohlen; 4096 Bit ist besser. Es ist durchaus möglich, dass der RSA-Algorithmus in absehbarer Zeit entschlüsselt werden kann.</string>
+    <string name="generator_key_rsa_text">Kompatibel mit allen SSH-Servern</string>
+    <string name="generator_key_ed25519_note">Dies ist der schnellste und modernste Standard. Der Support in SSH-Clients ist noch nicht universell.</string>
+    <string name="generator_key_ed25519_text">Schneller und modernster Standard</string>
     <string name="generator_create_item_with_password_title">Neuen Login mit Passwort erstellen</string>
     <string name="generator_create_item_with_username_title">Neuen Login mit dem Benutzernamen erstellen</string>
+    <string name="generator_create_item_with_ssh_key_title">Neues SSH-Schlüsselelement erstellen</string>
     <string name="generator_password_history_title">Passwortverlauf</string>
     <string name="generator_show_tips_title">Tipps anzeigen</string>
     <string name="generatorhistory_header_title">Generatorverlauf</string>
@@ -862,7 +898,7 @@
     <string name="changepassword_biometric_auth_confirm_title">App-Passwort ändern</string>
     <string name="changepassword_disclaimer_local_note">App-Passwort wird nie auf dem Gerät gespeichert oder über das Netzwerk versendet. Es wird verwendet, um einen geheimen Schlüssel zu generieren, der zur Verschlüsselung der lokalen Daten verwendet wird.</string>
     <string name="changepassword_disclaimer_abuse_note">Es sei denn, Sie vermuten unbefugten Zugriff oder eine Malware auf dem Gerät zu entdecken, es gibt keine Notwendigkeit, das Passwort zu ändern, wenn es ein starkes und einzigartiges Passwort ist.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">Das Passwort wurde erfolgreich geändert</string>
     <string name="exportaccount_header_title">Elemente exportieren</string>
     <string name="exportaccount_password_label">Passwort archivieren</string>
     <string name="exportaccount_attachments_note">Der Tresor wird während des Exportprozesses entsperrt bleiben. Die Anhänge werden in den Daten des Tresors referenziert. Die Anhänge werden niemals in einer unverschlüsselt gespeichert.</string>
@@ -926,7 +962,7 @@
     <string name="pref_item_reddit_community_title">Reddit-Community</string>
     <string name="pref_item_github_title">GitHub-Projekt</string>
     <string name="pref_item_crowdin_title">Crowdin-Projekt</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Alle anzeigen</string>
     <string name="pref_item_open_source_licenses_title">Open-Source-Lizenzen</string>
     <string name="pref_item_download_apk_title">APK-Datei herunterladen</string>
     <string name="pref_item_load_app_icons_title">App-Symbole laden</string>
@@ -1000,12 +1036,13 @@
     <string name="pref_item_autofill_service_title">Autofill-Dienst</string>
     <string name="pref_item_autofill_service_text">Android Autofill Framework verwenden, um Login-Informationen in anderen Apps des Geräts zu füllen</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Einige Xiaomi Geräte verlangen, dass Sie manuell die Berechtigung "Popup-Fenster während Sie im Hintergrund laufen" erlauben. Bitte öffnen Sie die Einstellungen und stellen Sie sicher, dass sie gewährt werden.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome zur nativen Unterstützung von Autokenndiensten von Drittanbietern</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Öffnen Sie die Chrome-Einstellungen und tippen Sie auf Autofill Services
+2. Wählen Sie Autofill mit einem anderen Dienst
+3. Bestätigen und starten Sie Chrome neu</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Einmalpasswörter automatisch kopieren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Beim Ausfüllen von Login-Informationen, automatisch Einmalpasswörter kopieren</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline-Vorschläge</string>
     <string name="pref_item_autofill_inline_suggestions_text">Füllvorschläge direkt in kompatiblen Tastaturen anzeigen</string>
     <string name="pref_item_autofill_manual_selection_title">Manuelle Auswahl</string>
@@ -1101,9 +1138,9 @@
     <string name="datasafety_remote_section">Externe Daten</string>
     <string name="datasafety_remote_text">Externe Daten werden auf Bitwarden Servern mit Null-Kenntnis-Verschlüsselung gespeichert.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Übersetzungs-Beitragende</string>
+    <string name="localization_contributors_search_placeholder">Suche Mitwirkende</string>
+    <string name="localization_contributors_empty_label">Keine Mitwirkenden</string>
     <string name="logs_header_title">Protokolle</string>
     <string name="logs_start_recording_fab_title">Aufnahme starten</string>
     <string name="logs_stop_recording_fab_title">Aufnahme stoppen</string>

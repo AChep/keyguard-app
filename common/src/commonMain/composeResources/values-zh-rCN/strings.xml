@@ -25,9 +25,9 @@
     <string name="email_visibility">电子邮件可见性</string>
     <string name="public_url">公开网址</string>
     <string name="url">URL</string>
-    <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="conceal_value">隐藏内容</string>
+    <string name="field_label">标签</string>
+    <string name="field_value">值</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">访问次数</string>
     <!--
@@ -178,7 +178,7 @@
     <string name="passkey_available">通行密钥可用</string>
     <string name="twofa_available">双因素认证可用</string>
     <string name="custom">自定义</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">授权</string>
     <string name="create_account">创建帐号</string>
     <string name="follow_system_settings">跟随系统设置</string>
     <!-- A feature is coming soon! -->
@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">显示安全笔记</string>
     <string name="hide_secure_note">隐藏安全笔记</string>
     <string name="master_password_hint">主密码提示</string>
+    <string name="public_key">Public key</string>
+    <string name="private_key">Private key</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="key_type">Key type</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH Key</string>
     <string name="fingerprint_phrase">指纹短语</string>
     <string name="fingerprint_phrase_help_title">什么是指纹？</string>
     <string name="filter_auth_reprompt_items">身份验证重新提示</string>
@@ -311,6 +317,7 @@
     <string name="file_action_delete_local_title">删除本地文件</string>
     <string name="file_action_delete_local_many_title">删除本地文件</string>
     <string name="file_action_view_cipher_title">查看父项目</string>
+    <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">总是显示键盘</string>
     <string name="vault_action_remember_sorting_title">记住排序方法</string>
     <string name="vault_action_sync_vault_title">同步密码库</string>
@@ -335,6 +342,8 @@
     <string name="uri_unsecure">不安全</string>
     <string name="uri_match_app_title">匹配应用</string>
     <string name="uri_match_detection_title">匹配检测</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">主域名</string>
     <string name="uri_match_detection_domain_note">按顶级和次级域匹配资源。</string>
     <string name="uri_match_detection_host_title">域</string>
@@ -377,6 +386,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 已被关联至一个未知字段</string>
     <string name="text_action_share_with_title">分享</string>
     <string name="text_action_send_title">创建 Send</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Add keys</string>
+    <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="selection_n_selected">已选择 <xliff:g id="size" example="15">%1$d</xliff:g> 项</string>
     <string name="copy">复制</string>
     <string name="copy_value">复制值</string>
@@ -397,10 +414,15 @@
     <string name="copy_cvv_code">复制安全码（CVV）</string>
     <string name="copy_otp_code">复制动态密码</string>
     <string name="copy_otp_secret_code">复制私钥</string>
+    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
+    <string name="copy_ssh_public_key">Copy public key</string>
+    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
     <string name="copied_value">已复制值</string>
     <string name="copied_url">已复制 URL</string>
     <string name="copied_uri">已复制 URI</string>
     <string name="copied_package_name">已复制包名</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">已复制密码</string>
     <string name="copied_username">已复制用户名</string>
     <string name="copied_email">已复制电子邮件</string>
@@ -468,17 +490,22 @@
     <string name="error_invalid_uri">URI 无效</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
     <string name="error_failed_use_passkey">授权请求失败</string>
     <string name="error_failed_open_uri">无法打开 URI</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">没有已安装的应用可以处理此请求</string>
+    <string name="error_failed_unknown">出错了</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">扫描二维码</string>
     <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">请授予相机权限以扫描二维码。</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">条形码</string>
     <string name="barcodetype_action_show_in_barcode_title">显示为条形码</string>
@@ -581,7 +608,7 @@
     <string name="urloverride_delete_many_confirmation_title">确定要删除这些 URL 覆写吗？</string>
     <string name="urloverride_empty_label">暂无 URL 覆写</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">继续使用此应用意味着您确认您已购买 Keyguard 或有一个可用的 Keyguard 授权。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
     <string name="setup_checkbox_biometric_auth">生物识别认证</string>
     <string name="setup_biometric_auth_confirm_title">创建一个密码库</string>
@@ -628,7 +655,7 @@
     <string name="addaccount_captcha_need_client_secret_note">要通过非官方 Bitwarden 客户端上的验证码验证，您必须指定客户端密钥。 请访问 网页密码库 / 设置 / 安全 / API 密钥以找到它。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">客户端密钥</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
+    <string name="addaccount_create_an_account_title">创建帐户</string>
     <string name="addaccount_sign_in_button">登录</string>
     <string name="addaccount_region_section">选择区域</string>
     <string name="addaccount_region_us_type">美国</string>
@@ -683,6 +710,7 @@
     <string name="cipher_type_card">卡片</string>
     <string name="cipher_type_identity">身份</string>
     <string name="cipher_type_note">备注</string>
+    <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_passkey">通行密钥</string>
     <string name="field_type_text">文本</string>
     <string name="field_type_boolean">布尔值</string>
@@ -768,10 +796,11 @@
     <string name="generator_header_title">生成器</string>
     <string name="generator_header_username_title">用户名生成器</string>
     <string name="generator_header_password_title">密码生成器</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">重新生成</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
+    <string name="generator_use_button">使用</string>
     <string name="generator_passphrase_type">口令</string>
     <string name="generator_passphrase_note">随机口令是可记忆性和安全性的最佳组合。</string>
     <string name="generator_passphrase_delimiter_title">分隔符</string>
@@ -805,8 +834,15 @@
     <string name="generator_email_subdomain_addressing_note">子域意味着任何发送到 <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> 的电子邮件仍会发送到您的账户。这意味着您的电子邮件地址可以有很多变化，可以发送给不同的人、网站或邮件列表。使用前请确保您的电子邮件主机支持此功能。</string>
     <string name="generator_email_subdomain_addressing_email_title">电子邮件</string>
     <string name="generator_email_forward_alias_type">转发的电子邮件别名</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">使用此密码新建项目</string>
     <string name="generator_create_item_with_username_title">使用此用户名新建项目</string>
+    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
     <string name="generator_password_history_title">生成密码历史记录</string>
     <string name="generator_show_tips_title">显示提示</string>
     <string name="generatorhistory_header_title">生成器历史记录</string>
@@ -862,7 +898,7 @@
     <string name="changepassword_biometric_auth_confirm_title">更改应用专用密码</string>
     <string name="changepassword_disclaimer_local_note">应用专用密码不会存储在设备上，更不会上传到服务器。它仅用于生成密钥以加密本地数据。</string>
     <string name="changepassword_disclaimer_abuse_note">除非你怀疑有未经授权的访问或在设备上发现了恶意软件，否则如果密码强大且唯一则没有必要更改。</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">密码修改成功</string>
     <string name="exportaccount_header_title">导出项目</string>
     <string name="exportaccount_password_label">归档密码</string>
     <string name="exportaccount_attachments_note">密码库将在导出过程中保持解锁。
@@ -928,7 +964,7 @@
     <string name="pref_item_reddit_community_title">Reddit 社区</string>
     <string name="pref_item_github_title">GitHub 项目</string>
     <string name="pref_item_crowdin_title">Crowdin 项目</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">查看所有</string>
     <string name="pref_item_open_source_licenses_title">开放源代码许可</string>
     <string name="pref_item_download_apk_title">下载 APK 文件</string>
     <string name="pref_item_load_app_icons_title">加载应用图标</string>
@@ -1002,12 +1038,13 @@
     <string name="pref_item_autofill_service_title">自动填充服务</string>
     <string name="pref_item_autofill_service_text">使用 Android 自动填充框架帮助将登录信息填写到设备上的其他应用</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 设备要求您手动允许“在后台运行时显示弹出窗口”权限。 请打开设置并确认它已被授予。</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome 原生支持第三方自动填充服务</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. 打开 Chrome 设置，点击自动填充服务
+2. 选择使用其他服务进行自动填充
+3. 确认并重启 Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">自动复制一次性密码</string>
     <string name="pref_item_autofill_auto_copy_otp_text">填充登录信息时，自动复制一次性密码</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">填充建议</string>
     <string name="pref_item_autofill_inline_suggestions_text">在支持的键盘中嵌入填充建议</string>
     <string name="pref_item_autofill_manual_selection_title">手动选择</string>
@@ -1103,9 +1140,9 @@
     <string name="datasafety_remote_section">远程路径</string>
     <string name="datasafety_remote_text">远程数据以零知识加密方式存储在 Bitwarden 服务器上。</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">翻译贡献者</string>
+    <string name="localization_contributors_search_placeholder">搜索贡献者</string>
+    <string name="localization_contributors_empty_label">没有贡献者</string>
     <string name="logs_header_title">日志</string>
     <string name="logs_start_recording_fab_title">开始录制</string>
     <string name="logs_stop_recording_fab_title">停止录制</string>

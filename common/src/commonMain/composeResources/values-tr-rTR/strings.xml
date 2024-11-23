@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Güvenli notu göster</string>
     <string name="hide_secure_note">Güvenli notu gizle</string>
     <string name="master_password_hint">Ana şifre ipucu</string>
+    <string name="public_key">Açık anahtar</string>
+    <string name="private_key">Özel anahtar</string>
+    <string name="fingerprint">Parmak izi</string>
+    <string name="key_type">Anahtar türü</string>
+    <string name="key_pair">Anahtar çifti</string>
+    <string name="key_ssh">SSH Anahtarı</string>
     <string name="fingerprint_phrase">Parmak izi cümlesi</string>
     <string name="fingerprint_phrase_help_title">Parmak izi nedir?</string>
     <string name="filter_auth_reprompt_items">Yeniden kimlik doğrulama</string>
@@ -311,6 +317,7 @@
     <string name="file_action_delete_local_title">Yerel dosyayı sil</string>
     <string name="file_action_delete_local_many_title">Yerel dosyaları sil</string>
     <string name="file_action_view_cipher_title">Üst öğeyi görüntüle</string>
+    <string name="file_action_reveal_title">Göster</string>
     <string name="vault_action_always_show_keyboard_title">Klavye her zaman gösterilsin</string>
     <string name="vault_action_remember_sorting_title">Sıralama yöntemini hatırla</string>
     <string name="vault_action_sync_vault_title">Kasayı senkronize et</string>
@@ -335,6 +342,8 @@
     <string name="uri_unsecure">Güvensiz</string>
     <string name="uri_match_app_title">Uygulamayla eşleştir</string>
     <string name="uri_match_detection_title">Eşleştirme algılama</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Ana alan adı</string>
     <string name="uri_match_detection_domain_note">Kaynakları üst seviye ve ikinci seviye alan adına göre eşleştir.</string>
     <string name="uri_match_detection_host_title">Ana bilgisayar</string>
@@ -377,6 +386,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> bilinmeyen bir alan ile ilişkilendirildi</string>
     <string name="text_action_share_with_title">Şununla paylaş...</string>
     <string name="text_action_send_title">Gönderi oluştur</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Şifrelenmemiş anahtarları kaydet</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Anahtarlar indirilenler klasörüne kaydedildi</string>
+    <string name="ssh_key_action_save_public_key_title">Açık anahtarı kaydet</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Açık anahtar indirilenler klasörüne kaydedildi</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Şifrelenmemiş özel anahtarı kaydet</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Şifrelenmemiş özel anahtar indirilenler klasörüne kaydedildi</string>
+    <string name="ssh_key_action_add_key_title">Anahtarları ekle</string>
+    <string name="ssh_key_action_replace_key_title">Anahtarları değiştir</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seçili</string>
     <string name="copy">Kopyala</string>
     <string name="copy_value">Değeri kopyala</string>
@@ -397,10 +414,15 @@
     <string name="copy_cvv_code">Güvenlik kodunu kopyala</string>
     <string name="copy_otp_code">Tek kullanımlık şifreyi kopyala</string>
     <string name="copy_otp_secret_code">Gizli anahtarı kopyala</string>
+    <string name="copy_ssh_unencrypted_private_key">Şifrelenmemiş özel anahtarı kopyala</string>
+    <string name="copy_ssh_public_key">Açık anahtarı kopyala</string>
+    <string name="copy_ssh_fingerprint">Parmak izini kopyala</string>
     <string name="copied_value">Bir değer kopyalandı</string>
     <string name="copied_url">Bir URL kopyalandı</string>
     <string name="copied_uri">Bir URI kopyalandı</string>
     <string name="copied_package_name">Paket adı kopyalandı</string>
+    <string name="copied_key">Bir anahtar kopyalandı</string>
+    <string name="copied_fingerprint">Bir parmak izi kopyalandı</string>
     <string name="copied_password">Bir şifre kopyalandı</string>
     <string name="copied_username">Bir kullanıcı adı kopyalandı</string>
     <string name="copied_email">Bir e-posta adresi kopyalandı</string>
@@ -468,6 +490,7 @@
     <string name="error_invalid_uri">Geçersiz URI</string>
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
     <string name="error_incorrect_password">Hatalı parola</string>
+    <string name="error_otp_key_must_not_be_empty">Tek seferlik parolanın gizli anahtarı boş olmamalıdır</string>
     <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturma başarısız oldu, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">OTP kodu oluşturma başarısız oldu</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturma başarısız oldu</string>
@@ -476,9 +499,13 @@
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirme başarısız oldu</string>
     <string name="error_failed_open_app_for">Yüklü hiçbir uygulama bu isteği karşılayamaz</string>
     <string name="error_failed_unknown">Bir şeyler ters gitti</string>
+    <string name="error_failed_encrypt_biometric_key">Biyometrik anahtar şifrelenemedi</string>
+    <string name="error_failed_decrypt_biometric_key">Biyometrik anahtarın şifresi çözülemedi</string>
     <string name="scanqr_title">QR kodunu tarayın</string>
     <string name="scanqr_load_from_image_note">Bir resim dosyasından QR kodu yükleyin ve analiz edin.</string>
     <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
+    <string name="post_notifications_permission_banner_title">Bildirimler devre dışı bırakıldı</string>
+    <string name="post_notifications_permission_banner_text">Keyguard'ın otomatik doldurma sırasında tek seferlik parolaları göstermesine izin vermek için bildirim izni verin &amp; daha fazlası.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
     <string name="barcodetype_action_show_in_barcode_title">Barkod olarak göster</string>
@@ -683,6 +710,7 @@
     <string name="cipher_type_card">Kart</string>
     <string name="cipher_type_identity">Kimlik</string>
     <string name="cipher_type_note">Not</string>
+    <string name="cipher_type_ssh_key">SSH Anahtarı</string>
     <string name="cipher_type_passkey">Geçiş anahtarı</string>
     <string name="field_type_text">Metin</string>
     <string name="field_type_boolean">Boolean</string>
@@ -768,6 +796,7 @@
     <string name="generator_header_title">Üretici</string>
     <string name="generator_header_username_title">Kullanıcı adı üretici</string>
     <string name="generator_header_password_title">Parola üretici</string>
+    <string name="generator_header_ssh_key_title">SSH Anahtar oluşturucu</string>
     <string name="generator_generate_button">Üret</string>
     <string name="generator_regenerate_button">Yeniden üret</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +834,15 @@
     <string name="generator_email_subdomain_addressing_note">Alt alan adresleme, <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> adresine gönderilen herhangi bir e-postanın yine de hesabınıza gönderileceği anlamına gelir. Bu, farklı kişilere, sitelere veya posta listelerine vermek için birçok varyasyon kullanabileceğiniz anlamına gelir. Bu özelliği kullanmadan önce e-posta hizmetinizin bunu desteklediğinden emin olun.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-posta</string>
     <string name="generator_email_forward_alias_type">Yönlendirilmiş e-posta takma adı</string>
+    <string name="generator_key_length_title">Uzunluk</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bit</string>
+    <string name="generator_key_rsa_note">Tüm SSH istemcileri bu algoritmayı destekler. RSA için en az 2048 bitlik bir anahtar boyutu önerilir; 4096 bit daha iyidir. RSA algoritmasının öngörülebilir gelecekte pratik olarak kırılabilir hale gelmesi oldukça olasıdır.</string>
+    <string name="generator_key_rsa_text">Tüm SSH sunucuları ile uyumlu</string>
+    <string name="generator_key_ed25519_note">Bu en hızlı ve en modern standarttır. SSH istemcilerindeki destek henüz evrensel değildir.</string>
+    <string name="generator_key_ed25519_text">Hızlı ve en modern standart</string>
     <string name="generator_create_item_with_password_title">Şifre ile yeni giriş oluştur</string>
     <string name="generator_create_item_with_username_title">Kullanıcı adı ile yeni giriş oluştur</string>
+    <string name="generator_create_item_with_ssh_key_title">Yeni SSH Anahtarı öğesi oluştur</string>
     <string name="generator_password_history_title">Şifre geçmişi</string>
     <string name="generator_show_tips_title">İpuçlarını göster</string>
     <string name="generatorhistory_header_title">Oluşturucu geçmişi</string>
@@ -1006,6 +1042,7 @@
 3. Onaylayın ve Chrome'u yeniden başlatın</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tek seferlik şifreleri otomatik kopyala</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Giriş bilgilerini doldururken, tek seferlik şifreleri otomatik olarak kopyala</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Satır içi öneriler</string>
     <string name="pref_item_autofill_inline_suggestions_text">Uyumlu klavyelere otomatik doldurma önerilerini doğrudan entegre eder</string>
     <string name="pref_item_autofill_manual_selection_title">Manuel seçim</string>

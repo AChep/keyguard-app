@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">보안 노트 보이기</string>
     <string name="hide_secure_note">보안 노트 숨기기</string>
     <string name="master_password_hint">마스터 비밀번호 힌트</string>
+    <string name="public_key">공개 키</string>
+    <string name="private_key">개인 키</string>
+    <string name="fingerprint">핑거프린트</string>
+    <string name="key_type">키 유형</string>
+    <string name="key_pair">키 쌍</string>
+    <string name="key_ssh">SSH 키</string>
     <string name="fingerprint_phrase">핑거프린트 구문</string>
     <string name="fingerprint_phrase_help_title">핑거프린트가 뭔가요?</string>
     <string name="filter_auth_reprompt_items">인증 재요청</string>
@@ -311,6 +317,7 @@
     <string name="file_action_delete_local_title">로컬 파일 삭제</string>
     <string name="file_action_delete_local_many_title">로컬 파일 삭제</string>
     <string name="file_action_view_cipher_title">상위 항목 보기</string>
+    <string name="file_action_reveal_title">공개</string>
     <string name="vault_action_always_show_keyboard_title">키보드 항상 보이기</string>
     <string name="vault_action_remember_sorting_title">정렬 방식 기억</string>
     <string name="vault_action_sync_vault_title">보관함 동기화</string>
@@ -335,6 +342,8 @@
     <string name="uri_unsecure">안전하지 않음</string>
     <string name="uri_match_app_title">앱 일치</string>
     <string name="uri_match_detection_title">일치 인식</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">기본 도메인</string>
     <string name="uri_match_detection_domain_note">최상위 및 2단계 도메인으로 리소스를 감지합니다.</string>
     <string name="uri_match_detection_host_title">호스트</string>
@@ -377,6 +386,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> 항목은 알 수 없는 필드에 연결되어 있습니다.</string>
     <string name="text_action_share_with_title">공유…</string>
     <string name="text_action_send_title">Send 만들기</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">암호화되지 않은 키 저장</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">키를 다운로드 폴더에 저장했습니다.</string>
+    <string name="ssh_key_action_save_public_key_title">공개 키 저장</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">공개 키를 다운로드 폴더에 저장했습니다.</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">암호화되지 않은 개인 키 저장</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">암호화되지 않은 개인 키를 다운로드 폴더에 저장했습니다.</string>
+    <string name="ssh_key_action_add_key_title">키 추가</string>
+    <string name="ssh_key_action_replace_key_title">키 교체</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g>개 항목 선택됨</string>
     <string name="copy">복사</string>
     <string name="copy_value">값 복사</string>
@@ -397,10 +414,15 @@
     <string name="copy_cvv_code">보안 코드(CVV) 복사</string>
     <string name="copy_otp_code">OTP 코드 복사</string>
     <string name="copy_otp_secret_code">비밀 키 복사</string>
+    <string name="copy_ssh_unencrypted_private_key">암호화되지 않은 개인 키 복사</string>
+    <string name="copy_ssh_public_key">공개 키 복사</string>
+    <string name="copy_ssh_fingerprint">핑거프린트 복사</string>
     <string name="copied_value">값을 복사했습니다.</string>
     <string name="copied_url">URL을 복사했습니다.</string>
     <string name="copied_uri">URI를 복사했습니다.</string>
     <string name="copied_package_name">패키지 이름을 복사했습니다.</string>
+    <string name="copied_key">키를 복사했습니다.</string>
+    <string name="copied_fingerprint">핑거프린트를 복사했습니다.</string>
     <string name="copied_password">비밀번호를 복사했습니다.</string>
     <string name="copied_username">사용자 이름을 복사했습니다.</string>
     <string name="copied_email">이메일을 복사했습니다.</string>
@@ -468,17 +490,22 @@
     <string name="error_invalid_uri">잘못된 URI입니다.</string>
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
+    <string name="error_otp_key_must_not_be_empty">OTP 비밀 키는 비워둘 수 없습니다.</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
     <string name="error_failed_use_passkey">요청을 승인하지 못했습니다.</string>
     <string name="error_failed_open_uri">URI를 열지 못했습니다.</string>
     <string name="error_failed_format_placeholder">플레이스홀더를 만들지 못했습니다.</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">이 요청을 처리할 수 있는 앱이 없습니다.</string>
+    <string name="error_failed_unknown">알 수 없는 오류가 발생했습니다.</string>
+    <string name="error_failed_encrypt_biometric_key">생체 정보 키를 암호화하지 못했습니다.</string>
+    <string name="error_failed_decrypt_biometric_key">생체 정보 키를 복호화하지 못했습니다.</string>
     <string name="scanqr_title">QR 코드 스캔</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
     <string name="scanqr_camera_permission_required_text">QR 코드를 스캔하기 위해 카메라 권한이 필요합니다.</string>
+    <string name="post_notifications_permission_banner_title">알림이 꺼져 있음</string>
+    <string name="post_notifications_permission_banner_text">자동 완성 등 다양한 상황에서 앱이 OTP 코드를 표시할 수 있도록 알림 권한을 허용해 주세요.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">바코드</string>
     <string name="barcodetype_action_show_in_barcode_title">바코드로 표시</string>
@@ -683,6 +710,7 @@
     <string name="cipher_type_card">카드</string>
     <string name="cipher_type_identity">신원</string>
     <string name="cipher_type_note">메모</string>
+    <string name="cipher_type_ssh_key">SSH 키</string>
     <string name="cipher_type_passkey">패스키</string>
     <string name="field_type_text">텍스트</string>
     <string name="field_type_boolean">참/거짓</string>
@@ -768,6 +796,7 @@
     <string name="generator_header_title">생성기</string>
     <string name="generator_header_username_title">사용자 이름 생성기</string>
     <string name="generator_header_password_title">비밀번호 생성기</string>
+    <string name="generator_header_ssh_key_title">SSH 키 생성기</string>
     <string name="generator_generate_button">생성</string>
     <string name="generator_regenerate_button">다시 생성</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +834,15 @@
     <string name="generator_email_subdomain_addressing_note">서브도메인 주소를 사용하면 <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> 주소로 전송된 모든 이메일이 사용자의 계정으로 전송됩니다. 따라서 각 웹사이트, 메일링 리스트마다 다른 이메일 주소를 사용할 수 있습니다. 사용하기 전에 이메일 호스팅 제공 업체에서 이 기능을 지원하는지 확인해 보세요.</string>
     <string name="generator_email_subdomain_addressing_email_title">이메일</string>
     <string name="generator_email_forward_alias_type">포워딩된 이메일 별칭</string>
+    <string name="generator_key_length_title">길이</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>- 비트</string>
+    <string name="generator_key_rsa_note">모든 SSH 클라이언트에서 지원하는 알고리즘입니다. RSA 키 크기 추천 값은 최소 2048 비트, 권장 4096 비트입니다. 머지않은 미래에 RSA 알고리즘이 깨질 가능성이 매우 높습니다.</string>
+    <string name="generator_key_rsa_text">모든 SSH 서버와 호환 가능</string>
+    <string name="generator_key_ed25519_note">가장 빠르고 현대적인 표준입니다. 일부 SSH 클라이언트는 지원하지 않을 수 있습니다.</string>
+    <string name="generator_key_ed25519_text">가장 빠르고 현대적인 표준</string>
     <string name="generator_create_item_with_password_title">생성한 비밀번호로 새 로그인 만들기</string>
     <string name="generator_create_item_with_username_title">생성한 사용자 이름으로 새 로그인 만들기</string>
+    <string name="generator_create_item_with_ssh_key_title">새 SSH 키 항목 만들기</string>
     <string name="generator_password_history_title">비밀번호 생성 기록</string>
     <string name="generator_show_tips_title">팁 보이기</string>
     <string name="generatorhistory_header_title">생성기 기록</string>
@@ -862,7 +898,7 @@
     <string name="changepassword_biometric_auth_confirm_title">앱 비밀번호 변경</string>
     <string name="changepassword_disclaimer_local_note">앱 비밀번호는 기기에 저장되거나 인터넷으로 전송되지 않습니다. 로컬 데이터를 암호화하기 위한 비밀 키를 생성하는 데에만 사용됩니다.</string>
     <string name="changepassword_disclaimer_abuse_note">강력한 비밀번호를 웹사이트마다 다르게 사용하고 있다면, 무단 접속이 의심되거나 기기에서 악성 코드가 발견되지 않는 한 비밀번호를 변경할 필요가 없습니다.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">비밀번호를 변경했습니다.</string>
     <string name="exportaccount_header_title">항목 내보내기</string>
     <string name="exportaccount_password_label">압축 파일 비밀번호</string>
     <string name="exportaccount_attachments_note">보관함은 내보내기 진행 중에 잠금 해제 상태로 유지됩니다. 첨부 파일은 보관함 데이터에 포함되며, 내보내기 과정에서 암호화되지 않은 형식으로는 저장되지 않습니다.</string>
@@ -1006,6 +1042,7 @@
 3. 확인 후 Chrome을 다시 시작합니다.</string>
     <string name="pref_item_autofill_auto_copy_otp_title">OTP 자동 복사</string>
     <string name="pref_item_autofill_auto_copy_otp_text">로그인 정보를 입력할 때 OTP를 자동으로 복사합니다.</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">인라인 제안</string>
     <string name="pref_item_autofill_inline_suggestions_text">호환 가능한 키보드 앱에서 자동 완성을 제안합니다.</string>
     <string name="pref_item_autofill_manual_selection_title">직접 선택</string>

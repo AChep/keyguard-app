@@ -429,7 +429,8 @@ fun DSecret.Type.titleH() = when (this) {
     DSecret.Type.None -> Res.string.cipher_type_unknown
 }
 
-fun DSecret.Uri.MatchType.titleH() = when (this) {
+fun DSecret.Uri.MatchType?.titleH() = when (this) {
+    null -> Res.string.uri_match_detection_default_title
     DSecret.Uri.MatchType.Domain -> Res.string.uri_match_detection_domain_title
     DSecret.Uri.MatchType.Host -> Res.string.uri_match_detection_host_title
     DSecret.Uri.MatchType.StartsWith -> Res.string.uri_match_detection_startswith_title

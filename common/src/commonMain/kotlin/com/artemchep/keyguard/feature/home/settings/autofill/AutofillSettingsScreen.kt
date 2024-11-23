@@ -29,6 +29,7 @@ fun AutofillSettingsScreen() {
             SettingPaneItem.Group(
                 key = "general",
                 list = persistentListOf(
+                    SettingPaneItem.Item(Setting.AUTOFILL_DEFAULT_MATCH_DETECTION),
                     SettingPaneItem.Item(Setting.AUTOFILL_INLINE_SUGGESTIONS),
                     SettingPaneItem.Item(Setting.AUTOFILL_MANUAL_SELECTION),
                     SettingPaneItem.Item(Setting.AUTOFILL_RESPECT_AUTOFILL_OFF),

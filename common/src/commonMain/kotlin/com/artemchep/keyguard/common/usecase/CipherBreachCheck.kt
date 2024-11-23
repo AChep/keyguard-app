@@ -4,4 +4,8 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 
-interface CipherBreachCheck : (DSecret, HibpBreachGroup) -> IO<Boolean>
+interface CipherBreachCheck : (
+    DSecret,
+    HibpBreachGroup,
+    DSecret.Uri.MatchType,
+) -> IO<Boolean>

@@ -173,7 +173,7 @@ private val items = listOfNotNull<SettingsItem2>(
         text = TextHolder.Res(Res.string.pref_item_autofill_text),
         icon = Icons.Outlined.AutoAwesome,
         route = AutofillSettingsRoute,
-    ).takeIf { CurrentPlatform.hasAutofill() },
+    ).takeIf { CurrentPlatform.hasAutofill() || !isRelease },
     SettingsItem(
         id = "security",
         title = TextHolder.Res(Res.string.pref_item_security_title),

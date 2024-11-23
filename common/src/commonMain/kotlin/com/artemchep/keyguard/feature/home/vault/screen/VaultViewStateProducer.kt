@@ -2172,7 +2172,6 @@ private suspend fun RememberStateFlowScope.createUriItem(
     val uri = holder.uri
 
     val matchTypeTitle = holder.uri.match
-        .takeUnless { it == DSecret.Uri.MatchType.default }
         ?.titleH()
         ?.let {
             translate(it)

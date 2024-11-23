@@ -22,9 +22,10 @@ class CipherUrlDuplicateCheckImpl(
     override fun invoke(
         a: DSecret.Uri,
         b: DSecret.Uri,
+        defaultMatchDetection: DSecret.Uri.MatchType,
     ): IO<DSecret.Uri?> {
-        val aMatch = a.match ?: DSecret.Uri.MatchType.default
-        val bMatch = b.match ?: DSecret.Uri.MatchType.default
+        val aMatch = a.match ?: defaultMatchDetection
+        val bMatch = b.match ?: defaultMatchDetection
 
         // If one of the URIs are set to never match then
         // ignore it, it can not be a duplicate.
@@ -45,7 +46,7 @@ class CipherUrlDuplicateCheckImpl(
             return io(result)
         }
 
-        return cipherUrlCheck(a, b.uri)
+        return cipherUrlCheck(a, b.uri, defaultMatchDetection)
             .effectMap { areMatching ->
                 a.takeIf { areMatching }
             }

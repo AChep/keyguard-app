@@ -50,6 +50,7 @@ class CipherBreachCheckImpl(
     override fun invoke(
         cipher: DSecret,
         breaches: HibpBreachGroup,
+        defaultMatchDetection: DSecret.Uri.MatchType,
     ): IO<Boolean> = ioEffect {
         val login = cipher.login
             ?: return@ioEffect false
@@ -78,7 +79,7 @@ class CipherBreachCheckImpl(
                     ?.takeIf { it.isNotBlank() }
                     ?: return@filter false
                 cipher.uris.any { uri ->
-                    cipherUrlCheck(uri, domain)
+                    cipherUrlCheck(uri, domain, defaultMatchDetection)
                         .bind()
                 }
             }

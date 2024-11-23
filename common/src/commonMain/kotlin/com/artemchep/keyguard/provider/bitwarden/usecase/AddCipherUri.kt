@@ -12,11 +12,13 @@ import com.artemchep.keyguard.common.model.AddUriCipherRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.isEmpty
 import com.artemchep.keyguard.common.util.Browsers
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
+import kotlinx.coroutines.flow.first
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -25,6 +27,7 @@ import org.kodein.di.instance
  */
 class AddUriCipherImpl(
     private val modifyCipherById: ModifyCipherById,
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUrlDuplicateCheck: CipherUrlDuplicateCheck,
 ) : AddUriCipher {
     companion object {
@@ -33,6 +36,7 @@ class AddUriCipherImpl(
 
     constructor(directDI: DirectDI) : this(
         modifyCipherById = directDI.instance(),
+        getAutofillDefaultMatchDetection = directDI.instance(),
         cipherUrlDuplicateCheck = directDI.instance(),
     )
 
@@ -43,6 +47,8 @@ class AddUriCipherImpl(
             return@ioEffect io(false)
         }
 
+        val defaultMatchDetection = getAutofillDefaultMatchDetection()
+            .first()
         modifyCipherById(
             setOf(request.cipherId),
         ) { model ->
@@ -71,7 +77,11 @@ class AddUriCipherImpl(
                     val newUriDomain = newUri.toDomain()
                     oldUrisDomain
                         .none { oldUriDomain ->
-                            val isDuplicate = cipherUrlDuplicateCheck(oldUriDomain, newUriDomain)
+                            val isDuplicate = cipherUrlDuplicateCheck(
+                                oldUriDomain,
+                                newUriDomain,
+                                defaultMatchDetection,
+                            )
                                 .attempt()
                                 .bind()
                                 .isRight { it != null }
@@ -122,7 +132,6 @@ fun List<DSecret.Uri>.autofill(
         if (!androidAppUriExists) {
             existingUris += DSecret.Uri(
                 uri = androidAppUri,
-                match = DSecret.Uri.MatchType.default,
             )
         }
     }
@@ -135,7 +144,6 @@ fun List<DSecret.Uri>.autofill(
             val webUri = "$webPrefix$webDomain"
             existingUris += DSecret.Uri(
                 uri = webUri,
-                match = DSecret.Uri.MatchType.default,
             )
         }
     }

@@ -36,6 +36,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairDecor
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
@@ -81,6 +82,7 @@ import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
@@ -198,6 +200,7 @@ fun produceAddScreenState(
         logRepository = instance(),
         clipboardService = instance(),
         otpMigrationService = instance(),
+        getAutofillDefaultMatchDetection = instance(),
         cipherUnsecureUrlCheck = instance(),
         showMessage = instance(),
         addCipher = instance(),
@@ -228,6 +231,7 @@ fun produceAddScreenState(
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
+    getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     showMessage: ShowMessage,
     addCipher: AddCipher,
@@ -363,6 +367,7 @@ fun produceAddScreenState(
 
     val urisFactories = kotlin.run {
         val uriFactory = AddStateItemUriFactory(
+            getAutofillDefaultMatchDetection = getAutofillDefaultMatchDetection,
             cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         )
         listOf(
@@ -948,6 +953,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
 }
 
 class AddStateItemUriFactory(
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
 ) : Foo2Factory<AddStateItem.Url<*>, DSecret.Uri> {
     override val type: String = "uri"
@@ -967,8 +973,8 @@ class AddStateItemUriFactory(
         }
         val uriMutableState = asComposeState<String>(uriKey)
 
-        val matchTypeSink = mutablePersistedFlow("$key.match_type") {
-            initial?.match ?: DSecret.Uri.MatchType.default
+        val matchDetectionSink = mutablePersistedFlow("$key.match_detection") {
+            MatchDetection.valueOf(initial?.match)
         }
 
         val actionsAppPickerItem = FlatItemAction(
@@ -981,7 +987,7 @@ class AddStateItemUriFactory(
                 val route = registerRouteResultReceiver(AppPickerRoute) { result ->
                     if (result is AppPickerResult.Confirm) {
                         uriMutableState.value = result.uri
-                        matchTypeSink.value = DSecret.Uri.MatchType.default
+                        matchDetectionSink.value = MatchDetection.Default
                     }
                 }
                 val intent = NavigationIntent.NavigateToRoute(
@@ -992,16 +998,16 @@ class AddStateItemUriFactory(
         )
         // Add a ability to change the
         // match type via an option.
-        val actionsMatchTypeItemFlow = matchTypeSink
+        val actionsMatchTypeItemFlow = matchDetectionSink
             .map { selectedMatchType ->
                 FlatItemAction(
                     leading = icon(Icons.Stub),
                     title = Res.string.uri_match_detection_title.wrap(),
-                    text = selectedMatchType.titleH().wrap(),
+                    text = selectedMatchType.matchType.titleH().wrap(),
                     onClick = onClick {
-                        val items = DSecret.Uri.MatchType.entries
+                        val items = MatchDetection.entries
                             .map { type ->
-                                val typeTitle = translate(type.titleH())
+                                val typeTitle = translate(type.matchType.titleH())
                                 ConfirmationRoute.Args.Item.EnumItem.Item(
                                     key = type.name,
                                     title = typeTitle,
@@ -1013,27 +1019,31 @@ class AddStateItemUriFactory(
                                 value = selectedMatchType.name,
                                 items = items,
                                 docs = mapOf(
-                                    DSecret.Uri.MatchType.Domain.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                    MatchDetection.Default.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                        text = translate(Res.string.uri_match_detection_default_note),
+                                        url = "https://bitwarden.com/help/uri-match-detection/#default-match-detection",
+                                    ),
+                                    MatchDetection.Domain.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
                                         text = translate(Res.string.uri_match_detection_domain_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#base-domain",
                                     ),
-                                    DSecret.Uri.MatchType.Host.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                    MatchDetection.Host.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
                                         text = translate(Res.string.uri_match_detection_host_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#host",
                                     ),
-                                    DSecret.Uri.MatchType.StartsWith.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                    MatchDetection.StartsWith.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
                                         text = translate(Res.string.uri_match_detection_startswith_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#starts-with",
                                     ),
-                                    DSecret.Uri.MatchType.Exact.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                    MatchDetection.Exact.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
                                         text = translate(Res.string.uri_match_detection_exact_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
                                     ),
-                                    DSecret.Uri.MatchType.RegularExpression.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                    MatchDetection.RegularExpression.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
                                         text = translate(Res.string.uri_match_detection_regex_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
                                     ),
-                                    DSecret.Uri.MatchType.Never.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
+                                    MatchDetection.Never.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
                                         text = translate(Res.string.uri_match_detection_never_note),
                                         url = "https://bitwarden.com/help/uri-match-detection/#exact",
                                     ),
@@ -1041,8 +1051,7 @@ class AddStateItemUriFactory(
                             ),
                             title = translate(Res.string.uri_match_detection_title),
                         ) { newMatchTypeKey ->
-                            matchTypeSink.value =
-                                DSecret.Uri.MatchType.valueOf(newMatchTypeKey)
+                            matchDetectionSink.value = MatchDetection.valueOf(newMatchTypeKey)
                         }
                         navigate(intent)
                     },
@@ -1056,6 +1065,7 @@ class AddStateItemUriFactory(
                 }
             }
 
+        val defaultMatchDetection = getAutofillDefaultMatchDetection()
         val textFlow = uriSink
             .map { uri ->
                 TextFieldModel2(
@@ -1066,10 +1076,12 @@ class AddStateItemUriFactory(
             }
         val stateFlow = combine(
             textFlow,
-            matchTypeSink,
+            matchDetectionSink,
+            defaultMatchDetection,
             actionsFlow,
-        ) { text, matchType, actions ->
-            val badge = when (matchType) {
+        ) { text, matchDetection, defaultMatchDetection, actions ->
+            val matchType = matchDetection.matchType
+            val badge = when (matchType ?: defaultMatchDetection) {
                 DSecret.Uri.MatchType.Never,
                 DSecret.Uri.MatchType.Host,
                 DSecret.Uri.MatchType.Domain,
@@ -1110,7 +1122,6 @@ class AddStateItemUriFactory(
                 text = text.copy(vl = badge),
                 matchType = matchType,
                 matchTypeTitle = matchType
-                    .takeIf { it != DSecret.Uri.MatchType.default }
                     ?.let {
                         val name = translate(it.titleH())
                         name
@@ -1122,7 +1133,7 @@ class AddStateItemUriFactory(
                 started = SharingStarted.WhileSubscribed(),
                 initialValue = AddStateItem.Url.State(
                     text = TextFieldModel2.empty,
-                    matchType = DSecret.Uri.MatchType.default,
+                    matchType = null,
                 ),
             )
         return AddStateItem.Url<CreateRequest>(

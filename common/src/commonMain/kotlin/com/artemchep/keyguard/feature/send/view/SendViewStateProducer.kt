@@ -14,11 +14,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.ioRaise
-import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DSecret
@@ -28,20 +25,9 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
-import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
-import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
-import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
-import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
-import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
-import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
-import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
-import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
-import com.artemchep.keyguard.common.usecase.CipherUrlCheck
-import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
-import com.artemchep.keyguard.common.usecase.FavouriteCipherById
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCanWrite
@@ -55,22 +41,13 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
-import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
-import com.artemchep.keyguard.common.usecase.PatchSendById
-import com.artemchep.keyguard.common.usecase.RemoveAttachment
-import com.artemchep.keyguard.common.usecase.RemoveCipherById
-import com.artemchep.keyguard.common.usecase.RemoveSendById
-import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.SendToolbox
-import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
-import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -92,13 +69,9 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardView
-import com.artemchep.keyguard.ui.selection.SelectionHandle
-import com.artemchep.keyguard.ui.selection.selectionHandle
 import com.artemchep.keyguard.ui.text.annotate
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import io.ktor.http.Url
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -133,16 +106,11 @@ fun sendViewScreenState(
         toolbox = instance(),
         downloadManager = instance(),
         downloadAttachment = instance(),
-        removeAttachment = instance(),
-        cipherExpiringCheck = instance(),
-        cipherIncompleteCheck = instance(),
-        cipherUrlCheck = instance(),
         tfaService = instance(),
         clipboardService = instance(),
         getGravatarUrl = instance(),
         getEnvSendUrl = instance(),
         dateFormatter = instance(),
-        addCipherOpenedHistory = instance(),
         windowCoroutineScope = instance(),
         linkInfoExtractors = allInstances(),
         contentColor = contentColor,
@@ -176,16 +144,11 @@ fun sendViewScreenState(
     toolbox: SendToolbox,
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
-    removeAttachment: RemoveAttachment,
-    cipherExpiringCheck: CipherExpiringCheck,
-    cipherIncompleteCheck: CipherIncompleteCheck,
-    cipherUrlCheck: CipherUrlCheck,
     tfaService: TwoFaService,
     clipboardService: ClipboardService,
     getGravatarUrl: GetGravatarUrl,
     getEnvSendUrl: GetEnvSendUrl,
     dateFormatter: DateFormatter,
-    addCipherOpenedHistory: AddCipherOpenedHistory,
     windowCoroutineScope: WindowCoroutineScope,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
     sendId: String,

@@ -108,6 +108,7 @@ import com.artemchep.keyguard.common.usecase.GetAppVersion
 import com.artemchep.keyguard.common.usecase.GetAppVersionCode
 import com.artemchep.keyguard.common.usecase.GetAppVersionName
 import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.GetAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.GetAutofillRespectAutofillOff
@@ -177,6 +178,7 @@ import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.PutAppIcons
 import com.artemchep.keyguard.common.usecase.PutAutofillCopyTotp
+import com.artemchep.keyguard.common.usecase.PutAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.PutAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.PutAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.PutAutofillRespectAutofillOff
@@ -242,6 +244,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetAppVersionCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAppVersionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAppVersionNameImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillCopyTotpImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAutofillDefaultMatchDetectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillInlineSuggestionsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillManualSelectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillRespectAutofillOffImpl
@@ -311,6 +314,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutAllowTwoPanelLayoutInLandsc
 import com.artemchep.keyguard.common.usecase.impl.PutAllowTwoPanelLayoutInPortraitImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAppIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillCopyTotpImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAutofillDefaultMatchDetectionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillInlineSuggestionsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillManualSelectionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillRespectAutofillOffImpl
@@ -550,6 +554,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetAutofillDefaultMatchDetection> {
+        GetAutofillDefaultMatchDetectionImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetAutofillInlineSuggestions> {
         GetAutofillInlineSuggestionsImpl(
             directDI = this,
@@ -735,6 +744,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutAutofillCopyTotp> {
         PutAutofillCopyTotpImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutAutofillDefaultMatchDetection> {
+        PutAutofillDefaultMatchDetectionImpl(
             directDI = this,
         )
     }

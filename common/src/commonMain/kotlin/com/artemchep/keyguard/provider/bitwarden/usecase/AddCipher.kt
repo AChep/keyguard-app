@@ -526,18 +526,15 @@ private suspend fun BitwardenCipher.Login.Companion.of(
                 return@mapNotNull null
             }
 
-            val match = uri.match
-                .takeUnless { it == DSecret.Uri.MatchType.default }
-                ?.let {
-                    when (it) {
-                        DSecret.Uri.MatchType.Domain -> BitwardenCipher.Login.Uri.MatchType.Domain
-                        DSecret.Uri.MatchType.Host -> BitwardenCipher.Login.Uri.MatchType.Host
-                        DSecret.Uri.MatchType.StartsWith -> BitwardenCipher.Login.Uri.MatchType.StartsWith
-                        DSecret.Uri.MatchType.Exact -> BitwardenCipher.Login.Uri.MatchType.Exact
-                        DSecret.Uri.MatchType.RegularExpression -> BitwardenCipher.Login.Uri.MatchType.RegularExpression
-                        DSecret.Uri.MatchType.Never -> BitwardenCipher.Login.Uri.MatchType.Never
-                    }
-                }
+            val match = when (uri.match) {
+                null -> null
+                DSecret.Uri.MatchType.Domain -> BitwardenCipher.Login.Uri.MatchType.Domain
+                DSecret.Uri.MatchType.Host -> BitwardenCipher.Login.Uri.MatchType.Host
+                DSecret.Uri.MatchType.StartsWith -> BitwardenCipher.Login.Uri.MatchType.StartsWith
+                DSecret.Uri.MatchType.Exact -> BitwardenCipher.Login.Uri.MatchType.Exact
+                DSecret.Uri.MatchType.RegularExpression -> BitwardenCipher.Login.Uri.MatchType.RegularExpression
+                DSecret.Uri.MatchType.Never -> BitwardenCipher.Login.Uri.MatchType.Never
+            }
             BitwardenCipher.Login.Uri(
                 uri = uri.uri,
                 match = match,

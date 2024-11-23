@@ -17,10 +17,12 @@ import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.model.contains
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import io.ktor.http.Url
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import org.kodein.di.DirectDI
 import org.kodein.di.allInstances
 import org.kodein.di.instance
@@ -113,10 +115,12 @@ private const val scoreThreshold = 0.1f
 
 class GetSuggestionsImpl(
     private val androidExtractors: List<LinkInfoExtractor<LinkInfoPlatform.Android, LinkInfoAndroid>>,
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUrlCheck: CipherUrlCheck,
 ) : GetSuggestions<Any?> {
     constructor(directDI: DirectDI) : this(
         androidExtractors = directDI.allInstances(),
+        getAutofillDefaultMatchDetection = directDI.instance(),
         cipherUrlCheck = directDI.instance(),
     )
 
@@ -179,6 +183,8 @@ class GetSuggestionsImpl(
             )
         }
 
+        val defaultMatchDetection = getAutofillDefaultMatchDetection()
+            .first()
         val c = ciphers
             .parallelSearch { wrapper ->
                 val cipher = getter.get(wrapper)
@@ -190,8 +196,13 @@ class GetSuggestionsImpl(
                     AutofillHint.PASSWORD in target.hints
                 ) {
                     run {
-                        val scoreByWebDomainRaw =
-                            autofillTargetWeb?.findByWebDomain(cipher, tokens, cipherUrlCheck)
+                        val scoreByWebDomainRaw = autofillTargetWeb
+                            ?.findByWebDomain(
+                                secret = cipher,
+                                tokens = tokens,
+                                cipherUrlCheck = cipherUrlCheck,
+                                defaultMatchDetection = defaultMatchDetection,
+                            )
                         val scoreByWebDomain = scoreByWebDomainRaw
                             ?: 0f
                         if (scoreByWebDomain > scoreThreshold) {
@@ -358,6 +369,7 @@ private suspend fun GetSuggestionsImpl.AutofillTargetWeb.findByWebDomain(
     secret: DSecret,
     tokens: Set<String>,
     cipherUrlCheck: CipherUrlCheck,
+    defaultMatchDetection: DSecret.Uri.MatchType,
 ): Float = run {
     val webHost = webUrl.host
     val webUrl = webUrl.toString()
@@ -365,13 +377,13 @@ private suspend fun GetSuggestionsImpl.AutofillTargetWeb.findByWebDomain(
     // the cipher, then we give it maximum priority.
     val scoreByUri = secret.uris
         .map { uri ->
-            val match = cipherUrlCheck.invoke(uri, webUrl)
+            val match = cipherUrlCheck.invoke(uri, webUrl, defaultMatchDetection)
                 .attempt()
                 .bind()
                 .getOrElse { false }
             if (match) {
                 @Suppress("MoveVariableDeclarationIntoWhen")
-                val matchType = uri.match ?: DSecret.Uri.MatchType.default
+                val matchType = uri.match ?: defaultMatchDetection
                 when (matchType) {
                     DSecret.Uri.MatchType.Domain -> 10f
                     DSecret.Uri.MatchType.Host -> 20f

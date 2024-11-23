@@ -36,6 +36,7 @@ class SettingsRepositoryImpl(
     private val json: Json,
 ) : SettingsReadWriteRepository {
     companion object {
+        private const val KEY_AUTOFILL_DEFAULT_MATCH_DETECTION = "autofill.default_match_detection"
         private const val KEY_AUTOFILL_INLINE_SUGGESTIONS = "autofill.inline_suggestions"
         private const val KEY_AUTOFILL_MANUAL_SELECTION = "autofill.manual_selection"
         private const val KEY_AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill.respect_autofill_off"
@@ -81,6 +82,9 @@ class SettingsRepositoryImpl(
 
         private const val NONE_DURATION = -1L
     }
+
+    private val autofillDefaultMatchDetectionPref =
+        store.getString(KEY_AUTOFILL_DEFAULT_MATCH_DETECTION, "")
 
     private val autofillInlineSuggestionsPref =
         store.getBoolean(KEY_AUTOFILL_INLINE_SUGGESTIONS, true)
@@ -222,6 +226,13 @@ class SettingsRepositoryImpl(
         store = directDI.instance<Files, KeyValueStore>(arg = Files.SETTINGS),
         json = directDI.instance(),
     )
+
+    override fun setAutofillDefaultMatchDetection(
+        matchDetection: String,
+    ) = autofillDefaultMatchDetectionPref
+        .setAndCommit(matchDetection)
+
+    override fun getAutofillDefaultMatchDetection() = autofillDefaultMatchDetectionPref
 
     override fun setAutofillInlineSuggestions(inlineSuggestions: Boolean) =
         autofillInlineSuggestionsPref

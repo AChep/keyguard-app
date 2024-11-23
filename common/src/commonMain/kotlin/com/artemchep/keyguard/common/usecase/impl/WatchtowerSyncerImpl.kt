@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
@@ -53,6 +54,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -318,6 +320,7 @@ class WatchtowerPasswordPwned(
 }
 
 class WatchtowerWebsitePwned(
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherBreachCheck: CipherBreachCheck,
     private val getBreaches: GetBreaches,
     private val getCheckPwnedServices: GetCheckPwnedServices,
@@ -326,6 +329,7 @@ class WatchtowerWebsitePwned(
         get() = DWatchtowerAlertType.PWNED_WEBSITE.value
 
     constructor(directDI: DirectDI) : this(
+        getAutofillDefaultMatchDetection = directDI.instance(),
         cipherBreachCheck = directDI.instance(),
         getBreaches = directDI.instance(),
         getCheckPwnedServices = directDI.instance(),
@@ -333,6 +337,8 @@ class WatchtowerWebsitePwned(
 
     override fun version() = combineJoinToVersion(
         getDatabaseVersionFlow(),
+        getAutofillDefaultMatchDetection()
+            .map { it.name },
         getCheckPwnedServices()
             .map {
                 it.int.toString()
@@ -349,8 +355,11 @@ class WatchtowerWebsitePwned(
     override suspend fun process(
         ciphers: List<DSecret>,
     ): List<WatchtowerClientResult> {
+        val defaultMatchDetection = getAutofillDefaultMatchDetection()
+            .first()
         val set = buildDuplicatesState(
             ciphers = ciphers,
+            defaultMatchDetection = defaultMatchDetection,
         )
         return ciphers
             .map { cipher ->
@@ -375,6 +384,7 @@ class WatchtowerWebsitePwned(
 
     private suspend fun buildDuplicatesState(
         ciphers: List<DSecret>,
+        defaultMatchDetection: DSecret.Uri.MatchType,
     ): Set<String> = ioEffect {
         val breaches = getBreaches()
             .handleError {
@@ -389,7 +399,7 @@ class WatchtowerWebsitePwned(
                     return@filter false
                 }
 
-                cipherBreachCheck(cipher, breaches)
+                cipherBreachCheck(cipher, breaches, defaultMatchDetection)
                     .handleError { false }
                     .bind()
             }
@@ -766,24 +776,32 @@ class WatchtowerInactiveTfa(
 }
 
 class WatchtowerDuplicateUris(
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUrlDuplicateCheck: CipherUrlDuplicateCheck,
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.DUPLICATE_URIS.value
 
     constructor(directDI: DirectDI) : this(
+        getAutofillDefaultMatchDetection = directDI.instance(),
         cipherUrlDuplicateCheck = directDI.instance(),
     )
 
-    override fun version() = flowOf("1")
+    override fun version() = combineJoinToVersion(
+        getAutofillDefaultMatchDetection()
+            .map { it.name },
+    )
 
     override suspend fun process(
         ciphers: List<DSecret>,
     ): List<WatchtowerClientResult> {
+        val defaultMatchDetection = getAutofillDefaultMatchDetection()
+            .first()
         return ciphers
             .map { cipher ->
                 val value = hasAlert(
                     cipher = cipher,
+                    defaultMatchDetection = defaultMatchDetection,
                 )
                 val threat = value != null
                 WatchtowerClientResult(
@@ -796,17 +814,19 @@ class WatchtowerDuplicateUris(
 
     private suspend fun hasAlert(
         cipher: DSecret,
+        defaultMatchDetection: DSecret.Uri.MatchType,
     ): String? {
         val shouldIgnore = shouldIgnore(cipher)
         if (shouldIgnore) {
             return null
         }
 
-        return match(cipher)
+        return match(cipher, defaultMatchDetection)
     }
 
     private suspend fun match(
         cipher: DSecret,
+        defaultMatchDetection: DSecret.Uri.MatchType,
     ) = kotlin.run {
         val uris = cipher.uris
         if (uris.isEmpty()) {
@@ -822,7 +842,7 @@ class WatchtowerDuplicateUris(
 
                 val a = uris[i]
                 val b = uris[j]
-                val duplicate = cipherUrlDuplicateCheck(a, b)
+                val duplicate = cipherUrlDuplicateCheck(a, b, defaultMatchDetection)
                     .attempt()
                     .bind()
                     .isRight { it != null }

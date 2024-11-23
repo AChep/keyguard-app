@@ -31,8 +31,9 @@ class CipherUrlCheckImpl(
     override fun invoke(
         uri: DSecret.Uri,
         url: String,
+        defaultMatchDetection: DSecret.Uri.MatchType,
     ): IO<Boolean> {
-        return when (uri.match ?: DSecret.Uri.MatchType.default) {
+        return when (uri.match ?: defaultMatchDetection) {
             DSecret.Uri.MatchType.Domain -> {
                 when {
                     uri.uri.startsWith(PROTOCOL_ANDROID_APP) -> ::checkUrlMatchByHost

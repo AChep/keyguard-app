@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegr
 import com.artemchep.keyguard.feature.home.settings.component.settingApkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillInlineSuggestionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillManualSelectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillProvider
@@ -117,6 +118,7 @@ object Setting {
 
     const val CREDENTIAL_PROVIDER = "credential_provider"
     const val AUTOFILL = "autofill"
+    const val AUTOFILL_DEFAULT_MATCH_DETECTION = "autofill_default_match_detection"
     const val AUTOFILL_INLINE_SUGGESTIONS = "autofill_inline_suggestions"
     const val AUTOFILL_MANUAL_SELECTION = "autofill_manual_selection"
     const val AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill_respect_autofill_off"
@@ -204,6 +206,7 @@ val LocalSettingItemArgs = staticCompositionLocalOf<Any?> {
 val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.CREDENTIAL_PROVIDER to ::settingCredentialProviderProvider,
     Setting.AUTOFILL to ::settingAutofillProvider,
+    Setting.AUTOFILL_DEFAULT_MATCH_DETECTION to ::settingAutofillDefaultMatchDetectionProvider,
     Setting.AUTOFILL_INLINE_SUGGESTIONS to ::settingAutofillInlineSuggestionsProvider,
     Setting.AUTOFILL_MANUAL_SELECTION to ::settingAutofillManualSelectionProvider,
     Setting.AUTOFILL_RESPECT_AUTOFILL_OFF to ::settingAutofillRespectAutofillOffProvider,

@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
@@ -47,6 +48,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
 import io.ktor.http.Url
+import kotlinx.coroutines.flow.first
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -769,6 +771,8 @@ sealed interface DFilter {
             directDI: DirectDI,
             ciphers: List<DSecret>,
         ): Set<String> = ioEffect {
+            val getAutofillDefaultMatchDetection =
+                directDI.instance<GetAutofillDefaultMatchDetection>()
             val check: CipherBreachCheck = directDI.instance()
             val getBreaches: GetBreaches = directDI.instance()
 
@@ -778,6 +782,8 @@ sealed interface DFilter {
                 }
                 .bind()
 
+            val defaultMatchDetection = getAutofillDefaultMatchDetection()
+                .first()
             ciphers
                 .filter { cipher ->
                     val shouldIgnore = shouldIgnore(cipher)
@@ -785,7 +791,7 @@ sealed interface DFilter {
                         return@filter false
                     }
 
-                    check(cipher, breaches)
+                    check(cipher, breaches, defaultMatchDetection)
                         .handleError { false }
                         .bind()
                 }
@@ -1244,7 +1250,12 @@ sealed interface DFilter {
             directDI: DirectDI,
             ciphers: List<DSecret>,
         ) = kotlin.run {
+            val getAutofillDefaultMatchDetection =
+                directDI.instance<GetAutofillDefaultMatchDetection>()
             val cipherUrlDuplicateCheck = directDI.instance<CipherUrlDuplicateCheck>()
+
+            val defaultMatchDetection = getAutofillDefaultMatchDetection()
+                .first()
             ciphers
                 .filter { cipher ->
                     if (shouldIgnore(cipher)) {
@@ -1263,7 +1274,7 @@ sealed interface DFilter {
 
                             val a = uris[i]
                             val b = uris[j]
-                            val duplicate = cipherUrlDuplicateCheck(a, b)
+                            val duplicate = cipherUrlDuplicateCheck(a, b, defaultMatchDetection)
                                 .attempt()
                                 .bind()
                                 .isRight { it != null }

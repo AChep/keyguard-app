@@ -13,6 +13,8 @@ import kotlin.time.Duration
  * @author Artem Chepurnyi
  */
 interface SettingsReadRepository {
+    fun getAutofillDefaultMatchDetection(): Flow<String>
+
     fun getAutofillInlineSuggestions(): Flow<Boolean>
 
     fun getAutofillManualSelection(): Flow<Boolean>

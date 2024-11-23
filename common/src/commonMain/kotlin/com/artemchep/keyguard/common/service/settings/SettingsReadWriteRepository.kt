@@ -13,6 +13,10 @@ import kotlin.time.Duration
  * @author Artem Chepurnyi
  */
 interface SettingsReadWriteRepository : SettingsReadRepository {
+    fun setAutofillDefaultMatchDetection(
+        matchDetection: String,
+    ): IO<Unit>
+
     fun setAutofillInlineSuggestions(
         inlineSuggestions: Boolean,
     ): IO<Unit>

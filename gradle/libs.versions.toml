@@ -93,7 +93,7 @@ ktlintPlugin = "12.1.1"
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
 ktor = "3.0.0"
 # https://github.com/skydoves/landscapist
-landscapist = "2.4.3"
+landscapist = "2.4.4"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.12.0"
 # https://github.com/tony19/logback-android

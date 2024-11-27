@@ -356,6 +356,7 @@ fun <T> ColumnScope.DropdownMenuExpandableContainer(
                 ) {
                     Icon(
                         modifier = Modifier
+                            .padding(1.dp)
                             .size(18.dp),
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = null,

@@ -47,8 +47,11 @@ fun settingNavAnimationProvider(
     val text = textResource(navAnimation.title, context)
     val dropdown = variants
         .map { navAnimationVariant ->
+            val actionSelected = navAnimationVariant == navAnimation
+            val actionTitle = navAnimationVariant.title.wrap()
             FlatItemAction(
-                title = navAnimationVariant.title.wrap(),
+                title = actionTitle,
+                selected = actionSelected,
                 onClick = {
                     putNavAnimation(navAnimationVariant)
                         .launchIn(windowCoroutineScope)

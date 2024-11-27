@@ -48,9 +48,11 @@ fun settingColorSchemeProvider(
     val text = getAppThemeTitle(theme, context)
     val dropdown = variants
         .map { themeVariant ->
+            val actionSelected = theme == themeVariant
             val actionTitle = getAppThemeTitle(themeVariant, context)
             FlatItemAction(
                 title = TextHolder.Value(actionTitle),
+                selected = actionSelected,
                 onClick = {
                     putTheme(themeVariant)
                         .launchIn(windowCoroutineScope)

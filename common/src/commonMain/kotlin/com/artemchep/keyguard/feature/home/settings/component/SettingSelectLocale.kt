@@ -70,9 +70,11 @@ fun settingSelectLocaleProvider(
             ),
         )
         .map { item ->
+            val actionSelected = locale == item.locale
             FlatItemAction(
                 // leading = if (item.locale != null) null else icon(Icons.Outlined.AutoAwesome),
                 title = TextHolder.Value(item.title),
+                selected = actionSelected,
                 onClick = {
                     putLocale(item.locale)
                         .launchIn(windowCoroutineScope)

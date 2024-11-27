@@ -49,9 +49,11 @@ fun settingVaultLockAfterTimeoutProvider(
     val text = getLockAfterDurationTitle(timeout, context)
     val dropdown = variants
         .map { duration ->
-            val title = getLockAfterDurationTitle(duration, context)
+            val actionSelected = duration == timeout
+            val actionTitle = getLockAfterDurationTitle(duration, context)
             FlatItemAction(
-                title = TextHolder.Value(title),
+                title = TextHolder.Value(actionTitle),
+                selected = actionSelected,
                 onClick = {
                     putVaultLockAfterTimeout(duration)
                         .launchIn(windowCoroutineScope)

@@ -99,9 +99,11 @@ private suspend fun ah(
     val text = getRequirePasswordDurationTitle(timeout, context)
     val dropdown = variants
         .map { duration ->
-            val title = getRequirePasswordDurationTitle(duration, context)
+            val actionSelected = duration == timeout
+            val actionTitle = getRequirePasswordDurationTitle(duration, context)
             FlatItemAction(
-                title = TextHolder.Value(title),
+                title = TextHolder.Value(actionTitle),
+                selected = actionSelected,
                 onClick = {
                     putBiometricTimeout(duration)
                         .launchIn(windowCoroutineScope)

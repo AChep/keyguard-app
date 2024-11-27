@@ -51,9 +51,11 @@ fun settingClipboardAutoClearProvider(
     val text = getAutoClearDurationTitle(timeout, context)
     val dropdown = variants
         .map { duration ->
-            val title = getAutoClearDurationTitle(duration, context)
+            val actionSelected = timeout == duration
+            val actionTitle = getAutoClearDurationTitle(duration, context)
             FlatItemAction(
-                title = TextHolder.Value(title),
+                title = TextHolder.Value(actionTitle),
+                selected = actionSelected,
                 onClick = {
                     putClipboardAutoClear(duration)
                         .launchIn(windowCoroutineScope)

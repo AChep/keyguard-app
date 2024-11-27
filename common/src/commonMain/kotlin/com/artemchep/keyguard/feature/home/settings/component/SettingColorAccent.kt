@@ -57,9 +57,11 @@ fun settingColorAccentProvider(
     val text = getAppColorsTitle(colors, context)
     val dropdown = variants
         .map { colorsVariant ->
+            val actionSelected = colorsVariant == colors
             val actionTitle = getAppColorsTitle(colorsVariant, context)
             FlatItemAction(
                 title = TextHolder.Value(actionTitle),
+                selected = actionSelected,
                 onClick = {
                     putColors(colorsVariant)
                         .launchIn(windowCoroutineScope)

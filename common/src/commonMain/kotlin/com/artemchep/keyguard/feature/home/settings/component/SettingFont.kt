@@ -48,11 +48,13 @@ fun settingFontProvider(
     val text = getAppFontTitle(font, context)
     val dropdown = variants
         .map { fontVariant ->
+            val actionSelected = fontVariant == font
             val actionTitle = getAppFontTitle(fontVariant, context)
             val actionText = getAppFontText(fontVariant, context)
             FlatItemAction(
                 title = TextHolder.Value(actionTitle),
                 text = actionText?.let(TextHolder::Value),
+                selected = actionSelected,
                 onClick = {
                     putFont(fontVariant)
                         .launchIn(windowCoroutineScope)

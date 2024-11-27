@@ -59,9 +59,11 @@ fun settingClipboardAutoRefreshProvider(
     val text = getAutoRefreshDurationTitle(timeout, context)
     val dropdown = variants
         .map { duration ->
-            val title = getAutoRefreshDurationTitle(duration, context)
+            val actionSelected = timeout == duration
+            val actionTitle = getAutoRefreshDurationTitle(duration, context)
             FlatItemAction(
-                title = TextHolder.Value(title),
+                title = TextHolder.Value(actionTitle),
+                selected = actionSelected,
                 onClick = {
                     putClipboardAutoRefresh(duration)
                         .launchIn(windowCoroutineScope)

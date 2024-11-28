@@ -17,9 +17,9 @@ sealed interface TotpToken {
             url: String,
         ): Either<Throwable, TotpToken> = catch {
             when {
-                url.startsWith(PREFIX_OTP_AUTH) -> parseOtpAuth(url)
-                url.startsWith(PREFIX_OTP_STEAM) -> parseOtpSteam(url)
-                url.startsWith(PREFIX_OTP_MOBILE) -> parseOtpMobile(url)
+                url.startsWith(PREFIX_OTP_AUTH, ignoreCase = true) -> parseOtpAuth(url)
+                url.startsWith(PREFIX_OTP_STEAM, ignoreCase = true) -> parseOtpSteam(url)
+                url.startsWith(PREFIX_OTP_MOBILE, ignoreCase = true) -> parseOtpMobile(url)
                 else -> {
                     // By default we think that the url is a key and the token
                     // type is otp-auth.

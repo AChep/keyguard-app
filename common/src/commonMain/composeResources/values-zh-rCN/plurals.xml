@@ -25,12 +25,12 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 天</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 周</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 月</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 年</item>
     </plurals>
 </resources>

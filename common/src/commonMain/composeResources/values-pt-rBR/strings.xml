@@ -26,8 +26,8 @@
     <string name="public_url">URL Pública</string>
     <string name="url">Endereço da URL</string>
     <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="field_label">Rótulo</string>
+    <string name="field_value">Valor</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Quantidade de acessos</string>
     <!--
@@ -178,8 +178,8 @@
     <string name="passkey_available">Passkey disponível</string>
     <string name="twofa_available">Autenticação de dois fatores disponível</string>
     <string name="custom">Personalizado</string>
-    <string name="grant_permission">Grant permission</string>
-    <string name="create_account">Create account</string>
+    <string name="grant_permission">Conceder permissão</string>
+    <string name="create_account">Criar conta</string>
     <string name="follow_system_settings">Usar as configurações do sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Em breve</string>
@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Revelar uma nota segura</string>
     <string name="hide_secure_note">Esconder uma nota segura</string>
     <string name="master_password_hint">Dica da Senha Mestra</string>
+    <string name="public_key">Chave pública</string>
+    <string name="private_key">Chave Privada</string>
+    <string name="fingerprint">Impressão digital</string>
+    <string name="key_type">Tipo de chave</string>
+    <string name="key_pair">Par de chaves</string>
+    <string name="key_ssh">Chave SSH</string>
     <string name="fingerprint_phrase">Frase de impressão digital</string>
     <string name="fingerprint_phrase_help_title">O que é uma impressão digital?</string>
     <string name="filter_auth_reprompt_items">Confirmação de autenticação</string>
@@ -223,6 +229,8 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Precisa do Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial do Bitwarden</string>
+    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generate disposable emails for the better privacy.</string>
     <string name="account_last_synced_at">Última sincronização em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Renomear</string>
     <string name="account_action_change_color_title">Alterar cor</string>
@@ -245,14 +253,14 @@
     <string name="folder_action_change_name_title">Renomear</string>
     <string name="folder_action_change_names_title">Renomear</string>
     <string name="folder_action_merge_title">Mesclar em…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Você tem certeza que deseja mesclar estas pastas?</string>
+    <string name="folder_action_create_title">Criar uma pasta</string>
     <string name="folder_delete_one_confirmation_title">Apagar a pasta?</string>
     <string name="folder_delete_many_confirmation_title">Apagar as pastas?</string>
     <string name="folder_delete_confirmation_text">Este item(ns) será excluído imediatamente. Você não pode desfazer esta ação.</string>
     <string name="ciphers_recently_opened">Abertos recentemente</string>
     <string name="ciphers_often_opened">Abertos com frequência</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Sem histórico por enquanto</string>
     <string name="ciphers_view_details">Ver detalhes</string>
     <string name="ciphers_save_to">Salvar em</string>
     <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
@@ -272,10 +280,10 @@
     <string name="ciphers_action_change_passwords_title">Alterar senhas</string>
     <string name="ciphers_action_view_password_history_title">Visualizar histórico de senhas</string>
     <string name="ciphers_action_trash_title">Lixeira</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Mover para a lixeira?</string>
+    <string name="ciphers_action_trash_confirmation_text">Os itens que estiverem na Lixeira mais de 30 dias serão excluídos automaticamente.</string>
     <string name="ciphers_action_restore_title">Restaurar</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Restaurar da lixeira?</string>
     <string name="ciphers_action_delete_title">Apagar permanentemente</string>
     <string name="ciphers_action_delete_confirmation_title">Excluir para sempre?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configurar alertas do Guardião</string>
@@ -311,8 +319,9 @@
     <string name="file_action_delete_local_title">Apagar arquivo local</string>
     <string name="file_action_delete_local_many_title">Excluir arquivos locais</string>
     <string name="file_action_view_cipher_title">Ver item relacionado</string>
+    <string name="file_action_reveal_title">Exibir</string>
     <string name="vault_action_always_show_keyboard_title">Sempre mostrar o teclado</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Lembrar método de ordenação</string>
     <string name="vault_action_sync_vault_title">Sincronizar Cofre</string>
     <string name="vault_action_lock_vault_title">Bloquear Cofre</string>
     <string name="vault_action_rename_folder_title">Renomear pasta</string>
@@ -335,6 +344,8 @@
     <string name="uri_unsecure">Inseguro</string>
     <string name="uri_match_app_title">Corresponder ao aplicativo</string>
     <string name="uri_match_detection_title">Detecção de correspondência</string>
+    <string name="uri_match_detection_default_title">Padrão</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Domínio base</string>
     <string name="uri_match_detection_domain_note">Combine recursos por domínio de nível superior e de segundo nível.</string>
     <string name="uri_match_detection_host_title">Servidor</string>
@@ -377,6 +388,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a um campo desconhecido</string>
     <string name="text_action_share_with_title">Compartilhar com…</string>
     <string name="text_action_send_title">Criar um send</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Salvar chaves não criptografadas</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Chaves guardadas nos Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Salvar chave pública</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Chave pública salva nos Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Salvar chave privada não criptografada</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Chave privada não criptografada salva nos Downloads</string>
+    <string name="ssh_key_action_add_key_title">Adicionar chaves</string>
+    <string name="ssh_key_action_replace_key_title">Substituir chaves</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="copy">Copiar</string>
     <string name="copy_value">Copiar valor</string>
@@ -397,10 +416,15 @@
     <string name="copy_cvv_code">Copiar código de segurança</string>
     <string name="copy_otp_code">Copiar senha de uso único</string>
     <string name="copy_otp_secret_code">Copiar chave secreta</string>
+    <string name="copy_ssh_unencrypted_private_key">Copiar chave privada não criptografada</string>
+    <string name="copy_ssh_public_key">Copiar chave pública</string>
+    <string name="copy_ssh_fingerprint">Copiar impressão digital</string>
     <string name="copied_value">Valor copiado</string>
     <string name="copied_url">URL copiada</string>
     <string name="copied_uri">URI copiada</string>
     <string name="copied_package_name">Nome do pacote copiado</string>
+    <string name="copied_key">Chave copiada</string>
+    <string name="copied_fingerprint">Impressão digital copiada</string>
     <string name="copied_password">Senha copiada</string>
     <string name="copied_username">Nome de usuário copiado</string>
     <string name="copied_email">E-mail copiado</string>
@@ -468,17 +492,22 @@
     <string name="error_invalid_uri">URI inválido</string>
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Senha incorreta</string>
+    <string name="error_otp_key_must_not_be_empty">A chave secreta da senha única não pode estar vazia</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar uma chave, memória insuficiente. Por favor, verifique as configurações do servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar uma passkey</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
     <string name="error_failed_open_uri">Falhou em abrir a URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">Nenhum aplicativo instalado pode realizar esta requisição</string>
+    <string name="error_failed_unknown">Algo deu errado</string>
+    <string name="error_failed_encrypt_biometric_key">Falha ao criptografar a chave biométrica</string>
+    <string name="error_failed_decrypt_biometric_key">Falha ao descriptografar a chave biométrica</string>
     <string name="scanqr_title">Escanear código QR</string>
     <string name="scanqr_load_from_image_note">Carregar e analisar um código QR a partir de um arquivo de imagem.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">É necessária a permissão da câmera para ler os códigos QR.</string>
+    <string name="post_notifications_permission_banner_title">Notificações desativadas</string>
+    <string name="post_notifications_permission_banner_text">Conceda a permissão de notificações para permitir que o teclado exiba senhas de uso único quando preencher automaticamente &amp; mais.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Exibir como código de barras</string>
@@ -581,7 +610,7 @@
     <string name="urloverride_delete_many_confirmation_title">Excluir as substituições de URL?</string>
     <string name="urloverride_empty_label">Nenhuma substituição de URL</string>
     <string name="setup_header_text">Crie um cofre criptografado onde os dados locais serão armazenados.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">Ao continuar você confirmará que comprou o Keyguard ou que recebeu uma licença ativa.</string>
     <string name="setup_field_app_password_label">Senha do aplicativo</string>
     <string name="setup_checkbox_biometric_auth">Autenticação biométrica</string>
     <string name="setup_biometric_auth_confirm_title">Criar um cofre</string>
@@ -628,7 +657,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Para passar na verificação do captcha em um cliente Bitwarden não oficial, é necessário especificar a chave secreta do cliente. Para encontrá-lo, visite Web vault / Configurações / Chave de API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Chave secreta do cliente</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
+    <string name="addaccount_create_an_account_title">Criar uma conta</string>
     <string name="addaccount_sign_in_button">Iniciar sessão</string>
     <string name="addaccount_region_section">Região</string>
     <string name="addaccount_region_us_type">Estados Unidos</string>
@@ -683,6 +712,7 @@
     <string name="cipher_type_card">Cartão</string>
     <string name="cipher_type_identity">Identidade</string>
     <string name="cipher_type_note">Nota</string>
+    <string name="cipher_type_ssh_key">Chave SSH</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Texto</string>
     <string name="field_type_boolean">Booleano</string>
@@ -768,10 +798,11 @@
     <string name="generator_header_title">Gerador</string>
     <string name="generator_header_username_title">Gerador de nome de usuário</string>
     <string name="generator_header_password_title">Gerador de senha</string>
+    <string name="generator_header_ssh_key_title">Gerador de chave SSH</string>
     <string name="generator_generate_button">Gerar</string>
     <string name="generator_regenerate_button">Gerar novamente</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
+    <string name="generator_use_button">Usar</string>
     <string name="generator_passphrase_type">Frase Secreta</string>
     <string name="generator_passphrase_note">Senhas de palavras aleatórias fornecem a melhor combinação de memorização e segurança.</string>
     <string name="generator_passphrase_delimiter_title">Delimitador</string>
@@ -805,8 +836,15 @@
     <string name="generator_email_subdomain_addressing_note">Subdomínio de endereço de e-mail significa que qualquer e-mail enviado para <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> ainda é enviado para sua conta. Isso significa que você pode ter diversas variações do seu endereço de e-mail para distribuir a diferentes pessoas, sites ou listas de distribuição. Certifique-se de que sua hospedagem de e-mail ofereça suporte a esse recurso antes de usá-lo.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Alias de e-mail reencaminhado</string>
+    <string name="generator_key_length_title">Comprimento</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">Todos os clientes SSH suportam este algoritmo. Um tamanho de chave de pelo menos 2048 bits é recomendado para RSA; 4096 bits é melhor. É perfeitamente possível que o algoritmo RSA se torne praticamente quebrável num futuro previsível.</string>
+    <string name="generator_key_rsa_text">Compatível com todos os servidores SSH</string>
+    <string name="generator_key_ed25519_note">Este é o padrão mais rápido e mais moderno. O suporte em clientes SSH ainda não é universal.</string>
+    <string name="generator_key_ed25519_text">Padrão rápido e mais moderno</string>
     <string name="generator_create_item_with_password_title">Criar novo login com a senha</string>
     <string name="generator_create_item_with_username_title">Criar novo login com o nome de usuário</string>
+    <string name="generator_create_item_with_ssh_key_title">Criar novo item da chave SSH</string>
     <string name="generator_password_history_title">Histórico de senhas</string>
     <string name="generator_show_tips_title">Mostrar dicas</string>
     <string name="generatorhistory_header_title">Histórico do gerador</string>
@@ -862,15 +900,15 @@
     <string name="changepassword_biometric_auth_confirm_title">Alterar senha do aplicativo</string>
     <string name="changepassword_disclaimer_local_note">A senha do aplicativo nunca é armazenada no dispositivo nem enviada pela rede. Ela é usada para gerar uma chave secreta que é usada para criptografar os dados locais.</string>
     <string name="changepassword_disclaimer_abuse_note">A menos que você suspeite de acesso não autorizado ou descubra um malware no dispositivo, não há necessidade de alterar a senha se ela for uma senha forte e única.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">Senha alterada com sucesso</string>
     <string name="exportaccount_header_title">Exportar itens</string>
     <string name="exportaccount_password_label">Senha do arquivo</string>
-    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
-    <string name="exportaccount_include_attachments_title">Export attachments</string>
+    <string name="exportaccount_attachments_note">O cofre será mantido desbloqueado durante o processo de exportação. Os anexos são referenciados nos dados do cofre. Os anexos nunca são armazenados em um formulário não criptografado no processo.</string>
+    <string name="exportaccount_include_attachments_title">Exportar anexos</string>
     <string name="exportaccount_export_button">Exportar</string>
-    <string name="exportaccount_export_started">Export started</string>
+    <string name="exportaccount_export_started">Exportação iniciada</string>
     <string name="exportaccount_export_success">Exportação concluída</string>
-    <string name="exportaccount_export_failure">Export failed</string>
+    <string name="exportaccount_export_failure">Falha ao exportar</string>
     <string name="contactus_header_title">Contate-nos</string>
     <string name="contactus_message_label">Sua mensagem</string>
     <string name="contactus_english_note">Comunique-se em inglês para garantir que seu feedback não seja mal interpretado.</string>
@@ -926,7 +964,7 @@
     <string name="pref_item_reddit_community_title">Comunidade no Reddit</string>
     <string name="pref_item_github_title">Projeto no GitHub</string>
     <string name="pref_item_crowdin_title">Projeto no Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Ver tudo</string>
     <string name="pref_item_open_source_licenses_title">Licenças de código-aberto</string>
     <string name="pref_item_download_apk_title">Baixar arquivo APK</string>
     <string name="pref_item_load_app_icons_title">Carregar ícones dos aplicativos</string>
@@ -956,7 +994,7 @@
     <string name="pref_item_crash_title">Falha</string>
     <string name="pref_item_credential_provider_title">Provedor de credenciais</string>
     <string name="pref_item_credential_provider_text">Passkeys, senhas e serviços de dados</string>
-    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
+    <string name="pref_item_credential_provider_no_feature_note">O dispositivo não suporta a recuperação de credenciais do usuário através da integração com provedores de credenciais. Contate o fabricante para obter mais informações.</string>
     <string name="pref_item_privacy_policy_title">Política de privacidade</string>
     <string name="pref_item_contact_us_title">Contate-nos</string>
     <string name="pref_item_experimental_title">Experimental</string>
@@ -1000,12 +1038,13 @@
     <string name="pref_item_autofill_service_title">Serviço de preenchimento automático</string>
     <string name="pref_item_autofill_service_text">Use o Framework de Preenchimento Automático do Android para ajudar a preencher as informações de login em outros aplicativos no dispositivo</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Alguns dispositivos Xiaomi exigem que você autorize manualmente a permissão "Exibir janelas pop-up durante a execução em segundo plano". Abra as configurações e verifique se ela foi concedida.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome para apoiar serviços de autopreenchimento de terceiros nativamente</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Abra as Configurações do Chrome e toque em Serviços de Autopreenchimento
+2. Escolha o preenchimento automático utilizando outro serviço
+3. Confirme e reinicie o Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copiar automaticamente senhas de uso único</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Ao preencher uma informação de login, copie automaticamente as senhas de uso único</string>
+    <string name="pref_item_autofill_default_match_detection_title">Detecção padrão</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugestões em linha</string>
     <string name="pref_item_autofill_inline_suggestions_text">Incorpora sugestões de preenchimento automático diretamente em teclados compatíveis</string>
     <string name="pref_item_autofill_manual_selection_title">Seleção Manual</string>
@@ -1031,7 +1070,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Falha ao carregar uma lista de assinaturas</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Falha ao carregar uma lista de produtos</string>
     <string name="pref_item_premium_status_active">Ativo</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Teste gratuito <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Não renovará</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gerenciar na Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Enviar notificações</string>
@@ -1101,9 +1140,9 @@
     <string name="datasafety_remote_section">Dados remotos</string>
     <string name="datasafety_remote_text">Os dados remotos são armazenados nos servidores do Bitwarden com criptografia de conhecimento zero.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Contribuidores de traduções</string>
+    <string name="localization_contributors_search_placeholder">Pesquisar contribuidores</string>
+    <string name="localization_contributors_empty_label">Nenhum contribuidor</string>
     <string name="logs_header_title">Registros</string>
     <string name="logs_start_recording_fab_title">Iniciar gravação</string>
     <string name="logs_stop_recording_fab_title">Parar gravação</string>

@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Показати захищену нотатку</string>
     <string name="hide_secure_note">Приховати захищену нотатку</string>
     <string name="master_password_hint">Підказка для головного пароля</string>
+    <string name="public_key">Відкритий ключ</string>
+    <string name="private_key">Секретний ключ</string>
+    <string name="fingerprint">Відбиток пальця</string>
+    <string name="key_type">Тип ключа</string>
+    <string name="key_pair">Пара ключів</string>
+    <string name="key_ssh">SSH-ключ</string>
     <string name="fingerprint_phrase">Фраза відбитку</string>
     <string name="fingerprint_phrase_help_title">Що таке фраза відбитку?</string>
     <string name="filter_auth_reprompt_items">Подвійна автентифікація</string>
@@ -223,6 +229,8 @@
     <string name="bitwarden_premium">Bitwarden преміум</string>
     <string name="bitwarden_premium_required">Необхідний Bitwarden преміум</string>
     <string name="bitwarden_unofficial_server">Неофіційний сервер Bitwarden</string>
+    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generate disposable emails for the better privacy.</string>
     <string name="account_last_synced_at">Останній раз синхронізовано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Змінити назву</string>
     <string name="account_action_change_color_title">Змінити колір</string>
@@ -311,6 +319,7 @@
     <string name="file_action_delete_local_title">Видалити локальний файл</string>
     <string name="file_action_delete_local_many_title">Видалити локальні файли</string>
     <string name="file_action_view_cipher_title">Переглянути батьківський запис</string>
+    <string name="file_action_reveal_title">Показати</string>
     <string name="vault_action_always_show_keyboard_title">Завжди показувати клавіатуру</string>
     <string name="vault_action_remember_sorting_title">Запам'ятовувати метод сортування</string>
     <string name="vault_action_sync_vault_title">Синхронізувати сховище</string>
@@ -335,6 +344,8 @@
     <string name="uri_unsecure">Незахищений</string>
     <string name="uri_match_app_title">Обрати застосунок</string>
     <string name="uri_match_detection_title">Виявлення збігів</string>
+    <string name="uri_match_detection_default_title">За замовчуванням</string>
+    <string name="uri_match_detection_default_note">Використовує глобальний тип виявлення збігів обраний в Налаштування → Автозаповнення → Виявлення збігів за замовчуванням. Основний домен це стандартне налаштування.</string>
     <string name="uri_match_detection_domain_title">Основний домен</string>
     <string name="uri_match_detection_domain_note">Порівнювати ресурси по доменах першого та другого рівнів.</string>
     <string name="uri_match_detection_host_title">Хост</string>
@@ -377,6 +388,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з невідомим полем</string>
     <string name="text_action_share_with_title">Поділитися через…</string>
     <string name="text_action_send_title">Створити відправлення</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Зберегти незашифровані ключі</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Ключі збережені в теку Завантаження</string>
+    <string name="ssh_key_action_save_public_key_title">Зберегти відкритий ключ</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Відкритий ключ збережено в теку Завантаження</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Зберегти незашифрований секретний ключ</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Незашифрований секретний ключ збережено в теку Завантаження</string>
+    <string name="ssh_key_action_add_key_title">Додати ключі</string>
+    <string name="ssh_key_action_replace_key_title">Замінити ключі</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> вибрано</string>
     <string name="copy">Скопіювати</string>
     <string name="copy_value">Скопіювати значення</string>
@@ -397,10 +416,15 @@
     <string name="copy_cvv_code">Скопіювати CVV-код</string>
     <string name="copy_otp_code">Скопіювати одноразовий пароль</string>
     <string name="copy_otp_secret_code">Скопіювати секретний ключ</string>
+    <string name="copy_ssh_unencrypted_private_key">Скопіювати незашифрований секретний ключ</string>
+    <string name="copy_ssh_public_key">Скопіювати публічний ключ</string>
+    <string name="copy_ssh_fingerprint">Скопіювати відбиток ключа</string>
     <string name="copied_value">Скопійовано значення</string>
     <string name="copied_url">Скопійований URL</string>
     <string name="copied_uri">Скопійований URI</string>
     <string name="copied_package_name">Скопійовано назву пакету</string>
+    <string name="copied_key">Скопійовано ключ</string>
+    <string name="copied_fingerprint">Скопійовано відбиток</string>
     <string name="copied_password">Скопійовано пароль</string>
     <string name="copied_username">Скопійовано ім'я користувача</string>
     <string name="copied_email">Скопійовано електронну пошту</string>
@@ -468,6 +492,7 @@
     <string name="error_invalid_uri">Некоректний URI</string>
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
+    <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
     <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
@@ -476,9 +501,13 @@
     <string name="error_failed_format_placeholder">Не вдалося відформатувати поле</string>
     <string name="error_failed_open_app_for">Немає встановленого застосунку, що може обробити цей запит</string>
     <string name="error_failed_unknown">Сталася помилка</string>
+    <string name="error_failed_encrypt_biometric_key">Не вдалося зашифрувати біометричний ключ</string>
+    <string name="error_failed_decrypt_biometric_key">Не вдалося розшифрувати біометричний ключ</string>
     <string name="scanqr_title">Сканувати QR-код</string>
     <string name="scanqr_load_from_image_note">Завантажте з файлу та проаналізуйте QR-код.</string>
     <string name="scanqr_camera_permission_required_text">Для сканування QR-кодів необхідний дозвіл на камеру.</string>
+    <string name="post_notifications_permission_banner_title">Сповіщення вимкнені</string>
+    <string name="post_notifications_permission_banner_text">Надайте дозвіл показувати сповіщення щоб Keyguard показував одноразові паролі під час автозаповнення та більше.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Штрих-код</string>
@@ -683,6 +712,7 @@
     <string name="cipher_type_card">Картка</string>
     <string name="cipher_type_identity">Особисті дані</string>
     <string name="cipher_type_note">Нотатка</string>
+    <string name="cipher_type_ssh_key">SSH-ключ</string>
     <string name="cipher_type_passkey">Ключ доступу</string>
     <string name="field_type_text">Текст</string>
     <string name="field_type_boolean">Логічний тип</string>
@@ -768,6 +798,7 @@
     <string name="generator_header_title">Генератор</string>
     <string name="generator_header_username_title">Генератор імені користувача</string>
     <string name="generator_header_password_title">Генератор паролів</string>
+    <string name="generator_header_ssh_key_title">Генератор SSH-ключа</string>
     <string name="generator_generate_button">Згенерувати</string>
     <string name="generator_regenerate_button">Перегенерувати</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +836,15 @@
     <string name="generator_email_subdomain_addressing_note">Піддомен адресація означає, що будь-які повідомлення, надіслані на <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g>, усе ще надсилаються на ваш обліковий запис. Це означає, що ви можете мати багато варіантів своєї адреси електронної пошти, щоб надавати її різним людям, сайтам або спискам розсилки. Перед використанням переконайтеся, що ваш хостинг електронної пошти підтримує цю функцію.</string>
     <string name="generator_email_subdomain_addressing_email_title">Ел. пошта</string>
     <string name="generator_email_forward_alias_type">Псевдонім е-пошти для пересилання</string>
+    <string name="generator_key_length_title">Довжина</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-біт</string>
+    <string name="generator_key_rsa_note">Підтримується всіма SSH клієнтами. Рекомендується використовувати 4096-бітний або 2048-бітний ключ. Алгоритм RSA може перестати бути безпечним в недалекому майбутньому.</string>
+    <string name="generator_key_rsa_text">Сумісний з усіма SSH серверами</string>
+    <string name="generator_key_ed25519_note">Це найшвидший і найсучасніший стандарт. Може не підтримуватися деякими SSH клієнтами.</string>
+    <string name="generator_key_ed25519_text">Швидкий та найсучасніший стандарт</string>
     <string name="generator_create_item_with_password_title">Створити новий логін з паролем</string>
     <string name="generator_create_item_with_username_title">Створити новий логін з іменем користувача</string>
+    <string name="generator_create_item_with_ssh_key_title">Створити новий запис з SSH-ключем</string>
     <string name="generator_password_history_title">Історія паролів</string>
     <string name="generator_show_tips_title">Показувати підказки</string>
     <string name="generatorhistory_header_title">Історія генератора</string>
@@ -1006,6 +1044,7 @@
 3. Підтвердите та перезавантажте Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автоматично копіювати одноразові паролі</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Автоматично копіювати одноразові паролі при заповненні логіну</string>
+    <string name="pref_item_autofill_default_match_detection_title">Виявлення збігів за замовчуванням</string>
     <string name="pref_item_autofill_inline_suggestions_title">Вбудовані підказки</string>
     <string name="pref_item_autofill_inline_suggestions_text">Вбудовує пропозиції автозаповнення безпосередньо в сумісні клавіатури</string>
     <string name="pref_item_autofill_manual_selection_title">Ручний вибір</string>

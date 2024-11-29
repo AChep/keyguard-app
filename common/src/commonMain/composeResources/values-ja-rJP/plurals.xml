@@ -13,24 +13,24 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 件の結果</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 秒</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 分</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 時間</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 日</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 週間</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> ヶ月</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 年</item>
     </plurals>
 </resources>

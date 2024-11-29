@@ -92,6 +92,8 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.FlatSimpleNote
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
 import com.artemchep.keyguard.ui.icons.icon
@@ -1700,12 +1702,40 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
         typesAllFlow,
         typeFlow,
     ) { allTypes, type ->
+        val shouldShowEmailRelayProTip = allTypes.none { it is GeneratorType2.EmailRelay }
+
         val typeTitle = translate(type.title)
         val typeItems = buildContextItems {
+            var prevGroup: String? = null
             allTypes.forEachIndexed { index, item ->
                 if (index > 0) {
-                    val groupChanged = allTypes[index - 1].group != item.group
+                    val groupChanged = prevGroup != item.group
                     if (groupChanged) {
+                        if (
+                            prevGroup == GENERATOR_TYPE_GROUP_USERNAME &&
+                            shouldShowEmailRelayProTip
+                        ) {
+                            val tipBody = translate(Res.string.pro_tip_generate_email_relay_title)
+                            val tip = translate(Res.string.pro_tip, tipBody)
+
+                            val note = SimpleNote(
+                                text = tip,
+                                type = SimpleNote.Type.INFO,
+                            )
+                            this += ContextItem.Custom {
+                                FlatSimpleNote(
+                                    type = note.type,
+                                    text = note.text,
+                                    onClick = {
+                                        val route = EmailRelayListRoute
+                                        val intent = NavigationIntent.NavigateToRoute(route)
+                                        navigate(intent)
+                                    },
+                                    icon = false,
+                                )
+                            }
+                        }
+
                         this += when (item.group) {
                             GENERATOR_TYPE_GROUP_INTEGRATION ->
                                 ContextItem.Section(
@@ -1738,6 +1768,8 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
                         )
                     }
                 }
+
+                prevGroup = item.group
             }
         }
         GeneratorState.Type(

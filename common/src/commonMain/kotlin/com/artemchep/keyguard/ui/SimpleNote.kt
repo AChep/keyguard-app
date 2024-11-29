@@ -62,6 +62,7 @@ fun FlatSimpleNote(
     content: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
+    icon: Boolean = true,
 ) {
     val tintColor = when (type) {
         SimpleNote.Type.OK -> MaterialTheme.colorScheme.ok
@@ -86,23 +87,28 @@ fun FlatSimpleNote(
         backgroundColor = surfaceColor
             .combineAlpha(DisabledEmphasisAlpha),
         contentColor = contentColor,
-        leading = {
-            if (leading != null) {
-                leading.invoke(this)
-                return@FlatItemLayout
-            }
+        leading = if (icon) {
+            // composable
+            leading@{
+                if (leading != null) {
+                    leading.invoke(this)
+                    return@leading
+                }
 
-            val imageVector = when (type) {
-                SimpleNote.Type.OK -> Icons.Outlined.Check
-                SimpleNote.Type.INFO -> Icons.Outlined.Info
-                SimpleNote.Type.WARNING -> Icons.Outlined.Warning
-                SimpleNote.Type.ERROR -> Icons.Outlined.ErrorOutline
+                val imageVector = when (type) {
+                    SimpleNote.Type.OK -> Icons.Outlined.Check
+                    SimpleNote.Type.INFO -> Icons.Outlined.Info
+                    SimpleNote.Type.WARNING -> Icons.Outlined.Warning
+                    SimpleNote.Type.ERROR -> Icons.Outlined.ErrorOutline
+                }
+                Icon(
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    tint = tintColor,
+                )
             }
-            Icon(
-                imageVector = imageVector,
-                contentDescription = null,
-                tint = tintColor,
-            )
+        } else {
+            null
         },
         content = {
             if (title != null) {

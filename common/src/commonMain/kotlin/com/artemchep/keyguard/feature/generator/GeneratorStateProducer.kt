@@ -432,9 +432,11 @@ fun produceGeneratorState(
                     quantity,
                     numberFormatter.formatNumber(quantity),
                 )
+                val selected = wordlistId == null || wordlistId <= 0L
                 this += FlatItemAction(
                     title = TextHolder.Value(defaultWordlistName),
                     text = TextHolder.Value(text),
+                    selected = selected,
                     onClick = onSelect
                         .partially1(0),
                 )

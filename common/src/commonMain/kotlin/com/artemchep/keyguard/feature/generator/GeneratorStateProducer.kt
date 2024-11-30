@@ -1,8 +1,12 @@
 package com.artemchep.keyguard.feature.generator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -17,6 +21,7 @@ import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -92,9 +97,9 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.FlatSimpleNote
-import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.buildContextItems
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
@@ -1717,21 +1722,22 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
                         ) {
                             val tipBody = translate(Res.string.pro_tip_generate_email_relay_title)
                             val tip = translate(Res.string.pro_tip, tipBody)
-
-                            val note = SimpleNote(
-                                text = tip,
-                                type = SimpleNote.Type.INFO,
-                            )
                             this += ContextItem.Custom {
-                                FlatSimpleNote(
-                                    type = note.type,
-                                    text = note.text,
+                                FlatItemLayout(
+                                    content = {
+                                        Text(
+                                            text = tip,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                    },
+                                    trailing = {
+                                        ChevronIcon()
+                                    },
                                     onClick = {
                                         val route = EmailRelayListRoute
                                         val intent = NavigationIntent.NavigateToRoute(route)
                                         navigate(intent)
                                     },
-                                    icon = false,
                                 )
                             }
                         }

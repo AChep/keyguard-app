@@ -298,11 +298,20 @@ fun produceGeneratorState(
             // Combine and filter all the possible
             // generator types.
             sequence<GeneratorType2> {
+                var emittedRelays = false
                 typesAllStatic.forEach { type ->
-                    yield(type)
-                }
+                    // inject the relays above usernames
+                    if (type.group == GENERATOR_TYPE_GROUP_USERNAME) kotlin.run {
+                        if (emittedRelays) {
+                            return@run
+                        }
 
-                typesRelay.forEach { type ->
+                        emittedRelays = true
+                        typesRelay.forEach { type ->
+                            yield(type)
+                        }
+                    }
+
                     yield(type)
                 }
             }
@@ -1742,14 +1751,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
                             }
                         }
 
-                        this += when (item.group) {
-                            GENERATOR_TYPE_GROUP_INTEGRATION ->
-                                ContextItem.Section(
-                                    title = translate(Res.string.emailrelay_list_section_title),
-                                )
-
-                            else -> ContextItem.Section()
-                        }
+                        this += ContextItem.Section()
                     }
                 }
 

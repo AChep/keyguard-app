@@ -231,7 +231,7 @@
     <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
 
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate disposable emails for the better privacy.</string>
+    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
 
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Change name</string>

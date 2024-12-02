@@ -114,7 +114,7 @@ class SettingsRepositoryImpl(
 
     private val biometricTimeoutPref = store.getLong(KEY_BIOMETRIC_TIMEOUT, NONE_DURATION)
 
-    private val biometricRequireConfirmationPref = store.getBoolean(KEY_BIOMETRIC_REQUIRE_CONFIRMATION, true)
+    private val biometricRequireConfirmationPref = store.getBoolean(KEY_BIOMETRIC_REQUIRE_CONFIRMATION, false)
 
     private val clipboardClearDelayPref =
         store.getLong(KEY_CLIPBOARD_CLEAR_DELAY, NONE_DURATION)

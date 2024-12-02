@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.tld.impl
 
 import arrow.core.partially1
+import com.artemchep.keyguard.build.FileHashes
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.measure
@@ -22,6 +23,9 @@ class TldServiceImpl(
     companion object {
         private const val TAG = "TldService.android"
     }
+
+    override val version: String
+        get() = FileHashes.public_suffix_list
 
     private val dataIo = ::loadTld
         .partially1(textService)
@@ -64,6 +68,7 @@ class TldServiceImpl(
 }
 
 private data class Node(
+    var leaf: Boolean = false,
     val children: MutableMap<String, Node> = mutableMapOf(),
 )
 
@@ -100,18 +105,26 @@ private fun Node.match(parts: List<String>): Int =
         offset = 0,
     )
 
-private tailrec fun Node._match(
+private fun Node._match(
     parts: List<String>,
     offset: Int,
 ): Int {
     if (offset >= parts.size) {
-        return offset
+        return if (leaf) offset else -1
     }
     val key = parts[offset]
     val next = children[key]
         ?: children["*"]
-        ?: return offset
+        ?: kotlin.run {
+            // It only counts as a valid path if the
+            // node is a leaf.
+            return if (leaf) offset else -1
+        }
     return next._match(parts, offset + 1)
+        .let {
+            it.takeIf { it >= 0 }
+                ?: if (leaf) offset else -1
+        }
 }
 
 private tailrec fun Node.append(parts: List<String>) {
@@ -120,6 +133,20 @@ private tailrec fun Node.append(parts: List<String>) {
     }
     val key = parts.first()
     val next = getOrPut(key)
+    // Side effect:
+    // Mark the node as the possible leaf of
+    // the tree. This means it is one of the
+    // possible valid paths.
+    //
+    // tree:
+    //   com
+    //    -> linode.members
+    // host:
+    //   artem.linode.com
+    // should output 'linode.com' as a domain because 'linode.com' is not a leaf!
+    if (parts.size == 1) {
+        next.leaf = true
+    }
     next.append(parts = parts.subList(1, parts.size))
 }
 

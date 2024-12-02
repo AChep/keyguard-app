@@ -11,19 +11,18 @@ import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.ColorLens
+import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +47,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
+import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetFingerprint
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
@@ -70,6 +70,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
+import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
@@ -138,6 +139,7 @@ fun accountState(
         getProfiles = instance(),
         getCiphers = instance(),
         getSends = instance(),
+        getEquivalentDomains = instance(),
         getFolders = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
@@ -152,6 +154,7 @@ private data class AccountCounters(
     val sends: Int,
     val organizations: Int,
     val collections: Int,
+    val equivalentDomains: Int,
     val folders: Int,
 )
 
@@ -172,6 +175,7 @@ fun accountState(
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
     getSends: GetSends,
+    getEquivalentDomains: GetEquivalentDomains,
     getFolders: GetFolders,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
@@ -256,6 +260,11 @@ fun accountState(
             .mapCount {
                 it.accountId == accountId.id
             }
+        val equivalentDomainsCountFlow = getEquivalentDomains()
+            .mapCount {
+                it.accountId == accountId.id &&
+                        !it.excluded
+            }
         val foldersCountFlow = getFolders()
             .mapCount {
                 it.accountId == accountId.id &&
@@ -271,13 +280,21 @@ fun accountState(
             sendsCountFlow,
             organizationsCountFlow,
             collectionsCountFlow,
+            equivalentDomainsCountFlow,
             foldersCountFlow,
-        ) { ciphersCount, sendsCount, organizationsCount, collectionsCount, foldersCount ->
+        ) { counts ->
+            val ciphersCount = counts[0]
+            val sendsCount = counts[1]
+            val organizationsCount = counts[2]
+            val collectionsCount = counts[3]
+            val equivalentDomainsCount = counts[4]
+            val foldersCount = counts[5]
             AccountCounters(
                 ciphers = ciphersCount,
                 sends = sendsCount,
                 organizations = organizationsCount,
                 collections = collectionsCount,
+                equivalentDomains = equivalentDomainsCount,
                 folders = foldersCount,
             )
         }
@@ -763,6 +780,40 @@ private fun buildItemsFlow(
 //            copyText = copyText,
 //        )
     }
+
+    val equivalentDomainsSectionItem = VaultViewItem.Section(
+        id = "equivalent_domains.section",
+    )
+    emit(equivalentDomainsSectionItem)
+    val equivalentDomainsItem = VaultViewItem.Action(
+        id = "equivalent_domains",
+        title = scope.translate(Res.string.equivalent_domains),
+        leading = {
+            BadgedBox(
+                badge = {
+                    val count = counters.equivalentDomains
+                    AnimatedTotalCounterBadge(
+                        count = count,
+                    )
+                },
+            ) {
+                Icon(Icons.Outlined.Domain, null)
+            }
+        },
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val route = EquivalentDomainsRoute(
+                args = EquivalentDomainsRoute.Args(
+                    accountId = accountId,
+                ),
+            )
+            val intent = NavigationIntent.NavigateToRoute(route)
+            scope.navigate(intent)
+        },
+    )
+    emit(equivalentDomainsItem)
 }
 
 private suspend fun FlowCollector<VaultViewItem>.emitName(

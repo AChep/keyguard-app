@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenEquivalentDomain
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
@@ -33,6 +34,7 @@ import com.artemchep.keyguard.data.WatchtowerThreat
 import com.artemchep.keyguard.data.bitwarden.Account
 import com.artemchep.keyguard.data.bitwarden.Cipher
 import com.artemchep.keyguard.data.bitwarden.Collection
+import com.artemchep.keyguard.data.bitwarden.EquivalentDomains
 import com.artemchep.keyguard.data.bitwarden.Folder
 import com.artemchep.keyguard.data.bitwarden.Meta
 import com.artemchep.keyguard.data.bitwarden.Organization
@@ -102,6 +104,7 @@ class DatabaseManagerImpl(
     private val bitwardenCipherToStringAdapter = BitwardenCipherToStringAdapter(json)
     private val bitwardenSendToStringAdapter = BitwardenSendToStringAdapter(json)
     private val bitwardenCollectionToStringAdapter = BitwardenCollectionToStringAdapter(json)
+    private val bitwardenEquivalentDomainsToStringAdapter = BitwardenEquivalentDomainsToStringAdapter(json)
     private val bitwardenFolderToStringAdapter = BitwardenFolderToStringAdapter(json)
     private val bitwardenMetaToStringAdapter = BitwardenMetaToStringAdapter(json)
     private val bitwardenOrganizationToStringAdapter = BitwardenOrganizationToStringAdapter(json)
@@ -129,6 +132,7 @@ class DatabaseManagerImpl(
                     ),
                     sendAdapter = Send.Adapter(bitwardenSendToStringAdapter),
                     collectionAdapter = Collection.Adapter(bitwardenCollectionToStringAdapter),
+                    equivalentDomainsAdapter = EquivalentDomains.Adapter(bitwardenEquivalentDomainsToStringAdapter),
                     folderAdapter = Folder.Adapter(bitwardenFolderToStringAdapter),
                     metaAdapter = Meta.Adapter(bitwardenMetaToStringAdapter),
                     organizationAdapter = Organization.Adapter(bitwardenOrganizationToStringAdapter),
@@ -278,6 +282,10 @@ private class BitwardenSendToStringAdapter(
 private class BitwardenCollectionToStringAdapter(
     private val json: Json,
 ) : ColumnAdapter<BitwardenCollection, String> by ObjectToStringAdapter(json)
+
+private class BitwardenEquivalentDomainsToStringAdapter(
+    private val json: Json,
+) : ColumnAdapter<BitwardenEquivalentDomain, String> by ObjectToStringAdapter(json)
 
 private class BitwardenFolderToStringAdapter(
     private val json: Json,

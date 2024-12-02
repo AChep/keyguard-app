@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
+import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
@@ -25,7 +26,8 @@ import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
-import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
@@ -48,7 +50,14 @@ import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
 import io.ktor.http.Url
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toSet
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -774,6 +783,7 @@ sealed interface DFilter {
             val getAutofillDefaultMatchDetection =
                 directDI.instance<GetAutofillDefaultMatchDetection>()
             val check: CipherBreachCheck = directDI.instance()
+            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
             val getBreaches: GetBreaches = directDI.instance()
 
             val breaches = getBreaches()
@@ -782,6 +792,8 @@ sealed interface DFilter {
                 }
                 .bind()
 
+            val equivalentDomainsBuilder = equivalentDomainsBuilderFactory
+                .build()
             val defaultMatchDetection = getAutofillDefaultMatchDetection()
                 .first()
             ciphers
@@ -791,7 +803,9 @@ sealed interface DFilter {
                         return@filter false
                     }
 
-                    check(cipher, breaches, defaultMatchDetection)
+                    val equivalentDomains = equivalentDomainsBuilder
+                        .getAndCache(cipher.accountId)
+                    check(cipher, breaches, defaultMatchDetection, equivalentDomains)
                         .handleError { false }
                         .bind()
                 }
@@ -1028,68 +1042,32 @@ sealed interface DFilter {
             directDI: DirectDI,
             ciphers: List<DSecret>,
         ) = kotlin.run {
+            val tldService: TldService = directDI.instance()
+            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
+
             val tfaService = directDI.instance<GetTwoFa>()
-            val tfa = tfaService()
+            val tfaLibrary = tfaService()
                 .crashlyticsTap()
                 .attempt()
                 .bind()
                 .getOrNull()
                 .orEmpty()
-            ciphers
-                .asSequence()
-                .filter { cipher ->
-                    val shouldIgnore = shouldIgnore(cipher)
-                    if (shouldIgnore) {
-                        return@filter false
-                    }
-                    if (
-                        cipher.login?.totp != null ||
-                        !cipher.login?.fido2Credentials.isNullOrEmpty() &&
-                        cipher.login?.password.isNullOrEmpty()
-                    ) {
-                        return@filter false
-                    }
 
-                    val isUnsecure = match(cipher, tfa).any()
-                    isUnsecure
+            val equivalentDomainsBuilder = equivalentDomainsBuilderFactory
+                .build()
+            ciphers
+                .asFlow()
+                .filter { cipher ->
+                    val value = with(tldService) {
+                        WatchtowerInactiveTfa.hasAlert(
+                            cipher = cipher,
+                            tfaLibrary = tfaLibrary,
+                            equivalentDomainsBuilder = equivalentDomainsBuilder,
+                        )
+                    }
+                    value != null
                 }
         }
-
-        fun match(cipher: DSecret, tfa: List<TwoFaServiceInfo>) = cipher
-            .uris
-            .asSequence()
-            .mapNotNull { uri ->
-                val host = parseHost(uri)
-                    ?: return@mapNotNull null
-                val result = tfa
-                    .firstOrNull { host in it.domains }
-                result?.takeIf { "totp" in it.tfa }
-            }
-
-        private fun parseHost(uri: DSecret.Uri) = if (
-            uri.uri.startsWith("http://") ||
-            uri.uri.startsWith("https://")
-        ) {
-            val parsedUri = kotlin.runCatching {
-                Url(uri.uri)
-            }.getOrElse {
-                // can not get the domain
-                null
-            }
-            parsedUri
-                ?.host
-                // The "www" subdomain is ignored in the database, however
-                // it's only "www". Other subdomains, such as "photos",
-                // should be respected.
-                ?.removePrefix("www.")
-        } else {
-            // can not get the domain
-            null
-        }
-
-        private fun shouldIgnore(
-            cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlertType.TWO_FA_WEBSITE)
     }
 
     @Serializable
@@ -1133,80 +1111,30 @@ sealed interface DFilter {
             directDI: DirectDI,
             ciphers: List<DSecret>,
         ) = kotlin.run {
+            val tldService: TldService = directDI.instance()
+            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
             val getPasskeys = directDI.instance<GetPasskeys>()
-            val tfa = getPasskeys()
+
+            val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
+            val passkeyLibrary = getPasskeys()
                 .crashlyticsTap()
                 .attempt()
                 .bind()
                 .getOrNull()
                 .orEmpty()
             ciphers
-                .asSequence()
+                .asFlow()
                 .filter { cipher ->
-                    val shouldIgnore = shouldIgnore(cipher)
-                    if (shouldIgnore) {
-                        return@filter false
+                    val value = with(tldService) {
+                        WatchtowerInactivePasskey.hasAlert(
+                            cipher = cipher,
+                            passkeyLibrary = passkeyLibrary,
+                            equivalentDomainsBuilder = equivalentDomainsBuilder,
+                        )
                     }
-                    if (!cipher.login?.fido2Credentials.isNullOrEmpty()) {
-                        return@filter false
-                    }
-
-                    val isUnsecure = match(cipher, tfa).any()
-                    isUnsecure
+                    value != null
                 }
         }
-
-        fun match(cipher: DSecret, tfa: List<PassKeyServiceInfo>) = cipher
-            .uris
-            .asSequence()
-            .mapNotNull { uri ->
-                val host = parseHost(uri)
-                    ?: return@mapNotNull null
-                val result = tfa
-                    .firstOrNull {
-                        host in it.domains || it.domains
-                            .any { domain ->
-                                val endsWith = host.endsWith(domain)
-                                if (!endsWith) {
-                                    return@any false
-                                }
-
-                                val i = host.length - domain.length
-                                if (i > 0) {
-                                    val leadingChar = host[i - 1]
-                                    leadingChar == '.'
-                                } else {
-                                    false
-                                }
-                            }
-                    }
-                result?.takeIf { "signin" in it.features }
-            }
-
-        private fun parseHost(uri: DSecret.Uri) = if (
-            uri.uri.startsWith("http://") ||
-            uri.uri.startsWith("https://")
-        ) {
-            val parsedUri = kotlin.runCatching {
-                Url(uri.uri)
-            }.getOrElse {
-                // can not get the domain
-                null
-            }
-            parsedUri
-                ?.host
-                // The "www" subdomain is ignored in the database, however
-                // it's only "www". Other subdomains, such as "photos",
-                // should be respected.
-                ?.removePrefix("www.")
-        } else {
-            // can not get the domain
-            null
-        }
-
-        private fun shouldIgnore(
-            cipher: DSecret,
-        ) = cipher.ignores(DWatchtowerAlertType.PASSKEY_WEBSITE)
     }
 
     @Serializable
@@ -1253,7 +1181,10 @@ sealed interface DFilter {
             val getAutofillDefaultMatchDetection =
                 directDI.instance<GetAutofillDefaultMatchDetection>()
             val cipherUrlDuplicateCheck = directDI.instance<CipherUrlDuplicateCheck>()
+            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
 
+            val equivalentDomainsBuilder = equivalentDomainsBuilderFactory
+                .build()
             val defaultMatchDetection = getAutofillDefaultMatchDetection()
                 .first()
             ciphers
@@ -1266,6 +1197,8 @@ sealed interface DFilter {
                         return@filter false
                     }
 
+                    val equivalentDomains = equivalentDomainsBuilder
+                        .getAndCache(cipher.accountId)
                     for (i in uris.indices) {
                         for (j in uris.indices) {
                             if (i == j) {
@@ -1274,7 +1207,12 @@ sealed interface DFilter {
 
                             val a = uris[i]
                             val b = uris[j]
-                            val duplicate = cipherUrlDuplicateCheck(a, b, defaultMatchDetection)
+                            val duplicate = cipherUrlDuplicateCheck(
+                                a,
+                                b,
+                                defaultMatchDetection,
+                                equivalentDomains,
+                            )
                                 .attempt()
                                 .bind()
                                 .isRight { it != null }

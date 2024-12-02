@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
@@ -51,6 +52,7 @@ class CipherBreachCheckImpl(
         cipher: DSecret,
         breaches: HibpBreachGroup,
         defaultMatchDetection: DSecret.Uri.MatchType,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
         val login = cipher.login
             ?: return@ioEffect false
@@ -79,7 +81,7 @@ class CipherBreachCheckImpl(
                     ?.takeIf { it.isNotBlank() }
                     ?: return@filter false
                 cipher.uris.any { uri ->
-                    cipherUrlCheck(uri, domain, defaultMatchDetection)
+                    cipherUrlCheck(uri, domain, defaultMatchDetection, equivalentDomains)
                         .bind()
                 }
             }

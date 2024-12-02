@@ -103,6 +103,8 @@
     <string name="organization">Organization</string>
     <string name="organizations">Organizations</string>
     <string name="organizations_empty_label">No organizations</string>
+    <string name="equivalent_domains">Equivalent domains</string>
+    <string name="equivalent_domains_empty_label">No equivalent domains</string>
     <string name="misc">Miscellaneous</string>
     <string name="category">Category</string>
     <string name="command">Command</string>

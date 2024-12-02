@@ -249,7 +249,7 @@ suspend fun ServerEnvApi.sync(
     .get(sync) {
         headers(env)
         header("Authorization", "Bearer $token")
-        parameter("excludeDomains", true)
+        parameter("excludeDomains", false)
         attributes.put(routeAttribute, "sync")
     }
     .bodyOrApiException<SyncResponse>()

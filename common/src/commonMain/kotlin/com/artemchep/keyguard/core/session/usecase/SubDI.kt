@@ -4,6 +4,7 @@ import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepo
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepository
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepositoryImpl
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
@@ -84,6 +85,7 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
 import com.artemchep.keyguard.common.usecase.GetEnvSendUrl
+import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetFingerprint
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
@@ -162,6 +164,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipherRepositoryImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollectionRepositoryImpl
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenEquivalentDomainRepositoryImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolderRepositoryImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMetaRepositoryImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganizationRepositoryImpl
@@ -170,6 +173,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenSendRepositoryImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenTokenRepositoryImpl
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCollectionRepository
+import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenDomainRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenFolderRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenMetaRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenOrganizationRepository
@@ -212,6 +216,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetCiphersImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCollectionsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetEmailRelaysImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetEquivalentDomainsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetFingerprintImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetFolderTreeByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetFolderTreeImpl
@@ -369,6 +374,12 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GetFingerprint> {
         GetFingerprintImpl(this)
+    }
+    bindSingleton<GetEquivalentDomains> {
+        GetEquivalentDomainsImpl(this)
+    }
+    bindSingleton<EquivalentDomainsBuilderFactory> {
+        EquivalentDomainsBuilderFactory(this)
     }
     bindSingleton<GetFolders> {
         GetFoldersImpl(this)
@@ -717,6 +728,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<BitwardenOrganizationRepository> {
         BitwardenOrganizationRepositoryImpl(this)
+    }
+    bindSingleton<BitwardenDomainRepository> {
+        BitwardenEquivalentDomainRepositoryImpl(this)
     }
     bindSingleton<BitwardenFolderRepository> {
         BitwardenFolderRepositoryImpl(this)

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.twofa.impl
 
 import arrow.core.partially1
+import com.artemchep.keyguard.build.FileHashes
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.io.sharedSoftRef
@@ -57,6 +58,9 @@ class TwoFaServiceImpl(
             models
         }
         .sharedSoftRef(TAG)
+
+    override val version: String
+        get() = FileHashes.tfa
 
     constructor(
         directDI: DirectDI,

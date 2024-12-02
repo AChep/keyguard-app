@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AddUriCipherRequest
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
@@ -29,6 +30,7 @@ class AddUriCipherImpl(
     private val modifyCipherById: ModifyCipherById,
     private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUrlDuplicateCheck: CipherUrlDuplicateCheck,
+    private val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
 ) : AddUriCipher {
     companion object {
         private const val TAG = "AddUriCipher.bitwarden"
@@ -38,6 +40,7 @@ class AddUriCipherImpl(
         modifyCipherById = directDI.instance(),
         getAutofillDefaultMatchDetection = directDI.instance(),
         cipherUrlDuplicateCheck = directDI.instance(),
+        equivalentDomainsBuilderFactory = directDI.instance(),
     )
 
     override fun invoke(
@@ -47,12 +50,16 @@ class AddUriCipherImpl(
             return@ioEffect io(false)
         }
 
+        val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
         val defaultMatchDetection = getAutofillDefaultMatchDetection()
             .first()
         modifyCipherById(
             setOf(request.cipherId),
         ) { model ->
             var new = model
+
+            val equivalentDomains = equivalentDomainsBuilder
+                .getAndCache(model.accountId)
 
             val oldUris = model.data_.login?.uris.orEmpty()
             val oldUrisDomain = oldUris
@@ -81,6 +88,7 @@ class AddUriCipherImpl(
                                 oldUriDomain,
                                 newUriDomain,
                                 defaultMatchDetection,
+                                equivalentDomains,
                             )
                                 .attempt()
                                 .bind()

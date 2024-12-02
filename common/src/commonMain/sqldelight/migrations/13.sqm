@@ -1,0 +1,6 @@
+CREATE TABLE equivalentDomains (
+  entryId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);

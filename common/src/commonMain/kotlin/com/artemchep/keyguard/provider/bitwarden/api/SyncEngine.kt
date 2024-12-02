@@ -12,6 +12,7 @@ import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenEquivalentDomain
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
@@ -49,6 +50,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.GlobalEquivalentDomainEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncProfile
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncSends
@@ -333,6 +335,80 @@ class SyncEngine(
                     profileId = newProfile.profileId,
                     accountId = newProfile.accountId,
                     data = newProfile,
+                )
+            }
+        }
+
+        //
+        // Equivalent domains
+        //
+
+        fun BitwardenCrCta.equivalentDomainsDecoder(
+            entity: GlobalEquivalentDomainEntity,
+        ) = kotlin.run {
+            val entryId = cryptoGenerator.uuid()
+            BitwardenEquivalentDomain
+                .encrypted(
+                    accountId = user.id,
+                    entryId = entryId,
+                    entity = entity,
+                )
+                .transform(this)
+        }
+
+        fun BitwardenCrCta.equivalentDomainsDecoder(
+            domains: List<String>,
+        ) = kotlin.run {
+            val entryId = cryptoGenerator.uuid()
+            BitwardenEquivalentDomain
+                .encrypted(
+                    accountId = user.id,
+                    entryId = entryId,
+                    domains = domains,
+                )
+                .transform(this)
+        }
+
+        post(
+            title = "Syncing equivalent domains entities.",
+        )
+
+        val equivalentDomains = kotlin.run {
+            val data = response.domains
+                ?: return@run emptyList()
+
+            val codec = getCodec(
+                mode = BitwardenCrCta.Mode.DECRYPT,
+            )
+
+            val customEqDomains = data.equivalentDomains
+                .orEmpty()
+                .map { domains ->
+                    codec
+                        .equivalentDomainsDecoder(
+                            domains = domains,
+                        )
+                }
+            val globalEqDomains = data.globalEquivalentDomains
+                .orEmpty()
+                .map { entity ->
+                    codec
+                        .equivalentDomainsDecoder(
+                            entity = entity,
+                        )
+                }
+            customEqDomains + globalEqDomains
+        }
+        val equivalentDomainsDao = db.equivalentDomainsQueries
+        equivalentDomainsDao.transaction {
+            equivalentDomainsDao.deleteByAccountId(
+                accountId = user.id,
+            )
+            equivalentDomains.forEach { data ->
+                equivalentDomainsDao.insert(
+                    data = data,
+                    accountId = user.id,
+                    entryId = data.entryId,
                 )
             }
         }

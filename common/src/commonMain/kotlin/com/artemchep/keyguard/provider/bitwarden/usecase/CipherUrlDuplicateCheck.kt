@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.io
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
@@ -15,6 +16,14 @@ import org.kodein.di.instance
 class CipherUrlDuplicateCheckImpl(
     private val cipherUrlCheck: CipherUrlCheck,
 ) : CipherUrlDuplicateCheck {
+    companion object {
+        private const val IGNORE_EQUIVALENT_DOMAINS = false
+    }
+
+    private val emptyEquivalentDomains = EquivalentDomains(
+        domains = emptyMap(),
+    )
+
     constructor(directDI: DirectDI) : this(
         cipherUrlCheck = directDI.instance(),
     )
@@ -23,6 +32,7 @@ class CipherUrlDuplicateCheckImpl(
         a: DSecret.Uri,
         b: DSecret.Uri,
         defaultMatchDetection: DSecret.Uri.MatchType,
+        equivalentDomains: EquivalentDomains,
     ): IO<DSecret.Uri?> {
         val aMatch = a.match ?: defaultMatchDetection
         val bMatch = b.match ?: defaultMatchDetection
@@ -46,7 +56,9 @@ class CipherUrlDuplicateCheckImpl(
             return io(result)
         }
 
-        return cipherUrlCheck(a, b.uri, defaultMatchDetection)
+        val finalEquivalentDomains = equivalentDomains.takeUnless { IGNORE_EQUIVALENT_DOMAINS }
+            ?: emptyEquivalentDomains
+        return cipherUrlCheck(a, b.uri, defaultMatchDetection, finalEquivalentDomains)
             .effectMap { areMatching ->
                 a.takeIf { areMatching }
             }

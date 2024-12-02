@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.api.entity
 
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.DomainsEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncProfile
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncSends
@@ -11,6 +12,9 @@ import kotlinx.serialization.json.JsonNames
 
 @Serializable
 data class SyncResponse(
+    @JsonNames("domains")
+    @SerialName("Domains")
+    val domains: DomainsEntity? = null,
     @JsonNames("ciphers")
     @SerialName("Ciphers")
     val ciphers: List<CipherEntity>? = null,

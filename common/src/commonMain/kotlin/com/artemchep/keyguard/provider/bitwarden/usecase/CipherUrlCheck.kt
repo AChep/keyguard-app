@@ -4,12 +4,13 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import io.ktor.http.DEFAULT_PORT
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
-import io.ktor.http.hostWithPort
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -32,6 +33,7 @@ class CipherUrlCheckImpl(
         uri: DSecret.Uri,
         url: String,
         defaultMatchDetection: DSecret.Uri.MatchType,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> {
         return when (uri.match ?: defaultMatchDetection) {
             DSecret.Uri.MatchType.Domain -> {
@@ -46,51 +48,86 @@ class CipherUrlCheckImpl(
             DSecret.Uri.MatchType.Exact -> ::checkUrlMatchByExact
             DSecret.Uri.MatchType.RegularExpression -> ::checkUrlMatchByRegularExpression
             DSecret.Uri.MatchType.Never -> ::checkUrlMatchByNever
-        }.invoke(uri.uri, url)
+        }.invoke(uri.uri, url, equivalentDomains)
     }
 
     private fun checkUrlMatchByDomain(
         a: String,
         b: String,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
         val aHost = urlOf(a).host
         val bHost = urlOf(b).host
         // Find the actual domain name from the host name. This
-        // is quite trickery as there are quite a lot of very different
+        // is quite tricky as there are quite a lot of very different
         // company owned names.
-        val aDomain = tldService
-            .getDomainName(aHost)
+        val bDomain = tldService
+            .getDomainName(bHost)
             .bind()
-        bHost.endsWith(aDomain)
+        val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+        bDomainEq.any { aHost.endsWith(it) }
     }
 
     private fun checkUrlMatchByHost(
         a: String,
         b: String,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
         val aUrl = urlOf(a)
         val bUrl = urlOf(b)
-        // If the url doesn't have a port specified, then
-        // match it with any port.
-        if (aUrl.specifiedPort == DEFAULT_PORT) {
-            return@ioEffect aUrl.host == bUrl.host
-        }
 
-        aUrl.hostWithPort == bUrl.hostWithPort
+        val bDomain = tldService
+            .getDomainName(b)
+            .bind()
+        val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+
+        val bPrefix = bUrl.host
+            .removeSuffix(bDomain)
+        bDomainEq.any {
+            val bHost = bPrefix + it
+
+            // If the url doesn't have a port specified, then
+            // match it with any port.
+            if (aUrl.specifiedPort == DEFAULT_PORT) {
+                return@any aUrl.host == bHost
+            }
+            aUrl.host == bHost && aUrl.port == bUrl.port
+        }
     }
 
     private fun checkUrlMatchByStartsWith(
         a: String,
         b: String,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
         val aFiltered = a.trim().removeSuffix("/")
         val bFiltered = b.trim().removeSuffix("/")
-        bFiltered.startsWith(aFiltered)
+        // Slow proper path:
+        runCatching {
+            val bDomain = tldService
+                .getDomainName(b)
+                .bind()
+            val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+            bDomainEq.any { domain ->
+                val url = URLBuilder(b).apply {
+                    host = host.removeSuffix(bDomain) + domain
+                }.buildString()
+                url.startsWith(aFiltered)
+            }
+        }.getOrElse {
+            // Fast path:
+            bFiltered.startsWith(aFiltered)
+        }
     }
 
     private fun checkUrlMatchByExact(
         a: String,
         b: String,
+        // An equivalent domain will be negated for an item that uses exact match detection.
+        // For example, an item with the saved URI apple.com set to Exact will not offer autofill
+        // for icloud.com despite that being a default equivalent.
+        // https://bitwarden.com/help/uri-match-detection/#equivalent-domains
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
         val aFiltered = a.trim().removeSuffix("/")
         val bFiltered = b.trim().removeSuffix("/")
@@ -100,16 +137,33 @@ class CipherUrlCheckImpl(
     private fun checkUrlMatchByRegularExpression(
         a: String,
         b: String,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
         // URIs are mostly case-insensitive, so it makes sense
         // that regular expressions should also be case-insensitive.
         val aRegex = a.toRegex(RegexOption.IGNORE_CASE)
-        b.matches(aRegex)
+        // Slow proper path:
+        runCatching {
+            val bDomain = tldService
+                .getDomainName(b)
+                .bind()
+            val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+            bDomainEq.any { domain ->
+                val url = URLBuilder(b).apply {
+                    host = host.removeSuffix(bDomain) + domain
+                }.buildString()
+                url.matches(aRegex)
+            }
+        }.getOrElse {
+            // Fast path:
+            b.matches(aRegex)
+        }
     }
 
     private fun checkUrlMatchByNever(
         a: String,
         b: String,
+        equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = io(false)
 
     private fun urlOf(url: String): Url {

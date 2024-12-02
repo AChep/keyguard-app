@@ -59,8 +59,11 @@ import com.artemchep.keyguard.common.model.DFolderTree
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.LinkInfo
 import com.artemchep.keyguard.common.model.LinkInfoAndroid
 import com.artemchep.keyguard.common.model.LinkInfoExecute
@@ -88,6 +91,7 @@ import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
+import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
@@ -97,7 +101,6 @@ import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
-import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -121,6 +124,7 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
+import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
@@ -134,6 +138,8 @@ import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.core.store.bitwarden.canRetry
@@ -217,6 +223,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -268,6 +275,8 @@ fun vaultViewScreenState(
         cipherUnsecureUrlAutoFix = instance(),
         cipherFieldSwitchToggle = instance(),
         moveCipherToFolderById = instance(),
+        tldService = instance(),
+        equivalentDomainsBuilderFactory = instance(),
         patchWatchtowerAlertCipher = instance(),
         rePromptCipherById = instance(),
         changeCipherNameById = instance(),
@@ -285,7 +294,6 @@ fun vaultViewScreenState(
         removeAttachment = instance(),
         cipherExpiringCheck = instance(),
         cipherIncompleteCheck = instance(),
-        cipherUrlCheck = instance(),
         clipboardService = instance(),
         getGravatarUrl = instance(),
         dateFormatter = instance(),
@@ -350,6 +358,8 @@ fun vaultViewScreenState(
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     cipherFieldSwitchToggle: CipherFieldSwitchToggle,
     moveCipherToFolderById: MoveCipherToFolderById,
+    tldService: TldService,
+    equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
     patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher,
     rePromptCipherById: RePromptCipherById,
     changeCipherNameById: ChangeCipherNameById,
@@ -367,7 +377,6 @@ fun vaultViewScreenState(
     removeAttachment: RemoveAttachment,
     cipherExpiringCheck: CipherExpiringCheck,
     cipherIncompleteCheck: CipherIncompleteCheck,
-    cipherUrlCheck: CipherUrlCheck,
     clipboardService: ClipboardService,
     getGravatarUrl: GetGravatarUrl,
     dateFormatter: DateFormatter,
@@ -414,6 +423,7 @@ fun vaultViewScreenState(
         clipboardService = clipboardService,
     )
 
+    val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
     val selectionHandle = selectionHandle("selection")
     val markdown = getMarkdown().first()
     val markdownParser = CommonmarkAstNodeParser()
@@ -803,12 +813,13 @@ fun vaultViewScreenState(
                         cipher = secretOrNull,
                         folder = folderOrNull,
                         organization = organizationOrNull,
+                        tldService = tldService,
+                        equivalentDomainsBuilder = equivalentDomainsBuilder,
                         ciphers = ciphers,
                         collections = collections,
                         cipherUris = cipherUris,
                         cipherExpiringCheck = cipherExpiringCheck,
                         cipherIncompleteCheck = cipherIncompleteCheck,
-                        cipherUrlCheck = cipherUrlCheck,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
                         verify = verify,
@@ -859,12 +870,13 @@ private fun RememberStateFlowScope.oh(
     cipher: DSecret,
     folder: DFolderTree?,
     organization: DOrganization?,
+    tldService: TldService,
+    equivalentDomainsBuilder: EquivalentDomainsBuilder,
     ciphers: List<DSecret>,
     collections: List<DCollection>,
     cipherUris: List<Holder>,
     cipherExpiringCheck: CipherExpiringCheck,
     cipherIncompleteCheck: CipherIncompleteCheck,
-    cipherUrlCheck: CipherUrlCheck,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
     verify: ((() -> Unit) -> Unit)?,
@@ -1288,9 +1300,15 @@ private fun RememberStateFlowScope.oh(
                     .getOrNull()
                     .orEmpty()
 
-                val isUnsecure = DFilter.ByTfaWebsites
-                    .match(cipher, tfa)
-                    .firstOrNull()
+                val isUnsecure = with(tldService) {
+                    val equivalentDomains = equivalentDomainsBuilder
+                        .getAndCache(cipher.accountId)
+                    WatchtowerInactiveTfa.match(
+                        cipher = cipher,
+                        tfaLibrary = tfa,
+                        equivalentDomains = equivalentDomains,
+                    ).firstOrNull()
+                }
                 if (isUnsecure != null) {
                     val model = VaultViewItem.InactiveTotp(
                         id = "error2",
@@ -1311,16 +1329,22 @@ private fun RememberStateFlowScope.oh(
             cipher.login.fido2Credentials.isEmpty() &&
             !cipher.ignores(DWatchtowerAlertType.PASSKEY_WEBSITE)
         ) {
-            val tfa = getPasskeys()
+            val passkeyLibrary = getPasskeys()
                 .crashlyticsTap()
                 .attempt()
                 .bind()
                 .getOrNull()
                 .orEmpty()
 
-            val isUnsecure = DFilter.ByPasskeyWebsites
-                .match(cipher, tfa)
-                .firstOrNull()
+            val isUnsecure = with(tldService) {
+                val equivalentDomains = equivalentDomainsBuilder
+                    .getAndCache(cipher.accountId)
+                WatchtowerInactivePasskey.match(
+                    cipher = cipher,
+                    passkeyLibrary = passkeyLibrary,
+                    equivalentDomains = equivalentDomains,
+                ).firstOrNull()
+            }
             if (isUnsecure != null) {
                 val model = VaultViewItem.InactivePasskey(
                     id = "error2.passkeys",

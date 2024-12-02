@@ -1,0 +1,38 @@
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenEquivalentDomain;
+
+CREATE TABLE equivalentDomains (
+  entryId TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  data TEXT AS BitwardenEquivalentDomain NOT NULL,
+  FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
+);
+
+insert {
+  UPDATE equivalentDomains
+  SET
+    data = :data
+  WHERE
+    accountId = :accountId AND
+    entryId = :entryId;
+
+  INSERT OR IGNORE INTO equivalentDomains(entryId, accountId, data)
+  VALUES (:entryId, :accountId, :data);
+}
+
+get:
+SELECT *
+FROM equivalentDomains;
+
+getByAccountId:
+SELECT *
+FROM equivalentDomains
+WHERE
+    accountId == :accountId;
+
+deleteAll:
+DELETE FROM equivalentDomains;
+
+deleteByAccountId:
+DELETE FROM equivalentDomains
+WHERE
+    accountId == :accountId;

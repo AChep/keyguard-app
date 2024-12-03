@@ -224,6 +224,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - name: "Enable KVM group perms"
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
@@ -239,6 +244,17 @@ jobs:
       - name: "Move licenses"
         run: |
           mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
+      - name: "Generate baseline profiles"
+        id: baseline-profiles
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          disable-animations: true
+          disk-size: 4G
+          script: |
+            adb root
+            ./gradlew :androidApp:generateNoneBaselineProfile
       - name: "Build"
         run: ./gradlew androidApp:assembleNoneRelease
       - name: 'Upload .apk'

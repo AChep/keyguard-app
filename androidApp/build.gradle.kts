@@ -123,16 +123,11 @@ android {
                 "proguard-rules.pro",
             )
         }
-        maybeCreate("benchmark").apply {
-            initWith(getByName("release"))
+        create("benchmarkRelease") {
             signingConfig = signingConfigs.getByName("debug")
-            // Selects release buildType if the 'benchmark'
-            // buildType not available in other modules.
-            matchingFallbacks += "release"
-            // Do not obfuscate
-            proguardFiles(
-                "benchmark-rules.pro",
-            )
+        }
+        create("nonMinifiedRelease") {
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

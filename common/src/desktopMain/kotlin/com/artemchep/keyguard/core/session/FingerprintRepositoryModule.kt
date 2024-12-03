@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
@@ -104,6 +105,7 @@ class GetSuggestionsImpl : GetSuggestions<Any?> {
         p1: List<Any?>,
         p2: Getter<Any?, DSecret>,
         p3: AutofillTarget,
+        p4: EquivalentDomainsBuilderFactory,
     ): IO<List<Any?>> =
         ioRaise(RuntimeException())
 }

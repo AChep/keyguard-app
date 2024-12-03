@@ -119,13 +119,11 @@ class GetSuggestionsImpl(
     private val androidExtractors: List<LinkInfoExtractor<LinkInfoPlatform.Android, LinkInfoAndroid>>,
     private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUrlCheck: CipherUrlCheck,
-    private val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
 ) : GetSuggestions<Any?> {
     constructor(directDI: DirectDI) : this(
         androidExtractors = directDI.allInstances(),
         getAutofillDefaultMatchDetection = directDI.instance(),
         cipherUrlCheck = directDI.instance(),
-        equivalentDomainsBuilderFactory = directDI.instance(),
     )
 
     data class AutofillTargetAndroid(
@@ -155,6 +153,7 @@ class GetSuggestionsImpl(
         ciphers: List<Any?>,
         getter: Getter<Any?, DSecret>,
         target: AutofillTarget,
+        equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
     ): IO<List<Any?>> = ioEffect(Dispatchers.Default) {
         // Android app target
         val autofillTargetAndroid = kotlin.run {

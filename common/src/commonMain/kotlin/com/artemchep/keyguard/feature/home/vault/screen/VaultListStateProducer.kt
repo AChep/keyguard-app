@@ -34,6 +34,7 @@ import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
@@ -200,6 +201,7 @@ fun vaultListScreenState(
         mode = mode,
         deeplinkService = instance(),
         clearVaultSession = instance(),
+        equivalentDomainsBuilderFactory = instance(),
         getSuggestions = instance(),
         getAccounts = instance(),
         getProfiles = instance(),
@@ -232,6 +234,7 @@ fun vaultListScreenState(
     highlightContentColor: Color,
     mode: AppMode,
     deeplinkService: DeeplinkService,
+    equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
     getSuggestions: GetSuggestions<Any?>,
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
@@ -1295,6 +1298,7 @@ fun vaultListScreenState(
         filterFlow = filterResult.filterFlow,
         queryFlow = queryIndexedFlow,
         autofillTarget = autofillTarget,
+        equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
         getSuggestions = getSuggestions,
         dateFormatter = dateFormatter,
         highlightBackgroundColor = highlightBackgroundColor,
@@ -1691,6 +1695,7 @@ private fun hahah(
     filterFlow: Flow<FilterHolder>,
     queryFlow: Flow<IndexedText?>,
     autofillTarget: AutofillTarget?,
+    equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
     getSuggestions: GetSuggestions<Any?>,
     dateFormatter: DateFormatter,
     highlightBackgroundColor: Color,
@@ -1705,6 +1710,7 @@ private fun hahah(
                     m.model.source
                 },
                 autofillTarget,
+                equivalentDomainsBuilderFactory,
             )
                 .bind().let { it as List<IndexedModel<VaultItem2.Item>> }
                 .map { item ->

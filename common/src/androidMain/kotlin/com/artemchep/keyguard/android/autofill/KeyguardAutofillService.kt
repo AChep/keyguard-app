@@ -70,6 +70,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                     is MasterSession.Key -> {
                         val getCiphers = session.di.direct.instance<GetCiphers>()
                         val getProfiles = session.di.direct.instance<GetProfiles>()
+                        val equivalentDomainsBuilderFactory =
+                            session.di.direct.instance<EquivalentDomainsBuilderFactory>()
                         val ciphersRawFlow = filterHiddenProfiles(
                             getProfiles = getProfiles,
                             getCiphers = getCiphers,
@@ -77,9 +79,10 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                         )
                         ciphersRawFlow
                             .map { ciphers ->
-                                ciphers
+                                val filteredCiphers = ciphers
                                     .filter { !it.deleted }
-                                    .right()
+                                val result = filteredCiphers to equivalentDomainsBuilderFactory
+                                result.right()
                             }
                     }
 
@@ -140,11 +143,13 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             ciphers: List<DSecret>,
             getter: Getter<DSecret, DSecret>,
             target: AutofillTarget,
+            equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
         ): IO<List<DSecret>> = parent
             .invoke(
                 ciphers,
                 Getter { it as DSecret },
                 target,
+                equivalentDomainsBuilderFactory,
             ) as IO<List<DSecret>>
     }
 
@@ -232,11 +237,12 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         .toIO()
         .effectMap(Dispatchers.Default) { state ->
             val autofillTarget = autofillStructure.toAutofillTarget()
-            state.map { secrets ->
+            state.map { (secrets, equivalentDomainsBuilder) ->
                 getSuggestions(
                     secrets,
                     Getter { it },
                     autofillTarget,
+                    equivalentDomainsBuilder,
                 ).bind().take(SUGGESTIONS_MAX_COUNT)
             }
         }

@@ -43,6 +43,7 @@ import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey.Companion.findFirstMatchOrNull
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.DatabaseDispatcher
 import com.artemchep.keyguard.core.store.DatabaseManager
@@ -500,6 +501,12 @@ class WatchtowerInactivePasskey(
             domain: String,
             equivalentDomains: List<String>,
         ): PassKeyServiceInfo? {
+            // Prefer the og host
+            val ogResult = findFirstMatchOrNull(host = host)
+            if (ogResult != null) {
+                return ogResult
+            }
+
             val prefix = host.removeSuffix(domain)
             return equivalentDomains
                 .firstNotNullOfOrNull { d ->
@@ -819,6 +826,12 @@ class WatchtowerInactiveTfa(
             domain: String,
             equivalentDomains: List<String>,
         ): TwoFaServiceInfo? {
+            // Prefer the og host
+            val ogResult = findFirstMatchOrNull(host = host)
+            if (ogResult != null) {
+                return ogResult
+            }
+
             val prefix = host.removeSuffix(domain)
             return equivalentDomains
                 .firstNotNullOfOrNull { d ->

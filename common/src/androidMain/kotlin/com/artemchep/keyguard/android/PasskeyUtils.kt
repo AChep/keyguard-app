@@ -34,6 +34,9 @@ class PasskeyUtils(
     private val httpClient: HttpClient,
 ) {
     companion object {
+        // https://developers.google.com/identity/smartlock-passwords/android/associate-apps-and-sites
+        private const val PERMISSION_GET_LOGIN_CREDS = "delegate_permission/common.get_login_creds"
+
         /**
          * The minimum time the 'passkey is doing work' screen should
          * be shown. This is needed just to make to user interface less
@@ -204,11 +207,42 @@ class PasskeyUtils(
 
         val certBytes = PasskeyBase64.decode(certB64)
 
+        // Check if the app target matches the signature.
+        fun validateAndroidAppTarget(t: AndroidAppTarget): Boolean {
+            return t.fingerprints
+                .any { fingerprint ->
+                    fingerprint.contentEquals(certBytes)
+                }
+        }
+
+        val androidAppGetLoginCredsRelation = AndroidAppRelation(PERMISSION_GET_LOGIN_CREDS)
+        val androidAppPackageName = AndroidAppPackageName(packageName)
         // Download certificates from the website and compare it with
         // the certificate we have locally.
         val targets = obtainAllowedAndroidAppTargets(rpId = rpId)
-        val target = targets[AndroidAppPackageName(packageName)]
+        val target = targets[androidAppGetLoginCredsRelation]
+            ?.get(androidAppPackageName)
         requireNotNull(target) {
+            val details = targets
+                .entries
+                .mapNotNull { (relation, appTarget) ->
+                    // Check if the target matches the app, if so
+                    // also check if the signature matches the app.
+                    val t = appTarget[androidAppPackageName]
+                        ?: return@mapNotNull null
+                    val valid = validateAndroidAppTarget(t)
+
+                    val emoji = if (valid) "✅" else "\uD83D\uDEAB"
+                    "$emoji ${relation.relation};"
+                }
+            if (details.isNotEmpty()) {
+                val list = details.joinToString("\n")
+                return@requireNotNull "App package name is associated with the " +
+                        "relying party, however none of the specified relations allow sharing " +
+                        "credentials:\n$list\n\nThe $PERMISSION_GET_LOGIN_CREDS is " +
+                        "missing."
+            }
+
             "App package name is not associated with the " +
                     "relying party!"
         }
@@ -223,6 +257,11 @@ class PasskeyUtils(
     }
 
     @JvmInline
+    private value class AndroidAppRelation(
+        val relation: String,
+    )
+
+    @JvmInline
     private value class AndroidAppPackageName(
         val packageName: String,
     )
@@ -234,7 +273,7 @@ class PasskeyUtils(
     @OptIn(ExperimentalStdlibApi::class)
     private suspend fun obtainAllowedAndroidAppTargets(
         rpId: String,
-    ): Map<AndroidAppPackageName, AndroidAppTarget> {
+    ): Map<AndroidAppRelation, Map<AndroidAppPackageName, AndroidAppTarget>> {
         val url = "https://$rpId/.well-known/assetlinks.json"
         val response = httpClient.get(url)
         require(response.status.isSuccess()) {
@@ -246,7 +285,7 @@ class PasskeyUtils(
 
         // Collect all the android app targets that
         // allow a user to login with.
-        val collector = mutableMapOf<String, MutableSet<String>>()
+        val collector = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
         val list = result as JsonArray
         list.forEach {
             // Ignore the errors, continue to the
@@ -255,54 +294,65 @@ class PasskeyUtils(
             // it changes in the future.
             runCatching {
                 val node = it as JsonObject
-                val relation = node["relation"] as JsonArray
-                val target = node["target"] as JsonObject
+                val relationJsonArray = node["relation"] as JsonArray
+                val targetJsonObject = node["target"] as JsonObject
 
                 // We are only checking allowed android apps,
                 // so check for the namespace first.
-                val namespace = target["namespace"]?.jsonPrimitive?.content
+                val namespace = targetJsonObject["namespace"]?.jsonPrimitive?.content
                 if (namespace != "android_app") {
                     return@forEach
                 }
-                // Check if the common.get_login_creds is in the
-                // relation list.
-                val loginRelation = relation
-                    .any { el ->
+                // Get all relations
+                val relations = relationJsonArray
+                    .asSequence()
+                    .mapNotNull { el ->
                         val elContent = runCatching {
                             el.jsonPrimitive.content
                         }.getOrNull()
-                        elContent == "delegate_permission/common.get_login_creds"
+                        elContent
                     }
-                if (!loginRelation) {
+                    .toSet()
+                if (relations.isEmpty()) {
                     return@forEach
                 }
 
-                val packageName = target["package_name"]?.jsonPrimitive?.content
+                val packageName = targetJsonObject["package_name"]?.jsonPrimitive?.content
                 requireNotNull(packageName)
                 val fingerprints = kotlin.run {
-                    val arr = target["sha256_cert_fingerprints"] as JsonArray
+                    val arr = targetJsonObject["sha256_cert_fingerprints"] as JsonArray
                     arr.map { el -> el.jsonPrimitive.content }
                 }
 
-                // Save the fingerprints.
-                val out = collector.getOrPut(packageName) { mutableSetOf() }
-                out.addAll(fingerprints)
+                // Save the fingerprints separately for
+                // every relation.
+                relations.forEach { relation ->
+                    val relationGroup = collector.getOrPut(relation) { mutableMapOf() }
+                    val packageNameGroup = relationGroup.getOrPut(packageName) { mutableSetOf() }
+                    packageNameGroup.addAll(fingerprints)
+                }
             }
         }
         return collector
             .entries
-            .associate { (packageName, fingerprints) ->
-                val androidAppPackageName = AndroidAppPackageName(packageName)
-                val androidAppTarget = AndroidAppTarget(
-                    fingerprints = fingerprints
-                        .map { fingerprintHex ->
-                            val rawFingerprintHex = fingerprintHex
-                                .lowercase(Locale.ENGLISH)
-                                .replace(":", "")
-                            rawFingerprintHex.hexToByteArray()
-                        },
-                )
-                androidAppPackageName to androidAppTarget
+            .associate { (relation, appTarget) ->
+                val androidAppRelation = AndroidAppRelation(relation)
+                val androidAppTarget = appTarget
+                    .entries
+                    .associate { (packageName, fingerprints) ->
+                        val androidAppPackageName = AndroidAppPackageName(packageName)
+                        val androidAppTarget = AndroidAppTarget(
+                            fingerprints = fingerprints
+                                .map { fingerprintHex ->
+                                    val rawFingerprintHex = fingerprintHex
+                                        .lowercase(Locale.ENGLISH)
+                                        .replace(":", "")
+                                    rawFingerprintHex.hexToByteArray()
+                                },
+                        )
+                        androidAppPackageName to androidAppTarget
+                    }
+                androidAppRelation to androidAppTarget
             }
     }
 

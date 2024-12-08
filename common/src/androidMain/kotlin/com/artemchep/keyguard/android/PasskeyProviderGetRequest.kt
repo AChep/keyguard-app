@@ -88,9 +88,10 @@ class PasskeyProviderGetRequest(
             counter = counter,
             credentialId = credentialIdBytes,
             credentialPublicKey = null,
-            // True, if we asked a user to enter the password of
-            // biometrics and he has passed the check.
-            userVerification = userVerified,
+            userVerification = passkeyUtils.userVerification(
+                mode = js.userVerification,
+                userVerified = userVerified,
+            ),
             userPresence = true,
         )
 

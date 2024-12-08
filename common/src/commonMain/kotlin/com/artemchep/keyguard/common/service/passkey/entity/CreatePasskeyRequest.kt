@@ -82,6 +82,7 @@ data class CreatePasskeyPubKeyCredParams(
 data class CreatePasskeyAuthenticatorSelection(
     val residentKey: String = "discouraged",
     val requireResidentKey: Boolean = residentKey == "required",
+    val userVerification: String? = null,
 )
 
 /*

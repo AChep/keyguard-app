@@ -358,6 +358,20 @@ class PasskeyUtils(
 
     fun generateCredentialId() = cryptoService.uuid()
 
+    // See:
+    // https://github.com/1Password/passkey-rs/blob/90c1c282649eceeb7cbe771bb8ce17b1b8463c60/passkey-client/src/lib.rs#L407
+    // https://github.com/kanidm/webauthn-rs/blame/25bc74ac0dc4280bf67ed3ff53fdf804dbb142c2/webauthn-rs-core/src/core.rs#L866
+    fun userVerification(
+        mode: String?,
+        userVerified: Boolean,
+    ): Boolean = when (mode ?: "preferred") {
+        "required" -> userVerified
+        "preferred" -> true
+        "discouraged" -> false
+        // should never happen
+        else -> userVerified
+    }
+
     fun authData(
         rpId: String,
         counter: Int,

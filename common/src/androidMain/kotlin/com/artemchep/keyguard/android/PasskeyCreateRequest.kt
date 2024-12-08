@@ -100,7 +100,10 @@ class PasskeyCreateRequest(
             credentialId = credentialIdBytes,
             credentialPublicKey = publicKeyCborBytes,
             attestation = data.attestation,
-            userVerification = userVerified,
+            userVerification = passkeyUtils.userVerification(
+                mode = data.authenticatorSelection.userVerification,
+                userVerified = userVerified,
+            ),
             userPresence = true,
         )
         val attestationObjectBytes = defaultAttestationObject(

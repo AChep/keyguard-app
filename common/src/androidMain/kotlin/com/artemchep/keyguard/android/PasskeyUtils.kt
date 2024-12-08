@@ -380,6 +380,8 @@ class PasskeyUtils(
         out += authDataFlags(
             extensionData = false,
             attestationData = credentialPublicKey != null,
+            backupState = true,
+            backupEligibility = true,
             userVerification = userVerification,
             userPresence = userPresence,
         ).let {
@@ -442,6 +444,8 @@ class PasskeyUtils(
     private fun authDataFlags(
         extensionData: Boolean,
         attestationData: Boolean,
+        backupState: Boolean,
+        backupEligibility: Boolean,
         userVerification: Boolean,
         userPresence: Boolean,
     ): Byte {
@@ -451,6 +455,12 @@ class PasskeyUtils(
         }
         if (attestationData) {
             flags = flags or 0b01000000
+        }
+        if (backupState) {
+            flags = flags or 0b00010000
+        }
+        if (backupEligibility) {
+            flags = flags or 0b00001000
         }
         if (userVerification) {
             flags = flags or 0b00000100

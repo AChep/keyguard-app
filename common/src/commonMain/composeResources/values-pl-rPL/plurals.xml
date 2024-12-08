@@ -2,68 +2,68 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> konto</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> konta</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> kont</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> konta</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> wystąpienie</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> wystąpienie</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> wystąpień</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> wystąpienia</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> słowo</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> słowa</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> słów</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> słowa</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> wyniki</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> wynik</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> wyniki</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> wyników</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> wyniku</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> sekunda</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> sekundy</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> sekund</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> sekundy</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minuta</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minuty</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> minut</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minuty</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> godzina</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> godziny</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> godzin</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> godziny</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> dzień</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> dni</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> dni</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> dni</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> tydzień</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> tygodnie</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> tygodni</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> tygodnia</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> miesiąc</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> miesiące</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> miesięcy</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> miesiąca</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> rok</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> lata</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> lat</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> roku</item>
     </plurals>
 </resources>

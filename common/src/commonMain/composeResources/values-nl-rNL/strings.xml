@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Een beveiligde notitie onthullen</string>
     <string name="hide_secure_note">Verberg een beveiligde notitie</string>
     <string name="master_password_hint">Hint voor hoofdwachtwoord</string>
+    <string name="public_key">Public key</string>
+    <string name="private_key">Private key</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="key_type">Key type</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH Key</string>
     <string name="fingerprint_phrase">Vingerafdrukzin</string>
     <string name="fingerprint_phrase_help_title">Wat is een vingerafdruk?</string>
     <string name="filter_auth_reprompt_items">Vragen om herauthenticatie</string>
@@ -223,6 +229,8 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Vereist Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Onofficiële Bitwarden server</string>
+    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generate disposable emails for the better privacy.</string>
     <string name="account_last_synced_at">Laatst gesynchroniseerd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Naam wijzigen</string>
     <string name="account_action_change_color_title">Verander kleur</string>
@@ -311,6 +319,7 @@
     <string name="file_action_delete_local_title">Lokaal bestand verwijderen</string>
     <string name="file_action_delete_local_many_title">Verwijder lokale bestanden</string>
     <string name="file_action_view_cipher_title">Bekijk het bovenliggende item</string>
+    <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">Toetsenbord altijd weergeven</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">Kluis synchroniseren</string>
@@ -335,6 +344,8 @@
     <string name="uri_unsecure">Onveilig</string>
     <string name="uri_match_app_title">App koppelen</string>
     <string name="uri_match_detection_title">Overeenkomst detectie</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Basisdomein</string>
     <string name="uri_match_detection_domain_note">Controleer op het top-level en het second-level domein.</string>
     <string name="uri_match_detection_host_title">Host</string>
@@ -377,6 +388,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> gelinkt aan een onbekend veld</string>
     <string name="text_action_share_with_title">Delen met…</string>
     <string name="text_action_send_title">Send aanmaken</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Add keys</string>
+    <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> geselecteerd</string>
     <string name="copy">Kopiëren</string>
     <string name="copy_value">Kopieer waarde</string>
@@ -397,10 +416,15 @@
     <string name="copy_cvv_code">Veiligheidscode kopiëren</string>
     <string name="copy_otp_code">Verificatie code kopiëren</string>
     <string name="copy_otp_secret_code">Geheime sleutel kopiëren</string>
+    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
+    <string name="copy_ssh_public_key">Copy public key</string>
+    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
     <string name="copied_value">Waarde gekopieerd</string>
     <string name="copied_url">URL gekopieerd</string>
     <string name="copied_uri">URI gekopieerd</string>
     <string name="copied_package_name">Een pakketnaam gekopieerd</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">Wachtwoord gekopieerd</string>
     <string name="copied_username">Gebruikersnaam gekopieerd</string>
     <string name="copied_email">E-mail gekopieerd</string>
@@ -468,6 +492,7 @@
     <string name="error_invalid_uri">Ongeldige URI</string>
     <string name="error_invalid_card_number">Ongeldige kaartnummer</string>
     <string name="error_incorrect_password">Onjuist wachtwoord</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Het maken van een sleutel is mislukt, er is niet genoeg geheugen. Controleer de KDF server instellingen.</string>
     <string name="error_failed_generate_otp_code">Genereren van verificatie code mislukt</string>
     <string name="error_failed_create_passkey">Het maken van een toegangssleutel is mislukt</string>
@@ -476,9 +501,13 @@
     <string name="error_failed_format_placeholder">Formatteren van de placeholder is mislukt</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Scan QR code</string>
     <string name="scanqr_load_from_image_note">Laad een QR-code uit een afbeelding.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barcode</string>
     <string name="barcodetype_action_show_in_barcode_title">Toon als barcode</string>
@@ -683,6 +712,7 @@
     <string name="cipher_type_card">Kaart</string>
     <string name="cipher_type_identity">Identiteit</string>
     <string name="cipher_type_note">Notitie</string>
+    <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_passkey">Toegangssleutel</string>
     <string name="field_type_text">Tekst</string>
     <string name="field_type_boolean">Boolean</string>
@@ -768,6 +798,7 @@
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Gebruikersnaam generator</string>
     <string name="generator_header_password_title">Wachtwoord generator</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">Genereren</string>
     <string name="generator_regenerate_button">Opnieuw genereren</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +836,15 @@
     <string name="generator_email_subdomain_addressing_note">Een subdomein e-mailadres betekent dat elke e-mail verzonden naar <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> nog steeds naar je account wordt verzonden. Dit betekent dat je veel variaties kunt hebben op je e-mailadres om uit te geven aan verschillende personen, sites of mailinglijsten. Zorg ervoor dat de e-mail hosting deze functie ondersteunt voordat je deze gebruikt.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Doorgestuurde e-mail alias</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">Maak een nieuw item met dit wachtwoord</string>
     <string name="generator_create_item_with_username_title">Maak een nieuw item met deze gebruikersnaam</string>
+    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
     <string name="generator_password_history_title">Wachtwoord geschiedenis</string>
     <string name="generator_show_tips_title">Tips weergeven</string>
     <string name="generatorhistory_header_title">Generator geschiedenis</string>
@@ -1006,6 +1044,7 @@
 3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Automatisch verificatie codes kopiëren</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Bij het invullen van inloggegevens worden eenmalige verificatie codes automatisch gekopieerd</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggesties</string>
     <string name="pref_item_autofill_inline_suggestions_text">Voeg automatische invulsuggesties toe in compatibele toetsenborden</string>
     <string name="pref_item_autofill_manual_selection_title">Handmatige selectie</string>

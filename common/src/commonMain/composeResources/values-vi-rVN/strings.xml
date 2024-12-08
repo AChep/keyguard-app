@@ -25,9 +25,9 @@
     <string name="email_visibility">Khả năng hiển thị email</string>
     <string name="public_url">URL công khai</string>
     <string name="url">URL</string>
-    <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="conceal_value">Ẩn giá trị</string>
+    <string name="field_label">Nhãn</string>
+    <string name="field_value">Giá trị</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Lượt truy cập</string>
     <!--
@@ -178,8 +178,8 @@
     <string name="passkey_available">Khóa truy cập có sẵn</string>
     <string name="twofa_available">Xác thực hai yếu tố có sẵn</string>
     <string name="custom">Tùy chỉnh</string>
-    <string name="grant_permission">Grant permission</string>
-    <string name="create_account">Create account</string>
+    <string name="grant_permission">Cấp quyền</string>
+    <string name="create_account">Tạo tài khoản</string>
     <string name="follow_system_settings">Theo thiết đặt hệ thống</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Sắp ra mắt</string>
@@ -215,6 +215,12 @@
     <string name="reveal_secure_note">Hiển thị ghi chú bảo mật</string>
     <string name="hide_secure_note">Ẩn ghi chú bảo mật</string>
     <string name="master_password_hint">Gợi ý mật khẩu chính</string>
+    <string name="public_key">Public key</string>
+    <string name="private_key">Private key</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="key_type">Key type</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH Key</string>
     <string name="fingerprint_phrase">Cụm từ Fingerprint</string>
     <string name="fingerprint_phrase_help_title">Fingerprint là gì?</string>
     <string name="filter_auth_reprompt_items">Nhắc lại xác thực</string>
@@ -223,6 +229,8 @@
     <string name="bitwarden_premium">Bitwarden cao cấp</string>
     <string name="bitwarden_premium_required">Yêu cầu Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Máy chủ Bitwarden không chính thức</string>
+    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generate disposable emails for the better privacy.</string>
     <string name="account_last_synced_at">Đồng bộ hóa lần cuối lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Đổi tên</string>
     <string name="account_action_change_color_title">Đổi màu</string>
@@ -245,14 +253,14 @@
     <string name="folder_action_change_name_title">Đổi tên</string>
     <string name="folder_action_change_names_title">Đổi các tên</string>
     <string name="folder_action_merge_title">Gộp vào…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Bạn có chắc chắn muốn gộp các thư mục này không?</string>
+    <string name="folder_action_create_title">Tạo một thư mục</string>
     <string name="folder_delete_one_confirmation_title">Xóa thư mục?</string>
     <string name="folder_delete_many_confirmation_title">Xóa các thư mục?</string>
     <string name="folder_delete_confirmation_text">(Các) mục này sẽ bị xóa ngay lập tức. Bạn không thể hoàn tác hành động này.</string>
     <string name="ciphers_recently_opened">Mở gần đây</string>
     <string name="ciphers_often_opened">Mở thường xuyên</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Chưa có lịch sử</string>
     <string name="ciphers_view_details">Xem chi tiết</string>
     <string name="ciphers_save_to">Lưu vào</string>
     <string name="ciphers_action_add_to_favorites_title">Thêm vào mục yêu thích</string>
@@ -272,10 +280,10 @@
     <string name="ciphers_action_change_passwords_title">Đổi mật khẩu</string>
     <string name="ciphers_action_view_password_history_title">Xem lịch sử mật khẩu</string>
     <string name="ciphers_action_trash_title">Vứt bỏ</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Vứt vào sọt rác?</string>
+    <string name="ciphers_action_trash_confirmation_text">Các mục đã ở trong Sọt rác hơn 30 ngày sẽ tự động bị xóa.</string>
     <string name="ciphers_action_restore_title">Khôi phục</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Lấy lại từ sọt rác?</string>
     <string name="ciphers_action_delete_title">Xóa vĩnh viễn</string>
     <string name="ciphers_action_delete_confirmation_title">Xóa vĩnh viễn?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Định cấu hình cảnh báo của Tháp Canh</string>
@@ -311,6 +319,7 @@
     <string name="file_action_delete_local_title">Xóa tệp cục bộ</string>
     <string name="file_action_delete_local_many_title">Xóa các tệp cục bộ</string>
     <string name="file_action_view_cipher_title">Xem mục gốc</string>
+    <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">Luôn hiển thị bàn phím</string>
     <string name="vault_action_remember_sorting_title">Ghi nhớ cách sắp xếp</string>
     <string name="vault_action_sync_vault_title">Đồng bộ hóa kho</string>
@@ -335,6 +344,8 @@
     <string name="uri_unsecure">Không an toàn</string>
     <string name="uri_match_app_title">Ứng dụng phù hợp</string>
     <string name="uri_match_detection_title">Tiêu chí khớp</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Tên miền cơ sở</string>
     <string name="uri_match_detection_domain_note">So khớp các tài nguyên theo tên miền cấp cao nhất và cấp hai.</string>
     <string name="uri_match_detection_host_title">Tên máy chủ</string>
@@ -377,6 +388,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> được liên kết với một trường không xác định</string>
     <string name="text_action_share_with_title">Chia sẻ với…</string>
     <string name="text_action_send_title">Tạo một gửi</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Add keys</string>
+    <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> mục đã chọn</string>
     <string name="copy">Sao chép</string>
     <string name="copy_value">Sao chép giá trị</string>
@@ -397,10 +416,15 @@
     <string name="copy_cvv_code">Sao chép mã bảo mật</string>
     <string name="copy_otp_code">Sao chép mật khẩu một lần</string>
     <string name="copy_otp_secret_code">Sao chép khóa bí mật</string>
+    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
+    <string name="copy_ssh_public_key">Copy public key</string>
+    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
     <string name="copied_value">Đã sao chép một giá trị</string>
     <string name="copied_url">Đã sao chép một URL</string>
     <string name="copied_uri">Đã sao chép một URI</string>
     <string name="copied_package_name">Đã sao chép tên gói</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">Đã sao chép một mật khẩu</string>
     <string name="copied_username">Đã sao chép một tên người dùng</string>
     <string name="copied_email">Đã sao chép một email</string>
@@ -468,17 +492,22 @@
     <string name="error_invalid_uri">URI không hợp lệ</string>
     <string name="error_invalid_card_number">Số thẻ không hợp lệ</string>
     <string name="error_incorrect_password">Mật khẩu không đúng</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Không tạo được một chìa khóa, không đủ bộ nhớ. Vui lòng kiểm tra các thiết đặt máy chủ KDF của bạn.</string>
     <string name="error_failed_generate_otp_code">Không tạo được mã OTP</string>
     <string name="error_failed_create_passkey">Không thể tạo được khóa truy cập</string>
     <string name="error_failed_use_passkey">Không thể cấp phép cho yêu cầu</string>
     <string name="error_failed_open_uri">Không mở được URI</string>
     <string name="error_failed_format_placeholder">Không thể định dạng phần thay thế</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_open_app_for">Chưa cài ứng dụng nào có thể xử lý yêu cầu này</string>
+    <string name="error_failed_unknown">Có gì đó không ổn</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Quét mã QR</string>
     <string name="scanqr_load_from_image_note">Tải và phân tích mã QR từ tệp hình ảnh.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="scanqr_camera_permission_required_text">Cần phải có quyền sử dụng máy ảnh để quét mã QR.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Mã vạch</string>
     <string name="barcodetype_action_show_in_barcode_title">Hiển thị dưới dạng mã vạch</string>
@@ -581,7 +610,7 @@
     <string name="urloverride_delete_many_confirmation_title">Xóa ghi đè URL?</string>
     <string name="urloverride_empty_label">Không có ghi đè URL</string>
     <string name="setup_header_text">Tạo một kho được mã hóa nơi dữ liệu cục bộ sẽ được lưu trữ.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">Bằng cách tiếp tục, bạn xác nhận rằng bạn đã mua Keyguard hoặc có giấy phép đang hoạt động.</string>
     <string name="setup_field_app_password_label">Mật khẩu ứng dụng</string>
     <string name="setup_checkbox_biometric_auth">Xác thực sinh trắc học</string>
     <string name="setup_biometric_auth_confirm_title">Tạo một kho</string>
@@ -628,7 +657,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Để vượt qua xác minh captcha trên ứng dụng khách Bitwarden không chính thức, bạn phải chỉ định client secret. Để tìm thấy nó, hãy truy cập kho Web / Thiết đặt / Khóa API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
+    <string name="addaccount_create_an_account_title">Tạo một tài khoản</string>
     <string name="addaccount_sign_in_button">Đăng nhập</string>
     <string name="addaccount_region_section">Khu vực</string>
     <string name="addaccount_region_us_type">Hoa Kỳ</string>
@@ -683,6 +712,7 @@
     <string name="cipher_type_card">Thẻ</string>
     <string name="cipher_type_identity">Danh tính</string>
     <string name="cipher_type_note">Ghi chú</string>
+    <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_passkey">Khóa truy cập</string>
     <string name="field_type_text">Văn bản</string>
     <string name="field_type_boolean">Boolean</string>
@@ -768,10 +798,11 @@
     <string name="generator_header_title">Bộ tạo</string>
     <string name="generator_header_username_title">Bộ tạo tên người dùng</string>
     <string name="generator_header_password_title">Bộ tạo mật khẩu</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">Tạo</string>
     <string name="generator_regenerate_button">Tạo lại</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
+    <string name="generator_use_button">Dùng</string>
     <string name="generator_passphrase_type">Cụm mật khẩu</string>
     <string name="generator_passphrase_note">Cụm mật khẩu ngẫu nhiên cung cấp sự kết hợp tốt nhất giữa khả năng ghi nhớ và bảo mật.</string>
     <string name="generator_passphrase_delimiter_title">Dấu phân cách</string>
@@ -805,8 +836,15 @@
     <string name="generator_email_subdomain_addressing_note">Địa chỉ tên miền phụ có nghĩa là mọi email được gửi tới <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> vẫn được gửi đến tài khoản của bạn. Điều này có nghĩa là bạn có thể có nhiều biến thể về địa chỉ email của mình để cung cấp cho những người, trang web hoặc danh sách gửi thư khác nhau. Đảm bảo rằng dịch vụ lưu trữ email của bạn hỗ trợ tính năng này trước khi sử dụng.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Bí danh email được chuyển tiếp</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">Tạo thông tin đăng nhập mới bằng mật khẩu</string>
     <string name="generator_create_item_with_username_title">Tạo thông tin đăng nhập mới với tên người dùng</string>
+    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
     <string name="generator_password_history_title">Lịch sử mật khẩu</string>
     <string name="generator_show_tips_title">Hiển thị các mẹo</string>
     <string name="generatorhistory_header_title">Lịch sử bộ tạo</string>
@@ -862,15 +900,15 @@
     <string name="changepassword_biometric_auth_confirm_title">Thay đổi mật khẩu ứng dụng</string>
     <string name="changepassword_disclaimer_local_note">Mật khẩu ứng dụng không bao giờ được lưu trữ trên thiết bị cũng như không được gửi qua mạng. Nó được sử dụng để tạo khóa bí mật dùng để mã hóa dữ liệu cục bộ.</string>
     <string name="changepassword_disclaimer_abuse_note">Trừ khi bạn nghi ngờ có sự truy cập trái phép hoặc phát hiện phần mềm độc hại trên thiết bị, không cần phải thay đổi mật khẩu nếu đó là mật khẩu mạnh, duy nhất.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">Mật khẩu đã được thay đổi thành công</string>
     <string name="exportaccount_header_title">Xuất các mục</string>
     <string name="exportaccount_password_label">Lưu trữ mật khẩu</string>
-    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
-    <string name="exportaccount_include_attachments_title">Export attachments</string>
+    <string name="exportaccount_attachments_note">Kho sẽ được giữ mở khóa trong quá trình xuất. Các tệp đính kèm được tham chiếu trong dữ liệu của kho. Các tệp đính kèm không bao giờ được lưu trữ ở dạng không được mã hóa trong quá trình này.</string>
+    <string name="exportaccount_include_attachments_title">Xuất tệp đính kèm</string>
     <string name="exportaccount_export_button">Xuất</string>
-    <string name="exportaccount_export_started">Export started</string>
+    <string name="exportaccount_export_started">Xuất khẩu bắt đầu</string>
     <string name="exportaccount_export_success">Xuất hoàn tất</string>
-    <string name="exportaccount_export_failure">Export failed</string>
+    <string name="exportaccount_export_failure">Xuất không thành công</string>
     <string name="contactus_header_title">Liên hệ chúng tôi</string>
     <string name="contactus_message_label">Tin nhắn của bạn</string>
     <string name="contactus_english_note">Sử dụng tiếng Anh để đảm bảo rằng phản hồi của bạn không bị hiểu lầm.</string>
@@ -926,7 +964,7 @@
     <string name="pref_item_reddit_community_title">Cộng đồng Reddit</string>
     <string name="pref_item_github_title">Dự án GitHub</string>
     <string name="pref_item_crowdin_title">Dự án Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Xem tất cả</string>
     <string name="pref_item_open_source_licenses_title">Giấy phép nguồn mở</string>
     <string name="pref_item_download_apk_title">Tải xuống tệp APK</string>
     <string name="pref_item_load_app_icons_title">Tải các biểu tượng ứng dụng</string>
@@ -1000,12 +1038,13 @@
     <string name="pref_item_autofill_service_title">Dịch vụ tự động điền</string>
     <string name="pref_item_autofill_service_text">Sử dụng Khung tự động điền Android để hỗ trợ điền thông tin đăng nhập vào các ứng dụng khác trên thiết bị</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Một số thiết bị Xiaomi yêu cầu bạn phải cấp quyền "Hiển thị cửa sổ bật lên khi chạy ở chế độ nền" theo cách thủ công. Vui lòng mở cài đặt và xác minh rằng nó đã được cấp.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome sẽ hỗ trợ dịch vụ tự động điền của bên thứ ba một cách tự nhiên</string>
     <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
 2. Choose Autofill using another service
 3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tự động sao chép mật khẩu một lần</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Khi điền thông tin đăng nhập, tự động sao chép mật khẩu một lần</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Đề xuất nội tuyến</string>
     <string name="pref_item_autofill_inline_suggestions_text">Nhúng đề xuất tự động điền trực tiếp vào bàn phím tương thích</string>
     <string name="pref_item_autofill_manual_selection_title">Lựa chọn thủ công</string>
@@ -1101,9 +1140,9 @@
     <string name="datasafety_remote_section">Dữ liệu từ xa</string>
     <string name="datasafety_remote_text">Dữ liệu từ xa được lưu trữ trên máy chủ Bitwarden với mã hóa không-kiến ​​thức.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Người đóng góp bản địa hóa</string>
+    <string name="localization_contributors_search_placeholder">Tìm kiếm người đóng góp</string>
+    <string name="localization_contributors_empty_label">Không có người đóng góp</string>
     <string name="logs_header_title">Nhật ký</string>
     <string name="logs_start_recording_fab_title">Bắt đầu ghi</string>
     <string name="logs_stop_recording_fab_title">Dừng ghi</string>

@@ -34,11 +34,6 @@ class PasskeyProviderGetRequest(
     private val cryptoService: CryptoGenerator,
     private val passkeyUtils: PasskeyUtils,
 ) {
-    private class ClientData(
-        val bytes: ByteArray? = null,
-        val hash: ByteArray,
-    )
-
     constructor(
         directDI: DirectDI,
     ) : this(
@@ -99,30 +94,21 @@ class PasskeyProviderGetRequest(
             userPresence = true,
         )
 
-        val clientData = opt.clientDataHash
-            ?.let { hash ->
-                ClientData(
-                    hash = hash,
-                )
+        val clientDataJsonBytes = kotlin.run {
+            val jsonObject = buildJsonObject {
+                put("type", "webauthn.get")
+                put("challenge", challenge)
+                put("origin", origin)
+                put("androidPackageName", packageName)
             }
-            ?: run {
-                val jsonObject = buildJsonObject {
-                    put("type", "webauthn.get")
-                    put("challenge", challenge)
-                    put("origin", origin)
-                    put("androidPackageName", packageName)
-                }
-                val jsonString = json.encodeToString(jsonObject)
-                val bytes = jsonString.toByteArray()
-                val hash = cryptoService.hashSha256(bytes)
-                ClientData(
-                    bytes = bytes,
-                    hash = hash,
-                )
-            }
+            json.encodeToString(jsonObject)
+                .toByteArray()
+        }
+        val clientDataJsonHash = opt.clientDataHash
+            ?: cryptoService.hashSha256(clientDataJsonBytes)
 
         val signature = kotlin.run {
-            val dataToSign = defaultAuthenticatorData + clientData.hash
+            val dataToSign = defaultAuthenticatorData + clientDataJsonHash
             val sig = Signature.getInstance("SHA256withECDSA")
             sig.initSign(privateKey)
             sig.update(dataToSign)
@@ -130,11 +116,7 @@ class PasskeyProviderGetRequest(
         }
 
         val r = buildJsonObject {
-            val clientDataBytes = clientData.bytes
-            if (clientDataBytes != null) {
-                put("clientDataJSON", clientDataBytes)
-            }
-
+            put("clientDataJSON", clientDataJsonBytes)
             put("authenticatorData", defaultAuthenticatorData)
             put("signature", PasskeyBase64.encodeToString(signature))
             put("userHandle", credential.userHandle)

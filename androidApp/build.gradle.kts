@@ -52,6 +52,11 @@ android {
         versionName = versionInfo.marketingVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // The following argument makes the Android Test Orchestrator run its
+        // "pm clear" command after each test invocation. This command ensures
+        // that the app's state is completely cleared between tests.
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -65,6 +70,10 @@ android {
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
     androidResources {
@@ -149,6 +158,20 @@ dependencies {
     implementation(project(":common"))
     baselineProfile(project(":androidBenchmark"))
     coreLibraryDesugaring(libs.android.desugarjdklibs)
+
+    // Android tests
+    androidTestImplementation(project(":androidTest"))
+    androidTestImplementation(libs.androidx.arch.core.testing)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.core.ktx)
+    androidTestImplementation(libs.androidx.test.uiautomator)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.espresso.web)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit.ktx)
+    androidTestUtil(libs.androidx.test.orchestrator)
 }
 
 kotlin {

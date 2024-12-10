@@ -4,7 +4,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import com.artemchep.macrobenchmark.PACKAGE_NAME
-import com.artemchep.macrobenchmark.ui.keyguard.createVaultAndWait
+import com.artemchep.test.feature.coreFeature
+import com.artemchep.test.feature.ensureMainScreen
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,6 +30,6 @@ class BaselineProfileGenerator {
         pressHome()
         startActivityAndWait()
 
-        createVaultAndWait()
+        device.coreFeature.ensureMainScreen()
     }
 }

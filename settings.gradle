@@ -27,5 +27,6 @@ include ':common'
 // apps
 include ':androidApp'
 include ':androidBenchmark'
+include ':androidTest'
 include ':desktopApp'
 

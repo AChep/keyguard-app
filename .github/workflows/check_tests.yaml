@@ -26,11 +26,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: "Prepare env"
         run: |
-          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
-          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
-          echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat >> service-account-google.json
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Setup Gradle"
         uses: gradle/actions/setup-gradle@v4
         env:

@@ -39,6 +39,8 @@ fun AutofillSettingsScreen() {
                 key = "totp",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.AUTOFILL_COPY_TOTP),
+                    SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_REFRESH),
+                    SettingPaneItem.Item(Setting.CLIPBOARD_NOTIFICATION_SETTINGS),
                 ),
             ),
             SettingPaneItem.Group(

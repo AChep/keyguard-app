@@ -5,20 +5,26 @@ package com.artemchep.keyguard.feature.equivalentdomains
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
@@ -77,6 +83,22 @@ fun EquivalentDomainsContent(
                     NavigationIcon()
                 },
                 scrollBehavior = scrollBehavior,
+                actions = {
+                    val navigationController by rememberUpdatedState(LocalNavigationController.current)
+                    IconButton(
+                        onClick = {
+                            val intent = NavigationIntent.NavigateToBrowser(
+                                url = "https://bitwarden.com/help/uri-match-detection/#equivalent-domains",
+                            )
+                            navigationController.queue(intent)
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = null,
+                        )
+                    }
+                },
             )
         },
     ) {

@@ -163,10 +163,10 @@ class PasskeyUtils(
         packageName: String,
     ): Unit = runCatching {
         when {
-            origin.startsWith("https:") ->
+            origin.startsWith("https:", ignoreCase = true) ->
                 requireRpMatchesOriginViaHttps(rpId, origin)
 
-            origin.startsWith("android:") ->
+            origin.startsWith("android:", ignoreCase = true) ->
                 requireRpMatchesOriginViaAndroid(rpId, origin, packageName)
 
             else -> throw IllegalStateException("Request origin has an unknown scheme.")

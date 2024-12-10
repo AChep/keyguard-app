@@ -108,8 +108,8 @@ data class DSecret(
     val favicon: FaviconUrl? = kotlin.run {
         val siteUrl = uris
             .firstOrNull { uri ->
-                uri.uri.startsWith("http://") ||
-                        uri.uri.startsWith("https://")
+                uri.uri.startsWith("http://", ignoreCase = true) ||
+                        uri.uri.startsWith("https://", ignoreCase = true)
             }
             ?.uri
         siteUrl?.let {

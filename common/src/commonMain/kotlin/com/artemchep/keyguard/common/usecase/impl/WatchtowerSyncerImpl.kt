@@ -1002,8 +1002,8 @@ class WatchtowerDuplicateUris(
 }
 
 private fun parseHost(uri: DSecret.Uri) = if (
-    uri.uri.startsWith("http://") ||
-    uri.uri.startsWith("https://")
+    uri.uri.startsWith("http://", ignoreCase = true) ||
+    uri.uri.startsWith("https://", ignoreCase = true)
 ) {
     val parsedUri = kotlin.runCatching {
         Url(uri.uri)

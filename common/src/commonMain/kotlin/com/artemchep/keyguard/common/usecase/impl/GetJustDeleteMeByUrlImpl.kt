@@ -32,8 +32,8 @@ class GetJustDeleteMeByUrlImpl(
     }
 
     private fun parseHost(url: String) = if (
-        url.startsWith("http://") ||
-        url.startsWith("https://")
+        url.startsWith("http://", ignoreCase = true) ||
+        url.startsWith("https://", ignoreCase = true)
     ) {
         val parsedUri = kotlin.runCatching {
             Url(url)

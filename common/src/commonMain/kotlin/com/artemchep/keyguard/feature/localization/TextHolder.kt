@@ -16,7 +16,8 @@ sealed interface TextHolder {
     ) : TextHolder
 }
 
-fun StringResource.wrap() = TextHolder.Res(this)
+@Suppress("NOTHING_TO_INLINE")
+inline fun StringResource.wrap() = TextHolder.Res(this)
 
 @Composable
 fun textResource(text: TextHolder): String = when (text) {

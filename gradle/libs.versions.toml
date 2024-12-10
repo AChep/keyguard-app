@@ -47,7 +47,7 @@ androidxWork = "2.10.0"
 # https://github.com/harawata/appdirs
 appDirs = "1.2.2"
 # https://github.com/arrow-kt/arrow
-arrow = "1.2.4"
+arrow = "2.0.0"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig

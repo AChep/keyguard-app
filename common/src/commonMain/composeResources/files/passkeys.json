@@ -477,6 +477,17 @@
     "created_at": "2023-06-26T12:34:44.738975+00:00"
   },
   {
+    "id": "926117859c3330b4259374ce5c6d3d23",
+    "name": "Canva",
+    "domain": "canva.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://www.canva.com/settings/login-and-security",
+    "category": "Productivity",
+    "created_at": "2023-03-21T20:52:12.233679+00:00"
+  },
+  {
     "id": "022acd9b0992c0892963dd56250b42ba",
     "name": "Cape Cod 5",
     "domain": "capecodfive.com",
@@ -508,6 +519,17 @@
     "setup": "https://www.caremark.com/digital-fast/caremark-login-web/#/login",
     "category": "Health & Wellness",
     "created_at": "2023-10-19T04:36:33.183993+00:00"
+  },
+  {
+    "id": "bba8e54d351e97582b81ed53b8577825",
+    "name": "Cash App",
+    "domain": "cash.app",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://cash.app/account/settings#security-and-privacy",
+    "category": "Finance",
+    "created_at": "2023-05-24T11:03:39+00:00"
   },
   {
     "id": "51bb256a0f5d44ce4a5de9a92170978d",
@@ -628,6 +650,18 @@
     "created_at": "2023-05-11T20:08:35.414342+00:00"
   },
   {
+    "id": "89e8f5539e0d748be420f2911c1199ed",
+    "name": "Crown Audit",
+    "domain": "crownaudit.org",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.crownaudit.org/ciportal.nsf/Docs/PasskeySignin",
+    "setup": "https://www.crownaudit.org",
+    "category": "Information Technology",
+    "created_at": "2024-10-28T12:25:31.70279+00:00"
+  },
+  {
     "id": "61021026a31cf5c542f2685f347c3309",
     "name": "CustomerPing.AI",
     "domain": "customerping.ai",
@@ -694,6 +728,18 @@
     "setup": "https://portal.devolutions.com/security/key",
     "category": "Information Technology",
     "created_at": "2024-03-25T11:32:16.619088+00:00"
+  },
+  {
+    "id": "11de6f412d341d8508271533604a135f",
+    "name": "DEXT",
+    "domain": "dext.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.dext.com/en/s/article/passkeys",
+    "setup": "https://app.dext.com/gamma/platform/profile",
+    "category": "Finance",
+    "created_at": "2024-10-25T11:43:49.411358+00:00"
   },
   {
     "id": "9bbe3e34ccbca9ed0470cf12514fcd66",
@@ -885,6 +931,17 @@
     "notes": "Uses AuthGear. Setup on register or at https://auth.formextractorai.com/settings"
   },
   {
+    "id": "d5878909ab6a2afbcf9865a5466135c0",
+    "name": "Level1Techs Forum",
+    "domain": "forum.level1techs.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://forum.level1techs.com",
+    "category": "Information Technology",
+    "created_at": "2024-11-05T12:05:28+00:00"
+  },
+  {
     "id": "5bc74064a56d06901233422c48bf2f61",
     "name": "Anki Forums",
     "domain": "forums.ankiweb.net",
@@ -969,6 +1026,18 @@
     "setup": "https://gitlab.com/-/profile/two_factor_auth",
     "category": "Information Technology",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "0da7f296b49b57e1a8b366a2a72682c9",
+    "name": "Glauca Digital",
+    "domain": "glauca.digital",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://docs.glauca.digital/passkeys/",
+    "setup": "https://sso.as207960.net/auth/realms/master/account/#/security/signingin",
+    "category": "Information Technology",
+    "created_at": "2024-11-24T19:25:00+00:00"
   },
   {
     "id": "8c4577cee63fa0daa619b9c5ffedc875",
@@ -1066,6 +1135,28 @@
     "created_at": "2024-03-27T10:38:36.26944+00:00"
   },
   {
+    "id": "a4a39e43c8becd7c08c6a6ad39174e55",
+    "name": "hCaptcha",
+    "domain": "hcaptcha.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://dashboard.hcaptcha.com/secure-account",
+    "category": "Information Technology",
+    "created_at": "2024-11-19T17:07:36.042702+00:00"
+  },
+  {
+    "id": "f8090127f27f593a64d9a200930a8c64",
+    "name": "Heexy",
+    "domain": "heexy.org",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://account.heexy.org/settings#security",
+    "category": "Search Engine",
+    "created_at": "2024-11-23T15:53:07.733942+00:00"
+  },
+  {
     "id": "8c2e6f0179e0d9260161b085980761e2",
     "name": "My Helsana (App only)",
     "domain": "helsana.ch",
@@ -1076,6 +1167,17 @@
     "category": "Health & Wellness",
     "created_at": "2024-04-16T13:32:34.685184+00:00",
     "notes": "Users must sign in for the first time using their username, password and mTAN (security code sent by SMS) to access their data. They can then carry out the passkey registration in the mobile app in order to be able to log in with FaceID or TouchID. If they do not carry out the passkey registration, they can continue to log in with their username, password and mTAN."
+  },
+  {
+    "id": "a866651e82475ad34c89ececc95c2a50",
+    "name": "High Mobility",
+    "domain": "high-mobility.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://console.high-mobility.com/account",
+    "category": "Information Technology",
+    "created_at": "2024-11-26T13:47:10.855653+00:00"
   },
   {
     "id": "fe83d2c9b996786f5c26a2bc4789d902",
@@ -1113,6 +1215,18 @@
     "setup": "https://horizon.pics/settings",
     "category": "Information Technology",
     "created_at": "2022-12-01T00:00:00+00:00"
+  },
+  {
+    "id": "12ac4d2d181814b4e4ff1f7972c73340",
+    "name": "Hubspot",
+    "domain": "hubspot.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.hubspot.com/settings",
+    "category": "Information Technology",
+    "created_at": "2023-05-14T18:12:43.261956+00:00",
+    "notes": "Visit your Profile & Preferences > General > Security to add a passkey "
   },
   {
     "id": "db8eb89a905eabc4745c800101475285",
@@ -1228,6 +1342,18 @@
     "setup": "https://jp.mercari.com/mypage/personal_info/passkeys",
     "category": "eCommerce",
     "created_at": "2023-10-16T02:30:21.148977+00:00"
+  },
+  {
+    "id": "3d6250b0938b477b2a4a313c158b52a5",
+    "name": "Kakao",
+    "domain": "kakaocorp.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.kakaocorp.com/page/detail/11349",
+    "setup": "https://accounts.kakao.com/weblogin/account",
+    "category": "Messenger",
+    "created_at": "2024-11-25T10:42:13.263515+00:00"
   },
   {
     "id": "c472ca83e62fee83e1417b3fd26d58b9",
@@ -1543,6 +1669,18 @@
     "notes": "### Creating a passkey\nTo create a passkey for your Microsoft account, follow these steps on the device for which you\u2019d like to create a passkey:\n\n\n1. [Sign in to your Microsoft account Advanced Security Options](https://go.microsoft.com/fwlink/?linkid=2250685) for personal accounts, or [MyAccount Security info](https://mysignins.microsoft.com/security-info) for work or school accounts.\n2. Choose Add a new way to sign in or verify.\n3. Select Face, fingerprint, PIN, or security key.\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<br>\n\n---\n\n<br>\n\n### Using your passkey to sign in\nTo sign into your Microsoft account with a passkey, follow these steps whenever you get a sign-in prompt. \n\n\n1. Choose Sign-in options, or Other ways to sign in.\n2. Select Face, Fingerprint, PIN, or security key.\n3. Select your passkey from the list available.\n\nYour device will open a security window where you can use your face, fingerprint, PIN, or security key.\n\n<br>\n\n---\n\n<br>\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\n<br>\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
   },
   {
+    "id": "bcf23f0c08c86391634890a1e9d8c18a",
+    "name": "Migros",
+    "domain": "migros.ch",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://account.migros.ch/help#faqPasskeyPrio",
+    "setup": "https://account.migros.ch/profile/security/passkeys",
+    "category": "eCommerce",
+    "created_at": "2024-11-19T17:36:34+00:00"
+  },
+  {
     "id": "50053011478a6a0a760f49b9e67b5d21",
     "name": "MINI",
     "domain": "mini.com",
@@ -1601,6 +1739,18 @@
     "created_at": "2023-09-11T14:25:05.900516+00:00"
   },
   {
+    "id": "023acfccafdabc31e9924a84a696f17b",
+    "name": "Curricula",
+    "domain": "mycurricula.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.huntress.io/hc/en-us/articles/35586514110099-Using-Passkeys-for-SAT-Login",
+    "setup": "https://mycurricula.com/users/profile",
+    "category": "Education",
+    "created_at": "2024-11-20T12:02:59.978266+00:00"
+  },
+  {
     "id": "27e1e1e530e95f7e89613a1a74d80c1a",
     "name": "mySites.guru",
     "domain": "mysites.guru",
@@ -1622,6 +1772,19 @@
     "setup": "https://ap.www.namecheap.com/settings/security/twofa/manage",
     "category": "Information Technology",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "dea58bf575d09845f15b0157ac57d1e4",
+    "name": "netfiles",
+    "domain": "netfiles.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.netfiles.de/en/creating-a-passkey-for-netfiles/",
+    "setup": "https://auth.netfiles.de/?tid=nfc",
+    "category": "Information Technology",
+    "created_at": "2024-11-14T17:00:16+00:00",
+    "notes": "https://www.netfiles.com/de/passkey-faq"
   },
   {
     "id": "b62a98c39e4b3a795342c10c9c4a4415",
@@ -1719,6 +1882,18 @@
     "notes": "OneDrive uses a Microsoft Account to sign in.\n\nMicrosoft Account's have passkey support:\n\nhttps://passkeys.directory/details/microsoft-account\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
   },
   {
+    "id": "141d06824342a373d3c6ae6fc432e1e0",
+    "name": "OneLog",
+    "domain": "onelog.ch",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://profile.onelog.ch/global.security",
+    "category": "Entertainment",
+    "created_at": "2023-07-24T15:15:22+00:00",
+    "notes": "OneLog may ask you to set up a new passkey on each new device or browser when signing in to your OneLog account."
+  },
+  {
     "id": "1cd4f1a21ff42491a54d07f3f52da993",
     "name": "OneLogin",
     "domain": "onelogin.com",
@@ -1812,6 +1987,19 @@
     "setup": "https://console.passage.id/register",
     "category": "Authentication Provider",
     "created_at": "2022-11-17T00:00:00+00:00"
+  },
+  {
+    "id": "8374da295e1ac496ac95079a4660242e",
+    "name": "SK Telecom passkey demo",
+    "domain": "passkey.sktelecom.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://passkey.sktelecom.com",
+    "setup": "https://passkey.sktelecom.com",
+    "category": "Telecommunications",
+    "created_at": "2024-11-22T11:48:08.164737+00:00",
+    "notes": "This is a demo site for anybody to experience trying out passkeys."
   },
   {
     "id": "72122988b1ab14a053159522a0126440",
@@ -1923,6 +2111,18 @@
     "setup": "https://porkbun.com/account",
     "category": "Information Technology",
     "created_at": "2023-05-03T20:31:27+00:00"
+  },
+  {
+    "id": "3716fef0f54bd95759b201b12761622f",
+    "name": "Practice Protect",
+    "domain": "practiceprotect.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.practiceprotect.com/knowledge-base/sign-in-with-a-passkey",
+    "category": "Information Technology",
+    "created_at": "2024-10-28T12:30:55.5984+00:00",
+    "notes": "Signing in with passkeys must be enabled by an admin via the back-end of the admin portal, and sign in at the individuals Practice Protect URL.\n\nAdmins can use the following <a href=\"https://support.practiceprotect.com/knowledge-base/configure-passkeys-authentication\">article</a> to setup passkey authentication to the platform."
   },
   {
     "id": "4ad215d27dc9d9a784ccbd28c8fc9c1a",
@@ -2103,6 +2303,18 @@
     "created_at": "2023-04-02T06:36:23.978722+00:00"
   },
   {
+    "id": "559c1976fb46ed4fe9badcdf7aefef40",
+    "name": "SK Telecom",
+    "domain": "sktelecom.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://portal.passkey-sktelecom.com",
+    "category": "Telecommunications ",
+    "created_at": "2024-11-22T11:45:36.052916+00:00",
+    "notes": "Passkeys are available for both SK Telecom and SK Telecom 3rd parties"
+  },
+  {
     "id": "346e533f75794479922eb69976686668",
     "name": "Snapchat",
     "domain": "snapchat.com",
@@ -2151,6 +2363,17 @@
     "created_at": "2024-01-16T10:48:30.911937+00:00"
   },
   {
+    "id": "abbd7b56d49521499ceb6cf3efce53c4",
+    "name": "Square",
+    "domain": "squareup.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.squareup.com/dashboard/account",
+    "category": "eCommerce",
+    "created_at": "2023-03-24T22:46:25.889527+00:00"
+  },
+  {
     "id": "30ed26f1344075662635b3af8a4525cb",
     "name": "Stall-Frei.de",
     "domain": "stall-frei.de",
@@ -2194,6 +2417,18 @@
     "setup": "https://me.sumup.com/security/passkeys",
     "category": "eCommerce",
     "created_at": "2023-05-05T00:48:02.28105+00:00"
+  },
+  {
+    "id": "03e3407afb1ddc3713f10ed0195ed869",
+    "name": "Syncfusion",
+    "domain": "syncfusion.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.syncfusion.com/kb/article/16143/sign-in-to-your-syncfusion-account-with-a-passkey",
+    "setup": "https://www.syncfusion.com/account/passkey",
+    "category": "Information Tech",
+    "created_at": "2024-10-28T12:17:15.91874+00:00"
   },
   {
     "id": "bc1adb391ba58d1668e3a883e7fcdf4f",
@@ -2291,6 +2526,18 @@
     "setup": "https://thunder.gg/account",
     "category": "Finance",
     "created_at": "2024-05-07T16:43:26.618806+00:00"
+  },
+  {
+    "id": "b9f69594af547259dcdf2532cd81dd41",
+    "name": "TIAA",
+    "domain": "tiaa.org",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://auth.tiaa.org/public/authentication/securelogin/whatispasskey",
+    "setup": "https://auth.tiaa.org/public/authentication/securelogin",
+    "category": "Finance",
+    "created_at": "2023-06-08T21:28:01.569386+00:00"
   },
   {
     "id": "ac1aa7796b8aa9cdf4302c776255554b",

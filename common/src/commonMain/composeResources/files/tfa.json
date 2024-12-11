@@ -331,6 +331,16 @@
     "name": "AFIP"
   },
   {
+    "domain": "afternic.com",
+    "tfa": [
+      "totp",
+      "sms",
+      "u2f"
+    ],
+    "documentation": "https://help.afternic.com/s/article/How-can-I-set-up-Two-Factor-Authentication-for-my-account",
+    "name": "Afternic"
+  },
+  {
     "domain": "afterpay.com",
     "tfa": [
       "sms",
@@ -468,6 +478,17 @@
     ],
     "documentation": "https://www.algolia.com/doc/security/best-security-practices/#two-factor-authentication",
     "name": "Algolia"
+  },
+  {
+    "domain": "alibabacloud.com",
+    "additional-domains": [
+      "aliyun.com"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.alibabacloud.com/help/en/cloud-migration-guide-for-beginners/latest/configure-security-settings-for-an-alibaba-cloud-account",
+    "name": "AlibabaCloud"
   },
   {
     "domain": "all-inkl.com",
@@ -995,7 +1016,19 @@
       "sms"
     ],
     "documentation": "https://www.att.com/support/article/my-account/KM1249672/",
-    "name": "AT&amp;T"
+    "name": "AT&T"
+  },
+  {
+    "domain": "attentive.com",
+    "additional-domains": [
+      "attentivemobile.com"
+    ],
+    "tfa": [
+      "call",
+      "sms"
+    ],
+    "documentation": "https://help.attentivemobile.com/hc/articles/14208870889876",
+    "name": "Attentive"
   },
   {
     "domain": "atu.edu",
@@ -1733,6 +1766,16 @@
     "name": "BitForex"
   },
   {
+    "domain": "bitget.com",
+    "tfa": [
+      "call",
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://www.bitget.com/support/articles/12560603808391",
+    "name": "Bitget"
+  },
+  {
     "domain": "bitgo.com",
     "tfa": [
       "totp",
@@ -1930,6 +1973,9 @@
   },
   {
     "domain": "blockchain.com",
+    "additional-domains": [
+      "blockchain.info"
+    ],
     "tfa": [
       "sms",
       "totp",
@@ -2178,6 +2224,16 @@
     ],
     "documentation": "https://www.brex.com/support/two-factor-authentication",
     "name": "Brex"
+  },
+  {
+    "domain": "britishairways.com",
+    "tfa": [
+      "sms",
+      "totp",
+      "u2f"
+    ],
+    "notes": "Set-up requires linking one of the following services with your BA account: Qatar, Iberia, Uber",
+    "name": "British Airways"
   },
   {
     "domain": "broadcom.com",
@@ -2657,7 +2713,11 @@
       "custom-hardware"
     ],
     "custom-software": [
+      "RBC Caribbean app",
       "Entrust Identity Guard"
+    ],
+    "custom-hardware": [
+      "RSA SecurID"
     ],
     "notes": "Hardware 2FA methods are only available for business customers.",
     "documentation": "https://www.rbcroyalbank.com/caribbean/digital-hub/security-two-factor.html",
@@ -2723,6 +2783,15 @@
     ],
     "documentation": "https://howto.caspio.com/caspio-id/managing-caspio-id/#Enable2FA",
     "name": "Caspio"
+  },
+  {
+    "domain": "cat.com",
+    "tfa": [
+      "totp",
+      "sms"
+    ],
+    "documentation": "https://catcrm.my.site.com/HelpCenter/s/article/How-do-I-enable-make-changes-or-disable-Multi-Factor-Authentication-MFA-for-my-account",
+    "name": "Cat"
   },
   {
     "domain": "cbq.qa",
@@ -3072,6 +3141,18 @@
     "name": "Close"
   },
   {
+    "domain": "cloud.baidu.com",
+    "additional-domains": [
+      "login.bce.baidu.com"
+    ],
+    "tfa": [
+      "totp",
+      "sms"
+    ],
+    "documentation": "https://intl.cloud.baidu.com/doc/IAM/s/2jwvyc50i-en",
+    "name": "Baidu AI cloud"
+  },
+  {
     "domain": "cloud.google.com",
     "tfa": [
       "sms",
@@ -3103,11 +3184,7 @@
     "tfa": [
       "email",
       "u2f",
-      "totp",
-      "custom-software"
-    ],
-    "custom-software": [
-      "Symantec VIP"
+      "totp"
     ],
     "documentation": "https://cloud.ibm.com/docs/account?topic=account-enablemfa",
     "name": "IBM Cloud"
@@ -3189,7 +3266,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.cloudflare.com/hc/en-us/articles/200167906",
+    "documentation": "https://developers.cloudflare.com/fundamentals/setup/account/account-security/2fa/",
     "name": "Cloudflare"
   },
   {
@@ -3321,6 +3398,15 @@
     ],
     "documentation": "https://docs.codeclimate.com/docs/enabling-two-factor-authentication",
     "name": "Code Climate"
+  },
+  {
+    "domain": "cognitoforms.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://www.cognitoforms.com/product/two-factor-authentication",
+    "name": "Cognito Forms"
   },
   {
     "domain": "cohost.org",
@@ -3792,6 +3878,14 @@
     "name": "ConvertKit"
   },
   {
+    "domain": "cookieyes.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.cookieyes.com/documentation/two-factor-authentication/",
+    "name": "CookieYes"
+  },
+  {
     "domain": "cordial.com",
     "tfa": [
       "sms",
@@ -3839,6 +3933,7 @@
     "tfa": [
       "totp"
     ],
+    "documentation": "https://www.coursera.support/s/article/learner-000002204-Update-your-login-settings#set_up_2FA",
     "name": "Coursera"
   },
   {
@@ -4084,6 +4179,14 @@
     "name": "DAB BNP Paribas"
   },
   {
+    "domain": "dan.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://news.dan.com/214543-",
+    "name": "Dan.com"
+  },
+  {
     "domain": "danskebank.dk",
     "tfa": [
       "custom-hardware",
@@ -4268,6 +4371,19 @@
     "name": "Degussa Bank"
   },
   {
+    "domain": "delaware.gov",
+    "tfa": [
+      "call",
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Okta Verify"
+    ],
+    "documentation": "https://webfiles.dti.delaware.gov/pdfs/Setting-Up-Your-MFA.pdf",
+    "name": "Delaware.gov"
+  },
+  {
     "domain": "delighted.com",
     "additional-domains": [
       "delightedapp.com"
@@ -4301,6 +4417,46 @@
     ],
     "documentation": "https://support.deliverr.com/hc/en-us/articles/4575365498519",
     "name": "Deliverr"
+  },
+  {
+    "domain": "deltadental.com",
+    "tfa": [
+      "sms"
+    ],
+    "additional-domains": [
+      "deltadentalcoversme.com",
+      "deltadentalar.com",
+      "deltadentalks.com",
+      "deltadentalok.org",
+      "deltadentalpr.com",
+      "deltadentalaz.com",
+      "deltadentalco.com",
+      "deltadentalct.com",
+      "deltadentalia.com",
+      "deltadentalid.com",
+      "deltadentalil.com",
+      "deltadentalin.com",
+      "deltadentalins.com",
+      "deltadentalma.com",
+      "deltadentalmi.com",
+      "deltadentalmn.org",
+      "deltadentalmo.com",
+      "deltadentalne.org",
+      "deltadentalnj.com",
+      "deltadentalnm.com",
+      "deltadentaloh.com",
+      "deltadentalri.com",
+      "deltadentalsc.com",
+      "deltadentalsd.com",
+      "deltadentalva.com",
+      "deltadentalwa.com",
+      "deltadentalwi.com",
+      "deltadentalwy.org",
+      "hawaiidentalservice.com",
+      "modahealth.com",
+      "nedelta.com"
+    ],
+    "name": "Delta Dental"
   },
   {
     "domain": "demio.com",
@@ -4728,6 +4884,14 @@
     "name": "Dodo"
   },
   {
+    "domain": "dollargeneral.com",
+    "tfa": [
+      "sms",
+      "call"
+    ],
+    "name": "Dollar General"
+  },
+  {
     "domain": "domain.com.au",
     "tfa": [
       "sms"
@@ -4789,6 +4953,16 @@
     ],
     "documentation": "https://support.dotdigital.com/hc/en-gb/articles/212212678",
     "name": "Dotdigital"
+  },
+  {
+    "domain": "dotloop.com",
+    "tfa": [
+      "call",
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://support.dotloop.com/s/article/Two-Factor-Authentication",
+    "name": "Dotloop"
   },
   {
     "domain": "draftkings.com",
@@ -5178,6 +5352,14 @@
     "name": "Element"
   },
   {
+    "domain": "elevenlabs.io",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://help.elevenlabs.io/hc/articles/21636341747985",
+    "name": "ElevenLabs"
+  },
+  {
     "domain": "elmah.io",
     "tfa": [
       "totp"
@@ -5270,6 +5452,13 @@
     ],
     "documentation": "https://enom.help/2fa",
     "name": "eNom"
+  },
+  {
+    "domain": "ente.io",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Ente"
   },
   {
     "domain": "entrust.net",
@@ -5421,6 +5610,14 @@
     "name": "E*Trade"
   },
   {
+    "domain": "ets.org",
+    "tfa": [
+      "sms",
+      "call"
+    ],
+    "name": "ETS"
+  },
+  {
     "domain": "etsy.com",
     "tfa": [
       "sms",
@@ -5532,7 +5729,8 @@
       "call"
     ],
     "additional-domains": [
-      "experian.com"
+      "experian.com",
+      "freecreditreport.com"
     ],
     "name": "Experian Ltd"
   },
@@ -5917,7 +6115,8 @@
       "custom-hardware",
       "sms",
       "call",
-      "email"
+      "email",
+      "totp"
     ],
     "custom-software": [
       "Entrust Identity Guard"
@@ -5961,6 +6160,14 @@
     ],
     "documentation": "https://www.fiverr.com/support/articles/360010239658",
     "name": "Fiverr"
+  },
+  {
+    "domain": "flipsnack.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.flipsnack.com/en/articles/6291629-how-to-set-up-the-two-factor-authentication-option",
+    "name": "Flipsnack"
   },
   {
     "domain": "floatplane.com",
@@ -6113,6 +6320,14 @@
       "email"
     ],
     "name": "Freedom Mobile"
+  },
+  {
+    "domain": "freee.co.jp",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.freee.co.jp/hc/ja/articles/360001200143",
+    "name": "freee"
   },
   {
     "domain": "freehostia.com",
@@ -6348,6 +6563,20 @@
     "name": "Pocket"
   },
   {
+    "domain": "getresponse.com",
+    "tfa": [
+      "sms",
+      "email",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "GetResponse app"
+    ],
+    "documentation": "https://www.getresponse.com/help/how-to-use-two-factor-authentication-in-getresponse.html",
+    "name": "GetResponse"
+  },
+  {
     "domain": "getscreen.me",
     "tfa": [
       "email",
@@ -6392,6 +6621,14 @@
     ],
     "documentation": "https://help.glassdoor.com/article/Manage-Two-Factor-Authentication/",
     "name": "Glassdoor"
+  },
+  {
+    "domain": "gleam.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://gleam.io/faq/accounts-and-billing/account/how-do-i-turn-on-2fa",
+    "name": "Gleam"
   },
   {
     "domain": "gls.de",
@@ -6564,6 +6801,14 @@
     "name": "GoTo"
   },
   {
+    "domain": "gov.uk",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "name": "GOV.UK"
+  },
+  {
     "domain": "gradintel.com",
     "tfa": [
       "email",
@@ -6681,6 +6926,14 @@
     ],
     "documentation": "https://support.gusto.com/1066223171",
     "name": "Gusto"
+  },
+  {
+    "domain": "gyazo.com",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://help.gyazo.com/--5ed8969fc1eca80023e84383",
+    "name": "Gyazo"
   },
   {
     "domain": "hackerone.com",
@@ -7584,6 +7837,14 @@
     ],
     "documentation": "http://help.improvmx.com/en/articles/4892466",
     "name": "ImprovMX"
+  },
+  {
+    "domain": "inbox.lv",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.inbox.lv/category/10017/question/10713",
+    "name": "Inbox.lv"
   },
   {
     "domain": "indeed.com",
@@ -8867,10 +9128,14 @@
       "sms",
       "call",
       "totp",
-      "u2f"
+      "u2f",
+      "custom-hardware"
     ],
-    "documentation": "https://www.login.gov/help/creating-an-account/two-factor-authentication/",
-    "name": "login.gov"
+    "custom-hardware": [
+      "PIV/CAC"
+    ],
+    "documentation": "https://www.login.gov/help/get-started/authentication-methods/",
+    "name": "Login.gov"
   },
   {
     "domain": "login.threatsim.com",
@@ -8944,12 +9209,12 @@
     "name": "Luno"
   },
   {
-    "domain": "m1finance.com",
+    "domain": "m1.com",
     "tfa": [
       "totp"
     ],
-    "documentation": "https://support.m1finance.com/hc/en-us/articles/221056367",
-    "name": "M1 Finance"
+    "documentation": "https://help.m1.com/en/articles/9331936",
+    "name": "M1"
   },
   {
     "domain": "macquarie.com.au",
@@ -9149,6 +9414,14 @@
     ],
     "documentation": "https://help.mailgun.com/hc/en-us/articles/360011664433",
     "name": "Mailgun"
+  },
+  {
+    "domain": "mailjet.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://documentation.mailjet.com/hc/articles/10553745110043",
+    "name": "Mailjet"
   },
   {
     "domain": "mailo.com",
@@ -9377,6 +9650,9 @@
   },
   {
     "domain": "meraki.cisco.com",
+    "additional-domains": [
+      "meraki.com"
+    ],
     "tfa": [
       "sms",
       "totp"
@@ -9506,6 +9782,14 @@
     "name": "Equinix Metal"
   },
   {
+    "domain": "metamask.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.metamask.io/developer-tools/dashboard/how-to/two-factor-authentication",
+    "name": "MetaMask"
+  },
+  {
     "domain": "metorik.com",
     "url": "https://www.metorik.com",
     "tfa": [
@@ -9513,6 +9797,14 @@
     ],
     "documentation": "https://help.metorik.com/article/22-how-can-i-enable-2fa-on-my-account",
     "name": "Metorik"
+  },
+  {
+    "domain": "mexc.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.mexc.com/learn/article/17827791509545",
+    "name": "MEXC"
   },
   {
     "domain": "miamioh.edu",
@@ -9533,6 +9825,23 @@
     "name": "Miami University"
   },
   {
+    "domain": "michaels.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Michaels"
+  },
+  {
+    "domain": "microworkers.com",
+    "tfa": [
+      "totp",
+      "email"
+    ],
+    "documentation": "https://www.microworkers.com/blog/whats-new-in-mw-implementation-of-two-factor-authentication-2fa/",
+    "name": "Microworkers"
+  },
+  {
     "domain": "migadu.com",
     "url": "https://www.migadu.com/",
     "tfa": [
@@ -9542,12 +9851,15 @@
   },
   {
     "domain": "migros.ch",
-    "url": "https://www.migros.ch",
     "tfa": [
       "sms",
-      "totp"
+      "totp",
+      "custom-software"
     ],
-    "documentation": "https://login.migros.ch/help/security/2fa?hl=en",
+    "custom-software": [
+      "Migros Access app"
+    ],
+    "documentation": "https://account.migros.ch/help#secureWhy2FactorPassword",
     "name": "Migros"
   },
   {
@@ -9852,6 +10164,19 @@
     "name": "Michigan State University"
   },
   {
+    "domain": "mulesoft.com",
+    "tfa": [
+      "totp",
+      "custom-software",
+      "u2f"
+    ],
+    "custom-software": [
+      "Salesforce Authenticator"
+    ],
+    "documentation": "https://docs.mulesoft.com/access-management/multi-factor-authentication",
+    "name": "MuleSoft"
+  },
+  {
     "domain": "multcloud.com",
     "url": "https://www.multcloud.com/",
     "tfa": [
@@ -9919,7 +10244,7 @@
     "custom-software": [
       "Okta Verify"
     ],
-    "documentation": "https://www.youtube.com/watch?v=jzXOdvK-9sE",
+    "documentation": "https://dol.ny.gov/MFA",
     "name": "NY.gov ID"
   },
   {
@@ -10263,15 +10588,6 @@
     "name": "NDAX"
   },
   {
-    "domain": "nelnet.com",
-    "tfa": [
-      "sms",
-      "email"
-    ],
-    "documentation": "https://nelnet.com/faqs#two-factor-auth",
-    "name": "Nelnet"
-  },
-  {
     "domain": "neolo.com",
     "url": "https://www.neolo.com",
     "tfa": [
@@ -10279,6 +10595,14 @@
     ],
     "documentation": "https://ar.neolo.com/knowledgebase/215/Autenticacion-de-2-factores.html",
     "name": "Neolo"
+  },
+  {
+    "domain": "neopets.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://neopass.support.neopets.com/hc/articles/25933646591501",
+    "name": "Neopets"
   },
   {
     "domain": "nest.com",
@@ -10476,6 +10800,15 @@
     "name": "Nexus Mods"
   },
   {
+    "domain": "ngpvan.com",
+    "url": "https://www.ngpvan.com/actionid/",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "name": "ActionID"
+  },
+  {
     "domain": "ngrok.com",
     "tfa": [
       "totp"
@@ -10548,6 +10881,14 @@
     ],
     "documentation": "https://nimbusweb.me/guides/settings/account-settings-2-step-verification-for-sign-in/",
     "name": "Nimbus Platform"
+  },
+  {
+    "domain": "nitrotype.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.nitrotype.com/news/read/254/-",
+    "name": "Nitro Type"
   },
   {
     "domain": "noip.com",
@@ -11114,6 +11455,16 @@
     "name": "Openprovider"
   },
   {
+    "domain": "opensea.io",
+    "tfa": [
+      "totp",
+      "sms"
+    ],
+    "documentation": "https://support.opensea.io/articles/8866947",
+    "notes": "SMS texts sent to your mobile device if you reside in the U.S. or Canada.",
+    "name": "OpenSea"
+  },
+  {
     "domain": "opensrs.com",
     "tfa": [
       "sms",
@@ -11337,6 +11688,14 @@
     ],
     "documentation": "https://library.panic.com/general/sync-2fa/",
     "name": "Panic Sync"
+  },
+  {
+    "domain": "panorama9.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "http://support.panorama9.com/articles/1859601",
+    "name": "Panorama9"
   },
   {
     "domain": "parallels.com",
@@ -11670,6 +12029,14 @@
     "name": "American Express Savings"
   },
   {
+    "domain": "pge.com",
+    "tfa": [
+      "sms",
+      "call"
+    ],
+    "name": "Pacific Gas and Electric Company"
+  },
+  {
     "domain": "phemex.com",
     "tfa": [
       "totp"
@@ -11740,6 +12107,14 @@
     ],
     "documentation": "https://support.pipedrive.com/hc/en-us/articles/360000808405",
     "name": "Pipedrive"
+  },
+  {
+    "domain": "pirateship.com",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://support.pirateship.com/en/articles/9931109-what-is-two-factor-authentication-2fa-on-pirate-ship",
+    "name": "Pirate Ship"
   },
   {
     "domain": "pivotaltracker.com",
@@ -11827,6 +12202,14 @@
     ],
     "documentation": "https://planetscale.com/docs/concepts/mfa",
     "name": "PlanetScale"
+  },
+  {
+    "domain": "planfix.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://planfix.com/help/Two-factor_authentication",
+    "name": "Planfix"
   },
   {
     "domain": "planningcenter.com",
@@ -12424,6 +12807,17 @@
     ],
     "documentation": "https://qantas.com/au/en/frequent-flyer/member-account-security.html#frequently-asked-questions",
     "name": "Qantas"
+  },
+  {
+    "domain": "qlik.com",
+    "additional-domains": [
+      "talend.com"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.qlik.com/en-US/cloud-services/Subsystems/Hub/Content/Sense_Hub/Introduction/qcs-MFA.htm",
+    "name": "Qlik"
   },
   {
     "domain": "qnap.com",
@@ -14012,6 +14406,15 @@
     "name": "Sketch"
   },
   {
+    "domain": "sketchup.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.sketchup.com/admin/multi-factor-authentication",
+    "name": "SketchUp"
+  },
+  {
     "domain": "skinport.com",
     "tfa": [
       "email",
@@ -14135,6 +14538,14 @@
     ],
     "documentation": "https://www.smspool.net/article/eb7a182841",
     "name": "SMSPool"
+  },
+  {
+    "domain": "smugmug.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.smugmughelp.com/hc/articles/19399691642132",
+    "name": "SmugMug"
   },
   {
     "domain": "snapchat.com",
@@ -14350,6 +14761,14 @@
     "name": "Splashtop"
   },
   {
+    "domain": "split.io",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.split.io/hc/articles/360020825212",
+    "name": "Split"
+  },
+  {
     "domain": "spreedly.com",
     "url": "https://www.spreedly.com/",
     "tfa": [
@@ -14409,7 +14828,9 @@
   {
     "domain": "squareup.com",
     "additional-domains": [
-      "weebly.com"
+      "weebly.com",
+      "square.site",
+      "square.com"
     ],
     "tfa": [
       "sms",
@@ -15719,6 +16140,21 @@
     "name": "Thrift Savings Plan"
   },
   {
+    "domain": "tu-darmstadt.de",
+    "url": "https://www.tu-darmstadt.de",
+    "tfa": [
+      "totp",
+      "u2f",
+      "custom-hardware"
+    ],
+    "custom-hardware": [
+      "HOTP"
+    ],
+    "documentation": "https://www.hrz.tu-darmstadt.de/tuid-2fa",
+    "notes": "Only protects services that use the Identity Provider",
+    "name": "Technische Universit\u00e4t Darmstadt"
+  },
+  {
     "domain": "tu.berlin",
     "additional-domains": [
       "tu-berlin.de"
@@ -15824,6 +16260,15 @@
     "name": "Twilio"
   },
   {
+    "domain": "twingate.com",
+    "tfa": [
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://www.twingate.com/docs/two-factor-authentication-security-policies",
+    "name": "Twingate"
+  },
+  {
     "domain": "twitch.tv",
     "url": "https://www.twitch.tv/",
     "tfa": [
@@ -15867,7 +16312,8 @@
   {
     "domain": "uber.com",
     "tfa": [
-      "sms"
+      "sms",
+      "totp"
     ],
     "documentation": "https://help.uber.com/riders/article/turn-on-2-step-verification?nodeId=b8bb9152-8c91-4f49-83c4-35cf2e1dcf72",
     "notes": "2FA can only be enabled via the app",
@@ -15923,7 +16369,7 @@
       "totp"
     ],
     "documentation": "https://www.ubt.com/learning-center/blogs/multifactor-authentication-and-your-account",
-    "name": "Union Bank &amp; Trust"
+    "name": "Union Bank & Trust"
   },
   {
     "domain": "ucalgary.ca",
@@ -16056,6 +16502,14 @@
     ],
     "documentation": "https://www.ukraine.com.ua/wiki/account/security/otp/",
     "name": "Hosting Ukraine"
+  },
+  {
+    "domain": "umbrella.com",
+    "tfa": [
+      "sms"
+    ],
+    "documentation": "https://docs.umbrella.com/deployment-umbrella/docs/enable-two-step-verification",
+    "name": "Cisco Umbrella"
   },
   {
     "domain": "umich.edu",
@@ -16380,6 +16834,15 @@
     "name": "Fathom Analytics"
   },
   {
+    "domain": "userway.org",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.userway.org/articles/6661204",
+    "name": "UserWay"
+  },
+  {
     "domain": "usmobile.com",
     "tfa": [
       "sms",
@@ -16485,8 +16948,7 @@
       "call",
       "totp",
       "u2f",
-      "custom-software",
-      "custom-hardware"
+      "custom-software"
     ],
     "custom-software": [
       "ID.me Authenticator"
@@ -16581,6 +17043,14 @@
     ],
     "documentation": "https://ts.vcu.edu/askit/essential-computing/information-security/2factor/",
     "name": "Virginia Commonwealth University"
+  },
+  {
+    "domain": "veeam.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://helpcenter.veeam.com/docs/backup/vsphere/mfa.html",
+    "name": "Veeam"
   },
   {
     "domain": "veem.com",
@@ -16805,7 +17275,7 @@
       "TAN generator"
     ],
     "documentation": "https://www.vr.de/privatkunden/unsere-produkte/was-ist-ein-girokonto/tan-verfahren.html",
-    "notes": "Support for 2FA types depends on regional V&amp;R banks.",
+    "notes": "Support for 2FA types depends on regional V&R banks.",
     "name": "Volksbanken Raiffeisenbanken"
   },
   {
@@ -17802,6 +18272,14 @@
     ],
     "documentation": "https://help.zoho.com/portal/kb/articles/mfa-introduction",
     "name": "Zoho"
+  },
+  {
+    "domain": "zola.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Zola"
   },
   {
     "domain": "zondaglobal.com",

@@ -103,6 +103,8 @@
     <string name="organization">Organització</string>
     <string name="organizations">Organitzacions</string>
     <string name="organizations_empty_label">Cap organització</string>
+    <string name="equivalent_domains">Dominis equivalents</string>
+    <string name="equivalent_domains_empty_label">Cap domini equivalent</string>
     <string name="misc">Miscel·lània</string>
     <string name="category">Categoria</string>
     <string name="command">Comandament</string>
@@ -215,6 +217,12 @@
     <string name="reveal_secure_note">Revel·la una nota segura</string>
     <string name="hide_secure_note">Amaga una nota segura</string>
     <string name="master_password_hint">Pista de la contrasenya mestra</string>
+    <string name="public_key">Clau pública</string>
+    <string name="private_key">Clau privada</string>
+    <string name="fingerprint">Empremta digital</string>
+    <string name="key_type">Tipus de clau</string>
+    <string name="key_pair">Parell de claus</string>
+    <string name="key_ssh">Clau SSH</string>
     <string name="fingerprint_phrase">Frase d'empremta digital</string>
     <string name="fingerprint_phrase_help_title">Què és una empremta?</string>
     <string name="filter_auth_reprompt_items">Torna a autenticar</string>
@@ -223,6 +231,8 @@
     <string name="bitwarden_premium">Bitwarden Premium</string>
     <string name="bitwarden_premium_required">Necessita Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor de Bitwarden no oficial</string>
+    <string name="pro_tip">Pista: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Genera correus electrònics únics per a una privadesa millor.</string>
     <string name="account_last_synced_at">Última sincronització <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Canvia el nom</string>
     <string name="account_action_change_color_title">Canvia el color</string>
@@ -311,6 +321,7 @@
     <string name="file_action_delete_local_title">Elimina el fitxer local</string>
     <string name="file_action_delete_local_many_title">Elimina els fitxers locals</string>
     <string name="file_action_view_cipher_title">Veure l'element pare</string>
+    <string name="file_action_reveal_title">Revel·lar</string>
     <string name="vault_action_always_show_keyboard_title">Sempre mostra el teclat</string>
     <string name="vault_action_remember_sorting_title">Recorda el mètode d'ordenat</string>
     <string name="vault_action_sync_vault_title">Sincronitza la caixa forta</string>
@@ -335,6 +346,8 @@
     <string name="uri_unsecure">No segura</string>
     <string name="uri_match_app_title">Coincideix amb l'app</string>
     <string name="uri_match_detection_title">Detecció de coincidències</string>
+    <string name="uri_match_detection_default_title">Per defecte</string>
+    <string name="uri_match_detection_default_note">Fa servir el comportament de detecció per defecte seleccionat a Configuració → Emplenament Automàtic → Detecció d'URI per defecte. L'opció predeterminada és la detecció per domini base.</string>
     <string name="uri_match_detection_domain_title">Domini base</string>
     <string name="uri_match_detection_domain_note">Coincidències de recursos per domini de primer i segon nivell.</string>
     <string name="uri_match_detection_host_title">Amfitrió</string>
@@ -377,6 +390,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> enllaços a un camp desconegut</string>
     <string name="text_action_share_with_title">Comparteix amb…</string>
     <string name="text_action_send_title">Crea un enviament</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Desa claus no encriptades</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Claus desades a baixades</string>
+    <string name="ssh_key_action_save_public_key_title">Desa la clau pública</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Clau pública desada a baixades</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Desa la clau privada no encriptada</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Clau privada no encriptada desada a les baixades</string>
+    <string name="ssh_key_action_add_key_title">Afegeix claus</string>
+    <string name="ssh_key_action_replace_key_title">Reemplaçar claus</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seleccionats</string>
     <string name="copy">Copia</string>
     <string name="copy_value">Copia el valor</string>
@@ -397,10 +418,15 @@
     <string name="copy_cvv_code">Còpia el codi CVV</string>
     <string name="copy_otp_code">Copia la contrasenya d'un sol ús</string>
     <string name="copy_otp_secret_code">Copia la clau secreta</string>
+    <string name="copy_ssh_unencrypted_private_key">Copia la clau privada no encriptada</string>
+    <string name="copy_ssh_public_key">Copia la clau pública</string>
+    <string name="copy_ssh_fingerprint">Copia l'empremta digital</string>
     <string name="copied_value">S'ha copiat un valor</string>
     <string name="copied_url">S'ha copiat una URL</string>
     <string name="copied_uri">S'ha copiat una URI</string>
     <string name="copied_package_name">S'ha copiat un nom de paquet</string>
+    <string name="copied_key">S'ha copiat una clau</string>
+    <string name="copied_fingerprint">S'ha copiat una empremta digital</string>
     <string name="copied_password">S'ha copiat una contrasenya</string>
     <string name="copied_username">S'ha copiat un nom d'usuari</string>
     <string name="copied_email">S'ha copiat un correu electrònic</string>
@@ -468,6 +494,7 @@
     <string name="error_invalid_uri">URI invàlida</string>
     <string name="error_invalid_card_number">Número de targeta no vàlid</string>
     <string name="error_incorrect_password">Contrasenya incorrecta</string>
+    <string name="error_otp_key_must_not_be_empty">La clau secreta de la contrasenya d'un sol ús no pot estar buida</string>
     <string name="error_failed_generate_kdf_hash_oom">No s'ha pogut crear la clau, no hi ha prou memòria. Per favor, configura la configuració del teu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">No s'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s'ha pogut crear la passkey</string>
@@ -476,9 +503,13 @@
     <string name="error_failed_format_placeholder">No s'ha pogut formatar el marcador</string>
     <string name="error_failed_open_app_for">Cap aplicació instal·lada pot gestionar aquesta sol·licitud</string>
     <string name="error_failed_unknown">Alguna cosa ha anat malament</string>
+    <string name="error_failed_encrypt_biometric_key">No s'ha pogut encriptar la clau biomètrica</string>
+    <string name="error_failed_decrypt_biometric_key">No s'ha pogut desencriptar la clau biomètrica</string>
     <string name="scanqr_title">Escaneja un codi QR</string>
     <string name="scanqr_load_from_image_note">Carrega i processa un codi QR des d'un fitxer d'imatge.</string>
     <string name="scanqr_camera_permission_required_text">Cal tenir accés a la càmera per a escanejar codis QR.</string>
+    <string name="post_notifications_permission_banner_title">Les notificacions estan desactivades</string>
+    <string name="post_notifications_permission_banner_text">Dona permís a Keyguard per a mostrar notificacions i així poder mostrar contrasenyes d'un sol ús en emplenar automàticament.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Codi de barres</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostra com a codi de barres</string>
@@ -683,6 +714,7 @@
     <string name="cipher_type_card">Targeta</string>
     <string name="cipher_type_identity">Identitat</string>
     <string name="cipher_type_note">Nota</string>
+    <string name="cipher_type_ssh_key">Clau SSH</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Booleà</string>
@@ -768,6 +800,7 @@
     <string name="generator_header_title">Generador</string>
     <string name="generator_header_username_title">Generador de nom d'usuari</string>
     <string name="generator_header_password_title">Generador de contrasenya</string>
+    <string name="generator_header_ssh_key_title">Generador de clau SSH</string>
     <string name="generator_generate_button">Genera</string>
     <string name="generator_regenerate_button">Regenerar</string>
     <!-- 'Use' generated password as a password -->
@@ -805,8 +838,15 @@
     <string name="generator_email_subdomain_addressing_note">Amb aquesta configuració, tot el correu enviat a <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> també s'enviarà al teu compte. Açò vol dir que pots tindre moltes variacions del teu correu electrònic per a donar a cada persona, lloc web o llista de correu. Assegura't que el teu proveïdor de correu suporta la funció abans de fer-la servir.</string>
     <string name="generator_email_subdomain_addressing_email_title">Correu Electrònic</string>
     <string name="generator_email_forward_alias_type">Àlies de correu electrònic reenviat</string>
+    <string name="generator_key_length_title">Longitud</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">Tots els clients SSH suporten aquest algoritme. Una mida de clau d'almenys 2048 bits està recomanat per a RSA; 4096 bits és millor. És bastant probable que l'algoritme RSA sigui violable en un futur no molt llunyà.</string>
+    <string name="generator_key_rsa_text">Compatible amb tots els servidors SSH</string>
+    <string name="generator_key_ed25519_note">Aquest és l'estàndard més ràpid i modern. El suport en clients SSH no està garantit.</string>
+    <string name="generator_key_ed25519_text">Estàndard ràpid i modern</string>
     <string name="generator_create_item_with_password_title">Crea un nou inici de sessió amb la contrasenya</string>
     <string name="generator_create_item_with_username_title">Crea un nou inici de sessió amb l'usuari</string>
+    <string name="generator_create_item_with_ssh_key_title">Crea un nou element de clau SSH</string>
     <string name="generator_password_history_title">Historial de contrasenyes</string>
     <string name="generator_show_tips_title">Mostra consells</string>
     <string name="generatorhistory_header_title">Historial del generador</string>
@@ -1000,12 +1040,13 @@
     <string name="pref_item_autofill_service_title">Servei d'emplenament automàtic</string>
     <string name="pref_item_autofill_service_text">Fes servir el servei d'emplenament automàtic d'Android per ajudar-te emplenant informació d'inici de sessió a altres apps del dispositiu</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Alguns dispositius de Xiaomi necessiten que habilites manualment el permís per a "Mostrar finestres emergents durant l'execució en segon pla". Per favor, obre la configuració i comprova que és correcta.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Per a que Chrome tingui suport de serveis de completat automàtic nadius</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Obre la configuració de Chrome, i selecciona Serveis de completat automàtic
+2. Tria l'emplenament automàtic utilitzant un altre servei
+3. Confirma i reinicia Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copia contrasenyes d'un sol ús automàticament</string>
     <string name="pref_item_autofill_auto_copy_otp_text">En emplenar informació d'inici de sessió, còpia automàticament les contrasenyes d'un sol ús</string>
+    <string name="pref_item_autofill_default_match_detection_title">Detecció d'URI per defecte</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggeriments en línia</string>
     <string name="pref_item_autofill_inline_suggestions_text">Ofereix els suggeriments directament als teclats compatibles</string>
     <string name="pref_item_autofill_manual_selection_title">Selecció manual</string>

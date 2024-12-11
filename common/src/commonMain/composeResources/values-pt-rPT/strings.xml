@@ -103,6 +103,8 @@
     <string name="organization">Organização</string>
     <string name="organizations">Organizações</string>
     <string name="organizations_empty_label">Sem organizações</string>
+    <string name="equivalent_domains">Domínios equivalentes</string>
+    <string name="equivalent_domains_empty_label">Nenhum domínio equivalente</string>
     <string name="misc">Diversos</string>
     <string name="category">Categoria</string>
     <string name="command">Comando</string>
@@ -215,6 +217,12 @@
     <string name="reveal_secure_note">Revelar nota segura</string>
     <string name="hide_secure_note">Esconder nota segura</string>
     <string name="master_password_hint">Lembrete da palavra-passe mestra</string>
+    <string name="public_key">Chave pública</string>
+    <string name="private_key">Chave privada</string>
+    <string name="fingerprint">Impressão digital</string>
+    <string name="key_type">Tipo de chave</string>
+    <string name="key_pair">Par de chaves</string>
+    <string name="key_ssh">Chave SSH</string>
     <string name="fingerprint_phrase">Frase de impressão digital</string>
     <string name="fingerprint_phrase_help_title">O que é uma impressão digital?</string>
     <string name="filter_auth_reprompt_items">Confirmação de autenticação</string>
@@ -223,6 +231,8 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Requer Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial Bitwarden</string>
+    <string name="pro_tip">Dica top: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Gerar e-mails descartáveis para uma maior privacidade.</string>
     <string name="account_last_synced_at">Última sincronização a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Alterar nome</string>
     <string name="account_action_change_color_title">Alterar cor</string>
@@ -311,6 +321,7 @@
     <string name="file_action_delete_local_title">Apagar ficheiro local</string>
     <string name="file_action_delete_local_many_title">Apagar ficheiros locais</string>
     <string name="file_action_view_cipher_title">Ver entrada principal</string>
+    <string name="file_action_reveal_title">Mostrar</string>
     <string name="vault_action_always_show_keyboard_title">Mostrar sempre teclado</string>
     <string name="vault_action_remember_sorting_title">Lembrar método de ordenação</string>
     <string name="vault_action_sync_vault_title">Sincronizar cofre</string>
@@ -335,6 +346,8 @@
     <string name="uri_unsecure">Inseguro</string>
     <string name="uri_match_app_title">Corresponder à aplicação</string>
     <string name="uri_match_detection_title">Deteção de correspondência</string>
+    <string name="uri_match_detection_default_title">Padrão</string>
+    <string name="uri_match_detection_default_note">Usa um comportamento de deteção de correspondência padrão selecionado em Configurações → Autofill → Detecção de correspondência de URI padrão. A correspondência de domínio base é a opção padrão.</string>
     <string name="uri_match_detection_domain_title">Domínio base</string>
     <string name="uri_match_detection_domain_note">Corresponder recursos por domínio de nível superior e secundário.</string>
     <string name="uri_match_detection_host_title">Servidor</string>
@@ -377,6 +390,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a um campo desconhecido</string>
     <string name="text_action_share_with_title">Partilhar com…</string>
     <string name="text_action_send_title">Criar um envio</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Guardar chaves desencriptadas</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Chaves guardadas nas transferências</string>
+    <string name="ssh_key_action_save_public_key_title">Guardar chave pública</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Chave pública guardada nas transferências</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Guardar chave privada desencriptada</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Chave privada desencriptada guardada nas transferências</string>
+    <string name="ssh_key_action_add_key_title">Adicionar chaves</string>
+    <string name="ssh_key_action_replace_key_title">Substituir chaves</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="copy">Copiar</string>
     <string name="copy_value">Copiar valor</string>
@@ -397,10 +418,15 @@
     <string name="copy_cvv_code">Copiar código CVV</string>
     <string name="copy_otp_code">Copiar código OTP</string>
     <string name="copy_otp_secret_code">Copiar chave secreta</string>
+    <string name="copy_ssh_unencrypted_private_key">Copiar chave privada desencriptada</string>
+    <string name="copy_ssh_public_key">Copiar chave pública</string>
+    <string name="copy_ssh_fingerprint">Copiar impressão digital</string>
     <string name="copied_value">Valor copiado</string>
     <string name="copied_url">URL copiado</string>
     <string name="copied_uri">URI copiado</string>
     <string name="copied_package_name">Nome do pacote copiado</string>
+    <string name="copied_key">Chave copiada</string>
+    <string name="copied_fingerprint">Impressão digital copiada</string>
     <string name="copied_password">Palavra-passe copiada</string>
     <string name="copied_username">Nome de utilizador copiado</string>
     <string name="copied_email">E-mail copiado</string>
@@ -468,6 +494,7 @@
     <string name="error_invalid_uri">URI inválido</string>
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
+    <string name="error_otp_key_must_not_be_empty">A chave secreta da palavra-passe única não pode estar vazia</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
@@ -476,10 +503,14 @@
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="error_failed_open_app_for">Nenhuma aplicação instalado pode realizar esta requisição</string>
     <string name="error_failed_unknown">Algo correu mal</string>
+    <string name="error_failed_encrypt_biometric_key">Falha ao encriptar a chave biométrica</string>
+    <string name="error_failed_decrypt_biometric_key">Falha ao desencriptar a chave biométrica</string>
     <string name="scanqr_title">Ler código QR</string>
     <string name="scanqr_load_from_image_note">Abrir e analisar um código QR a partir de uma imagem.</string>
     <string name="scanqr_camera_permission_required_text">É necessária permissão de acesso 
 à câmera para ler códigos QR.</string>
+    <string name="post_notifications_permission_banner_title">As notificações estão desativadas</string>
+    <string name="post_notifications_permission_banner_text">Conceder permissão de notificações para permitir que o teclado exiba códigos de uso único quando preencher automaticamente &amp; mais.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Código de barras</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostrar como código de barras</string>
@@ -684,6 +715,7 @@
     <string name="cipher_type_card">Cartão</string>
     <string name="cipher_type_identity">Identidade</string>
     <string name="cipher_type_note">Nota</string>
+    <string name="cipher_type_ssh_key">Chave SSH</string>
     <string name="cipher_type_passkey">Chave de acesso</string>
     <string name="field_type_text">Texto</string>
     <string name="field_type_boolean">Booleano</string>
@@ -769,6 +801,7 @@
     <string name="generator_header_title">Gerador automático</string>
     <string name="generator_header_username_title">Gerador de nome de utilizador</string>
     <string name="generator_header_password_title">Gerador de palavra-passe</string>
+    <string name="generator_header_ssh_key_title">Gerador de chave SSH</string>
     <string name="generator_generate_button">Gerar</string>
     <string name="generator_regenerate_button">Gerar novamente</string>
     <!-- 'Use' generated password as a password -->
@@ -806,8 +839,15 @@
     <string name="generator_email_subdomain_addressing_note">Endereço de subdomínio significa que qualquer e-mail enviado para <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> ainda é enviado para a sua conta. Isto significa que você pode ter muitas variações no seu endereço de e-mail para dar a outras pessoas, sites ou listas de discussão. Certifique-se de que o seu provedor de e-mail suporta este recurso antes de usá-lo.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Alias de e-mail reencaminhado</string>
+    <string name="generator_key_length_title">Nº de caracteres</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">Todos os clientes SSH suportam este algoritmo. Um tamanho de chave de pelo menos 2048 bits é recomendado para RSA; 4096 bits é melhor. É perfeitamente possível que o algoritmo RSA se torne praticamente quebrável num futuro previsível.</string>
+    <string name="generator_key_rsa_text">Compatível com todos os servidores SSH</string>
+    <string name="generator_key_ed25519_note">Este é o padrão mais rápido e mais moderno. O suporte em clientes SSH ainda não é universal.</string>
+    <string name="generator_key_ed25519_text">Padrão rápido e mais moderno</string>
     <string name="generator_create_item_with_password_title">Criar novo acesso com palavra-passe</string>
     <string name="generator_create_item_with_username_title">Criar novo acesso com nome de utilizador</string>
+    <string name="generator_create_item_with_ssh_key_title">Criar novo item da chave SSH</string>
     <string name="generator_password_history_title">Histórico de palavras-passe</string>
     <string name="generator_show_tips_title">Mostrar ajudas</string>
     <string name="generatorhistory_header_title">Histórico do gerador</string>
@@ -1007,6 +1047,7 @@
 3. Confirmar e reiniciar o Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copiar automaticamente códigos de verificação 2FA</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Ao preencher informações de login, copiar automaticamente códigos de uso único 2FA</string>
+    <string name="pref_item_autofill_default_match_detection_title">Detecção de correspondência padrão</string>
     <string name="pref_item_autofill_inline_suggestions_title">Sugestões automáticas</string>
     <string name="pref_item_autofill_inline_suggestions_text">Incorpora sugestões de preenchimento automático diretamente em caixas de texto compatíveis</string>
     <string name="pref_item_autofill_manual_selection_title">Seleção manual</string>

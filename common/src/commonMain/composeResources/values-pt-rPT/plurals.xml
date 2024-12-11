@@ -37,11 +37,11 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> semanas</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> mês</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> meses</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ano</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> anos</item>
     </plurals>
 </resources>

@@ -37,7 +37,7 @@
     <string name="max_access_count">Max access count</string>
     <string name="learn_more">Läs mer</string>
     <string name="phone_number">Telefonnummer</string>
-    <string name="passport_number">Passport number</string>
+    <string name="passport_number">Passnummer</string>
     <string name="license_number">License number</string>
     <string name="card_number">Kortnummer</string>
     <string name="card_number_empty_label">Inget kortnummer</string>
@@ -103,6 +103,8 @@
     <string name="organization">Organisation</string>
     <string name="organizations">Organisationer</string>
     <string name="organizations_empty_label">Inga organisationer</string>
+    <string name="equivalent_domains">Equivalent domains</string>
+    <string name="equivalent_domains_empty_label">No equivalent domains</string>
     <string name="misc">Miscellaneous</string>
     <string name="category">Kategori</string>
     <string name="command">Command</string>
@@ -132,7 +134,7 @@
     <string name="rename">Rename</string>
     <string name="deletion_date">Deletion date</string>
     <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date">Utgångsdatum</string>
     <string name="expiration_date_custom">Custom</string>
     <string name="expiration_date_never">Aldrig</string>
     <string name="select_linked_type">Välj en typ</string>
@@ -215,6 +217,12 @@
     <string name="reveal_secure_note">Reveal a secure note</string>
     <string name="hide_secure_note">Hide a secure note</string>
     <string name="master_password_hint">Huvudlösenordsledtråd</string>
+    <string name="public_key">Offentlig nyckel</string>
+    <string name="private_key">Privat nyckel</string>
+    <string name="fingerprint">Fingeravtryck</string>
+    <string name="key_type">Nyckeltyp</string>
+    <string name="key_pair">Key pair</string>
+    <string name="key_ssh">SSH-nyckel</string>
     <string name="fingerprint_phrase">Fingeravtrycksfras</string>
     <string name="fingerprint_phrase_help_title">Vad är ett fingeravtryck?</string>
     <string name="filter_auth_reprompt_items">Auth re-prompt</string>
@@ -223,6 +231,8 @@
     <string name="bitwarden_premium">Bitwarden Premium</string>
     <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Inofficiell Bitwarden-server</string>
+    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Ändra namn</string>
     <string name="account_action_change_color_title">Ändra färg</string>
@@ -296,12 +306,12 @@
     <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
     <string name="sends_action_hide_email_title">Hide email</string>
     <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
+    <string name="sends_action_enable_title">Aktivera</string>
     <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
+    <string name="sends_action_enable_confirmation_title">Aktivera?</string>
+    <string name="sends_action_disable_title">Inaktivera</string>
     <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
+    <string name="sends_action_disable_confirmation_title">Inaktivera?</string>
     <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
     <string name="sends_action_delete_title">Delete forever</string>
     <string name="sends_action_delete_confirmation_title">Delete forever?</string>
@@ -311,6 +321,7 @@
     <string name="file_action_delete_local_title">Delete local file</string>
     <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">View parent item</string>
+    <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">Visa alltid tangentbord</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>
     <string name="vault_action_sync_vault_title">Synkronisera valv</string>
@@ -335,6 +346,8 @@
     <string name="uri_unsecure">Unsecure</string>
     <string name="uri_match_app_title">Match app</string>
     <string name="uri_match_detection_title">Match detection</string>
+    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Basdomän</string>
     <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
     <string name="uri_match_detection_host_title">Värd</string>
@@ -377,12 +390,20 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
     <string name="text_action_share_with_title">Dela med…</string>
     <string name="text_action_send_title">Skapa en Send</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Spara okrypterade nycklar</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Spara offentlig nyckel</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Spara okrypterad privat nyckel</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_add_key_title">Lägg till nycklar</string>
+    <string name="ssh_key_action_replace_key_title">Ersätt nycklar</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
     <string name="copy">Kopiera</string>
     <string name="copy_value">Kopiera värde</string>
     <string name="copy_url">Kopiera URL</string>
     <string name="copy_uri">Kopiera URI</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">Kopiera Send</string>
     <string name="copy_package_name">Copy package name</string>
     <string name="copy_password">Kopiera lösenord</string>
     <string name="copy_username">Kopiera användarnamn</string>
@@ -394,13 +415,18 @@
     <string name="copy_cardholder_name">Kopiera kortinnehavarens namn</string>
     <string name="copy_expiration_year">Copy expiration year</string>
     <string name="copy_expiration_month">Copy expiration month</string>
-    <string name="copy_cvv_code">Kopiera CVV-kod</string>
+    <string name="copy_cvv_code">Kopiera säkerhetskod</string>
     <string name="copy_otp_code">Kopiera engångslösenord</string>
     <string name="copy_otp_secret_code">Copy secret key</string>
+    <string name="copy_ssh_unencrypted_private_key">Kopiera okrypterad privat nyckel</string>
+    <string name="copy_ssh_public_key">Kopiera offentlig nyckel</string>
+    <string name="copy_ssh_fingerprint">Kopiera fingeravtryck</string>
     <string name="copied_value">Copied a value</string>
     <string name="copied_url">Copied a URL</string>
     <string name="copied_uri">Copied a URI</string>
     <string name="copied_package_name">Copied a package name</string>
+    <string name="copied_key">Copied a key</string>
+    <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">Copied a password</string>
     <string name="copied_username">Copied a username</string>
     <string name="copied_email">Copied an email</string>
@@ -468,6 +494,7 @@
     <string name="error_invalid_uri">Ogiltig URI</string>
     <string name="error_invalid_card_number">Ogiltigt kortnummer</string>
     <string name="error_incorrect_password">Felaktigt lösenord</string>
+    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
@@ -476,9 +503,13 @@
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_unknown">Something went wrong</string>
+    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="scanqr_title">Skanna QR-kod</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
+    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Streckkod</string>
     <string name="barcodetype_action_show_in_barcode_title">Visa som streckkod</string>
@@ -614,7 +645,7 @@
     <string name="additem_markdown_render_preview">Render preview</string>
     <string name="additem_auth_reprompt_title">Auth re-prompt</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New send</string>
+    <string name="addsend_header_new_title">Ny Send</string>
     <string name="addsend_header_edit_title">Redigera Send</string>
     <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
@@ -651,7 +682,7 @@
     <string name="addaccount2fa_header_title">Verification</string>
     <string name="addaccount2fa_unsupported_note">Denna autentiseringsmetod stöds inte än.</string>
     <string name="addaccount2fa_otp_note">Ange verifieringskoden från din autentiseringsapp.</string>
-    <string name="addaccount2fa_email_note">Ange den verifieringskod som skickades till <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
+    <string name="addaccount2fa_email_note">Ange verifieringskoden som skickades till <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Enter the YubiKey authentication code manually. Place the cursor on the field below and trigger the YubiKey.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (Organization)</string>
@@ -683,6 +714,7 @@
     <string name="cipher_type_card">Kort</string>
     <string name="cipher_type_identity">Identitet</string>
     <string name="cipher_type_note">Anteckning</string>
+    <string name="cipher_type_ssh_key">SSH-nyckel</string>
     <string name="cipher_type_passkey">Nyckel</string>
     <string name="field_type_text">Text</string>
     <string name="field_type_boolean">Boolean</string>
@@ -768,6 +800,7 @@
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Username generator</string>
     <string name="generator_header_password_title">Lösenordsgenerator</string>
+    <string name="generator_header_ssh_key_title">SSH Key generator</string>
     <string name="generator_generate_button">Generate</string>
     <string name="generator_regenerate_button">Regenerate</string>
     <!-- 'Use' generated password as a password -->
@@ -805,13 +838,20 @@
     <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
+    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
+    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
     <string name="generator_create_item_with_password_title">Create new login with the password</string>
     <string name="generator_create_item_with_username_title">Create new login with the username</string>
+    <string name="generator_create_item_with_ssh_key_title">Skapa nytt SSH-nyckelobjekt</string>
     <string name="generator_password_history_title">Lösenordshistorik</string>
     <string name="generator_show_tips_title">Visa tips</string>
-    <string name="generatorhistory_header_title">Generator history</string>
+    <string name="generatorhistory_header_title">Generatorhistorik</string>
     <string name="generatorhistory_clear_history_title">Rensa historik</string>
-    <string name="generatorhistory_clear_history_confirmation_title">Clear generator history?</string>
+    <string name="generatorhistory_clear_history_confirmation_title">Rensa generatorhistorik?</string>
     <string name="generatorhistory_clear_history_confirmation_text">This will remove all items from the history.</string>
     <string name="generatorhistory_delete_one_confirmation_title">Delete the item from the history?</string>
     <string name="generatorhistory_delete_many_confirmation_title">Delete the items from the history?</string>
@@ -867,7 +907,7 @@
     <string name="exportaccount_password_label">Archive password</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
     <string name="exportaccount_include_attachments_title">Export attachments</string>
-    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_export_button">Exportera</string>
     <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>
     <string name="exportaccount_export_failure">Export failed</string>
@@ -973,7 +1013,7 @@
     <string name="pref_item_allow_screenshots_text_on">Show the content of the app when switching between recent apps and allow capturing a screen</string>
     <string name="pref_item_allow_screenshots_text_off">Hide the content of the app when switching between recent apps and forbid capturing a screen</string>
     <string name="pref_item_data_safety_title">Data safety</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">Loggar</string>
     <string name="pref_item_lock_vault_title">Lås valv</string>
     <string name="pref_item_lock_vault_after_reboot_title">Lock after a reboot</string>
     <string name="pref_item_lock_vault_after_reboot_text">Lock the vault after a device reboot</string>
@@ -1006,6 +1046,7 @@
 3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copy one-time passwords</string>
     <string name="pref_item_autofill_auto_copy_otp_text">When filling a login information, automatically copy one-time passwords</string>
+    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggestions</string>
     <string name="pref_item_autofill_inline_suggestions_text">Embeds autofill suggestions directly into compatible keyboards</string>
     <string name="pref_item_autofill_manual_selection_title">Manual selection</string>
@@ -1023,7 +1064,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">When you autofill a login item that has a one-time password, the notification with verification code will popup for at least the defined duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Aldrig</string>
     <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
-    <string name="pref_item_premium_membership_title">About Keyguard membership</string>
+    <string name="pref_item_premium_membership_title">Om Keyguard-medlemskap</string>
     <string name="pref_item_premium_membership_text">The Premium unlocks extra features and funds a development of the app. Thank you for supporting us! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Prenumerationer</string>
     <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>

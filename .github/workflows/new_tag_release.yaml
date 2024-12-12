@@ -275,6 +275,10 @@ jobs:
           path: |
             androidBenchmark/build/outputs/androidTest-results/
           retention-days: 7
+      - name: 'Remove baseline profile apks'
+        run: |
+          rm -rf androidApp/build/outputs/apk/ || true
+          rm -rf androidApp/build/outputs/mapping/ || true
       - name: "Build"
         run: ./gradlew androidApp:assembleNoneRelease
       - name: 'Upload .apk'

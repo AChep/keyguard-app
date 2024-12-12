@@ -273,7 +273,7 @@ jobs:
         with:
           name: baselineprofile-android-logs
           path: |
-            androidBenchmark/outputs/androidTest-results/
+            androidBenchmark/build/outputs/androidTest-results/
           retention-days: 7
       - name: "Build"
         run: ./gradlew androidApp:assembleNoneRelease

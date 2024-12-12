@@ -333,7 +333,7 @@ jobs:
       - id: vars
         run: |
           release_name=$(python .github/get_release_name.py tag=${{ github.ref_name }})
-          echo "release_name=release_name" >> $GITHUB_OUTPUT
+          echo "release_name=$release_name" >> $GITHUB_OUTPUT
       - name: "Create release"
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')

@@ -6,6 +6,7 @@ import androidx.benchmark.macro.junit4.BaselineProfileRule
 import com.artemchep.macrobenchmark.PACKAGE_NAME
 import com.artemchep.test.feature.coreFeature
 import com.artemchep.test.feature.ensureMainScreen
+import com.artemchep.test.util.ScreenRecorderTestWatcher
 import org.junit.Rule
 import org.junit.Test
 
@@ -15,6 +16,9 @@ import org.junit.Test
  */
 @RequiresApi(Build.VERSION_CODES.P)
 class BaselineProfileGenerator {
+    @get:Rule
+    val screenRecorder = ScreenRecorderTestWatcher()
+
     @get:Rule
     val baselineProfileRule = BaselineProfileRule()
 

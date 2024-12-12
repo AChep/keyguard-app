@@ -4,9 +4,14 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
+import com.artemchep.test.util.ScreenRecorderTestWatcher
 import org.junit.Before
+import org.junit.Rule
 
 abstract class BaseTest {
+    @get:Rule
+    val screenRecorder = ScreenRecorderTestWatcher()
+
     lateinit var device: UiDevice
 
     lateinit var context: Context

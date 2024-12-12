@@ -43,4 +43,23 @@ jobs:
           disk-size: 4G
           script: |
             adb root
-            ./gradlew :androidApp:connectedPlayStoreDebugAndroidTest
+            ./gradlew :androidApp:connectedPlayStoreDebugAndroidTest ; RESULT=$?
+            mkdir -p artifacts/
+            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
+            exit $RESULT
+      - name: 'Upload screen recordings'
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baselineprofile-screen-recordings
+          path: |
+            artifactsScreenRecording/
+          retention-days: 7
+      - name: 'Upload logs'
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baselineprofile-logs
+          path: |
+            androidApp/outputs/androidTest-results/
+          retention-days: 7

@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepositor
 import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
 import com.artemchep.keyguard.common.service.settings.entity.toDomain
+import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
@@ -125,8 +126,13 @@ class SettingsRepositoryImpl(
     private val concealFieldsPref =
         store.getBoolean(KEY_CONCEAL_FIELDS, true)
 
-    private val allowScreenshotsPref =
-        store.getBoolean(KEY_ALLOW_SCREENSHOTS, false)
+    private val allowScreenshotsPref = kotlin.run {
+        // Be default allow screenshots when running a
+        // debug build. This is needed to allow recording of
+        // connected tests.
+        val default = !isRelease
+        store.getBoolean(KEY_ALLOW_SCREENSHOTS, default)
+    }
 
     private val checkPwnedPasswordsPref =
         store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, true)

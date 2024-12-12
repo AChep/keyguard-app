@@ -247,6 +247,7 @@ jobs:
       - name: "Generate baseline profiles"
         id: baseline-profiles
         uses: reactivecircus/android-emulator-runner@v2
+        continue-on-error: true
         with:
           api-level: 30
           arch: x86_64
@@ -254,7 +255,26 @@ jobs:
           disk-size: 4G
           script: |
             adb root
-            ./gradlew :androidApp:generateNoneBaselineProfile
+            ./gradlew :androidApp:generateNoneBaselineProfile ; RESULT=$?
+            mkdir -p artifacts/
+            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
+            exit $RESULT
+      - name: 'Upload baseline profile screen recordings'
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baselineprofile-android-screen-recordings
+          path: |
+            artifactsScreenRecording/
+          retention-days: 7
+      - name: 'Upload baseline profile logs'
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: baselineprofile-android-logs
+          path: |
+            androidBenchmark/outputs/androidTest-results/
+          retention-days: 7
       - name: "Build"
         run: ./gradlew androidApp:assembleNoneRelease
       - name: 'Upload .apk'

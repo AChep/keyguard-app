@@ -76,6 +76,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
@@ -134,8 +135,15 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.rememberInstance
 
+const val HOME_VAULT_TEST_TAG = "nav_bar:vault"
+const val HOME_SENDS_TEST_TAG = "nav_bar:sends"
+const val HOME_GENERATOR_TEST_TAG = "nav_bar:generator"
+const val HOME_WATCHTOWER_TEST_TAG = "nav_bar:watchtower"
+const val HOME_SETTINGS_TEST_TAG = "nav_bar:settings"
+
 data class Rail(
     val key: String,
+    val testTag: String,
     val route: Route,
     val icon: ImageVector,
     val iconSelected: ImageVector,
@@ -192,6 +200,7 @@ fun HomeScreen(
         persistentListOf(
             Rail(
                 key = "vault",
+                testTag = HOME_VAULT_TEST_TAG,
                 route = vaultRoute,
                 icon = Icons.Outlined.Home,
                 iconSelected = Icons.Filled.Home,
@@ -199,6 +208,7 @@ fun HomeScreen(
             ),
             Rail(
                 key = "sends",
+                testTag = HOME_SENDS_TEST_TAG,
                 route = sendsRoute,
                 icon = Icons.AutoMirrored.Outlined.Send,
                 iconSelected = Icons.AutoMirrored.Filled.Send,
@@ -206,6 +216,7 @@ fun HomeScreen(
             ),
             Rail(
                 key = "generator",
+                testTag = HOME_GENERATOR_TEST_TAG,
                 route = generatorRoute,
                 icon = Icons.Outlined.Password,
                 iconSelected = Icons.Filled.Password,
@@ -213,6 +224,7 @@ fun HomeScreen(
             ),
             Rail(
                 key = "watchtower",
+                testTag = HOME_WATCHTOWER_TEST_TAG,
                 route = watchtowerRoute,
                 icon = Icons.Outlined.Security,
                 iconSelected = Icons.Filled.Security,
@@ -224,6 +236,7 @@ fun HomeScreen(
             ),
             Rail(
                 key = "settings",
+                testTag = HOME_SETTINGS_TEST_TAG,
                 route = settingsRoute,
                 icon = Icons.Outlined.Settings,
                 iconSelected = Icons.Filled.Settings,
@@ -292,6 +305,8 @@ fun HomeScreenContent(
                             key(r.key) {
                                 val counterState = r.counterFlow.collectAsState(null)
                                 RailNavigationControllerItem(
+                                    modifier = Modifier
+                                        .testTag(r.testTag),
                                     backStack = backStack,
                                     route = r.route,
                                     icon = r.icon,
@@ -433,6 +448,8 @@ fun HomeScreenContent(
                                     key(r.key) {
                                         val counterState = r.counterFlow.collectAsState(null)
                                         BottomNavigationControllerItem(
+                                            modifier = Modifier
+                                                .testTag(r.testTag),
                                             backStack = backStack,
                                             route = r.route,
                                             icon = r.icon,
@@ -770,6 +787,7 @@ private fun RailStatusBadgeContent(
 
 @Composable
 private fun ColumnScope.RailNavigationControllerItem(
+    modifier: Modifier = Modifier,
     backStack: ImmutableList<NavigationEntry>,
     route: Route,
     icon: ImageVector,
@@ -780,6 +798,7 @@ private fun ColumnScope.RailNavigationControllerItem(
     val controller = LocalNavigationController.current
     val selected = isSelected(backStack, route)
     NavigationRailItem(
+        modifier = modifier,
         icon = {
             NavigationIcon(
                 selected = selected,
@@ -799,6 +818,7 @@ private fun ColumnScope.RailNavigationControllerItem(
 
 @Composable
 private fun RowScope.BottomNavigationControllerItem(
+    modifier: Modifier = Modifier,
     backStack: ImmutableList<NavigationEntry>,
     route: Route,
     icon: ImageVector,
@@ -809,6 +829,7 @@ private fun RowScope.BottomNavigationControllerItem(
     val controller = LocalNavigationController.current
     val selected = isSelected(backStack, route)
     NavigationBarItem(
+        modifier = modifier,
         icon = {
             NavigationIcon(
                 selected = selected,

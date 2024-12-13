@@ -68,7 +68,15 @@ fun FeatureCore.ensureMainScreen(): UiObject2 = kotlin.run {
             password.text = "111111"
             val btn = screen
                 .findObject(By.res("btn:go"))
-            btn.wait(Until.clickable(true), 3000L)
+            btn.wait(Until.enabled(true), 10_000L)
+            btn.wait(Until.clickable(true), 10_000L)
+            require(
+                value = btn.isEnabled &&
+                        btn.isClickable,
+            ) {
+                "Unlock / Create vault button is not yet " +
+                        "active!"
+            }
             btn.click()
 
             // Wait till main screen is loaded
@@ -101,4 +109,17 @@ fun FeatureCore.launchDefaultActivityAndWait(
         Until.hasObject(By.pkg(packageName).depth(0)),
         10_000,
     )
+}
+
+fun FeatureCore.launchScreen(
+    actionButtonResource: String,
+) {
+    val actionButtonSelector = By.res(actionButtonResource)
+    val actionButton = device.wait(
+        Until.findObject(actionButtonSelector),
+        5_000L,
+    )
+
+    actionButton.click()
+    device.waitForIdle()
 }

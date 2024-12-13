@@ -186,6 +186,7 @@ fun ScaffoldColumn(
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
+    columnModifier: Modifier = Modifier,
     columnVerticalArrangement: Arrangement.Vertical = Arrangement.Top,
     columnHorizontalAlignment: Alignment.Horizontal = Alignment.Start,
     columnScrollState: ScrollState = rememberScrollState(),
@@ -227,7 +228,7 @@ fun ScaffoldColumn(
             contentPadding = contentPadding,
         ) {
             Box(
-                modifier = Modifier
+                modifier = columnModifier
                     .fillMaxSize()
                     .verticalScroll(columnScrollState)
                     .padding(contentPaddingWithFab),

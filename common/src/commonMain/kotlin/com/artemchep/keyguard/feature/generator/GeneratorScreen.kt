@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDownward
@@ -50,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -69,11 +72,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -105,10 +110,12 @@ import com.artemchep.keyguard.ui.collectIsInteractedWith
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.minus
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.SkeletonSlider
+import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
@@ -122,6 +129,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -190,10 +199,12 @@ fun GeneratorScreen(
             )
         },
     ) { modifier, tabletUi ->
+        val stickyValueUi = maxHeight >= 480.dp
         GeneratorPaneMaster(
             modifier = modifier,
             loadableState = loadableState,
             tabletUi = tabletUi,
+            stickyValueUi = stickyValueUi,
             scrollBehavior = scrollBehavior,
             sliderInteractionSource = sliderInteractionSource,
         )
@@ -254,6 +265,7 @@ private fun GeneratorPaneMaster(
     modifier: Modifier,
     loadableState: Loadable<GeneratorState>,
     tabletUi: Boolean,
+    stickyValueUi: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     sliderInteractionSource: MutableInteractionSource,
 ) {
@@ -263,6 +275,9 @@ private fun GeneratorPaneMaster(
             loadedState?.value?.loaded == true
         }
     }
+
+    val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
     ScaffoldColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -357,6 +372,87 @@ private fun GeneratorPaneMaster(
                 )
             }
         },
+        overlay = {
+            val strengthState = remember {
+                mutableStateOf(false)
+            }
+            val passwordState = remember {
+                mutableStateOf<String?>(null)
+            }
+            LaunchedEffect(loadableState) {
+                val state = loadableState.getOrNull()
+                    ?: kotlin.run {
+                        strengthState.value = false
+                        passwordState.value = null
+                        return@LaunchedEffect
+                    }
+                state.valueState
+                    .onEach { value ->
+                        strengthState.value = value?.strength == true
+                        passwordState.value = value?.password
+                            ?.takeIf { it.isNotEmpty() }
+                    }
+                    .collect()
+            }
+
+            val density = rememberUpdatedState(LocalDensity.current)
+            val valueState = remember {
+                derivedStateOf {
+                    val thresholdScroll = 86 * density.value.density
+                    passwordState.value
+                        ?.takeIf { scrollState.value > thresholdScroll }
+                }
+            }
+            ExpandedIfNotEmpty(
+                modifier = Modifier
+                    .padding(
+                        contentPadding.value.minus(
+                            PaddingValues(
+                                top = 8.dp,
+                                bottom = 8.dp,
+                            ),
+                        ),
+                    )
+                    .fillMaxWidth(),
+                valueOrNull = valueState.value.takeIf { stickyValueUi },
+            ) { password ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(LocalBackgroundManager.current.colorHighest)
+                        .clickable {
+                            // Scroll up to see the header
+                            coroutineScope.launch {
+                                scrollState.animateScrollTo(0)
+                            }
+                        }
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp,
+                        ),
+                ) {
+                    AutoResizeText(
+                        modifier = Modifier,
+                        maxFontSize = 24f,
+                        minFontSize = 13f,
+                        maxLines = 2,
+                        text = colorizePasswordOrEmpty(password),
+                    )
+                    Spacer(
+                        modifier = Modifier
+                            .height(4.dp),
+                    )
+                    ExpandedIfNotEmpty(
+                        valueOrNull = password.takeIf { strengthState.value },
+                    ) { pwd ->
+                        PasswordStrengthBadge(
+                            password = pwd,
+                        )
+                    }
+                }
+            }
+        },
+        columnScrollState = scrollState,
     ) {
         loadableState.fold(
             ifLoading = {
@@ -463,23 +559,7 @@ fun ColumnScope.GeneratorValue(
                         .animateContentSize(),
                 ) { password ->
                     AutoResizeText(
-                        text = if (password.isEmpty()) {
-                            val color = LocalContentColor.current
-                                .combineAlpha(DisabledEmphasisAlpha)
-                            val text = stringResource(Res.string.empty_value)
-                            buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(color = color),
-                                ) {
-                                    append(text)
-                                }
-                            }
-                        } else {
-                            colorizePassword(
-                                password = password,
-                                contentColor = LocalContentColor.current,
-                            )
-                        },
+                        text = colorizePasswordOrEmpty(password),
                     )
                 }
                 Spacer(
@@ -517,6 +597,30 @@ fun ColumnScope.GeneratorValue(
             dropdown = value.dropdown,
             actions = value.actions,
             enabled = !sliderInteractionSourceIsInteracted,
+        )
+    }
+}
+
+@Composable
+private fun colorizePasswordOrEmpty(
+    password: String,
+): AnnotatedString {
+    return if (password.isEmpty()) {
+        val text = stringResource(Res.string.empty_value)
+        buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(
+                    color = LocalContentColor.current
+                        .combineAlpha(DisabledEmphasisAlpha),
+                ),
+            ) {
+                append(text)
+            }
+        }
+    } else {
+        colorizePassword(
+            password = password,
+            contentColor = LocalContentColor.current,
         )
     }
 }
@@ -1081,13 +1185,13 @@ private fun ColumnScope.DecoratedSkeletonSlider(
 fun AutoResizeText(
     text: AnnotatedString,
     modifier: Modifier = Modifier,
+    maxFontSize: Float = 32f,
+    minFontSize: Float = 14f,
+    maxLines: Int = Int.MAX_VALUE,
 ) {
     Box(
         modifier = modifier,
     ) {
-        val maxFontSize = 32f
-        val minFontSize = 14f
-
         val fontSize = kotlin.run {
             val ratio = 1f - (text.length / 128f)
                 .coerceAtMost(1f)
@@ -1099,6 +1203,8 @@ fun AutoResizeText(
             text = text,
             fontFamily = monoFontFamily,
             fontSize = fontSize.sp,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.titleLarge,
         )
     }

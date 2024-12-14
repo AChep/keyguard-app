@@ -271,7 +271,7 @@ class GetSuggestionsImpl(
         }
         avgScore /= avgSize.coerceAtLeast(1)
         val threshold =
-            if (maxScore >= 10f) maxScore.div(3f).coerceAtLeast(10f) else avgScore / 1.5f
+            if (maxScore >= 10f) maxScore.div(2.25f).coerceAtLeast(10f) else avgScore / 1.5f
         Log.e("SuggestionsTest", "threshold $threshold")
         c
             .filter { (score, _) -> score >= threshold && score > scoreThreshold }
@@ -356,7 +356,7 @@ private fun GetSuggestionsImpl.AutofillTargetAndroid.findByApp(
                     uri.match != DSecret.Uri.MatchType.Never
         }
         .let { directMatch ->
-            if (directMatch) 30f else 0f
+            if (directMatch) 35f else 0f
         }
     val scoreByName = appNameTokens?.let {
         findAlike(
@@ -395,13 +395,13 @@ private suspend fun GetSuggestionsImpl.AutofillTargetWeb.findByWebDomain(
                 @Suppress("MoveVariableDeclarationIntoWhen")
                 val matchType = uri.match ?: defaultMatchDetection
                 when (matchType) {
-                    DSecret.Uri.MatchType.Domain -> 10f
+                    DSecret.Uri.MatchType.Domain -> 15f
                     DSecret.Uri.MatchType.Host -> 20f
                     DSecret.Uri.MatchType.StartsWith -> 25f
                     DSecret.Uri.MatchType.Exact -> 25f
-                    DSecret.Uri.MatchType.RegularExpression -> 30f
+                    DSecret.Uri.MatchType.RegularExpression -> 27f
                     DSecret.Uri.MatchType.Never -> 0f
-                }
+                } * 1.6f
             } else {
                 0f
             }
@@ -415,7 +415,7 @@ private suspend fun GetSuggestionsImpl.AutofillTargetWeb.findByWebDomain(
                 request = webHost,
             )
             if (match) {
-                20f
+                30f
             } else {
                 0f
             }
@@ -427,5 +427,5 @@ private suspend fun GetSuggestionsImpl.AutofillTargetWeb.findByWebDomain(
         tokens,
         webUrlTokens,
     )
-    scoreByHost * 2f + scoreByUri + scoreByRpId
+    scoreByHost * 1.8f + scoreByUri + scoreByRpId
 }

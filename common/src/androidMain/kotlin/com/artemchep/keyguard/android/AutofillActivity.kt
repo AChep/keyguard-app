@@ -7,9 +7,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.service.autofill.Dataset
 import android.view.View
-import android.view.autofill.AutofillId
 import android.view.autofill.AutofillManager
-import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,11 +31,10 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
+import com.artemchep.keyguard.android.autofill.DatasetBuilder
 import com.artemchep.keyguard.common.R
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.gett
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.pick
 import com.artemchep.keyguard.platform.recordLog
@@ -83,12 +80,10 @@ class AutofillActivity : BaseActivity(), DIAware {
     }
 
     private fun tryBuildDataset(
-        index: Int,
         context: Context,
         secret: DSecret,
         forceAddUri: Boolean,
         struct: AutofillStructure2,
-        onComplete: (Dataset.Builder.() -> Unit)? = null,
     ): Dataset? {
         val views = RemoteViews(context.packageName, R.layout.item_autofill_entry).apply {
             setTextViewText(R.id.autofill_entry_name, secret.name)
@@ -106,27 +101,25 @@ class AutofillActivity : BaseActivity(), DIAware {
                 setViewVisibility(R.id.autofill_entry_username, View.GONE)
             }
         }
+        val fields = runBlocking {
+            DatasetBuilder.fieldsStructData(
+                cipher = secret,
+                structItems = struct.items,
+                getTotpCode = getTotpCode,
+            )
+        }
 
         fun createDatasetBuilder(): Dataset.Builder {
-            val builder = Dataset.Builder(views)
+            val builder = DatasetBuilder.create(
+                menuPresentation = views,
+                fields = DatasetBuilder.fields(
+                    structItems = struct.items,
+                    structData = fields,
+                ),
+                // we are not rendering those anyway
+                provideInlinePresentation = { null },
+            )
             builder.setId(secret.id)
-            val fields = runBlocking {
-                val hints = struct.items
-                    .asSequence()
-                    .map { it.hint }
-                    .toSet()
-                secret.gett(
-                    hints = hints,
-                    getTotpCode = getTotpCode,
-                ).bind()
-            }
-            struct.items.forEach { structItem ->
-                val value = fields[structItem.hint]
-                builder.trySetValue(
-                    id = structItem.id,
-                    value = value,
-                )
-            }
             return builder
         }
 
@@ -140,9 +133,10 @@ class AutofillActivity : BaseActivity(), DIAware {
                 forceAddUri = forceAddUri,
                 structure = struct,
             )
+            val code = PendingIntents.autofill.obtainId()
             val pi = PendingIntent.getActivity(
                 this,
-                1500 + index,
+                code,
                 intent,
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT,
             )
@@ -152,21 +146,10 @@ class AutofillActivity : BaseActivity(), DIAware {
             // Ignored
         }
 
-        onComplete?.invoke(builder)
-
         return try {
             builder.build()
         } catch (e: Exception) {
             null // not a single value set
-        }
-    }
-
-    private fun Dataset.Builder.trySetValue(
-        id: AutofillId?,
-        value: String?,
-    ) {
-        if (id != null && value != null) {
-            setValue(id, AutofillValue.forText(value))
         }
     }
 
@@ -177,7 +160,6 @@ class AutofillActivity : BaseActivity(), DIAware {
         val struct = args.autofillStructure2
             ?: return
         val dataset = tryBuildDataset(
-            index = 555,
             context = this,
             secret = secret,
             forceAddUri = forceAddUri,

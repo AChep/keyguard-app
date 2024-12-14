@@ -9,8 +9,6 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.CancellationSignal
 import android.service.autofill.*
-import android.view.autofill.AutofillId
-import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.autofill.inline.UiVersions
@@ -22,6 +20,7 @@ import com.artemchep.keyguard.android.AutofillActivity
 import com.artemchep.keyguard.android.AutofillFakeAuthActivity
 import com.artemchep.keyguard.android.AutofillSaveActivity
 import com.artemchep.keyguard.android.MainActivity
+import com.artemchep.keyguard.android.PendingIntents
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.*
@@ -304,21 +303,24 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                     var index = 0
                     r.value.forEach { secret ->
                         var datasetHasInlinePresentation = false
-                        val dataset =
-                            tryBuildDataset(index, this, secret, autofillStructure) {
+                        val dataset = tryBuildDataset(
+                            context = this,
+                            secret = secret,
+                            struct = autofillStructure,
+                            provideInlinePresentation = {
                                 if (index < secretInlineSuggestionsMaxCount) {
-                                    val inlinePresentation =
-                                        tryBuildSecretInlinePresentation(
-                                            request,
-                                            index,
-                                            secret,
-                                        )
-                                    if (inlinePresentation != null) {
-                                        setInlinePresentation(inlinePresentation)
+                                    tryBuildSecretInlinePresentation(
+                                        request,
+                                        index,
+                                        secret,
+                                    )?.also {
                                         datasetHasInlinePresentation = true
                                     }
+                                } else {
+                                    null
                                 }
-                            }
+                            },
+                        )
                         if (dataset != null && (!shouldInlineSuggestions || datasetHasInlinePresentation)) {
                             responseBuilder.addDataset(dataset)
                             index += 1
@@ -337,27 +339,31 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
                         val flags =
                             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                        val pi = PendingIntent.getActivity(this, 1010, intent, flags)
+                        val code = PendingIntents.autofill.obtainId()
+                        val pi = PendingIntent.getActivity(this, code, intent, flags)
 
                         val manualSelectionView = AutofillViews
                             .buildPopupEntryManual(this)
 
                         autofillStructure.items.forEach {
                             val autofillId = it.id
-                            val builder = Dataset.Builder(manualSelectionView)
+                            val builder = DatasetBuilder.create(
+                                menuPresentation = manualSelectionView,
+                                fields = mapOf(
+                                    autofillId to null,
+                                ),
+                                provideInlinePresentation = {
+                                    if (totalInlineSuggestionsMaxCount <= 0) {
+                                        return@create null
+                                    }
 
-                            if (totalInlineSuggestionsMaxCount > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                val inlinePresentation =
                                     tryBuildManualSelectionInlinePresentation(
                                         request,
                                         index,
                                         intent = intent,
                                     )
-                                inlinePresentation?.let {
-                                    builder.setInlinePresentation(it)
-                                }
-                            }
-                            builder.setValue(autofillId, null)
+                                },
+                            )
                             builder.setAuthentication(pi.intentSender)
                             responseBuilder.addDataset(builder.build())
                         }
@@ -475,39 +481,43 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 autofillStructure2 = struct,
             ),
         )
+        val authIntentRequestCode = PendingIntents.autofill.obtainId()
         val authIntentSender = PendingIntent.getActivity(
             this@KeyguardAutofillService,
-            1001,
+            authIntentRequestCode,
             authIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         ).intentSender
 
         struct.items.forEach { item ->
-            val builder = Dataset.Builder(remoteViews)
-            if (canInlineSuggestions && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val inlinePresentation =
+            val builder = DatasetBuilder.create(
+                menuPresentation = remoteViews,
+                fields = mapOf(
+                    item.id to null,
+                ),
+                provideInlinePresentation = {
+                    if (!canInlineSuggestions) {
+                        return@create null
+                    }
+
                     tryCreateAuthenticationInlinePresentation(
                         type,
                         request,
                         0,
                         intent = authIntent,
                     )
-                inlinePresentation?.let {
-                    builder.setInlinePresentation(it)
-                }
-            }
-            builder.setValue(item.id, null)
+                },
+            )
             builder.setAuthentication(authIntentSender)
             addDataset(builder.build())
         }
     }
 
     private suspend fun tryBuildDataset(
-        index: Int,
         context: Context,
         secret: DSecret,
         struct: AutofillStructure2,
-        onComplete: (suspend Dataset.Builder.() -> Unit)? = null,
+        provideInlinePresentation: () -> InlinePresentation?,
     ): Dataset? {
         val title = secret.name
         val text = kotlin.run {
@@ -523,33 +533,29 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             title = title,
             text = text,
         )
-        val fields = run {
-            val hints = struct.items
-                .asSequence()
-                .map { it.hint }
-                .toSet()
-            secret.gett(
-                hints = hints,
-                getTotpCode = getTotpCode,
-            ).bind()
-        }
+        val fields = DatasetBuilder.fieldsStructData(
+            cipher = secret,
+            structItems = struct.items,
+            getTotpCode = getTotpCode,
+        )
 
-        suspend fun createDatasetBuilder(): Dataset.Builder {
-            val builder = Dataset.Builder(views)
+        fun createDatasetBuilder(): Dataset.Builder {
+            val builder = DatasetBuilder.create(
+                menuPresentation = views,
+                fields = DatasetBuilder.fields(
+                    structItems = struct.items,
+                    structData = fields,
+                ),
+                provideInlinePresentation = provideInlinePresentation,
+            )
             builder.setId(secret.id)
-            struct.items.forEach { structItem ->
-                val value = fields[structItem.hint]
-                builder.trySetValue(
-                    id = structItem.id,
-                    value = value,
-                )
-            }
             return builder
         }
 
         val builder = createDatasetBuilder()
         try {
-            val dataset = createDatasetBuilder().build()
+            val dataset = createDatasetBuilder()
+                .build()
             val intent = AutofillFakeAuthActivity.getIntent(
                 this,
                 dataset = dataset,
@@ -557,9 +563,10 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 forceAddUri = false,
                 structure = struct,
             )
+            val code = PendingIntents.autofill.obtainId()
             val pi = PendingIntent.getActivity(
                 this,
-                10031 + index,
+                code,
                 intent,
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT,
             )
@@ -569,8 +576,6 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             // Ignored
         }
 
-        onComplete?.invoke(builder)
-
         return try {
             builder.build()
         } catch (e: Exception) {
@@ -578,18 +583,9 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         }
     }
 
-    private fun Dataset.Builder.trySetValue(
-        id: AutofillId?,
-        value: String?,
-    ) {
-        if (id != null && value != null) {
-            setValue(id, AutofillValue.forText(value))
-        }
-    }
-
     @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("RestrictedApi")
-    private suspend fun tryBuildSecretInlinePresentation(
+    private fun tryBuildSecretInlinePresentation(
         request: FillRequest,
         index: Int,
         secret: DSecret,
@@ -602,7 +598,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             )
 
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            PendingIntent.getActivity(this, 1010, intent, flags)
+            val code = PendingIntents.autofill.obtainId()
+            PendingIntent.getActivity(this, code, intent, flags)
         },
         content = {
             setContentDescription(secret.name)
@@ -648,7 +645,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         index = index,
         createPendingIntent = {
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            PendingIntent.getActivity(this, 1010, intent, flags)
+            val code = PendingIntents.autofill.obtainId()
+            PendingIntent.getActivity(this, code, intent, flags)
         },
         content = {
             val title = getString(Res.string.autofill_open_keyguard)
@@ -670,7 +668,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         index = index,
         createPendingIntent = {
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            PendingIntent.getActivity(this, 1002, intent, flags)
+            val code = PendingIntents.autofill.obtainId()
+            PendingIntent.getActivity(this, code, intent, flags)
         },
         content = {
             val text = when (type) {
@@ -685,7 +684,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.R)
-    private suspend inline fun tryCreateInlinePresentation(
+    private inline fun tryCreateInlinePresentation(
         request: FillRequest,
         index: Int,
         createPendingIntent: () -> PendingIntent,
@@ -735,7 +734,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 if (Build.VERSION.SDK_INT >= 28) {
                     val flags =
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
-                    val pi = PendingIntent.getActivity(this, 10120, intent, flags)
+                    val code = PendingIntents.autofill.obtainId()
+                    val pi = PendingIntent.getActivity(this, code, intent, flags)
                     callback.onSuccess(pi.intentSender)
                 } else {
                     try {

@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.model.AddUriCipherRequest
+import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.TotpToken
@@ -95,7 +96,11 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
         if (result != null) {
             // We want to copy to OTP code when you autofill an
             // entry, so launch a totp service.
-            launchCopyTotpService()
+            val mayNeedToCopyTotp = args?.structure?.items
+                ?.none { it.hint == AutofillHint.APP_OTP } == true
+            if (mayNeedToCopyTotp) {
+                launchCopyTotpService()
+            }
             launchEditService()
             launchHistoryService()
 

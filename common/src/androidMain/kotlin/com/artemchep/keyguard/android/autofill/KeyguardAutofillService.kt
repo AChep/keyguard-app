@@ -523,20 +523,20 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             title = title,
             text = text,
         )
+        val fields = run {
+            val hints = struct.items
+                .asSequence()
+                .map { it.hint }
+                .toSet()
+            secret.gett(
+                hints = hints,
+                getTotpCode = getTotpCode,
+            ).bind()
+        }
 
         suspend fun createDatasetBuilder(): Dataset.Builder {
             val builder = Dataset.Builder(views)
             builder.setId(secret.id)
-            val fields = run {
-                val hints = struct.items
-                    .asSequence()
-                    .map { it.hint }
-                    .toSet()
-                secret.gett(
-                    hints = hints,
-                    getTotpCode = getTotpCode,
-                ).bind()
-            }
             struct.items.forEach { structItem ->
                 val value = fields[structItem.hint]
                 builder.trySetValue(

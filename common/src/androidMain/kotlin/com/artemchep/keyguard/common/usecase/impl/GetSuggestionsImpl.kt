@@ -198,7 +198,8 @@ class GetSuggestionsImpl(
                     AutofillHint.EMAIL_ADDRESS in target.hints ||
                     AutofillHint.PHONE_NUMBER in target.hints ||
                     AutofillHint.USERNAME in target.hints ||
-                    AutofillHint.PASSWORD in target.hints
+                    AutofillHint.PASSWORD in target.hints ||
+                    AutofillHint.APP_OTP in target.hints
                 ) {
                     run {
                         val equivalentDomains = equivalentDomainsHolder

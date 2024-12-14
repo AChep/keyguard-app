@@ -76,6 +76,12 @@ class AutofillStructureParser {
         "密碼",
     )
 
+    private val autofillLabel2faTranslations = listOf(
+        "totp",
+        "otp",
+        "2fa",
+    )
+
     private val autofillLabelEmailTranslations = listOf(
         "email",
         "e-mail",
@@ -758,6 +764,15 @@ class AutofillStructureParser {
             reason = "type",
         )
 
+        "totp",
+        "twofa",
+        "2fa",
+        -> AutofillStructureItemBuilder(
+            accuracy = AutofillStructureItem.Accuracy.HIGH,
+            hint = AutofillHint.APP_OTP,
+            reason = "type",
+        )
+
         // custom
 
         "expdate" -> AutofillStructureItemBuilder(
@@ -789,7 +804,15 @@ class AutofillStructureParser {
             "password" in id -> AutofillStructureItemBuilder(
                 accuracy = AutofillStructureItem.Accuracy.HIGH,
                 hint = AutofillHint.PASSWORD,
-                reason = "type",
+                reason = "id",
+            )
+
+            "totp" in id ||
+                    "twofa" in id ||
+                    "2fa" in id -> AutofillStructureItemBuilder(
+                accuracy = AutofillStructureItem.Accuracy.HIGH,
+                hint = AutofillHint.APP_OTP,
+                reason = "id",
             )
 
             else -> null
@@ -824,6 +847,13 @@ class AutofillStructureParser {
                 AutofillStructureItemBuilder(
                     accuracy = AutofillStructureItem.Accuracy.MEDIUM,
                     hint = AutofillHint.PASSWORD,
+                    reason = "label:$hint",
+                )
+
+            autofillLabel2faTranslations.any { it in hint } ->
+                AutofillStructureItemBuilder(
+                    accuracy = AutofillStructureItem.Accuracy.MEDIUM,
+                    hint = AutofillHint.APP_OTP,
                     reason = "label:$hint",
                 )
 
@@ -909,6 +939,8 @@ class AutofillStructureParser {
                             accuracy = AutofillStructureItem.Accuracy.LOWEST,
                             hint = AutofillHint.USERNAME,
                         )
+                        extractOfType(node.idType.orEmpty()).let(out::addAll)
+                        extractOfId(node.idEntry.orEmpty()).let(out::addAll)
                     }
 
                     inputIsVariationType(

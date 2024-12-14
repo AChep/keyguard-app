@@ -208,7 +208,8 @@ class AutofillActivity : BaseActivity(), DIAware {
                         it.hint == AutofillHint.PASSWORD ||
                                 it.hint == AutofillHint.PHONE_NUMBER ||
                                 it.hint == AutofillHint.EMAIL_ADDRESS ||
-                                it.hint == AutofillHint.USERNAME
+                                it.hint == AutofillHint.USERNAME ||
+                                it.hint == AutofillHint.APP_OTP
                     } == true
                     val cardSearch = args.autofillStructure2?.items?.any {
                         it.hint == AutofillHint.CREDIT_CARD_NUMBER ||

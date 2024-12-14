@@ -11,6 +11,8 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.PutAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.hasAutofillInlineSuggestions
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
@@ -32,6 +34,12 @@ fun settingAutofillInlineSuggestionsProvider(
     putAutofillInlineSuggestions: PutAutofillInlineSuggestions,
     windowCoroutineScope: WindowCoroutineScope,
 ): SettingComponent = getAutofillInlineSuggestions().map { inlineSuggestions ->
+    // Hide inline suggestions option if
+    // it is not supported by the platform.
+    if (!CurrentPlatform.hasAutofillInlineSuggestions()) {
+        return@map null
+    }
+
     val onCheckedChange = { shouldInlineSuggestions: Boolean ->
         putAutofillInlineSuggestions(shouldInlineSuggestions)
             .launchIn(windowCoroutineScope)

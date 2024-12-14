@@ -6,6 +6,7 @@ sealed interface Platform {
     sealed interface Mobile : Platform {
         data class Android(
             val isChromebook: Boolean,
+            val sdk: Int,
         ) : Mobile
     }
 

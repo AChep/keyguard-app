@@ -7,6 +7,7 @@ private val platform by lazy {
         .matches(".+_cheets|cheets_.+".toRegex())
     Platform.Mobile.Android(
         isChromebook = isChromebook,
+        sdk = Build.VERSION.SDK_INT,
     )
 }
 

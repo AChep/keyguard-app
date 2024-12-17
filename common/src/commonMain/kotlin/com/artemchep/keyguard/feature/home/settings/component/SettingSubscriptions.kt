@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,9 +58,11 @@ import com.artemchep.keyguard.ui.FlatTextFieldBadge
 import com.artemchep.keyguard.ui.GridLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.SimpleNote
+import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.theme.infoContainer
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -267,19 +271,36 @@ private fun SettingSubscriptionItem(
             val text = "${subscription.price} / ${subscription.periodFormatted}"
             Text(text)
         },
-        content = if (status is Subscription.Status.Inactive && status.trialPeriodFormatted != null) {
-            // composable
-            {
-                FlatTextFieldBadge(
-                    type = TextFieldModel2.Vl.Type.INFO,
-                    text = stringResource(
-                        Res.string.pref_item_premium_status_free_trial_n,
-                        status.trialPeriodFormatted,
-                    ),
-                )
+        content = {
+            when (status) {
+                is Subscription.Status.Inactive -> {
+                    if (status.trialPeriodFormatted != null) {
+                        FlatTextFieldBadge(
+                            backgroundColor = MaterialTheme.colorScheme.infoContainer,
+                            text = stringResource(
+                                Res.string.pref_item_premium_status_free_trial_n,
+                                status.trialPeriodFormatted,
+                            ),
+                        )
+                    }
+                }
+                is Subscription.Status.Active -> {
+                    FlatTextFieldBadge(
+                        modifier = Modifier,
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        text = stringResource(Res.string.pref_item_premium_status_active),
+                        icon = Icons.Outlined.KeyguardPremium,
+                    )
+                    if (!status.willRenew) {
+                        FlatTextFieldBadge(
+                            backgroundColor = MaterialTheme.colorScheme.infoContainer,
+                            text = stringResource(
+                                Res.string.pref_item_premium_status_will_not_renew,
+                            ),
+                        )
+                    }
+                }
             }
-        } else {
-            null
         },
     )
 }
@@ -329,7 +350,7 @@ private fun SettingItemLayout(
     onClick: () -> Unit,
     title: @Composable ColumnScope.() -> Unit,
     price: @Composable ColumnScope.() -> Unit,
-    content: (@Composable ColumnScope.() -> Unit)? = null,
+    content: (@Composable FlowRowScope.() -> Unit)? = null,
 ) {
     val backgroundModifier = run {
         val tintColor = MaterialTheme.colorScheme
@@ -394,7 +415,13 @@ private fun SettingItemLayout(
             }
             if (content != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                content()
+                FlowRow(
+                    modifier = Modifier,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    content()
+                }
             }
         }
     }

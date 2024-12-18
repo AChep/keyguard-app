@@ -73,16 +73,16 @@ import org.kodein.di.compose.rememberInstance
 
 val onboardingItemsPremium = listOf(
     OnboardingItem(
-        title = Res.string.feat_item_multiple_accounts_title,
-        text = Res.string.feat_item_multiple_accounts_text,
-        premium = true,
-        icon = Icons.Outlined.AccountBox,
-    ),
-    OnboardingItem(
         title = Res.string.feat_item_two_way_sync_title,
         text = Res.string.feat_item_two_way_sync_text,
         premium = true,
         icon = Icons.Outlined.Sync,
+    ),
+    OnboardingItem(
+        title = Res.string.feat_item_multiple_accounts_title,
+        text = Res.string.feat_item_multiple_accounts_text,
+        premium = true,
+        icon = Icons.Outlined.AccountBox,
     ),
     OnboardingItem(
         title = Res.string.feat_item_offline_editing_title,

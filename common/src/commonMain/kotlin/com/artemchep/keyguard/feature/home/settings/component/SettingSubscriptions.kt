@@ -324,6 +324,21 @@ private fun SettingProductItem(
         price = {
             Text(product.price)
         },
+        content = {
+            when (status) {
+                is Product.Status.Inactive -> {
+                    // Do nothing
+                }
+                is Product.Status.Active -> {
+                    FlatTextFieldBadge(
+                        modifier = Modifier,
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        text = stringResource(Res.string.pref_item_premium_status_active),
+                        icon = Icons.Outlined.KeyguardPremium,
+                    )
+                }
+            }
+        },
     )
 }
 

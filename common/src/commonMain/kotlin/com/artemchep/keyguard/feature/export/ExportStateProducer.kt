@@ -219,7 +219,12 @@ fun produceExportScreenState(
                 list = state.list,
                 count = state.list.size,
                 onView = onClick {
-                    val filter = state.filterConfig?.filter
+                    val filter = DFilter.And(
+                        listOfNotNull(
+                            args.filter,
+                            state.filterConfig?.filter,
+                        ),
+                    )
                     val route = VaultRoute(
                         args = VaultRoute.Args(
                             appBar = VaultRoute.Args.AppBar(

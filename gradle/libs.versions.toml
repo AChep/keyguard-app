@@ -96,7 +96,7 @@ ktlint = "0.50.0"
 ktlintPlugin = "12.1.2"
 # https://github.com/ktorio/ktor
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
-ktor = "3.0.2"
+ktor = "3.0.3"
 # https://github.com/skydoves/landscapist
 landscapist = "2.4.4"
 # https://github.com/cashapp/licensee

@@ -103,8 +103,8 @@
     <string name="organization">組織</string>
     <string name="organizations">組織</string>
     <string name="organizations_empty_label">組織なし</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">等価ドメイン</string>
+    <string name="equivalent_domains_empty_label">等価ドメインがありません</string>
     <string name="misc">その他</string>
     <string name="category">カテゴリー</string>
     <string name="command">コマンド</string>
@@ -231,8 +231,8 @@
     <string name="bitwarden_premium">Bitwarden プレミアム</string>
     <string name="bitwarden_premium_required">Bitwarden プレミアムが必要です</string>
     <string name="bitwarden_unofficial_server">非公式 Bitwarden サーバー</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip">ヒント: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">プライバシー強化のため、一意のメールアドレスを生成します。</string>
     <string name="account_last_synced_at">最終同期時刻: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">名前の変更</string>
     <string name="account_action_change_color_title">色の変更</string>
@@ -818,7 +818,7 @@
     <string name="generator_username_number_title">数字を含める</string>
     <string name="generator_username_wordlist_title">ワードリスト</string>
     <string name="generator_password_type">ランダムな文字</string>
-    <string name="generator_password_note">強力なパスワードは、少なくとも <xliff:g id="length" example="15">%1$d</xliff:g> 文字、大文字、小文字、数字、記号を含んでいます。</string>
+    <string name="generator_password_note">強力なパスワードは、少なくとも <xliff:g id="length" example="15">%1$d</xliff:g> 文字であり、大文字、小文字、数字、記号を含んでいます。</string>
     <string name="generator_password_numbers_title">数字</string>
     <string name="generator_password_symbols_title">記号</string>
     <string name="generator_password_uppercase_letters_title">大文字</string>
@@ -832,7 +832,7 @@
     <!-- Referring to a website domain -->
     <string name="generator_email_catch_all_domain_title">ドメイン</string>
     <string name="generator_email_plus_addressing_type">プラスメールアドレス</string>
-    <string name="generator_email_plus_addressing_note">プラスアドレスとは、<xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> のようなメールアドレスに送信されたすべてのメールが、あなたのアカウントに送信されることを意味します。これにより、さまざまな人、サイト、メーリングリストに提供するための、メールアドレスのバリエーションを多く持つことができます。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
+    <string name="generator_email_plus_addressing_note">プラスメールアドレスとは、<xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> のようなメールアドレスに送信されたすべてのメールが、あなたのアカウントに送信されることを意味します。これにより、さまざまな人、サイト、メーリングリストに提供するための、メールアドレスのバリエーションを多く持つことができます。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
     <string name="generator_email_plus_addressing_email_title">メールアドレス</string>
     <string name="generator_email_subdomain_addressing_type">サブドメインメールアドレス</string>
     <string name="generator_email_subdomain_addressing_note">サブドメインアドレスとは、<xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> のようなメールアドレスに送信されたすべてのメールが、あなたのアカウントに送信されることを意味します。これにより、さまざまな人、サイト、メーリングリストに提供するための、メールアドレスのバリエーションを多く持つことができます。使用する前に、メールホスティングがこの機能をサポートしていることを確認してください。</string>
@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">パスワードは正常に変更されました</string>
     <string name="exportaccount_header_title">アイテムをエクスポート</string>
     <string name="exportaccount_password_label">アーカイブのパスワード</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">エクスポートのプロセスを実行中は、保管庫のロックは解除されたままになります。添付ファイルは保管庫のデータが参照されます。プロセスを実行中に添付ファイルが暗号化されていない状態で保存されることはありません。</string>
     <string name="exportaccount_include_attachments_title">添付ファイルのエクスポート</string>
     <string name="exportaccount_export_button">エクスポート</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">テキストをバーコードとしてエンコードします。</string>
     <string name="feat_item_generator_title">パスワード生成</string>
     <string name="feat_item_generator_text">パスワードまたはユーザー名を生成します。</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">データセーフティ</string>
     <string name="datasafety_local_section">ローカルデータ</string>
     <string name="datasafety_local_text">ローカルデータは、ダウンロード、ユーザー設定、保管庫で構成されています。これらはデバイスの内部ストレージに保存されており、Android システムまたは Keyguard からのみアクセスできます。</string>

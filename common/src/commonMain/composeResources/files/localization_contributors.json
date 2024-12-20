@@ -35,6 +35,36 @@
   },
   {
     "user": {
+      "id": "15097137",
+      "username": "JordyEGNL",
+      "fullName": "JordyEGNL",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/15097137/medium/8f2d8386e1185d8f302ed914d98c8488.png",
+      "joined": "2023-08-27 06:38:37"
+    },
+    "languages": [
+      {
+        "id": "nl",
+        "name": "Dutch"
+      },
+      {
+        "id": "en-GB",
+        "name": "English, United Kingdom"
+      },
+      {
+        "id": "pt-PT",
+        "name": "Portuguese"
+      }
+    ],
+    "translated": 5500,
+    "target": 5505,
+    "approved": 3188,
+    "voted": 0,
+    "positiveVotes": 8,
+    "negativeVotes": 0,
+    "winning": 2905
+  },
+  {
+    "user": {
       "id": "2618",
       "username": "zecabra",
       "fullName": "zecabra",
@@ -167,36 +197,6 @@
   },
   {
     "user": {
-      "id": "15097137",
-      "username": "JordyEGNL",
-      "fullName": "JordyEGNL",
-      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/15097137/medium/8f2d8386e1185d8f302ed914d98c8488.png",
-      "joined": "2023-08-27 06:38:37"
-    },
-    "languages": [
-      {
-        "id": "nl",
-        "name": "Dutch"
-      },
-      {
-        "id": "en-GB",
-        "name": "English, United Kingdom"
-      },
-      {
-        "id": "pt-PT",
-        "name": "Portuguese"
-      }
-    ],
-    "translated": 4936,
-    "target": 4934,
-    "approved": 3188,
-    "voted": 0,
-    "positiveVotes": 8,
-    "negativeVotes": 0,
-    "winning": 2905
-  },
-  {
-    "user": {
       "id": "13901945",
       "username": "tabtomi88",
       "fullName": "Tam\u00e1s Porcsin (tabtomi88)",
@@ -279,8 +279,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 3753,
-    "target": 5621,
+    "translated": 3873,
+    "target": 5786,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -305,8 +305,8 @@
     "target": 9999,
     "approved": 3088,
     "voted": 0,
-    "positiveVotes": 0,
-    "negativeVotes": 22,
+    "positiveVotes": 5,
+    "negativeVotes": 23,
     "winning": 3044
   },
   {
@@ -481,8 +481,8 @@
     "target": 4276,
     "approved": 0,
     "voted": 26,
-    "positiveVotes": 0,
-    "negativeVotes": 0,
+    "positiveVotes": 12,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -1321,6 +1321,28 @@
     "target": 129,
     "approved": 0,
     "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "14724984",
+      "username": "Anmoti",
+      "fullName": "anmoti (Anmoti)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/14724984/medium/62a8025d6fac319a6ebcc7ddf92063c0.png",
+      "joined": "2024-12-18 04:46:22"
+    },
+    "languages": [
+      {
+        "id": "ja",
+        "name": "Japanese"
+      }
+    ],
+    "translated": 109,
+    "target": 275,
+    "approved": 0,
+    "voted": 19,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0

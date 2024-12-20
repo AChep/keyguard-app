@@ -217,12 +217,12 @@
     <string name="reveal_secure_note">Hiển thị ghi chú bảo mật</string>
     <string name="hide_secure_note">Ẩn ghi chú bảo mật</string>
     <string name="master_password_hint">Gợi ý mật khẩu chính</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
-    <string name="key_type">Key type</string>
-    <string name="key_pair">Key pair</string>
-    <string name="key_ssh">SSH Key</string>
+    <string name="public_key">Khóa công khai</string>
+    <string name="private_key">Khóa riêng tư</string>
+    <string name="fingerprint">Vân tay</string>
+    <string name="key_type">Loại khóa</string>
+    <string name="key_pair">Cặp khóa</string>
+    <string name="key_ssh">Khóa SSH</string>
     <string name="fingerprint_phrase">Cụm từ Fingerprint</string>
     <string name="fingerprint_phrase_help_title">Fingerprint là gì?</string>
     <string name="filter_auth_reprompt_items">Nhắc lại xác thực</string>
@@ -232,7 +232,7 @@
     <string name="bitwarden_premium_required">Yêu cầu Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Máy chủ Bitwarden không chính thức</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip_generate_email_relay_title">Tạo email duy nhất để bảo mật tốt hơn.</string>
     <string name="account_last_synced_at">Đồng bộ hóa lần cuối lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Đổi tên</string>
     <string name="account_action_change_color_title">Đổi màu</string>
@@ -321,7 +321,7 @@
     <string name="file_action_delete_local_title">Xóa tệp cục bộ</string>
     <string name="file_action_delete_local_many_title">Xóa các tệp cục bộ</string>
     <string name="file_action_view_cipher_title">Xem mục gốc</string>
-    <string name="file_action_reveal_title">Reveal</string>
+    <string name="file_action_reveal_title">Tiết lộ</string>
     <string name="vault_action_always_show_keyboard_title">Luôn hiển thị bàn phím</string>
     <string name="vault_action_remember_sorting_title">Ghi nhớ cách sắp xếp</string>
     <string name="vault_action_sync_vault_title">Đồng bộ hóa kho</string>
@@ -504,12 +504,12 @@
     <string name="error_failed_open_app_for">Chưa cài ứng dụng nào có thể xử lý yêu cầu này</string>
     <string name="error_failed_unknown">Có gì đó không ổn</string>
     <string name="error_failed_encrypt_biometric_key">Không mã hóa được khóa sinh trắc học</string>
-    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
+    <string name="error_failed_decrypt_biometric_key">Không giải mã được khóa sinh trắc học</string>
     <string name="scanqr_title">Quét mã QR</string>
     <string name="scanqr_load_from_image_note">Tải và phân tích mã QR từ tệp hình ảnh.</string>
     <string name="scanqr_camera_permission_required_text">Cần phải có quyền sử dụng máy ảnh để quét mã QR.</string>
-    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
-    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
+    <string name="post_notifications_permission_banner_title">Thông báo đã bị vô hiệu hóa</string>
+    <string name="post_notifications_permission_banner_text">Cấp quyền thông báo để cho phép Keyguard hiển thị mật khẩu một lần khi tự động điền &amp; nhiều hơn nữa.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Mã vạch</string>
     <string name="barcodetype_action_show_in_barcode_title">Hiển thị dưới dạng mã vạch</string>
@@ -714,7 +714,7 @@
     <string name="cipher_type_card">Thẻ</string>
     <string name="cipher_type_identity">Danh tính</string>
     <string name="cipher_type_note">Ghi chú</string>
-    <string name="cipher_type_ssh_key">SSH Key</string>
+    <string name="cipher_type_ssh_key">Khóa SSH</string>
     <string name="cipher_type_passkey">Khóa truy cập</string>
     <string name="field_type_text">Văn bản</string>
     <string name="field_type_boolean">Boolean</string>
@@ -800,7 +800,7 @@
     <string name="generator_header_title">Bộ tạo</string>
     <string name="generator_header_username_title">Bộ tạo tên người dùng</string>
     <string name="generator_header_password_title">Bộ tạo mật khẩu</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
+    <string name="generator_header_ssh_key_title">Trình tạo khóa SSH</string>
     <string name="generator_generate_button">Tạo</string>
     <string name="generator_regenerate_button">Tạo lại</string>
     <!-- 'Use' generated password as a password -->
@@ -838,15 +838,15 @@
     <string name="generator_email_subdomain_addressing_note">Địa chỉ tên miền phụ có nghĩa là mọi email được gửi tới <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> vẫn được gửi đến tài khoản của bạn. Điều này có nghĩa là bạn có thể có nhiều biến thể về địa chỉ email của mình để cung cấp cho những người, trang web hoặc danh sách gửi thư khác nhau. Đảm bảo rằng dịch vụ lưu trữ email của bạn hỗ trợ tính năng này trước khi sử dụng.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Bí danh email được chuyển tiếp</string>
-    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_title">Độ dài</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
-    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
-    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
-    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
-    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
+    <string name="generator_key_rsa_note">Tất cả các máy khách SSH đều hỗ trợ thuật toán này. Kích thước khóa ít nhất là 2048 bit được khuyến nghị cho RSA; 4096 bit là tốt hơn. Thuật toán RSA hoàn toàn có khả năng bị phá vỡ trong tương lai gần.</string>
+    <string name="generator_key_rsa_text">Tương thích với tất cả các máy chủ SSH</string>
+    <string name="generator_key_ed25519_note">Đây là tiêu chuẩn nhanh nhất và hiện đại nhất. Hỗ trợ trong các máy khách SSH vẫn chưa phổ biến.</string>
+    <string name="generator_key_ed25519_text">Tiêu chuẩn nhanh nhất và hiện đại nhất</string>
     <string name="generator_create_item_with_password_title">Tạo thông tin đăng nhập mới bằng mật khẩu</string>
     <string name="generator_create_item_with_username_title">Tạo thông tin đăng nhập mới với tên người dùng</string>
-    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
+    <string name="generator_create_item_with_ssh_key_title">Tạo mục Khóa SSH mới</string>
     <string name="generator_password_history_title">Lịch sử mật khẩu</string>
     <string name="generator_show_tips_title">Hiển thị các mẹo</string>
     <string name="generatorhistory_header_title">Lịch sử bộ tạo</string>
@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Mật khẩu đã được thay đổi thành công</string>
     <string name="exportaccount_header_title">Xuất các mục</string>
     <string name="exportaccount_password_label">Lưu trữ mật khẩu</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Kho sẽ được giữ mở khóa trong quá trình xuất. Các tệp đính kèm được tham chiếu trong dữ liệu của kho. Các tệp đính kèm không bao giờ được lưu trữ ở dạng không được mã hóa trong quá trình này.</string>
     <string name="exportaccount_include_attachments_title">Xuất tệp đính kèm</string>
     <string name="exportaccount_export_button">Xuất</string>
@@ -1046,7 +1047,7 @@
 3. Xác nhận và khởi động lại Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tự động sao chép mật khẩu một lần</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Khi điền thông tin đăng nhập, tự động sao chép mật khẩu một lần</string>
-    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
+    <string name="pref_item_autofill_default_match_detection_title">Phát hiện kết quả khớp mặc định</string>
     <string name="pref_item_autofill_inline_suggestions_title">Đề xuất nội tuyến</string>
     <string name="pref_item_autofill_inline_suggestions_text">Nhúng đề xuất tự động điền trực tiếp vào bàn phím tương thích</string>
     <string name="pref_item_autofill_manual_selection_title">Lựa chọn thủ công</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Mã hóa văn bản thành các mã vạch khác nhau.</string>
     <string name="feat_item_generator_title">Bộ tạo</string>
     <string name="feat_item_generator_text">Tạo các mật khẩu hoặc tên người dùng.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">An toàn dữ liệu</string>
     <string name="datasafety_local_section">Dữ liệu cục bộ</string>
     <string name="datasafety_local_text">Dữ liệu cục bộ bao gồm Tải xuống, Thiết đặt người dùng, Kho. Chúng được lưu trữ trong bộ nhớ trong của thiết bị và chỉ hệ thống Android hoặc Keyguard mới có thể truy cập được.</string>

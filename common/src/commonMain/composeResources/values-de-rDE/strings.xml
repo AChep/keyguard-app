@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Das Passwort wurde erfolgreich geändert</string>
     <string name="exportaccount_header_title">Elemente exportieren</string>
     <string name="exportaccount_password_label">Passwort archivieren</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Der Tresor wird während des Exportprozesses entsperrt bleiben. Die Anhänge werden in den Daten des Tresors referenziert. Die Anhänge werden niemals in einer unverschlüsselt gespeichert.</string>
     <string name="exportaccount_include_attachments_title">Anhänge exportieren</string>
     <string name="exportaccount_export_button">Exportieren</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Einen Text als verschiedene Barcodes kodieren.</string>
     <string name="feat_item_generator_title">Generator</string>
     <string name="feat_item_generator_text">Erstelle Passwörter oder Benutzernamen.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Datensicherheit</string>
     <string name="datasafety_local_section">Lokale Daten</string>
     <string name="datasafety_local_text">Lokale Daten bestehen aus Downloads, Benutzereinstellungen und dem Tresor. Diese werden im internen Speicher eines Geräts gespeichert, auf das nur das Android-System oder der die Keyguard App zugreifen kann.</string>

@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Mot de passe modifié avec succès</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Le coffre-fort restera déverrouillé pendant le processus d'exportation. Les pièces jointes sont référencées dans les données du coffre-fort. Les pièces jointes ne sont jamais stockées en clair au cours du processus.</string>
     <string name="exportaccount_include_attachments_title">Exporter les pièces jointes</string>
     <string name="exportaccount_export_button">Exporter</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Encoder un texte sous la forme de codes-barres différents.</string>
     <string name="feat_item_generator_title">Générateur</string>
     <string name="feat_item_generator_text">Générer des mots de passe ou des noms d'utilisateurs.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Sécurité des données</string>
     <string name="datasafety_local_section">Données locales</string>
     <string name="datasafety_local_text">Les données locales se composent de téléchargements, de paramètres de l'utilisateur, de coffre. Ils sont stockés dans le stockage interne d'un appareil, qui n'est accessible que par le système Android ou le Keyguard.</string>

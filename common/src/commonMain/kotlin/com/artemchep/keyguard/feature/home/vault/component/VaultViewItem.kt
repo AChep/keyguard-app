@@ -16,6 +16,7 @@ fun VaultViewItem(
     is VaultViewItem.Error -> VaultViewErrorItem(modifier, item)
     is VaultViewItem.Info -> VaultViewInfoItem(modifier, item)
     is VaultViewItem.Identity -> VaultViewIdentityItem(modifier, item)
+    is VaultViewItem.QuickActions -> VaultViewQuickActionsItem(modifier, item)
     is VaultViewItem.Action -> VaultViewActionItem(modifier, item)
     is VaultViewItem.Value -> VaultViewValueItem(modifier, item)
     is VaultViewItem.Switch -> VaultViewSwitchItem(modifier, item)

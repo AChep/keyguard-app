@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.outlined.ShortText
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.DataArray
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.OfflineBolt
 import androidx.compose.material.icons.outlined.Password
@@ -153,6 +154,11 @@ val onboardingItemsWatchtower = listOf(
 )
 
 val onboardingItemsOther = listOf(
+    OnboardingItem(
+        title = Res.string.feat_item_export_title,
+        text = Res.string.feat_item_export_text,
+        icon = Icons.Outlined.Download,
+    ),
     OnboardingItem(
         title = Res.string.feat_item_multi_selection_title,
         text = Res.string.feat_item_multi_selection_text,

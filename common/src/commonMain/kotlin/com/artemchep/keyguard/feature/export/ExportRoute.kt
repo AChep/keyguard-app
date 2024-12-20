@@ -16,6 +16,7 @@ import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
 
@@ -50,13 +51,13 @@ data class ExportRoute(
                 translator.translate(res)
             }
             return FlatItemAction(
-                leading = kotlin.run {
-                    val res = if (individual) {
-                        Icons.Outlined.SaveAlt
-                    } else {
-                        Icons.Stub
-                    }
-                    icon(res)
+                icon = if (individual) {
+                    Icons.Outlined.SaveAlt
+                } else {
+                    Icons.Stub
+                },
+                trailing = {
+                    ChevronIcon()
                 },
                 title = TextHolder.Value(title),
                 onClick = {

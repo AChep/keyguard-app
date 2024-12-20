@@ -52,6 +52,13 @@ sealed interface VaultViewItem {
         companion object
     }
 
+    data class QuickActions(
+        override val id: String,
+        val actions: ImmutableList<ContextItem> = persistentListOf(),
+    ) : VaultViewItem {
+        companion object
+    }
+
     data class Action(
         override val id: String,
         val elevation: Dp = 0.dp,

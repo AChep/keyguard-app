@@ -569,7 +569,33 @@ private fun buildItemsFlow(
         }
     }
 
+    val quickActions = VaultViewItem.QuickActions(
+        id = "quick_actions",
+        actions = buildContextItems {
+            section {
+                this += ExportRoute.actionOrNull(
+                    translator = scope,
+                    accountId = accountId,
+                    individual = true,
+                    navigate = scope::navigate,
+                )
+                this += ExportRoute.actionOrNull(
+                    translator = scope,
+                    accountId = accountId,
+                    individual = false,
+                    navigate = scope::navigate,
+                )
+            }
+        },
+    )
+    emit(quickActions)
+
     if (account != null) {
+        val mainSectionItem = VaultViewItem.Section(
+            id = "main.section",
+        )
+        emit(mainSectionItem)
+
         val ff0 = VaultViewItem.Action(
             id = "ciphers",
             title = scope.translate(Res.string.items),

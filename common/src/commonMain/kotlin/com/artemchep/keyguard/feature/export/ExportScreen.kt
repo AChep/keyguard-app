@@ -350,21 +350,33 @@ private fun ExportScreen(
             )
         }
 
+        Spacer(
+            modifier = Modifier
+                .height(32.dp),
+        )
+        Icon(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding),
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
+        )
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
+        Text(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding),
+            text = stringResource(Res.string.exportaccount_format_note),
+            style = MaterialTheme.typography.bodyMedium,
+            color = LocalContentColor.current
+                .combineAlpha(alpha = MediumEmphasisAlpha),
+        )
         ExpandedIfNotEmpty(
             Unit.takeIf { attachments?.enabled == true },
         ) {
             Column {
-                Spacer(
-                    modifier = Modifier
-                        .height(32.dp),
-                )
-                Icon(
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.horizontalPadding),
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
-                )
                 Spacer(
                     modifier = Modifier
                         .height(16.dp),
@@ -478,21 +490,7 @@ private fun ColumnScope.ExportContentOk(
         )
         FlatItemLayout(
             leading = {
-                BadgedBox(
-                    modifier = Modifier
-                        .zIndex(20f),
-                    badge = {
-                        val size = attachments.size
-                            ?: return@BadgedBox
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.badgeContainer,
-                        ) {
-                            Text(text = size)
-                        }
-                    },
-                ) {
-                    Icon(Icons.Outlined.KeyguardAttachment, null)
-                }
+                Icon(Icons.Outlined.KeyguardAttachment, null)
             },
             content = {
                 FlatItemTextContent(
@@ -500,6 +498,11 @@ private fun ColumnScope.ExportContentOk(
                         Text(
                             text = stringResource(Res.string.exportaccount_include_attachments_title),
                         )
+                    },
+                    text = {
+                        val size = attachments.size
+                            ?: return@FlatItemTextContent
+                        Text(size)
                     },
                 )
             },

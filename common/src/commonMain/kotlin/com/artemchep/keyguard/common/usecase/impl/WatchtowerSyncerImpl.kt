@@ -261,6 +261,7 @@ class WatchtowerPasswordPwned(
             .map {
                 it.int.toString()
             },
+        version = "2",
     )
 
     private fun getDatabaseVersionFlow() = flow {
@@ -360,6 +361,7 @@ class WatchtowerWebsitePwned(
             .map {
                 it.int.toString()
             },
+        version = "2",
     )
 
     private fun getDatabaseVersionFlow() = flow {
@@ -562,6 +564,7 @@ class WatchtowerInactivePasskey(
             .map {
                 it.int.toString()
             },
+        version = "2",
     )
 
     override suspend fun process(
@@ -871,6 +874,7 @@ class WatchtowerInactiveTfa(
             .map {
                 it.int.toString()
             },
+        version = "2",
     )
 
     override suspend fun process(
@@ -921,6 +925,7 @@ class WatchtowerDuplicateUris(
     override fun version() = combineJoinToVersion(
         getAutofillDefaultMatchDetection()
             .map { it.name },
+        version = "2",
     )
 
     override suspend fun process(
@@ -1024,8 +1029,12 @@ private fun parseHost(uri: DSecret.Uri) = if (
 
 private fun combineJoinToVersion(
     vararg flows: Flow<String>,
+    version: String? = null,
 ): Flow<String> = combine(
     flows = flows,
 ) {
-    it.joinToString(separator = "|")
+    val data = it.joinToString(separator = "|")
+    if (version != null) {
+        "$version|$data"
+    } else data
 }

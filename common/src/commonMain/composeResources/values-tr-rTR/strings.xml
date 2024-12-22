@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Parola başarıyla değiştirildi</string>
     <string name="exportaccount_header_title">Öğeleri dışa aktar</string>
     <string name="exportaccount_password_label">Arşiv şifresi</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Dışa aktarma işlemi sırasında kasa kilidi açık tutulacaktır. Ekler, kasanın verilerinde referans alınır. Ekler, süreçte hiçbir zaman şifrelenmemiş halde saklanmaz.</string>
     <string name="exportaccount_include_attachments_title">Ekleri dışa aktar</string>
     <string name="exportaccount_export_button">Dışa aktar</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Bir metni farklı barkodlar olarak kodla.</string>
     <string name="feat_item_generator_title">Üretici</string>
     <string name="feat_item_generator_text">Şifreler veya kullanıcı adları oluştur.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Veri güvenliği</string>
     <string name="datasafety_local_section">Yerel veri</string>
     <string name="datasafety_local_text">Yerel veriler İndirmeler, Kullanıcı ayarları, Kasa'dan oluşur. Cihazın dahili depolamasında saklanır ve yalnızca Android sistemi veya Keyguard tarafından erişilebilir.</string>

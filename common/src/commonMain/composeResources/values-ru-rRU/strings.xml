@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Пароль успешно изменён</string>
     <string name="exportaccount_header_title">Экспорт элементов</string>
     <string name="exportaccount_password_label">Пароль архива</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Хранилище будет разблокировано пока экспорт не закончится. Данные хранилища включают в себя информацию об экспортированных файлах. Файлы в процессе экспорта не сохраняются в не зашифрованном формате.</string>
     <string name="exportaccount_include_attachments_title">Экспортировать файлы</string>
     <string name="exportaccount_export_button">Экспортировать</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Кодируйте текст в виде различных штрих-кодов.</string>
     <string name="feat_item_generator_title">Генератор</string>
     <string name="feat_item_generator_text">Генерировать пароли или имена пользователей.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Безопасность данных</string>
     <string name="datasafety_local_section">Локальные данные</string>
     <string name="datasafety_local_text">Локальные данные состоят из загрузок, настроек пользователя и хранилища. Они хранятся во внутренней памяти устройства, которая доступна только для системы Android или Keyguard.</string>

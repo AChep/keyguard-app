@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Elemek exportálása</string>
     <string name="exportaccount_password_label">Archívum jelszó</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">A széf az exportálási folyamat során nyitva marad. A mellékletek a széf adatainál vannak hivatkozva. A mellékletek soha nincsenek titkosítatlan formában tárolva a folyamat során.</string>
     <string name="exportaccount_include_attachments_title">Mellékletek exportálása</string>
     <string name="exportaccount_export_button">Exportálás</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Kódolja a szöveget különböző vonalkódokként.</string>
     <string name="feat_item_generator_title">Generátor</string>
     <string name="feat_item_generator_text">Jelszavak vagy felhasználónevek generálása.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Adat biztonság</string>
     <string name="datasafety_local_section">Helyi adatok</string>
     <string name="datasafety_local_text">A helyi adatok a Letöltésekből, a Felhasználói beállításokból és a Széfből állnak. Ezek a készülék belső tárhelyén vannak tárolva, amelyhez csak az Android rendszer vagy a Keyguard férhet hozzá.</string>

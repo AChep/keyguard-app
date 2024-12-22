@@ -906,6 +906,7 @@
     <string name="changepassword_password_changed_successfully">Palavra-passe alterada com sucesso</string>
     <string name="exportaccount_header_title">Exportar entradas</string>
     <string name="exportaccount_password_label">Palavra-passe do ficheiro</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">O cofre será mantido desbloqueado durante o processo de exportação. Os anexos são referenciados nos dados do cofre. Os anexos nunca são armazenados sem encriptação durante o processo.</string>
     <string name="exportaccount_include_attachments_title">Exportar anexos</string>
     <string name="exportaccount_export_button">Exportar</string>
@@ -1130,6 +1131,8 @@
     <string name="feat_item_show_barcode_text">Codificar um texto em códigos de barras diferentes.</string>
     <string name="feat_item_generator_title">Gerador</string>
     <string name="feat_item_generator_text">Gerar senhas ou nomes de utilizador.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Segurança de dados</string>
     <string name="datasafety_local_section">Dados locais</string>
     <string name="datasafety_local_text">Dados locais consistem em downloads, configurações do utilizador e cofre. São guardados no armazenamento interno do dispositivo, que só pode ser acedido pelo sistema Android ou pelo Keyguard.</string>

@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Пароль успішно змінено</string>
     <string name="exportaccount_header_title">Експорт записів</string>
     <string name="exportaccount_password_label">Пароль архіву</string>
+    <string name="exportaccount_format_note">Експортувати сховище як зашифрований ZIP-архів.</string>
     <string name="exportaccount_attachments_note">Сховище буде розблоковано поки експорт не завершиться. Дані сховища включають інформацію про експортовані файли. Файли в процесі експорту ніколи не зберігаються у не зашифрованому форматі.</string>
     <string name="exportaccount_include_attachments_title">Експортувати файли</string>
     <string name="exportaccount_export_button">Експортувати</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Показати текст у вигляді різних штрих-кодів.</string>
     <string name="feat_item_generator_title">Генератор</string>
     <string name="feat_item_generator_text">Генеруй паролі або імена користувачів.</string>
+    <string name="feat_item_export_title">Експорт</string>
+    <string name="feat_item_export_text">Експорт даних сховища, включно з вкладеннями.</string>
     <string name="datasafety_header_title">Безпека даних</string>
     <string name="datasafety_local_section">Локальні дані</string>
     <string name="datasafety_local_text">Локальні дані складаються з завантажень файлів, налаштувань користувача та сховища. Вони зберігаються у внутрішній пам'яті пристрою, до якого має доступ лише система Android та Keyguard.</string>

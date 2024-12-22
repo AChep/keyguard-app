@@ -4,6 +4,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.build.FileHashes
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
@@ -56,6 +57,18 @@ class TldServiceImpl(
                 .take(length + 1)
                 .asReversed()
                 .joinToString(separator = ".")
+        }
+        .map { domain ->
+            // We could not find an appropriate domain
+            // for the host. This means that the host is
+            // most likely not valid. For the sake of ease
+            // of use - report back the original host as
+            // the domain.
+            if (domain.isEmpty()) {
+                return@map host
+            }
+
+            domain
         }
         .measure { duration, result ->
             logRepository.postDebug(TAG) {

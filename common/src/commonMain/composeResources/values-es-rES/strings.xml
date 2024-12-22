@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Exportar elementos</string>
     <string name="exportaccount_password_label">Archivar contraseña</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
     <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_export_button">Exportar</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">Codifica un texto como códigos de barras diferentes.</string>
     <string name="feat_item_generator_title">Generador</string>
     <string name="feat_item_generator_text">Generar contraseñas o nombres de usuario.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Seguridad de los datos</string>
     <string name="datasafety_local_section">Datos locales</string>
     <string name="datasafety_local_text">Los datos locales consisten en Descargas, configuración de usuario, cajas fuertes. Se almacenan en el almacenamiento interno de un dispositivo, al que solo puede acceder el sistema Android o también a Keyguard.</string>

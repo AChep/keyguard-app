@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">تصدير العناصر</string>
     <string name="exportaccount_password_label">كلمة مرور الأرشيف</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">سيتم إبقاء Vault مفتوحًا أثناء عملية التصدير. تتم الإشارة إلى المرفقات في بيانات المخزن. لا يتم تخزين المرفقات أبدًا في شكل غير مشفر أثناء هذه العملية.</string>
     <string name="exportaccount_include_attachments_title">تصدير المرفقات</string>
     <string name="exportaccount_export_button">يصدّر</string>
@@ -1129,6 +1130,8 @@
     <string name="feat_item_show_barcode_text">تشفير النص كرموز شريطية مختلفة.</string>
     <string name="feat_item_generator_title">مولد</string>
     <string name="feat_item_generator_text">إنشاء كلمات المرور أو أسماء المستخدمين.</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">سلامة البيانات</string>
     <string name="datasafety_local_section">البيانات المحلية</string>
     <string name="datasafety_local_text">تتكون البيانات المحلية من التنزيلات وإعدادات المستخدم وVault. ويتم تخزينها في وحدة التخزين الداخلية للجهاز، والتي لا يمكن الوصول إليها إلا عن طريق نظام Android أو Keyguard.</string>

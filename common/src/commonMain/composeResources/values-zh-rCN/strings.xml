@@ -905,6 +905,7 @@
     <string name="changepassword_password_changed_successfully">密码修改成功</string>
     <string name="exportaccount_header_title">导出项目</string>
     <string name="exportaccount_password_label">归档密码</string>
+    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">密码库将在导出过程中保持解锁。
 附件将会在导出的密码库数据中被引用。
 在此过程中附件永远不会以未加密的形式存储。</string>
@@ -1131,6 +1132,8 @@
     <string name="feat_item_show_barcode_text">将文本编码为不同的二维码</string>
     <string name="feat_item_generator_title">生成器</string>
     <string name="feat_item_generator_text">生成密码或用户名</string>
+    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">数据安全</string>
     <string name="datasafety_local_section">本地数据</string>
     <string name="datasafety_local_text">本地数据包括下载文件、用户设置和密码库。它们存储在设备的内部存储器中，只能由 Android 系统或 Keyguard 应用访问。</string>

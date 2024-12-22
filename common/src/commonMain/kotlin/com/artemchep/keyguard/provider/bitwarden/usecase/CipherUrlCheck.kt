@@ -23,6 +23,7 @@ class CipherUrlCheckImpl(
 ) : CipherUrlCheck {
     companion object {
         private const val PROTOCOL_ANDROID_APP = "androidapp://"
+        private const val PROTOCOL_IOS_APP = "iosapp://"
     }
 
     constructor(directDI: DirectDI) : this(
@@ -37,9 +38,14 @@ class CipherUrlCheckImpl(
     ): IO<Boolean> {
         return when (uri.match ?: defaultMatchDetection) {
             DSecret.Uri.MatchType.Domain -> {
-                when {
-                    uri.uri.startsWith(PROTOCOL_ANDROID_APP) -> ::checkUrlMatchByHost
-                    else -> ::checkUrlMatchByDomain
+                val shouldUseHostMatchInstead = uri.uri.startsWith(PROTOCOL_ANDROID_APP) ||
+                        url.startsWith(PROTOCOL_ANDROID_APP) ||
+                        uri.uri.startsWith(PROTOCOL_IOS_APP) ||
+                        url.startsWith(PROTOCOL_IOS_APP)
+                if (shouldUseHostMatchInstead) {
+                    ::checkUrlMatchByHost
+                } else {
+                    ::checkUrlMatchByDomain
                 }
             }
 

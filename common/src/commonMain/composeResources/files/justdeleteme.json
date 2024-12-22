@@ -2779,6 +2779,15 @@
     "notes": "Support staff refuses to delete accounts due to 'accounting purposes'"
   },
   {
+    "name": "Buser",
+    "domains": [
+      "buser.com.br"
+    ],
+    "url": "https://www.buser.com.br/ajuda/conta-e-dados",
+    "difficulty": "easy",
+    "notes": "Click in 'Perfil' on the right side top and click on 'Editar perfil'. At the bottom of the page click on 'Op\u00e7\u00f5es Avan\u00e7adas' and click on 'Deletar minha conta'."
+  },
+  {
     "name": "Busuu",
     "domains": [
       "busuu.com"
@@ -7096,6 +7105,15 @@
     "url": "https://wap-support.gearbest.com/ticket/ticket/ticket-add",
     "difficulty": "hard",
     "notes": "You will need to open a ticket. In the first field, select \"Account Management \u2b95 Advanced Account Information\" and then send your message requesting the deletion of the account. Within 48 hours, the customer support will return your message asking if you confirm the deletion of the account. You can also contact them [via email](mailto:support@gearbest.com)."
+  },
+  {
+    "name": "GeekHunter",
+    "domains": [
+      "geekhunter.com.br"
+    ],
+    "url": "https://suporte.geekhunter.com.br/support/solutions/articles/9000185709-como-faco-para-excluir-minha-conta-",
+    "difficulty": "easy",
+    "notes": "In the right top menu, click on your profile then on 'Configura\u00e7\u00f5es'. Then click 'Excluir minha conta'."
   },
   {
     "name": "GeeksforGeeks",
@@ -19157,6 +19175,16 @@
     ],
     "url": "https://wwwapps.ups.com/ppc/ppc.html?loc=en_US#/informationPage/deleteProfile",
     "difficulty": "easy"
+  },
+  {
+    "name": "Uptime Observer",
+    "domains": [
+      "uptimeobserver.com",
+      "app.uptimeobserver.com"
+    ],
+    "url": "https://uptimeobserver.com/",
+    "difficulty": "hard",
+    "notes": "Send a message using the website chat feature (bottom right), asking them to delete your account."
   },
   {
     "name": "Uptime Robot",

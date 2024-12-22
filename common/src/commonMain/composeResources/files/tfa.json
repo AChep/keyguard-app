@@ -112,6 +112,14 @@
     "name": "Contra Costa Community College District"
   },
   {
+    "domain": "500px.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.500px.com/hc/en-us/articles/205115877",
+    "name": "500px"
+  },
+  {
     "domain": "53.com",
     "tfa": [
       "sms"
@@ -3729,6 +3737,16 @@
     "name": "CommunityAmerica"
   },
   {
+    "domain": "comodo.com",
+    "tfa": [
+      "totp",
+      "sms"
+    ],
+    "notes": "SMS is only available for accounts with more than 50 devices.",
+    "documentation": "https://help.comodo.com/topic-289-1-716-11276-.html",
+    "name": "Comodo"
+  },
+  {
     "domain": "compose.com",
     "tfa": [
       "sms",
@@ -3816,6 +3834,15 @@
     ],
     "documentation": "https://docs.connectwise.com/ConnectWise_Control_Documentation/Get_started/Administration_page/Security_page/Enable_two-factor_authentication_for_host_accounts",
     "name": "ConnectWise Control (ScreenConnect)"
+  },
+  {
+    "domain": "consentmanager.net",
+    "url": "https://www.consentmanager.net/",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.consentmanager.net/books/cmp/page/working-with-two-factor-authentication",
+    "name": "consentmanager"
   },
   {
     "domain": "consorsbank.de",
@@ -5760,6 +5787,14 @@
     "name": "F-Secure"
   },
   {
+    "domain": "f2pool.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://f2pool.zendesk.com/hc/articles/360058722731",
+    "name": "F2Pool"
+  },
+  {
     "domain": "facebook.com",
     "additional-domains": [
       "messenger.com"
@@ -6425,6 +6460,14 @@
     ],
     "documentation": "https://www.galaxus.ch/en/page/6589",
     "name": "Galaxus"
+  },
+  {
+    "domain": "gamebanana.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://gamebanana.com/blogs/19253",
+    "name": "GameBanana"
   },
   {
     "domain": "gamemaker.io",
@@ -7502,6 +7545,22 @@
       "totp"
     ],
     "name": "HP"
+  },
+  {
+    "domain": "hpe.com",
+    "additional-domains": [
+      "hewlettpackardenterprise.com"
+    ],
+    "tfa": [
+      "totp",
+      "u2f",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Okta Verify"
+    ],
+    "documentation": "https://support.hpe.com/hpesc/public/docDisplay?docId=sd00002926en_us&page=GUID-78722BEA-6517-4C6E-96F3-92E9D81903E2.html",
+    "name": "Hewlett Packard Enterprise"
   },
   {
     "domain": "hrblock.com",
@@ -9391,12 +9450,23 @@
   },
   {
     "domain": "mailchimp.com",
+    "additional-domains": [
+      "mailchi.mp"
+    ],
     "tfa": [
       "sms",
       "totp"
     ],
     "documentation": "https://kb.mailchimp.com/accounts/login/set-up-a-two-factor-authentication-app-at-login",
     "name": "MailChimp"
+  },
+  {
+    "domain": "mailerlite.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.mailerlite.com/help/how-to-turn-on-two-factor-authentication-2fa",
+    "name": "MailerLite"
   },
   {
     "domain": "mailfence.com",
@@ -9657,7 +9727,7 @@
       "sms",
       "totp"
     ],
-    "documentation": "https://documentation.meraki.com/zGeneral_Administration/Managing_Dashboard_Access/Using_Google_Authenticator_for_Two-factor_Authentication_in_Dashboard",
+    "documentation": "https://documentation.meraki.com/General_Administration/Other_Topics/Two-Factor_Authentication",
     "name": "Cisco Meraki"
   },
   {
@@ -10162,6 +10232,22 @@
     ],
     "documentation": "https://secureit.msu.edu/multi-factor/index.html",
     "name": "Michigan State University"
+  },
+  {
+    "domain": "mtb.com",
+    "additional-domains": [
+      "mandtbank.com"
+    ],
+    "tfa": [
+      "sms",
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "M&T Mobile app"
+    ],
+    "documentation": "https://www.mtb.com/help-center/banking-security/online-mobile-banking-security",
+    "name": "M&T Bank"
   },
   {
     "domain": "mulesoft.com",
@@ -11682,6 +11768,14 @@
     "name": "pair Domains"
   },
   {
+    "domain": "pandasecurity.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.pandasecurity.com/en/support/card?id=700088",
+    "name": "Panda Security"
+  },
+  {
     "domain": "panic.com",
     "tfa": [
       "totp"
@@ -12639,6 +12733,14 @@
     "name": "ProfitWell"
   },
   {
+    "domain": "progressive.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Progressive"
+  },
+  {
     "domain": "prostocash.com",
     "tfa": [
       "totp"
@@ -13519,6 +13621,14 @@
     "name": "Rocket Beans TV"
   },
   {
+    "domain": "rockstargames.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.rockstargames.com/articles/360000031747",
+    "name": "Rockstar Games"
+  },
+  {
     "domain": "rollbar.com",
     "tfa": [
       "totp"
@@ -13926,6 +14036,9 @@
   },
   {
     "domain": "segment.com",
+    "additional-domains": [
+      "segment.io"
+    ],
     "tfa": [
       "sms",
       "totp"
@@ -14089,6 +14202,15 @@
     ],
     "documentation": "https://napoveda.seznam.cz/cz/login/dvoufazove-overeni/",
     "name": "Seznam.cz"
+  },
+  {
+    "domain": "sezzle.com",
+    "tfa": [
+      "sms"
+    ],
+    "notes": "MFA is available for merchants only.",
+    "documentation": "https://merchant-help.sezzle.com/hc/en-us/articles/16960335317908",
+    "name": "Sezzle"
   },
   {
     "domain": "sffirecu.org",
@@ -14577,14 +14699,6 @@
     "name": "Southern California Gas Company"
   },
   {
-    "domain": "socialclub.rockstargames.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://support.rockstargames.com/articles/360000031747",
-    "name": "Rockstar Games Social Club"
-  },
-  {
     "domain": "socketlabs.com",
     "tfa": [
       "sms",
@@ -14849,6 +14963,14 @@
     ],
     "documentation": "https://www.ssa.gov/myaccount/MoreInformationAboutMFA.html",
     "name": "US Social Security Administration"
+  },
+  {
+    "domain": "ssl.com",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://www.ssl.com/guide/how-to-enable-two-factor-2fa-authentication-for-your-ssl-com-account/",
+    "name": "SSL.com"
   },
   {
     "domain": "ssltrust.com.au",
@@ -15529,6 +15651,14 @@
     ],
     "documentation": "https://www.telia.se/privat/support/info/logga-in-med-bankid-och-eleg-pa-mitt-telia",
     "name": "Telia"
+  },
+  {
+    "domain": "tello.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://tello.com/help_center/how-do-i-set-up-and-use-two-factor-authentication",
+    "name": "Tello"
   },
   {
     "domain": "telnyx.com",
@@ -16428,6 +16558,9 @@
   },
   {
     "domain": "ui.com",
+    "additional-domains": [
+      "ubnt.com"
+    ],
     "tfa": [
       "totp",
       "email",
@@ -17486,14 +17619,6 @@
     ],
     "documentation": "https://help.wealthsimple.com/hc/en-ca/articles/360056584134",
     "name": "Wealthsimple"
-  },
-  {
-    "domain": "web.500px.com",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://support.500px.com/hc/en-us/articles/205115877",
-    "name": "500px"
   },
   {
     "domain": "web.de",

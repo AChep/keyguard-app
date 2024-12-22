@@ -57,6 +57,7 @@ report_data = report["data"]
 # amount of contributed words.
 report_data = list(filter(
     lambda x: x["translated"] + x["approved"] >= MIN_WORDS_CONTRIBUTED, report_data))
+report_data.sort(key=lambda x: x["user"]["id"])
 
 report_data_text = json.dumps(report_data, indent=2)
 

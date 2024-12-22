@@ -79,6 +79,9 @@ class LocalizationContributorsServiceImpl(
         .effectMap { jsonString ->
             val entities = json.decodeFromString<List<LocalizationContributorEntity>>(jsonString)
             val models = entities.map(LocalizationContributorEntity::toDomain)
+                .sortedByDescending { contributor ->
+                    contributor.translated
+                }
             models
         }
         .sharedSoftRef(TAG)

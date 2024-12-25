@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import arrow.core.identity
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import io.ktor.http.Url
 
@@ -12,7 +13,6 @@ fun ServerEnv.buildHost() = buildWebVaultUrl()
 
 fun ServerEnv.buildWebVaultUrl() = buildUrl(
     url = webVaultUrl,
-    suffix = "",
     default = when (region) {
         ServerEnv.Region.US -> "https://vault.$BITWARDEN_DOMAIN_US/"
         ServerEnv.Region.EU -> "https://vault.$BITWARDEN_DOMAIN_EU/"
@@ -21,7 +21,7 @@ fun ServerEnv.buildWebVaultUrl() = buildUrl(
 
 fun ServerEnv.buildApiUrl() = buildUrl(
     url = apiUrl,
-    suffix = "api/",
+    baseUrlModifier = { "${it}api/" },
     default = when (region) {
         ServerEnv.Region.US -> "https://vault.$BITWARDEN_DOMAIN_US/api/"
         ServerEnv.Region.EU -> "https://vault.$BITWARDEN_DOMAIN_EU/api/"
@@ -30,7 +30,7 @@ fun ServerEnv.buildApiUrl() = buildUrl(
 
 fun ServerEnv.buildIdentityUrl() = buildUrl(
     url = identityUrl,
-    suffix = "identity/",
+    baseUrlModifier = { "${it}identity/" },
     default = when (region) {
         ServerEnv.Region.US -> "https://identity.$BITWARDEN_DOMAIN_US/"
         ServerEnv.Region.EU -> "https://identity.$BITWARDEN_DOMAIN_EU/"
@@ -39,27 +39,32 @@ fun ServerEnv.buildIdentityUrl() = buildUrl(
 
 fun ServerEnv.buildIconsUrl() = buildUrl(
     url = iconsUrl,
-    suffix = "icons/",
+    baseUrlModifier = { "${it}icons/" },
     default = "https://icons.bitwarden.net/",
 )
 
 fun ServerEnv.buildNotificationsUrl() = buildUrl(
     url = notificationsUrl,
-    suffix = "notifications/",
+    baseUrlModifier = { "${it}notifications/" },
     default = when (region) {
         ServerEnv.Region.US -> "https://notifications.$BITWARDEN_DOMAIN_US/"
         ServerEnv.Region.EU -> "https://notifications.$BITWARDEN_DOMAIN_EU/"
     },
 )
 
-fun ServerEnv.buildSendUrl() = buildUrl(
-    url = webVaultUrl,
-    suffix = "#/send/",
-    default = when (region) {
-        ServerEnv.Region.US -> "https://send.$BITWARDEN_DOMAIN_US/#"
-        ServerEnv.Region.EU -> "https://send.$BITWARDEN_DOMAIN_EU/#"
-    },
-)
+fun ServerEnv.buildSendUrl() = run {
+    fun urlModifier(url: String): String = "$url#/send/"
+
+    buildUrl(
+        url = webVaultUrl,
+        urlModifier = ::urlModifier,
+        baseUrlModifier = ::urlModifier,
+        default = when (region) {
+            ServerEnv.Region.US -> "https://send.$BITWARDEN_DOMAIN_US/#"
+            ServerEnv.Region.EU -> "https://send.$BITWARDEN_DOMAIN_EU/#"
+        },
+    )
+}
 
 fun ServerEnv.buildIconsRequestUrl(domain: String) = kotlin.run {
     val baseUrl = buildIconsUrl()
@@ -68,14 +73,15 @@ fun ServerEnv.buildIconsRequestUrl(domain: String) = kotlin.run {
 
 private fun ServerEnv.buildUrl(
     url: String,
-    suffix: String,
+    urlModifier: (String) -> String = ::identity,
+    baseUrlModifier: (String) -> String = ::identity,
     default: String,
-) = url
-    .takeUnless { it.isBlank() }
-    ?: baseUrl
-        .takeUnless { it.isBlank() }
-        ?.ensureSuffix("/")
-        ?.let { it + suffix }
+) = ensureValidBaseUrlOrNull(url)?.let(urlModifier)
+    ?: ensureValidBaseUrlOrNull(baseUrl)?.let(baseUrlModifier)
     ?: default
+
+private fun ensureValidBaseUrlOrNull(url: String) = url
+    .takeUnless { it.isBlank() }
+    ?.ensureSuffix("/")
 
 fun String.ensureSuffix(suffix: String) = if (endsWith(suffix)) this else this + suffix

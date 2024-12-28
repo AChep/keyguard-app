@@ -591,11 +591,6 @@ private fun buildItemsFlow(
     emit(quickActions)
 
     if (account != null) {
-        val mainSectionItem = VaultViewItem.Section(
-            id = "main.section",
-        )
-        emit(mainSectionItem)
-
         val ff0 = VaultViewItem.Action(
             id = "ciphers",
             title = scope.translate(Res.string.items),

@@ -64,6 +64,10 @@ fun VaultViewQuickActionsItem(
                 item = i,
             )
         }
+        Spacer(
+            modifier = Modifier
+                .width(4.dp),
+        )
     }
 }
 

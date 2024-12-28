@@ -39,3 +39,5 @@ data class Dimen(
 val Dimen.horizontalPaddingHalf get() = horizontalPadding / 2
 
 val Dimen.horizontalPaddingFourth get() = horizontalPadding / 4
+
+val Dimen.verticalPaddingHalf get() = verticalPadding / 2

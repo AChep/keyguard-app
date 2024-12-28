@@ -4,8 +4,10 @@ package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Lock
@@ -30,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,6 +76,7 @@ import com.artemchep.keyguard.ui.text.AutoSizeText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import com.artemchep.keyguard.ui.tooltip.Tooltip
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -323,22 +329,32 @@ private fun VaultViewTitle(
         is VaultViewState.Content.Cipher -> {
             val title = state.content.data.name
                 .takeUnless { it.isEmpty() }
-            if (title != null) {
-                AutoSizeText(
-                    text = title,
-                    maxLines = 2,
-                    minTextSize = MaterialTheme.typography.titleSmall.fontSize,
-                    maxTextSize = LocalTextStyle.current.fontSize,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            } else {
-                Text(
-                    text = stringResource(Res.string.empty_value),
-                    color = LocalContentColor.current
-                        .combineAlpha(DisabledEmphasisAlpha),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            Tooltip(
+                valueOrNull = title,
+                tooltip = { text ->
+                    Text(
+                        text,
+                        maxLines = 8,
+                    )
+                },
+            ) {
+                if (title != null) {
+                    AutoSizeText(
+                        text = title,
+                        maxLines = 2,
+                        minTextSize = MaterialTheme.typography.titleSmall.fontSize,
+                        maxTextSize = LocalTextStyle.current.fontSize,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } else {
+                    Text(
+                        text = stringResource(Res.string.empty_value),
+                        color = LocalContentColor.current
+                            .combineAlpha(DisabledEmphasisAlpha),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
 

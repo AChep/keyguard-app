@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
@@ -47,6 +45,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
@@ -114,7 +113,7 @@ fun VaultViewInfoItem(
                             .fillMaxWidth()
                             .padding(top = 4.dp)
                             .padding(horizontal = 8.dp)
-                            .animateContentSize(),
+                            .animateContentHeight(),
                         text = message,
                         style = MaterialTheme.typography.bodySmall,
                         color = LocalContentColor.current

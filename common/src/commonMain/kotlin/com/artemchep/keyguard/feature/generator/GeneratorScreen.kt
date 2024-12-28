@@ -106,6 +106,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
 import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.collectIsInteractedWith
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.DropdownIcon
@@ -556,7 +557,7 @@ fun ColumnScope.GeneratorValue(
                 Crossfade(
                     targetState = value.password,
                     modifier = Modifier
-                        .animateContentSize(),
+                        .animateContentHeight(),
                 ) { password ->
                     AutoResizeText(
                         text = colorizePasswordOrEmpty(password),
@@ -1189,23 +1190,18 @@ fun AutoResizeText(
     minFontSize: Float = 14f,
     maxLines: Int = Int.MAX_VALUE,
 ) {
-    Box(
-        modifier = modifier,
-    ) {
-        val fontSize = kotlin.run {
-            val ratio = 1f - (text.length / 128f)
-                .coerceAtMost(1f)
-            minFontSize + (maxFontSize - minFontSize) * ratio
-        }
-        Text(
-            modifier = Modifier
-                .animateContentSize(),
-            text = text,
-            fontFamily = monoFontFamily,
-            fontSize = fontSize.sp,
-            maxLines = maxLines,
-            overflow = TextOverflow.Ellipsis,
-            style = MaterialTheme.typography.titleLarge,
-        )
+    val fontSize = run {
+        val ratio = 1f - (text.length / 128f)
+            .coerceAtMost(1f)
+        minFontSize + (maxFontSize - minFontSize) * ratio
     }
+    Text(
+        modifier = modifier,
+        text = text,
+        fontFamily = monoFontFamily,
+        fontSize = fontSize.sp,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.titleLarge,
+    )
 }

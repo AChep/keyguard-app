@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.ui
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -52,6 +51,7 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -320,7 +320,7 @@ private fun ColumnScope.GeneratorValue2(
                 Crossfade(
                     targetState = value.password,
                     modifier = Modifier
-                        .animateContentSize(),
+                        .animateContentHeight(),
                 ) { password ->
                     AutoResizeText(
                         text = if (password.isEmpty()) {

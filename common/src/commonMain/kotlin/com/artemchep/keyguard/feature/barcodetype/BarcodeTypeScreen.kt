@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.QrCode
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,6 +43,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeepScreenOnEffect
+import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
@@ -120,7 +120,7 @@ private fun BarcodeTypeContent(
                     BarcodeImage(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateContentSize(),
+                            .animateContentHeight(),
                         imageModel = {
                             imageRequest
                                 ?.copy(

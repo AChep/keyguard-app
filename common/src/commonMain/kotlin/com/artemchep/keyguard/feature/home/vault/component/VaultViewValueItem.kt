@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -35,12 +35,11 @@ import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.animatedConcealedText
+import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlin.Int
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -83,28 +82,27 @@ fun VaultViewValueItem(
                 } else {
                     null
                 },
-                text = if (shownValue.isNotBlank()) {
-                    // composable
-                    {
-                        Text(
-                            modifier = Modifier
-                                .animateContentSize(),
-                            text = shownValue,
-                            fontFamily = if (item.monospace) monoFontFamily else null,
-                            maxLines = item.maxLines,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                } else {
-                    // composable
-                    {
-                        Text(
-                            modifier = Modifier
-                                .animateContentSize()
-                                .alpha(MediumEmphasisAlpha),
-                            text = stringResource(Res.string.empty_value),
-                            fontFamily = if (item.monospace) monoFontFamily else null,
-                        )
+                text = {
+                    Box(
+                        modifier = Modifier
+                            .animateContentHeight(),
+                    ) {
+                        val fontFamily = if (item.monospace) monoFontFamily else null
+                        if (shownValue.isNotBlank()) {
+                            Text(
+                                text = shownValue,
+                                fontFamily = fontFamily,
+                                maxLines = item.maxLines,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        } else {
+                            Text(
+                                modifier = Modifier
+                                    .alpha(MediumEmphasisAlpha),
+                                text = stringResource(Res.string.empty_value),
+                                fontFamily = fontFamily,
+                            )
+                        }
                     }
                 },
             )

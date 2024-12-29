@@ -29,4 +29,6 @@ include ':androidApp'
 include ':androidBenchmark'
 include ':androidTest'
 include ':desktopApp'
+include ':desktopLibJvm'
+include ':desktopLibNative'
 

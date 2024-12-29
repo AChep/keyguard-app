@@ -1,0 +1,143 @@
+package autotype
+
+// Based on
+// https://github.com/asweigart/pyautogui
+// which itself is based on
+// /System/Library/Frameworks/Carbon.framework/Versions/A/Frameworks/HIToolbox.framework/Versions/A/Headers/Events.h
+internal val keyMapping = mapOf(
+    "a" to 0x00u, // kVK_ANSI_A
+    "s" to 0x01u, // kVK_ANSI_S
+    "d" to 0x02u, // kVK_ANSI_D
+    "f" to 0x03u, // kVK_ANSI_F
+    "h" to 0x04u, // kVK_ANSI_H
+    "g" to 0x05u, // kVK_ANSI_G
+    "z" to 0x06u, // kVK_ANSI_Z
+    "x" to 0x07u, // kVK_ANSI_X
+    "c" to 0x08u, // kVK_ANSI_C
+    "v" to 0x09u, // kVK_ANSI_V
+    "b" to 0x0bu, // kVK_ANSI_B
+    "q" to 0x0cu, // kVK_ANSI_Q
+    "w" to 0x0du, // kVK_ANSI_W
+    "e" to 0x0eu, // kVK_ANSI_E
+    "r" to 0x0fu, // kVK_ANSI_R
+    "y" to 0x10u, // kVK_ANSI_Y
+    "t" to 0x11u, // kVK_ANSI_T
+    "1" to 0x12u, // kVK_ANSI_1
+    "!" to 0x12u, // kVK_ANSI_1
+    "2" to 0x13u, // kVK_ANSI_2
+    "@" to 0x13u, // kVK_ANSI_2
+    "3" to 0x14u, // kVK_ANSI_3
+    "#" to 0x14u, // kVK_ANSI_3
+    "4" to 0x15u, // kVK_ANSI_4
+    "$" to 0x15u, // kVK_ANSI_4
+    "6" to 0x16u, // kVK_ANSI_6
+    "^" to 0x16u, // kVK_ANSI_6
+    "5" to 0x17u, // kVK_ANSI_5
+    "%" to 0x17u, // kVK_ANSI_5
+    "=" to 0x18u, // kVK_ANSI_Equal
+    "+" to 0x18u, // kVK_ANSI_Equal
+    "9" to 0x19u, // kVK_ANSI_9
+    "(" to 0x19u, // kVK_ANSI_9
+    "7" to 0x1au, // kVK_ANSI_7
+    "&" to 0x1au, // kVK_ANSI_7
+    "-" to 0x1bu, // kVK_ANSI_Minus
+    "_" to 0x1bu, // kVK_ANSI_Minus
+    "8" to 0x1cu, // kVK_ANSI_8
+    "*" to 0x1cu, // kVK_ANSI_8
+    "0" to 0x1du, // kVK_ANSI_0
+    ")" to 0x1du, // kVK_ANSI_0
+    "]" to 0x1eu, // kVK_ANSI_RightBracket
+    "}" to 0x1eu, // kVK_ANSI_RightBracket
+    "o" to 0x1fu, // kVK_ANSI_O
+    "u" to 0x20u, // kVK_ANSI_U
+    "[" to 0x21u, // kVK_ANSI_LeftBracket
+    "{" to 0x21u, // kVK_ANSI_LeftBracket
+    "i" to 0x22u, // kVK_ANSI_I
+    "p" to 0x23u, // kVK_ANSI_P
+    "l" to 0x25u, // kVK_ANSI_L
+    "j" to 0x26u, // kVK_ANSI_J
+    "'" to 0x27u, // kVK_ANSI_Quote
+    "\"" to 0x27u, // kVK_ANSI_Quote
+    "k" to 0x28u, // kVK_ANSI_K
+    ";" to 0x29u, // kVK_ANSI_Semicolon
+    ":" to 0x29u, // kVK_ANSI_Semicolon
+    "\\" to 0x2au, // kVK_ANSI_Backslash
+    "|" to 0x2au, // kVK_ANSI_Backslash
+    "," to 0x2bu, // kVK_ANSI_Comma
+    "<" to 0x2bu, // kVK_ANSI_Comma
+    "/" to 0x2cu, // kVK_ANSI_Slash
+    "?" to 0x2cu, // kVK_ANSI_Slash
+    "n" to 0x2du, // kVK_ANSI_N
+    "m" to 0x2eu, // kVK_ANSI_M
+    "." to 0x2fu, // kVK_ANSI_Period
+    ">" to 0x2fu, // kVK_ANSI_Period
+    "`" to 0x32u, // kVK_ANSI_Grave
+    "~" to 0x32u, // kVK_ANSI_Grave
+    " " to 0x31u, // kVK_Space
+    "space" to 0x31u,
+    "\r" to 0x24u, // kVK_Return
+    "\n" to 0x24u, // kVK_Return
+    "enter" to 0x24u, // kVK_Return
+    "return" to 0x24u, // kVK_Return
+    "\t" to 0x30u, // kVK_Tab
+    "tab" to 0x30u, // kVK_Tab
+    "backspace" to 0x33u, // kVK_Delete, which is "Backspace" on OS X.
+    "\b" to 0x33u, // kVK_Delete, which is "Backspace" on OS X.
+    "esc" to 0x35u, // kVK_Escape
+    "escape" to 0x35u, // kVK_Escape
+    "command" to 0x37u, // kVK_Command
+    "shift" to 0x38u, // kVK_Shift
+    "shiftleft" to 0x38u, // kVK_Shift
+    "capslock" to 0x39u, // kVK_CapsLock
+    "option" to 0x3au, // kVK_Option
+    "optionleft" to 0x3au, // kVK_Option
+    "alt" to 0x3au, // kVK_Option
+    "altleft" to 0x3au, // kVK_Option
+    "ctrl" to 0x3bu, // kVK_Control
+    "ctrlleft" to 0x3bu, // kVK_Control
+    "shiftright" to 0x3cu, // kVK_RightShift
+    "optionright" to 0x3du, // kVK_RightOption
+    "ctrlright" to 0x3eu, // kVK_RightControl
+    "fn" to 0x3fu, // kVK_Function
+    "f17" to 0x40u, // kVK_F17
+    "volumeup" to 0x48u, // kVK_VolumeUp
+    "volumedown" to 0x49u, // kVK_VolumeDown
+    "volumemute" to 0x4au, // kVK_Mute
+    "f18" to 0x4fu, // kVK_F18
+    "f19" to 0x50u, // kVK_F19
+    "f20" to 0x5au, // kVK_F20
+    "f5" to 0x60u, // kVK_F5
+    "f6" to 0x61u, // kVK_F6
+    "f7" to 0x62u, // kVK_F7
+    "f3" to 0x63u, // kVK_F3
+    "f8" to 0x64u, // kVK_F8
+    "f9" to 0x65u, // kVK_F9
+    "f11" to 0x67u, // kVK_F11
+    "f13" to 0x69u, // kVK_F13
+    "f16" to 0x6au, // kVK_F16
+    "f14" to 0x6bu, // kVK_F14
+    "f10" to 0x6du, // kVK_F10
+    "f12" to 0x6fu, // kVK_F12
+    "f15" to 0x71u, // kVK_F15
+    "help" to 0x72u, // kVK_Help
+    "home" to 0x73u, // kVK_Home
+    "pageup" to 0x74u, // kVK_PageUp
+    "pgup" to 0x74u, // kVK_PageUp
+    "del" to 0x75u, // kVK_ForwardDelete
+    "delete" to 0x75u, // kVK_ForwardDelete
+    "f4" to 0x76u, // kVK_F4
+    "end" to 0x77u, // kVK_End
+    "f2" to 0x78u, // kVK_F2
+    "pagedown" to 0x79u, // kVK_PageDown
+    "pgdn" to 0x79u, // kVK_PageDown
+    "f1" to 0x7au, // kVK_F1
+    "left" to 0x7bu, // kVK_LeftArrow
+    "right" to 0x7cu, // kVK_RightArrow
+    "down" to 0x7du, // kVK_DownArrow
+    "up" to 0x7eu, // kVK_UpArrow
+    "yen" to 0x5du, // kVK_JIS_Yen
+    "underscore" to 0x5eu, //  kVK_JIS_Underscore (only applies to Japanese keyboards)
+    "comma" to 0x5fu, //  kVK_JIS_KeypadComma (only applies to Japanese keyboards)
+    "eisu" to 0x66u, // kVK_JIS_Eisu
+    "kana" to 0x68u, // kVK_JIS_Kana
+)

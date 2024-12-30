@@ -100,7 +100,7 @@ ktor = "3.0.3"
 # https://github.com/java-native-access/jna
 jna = "5.16.0"
 # https://github.com/skydoves/landscapist
-landscapist = "2.4.4"
+landscapist = "2.4.5"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.12.0"
 # https://github.com/tony19/logback-android

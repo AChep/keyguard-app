@@ -141,10 +141,12 @@ private fun LicenseItem(
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
             )
-            Spacer(
-                modifier = Modifier
-                    .height(8.dp),
-            )
+            if (item.spdxLicenses.isNotEmpty()) {
+                Spacer(
+                    modifier = Modifier
+                        .height(8.dp),
+                )
+            }
             FlowRow(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

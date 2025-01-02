@@ -45,7 +45,7 @@ androidxTestJUnit = "1.2.1"
 androidxTestOrchestrator = "1.5.1"
 androidxWork = "2.10.0"
 # https://github.com/harawata/appdirs
-appDirs = "1.2.2"
+appDirs = "1.3.0"
 # https://github.com/arrow-kt/arrow
 arrow = "1.2.4"
 # https://github.com/AChep/bindin

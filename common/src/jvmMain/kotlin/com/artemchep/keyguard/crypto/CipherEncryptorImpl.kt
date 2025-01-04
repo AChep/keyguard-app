@@ -286,8 +286,8 @@ class CipherEncryptorImpl(
         forEncryption: Boolean,
     ) = kotlin.run {
         val aes = PaddedBufferedBlockCipher(
-            CBCBlockCipher(
-                AESEngine(),
+            CBCBlockCipher.newInstance(
+                AESEngine.newInstance(),
             ),
             PKCS7Padding(),
         )

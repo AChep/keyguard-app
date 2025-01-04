@@ -257,13 +257,13 @@ class CipherEncryptorImpl(
         val (iv, ct, mac) = args
         // Check if the mac matches the provided one, otherwise
         // the cipher has been corrupted.
-//        val computedMac = kotlin.run {
-//            val macData = iv + ct
-//            cryptoGenerator.hmacSha256(macKey, macData)
-//        }
-//        if (!computedMac.contentEquals(mac)) {
-//            error("Message authentication codes do not match!")
-//        }
+        val computedMac = kotlin.run {
+            val macData = iv + ct
+            cryptoGenerator.hmacSha256(macKey, macData)
+        }
+        if (!computedMac.contentEquals(mac)) {
+            error("Message authentication codes do not match!")
+        }
         return decodeAesCbc256_HmacSha256_B64(
             iv = iv,
             ct = ct,

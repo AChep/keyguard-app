@@ -9,7 +9,6 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
-import org.bouncycastle.asn1.pkcs.RSAPublicKey
 import org.bouncycastle.crypto.AsymmetricBlockCipher
 import org.bouncycastle.crypto.BufferedBlockCipher
 import org.bouncycastle.crypto.CipherParameters
@@ -23,11 +22,8 @@ import org.bouncycastle.crypto.paddings.PKCS7Padding
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.ParametersWithIV
-import org.bouncycastle.crypto.params.RSAKeyParameters
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
 import org.bouncycastle.crypto.util.PrivateKeyFactory
-import org.bouncycastle.crypto.util.PublicKeyFactory
-import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -104,20 +100,9 @@ class CipherEncryptorImpl(
             //
 
             CipherEncryptor.Type.AesCbc256_B64 -> {
-                val baseKey = requireSymmetricCryptoKey()
-                kotlin
-                    .runCatching {
-                        val cryptoKey = baseKey.requireAesCbc256_B64()
-                        decodeAesCbc256_B64(cipherArgs, encKey = cryptoKey.encKey)
-                    }
-                    .getOrElse {
-                        // Try to fallback to decoding with a mac key.
-                        val cryptoKey = baseKey.requireAesCbc256_HmacSha256_B64()
-                        decodeAesCbc256_B64(
-                            cipherArgs,
-                            encKey = cryptoKey.encKey,
-                        )
-                    }
+                val msg = "The support for AES CBC 256 (enc-type 0) is not longer provided! " +
+                        "Please upgrade your vault to migrate to a newer encryption type!"
+                throw IllegalArgumentException(msg)
             }
 
             CipherEncryptor.Type.AesCbc128_HmacSha256_B64 -> {
@@ -130,30 +115,12 @@ class CipherEncryptorImpl(
             }
 
             CipherEncryptor.Type.AesCbc256_HmacSha256_B64 -> {
-                val baseKey = requireSymmetricCryptoKey()
-                kotlin
-                    .runCatching {
-                        val cryptoKey = baseKey.requireAesCbc256_HmacSha256_B64()
-                        decodeAesCbc256_HmacSha256_B64(
-                            cipherArgs,
-                            encKey = cryptoKey.encKey,
-                            macKey = cryptoKey.macKey,
-                        )
-                    }
-                    .getOrElse {
-                        // Try to fallback to decoding without mac key.
-                        val cryptoKey = kotlin.run {
-                            val rawKey = baseKey.data
-                                .sliceArray(0 until 32)
-                            SymmetricCryptoKey2.Crypto(
-                                encKey = rawKey,
-                            )
-                        }
-                        decodeAesCbc256_B64(
-                            cipherArgs,
-                            encKey = cryptoKey.encKey,
-                        )
-                    }
+                val cryptoKey = requireSymmetricCryptoKey().requireAesCbc256_HmacSha256_B64()
+                decodeAesCbc256_HmacSha256_B64(
+                    cipherArgs,
+                    encKey = cryptoKey.encKey,
+                    macKey = cryptoKey.macKey,
+                )
             }
 
             //
@@ -211,22 +178,6 @@ class CipherEncryptorImpl(
         return DecodeResult(
             data = data,
             type = cipherType,
-        )
-    }
-
-    private fun decodeAesCbc256_B64(
-        args: List<ByteArray>,
-        encKey: ByteArray,
-    ): ByteArray {
-        check(args.size >= 2) {
-            "The cipher must consist of exactly 2 parts: iv, ct. The current cipher " +
-                    "contains ${args.size} parts which may cause unknown behaviour!"
-        }
-        val (iv, ct) = args
-        return decodeAesCbc256_HmacSha256_B64(
-            iv = iv,
-            ct = ct,
-            encKey = encKey,
         )
     }
 
@@ -426,12 +377,9 @@ class CipherEncryptorImpl(
             //
 
             CipherEncryptor.Type.AesCbc256_B64 -> {
-                requireNotNull(symmetricCryptoKey) {
-                    "Symmetric Crypto Key must not be null, " +
-                            "for encoding $cipherType."
-                }
-                val cryptoKey = symmetricCryptoKey.requireAesCbc256_B64()
-                encodeAesCbc256_B64(plainText, encKey = cryptoKey.encKey)
+                val msg = "The support for AES CBC 256 (enc-type 0) is not longer provided! " +
+                        "Please upgrade your vault to migrate to a newer encryption type!"
+                throw IllegalArgumentException(msg)
             }
 
             CipherEncryptor.Type.AesCbc128_HmacSha256_B64 -> {

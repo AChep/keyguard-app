@@ -53,7 +53,7 @@ bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
 buildkonfigPlugin = "0.15.2"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
-commonsCodec = "1.17.1"
+commonsCodec = "1.17.2"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.17.0"
 # https://github.com/JetBrains/compose-multiplatform

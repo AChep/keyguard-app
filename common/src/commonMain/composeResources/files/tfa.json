@@ -5965,6 +5965,14 @@
     "name": "FedEx"
   },
   {
+    "domain": "feedly.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.feedly.com/article/747-how-to-enable-two-factor-authentication",
+    "name": "Feedly"
+  },
+  {
     "domain": "fi.google.com",
     "tfa": [
       "sms",
@@ -6195,6 +6203,15 @@
     ],
     "documentation": "https://www.fiverr.com/support/articles/360010239658",
     "name": "Fiverr"
+  },
+  {
+    "domain": "flexera.com",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://docs.flexera.com/svm/Content/helplibrary/Configure_Two_Factor_Authentication__2FA_.htm",
+    "name": "Flexera"
   },
   {
     "domain": "flipsnack.com",
@@ -7987,6 +8004,19 @@
     ],
     "documentation": "https://www.ing.de/hilfe/auftraege-freigeben/",
     "name": "ING-DiBa [DE]"
+  },
+  {
+    "domain": "ing.it",
+    "tfa": [
+      "custom-software",
+      "sms"
+    ],
+    "custom-software": [
+      "ING Italia"
+    ],
+    "documentation": "https://www.ing.it/faq/codici-e-dati-anagrafici/token-cos-e-come-funziona.html",
+    "notes": "The SMS One-Time Password service is available for a fee of \u20ac0.50/month.",
+    "name": "ING Italia"
   },
   {
     "domain": "ing.lu",
@@ -13629,6 +13659,14 @@
     "name": "Rockstar Games"
   },
   {
+    "domain": "roku.com",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://support.roku.com/article/22482363662103",
+    "name": "Roku"
+  },
+  {
     "domain": "rollbar.com",
     "tfa": [
       "totp"
@@ -16097,6 +16135,16 @@
     ],
     "documentation": "https://blog.travala.com/explaining-how-the-travala-wallet-functions/",
     "name": "Travala"
+  },
+  {
+    "domain": "travelers.com",
+    "tfa": [
+      "sms",
+      "call",
+      "totp"
+    ],
+    "documentation": "https://www.travelers.com/about-travelers/campaigns/multifactor-authentication",
+    "name": "Travelers"
   },
   {
     "domain": "tre.se",

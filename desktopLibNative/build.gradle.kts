@@ -123,6 +123,32 @@ tasks.register(Tasks.compileNativeUniversal) {
                     "compile task is started!"
         }
 
+        // On macOS we might additionally sign the desktop
+        // library binary, if the certificate's identity is specified.
+        // This must be done for release builds.
+        if (
+            os == Os.MAC_ARM64 ||
+            os == Os.MAC_X64
+        ) {
+            val certIdentity = findProperty("cert_identity") as String?
+            if (certIdentity != null) {
+                println("Signing native lib binary with identity ${certIdentity.take(2)}****")
+                exec {
+                    commandLine(
+                        "codesign",
+                        "--force",
+                        "--options",
+                        "runtime",
+                        "--sign",
+                        certIdentity,
+                        bin.absolutePath,
+                    )
+                    // The certificate should be added to the
+                    // keychain by this time.
+                }
+            }
+        }
+
         bin.copyTo(
             target = out.resolve("universal/libkeyguard"),
             overwrite = true,

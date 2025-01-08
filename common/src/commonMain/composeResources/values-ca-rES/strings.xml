@@ -905,7 +905,7 @@
     <string name="changepassword_password_changed_successfully">La contrasenya s'ha canviat correctament</string>
     <string name="exportaccount_header_title">Exportar elements</string>
     <string name="exportaccount_password_label">Arxivar contrasenya</string>
-    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_note">Exporta la caixa forta com un arxiu ZIP comprimit.</string>
     <string name="exportaccount_attachments_note">La caixa forta es mantindrà desbloquejada durant el procés d'exportació. Els adjunts estan referenciats a les dades de la caixa forta. Els adjunts mai es guarden de manera desencriptada durant el procés.</string>
     <string name="exportaccount_include_attachments_title">Exportar adjunts</string>
     <string name="exportaccount_export_button">Exportar</string>
@@ -1130,8 +1130,8 @@
     <string name="feat_item_show_barcode_text">Codifica el text com a codis de barres diferents.</string>
     <string name="feat_item_generator_title">Generador</string>
     <string name="feat_item_generator_text">Genera contrasenyes o noms d'usuari.</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">Exportar</string>
+    <string name="feat_item_export_text">Exporta les dades de la caixa forta, incloent-hi els adjunts.</string>
     <string name="datasafety_header_title">Seguretat de Dades</string>
     <string name="datasafety_local_section">Dades locals</string>
     <string name="datasafety_local_text">Les dades locals consisteixen en baixades, configuració d'usuari i caixa forta. Es desen en l'emmagatzematge intern del dispositiu, que sols pot ser accedit per Android o Keyguard.</string>

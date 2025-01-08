@@ -25,9 +25,9 @@
     <string name="email_visibility">Email láthatóság</string>
     <string name="public_url">Nyilvános URL</string>
     <string name="url">URL</string>
-    <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="conceal_value">Érték elrejtése</string>
+    <string name="field_label">Címke</string>
+    <string name="field_value">Érték</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Hozzáférések száma</string>
     <!--
@@ -103,8 +103,8 @@
     <string name="organization">Szervezet</string>
     <string name="organizations">Szervezetek</string>
     <string name="organizations_empty_label">Nincsenek szervezetek</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Azonos domainek</string>
+    <string name="equivalent_domains_empty_label">Nem azonos domainek</string>
     <string name="misc">Egyéb</string>
     <string name="category">Kategória</string>
     <string name="command">Parancs</string>
@@ -180,7 +180,7 @@
     <string name="passkey_available">Hozzáférési kulcs elérhető</string>
     <string name="twofa_available">Kétfaktoros hitelesítés elérhető</string>
     <string name="custom">Egyéni</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Engedély megadása</string>
     <string name="create_account">Fiók létrehozása</string>
     <string name="follow_system_settings">Rendszerbeállítások követése</string>
     <!-- A feature is coming soon! -->
@@ -217,12 +217,12 @@
     <string name="reveal_secure_note">Biztonságos jegyzet megjelenítése</string>
     <string name="hide_secure_note">Biztonságos jegyzet elrejtése</string>
     <string name="master_password_hint">Mesterjelszó emlékeztető</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
-    <string name="key_type">Key type</string>
-    <string name="key_pair">Key pair</string>
-    <string name="key_ssh">SSH Key</string>
+    <string name="public_key">Nyilvános kulcs</string>
+    <string name="private_key">Privát kulcs</string>
+    <string name="fingerprint">Ujjlenyomat</string>
+    <string name="key_type">Kulcs típusa</string>
+    <string name="key_pair">Kulcspár</string>
+    <string name="key_ssh">SSH kulcs</string>
     <string name="fingerprint_phrase">Ujjlenyomat kifejezés</string>
     <string name="fingerprint_phrase_help_title">Mi az ujjlenyomat?</string>
     <string name="filter_auth_reprompt_items">Újra-hitelesítési kérés</string>
@@ -231,8 +231,8 @@
     <string name="bitwarden_premium">Bitwarden prémium</string>
     <string name="bitwarden_premium_required">Bitwarden prémium szükséges</string>
     <string name="bitwarden_unofficial_server">Nem hivatalos Bitwarden szerver</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip">Profi tipp: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generáljon egyedi e-maileket a jobb adatvédelem érdekében.</string>
     <string name="account_last_synced_at">Utoljára szinkronizálva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Név módosítása</string>
     <string name="account_action_change_color_title">Szín módosítása</string>
@@ -255,14 +255,14 @@
     <string name="folder_action_change_name_title">Név módosítása</string>
     <string name="folder_action_change_names_title">Nevek módosítása</string>
     <string name="folder_action_merge_title">Egyesítés…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_confirmation_title">Biztos, hogy össze akarod vonni ezeket a mappákat?</string>
+    <string name="folder_action_create_title">Mappa létrehozása</string>
     <string name="folder_delete_one_confirmation_title">Törli a mappát?</string>
     <string name="folder_delete_many_confirmation_title">Törli a mappákat?</string>
     <string name="folder_delete_confirmation_text">Ez(ek) az elem(ek) azonnal törlésre kerül(nek). Ez a művelet nem vonható vissza.</string>
     <string name="ciphers_recently_opened">Legutóbb megnyitott</string>
     <string name="ciphers_often_opened">Gyakran megnyitott</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Még nincsenek előzmények</string>
     <string name="ciphers_view_details">Részletek megtekintése</string>
     <string name="ciphers_save_to">Mentés helye</string>
     <string name="ciphers_action_add_to_favorites_title">Hozzáadás a kedvencekhez</string>
@@ -282,10 +282,10 @@
     <string name="ciphers_action_change_passwords_title">Jelszavak módosítása</string>
     <string name="ciphers_action_view_password_history_title">Jelszóelőzmények megtekintése</string>
     <string name="ciphers_action_trash_title">Lomtár</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Áthelyezed a lomtárba?</string>
+    <string name="ciphers_action_trash_confirmation_text">A 30 napnál hosszabb ideje a Lomtárban lévő elemek automatikusan törlődnek.</string>
     <string name="ciphers_action_restore_title">Visszaállítás</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Visszaállítod a Lomtárból?</string>
     <string name="ciphers_action_delete_title">Végleges törlés</string>
     <string name="ciphers_action_delete_confirmation_title">Biztosan törli véglegesen?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Őrtorony riasztások konfigurálása</string>
@@ -321,7 +321,7 @@
     <string name="file_action_delete_local_title">Helyi fájl törlése</string>
     <string name="file_action_delete_local_many_title">Helyi fájlok törlése</string>
     <string name="file_action_view_cipher_title">Szülő elem megtekintése</string>
-    <string name="file_action_reveal_title">Reveal</string>
+    <string name="file_action_reveal_title">Mutatás</string>
     <string name="vault_action_always_show_keyboard_title">Mindig jelenítse meg a billentyűzetet</string>
     <string name="vault_action_remember_sorting_title">Emlékezzen a rendezési módra</string>
     <string name="vault_action_sync_vault_title">Széf szinkronizálása</string>
@@ -345,19 +345,19 @@
     <string name="uri_action_autofix_unsecure_text">A protokollt biztonságos változatra módosítja, ha az elérhető</string>
     <string name="uri_unsecure">Nem biztonságos</string>
     <string name="uri_match_app_title">Alkalmazás összekapcsolása</string>
-    <string name="uri_match_detection_title">Match detection</string>
-    <string name="uri_match_detection_default_title">Default</string>
-    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
+    <string name="uri_match_detection_title">Egyezés észlelése</string>
+    <string name="uri_match_detection_default_title">Alapértelmezett</string>
+    <string name="uri_match_detection_default_note">A Beállítások → Automatikus kitöltés → Alapértelmezett URI-illesztés felismerése menüpontban kiválasztott globális Alapértelmezett egyezésfelismerési viselkedést használja. Az alapdomain-illesztés az alapértelmezett beállítás.</string>
     <string name="uri_match_detection_domain_title">Alap domain</string>
-    <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
+    <string name="uri_match_detection_domain_note">Az erőforrások felső szintű és másodszintű domainek szerinti megfeleltetése.</string>
     <string name="uri_match_detection_host_title">Kiszolgáló</string>
-    <string name="uri_match_detection_host_note">Match resources by hostname and (if specified) port.</string>
+    <string name="uri_match_detection_host_note">Az erőforrások megfeleltetése hostnév és (ha megadva) port alapján.</string>
     <string name="uri_match_detection_startswith_title">Ezzel kezdődik</string>
-    <string name="uri_match_detection_startswith_note">Match resources when the detected resource starts with the URI.</string>
+    <string name="uri_match_detection_startswith_note">Az erőforrások megfeleltetése, ha az észlelt erőforrás az URI-vel kezdődik.</string>
     <string name="uri_match_detection_exact_title">Ugyanaz</string>
-    <string name="uri_match_detection_exact_note">Match resources when the detected resource exactly matches the URI.</string>
+    <string name="uri_match_detection_exact_note">Az erőforrások megfeleltetése, ha az észlelt erőforrás pontosan megegyezik az URI-vel.</string>
     <string name="uri_match_detection_regex_title">Reguláris kifejezés</string>
-    <string name="uri_match_detection_regex_note">Match resources by regular expression. Advanced option.</string>
+    <string name="uri_match_detection_regex_note">Erőforrások egyeztetése reguláris kifejezéssel. Speciális beállítás.</string>
     <string name="uri_match_detection_never_title">Soha</string>
     <string name="uri_match_detection_never_note">Az URI figyelmen kívül hagyása az automatikus kitöltési elemkeresés során.</string>
     <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> a jelszóhoz kapcsolva</string>
@@ -390,14 +390,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> egy ismeretlen mezőhöz kapcsolva</string>
     <string name="text_action_share_with_title">Megosztás ezzel…</string>
     <string name="text_action_send_title">Küldés létrehozása</string>
-    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
-    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
-    <string name="ssh_key_action_save_public_key_title">Save public key</string>
-    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
-    <string name="ssh_key_action_add_key_title">Add keys</string>
-    <string name="ssh_key_action_replace_key_title">Replace keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Titkosítatlan kulcsok mentése</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">A kulcsok a letöltésekbe lettek mentve</string>
+    <string name="ssh_key_action_save_public_key_title">Nyilvános kulcs mentése</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Nyilvános kulcs mentve a letöltések közé</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Titkos kulcs mentése titkosítatlanul</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Titkosítatlan privát kulcs mentése a letöltésekbe</string>
+    <string name="ssh_key_action_add_key_title">Kulcsok hozzáadása</string>
+    <string name="ssh_key_action_replace_key_title">Kulcsok cseréje</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> kiválasztva</string>
     <string name="copy">Másolás</string>
     <string name="copy_value">Érték másolása</string>
@@ -418,15 +418,15 @@
     <string name="copy_cvv_code">Biztonsági kód másolása</string>
     <string name="copy_otp_code">Egyszeri jelszó másolása</string>
     <string name="copy_otp_secret_code">Titkos kulcs másolása</string>
-    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
-    <string name="copy_ssh_public_key">Copy public key</string>
-    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
+    <string name="copy_ssh_unencrypted_private_key">Titkos kulcs másolása titkosítatlanul</string>
+    <string name="copy_ssh_public_key">Nyilvános kulcs másolása</string>
+    <string name="copy_ssh_fingerprint">Ujjlenyomat másolása</string>
     <string name="copied_value">Érték másolva</string>
     <string name="copied_url">URL másolva</string>
     <string name="copied_uri">URI másolva</string>
     <string name="copied_package_name">Csomagnév másolva</string>
-    <string name="copied_key">Copied a key</string>
-    <string name="copied_fingerprint">Copied a fingerprint</string>
+    <string name="copied_key">Kulcs másolva</string>
+    <string name="copied_fingerprint">Ujjlenyomat másolva</string>
     <string name="copied_password">Jelszó másolva</string>
     <string name="copied_username">Felhasználónév másolva</string>
     <string name="copied_email">Email cím másolva</string>
@@ -494,22 +494,22 @@
     <string name="error_invalid_uri">Érvénytelen URI</string>
     <string name="error_invalid_card_number">Érvénytelen kártyaszám</string>
     <string name="error_incorrect_password">Helytelen jelszó</string>
-    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
+    <string name="error_otp_key_must_not_be_empty">Az egyszeri jelszó titkos kulcsa nem lehet üres</string>
     <string name="error_failed_generate_kdf_hash_oom">Nem sikerült létrehozni a kulcsot, nincs elég memória. Kérjük, ellenőrizze a KDF szerver beállításait.</string>
     <string name="error_failed_generate_otp_code">Nem sikerült legenerálni az OTP-kódot</string>
     <string name="error_failed_create_passkey">Nem sikerült létrehozni hozzáférési kulcsot</string>
     <string name="error_failed_use_passkey">Nem sikerült hitelesíteni a kérelmet</string>
     <string name="error_failed_open_uri">Nem sikerült megnyitni az URI-t</string>
     <string name="error_failed_format_placeholder">Nem sikerült formázni a helyettesítőt</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
-    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
-    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
+    <string name="error_failed_open_app_for">Egyetlen telepített alkalmazás sem tudja kezelni ezt a kérést</string>
+    <string name="error_failed_unknown">Valami hiba történt</string>
+    <string name="error_failed_encrypt_biometric_key">Nem sikerült titkosítani a biometrikus kulcsot</string>
+    <string name="error_failed_decrypt_biometric_key">Nem sikerült visszafejteni a biometrikus kulcsot</string>
     <string name="scanqr_title">QR kód beolvasása</string>
     <string name="scanqr_load_from_image_note">QR-kód betöltése és elemzése egy képfájlból.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
-    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
-    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
+    <string name="scanqr_camera_permission_required_text">A QR-kódok beolvasásához kamera engedélye szükséges.</string>
+    <string name="post_notifications_permission_banner_title">Értesítések letiltva</string>
+    <string name="post_notifications_permission_banner_text">Adja meg az értesítési engedélyt, hogy engedélyezze a Keyguard számára az egyszer használatos jelszavak automatikus kitöltéskor történő megjelenítését és még sok mást.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Vonalkód</string>
     <string name="barcodetype_action_show_in_barcode_title">Megjelenítés vonalkódként</string>
@@ -612,7 +612,7 @@
     <string name="urloverride_delete_many_confirmation_title">Törli az URL felülírásokat?</string>
     <string name="urloverride_empty_label">Nincsenek URL felülírások</string>
     <string name="setup_header_text">Hozzon létre egy titkosított széfet, ahol a helyi adatok tárolásra kerülnek.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">A folytatással megerősíti, hogy megvásárolta a Keyguardot, vagy rendelkezik aktív licenccel.</string>
     <string name="setup_field_app_password_label">Alkalmazásjelszó</string>
     <string name="setup_checkbox_biometric_auth">Biometrikus azonosítás</string>
     <string name="setup_biometric_auth_confirm_title">Széf létrehozása</string>
@@ -659,7 +659,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Ahhoz, hogy egy nem hivatalos Bitwarden kliens átmenjen a captcha ellenőrzésen, meg kell adnia az kliens titkot (client secret). Ennek megtalálásához látogasson el a Webes széfbe / Beállítások / API kulcs.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Kliens titok</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
+    <string name="addaccount_create_an_account_title">Fiók létrehozása</string>
     <string name="addaccount_sign_in_button">Bejelentkezés</string>
     <string name="addaccount_region_section">Régió</string>
     <string name="addaccount_region_us_type">Egyesült Államok</string>
@@ -714,7 +714,7 @@
     <string name="cipher_type_card">Kártya</string>
     <string name="cipher_type_identity">Személyazonosság</string>
     <string name="cipher_type_note">Jegyzet</string>
-    <string name="cipher_type_ssh_key">SSH Key</string>
+    <string name="cipher_type_ssh_key">SSH kulcs</string>
     <string name="cipher_type_passkey">Hozzáférési kulcs</string>
     <string name="field_type_text">Szöveg</string>
     <string name="field_type_boolean">Logikai érték</string>
@@ -800,11 +800,11 @@
     <string name="generator_header_title">Generátor</string>
     <string name="generator_header_username_title">Felhasználónév generátor</string>
     <string name="generator_header_password_title">Jelszó generátor</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
+    <string name="generator_header_ssh_key_title">SSH Kulcs generátor</string>
     <string name="generator_generate_button">Generálás</string>
     <string name="generator_regenerate_button">Újra generálás</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
+    <string name="generator_use_button">Használ</string>
     <string name="generator_passphrase_type">Jelmondat</string>
     <string name="generator_passphrase_note">A véletlenszerű jelmondatok a legjobb kombinációt nyújtják emlékezhetőség és biztonság szempontjából.</string>
     <string name="generator_passphrase_delimiter_title">Elválasztójel</string>
@@ -838,8 +838,8 @@
     <string name="generator_email_subdomain_addressing_note">Az aldomain-címzés azt jelenti, hogy minden e-mail, amelyet a <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> címre küldenek, továbbra is az Ön fiókjába érkezik. Ez lehetővé teszi, hogy e-mail címének számos változatát használja különböző embereknek, weboldalaknak vagy levelezőlistáknak való kiadásra. Mielőtt használná ezt a funkciót, győződjön meg róla, hogy az e-mail szolgáltatója támogatja ezt a lehetőséget.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email cím</string>
     <string name="generator_email_forward_alias_type">Továbbított email álnevek</string>
-    <string name="generator_key_length_title">Length</string>
-    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_length_title">Hosszúság</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g> bit</string>
     <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
     <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
     <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
@@ -967,7 +967,7 @@
     <string name="pref_item_reddit_community_title">Reddit Közösség</string>
     <string name="pref_item_github_title">GitHub projekt</string>
     <string name="pref_item_crowdin_title">Crowdin projekt</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Összes megjelenítése</string>
     <string name="pref_item_open_source_licenses_title">Nyílt forráskódú licencek</string>
     <string name="pref_item_download_apk_title">APK fájl letöltése</string>
     <string name="pref_item_load_app_icons_title">Alkalmazás ikonok betöltése</string>
@@ -1130,7 +1130,7 @@
     <string name="feat_item_show_barcode_text">Kódolja a szöveget különböző vonalkódokként.</string>
     <string name="feat_item_generator_title">Generátor</string>
     <string name="feat_item_generator_text">Jelszavak vagy felhasználónevek generálása.</string>
-    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_title">Exportálás</string>
     <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Adat biztonság</string>
     <string name="datasafety_local_section">Helyi adatok</string>

@@ -133,7 +133,7 @@
     <string name="address3">Adres linia 3</string>
     <string name="rename">Zmień nazwę</string>
     <string name="deletion_date">Data usunięcia</string>
-    <string name="deletion_date_custom">Custom</string>
+    <string name="deletion_date_custom"></string>
     <string name="expiration_date">Expiration date</string>
     <string name="expiration_date_custom">Custom</string>
     <string name="expiration_date_never">Never</string>

@@ -4525,6 +4525,15 @@
     "notes": "Enter live chat in the other department and request cancellation of your account or if it is not available use the contact form."
   },
   {
+    "name": "Deutsche Bahn / DB",
+    "domains": [
+      "bahn.de"
+    ],
+    "url": "https://int.bahn.de/en/faq/delete-data-customer-account",
+    "difficulty": "easy",
+    "notes": "In the \"Manage customer account\" section, go to \"Personal details\" and then select the \"Delete account\" option at the bottom. Now follow the instructions to delete your customer account."
+  },
+  {
     "name": "Deutsche Post",
     "domains": [
       "deutschepost.de"
@@ -6919,8 +6928,7 @@
     ],
     "url": "https://galaxy.click/settings#danger",
     "difficulty": "medium",
-    "notes": "Navigate to the \"delete your account\" section of the \"danger zone\" in your account settings and follow the instructions. If you have published any games, you must delete them before you can proceed with account deletion. Games can be deleted within their edit page.",
-    "email": "privacy@galaxy.click"
+    "notes": "Navigate to the \"delete your account\" section of the \"danger zone\" in your account settings and follow the instructions. If you have published any games, you must delete them before you can proceed with account deletion. Games can be deleted within their edit page."
   },
   {
     "name": "Galaxy Play",
@@ -7515,10 +7523,9 @@
       "gog.com",
       "support.gog.com"
     ],
-    "url": "https://support.gog.com/hc/en-us/articles/212806525-How-can-I-delete-my-account-?product=gog",
-    "difficulty": "hard",
-    "notes": "Email privacy@gog.com and ask to have your account deleted.",
-    "email": "privacy@gog.com"
+    "url": "https://www.gog.com/en/account/settings/delete_account",
+    "difficulty": "easy",
+    "notes": "Log in first, go to the url, press DELETE ACCOUNT and an e-mail will be sent. After confirming your account will be permanently deleted after 14 days."
   },
   {
     "name": "Goggles4u",
@@ -10957,13 +10964,32 @@
     "notes": "Log-in to your Lyft account on the website and request for deletion. Cannot be done via the app"
   },
   {
-    "name": "M R\u00e9so / Appli M",
+    "name": "M Covoit Lignes+",
+    "domains": [
+      "lignesplus-m.fr"
+    ],
+    "url": "https://mcovoitlignesplus.zendesk.com/hc/fr/articles/360015255860-Comment-supprimer-mon-compte",
+    "difficulty": "hard",
+    "notes": "You need to send an email to the support.",
+    "email": "support@lignesplus-m.fr"
+  },
+  {
+    "name": "M Mobilit\u00e9s / Appli M",
     "domains": [
       "pass.mobilites-m.fr"
     ],
     "url": "https://pass.mobilites-m.fr/mypass/account/profile",
     "difficulty": "easy",
     "notes": "From your profile page, click on \"Cl\u00f4turer mon compte M\""
+  },
+  {
+    "name": "M R\u00e9so",
+    "domains": [
+      "reso-m.fr"
+    ],
+    "url": "https://www.reso-m.fr/TPL_CODE/TPL_ECNLDASHBOARD/6-tableau-de-bord.htm",
+    "difficulty": "easy",
+    "notes": "From your profile page, go to \"Your information\" and click on \"Delete my personal space \""
   },
   {
     "name": "Macrumors",
@@ -12573,6 +12599,15 @@
     "notes": "Requires to fill out contact form. Will still get Promotional emails until you also unsubscribe from them"
   },
   {
+    "name": "NeoDB",
+    "domains": [
+      "neodb.social"
+    ],
+    "url": "https://neodb.social/account/info",
+    "difficulty": "easy",
+    "notes": "Click on 'Delete account' near the bottom of the page and follow the instructions."
+  },
+  {
     "name": "Neon Pagamentos",
     "domains": [
       "neon.com.br",
@@ -12608,6 +12643,15 @@
     "url": "https://netbela.com/contact",
     "difficulty": "hard",
     "notes": "Create a ticket to the Billing department and request your account to be deleted."
+  },
+  {
+    "name": "NetBird",
+    "domains": [
+      "netbird.io"
+    ],
+    "url": "https://docs.netbird.io/how-to/delete-account",
+    "difficulty": "easy",
+    "notes": "Go to the \"Settings\" tab, then click on \"Danger Zone\". Review the message and click on the \"Delete Account\" button."
   },
   {
     "name": "Netdata",
@@ -16444,6 +16488,17 @@
     "notes": "On your settings page, go to \"Account\" \u2b95 \"Account Settings\", Scroll down to \"Danger zone\" and click on \"Delete Account\""
   },
   {
+    "name": "The Sims Resource",
+    "domains": [
+      "thesimsresource.com",
+      "help.thesimsresource.com"
+    ],
+    "url": "https://help.thesimsresource.com/article/14-how-do-i-delete-my-account",
+    "difficulty": "hard",
+    "notes": "Since there is no button, you must contact them through a support ticket. Subsequently, after inclusion in their ticket system, they will resolve the matter soon; however, this may differ from one to another.",
+    "email": "support@thesimsresource.com"
+  },
+  {
     "name": "SitePoint",
     "domains": [
       "sitepoint.com",
@@ -17780,6 +17835,15 @@
     "url": "https://tree.taiga.io/user-settings/user-profile",
     "difficulty": "easy",
     "notes": "Log in to your user account, go to 'User Settings' and select 'Delete Taiga account' below the save button. Confirm and done."
+  },
+  {
+    "name": "Tailscale",
+    "domains": [
+      "tailscale.com"
+    ],
+    "url": "https://tailscale.com/kb/1237/delete-tailnet",
+    "difficulty": "limited",
+    "notes": "Tailscale uses Single Sign-on with identity providers. As such, deleting the account can only be done through the identity provider itself. (apparently, accounts made with Passkeys cannot be deleted)"
   },
   {
     "name": "The Takeout",
@@ -21210,6 +21274,15 @@
     "url": "https://app.zerossl.com/account",
     "difficulty": "easy",
     "notes": "Scroll to the bottom of the linked page and click 'Delete Account'."
+  },
+  {
+    "name": "ZeroTier",
+    "domains": [
+      "zerotier.com"
+    ],
+    "url": "https://docs.zerotier.com/central-billing/#how-to-delete-your-whole-account",
+    "difficulty": "easy",
+    "notes": "Go to your account page and click on the \"delete account\" button."
   },
   {
     "name": "Zhihu",

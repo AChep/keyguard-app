@@ -103,8 +103,8 @@
     <string name="organization">Unternehmen</string>
     <string name="organizations">Organisationen</string>
     <string name="organizations_empty_label">Keine Organisationen vorhanden</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Äquivalente Domänen</string>
+    <string name="equivalent_domains_empty_label">Keine gleichwertigen Domänen</string>
     <string name="misc">Diverses</string>
     <string name="category">Kategorie</string>
     <string name="command">Aktion</string>
@@ -1130,7 +1130,7 @@
     <string name="feat_item_show_barcode_text">Einen Text als verschiedene Barcodes kodieren.</string>
     <string name="feat_item_generator_title">Generator</string>
     <string name="feat_item_generator_text">Erstelle Passwörter oder Benutzernamen.</string>
-    <string name="feat_item_export_title">Export</string>
+    <string name="feat_item_export_title">Exportieren</string>
     <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Datensicherheit</string>
     <string name="datasafety_local_section">Lokale Daten</string>

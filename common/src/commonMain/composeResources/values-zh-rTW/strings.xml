@@ -16,7 +16,7 @@
     <string name="username">使用者名稱</string>
     <string name="password">密碼</string>
     <string name="app_password">應用程式密碼</string>
-    <string name="current_password">當前密碼</string>
+    <string name="current_password">目前密碼</string>
     <string name="new_password">新密碼</string>
     <string name="no_password">無密碼</string>
     <string name="email">電子郵件</string>
@@ -25,16 +25,16 @@
     <string name="email_visibility">電子郵件可見性</string>
     <string name="public_url">公共URL</string>
     <string name="url">網址</string>
-    <string name="conceal_value">Conceal value</string>
+    <string name="conceal_value">隱藏值</string>
     <string name="field_label">標籤</string>
     <string name="field_value">值</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
-    <string name="access_count">訪問次數</string>
+    <string name="access_count">存取次數</string>
     <!--
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">最大訪問次數</string>
+    <string name="max_access_count">最大存取次數</string>
     <string name="learn_more">了解更多</string>
     <string name="phone_number">電話號碼</string>
     <string name="passport_number">護照號碼</string>
@@ -44,7 +44,7 @@
     <string name="card_type">品牌</string>
     <string name="card_cvv">安全碼</string>
     <string name="card_valid_from">有效期自</string>
-    <string name="card_valid_to">有效截止日期</string>
+    <string name="card_valid_to">有效期到</string>
     <string name="card_expiry_month">信用卡過期月份</string>
     <string name="card_expiry_year">信用卡過期年份</string>
     <string name="cardholder_name">持卡人姓名</string>
@@ -102,16 +102,16 @@
     <string name="organization_none">我的密碼庫</string>
     <string name="organization">組織</string>
     <string name="organizations">組織</string>
-    <string name="organizations_empty_label">No organizations</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="organizations_empty_label">無組織</string>
+    <string name="equivalent_domains">相同網域</string>
+    <string name="equivalent_domains_empty_label">不相同網域</string>
     <string name="misc">雜項</string>
     <string name="category">類別</string>
     <string name="command">命令</string>
     <string name="execute_command">執行</string>
     <!-- Add (something) -->
     <string name="add">新增</string>
-    <string name="add_integration">Add integration</string>
+    <string name="add_integration">新增整合</string>
     <string name="account">帳號</string>
     <string name="accounts">帳號</string>
     <string name="accounts_empty_label">無帳號</string>
@@ -132,38 +132,38 @@
     <string name="address2">地址列 2</string>
     <string name="address3">地址列 3</string>
     <string name="rename">重新命名</string>
-    <string name="deletion_date">Deletion date</string>
+    <string name="deletion_date">刪除日期</string>
     <string name="deletion_date_custom">自訂</string>
-    <string name="expiration_date">Expiration date</string>
+    <string name="expiration_date">有效日期</string>
     <string name="expiration_date_custom">自訂</string>
-    <string name="expiration_date_never">Never</string>
+    <string name="expiration_date_never">永不</string>
     <string name="select_linked_type">選擇類型</string>
-    <string name="select_file">選取檔案</string>
-    <string name="autofill">Autofill</string>
-    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="passkey">Passkeys</string>
-    <string name="passkey_create_header">建立 Passkeys</string>
+    <string name="select_file">選擇檔案</string>
+    <string name="autofill">自動填入</string>
+    <string name="autofill_and_save_uri">自動填入並儲存應用程式或網頁資訊</string>
+    <string name="passkey">通行密鑰</string>
+    <string name="passkey_create_header">建立通行密鑰</string>
     <string name="passkey_unlock_header">解鎖 Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
-    <string name="passkeys">Passkeys</string>
+    <string name="passkey_auth_via_header">正在確認請求…</string>
+    <string name="passkeys">通行密鑰</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
         -->
-    <string name="passkey_signature_counter">Signature counter</string>
+    <string name="passkey_signature_counter">簽章計數器</string>
     <!--
         The entity whose web application utilizes the Web Authentication API
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Relying party</string>
+    <string name="passkey_relying_party">依賴方</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Discoverable</string>
+    <string name="passkey_discoverable">可發現</string>
     <string name="passkey_user_username">使用者名稱</string>
-    <string name="passkey_user_display_name">Display name</string>
-    <string name="ignored_alerts">Ignored alerts</string>
+    <string name="passkey_user_display_name">顯示名稱</string>
+    <string name="ignored_alerts">忽略提醒</string>
     <string name="api_key">API 金鑰</string>
     <string name="domain">網域</string>
     <string name="add_to_home_screen">新增至主畫面</string>
@@ -176,11 +176,11 @@
     <string name="one_time_password">一次性密碼</string>
     <string name="one_time_password_authenticator_key">驗證器金鑰</string>
     <string name="passkey_use_short">使用</string>
-    <string name="passkey_save">儲存 passkey</string>
-    <string name="passkey_available">可用的 passkey</string>
+    <string name="passkey_save">儲存通行密鑰</string>
+    <string name="passkey_available">可用的通行密鑰</string>
     <string name="twofa_available">兩步驟驗證已啟用</string>
     <string name="custom">自訂</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">授予權限</string>
     <string name="create_account">新增帳號</string>
     <string name="follow_system_settings">跟隨系統設定</string>
     <!-- A feature is coming soon! -->
@@ -198,8 +198,8 @@
     <!-- To download something -->
     <string name="download">下載</string>
     <string name="downloads">下載</string>
-    <string name="downloads_empty_label">暫無下載</string>
-    <string name="duplicates_empty_label">暫無重複項</string>
+    <string name="downloads_empty_label">無下載</string>
+    <string name="duplicates_empty_label">無重複項目</string>
     <string name="duplicate">重複項</string>
     <string name="regex">正規表達式</string>
     <string name="encryption">加密</string>
@@ -217,44 +217,44 @@
     <string name="reveal_secure_note">顯示安全筆記</string>
     <string name="hide_secure_note">隱藏安全筆記</string>
     <string name="master_password_hint">主密碼提示</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
-    <string name="key_type">Key type</string>
-    <string name="key_pair">Key pair</string>
-    <string name="key_ssh">SSH Key</string>
+    <string name="public_key">公鑰</string>
+    <string name="private_key">私鑰</string>
+    <string name="fingerprint">指紋</string>
+    <string name="key_type">金鑰類型</string>
+    <string name="key_pair">金鑰對</string>
+    <string name="key_ssh">SSH 金鑰</string>
     <string name="fingerprint_phrase">指紋短語</string>
     <string name="fingerprint_phrase_help_title">什麼是指紋短語?</string>
     <string name="filter_auth_reprompt_items">身份驗證重新提示</string>
     <string name="filter_pending_items">等待中</string>
-    <string name="filter_failed_items">Failed</string>
-    <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
-    <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
-    <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="filter_failed_items">失敗</string>
+    <string name="bitwarden_premium">Bitwarden 進階版</string>
+    <string name="bitwarden_premium_required">需要 Bitwarden 進階版</string>
+    <string name="bitwarden_unofficial_server">非官方 Bitwarden 伺服器</string>
+    <string name="pro_tip">專業提示：<xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">產生獨特的電子郵件以取得更好的隱私</string>
+    <string name="account_last_synced_at">最後同步於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">變更名稱</string>
     <string name="account_action_change_color_title">變更顏色</string>
-    <string name="account_action_change_master_password_hint_title">Change master password hint</string>
+    <string name="account_action_change_master_password_hint_title">變更主密碼提示</string>
     <string name="account_action_sign_out_title">登出</string>
     <string name="account_action_sign_in_title">登入</string>
     <string name="account_action_export_vault_title">匯出密碼庫</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
+    <string name="account_action_export_individual_vault_title">匯出個人密碼庫</string>
     <string name="account_action_hide_title">隱藏項目</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
-    <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
-    <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
+    <string name="account_action_hide_text">從應用程式首頁隱藏項目</string>
+    <string name="account_action_email_verify_instructions_title">瀏覽網頁密碼庫來驗證您的電子郵件位址</string>
+    <string name="account_action_premium_purchase_instructions_title">將您的帳戶升級至進階版，並解鎖更多方便的功能</string>
     <string name="account_action_tfa_title">兩步驟驗證</string>
-    <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
-    <string name="account_action_tfa_active_status">Active</string>
+    <string name="account_action_tfa_text">登入驗證需要另一個裝置，例如：安全金鑰、驗證器應用程式、簡訊或電子郵件</string>
+    <string name="account_action_tfa_active_status">啟動</string>
     <string name="account_action_items_title">項目</string>
     <string name="account_action_log_out_title">退出</string>
     <string name="account_log_out_confirmation_title">您確定要退出嗎？</string>
-    <string name="account_log_out_confirmation_text">All of the not synchronized changes will be lost!</string>
+    <string name="account_log_out_confirmation_text">所有未同步的變更將會遺失！</string>
     <string name="folder_action_change_name_title">變更名稱</string>
     <string name="folder_action_change_names_title">變更名稱</string>
-    <string name="folder_action_merge_title">Merge into…</string>
+    <string name="folder_action_merge_title">合併到…</string>
     <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
     <string name="folder_action_create_title">新增資料夾</string>
     <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
@@ -290,37 +290,37 @@
     <string name="ciphers_action_delete_confirmation_title">永久刪除?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">配置 Watchtower 提醒</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">將關聯項目移至垃圾筒</string>
-    <string name="sends_action_change_name_title">更改名稱</string>
-    <string name="sends_action_change_names_title">更改名稱</string>
-    <string name="sends_action_change_filename_title">更改檔案名稱</string>
-    <string name="sends_action_change_filenames_title">更改檔案名稱</string>
-    <string name="sends_action_set_password_title">設置密碼</string>
-    <string name="sends_action_set_passwords_title">設置密碼</string>
-    <string name="sends_action_set_password_confirmation_message">用戶需要密碼才能訪問此項目</string>
-    <string name="sends_action_change_password_title">更改密碼</string>
-    <string name="sends_action_change_passwords_title">更改密碼</string>
+    <string name="sends_action_change_name_title">變更名稱</string>
+    <string name="sends_action_change_names_title">變更名稱</string>
+    <string name="sends_action_change_filename_title">變更檔案名稱</string>
+    <string name="sends_action_change_filenames_title">變更檔案名稱</string>
+    <string name="sends_action_set_password_title">設定密碼</string>
+    <string name="sends_action_set_passwords_title">設定密碼</string>
+    <string name="sends_action_set_password_confirmation_message">使用者需要密碼才能存取此項目</string>
+    <string name="sends_action_change_password_title">變更密碼</string>
+    <string name="sends_action_change_passwords_title">變更密碼</string>
     <string name="sends_action_remove_password_title">移除密碼</string>
     <string name="sends_action_remove_passwords_title">移除密碼</string>
     <string name="sends_action_remove_password_confirmation_title">移除密碼?</string>
     <string name="sends_action_remove_passwords_confirmation_title">移除密碼?</string>
-    <string name="sends_action_remove_password_confirmation_message">用戶不需要密碼才能訪問此項目</string>
+    <string name="sends_action_remove_password_confirmation_message">使用者不需要密碼才能存取此項目</string>
     <string name="sends_action_hide_email_title">隱藏電子郵件</string>
     <string name="sends_action_show_email_title">顯示電子郵件</string>
     <string name="sends_action_enable_title">啟用</string>
-    <string name="sends_action_enable_text">啟用的 Send 可以通過公共網址訪問</string>
+    <string name="sends_action_enable_text">啟用的 Send 可以通過公共網址存取</string>
     <string name="sends_action_enable_confirmation_title">啟用?</string>
     <string name="sends_action_disable_title">停用</string>
-    <string name="sends_action_disable_text">未啟用的 Send 無法通過公共網址訪問</string>
+    <string name="sends_action_disable_text">未啟用的 Send 無法通過公共網址存取</string>
     <string name="sends_action_disable_confirmation_title">停用?</string>
-    <string name="sends_action_disabled_note">這個 Send 已停用，目前無人可訪問</string>
+    <string name="sends_action_disabled_note">這個 Send 已停用，目前無人可存取</string>
     <string name="sends_action_delete_title">永久刪除</string>
     <string name="sends_action_delete_confirmation_title">永久刪除?</string>
-    <string name="file_action_open_with_title">打開方式...</string>
-    <string name="file_action_send_with_title">通過... 發送</string>
+    <string name="file_action_open_with_title">開啟方式…</string>
+    <string name="file_action_send_with_title">透過…傳送</string>
     <string name="file_action_open_in_file_manager_title">在檔案總管中開啟</string>
     <string name="file_action_delete_local_title">刪除本地檔案</string>
     <string name="file_action_delete_local_many_title">刪除本地檔案</string>
-    <string name="file_action_view_cipher_title">查看父項目</string>
+    <string name="file_action_view_cipher_title">檢視父項目</string>
     <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">總是顯示鍵盤</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>
@@ -331,35 +331,35 @@
     <string name="username_action_check_data_breach_title">檢查帳號是否已被泄漏</string>
     <string name="password_action_check_data_breach_title">檢查密碼是否已被泄漏</string>
     <string name="website_action_check_data_breach_title">檢查網站是否已被泄漏</string>
-    <string name="uri_action_launch_app_title">開啟程式</string>
-    <string name="uri_action_launch_website_title">開啟網頁</string>
-    <string name="uri_action_launch_docs_title">開啟文檔</string>
-    <string name="uri_action_launch_browser_title">開啟瀏覽器</string>
-    <string name="uri_action_launch_browser_main_page_title">打開主頁</string>
-    <string name="uri_action_launch_play_store_title">開啟 Play 商店</string>
-    <string name="uri_action_launch_in_app_title">使用 <xliff:g id="app" example="Keyguard">%1$s</xliff:g> 開啟</string>
-    <string name="uri_action_launch_in_smth_title">使用... 開啟</string>
-    <string name="uri_action_how_to_delete_account_title">如何刪除帳戶</string>
-    <string name="uri_action_get_my_data_account_title">如何獲取我的資料?</string>
-    <string name="uri_action_autofix_unsecure_title">自動修正不安全的 URL</string>
-    <string name="uri_action_autofix_unsecure_text">將協議更改爲安全的類型（如果可用）</string>
+    <string name="uri_action_launch_app_title">啟動應用程式</string>
+    <string name="uri_action_launch_website_title">啟動網頁</string>
+    <string name="uri_action_launch_docs_title">啟動文件檔</string>
+    <string name="uri_action_launch_browser_title">啟動瀏覽器</string>
+    <string name="uri_action_launch_browser_main_page_title">啟動首頁</string>
+    <string name="uri_action_launch_play_store_title">啟動 Play 商店</string>
+    <string name="uri_action_launch_in_app_title">使用 <xliff:g id="app" example="Keyguard">%1$s</xliff:g> 啟動</string>
+    <string name="uri_action_launch_in_smth_title">使用…啟動</string>
+    <string name="uri_action_how_to_delete_account_title">如何刪除帳號？</string>
+    <string name="uri_action_get_my_data_account_title">如何取得我的資料？</string>
+    <string name="uri_action_autofix_unsecure_title">自動修正不安全的網址</string>
+    <string name="uri_action_autofix_unsecure_text">如果可用，將協議變更為更安全的類型</string>
     <string name="uri_unsecure">不安全的</string>
-    <string name="uri_match_app_title">匹配程式</string>
-    <string name="uri_match_detection_title">匹配檢測</string>
+    <string name="uri_match_app_title">比對應用程式</string>
+    <string name="uri_match_detection_title">比對偵測</string>
     <string name="uri_match_detection_default_title">Default</string>
     <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
-    <string name="uri_match_detection_domain_title">主域名</string>
-    <string name="uri_match_detection_domain_note">按頂級和次级域匹配資源</string>
-    <string name="uri_match_detection_host_title">域</string>
-    <string name="uri_match_detection_host_note">通過主機名和端口 (如果指定) 匹配資源</string>
+    <string name="uri_match_detection_domain_title">基礎網域</string>
+    <string name="uri_match_detection_domain_note">透過頂層和第二層網域比對資源。</string>
+    <string name="uri_match_detection_host_title">主機</string>
+    <string name="uri_match_detection_host_note">透過主機名稱和連接埠（如果指定）匹配資源</string>
     <string name="uri_match_detection_startswith_title">開始於</string>
-    <string name="uri_match_detection_startswith_note">當檢測到的資源以URI開頭時，匹配資源</string>
+    <string name="uri_match_detection_startswith_note">偵測到資源以 URI 開始時比對資源</string>
     <string name="uri_match_detection_exact_title">完全相符</string>
-    <string name="uri_match_detection_exact_note">當檢測到的資源與 URI 完全匹配時匹配資源。</string>
+    <string name="uri_match_detection_exact_note">偵測到資源與 URI 完全相符時比對資源。</string>
     <string name="uri_match_detection_regex_title">正規表達式</string>
-    <string name="uri_match_detection_regex_note">聽過正規表達式匹配資源（高級選項）</string>
+    <string name="uri_match_detection_regex_note">透過正規表達式比對資源（進階選項）。</string>
     <string name="uri_match_detection_never_title">永不</string>
-    <string name="uri_match_detection_never_note">在收索自動填充項目時忽略 URI</string>
+    <string name="uri_match_detection_never_note">搜尋自動填入項目時忽略 URI</string>
     <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> 已被關聯至密碼</string>
     <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
     <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
@@ -402,7 +402,7 @@
     <string name="copy">複製</string>
     <string name="copy_value">複製值</string>
     <string name="copy_url">複製網址</string>
-    <string name="copy_uri">複製網址</string>
+    <string name="copy_uri">複製 URI</string>
     <string name="copy_send">Copy send</string>
     <string name="copy_package_name">複製套件名稱</string>
     <string name="copy_password">複製密碼</string>
@@ -422,9 +422,9 @@
     <string name="copy_ssh_public_key">Copy public key</string>
     <string name="copy_ssh_fingerprint">Copy fingerprint</string>
     <string name="copied_value">Copied a value</string>
-    <string name="copied_url">已複製 URL</string>
+    <string name="copied_url">已複製網址</string>
     <string name="copied_uri">已複製 URI</string>
-    <string name="copied_package_name">已複製包名稱</string>
+    <string name="copied_package_name">已複製套件名稱</string>
     <string name="copied_key">Copied a key</string>
     <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">已複製密碼</string>
@@ -463,8 +463,8 @@
     <string name="list_move_up">往上移動</string>
     <string name="list_move_down">向下移動</string>
     <string name="list_remove">移除</string>
-    <string name="list_remove_confirmation_title">確定刪除此項嗎？</string>
-    <string name="list_add">添加更多</string>
+    <string name="list_remove_confirmation_title">刪除一個項目？</string>
+    <string name="list_add">新增更多</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">驗證 WebAuthn</string>
     <string name="fido2webauthn_action_return_title">返回應用程式</string>
@@ -476,7 +476,7 @@
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
-    <string name="error_must_not_be_empty">不得為空</string>
+    <string name="error_must_not_be_empty">不得為空白</string>
     <!--
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
@@ -554,13 +554,13 @@
     <string name="tfa_directory_text">List of websites with two-factor authentication support</string>
     <string name="tfa_directory_search_placeholder">Search websites</string>
     <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">支援 passkeys 的網站列表</string>
-    <string name="passkeys_directory_search_placeholder">收尋網站</string>
+    <string name="passkeys_directory_text">支援通行密鑰的網站列表</string>
+    <string name="passkeys_directory_search_placeholder">搜尋網站</string>
     <!-- Title of the 'Email data breach' dialog -->
     <string name="emailleak_title">資料外洩</string>
-    <string name="emailleak_note">洩露的帳戶資料可以讓惡意行為者存取敏感的個人和財務訊息，從而可能導致身分盜竊、財務詐欺和其他形式的網路犯罪。</string>
+    <string name="emailleak_note">洩露的帳號資料可以讓惡意行為者存取敏感的個人和財務訊息，從而可能導致身分盜竊、財務詐欺和其他形式的網路犯罪。</string>
     <string name="emailleak_breach_not_found_title">未發現資料外洩</string>
-    <string name="emailleak_breach_found_title">發現已外洩的帳戶</string>
+    <string name="emailleak_breach_found_title">發現已外洩的帳號</string>
     <string name="emailleak_breach_section">外洩</string>
     <string name="emailleak_breach_occurred_at">外洩於 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">報告於 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
@@ -575,40 +575,40 @@
     <string name="largetype_title">大字體</string>
     <string name="largetype_action_show_in_large_type_title">以大字體顯示</string>
     <string name="largetype_action_show_in_large_type_and_lock_title">以大字體顯示並且鎖定密碼庫</string>
-    <string name="largetype_unicode_surrogate_note">文本包含複合 Unicode 符號！</string>
+    <string name="largetype_unicode_surrogate_note">文字包含複合 Unicode 符號！</string>
     <string name="apppicker_header_title">應用程式選擇器</string>
-    <string name="apppicker_search_placeholder">正在尋找已安裝的應用程式中...</string>
-    <string name="apppicker_system_app_label">系統應用</string>
-    <string name="apppicker_empty_label">沒有應用程式</string>
+    <string name="apppicker_search_placeholder">正在搜尋已安裝的應用程式中...</string>
+    <string name="apppicker_system_app_label">系統應用程式</string>
+    <string name="apppicker_empty_label">無應用程式</string>
     <string name="folderpicker_header_title">選擇資料夾</string>
     <string name="folderpicker_create_new_folder">建立新資料夾：</string>
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">此副本將歸組織所有，你將不再是直接所有者。</string>
+    <string name="destinationpicker_organization_ownership_note">此副本將歸組織所有，您將不再是直接所有者。</string>
     <string name="emailrelay_list_header_title">電子郵件轉發器</string>
     <string name="emailrelay_list_section_title">電子郵件轉發器</string>
     <string name="emailrelay_delete_one_confirmation_title">刪除電子郵件轉發器?</string>
     <string name="emailrelay_delete_many_confirmation_title">刪除電子郵件轉發器?</string>
-    <string name="emailrelay_integration_title">電子郵件轉發器集成</string>
+    <string name="emailrelay_integration_title">電子郵件轉發器整合</string>
     <string name="emailrelay_empty_label">沒有電子郵件轉發器</string>
-    <string name="emailrelay_base_env_server_url_label">伺服器 URL</string>
-    <string name="emailrelay_base_env_note">指定自架安裝 Bitwarden 的 URL。</string>
-    <string name="wordlist_list_header_title">字詞表</string>
-    <string name="wordlist_list_section_title">字詞表</string>
-    <string name="wordlist_delete_one_confirmation_title">刪除字詞表?</string>
-    <string name="wordlist_delete_many_confirmation_title">刪除字詞表?</string>
-    <string name="wordlist_edit_wordlist_title">編輯字詞表</string>
-    <string name="wordlist_add_wordlist_title">添加字詞表</string>
-    <string name="wordlist_add_wordlist_via_file_title">從文件加載</string>
-    <string name="wordlist_add_wordlist_via_url_title">從 URL 載入</string>
-    <string name="wordlist_empty_label">沒有字詞表</string>
-    <string name="wordlist_word_search_placeholder">搜索字詞</string>
-    <string name="urloverride_header_title">URL 覆寫</string>
-    <string name="urloverride_list_header_title">URL 覆寫</string>
-    <string name="urloverride_list_section_title">URL 覆寫</string>
-    <string name="urloverride_regex_note">覆寫將套用於與正規表示式相符的 URL。</string>
-    <string name="urloverride_delete_one_confirmation_title">刪除 URL 覆寫？</string>
+    <string name="emailrelay_base_env_server_url_label">伺服器網址</string>
+    <string name="emailrelay_base_env_note">指定自架安裝 Bitwarden 的網址。</string>
+    <string name="wordlist_list_header_title">單字庫</string>
+    <string name="wordlist_list_section_title">單字庫</string>
+    <string name="wordlist_delete_one_confirmation_title">刪除單字庫？</string>
+    <string name="wordlist_delete_many_confirmation_title">刪除單字庫？</string>
+    <string name="wordlist_edit_wordlist_title">編輯單字庫</string>
+    <string name="wordlist_add_wordlist_title">新增單字庫</string>
+    <string name="wordlist_add_wordlist_via_file_title">從檔案載入</string>
+    <string name="wordlist_add_wordlist_via_url_title">從網址載入</string>
+    <string name="wordlist_empty_label">無單字庫</string>
+    <string name="wordlist_word_search_placeholder">搜尋單字</string>
+    <string name="urloverride_header_title">網址覆寫</string>
+    <string name="urloverride_list_header_title">網址覆寫</string>
+    <string name="urloverride_list_section_title">網址覆寫</string>
+    <string name="urloverride_regex_note">覆寫將會被用於比對正規表示式相符的網址。</string>
+    <string name="urloverride_delete_one_confirmation_title">刪除網址覆寫？</string>
     <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
@@ -1138,19 +1138,19 @@
     <string name="datasafety_local_downloads_section">Downloads</string>
     <string name="datasafety_local_settings_section">User settings</string>
     <string name="datasafety_local_settings_note">The User settings are encrypted using a device-specific key.</string>
-    <string name="datasafety_local_vault_section">Vault</string>
+    <string name="datasafety_local_vault_section">密碼庫</string>
     <string name="datasafety_local_encryption_algorithm_intro">The Vault is encrypted using a Key, derived from the App password using following steps:</string>
     <string name="datasafety_local_encryption_algorithm_outro">The Salt and the Hash is then stored locally on a device, to later generate a master key to unlock the vault.</string>
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
-    <string name="datasafety_remote_section">Remote data</string>
-    <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
+    <string name="datasafety_remote_section">遠端資料</string>
+    <string name="datasafety_remote_text">遠端資料以零知識加密的方式儲存在 Bitwarden 伺服器上。</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="localization_contributors_title">語言本地化貢獻者</string>
+    <string name="localization_contributors_search_placeholder">搜尋貢獻者</string>
+    <string name="localization_contributors_empty_label">無貢獻者</string>
+    <string name="logs_header_title">日誌</string>
+    <string name="logs_start_recording_fab_title">開始錄製</string>
+    <string name="logs_stop_recording_fab_title">停止錄製</string>
+    <string name="logs_export_button">匯出</string>
+    <string name="logs_export_success">匯出完成</string>
 </resources>

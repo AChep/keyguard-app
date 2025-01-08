@@ -91,8 +91,8 @@
         "name": "Catalan"
       }
     ],
-    "translated": 5363,
-    "target": 6096,
+    "translated": 5376,
+    "target": 6116,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -145,6 +145,28 @@
   },
   {
     "user": {
+      "id": "13032136",
+      "username": "MongWu-NeiTherHwoGer-Long",
+      "fullName": "MongWu (MongWu-NeiTherHwoGer-Long)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/13032136/medium/c7137377fdcfec20e4c7beebeaec0ac5.png",
+      "joined": "2024-12-23 09:11:47"
+    },
+    "languages": [
+      {
+        "id": "zh-TW",
+        "name": "Chinese Traditional"
+      }
+    ],
+    "translated": 533,
+    "target": 962,
+    "approved": 0,
+    "voted": 5,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "13051414",
       "username": "exteraDev",
       "fullName": "Vinicius (exteraDev)",
@@ -179,8 +201,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5396,
-    "target": 4633,
+    "translated": 5409,
+    "target": 4645,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -225,6 +247,28 @@
     ],
     "translated": 64,
     "target": 133,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "13628423",
+      "username": "Music47ell",
+      "fullName": "Ahmet ALMAZ (Music47ell)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/13628423/medium/cc9ee0d21461a2b5675bdf595167d6e2.png",
+      "joined": "2024-12-27 12:28:35"
+    },
+    "languages": [
+      {
+        "id": "ar",
+        "name": "Arabic"
+      }
+    ],
+    "translated": 556,
+    "target": 540,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -491,12 +535,16 @@
         "name": "English, United Kingdom"
       },
       {
+        "id": "de",
+        "name": "German"
+      },
+      {
         "id": "pt-PT",
         "name": "Portuguese"
       }
     ],
-    "translated": 5513,
-    "target": 5520,
+    "translated": 5519,
+    "target": 5526,
     "approved": 3188,
     "voted": 0,
     "positiveVotes": 8,
@@ -587,8 +635,8 @@
     "target": 2138,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 0,
-    "negativeVotes": 0,
+    "positiveVotes": 2,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -605,8 +653,8 @@
         "name": "Hungarian"
       }
     ],
-    "translated": 462,
-    "target": 440,
+    "translated": 752,
+    "target": 723,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -715,13 +763,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5143,
-    "target": 4801,
-    "approved": 5378,
+    "translated": 5156,
+    "target": 4820,
+    "approved": 5397,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5102
+    "winning": 5121
   },
   {
     "user": {
@@ -1065,8 +1113,8 @@
     "user": {
       "id": "16247856",
       "username": "lucasmz.dev",
-      "fullName": "lucasmz.dev",
-      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/16247856/medium/bcb2c5fe2c6b4d61658d27b89d47d9c4_default.png",
+      "fullName": "LucasMZ (lucasmz.dev)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/16247856/medium/f1e9c476f7fb8f0e7e9098259dedf0d5_default.png",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [
@@ -1475,8 +1523,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5405,
-    "target": 5912,
+    "translated": 5418,
+    "target": 5926,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

@@ -346,7 +346,7 @@
     <string name="uri_unsecure">Незащищенный</string>
     <string name="uri_match_app_title">Выбрать приложение</string>
     <string name="uri_match_detection_title">Обнаружение совпадений</string>
-    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_title">По умолчанию</string>
     <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Основной домен</string>
     <string name="uri_match_detection_domain_note">Сравнивать ресурсы по доменам первого и второго уровня.</string>
@@ -508,7 +508,7 @@
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
-    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
+    <string name="post_notifications_permission_banner_title">Уведомления отключены</string>
     <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
@@ -714,7 +714,7 @@
     <string name="cipher_type_card">Карта</string>
     <string name="cipher_type_identity">Личные данные</string>
     <string name="cipher_type_note">Заметка</string>
-    <string name="cipher_type_ssh_key">SSH Key</string>
+    <string name="cipher_type_ssh_key">SSH-ключ</string>
     <string name="cipher_type_passkey">Ключ доступа</string>
     <string name="field_type_text">Текст</string>
     <string name="field_type_boolean">Логическое значение</string>
@@ -800,7 +800,7 @@
     <string name="generator_header_title">Генератор</string>
     <string name="generator_header_username_title">Генератор имени пользователя</string>
     <string name="generator_header_password_title">Генератор паролей</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
+    <string name="generator_header_ssh_key_title">Генератор SSH ключей</string>
     <string name="generator_generate_button">Сгенерировать</string>
     <string name="generator_regenerate_button">Перегенерировать</string>
     <!-- 'Use' generated password as a password -->
@@ -838,12 +838,12 @@
     <string name="generator_email_subdomain_addressing_note">Поддоменная адресация означает, что любые сообщения, отправленные на <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g>, по-прежнему отправляются на адрес вашего аккаунта. Это означает, что вы можете иметь много вариантов адреса своей электронной почты, чтобы предоставлять его разным людям, сайтам или спискам рассылки. Перед использованием убедитесь, что хостинг электронной почты поддерживает эту функцию.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Псевдоним электронной почты для пересылки</string>
-    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_title">Длина</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
-    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
+    <string name="generator_key_rsa_note">Все клиенты SSH поддерживают этот алгоритм. Для RSA рекомендуется размер ключа не менее 2048 бит, лучше - 4096 бит. Вполне возможно, что в обозримом будущем алгоритм RSA станет практически неуязвимым.</string>
     <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
     <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
-    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
+    <string name="generator_key_ed25519_text">Быстрый и самый современный стандарт</string>
     <string name="generator_create_item_with_password_title">Использовать в качестве пароля</string>
     <string name="generator_create_item_with_username_title">Использовать в качестве логина</string>
     <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>

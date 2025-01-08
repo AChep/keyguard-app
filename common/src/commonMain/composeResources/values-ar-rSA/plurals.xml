@@ -65,27 +65,27 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> أيام</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> أسبوع</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> أسبوع</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> أسبوغين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> بضعة أسابيع</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> عدة أسابيع</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> أسابيع أخرى</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> شهر</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> شهر واحد</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> شهرين</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> بضعة أشهر</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> عدة أشهر</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> أشهر أخرى</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> سنة</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> سنة واحدة</item>
+        <item quantity="two"><xliff:g id="number">%1$s</xliff:g> سنتان</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> بضع سنوات</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> سنوات عديدة</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> سنوات أخرى</item>
     </plurals>
 </resources>

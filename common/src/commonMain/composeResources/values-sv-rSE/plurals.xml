@@ -6,7 +6,7 @@
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Förekomster</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> ord</item>

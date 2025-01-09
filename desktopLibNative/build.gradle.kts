@@ -73,7 +73,7 @@ enum class Os(
         binTaskName = "linkReleaseSharedMacosArm64",
     ),
     WIN_X64(
-        binPath = "mingwX64/releaseShared/libkeyguard.dll",
+        binPath = "mingwX64/releaseShared/keyguard.dll",
         binTaskName = "linkReleaseSharedMingwX64",
     ),
 }

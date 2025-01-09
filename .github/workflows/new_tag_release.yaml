@@ -48,6 +48,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      - name: "Check and Build licenses"
+        run: ./gradlew desktopApp:licenseeJvm
+      - name: "Move licenses"
+        run: |
+          mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: "Upload logs"
@@ -114,6 +119,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      - name: "Check and Build licenses"
+        run: ./gradlew desktopApp:licenseeJvm
+      - name: "Move licenses"
+        run: |
+          mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: 'Upload logs'
@@ -171,6 +181,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      - name: "Check and Build licenses"
+        run: ./gradlew desktopApp:licenseeJvm
+      - name: "Move licenses"
+        run: |
+          mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:bundleFlatpak
       - name: 'Upload .flatpak'
@@ -204,6 +219,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      - name: "Check and Build licenses"
+        run: ./gradlew desktopApp:licenseeJvm
+      - name: "Move licenses"
+        run: |
+          mv -Force desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:packageMsi
       - name: 'Upload .msi'

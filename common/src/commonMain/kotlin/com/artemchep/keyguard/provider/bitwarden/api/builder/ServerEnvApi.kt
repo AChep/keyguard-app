@@ -120,9 +120,9 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
     value class Ciphers(
         val url: String,
     ) {
-        val create get() = "$url/create"
+        val create get() = url + "create"
 
-        fun focus(id: String) = Cipher(url = "$url$id")
+        fun focus(id: String) = Cipher(url = url + id)
 
         @JvmInline
         value class Cipher(
@@ -132,14 +132,14 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
 
             val restore get() = "$url/restore"
 
-            val attachments get() = Attachments(url = "$url/attachment")
+            val attachments get() = Attachments(url = "$url/attachment/")
         }
 
         @JvmInline
         value class Attachments(
             val url: String,
         ) {
-            fun focus(id: String) = Attachment(url = "$url/$id")
+            fun focus(id: String) = Attachment(url = url + id)
 
             @JvmInline
             value class Attachment(
@@ -154,9 +154,9 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
     ) {
         fun post() = url
 
-        fun create() = "$url/create"
+        fun create() = url + "create"
 
-        fun put(id: String) = "$url$id"
+        fun put(id: String) = url + id
 
         fun delete(id: String) = url + id
     }
@@ -167,7 +167,7 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
     ) {
         fun post() = url
 
-        fun focus(id: String) = Send(url = "$url$id")
+        fun focus(id: String) = Send(url = url + id)
 
         @JvmInline
         value class Send(

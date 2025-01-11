@@ -79,6 +79,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.duplicates.list.createCipherSelectionFlow
 import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -1628,8 +1629,30 @@ fun vaultListScreenState(
             canWrite && itemIds.isEmpty()
         },
     ) { state, canWrite ->
+        // If the paywall is active, then replace actions with
+        // a link to the paywall. This is needed because too
+        // many users think that the app doesn't support adding
+        // new items.
+        //
+        // That's a bit unfortunate tho, because I'd like to
+        // keep the interface clean and hide stuff that is not
+        // active.
+        if (!canWrite && state.primaryActions.isNotEmpty()) {
+            val primaryActions = listOf(
+                FlatItemAction(
+                    title = TextHolder.Res(Res.string.settings_subscriptions_header_title),
+                    onClick = {
+                        val intent = NavigationIntent.NavigateToRoute(SubscriptionsSettingsRoute)
+                        navigate(intent)
+                    },
+                )
+            )
+            return@combine state.copy(
+                primaryActions = primaryActions,
+            )
+        }
         state.copy(
-            primaryActions = state.primaryActions.takeIf { canWrite }.orEmpty(),
+            primaryActions = state.primaryActions,
         )
     }.combine(actionsFlow) { state, actions ->
         state.copy(

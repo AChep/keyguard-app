@@ -118,7 +118,9 @@ playServicesBase = "18.5.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha02"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "8.0.12"
+signalr = "9.0.1"
+# https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
+msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.16"
 # https://github.com/bcgit/bc-java
@@ -256,6 +258,8 @@ bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = 
 mayakapps-window-styler = { module = "com.mayakapps.compose:window-styler", version.ref = "windowStyler" }
 microsoft-signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
 microsoft-signalr-messagepack = { module = "com.microsoft.signalr.messagepack:signalr-messagepack", version.ref = "signalr" }
+msgpack-core = { module = "org.msgpack:msgpack-core", version.ref = "msgpack" }
+msgpack-jackson-dataformat = { module = "org.msgpack:jackson-dataformat-msgpack", version.ref = "msgpack" }
 mm2d-touchicon = { module = "net.mm2d.touchicon:touchicon", version.ref = "touchIcon" }
 mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhttp", version.ref = "touchIcon" }
 lingala-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }

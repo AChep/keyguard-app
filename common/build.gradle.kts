@@ -156,6 +156,8 @@ kotlin {
                 // SignalR
                 implementation(libs.microsoft.signalr)
                 implementation(libs.microsoft.signalr.messagepack)
+                implementation(libs.msgpack.core)
+                implementation(libs.msgpack.jackson.dataformat)
                 // ...implicitly added by SignalR, so we might as well opt-in
                 // for the latest and 'best-est' version.
                 implementation(libs.squareup.okhttp)

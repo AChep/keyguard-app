@@ -46,6 +46,7 @@ subprojects {
             allow("EPL-1.0")
             allow("CC0-1.0")
             allow("BSD-2-Clause")
+            allow("BSD-3-Clause")
 
             //
             // Android

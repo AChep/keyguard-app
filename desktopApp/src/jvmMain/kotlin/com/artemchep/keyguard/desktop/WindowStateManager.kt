@@ -4,9 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.common.io.attempt
@@ -17,18 +20,20 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
+import com.artemchep.keyguard.platform.recordLogDebug
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
+// TODO: Add a support for window positioning via
+//  the alignment and not absolute values.
 class WindowStateManager(
     private val store: KeyValueStore,
     private val json: Json,
@@ -72,6 +77,7 @@ class WindowStateManager(
 
     private data class SaveableWindowState(
         val placement: WindowPlacement,
+        val position: WindowPosition,
         val size: DpSize,
     ) {
         companion object {
@@ -83,9 +89,15 @@ class WindowStateManager(
             private const val KEY_ARG_PLACEMENT_MAXIMIZED = "maximized"
             private const val KEY_ARG_PLACEMENT_FULLSCREEN = "fullscreen"
 
+            private const val KEY_ARG_POSITION_X = "position_x"
+            private const val KEY_ARG_POSITION_Y = "position_y"
+            private const val KEY_ARG_POSITION_SPECIFIED = "position_specified"
+
             private val defaultSize get() = DpSize(800.dp, 600.dp)
 
             private val defaultPlacement get() = WindowPlacement.Floating
+
+            private val defaultPosition get() = WindowPosition.PlatformDefault
 
             fun of(state: Map<String, Any?>): SaveableWindowState {
                 val placement = when (state[KEY_ARG_PLACEMENT]) {
@@ -104,8 +116,31 @@ class WindowStateManager(
                         height = height.toDouble().dp,
                     )
                 } ?: defaultSize
+                val position = kotlin.run {
+                    fun getPositionAxisAsDpOrNull(key: String): Dp {
+                        val v = state[key] as? Number
+                            ?: return Dp.Unspecified
+                        return v.toDouble().dp
+                    }
+
+                    val specified = kotlin.run {
+                        val v = state[KEY_ARG_POSITION_SPECIFIED] as? Boolean
+                        v == true
+                    }
+                    if (specified) {
+                        val x = getPositionAxisAsDpOrNull(key = KEY_ARG_POSITION_X)
+                        val y = getPositionAxisAsDpOrNull(key = KEY_ARG_POSITION_Y)
+                        return@run WindowPosition.Absolute(
+                            x = x,
+                            y = y,
+                        )
+                    }
+
+                    null
+                } ?: defaultPosition
                 return SaveableWindowState(
                     placement = placement,
+                    position = position,
                     size = size,
                 )
             }
@@ -113,6 +148,7 @@ class WindowStateManager(
             fun of(state: WindowState): SaveableWindowState {
                 return SaveableWindowState(
                     placement = state.placement,
+                    position = state.position,
                     size = state.size,
                 )
             }
@@ -126,10 +162,20 @@ class WindowStateManager(
             }
             val width = size.width.value.toDouble()
             val height = size.height.value.toDouble()
+
+            fun convertPositionAxisToDoubleOrNull(v: Dp): Double? {
+                return v.takeIf { it.isSpecified }?.value?.toDouble()
+            }
+
+            val x = convertPositionAxisToDoubleOrNull(position.x)
+            val y = convertPositionAxisToDoubleOrNull(position.y)
             return mapOf(
                 KEY_ARG_PLACEMENT to placement,
                 KEY_ARG_WIDTH to width,
                 KEY_ARG_HEIGHT to height,
+                KEY_ARG_POSITION_X to x,
+                KEY_ARG_POSITION_Y to y,
+                KEY_ARG_POSITION_SPECIFIED to position.isSpecified,
             )
         }
     }
@@ -152,9 +198,15 @@ class WindowStateManager(
         val restoredState = remember {
             windowStateLatest
                 ?: runBlocking { get() }
+                    .also { state ->
+                        recordLogDebug {
+                            "Restoring window state: $state"
+                        }
+                    }
         }
         val state = rememberWindowState(
             placement = restoredState.placement,
+            position = restoredState.position,
             size = restoredState.size,
         )
 
@@ -179,6 +231,10 @@ class WindowStateManager(
                 }
                 .debounce(SAVE_DEBOUNCE_MS)
                 .onEach { state ->
+                    recordLogDebug {
+                        "Saving window state: $state"
+                    }
+
                     val model = state.toMap()
                     val anyMap = AnyMap(
                         value = model,

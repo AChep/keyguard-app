@@ -33,14 +33,19 @@ val SurfaceElevation.color: Color
 @ReadOnlyComposable
 fun surfaceElevationColor(elevation: Float): Color {
     when (elevation) {
-        1.0f -> return MaterialTheme.colorScheme.surfaceContainerLowest
+        1.0f -> return MaterialTheme.colorScheme.background
         0.75f -> return MaterialTheme.colorScheme.surfaceContainerLow
+        // Makes sense on practice after you have seen
+        // how these containers are positioned. If we just
+        // use the code below, then the difference between these
+        // containers becomes too subtle.
+        0.625f -> return MaterialTheme.colorScheme.surfaceContainer
         0.5f -> return MaterialTheme.colorScheme.surfaceContainer
         0.25f -> return MaterialTheme.colorScheme.surfaceContainerHigh
     }
 
     val min = MaterialTheme.colorScheme.surfaceContainerHigh
-    val max = MaterialTheme.colorScheme.surfaceContainerLowest
+    val max = MaterialTheme.colorScheme.background
     return max
         .combineAlpha(elevation)
         .compositeOver(min)

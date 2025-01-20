@@ -8,6 +8,9 @@ import dev.kdrag0n.colorkt.conversion.ConversionGraph
 import dev.kdrag0n.colorkt.rgb.Srgb
 import com.artemchep.keyguard.ui.theme.monet.ColorScheme as MonetColorScheme
 
+// TODO: Support properly populating all the difference surfaces
+//  that were introduced.
+
 /**
  *  To avoid editing the core Monet code by kdrag0n, these are extensions instead
  */
@@ -57,10 +60,6 @@ fun MonetColorScheme.lightMonetCompatScheme(
     onTertiary: Color = getMonetNeutralColor(1, 50),
     tertiaryContainer: Color = getMonetAccentColor(3, 100),
     onTertiaryContainer: Color = getMonetAccentColor(3, 900),
-    background: Color = getMonetNeutralColor(1, 50),
-    onBackground: Color = getMonetNeutralColor(1, 900),
-    surface: Color = getMonetNeutralColor(1, 50),
-    onSurface: Color = getMonetNeutralColor(1, 900),
     surfaceVariant: Color = getMonetNeutralColor(2, 100),
     onSurfaceVariant: Color = getMonetNeutralColor(2, 700),
     inverseSurface: Color = getMonetNeutralColor(1, 800),
@@ -80,10 +79,6 @@ fun MonetColorScheme.lightMonetCompatScheme(
     onTertiary = onTertiary,
     tertiaryContainer = tertiaryContainer,
     onTertiaryContainer = onTertiaryContainer,
-    background = background,
-    onBackground = onBackground,
-    surface = surface,
-    onSurface = onSurface,
     surfaceVariant = surfaceVariant,
     onSurfaceVariant = onSurfaceVariant,
     inverseSurface = inverseSurface,
@@ -109,10 +104,6 @@ fun MonetColorScheme.darkMonetCompatScheme(
     onTertiary: Color = getMonetAccentColor(3, 700),
     tertiaryContainer: Color = getMonetAccentColor(3, 700),
     onTertiaryContainer: Color = getMonetAccentColor(3, 100),
-    background: Color = getMonetNeutralColor(1, 900),
-    onBackground: Color = getMonetNeutralColor(1, 100),
-    surface: Color = getMonetNeutralColor(1, 900),
-    onSurface: Color = getMonetNeutralColor(1, 100),
     surfaceVariant: Color = getMonetNeutralColor(2, 700),
     onSurfaceVariant: Color = getMonetNeutralColor(2, 200),
     inverseSurface: Color = getMonetNeutralColor(1, 100),
@@ -132,10 +123,6 @@ fun MonetColorScheme.darkMonetCompatScheme(
     onTertiary = onTertiary,
     tertiaryContainer = tertiaryContainer,
     onTertiaryContainer = onTertiaryContainer,
-    background = background,
-    onBackground = onBackground,
-    surface = surface,
-    onSurface = onSurface,
     surfaceVariant = surfaceVariant,
     onSurfaceVariant = onSurfaceVariant,
     inverseSurface = inverseSurface,

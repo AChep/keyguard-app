@@ -120,7 +120,7 @@ richtext = "1.0.0-alpha02"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
 signalr = "9.0.1"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
-msgpack = "0.9.9"
+msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.16"
 # https://github.com/bcgit/bc-java

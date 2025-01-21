@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.BuildType
 import java.io.FileInputStream
 import java.util.*
 
@@ -120,17 +121,21 @@ android {
     }
 
     buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-        }
-        release {
+        fun BuildType.applyMinification() {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+
+        debug {
+            applicationIdSuffix = ".debug"
+        }
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            applyMinification()
         }
         create("benchmarkRelease") {
             signingConfig = signingConfigs.getByName("debug")

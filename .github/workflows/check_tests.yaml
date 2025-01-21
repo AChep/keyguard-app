@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - dependabot/**
 
 jobs:
   check-android-tests:

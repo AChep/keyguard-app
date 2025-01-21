@@ -65,6 +65,7 @@ import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.animation.animateFloatStateOneWayAsState
 import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
 import com.artemchep.keyguard.ui.scrollbar.LazyColumnScrollbar
 import com.artemchep.keyguard.ui.selection.SelectionBar
@@ -113,6 +114,7 @@ fun ScaffoldLazyColumn(
             progress * density.density * 64
         }
     }
+    val translationYAnimatedState = animateFloatStateOneWayAsState(translationYState)
 
     Scaffold(
         modifier = modifier,
@@ -153,7 +155,7 @@ fun ScaffoldLazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        translationY = translationYState.value
+                        translationY = translationYAnimatedState.value
                     },
                 verticalArrangement = listVerticalArrangement,
                 contentPadding = contentPaddingWithFab,

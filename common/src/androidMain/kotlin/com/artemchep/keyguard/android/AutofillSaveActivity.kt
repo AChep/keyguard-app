@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
+import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.of
@@ -69,7 +70,7 @@ class AutofillSaveActivity : BaseActivity(), DIAware {
     ) : Parcelable
 
     private val args by lazy {
-        intent.extras?.getParcelable<Args>(KEY_ARGUMENTS)
+        intent.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
             ?: Args(
                 applicationId = packageName,
             )

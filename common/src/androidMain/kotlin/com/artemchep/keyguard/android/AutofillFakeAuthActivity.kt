@@ -11,6 +11,7 @@ import arrow.core.flatMap
 import arrow.core.toOption
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
 import com.artemchep.keyguard.android.clipboard.KeyguardClipboardService
+import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.flatten
@@ -85,7 +86,7 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
     private val args by lazy {
         val extras = intent.extras
         extras?.classLoader = Args::class.java.getClassLoader()
-        extras?.getParcelable<Args>(KEY_ARGS)
+        extras?.getParcelableCompat<Args>(KEY_ARGS)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

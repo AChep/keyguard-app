@@ -32,6 +32,7 @@ import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
 import com.artemchep.keyguard.android.autofill.DatasetBuilder
+import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.DSecret
@@ -73,7 +74,7 @@ class AutofillActivity : BaseActivity(), DIAware {
     }
 
     private val args by lazy {
-        intent.extras?.getParcelable<Args>(KEY_ARGUMENTS)
+        intent.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
             ?: Args(
                 applicationId = packageName,
             )

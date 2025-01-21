@@ -19,6 +19,7 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
 import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.downloader.receiver.CopyActionReceiver
+import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
@@ -325,7 +326,7 @@ class KeyguardClipboardService : Service(), DIAware {
         )
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val args = intent?.extras?.getParcelable<Args>(KEY_ARGUMENTS)
+        val args = intent?.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
         if (args != null) {
             actor.trySend(args)
         }

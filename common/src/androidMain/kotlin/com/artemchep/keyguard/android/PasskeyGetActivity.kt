@@ -31,6 +31,7 @@ import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
 import arrow.optics.optics
+import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -125,7 +126,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
     ) : Parcelable
 
     private val _args by lazy {
-        intent.extras?.getParcelable<Args>(KEY_ARGUMENTS)
+        intent.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
     }
 
     private val args: Args get() = requireNotNull(_args)

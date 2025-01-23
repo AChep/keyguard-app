@@ -138,7 +138,7 @@ touchIcon = "0.9.9"
 # https://github.com/littlerobots/version-catalog-update-plugin
 versionCatalogPlugin = "0.8.5"
 # https://github.com/ben-manes/gradle-versions-plugin
-versionsPlugin = "0.51.0"
+versionsPlugin = "0.52.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android

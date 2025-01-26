@@ -26,15 +26,15 @@
     <string name="public_url">URL pubblico</string>
     <string name="url">URL</string>
     <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="field_label">Etichetta</string>
+    <string name="field_value">Valore</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Conteggio accessi</string>
     <!--
         Access count increases every time someone opens a send and looks and the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Numero massimo di accessi</string>
     <string name="learn_more">Scopri di più</string>
     <string name="phone_number">Numero di telefono</string>
     <string name="passport_number">Numero di passaporto</string>
@@ -103,8 +103,8 @@
     <string name="organization">Organizzazione</string>
     <string name="organizations">Organizzazioni</string>
     <string name="organizations_empty_label">Nessuna organizzazione</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Domini equivalenti</string>
+    <string name="equivalent_domains_empty_label">Nessun dominio equivalente</string>
     <string name="misc">Varie</string>
     <string name="category">Categoria</string>
     <string name="command">Comando</string>
@@ -140,7 +140,7 @@
     <string name="select_linked_type">Seleziona un tipo</string>
     <string name="select_file">Seleziona un file</string>
     <string name="autofill">Riempimento automatico</string>
-    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
+    <string name="autofill_and_save_uri">Salvataggio automatico dell'app o informazioni del sito</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Crea una password</string>
     <string name="passkey_unlock_header">Sblocca Keyguard</string>
@@ -180,8 +180,8 @@
     <string name="passkey_available">Passkey disponibile</string>
     <string name="twofa_available">Autenticazione a due fattori disponibile</string>
     <string name="custom">Personalizzato</string>
-    <string name="grant_permission">Grant permission</string>
-    <string name="create_account">Create account</string>
+    <string name="grant_permission">Concedi autorizzazione</string>
+    <string name="create_account">Crea account</string>
     <string name="follow_system_settings">Segui le impostazioni di sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">In arrivo</string>
@@ -217,32 +217,32 @@
     <string name="reveal_secure_note">Rivela una nota sicura</string>
     <string name="hide_secure_note">Nascondi una nota sicura</string>
     <string name="master_password_hint">Suggerimento per la password principale</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
-    <string name="key_type">Key type</string>
-    <string name="key_pair">Key pair</string>
-    <string name="key_ssh">SSH Key</string>
+    <string name="public_key">Chiave pubblica</string>
+    <string name="private_key">Chiave privata</string>
+    <string name="fingerprint">Impronta digitale</string>
+    <string name="key_type">Tipo di chiave</string>
+    <string name="key_pair">Coppia di chiavi</string>
+    <string name="key_ssh">Chiave SSH</string>
     <string name="fingerprint_phrase">Frase impronta</string>
     <string name="fingerprint_phrase_help_title">Che cos'è un'impronta digitale?</string>
-    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
-    <string name="filter_pending_items">Pending</string>
-    <string name="filter_failed_items">Failed</string>
+    <string name="filter_auth_reprompt_items">Richiesta autorizzazione</string>
+    <string name="filter_pending_items">In attesa</string>
+    <string name="filter_failed_items">Non riuscito</string>
     <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
+    <string name="bitwarden_premium_required">Richiede Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Server Bitwarden non ufficiale</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip_generate_email_relay_title">Genera email uniche per una migliore privacy.</string>
     <string name="account_last_synced_at">Ultima sincronizzazione il <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Modifica nome</string>
     <string name="account_action_change_color_title">Modifica colore</string>
     <string name="account_action_change_master_password_hint_title">Modifica suggerimento password principale</string>
     <string name="account_action_sign_out_title">Disconnetti</string>
     <string name="account_action_sign_in_title">Accedi</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
-    <string name="account_action_hide_title">Hide items</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
+    <string name="account_action_export_vault_title">Esporta cassaforte</string>
+    <string name="account_action_export_individual_vault_title">Esporta cassaforte individuale</string>
+    <string name="account_action_hide_title">Nascondi elementi</string>
+    <string name="account_action_hide_text">Nascondi gli elementi dalle schermate principali dell'app</string>
     <string name="account_action_email_verify_instructions_title">Vai nella cassaforte web per verificare il tuo indirizzo e-mail</string>
     <string name="account_action_premium_purchase_instructions_title">Aggiorna il tuo account a un abbonamento premium per sbloccare alcune funzioni aggiuntive</string>
     <string name="account_action_tfa_title">Autenticazione a due fattori</string>
@@ -254,15 +254,15 @@
     <string name="account_log_out_confirmation_text">Tutte le modifiche non sincronizzate verranno perse!</string>
     <string name="folder_action_change_name_title">Modifica nome</string>
     <string name="folder_action_change_names_title">Modifica nomi</string>
-    <string name="folder_action_merge_title">Merge into…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
+    <string name="folder_action_merge_title">Unisci in…</string>
+    <string name="folder_action_merge_confirmation_title">Sei sicuro di voler unire queste cartelle?</string>
+    <string name="folder_action_create_title">Crea una cartella</string>
     <string name="folder_delete_one_confirmation_title">Eliminare la cartella?</string>
     <string name="folder_delete_many_confirmation_title">Eliminare le cartelle?</string>
     <string name="folder_delete_confirmation_text">Questo/i elemento/i verranno eliminati immediatamente. Questa azione non può essere annullata.</string>
     <string name="ciphers_recently_opened">Aperti di recente</string>
     <string name="ciphers_often_opened">Aperti spesso</string>
-    <string name="ciphers_history_empty">No history yet</string>
+    <string name="ciphers_history_empty">Ancora nessuna cronologia</string>
     <string name="ciphers_view_details">Vedi dettagli</string>
     <string name="ciphers_save_to">Salva in</string>
     <string name="ciphers_action_add_to_favorites_title">Aggiungi ai preferiti</string>
@@ -272,7 +272,7 @@
     <string name="ciphers_action_edit_title">Modifica</string>
     <string name="ciphers_action_merge_title">Unisci in…</string>
     <string name="ciphers_action_copy_title">Copia in…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">Esporta…</string>
     <string name="ciphers_action_change_folder_title">Sposta nella cartella</string>
     <string name="ciphers_action_change_name_title">Modifica nome</string>
     <string name="ciphers_action_change_names_title">Modifica nomi</string>
@@ -282,30 +282,30 @@
     <string name="ciphers_action_change_passwords_title">Modifica password</string>
     <string name="ciphers_action_view_password_history_title">Visualizza cronologia password</string>
     <string name="ciphers_action_trash_title">Elimina</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_title">Sposta nel cestino?</string>
+    <string name="ciphers_action_trash_confirmation_text">Gli elementi nel cestino saranno eliminati automaticamente dopo 30 giorni.</string>
     <string name="ciphers_action_restore_title">Ripristina</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Ripristinare dal cestino?</string>
     <string name="ciphers_action_delete_title">Elimina definitivamente</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
+    <string name="ciphers_action_delete_confirmation_title">Elimina definitivamente?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configura avvisi Torre di Guardia</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Sposta gli elementi associati nel cestino</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
-    <string name="sends_action_show_email_title">Show email</string>
+    <string name="sends_action_change_name_title">Cambia nome</string>
+    <string name="sends_action_change_names_title">Modifica nomi</string>
+    <string name="sends_action_change_filename_title">Cambia nome file</string>
+    <string name="sends_action_change_filenames_title">Cambia nome ai files</string>
+    <string name="sends_action_set_password_title">Imposta password</string>
+    <string name="sends_action_set_passwords_title">Imposta password</string>
+    <string name="sends_action_set_password_confirmation_message">Richiedi una password agli utenti per accedere a questo elemento</string>
+    <string name="sends_action_change_password_title">Cambia password</string>
+    <string name="sends_action_change_passwords_title">Modifica password</string>
+    <string name="sends_action_remove_password_title">Rimuovi la password</string>
+    <string name="sends_action_remove_passwords_title">Rimuovi le password</string>
+    <string name="sends_action_remove_password_confirmation_title">Rimuovere la password?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Rimuovi le password?</string>
+    <string name="sends_action_remove_password_confirmation_message">Non richiedere una password per accedere a questo elemento</string>
+    <string name="sends_action_hide_email_title">Nascondi Email</string>
+    <string name="sends_action_show_email_title">Mostra email</string>
     <string name="sends_action_enable_title">Activate</string>
     <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
     <string name="sends_action_enable_confirmation_title">Activate?</string>
@@ -509,7 +509,7 @@
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
-    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
+    <string name="post_notifications_permission_banner_text">Concedi il permesso di notifica per consentire a Keyguard di mostrare password una volta quando si autofilling &amp; più.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Codice a barre</string>
     <string name="barcodetype_action_show_in_barcode_title">Mostra come codice a barre</string>
@@ -535,21 +535,21 @@
     <string name="justdeleteme_search_placeholder">Cerca siti web</string>
     <string name="justdeleteme_empty_label">Nessuna istruzione</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_title">Come ottenere i miei dati?</string>
+    <string name="justgetmydata_subtitle">Una serie di informazioni sul come cancellare il tuo account dai servizi web</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Facile</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Medio</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Difficile</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Disponibilità limitata</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
+    <string name="justgetmydata_difficulty_impossible_label">Impossibile</string>
+    <string name="justgetmydata_send_email_title">Invia una email</string>
+    <string name="justgetmydata_search_placeholder">Cerca siti web</string>
+    <string name="justgetmydata_empty_label">Nessuna istruzione</string>
     <string name="tfa_directory_title">Autenticazione a due fattori</string>
     <string name="tfa_directory_text">Elenco dei siti web con supporto per l'autenticazione a due fattori</string>
     <string name="tfa_directory_search_placeholder">Cerca siti web</string>
@@ -600,19 +600,19 @@
     <string name="wordlist_delete_many_confirmation_title">Eliminare le wordlist?</string>
     <string name="wordlist_edit_wordlist_title">Modifica una wordlist</string>
     <string name="wordlist_add_wordlist_title">Aggiungi una wordlist</string>
-    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
-    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
+    <string name="wordlist_add_wordlist_via_file_title">Carica da un file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Carica da un URL</string>
     <string name="wordlist_empty_label">Nessuna wordlist</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
+    <string name="wordlist_word_search_placeholder">Cerca parole</string>
+    <string name="urloverride_header_title">Sovrascrivere URL</string>
+    <string name="urloverride_list_header_title">Sovrascrivere URL</string>
+    <string name="urloverride_list_section_title">Sovrascrivere URL</string>
+    <string name="urloverride_regex_note">La sovrascrittura sarà applicata agli URL che corrispondono all'espressione regolare.</string>
+    <string name="urloverride_delete_one_confirmation_title">Eliminare la sovrascrittura del URL?</string>
+    <string name="urloverride_delete_many_confirmation_title">Eliminare la sovrascrittura degli URL?</string>
+    <string name="urloverride_empty_label">Nessuna sovrascrittura URL</string>
     <string name="setup_header_text">Crea una cassaforte criptata dove verranno salvati i dati locali.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">Continuando confermi di aver acquistato Keyguard o di aver avuto una licenza attiva.</string>
     <string name="setup_field_app_password_label">Password app</string>
     <string name="setup_checkbox_biometric_auth">Autenticazione biometrica</string>
     <string name="setup_biometric_auth_confirm_title">Crea una cassaforte</string>
@@ -626,8 +626,8 @@
     <string name="unlock_biometric_auth_confirm_title">Sblocca cassaforte</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Usa l'autenticazione biometrica per sbloccare la cassaforte.</string>
-    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
-    <string name="userverification_button_go">Verify</string>
+    <string name="userverification_header_text">Verifica dell'utente. Inserisci la password dell'app per continuare.</string>
+    <string name="userverification_button_go">Verifica</string>
     <string name="syncstatus_header_title">Stato sincronizzazione</string>
     <string name="syncstatus_status_up_to_date">Aggiornato</string>
     <string name="syncstatus_status_pending">In attesa</string>
@@ -635,22 +635,22 @@
     <string name="syncstatus_status_failed">Sincronizzazione non riuscita</string>
     <string name="additem_header_new_title">Nuovo elemento</string>
     <string name="additem_header_edit_title">Modifica elemento</string>
-    <string name="additem_header_merge_title">Merge items</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
-    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_header_merge_title">Unisci elementi</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Sposta gli elementi di origine nel cestino</string>
+    <string name="additem_merge_attachments_note">Unire gli oggetti non unisce i loro allegati! L'elemento creato non avrà alcun allegato aggiunto.</string>
+    <string name="additem_note_placeholder">Aggiungi qui tutte le note su questo elemento</string>
     <string name="additem_markdown_note">Stile del testo con <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> e altro. È supportata una sintassi Markdown limitata.</string>
     <string name="additem_markdown_note_italic">corsivo</string>
     <string name="additem_markdown_note_bold">grassetto</string>
     <string name="additem_markdown_render_preview">Anteprima</string>
     <string name="additem_auth_reprompt_title">Richiesta autorizzazione</string>
-    <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New send</string>
-    <string name="addsend_header_edit_title">Edit send</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="additem_auth_reprompt_text">Chiedere di autenticarsi di nuovo quando si visualizza o riempie automaticamente un cifrario</string>
+    <string name="addsend_header_new_title">Nuovo invio</string>
+    <string name="addsend_header_edit_title">Modifica invio</string>
+    <string name="addsend_text_hide_by_default_title">Quando si accede all'elemento, nascondi il testo di default</string>
+    <string name="addsend_hide_text_by_default_title">Quando si accede all'elemento, nascondi il testo di default</string>
+    <string name="addsend_hide_email_title">Nascondi l'indirizzo e-mail</string>
+    <string name="addsend_max_access_count_note">Se impostato, gli utenti non saranno più in grado di accedere a questo elemento dopo che il numero massimo di accessi verrà raggiunto.</string>
     <string name="addaccount_header_title">Aggiungi account Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Non siamo affiliati, associati, autorizzati, approvati da, o in alcun modo ufficialmente connessi con il Bitwarden, Inc. o di una delle sue controllate o delle sue affiliate.</string>
     <!--
@@ -659,7 +659,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Per superare la verifica captcha su un client Bitwarden non ufficiale, devi specificare la chiave segreta del client. Per trovarlo, visita la Cassaforte Web / Impostazioni account / Sicurezza / Chiave API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Chiave segreta del client</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
+    <string name="addaccount_create_an_account_title">Crea un account</string>
     <string name="addaccount_sign_in_button">Accedi</string>
     <string name="addaccount_region_section">Regione</string>
     <string name="addaccount_region_us_type">Stati Uniti</string>
@@ -691,11 +691,11 @@
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
     <string name="yubikey_usb_title">Connetti YubiKey tramite USB</string>
     <string name="yubikey_usb_text">Richiede il supporto a USB OTG.</string>
-    <string name="yubikey_usb_touch_the_gold_sensor_note">Touch the gold sensor on your YubiKey now.</string>
-    <string name="yubikey_nfc_title">Hold your YubiKey flat against the back of your device</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Tocca adesso il sensore d'oro sulla tua YubiKey.</string>
+    <string name="yubikey_nfc_title">Tieni la YubiKey piatta contro il retro del dispositivo</string>
     <string name="yubikey_nfc_text">Richiede il supporto a NFC.</string>
     <string name="yubikey_error_failed_to_read">Lettura di YubiKey fallita</string>
-    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Using FIDO2 WebAuthn requires using the Bitwarden Web vault version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> or higher. On older versions the authentication result will incorrectly be forwarded to the official Bitwarden app.</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">L'utilizzo di FIDO2 WebAuthn richiede l'utilizzo della versione <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> della cassaforte Web Bitwarden o superiore. Nelle versioni precedenti il risultato dell'autenticazione verrà inoltrato in modo errato all'app ufficiale Bitwarden.</string>
     <string name="elevatedaccess_header_title">Conferma accesso</string>
     <string name="elevatedaccess_header_text">Questi dati sono protetti, per continuare inserisci la password dell'app.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
@@ -705,7 +705,7 @@
     <string name="home_vault_label">Cassaforte</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generatore</string>
-    <string name="home_watchtower_label">Watchtower</string>
+    <string name="home_watchtower_label">Torre di Guardia</string>
     <string name="home_settings_label">Impostazioni</string>
     <string name="lock_reason_inactivity">Bloccato per inattività</string>
     <string name="send_type_text">Testo</string>
@@ -714,7 +714,7 @@
     <string name="cipher_type_card">Carta</string>
     <string name="cipher_type_identity">Identità</string>
     <string name="cipher_type_note">Note</string>
-    <string name="cipher_type_ssh_key">SSH Key</string>
+    <string name="cipher_type_ssh_key">Chiave SSH</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Testo</string>
     <string name="field_type_boolean">Booleano</string>
@@ -733,13 +733,13 @@
     <string name="passwords_good_label">Password buone</string>
     <string name="passwords_fair_label">Password discrete</string>
     <string name="passwords_weak_label">Password deboli</string>
-    <string name="customfilters_header_title">Custom filters</string>
-    <string name="customfilters_search_placeholder">Search filters</string>
-    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
-    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
-    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
-    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
-    <string name="customfilters_add_filter_title">Add a custom filter</string>
+    <string name="customfilters_header_title">Filtri personalizzati</string>
+    <string name="customfilters_search_placeholder">Filtri di Ricerca</string>
+    <string name="customfilters_dynamic_shortcut_tip">È possibile applicare rapidamente i filtri aggiungendo una scorciatoia sulla schermata iniziale.</string>
+    <string name="customfilters_delete_one_confirmation_title">Eliminare il filtro?</string>
+    <string name="customfilters_delete_many_confirmation_title">Eliminare i filtri?</string>
+    <string name="customfilters_edit_filter_title">Modifica un filtro personalizzato</string>
+    <string name="customfilters_add_filter_title">Aggiungi un filtro personalizzato</string>
     <string name="filter_header_title">Filtri</string>
     <string name="filter_empty_label">Nessun filtro disponibile</string>
     <string name="sort_header_title">Ordina per</string>
@@ -753,8 +753,8 @@
     <string name="sortby_modification_date_title">Data di modifica</string>
     <string name="sortby_modification_date_normal_mode">Prima i più recenti</string>
     <string name="sortby_modification_date_reverse_mode">Prima i più vecchi</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
+    <string name="sortby_installation_date_title">Data di installazione</string>
+    <string name="sortby_installation_date_normal_mode">Prima i più recenti</string>
     <string name="sortby_installation_date_reverse_mode">Oldest First</string>
     <string name="sortby_expiration_date_title">Data di scadenza</string>
     <string name="sortby_expiration_date_normal_mode">Prima i più recenti</string>
@@ -962,19 +962,19 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">App build ref</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_changelog_title">Changelog della app</string>
     <string name="pref_item_app_team_title">Team dietro l'applicazione</string>
     <string name="pref_item_reddit_community_title">Community su Reddit</string>
     <string name="pref_item_github_title">Progetto GitHub</string>
     <string name="pref_item_crowdin_title">Progetto Crowdin</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Visualizza tutto</string>
     <string name="pref_item_open_source_licenses_title">Licenze open source</string>
     <string name="pref_item_download_apk_title">Scarica il file APK</string>
     <string name="pref_item_load_app_icons_title">Carica icone App</string>
     <string name="pref_item_load_website_icons_title">Carica icone Siti Web</string>
-    <string name="pref_item_load_website_icons_text">Queuing website icon might leak the website address to internet provider</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
-    <string name="pref_item_markdown_title">Rich text formatting</string>
+    <string name="pref_item_load_website_icons_text">L'icona del sito web in coda potrebbe perdere l'indirizzo del sito web al provider internet</string>
+    <string name="pref_item_load_gravatar_icons_title">Carica icone Gravatar</string>
+    <string name="pref_item_markdown_title">Formattazione Rich Text</string>
     <string name="pref_item_markdown_text">Usa Markdown per formattare le note</string>
     <string name="pref_item_locale_title">Lingua</string>
     <string name="pref_item_locale_help_translation_button">Suggerisci traduzioni</string>
@@ -984,12 +984,12 @@
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Usa tema scuro a contrasto</string>
     <string name="pref_item_open_links_in_external_browser_title">Apri link in browser esterno</string>
-    <string name="pref_item_close_to_tray_title">Close to system tray</string>
-    <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
-    <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
-    <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
-    <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
-    <string name="pref_item_conceal_fields_title">Conceal fields</string>
+    <string name="pref_item_close_to_tray_title">Chiudi in area di notifica</string>
+    <string name="pref_item_check_pwned_passwords_title">Controlla password pwned</string>
+    <string name="pref_item_check_pwned_services_title">Controlla la presenza di violazioni dei dati</string>
+    <string name="pref_item_check_inactive_2fa_title">Autenticazione a due fattori non attivata</string>
+    <string name="pref_item_check_inactive_passkeys_title">Controlla passkeys inattive</string>
+    <string name="pref_item_conceal_fields_title">Concedi i campi</string>
     <string name="pref_item_conceal_fields_text">Nascondere informazioni sensibili, come password e numeri di carta di credito</string>
     <!--
         When a user clicks this button, the app crashes. Not visible to
@@ -997,7 +997,7 @@
     <string name="pref_item_crash_title">Crash</string>
     <string name="pref_item_credential_provider_title">Fornitore di credenziali</string>
     <string name="pref_item_credential_provider_text">Passkeys, password e servizi dati</string>
-    <string name="pref_item_credential_provider_no_feature_note">The device doesn't support retrieval of user credentials via integration with credential providers. Contact the manufacturer for more information.</string>
+    <string name="pref_item_credential_provider_no_feature_note">Il dispositivo non supporta il recupero delle credenziali utente tramite l'integrazione con i provider di credenziali. Contatta il produttore per maggiori informazioni.</string>
     <string name="pref_item_privacy_policy_title">Politica sulla Privacy</string>
     <string name="pref_item_contact_us_title">Contattaci</string>
     <string name="pref_item_experimental_title">Funzioni sperimentali</string>
@@ -1014,7 +1014,7 @@
     <string name="pref_item_allow_screenshots_text_on">Mostra il contenuto dell'app quando si passa tra le app recenti e consente di catturare uno screenshot</string>
     <string name="pref_item_allow_screenshots_text_off">Nascondi il contenuto dell'app quando si passa tra le app recenti e proibisci di catturare uno screenshot</string>
     <string name="pref_item_data_safety_title">Sicurezza dei dati</string>
-    <string name="pref_item_logs_title">Logs</string>
+    <string name="pref_item_logs_title">Registri</string>
     <string name="pref_item_lock_vault_title">Blocca cassaforte</string>
     <string name="pref_item_lock_vault_after_reboot_title">Blocca dopo un riavvio</string>
     <string name="pref_item_lock_vault_after_reboot_text">Blocca la cassaforte dopo un riavvio del dispositivo</string>
@@ -1029,10 +1029,10 @@
     <string name="pref_item_persist_vault_key_note">Archiviare una chiave di cassaforte sul disco è un rischio per la sicurezza. Se la memoria interna del dispositivo è compromessa, l'attaccante otterrà l'accesso ai dati della cassaforte locale.</string>
     <string name="pref_item_permissions_title">Autorizzazioni</string>
     <string name="pref_item_features_overview_title">Panoramica delle funzionalità</string>
-    <string name="pref_item_url_override_title">URL overrides</string>
+    <string name="pref_item_url_override_title">Sovrascrivere URL</string>
     <string name="pref_item_biometric_unlock_title">Sblocco biometrico</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_title">Richiedi conferma</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Richiede un ulteriore tocco sul pulsante di conferma dopo un'autenticazione biometrica riuscita</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1040,14 +1040,14 @@
     <string name="pref_item_keep_screen_on_title">Mantieni lo schermo acceso durante la visualizzazione degli elementi</string>
     <string name="pref_item_autofill_service_title">Compilazione automatica</string>
     <string name="pref_item_autofill_service_text">Utilizza il framework Android Autofill per aiutare a inserire le informazioni di accesso in altre applicazioni sul dispositivo</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Alcuni dispositivi Xiaomi richiedono di consentire manualmente il permesso "mostra finestre popup quando attive in background". Si prega di aprire le impostazioni e verificare che sia concesso.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome per supportare nativamente i servizi di riempimento automatico di terze parti</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Aprire le impostazioni di Chrome e toccare i servizi di riempimento automatico
+2. Scegliere riempimento automatico utilizzando un altro servizio
+3. Confermare e riavviare Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copia automaticamente OTP</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Quando si compilano le informazioni di accesso, copia automaticamente le password monouso</string>
-    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
+    <string name="pref_item_autofill_default_match_detection_title">Rilevamento predefinito delle corrispondenze</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggerimenti inline</string>
     <string name="pref_item_autofill_inline_suggestions_text">Integra i suggerimenti di riempimento automatico direttamente nelle tastiere compatibili</string>
     <string name="pref_item_autofill_manual_selection_title">Selezione manuale</string>
@@ -1064,23 +1064,23 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Durata notifica password monouso</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Quando si compila automaticamente un elemento di accesso che ha una password monouso, la notifica con codice di verifica verrà visualizzata per almeno la durata definita</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Mai</string>
-    <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
+    <string name="pref_item_clipboard_notification_settings_title">Impostazioni di notifica password monouso</string>
     <string name="pref_item_premium_membership_title">Informazioni sull'iscrizione a Keyguard</string>
     <string name="pref_item_premium_membership_text">Il Premium sblocca funzionalità extra e finanzia lo sviluppo dell'app. Grazie per il supporto! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abbonamenti</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Il tuo abbonamento verrà rinnovato 24 ore prima della scadenza e il costo verrà addebitato automaticamente su Google Play in quel momento. Puoi attivare o disattivare il rinnovo automatico e puoi annullare l'abbonamento in qualsiasi momento su Google Play. Se non ti sei mai iscritto, potresti avere diritto a una prova gratuita. Non ti verrà addebitato alcun costo se annulli prima della fine della prova gratuita.</string>
     <string name="pref_item_premium_membership_section_products_title">Prodotti</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Impossibile caricare la lista degli abbonamenti</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Impossibile caricare l'elenco dei prodotti</string>
     <string name="pref_item_premium_status_active">Attivo</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Prova gratuita di <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Non verrà rinnovato</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Gestisci su Play Store</string>
     <string name="pref_item_permission_post_notifications_title">Posticipa notifica</string>
     <string name="pref_item_permission_post_notifications_text">Utilizzato per postare le notifiche di download</string>
-    <string name="pref_item_permission_write_external_storage_title">Write external storage</string>
-    <string name="pref_item_permission_write_external_storage_text">Used to save vault exports to the downloads directory</string>
-    <string name="pref_item_permission_write_external_storage_grant">Grant write external storage permission</string>
+    <string name="pref_item_permission_write_external_storage_title">Scrivi su memoria esterna</string>
+    <string name="pref_item_permission_write_external_storage_text">Utilizzato per salvare le esportazioni della cassaforte nella directory degli scaricamenti</string>
+    <string name="pref_item_permission_write_external_storage_grant">Concedi il permesso di scrittura sulla memoria esterna</string>
     <string name="pref_item_permission_camera_title">Fotocamera</string>
     <string name="pref_item_permission_camera_text">Utilizzato per scansionare i codici QR</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Consenti layout a due colonne in modalità orizzontale</string>
@@ -1130,8 +1130,8 @@
     <string name="feat_item_show_barcode_text">Codifica un testo come codici a barre diversi.</string>
     <string name="feat_item_generator_title">Generatore</string>
     <string name="feat_item_generator_text">Genera password o nomi utente.</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">Esporta</string>
+    <string name="feat_item_export_text">Esporta i dati della cassaforte, inclusi gli allegati.</string>
     <string name="datasafety_header_title">Sicurezza dei dati</string>
     <string name="datasafety_local_section">Dati locali</string>
     <string name="datasafety_local_text">I dati locali consistono in Download, impostazioni utente, Cassaforte. Essi sono memorizzati nella memoria interna di un dispositivo, che può essere accessibile solo dal sistema Android o da Keyguard.</string>
@@ -1145,12 +1145,12 @@
     <string name="datasafety_remote_section">Dati Remoti</string>
     <string name="datasafety_remote_text">I dati remoti vengono memorizzati sui server di Bitwarden con crittografia end-to-end.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
-    <string name="logs_header_title">Logs</string>
-    <string name="logs_start_recording_fab_title">Start recording</string>
-    <string name="logs_stop_recording_fab_title">Stop recording</string>
-    <string name="logs_export_button">Export</string>
-    <string name="logs_export_success">Export complete</string>
+    <string name="localization_contributors_title">Collaboratori di traduzione</string>
+    <string name="localization_contributors_search_placeholder">Cerca collaboratori</string>
+    <string name="localization_contributors_empty_label">Nessun collaboratore</string>
+    <string name="logs_header_title">Registri</string>
+    <string name="logs_start_recording_fab_title">Avvia registrazione</string>
+    <string name="logs_stop_recording_fab_title">Interrompi la registrazione</string>
+    <string name="logs_export_button">Esporta</string>
+    <string name="logs_export_success">Esportazione completa</string>
 </resources>

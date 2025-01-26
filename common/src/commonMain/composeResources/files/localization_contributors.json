@@ -35,6 +35,28 @@
   },
   {
     "user": {
+      "id": "12380486",
+      "username": "Uz4ever",
+      "fullName": "uz4ever (Uz4ever)",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/12380486/medium/de55cff0d3357dc8c47c293c0ecbdf52.png",
+      "joined": "2025-01-23 17:27:36"
+    },
+    "languages": [
+      {
+        "id": "it",
+        "name": "Italian"
+      }
+    ],
+    "translated": 923,
+    "target": 950,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "12457707",
       "username": "ot_inc",
       "fullName": "Re*Index.(ot_inc) (ot_inc)",
@@ -179,8 +201,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 583,
-    "target": 612,
+    "translated": 596,
+    "target": 626,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -565,8 +587,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2340,
-    "target": 3691,
+    "translated": 2384,
+    "target": 3771,
     "approved": 0,
     "voted": 10,
     "positiveVotes": 2,
@@ -1514,7 +1536,7 @@
       "id": "2618",
       "username": "zecabra",
       "fullName": "zecabra",
-      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/2618/medium/47461a1b1b3db95cf317d2ad4595a7f0_default.png",
+      "avatarUrl": "https://crowdin-static.downloads.crowdin.com/avatar/2618/medium/6033467ca98da0e1f10d6615e16e2dda.jpeg",
       "joined": "2023-09-02 11:29:43"
     },
     "languages": [

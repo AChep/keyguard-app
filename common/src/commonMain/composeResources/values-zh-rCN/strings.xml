@@ -18,7 +18,7 @@
     <string name="app_password">应用专用密码</string>
     <string name="current_password">当前密码</string>
     <string name="new_password">新密码</string>
-    <string name="no_password">无密码</string>
+    <string name="no_password">暂无密码</string>
     <string name="email">电子邮件</string>
     <string name="email_verified">已验证</string>
     <string name="email_not_verified">未验证</string>
@@ -40,7 +40,7 @@
     <string name="passport_number">护照号码</string>
     <string name="license_number">驾照号码</string>
     <string name="card_number">卡号</string>
-    <string name="card_number_empty_label">无卡号</string>
+    <string name="card_number_empty_label">暂无卡号</string>
     <string name="card_type">品牌</string>
     <string name="card_cvv">安全码（CVV）</string>
     <string name="card_valid_from">有效期自</string>
@@ -90,7 +90,7 @@
     <string name="items_all">所有条目</string>
     <string name="items_empty_label">暂无条目</string>
     <string name="sends">Sends</string>
-    <string name="folder_none">无文件夹</string>
+    <string name="folder_none">暂无文件夹</string>
     <string name="folder_new">新建文件夹</string>
     <string name="folder">文件夹</string>
     <string name="folders">文件夹</string>
@@ -103,8 +103,8 @@
     <string name="organization">组织</string>
     <string name="organizations">组织</string>
     <string name="organizations_empty_label">暂无组织</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">等效域名</string>
+    <string name="equivalent_domains_empty_label">暂无等效域名</string>
     <string name="misc">杂项</string>
     <string name="category">分类</string>
     <string name="command">命令</string>
@@ -231,8 +231,8 @@
     <string name="bitwarden_premium">Bitwarden 高级版</string>
     <string name="bitwarden_premium_required">需要 Bitwarden 高级版</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 服务器</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip">专业提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">生成独特的电子邮件地址以更好地保护隐私。</string>
     <string name="account_last_synced_at">上次同步于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">修改名称</string>
     <string name="account_action_change_color_title">更改颜色</string>
@@ -905,7 +905,7 @@
     <string name="changepassword_password_changed_successfully">密码修改成功</string>
     <string name="exportaccount_header_title">导出项目</string>
     <string name="exportaccount_password_label">归档密码</string>
-    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_note">导出密码库为加密的 ZIP 归档。</string>
     <string name="exportaccount_attachments_note">密码库将在导出过程中保持解锁。
 附件将会在导出的密码库数据中被引用。
 在此过程中附件永远不会以未加密的形式存储。</string>
@@ -1132,8 +1132,8 @@
     <string name="feat_item_show_barcode_text">将文本编码为不同的二维码</string>
     <string name="feat_item_generator_title">生成器</string>
     <string name="feat_item_generator_text">生成密码或用户名</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">导出</string>
+    <string name="feat_item_export_text">导出密码库数据，包括附件。</string>
     <string name="datasafety_header_title">数据安全</string>
     <string name="datasafety_local_section">本地数据</string>
     <string name="datasafety_local_text">本地数据包括下载文件、用户设置和密码库。它们存储在设备的内部存储器中，只能由 Android 系统或 Keyguard 应用访问。</string>

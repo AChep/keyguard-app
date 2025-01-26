@@ -1,5 +1,18 @@
 [
   {
+    "id": "721fba8a8cec854390bb15d430f57db5",
+    "name": "Paidy (iOS/Android Apps)",
+    "domain": "Paidy.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://paidy.com/passkeys",
+    "setup": "https://d9r4z.app.goo.gl/?link=https://paidy.com/passkey-marketing-email&apn=com.paidy.paidy&isi=1220373112&ibi=com.paidy.Paidy&ofl=https://my.paidy.com/passkey/wrong-device&ifl=https://apps.apple.com/jp/app/paidy/id1220373112&afl=https://play.google.com/store/apps/details?id=com.paidy.paidy&hl=ja",
+    "category": "Finance",
+    "created_at": "2025-01-10T12:16:08.192226+00:00",
+    "notes": "Only 1 passkey can be registered per account.\nPasskey can only be registered from the app (iOS / Android)."
+  },
+  {
     "id": "8ff47cc49fa1b0d04c0d43f438421885",
     "name": "Microsoft Entra",
     "domain": "aad.portal.azure.com",
@@ -21,6 +34,18 @@
     "category": "Information Technology",
     "created_at": "2023-03-21T19:37:59+00:00",
     "notes": "Click the setup link and sign in with your email address and password, then click Add in the Passkeys section and follow the steps to create a passkey.\n\nSign out, then click \"Sign in with passkey\" when you sign back in to use your passkey."
+  },
+  {
+    "id": "0489b6414a95f5540189966fd0f9a484",
+    "name": "AFAS",
+    "domain": "afasonline.nl",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.afas.nl/help/EN/SE/130688.htm",
+    "setup": "https://login.afasonline.com/Security",
+    "category": "Finance",
+    "created_at": "2025-01-15T16:07:11.686512+00:00"
   },
   {
     "id": "ffcd2cbbb98452d49c4fe9c1ce1d61f6",
@@ -977,6 +1002,18 @@
     "notes": "Available within app.\n\nPasskey is offered when signing up instead of password prompt. Also available in settings > Personal Information, tap \"Save a passkey\"."
   },
   {
+    "id": "5de877b5339e4ef12176a77c5c798cb2",
+    "name": "Free Tax USA",
+    "domain": "freetaxusa.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://community.freetaxusa.com/kb/articles/137-what-are-passkeys-and-are-they-better-than-passwords",
+    "setup": "https://auth.freetaxusa.com/passkey",
+    "category": "Finance",
+    "created_at": "2023-07-26T00:45:07.689764+00:00"
+  },
+  {
     "id": "ed7a8f1028a94bb8b250c90d4e4a84a0",
     "name": "FusionAuth",
     "domain": "fusionauth.io",
@@ -1000,6 +1037,17 @@
     "category": "Finance",
     "created_at": "2023-07-22T17:05:06.970546+00:00",
     "notes": "Passkeys can be setup within iOS and available to use on desktop after.\nNo Android support yet.\n"
+  },
+  {
+    "id": "401497554eb1963128bdae20592e27ac",
+    "name": "Prismm",
+    "domain": "getprismm.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://app.getprismm.com/user/security-check/webauthn-credentials",
+    "category": "Financial",
+    "created_at": "2025-01-13T09:55:12.636281+00:00"
   },
   {
     "id": "e93364eb16b037a4163f0506d1826e09",
@@ -1076,6 +1124,18 @@
     "category": "Information Technology",
     "created_at": "2022-11-17T00:00:00+00:00",
     "notes": "Visit setup link and sign in to a personal Google account with your email address and password, then follow the steps to create a passkey.\n\nSign out, then sign back in. You may need to click \"Try another way\" to see the option to use your passkey."
+  },
+  {
+    "id": "4a371e0ab15f116432b552e0ea475b7c",
+    "name": "Grab (App)",
+    "domain": "grab.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://engineering.grab.com/embracing-passwordless-authentication-with-passkey",
+    "category": "eCommerce",
+    "created_at": "2025-01-21T17:16:34+00:00",
+    "notes": "Passkeys can be managed in app: \n\n- Settings\n- Account Security\n- Enable Passkey"
   },
   {
     "id": "7217832b441610be9e4974dd2032288f",
@@ -1737,6 +1797,18 @@
     "setup": "https://my.kemba.org/settings/security",
     "category": "Finance",
     "created_at": "2023-09-11T14:25:05.900516+00:00"
+  },
+  {
+    "id": "a66bcc5852e35a3ef72b905308da83b2",
+    "name": "My KONAMI",
+    "domain": "my.konami.net",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://my.konami.net/ja/support/passkey",
+    "setup": "https://my.konami.net/ja/security",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2025-01-23T10:22:26.709934+00:00"
   },
   {
     "id": "023acfccafdabc31e9924a84a696f17b",
@@ -2419,6 +2491,17 @@
     "created_at": "2023-05-05T00:48:02.28105+00:00"
   },
   {
+    "id": "ccdecad6ef8e7f0197a593ba7a6b8895",
+    "name": "Swica",
+    "domain": "swica.ch",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://idp.swica.ch",
+    "category": "Health & Wellness",
+    "created_at": "2025-01-17T11:40:54.321261+00:00"
+  },
+  {
     "id": "03e3407afb1ddc3713f10ed0195ed869",
     "name": "Syncfusion",
     "domain": "syncfusion.com",
@@ -2465,6 +2548,18 @@
     "setup": "https://www.target.com/account/settings/signinsecurity",
     "category": "eCommerce",
     "created_at": "2024-02-13T17:48:19+00:00"
+  },
+  {
+    "id": "37d2c31a84771e034a6a871f6e66e1bc",
+    "name": "techbookfest",
+    "domain": "techbookfest.org",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://x.com/techbookfest/status/1782549969330946518",
+    "setup": "https://techbookfest.org/mypage/setting",
+    "category": "Science & Engineering",
+    "created_at": "2025-01-23T10:21:18.978455+00:00"
   },
   {
     "id": "11290699cf419fcc16db8dfa1d2d9242",
@@ -2561,6 +2656,20 @@
     "category": "Social Media",
     "created_at": "2023-03-24T13:29:05+00:00",
     "notes": "TikTok is rolling out passkeys for iOS to users and requires the following criteria to be met:\n- Have an Apple device running iOS 16 or macOS Ventura or later.\n- iCloud Keychain must be turned on in your Apple device settings.\n- Two-factor authentication must be turned on for your Apple ID.\n\n#### To set up a passkey on your TikTok account:\n\n1. In the TikTok app, tap Profile at the bottom.\n2. Tap the Menu button at the top.\n3. Tap Settings and privacy.\n4. Tap Account.\n5. Tap iCloud passkey, then tap Set up on the next screen and follow the instructions provided to complete setup."
+  },
+  {
+    "id": "2707d7b29ffdeaa6d15950bcebebbebb",
+    "name": "Trimble",
+    "domain": "trimble.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.trimble.com/s/article/Trimble-Identity-Passkeys",
+    "setup": "https://myprofile.trimble.com",
+    "category": "Information Technology",
+    "created_at": "2025-01-22T11:08:15+00:00",
+    "notes": "Passkeys can be created when you create an account and for existing users in your profile under the passkey section. Passkeys can also be used as a multi-factor authentication (MFA) method.\n\nYou are allowed a max of 3 passkeys for your account.\n\nOnce a passkey has been added to your account you can authenticate with passkeys as an MFA method or on the first step of authentication by clicking the passkey button.\n"
   },
   {
     "id": "be728ecb4758d9ddb26e3346908959eb",

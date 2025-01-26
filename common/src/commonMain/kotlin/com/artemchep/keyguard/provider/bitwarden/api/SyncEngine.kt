@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.util.isOver6DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -63,7 +64,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.RuntimeException
 import kotlin.String
@@ -712,7 +712,7 @@ class SyncEngine(
                     }
                 }
             },
-            shouldOverwrite = { local, remote ->
+            shouldOverwriteLocal = { local, remote ->
                 val remoteAttachments = remote.attachments
                     .orEmpty()
                 // fast path:
@@ -730,6 +730,26 @@ class SyncEngine(
                     .map { it.id }
                     .toSet()
                 if (!localAttachmentIds.containsAll(remoteAttachmentIds)) {
+                    return@syncX true
+                }
+
+                false
+            },
+            shouldOverwriteRemote = { local, remote ->
+                // Auto-correct precision for different revision
+                // properties.
+                // See:
+                // https://github.com/dani-garcia/vaultwarden/pull/4386#issuecomment-2614321170
+                val passwordRevision = local.login?.passwordRevisionDate
+                    ?.isOver6DigitsNanosOfSecond() == true
+                val passwordHistory = local.login?.passwordHistory.orEmpty()
+                    .any { it.lastUsedDate?.isOver6DigitsNanosOfSecond() == true }
+                if (passwordRevision || passwordHistory) {
+                    return@syncX true
+                }
+                val passkeyCreatedAt = local.login?.fido2Credentials.orEmpty()
+                    .any { it.creationDate.isOver6DigitsNanosOfSecond() }
+                if (passkeyCreatedAt) {
                     return@syncX true
                 }
 
@@ -822,7 +842,8 @@ class SyncEngine(
                         val isTrashed = r.source.deletedDate != null
                         val wasTrashed = r.source.service.remote?.deletedDate != null
                         val hasChanged =
-                            r.source.service.remote?.revisionDate != r.source.revisionDate
+                            r.source.service.remote?.revisionDate != r.source.revisionDate ||
+                                    force
                         if (isTrashed != wasTrashed || hasChanged) {
                             // Due to Bitwarden API restrictions you can not modify
                             // trashed items: first we have to restore them.

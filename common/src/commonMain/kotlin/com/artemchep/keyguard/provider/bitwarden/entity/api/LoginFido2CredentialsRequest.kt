@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity.api
 
+import com.artemchep.keyguard.common.util.to6DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -53,6 +54,7 @@ fun LoginFido2CredentialsRequest.Companion.of(
         userName = model.userName,
         userDisplayName = model.userDisplayName,
         discoverable = model.discoverable,
-        creationDate = model.creationDate,
+        creationDate = model.creationDate
+            .to6DigitsNanosOfSecond(),
     )
 }

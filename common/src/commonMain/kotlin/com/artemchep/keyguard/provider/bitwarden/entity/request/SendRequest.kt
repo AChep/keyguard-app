@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.entity.request
 
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.util.to6DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.provider.bitwarden.entity.SendTypeEntity
@@ -106,8 +107,10 @@ fun SendRequest.Companion.of(
         password = passwordHashBase64,
         disabled = model.disabled,
         hideEmail = model.hideEmail == true,
-        deletionDate = deletionDate,
-        expirationDate = model.expirationDate,
+        deletionDate = deletionDate
+            .to6DigitsNanosOfSecond(),
+        expirationDate = model.expirationDate
+            ?.to6DigitsNanosOfSecond(),
         maxAccessCount = model.maxAccessCount,
         text = text,
         file = file,

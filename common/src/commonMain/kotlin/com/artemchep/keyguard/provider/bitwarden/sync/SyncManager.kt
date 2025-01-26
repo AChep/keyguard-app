@@ -33,6 +33,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
         data class Ite<Local, Remote>(
             val local: Local,
             val remote: Remote,
+            val force: Boolean = false,
         )
     }
 
@@ -60,7 +61,8 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
     fun df(
         localItems: Collection<Local>,
         remoteItems: Collection<Remote>,
-        shouldOverwrite: (Local, Remote) -> Boolean,
+        shouldOverwriteLocal: (Local, Remote) -> Boolean,
+        shouldOverwriteRemote: (Local, Remote) -> Boolean,
     ): Df<Local, Remote> {
         // Delete items
         val remoteDeletedCipherIds = mutableListOf<Df.Ite<Local, Remote>>()
@@ -156,11 +158,18 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                         if (dateRoundingError || localItem.service.error != null) {
                             localPutCipher += Df.Ite(localItem, remoteItem)
                         } else {
-                            val hasChanged = shouldOverwrite(localItem, remoteItem)
-                            if (hasChanged) {
+                            val overwriteLocal = shouldOverwriteLocal(localItem, remoteItem)
+                            if (overwriteLocal) {
                                 localPutCipher += Df.Ite(localItem, remoteItem)
                             } else {
-                                // Up to date.
+                                val overwriteRemote = shouldOverwriteRemote(localItem, remoteItem)
+                                if (overwriteRemote) {
+                                    // We have to force that in, because the revision
+                                    // date has not been changed.
+                                    remotePutCipher += Df.Ite(localItem, remoteItem, force = true)
+                                } else {
+                                    // Up to date.
+                                }
                             }
                         }
                     }

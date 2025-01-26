@@ -105,6 +105,8 @@ suspend fun merge(
 }
 
 interface RemotePutScope<Remote> {
+    val force: Boolean
+
     fun updateRemoteModel(remote: Remote)
 }
 
@@ -124,7 +126,8 @@ suspend fun <
     localDecodedToString: (LocalDecoded) -> String = { it.toString() },
     localDeleteById: suspend (List<String>) -> Unit,
     localPut: suspend (List<RemoteDecoded>) -> Unit,
-    shouldOverwrite: (Local, Remote) -> Boolean = { _, _ -> false },
+    shouldOverwriteLocal: (Local, Remote) -> Boolean = { _, _ -> false },
+    shouldOverwriteRemote: (Local, Remote) -> Boolean = { _, _ -> false },
     remoteItems: Collection<Remote>,
     remoteLens: SyncManager.Lens<Remote>,
     remoteDecoder: suspend (Remote, Local?) -> RemoteDecoded,
@@ -147,7 +150,8 @@ suspend fun <
     ).df(
         localItems = localItems,
         remoteItems = remoteItems,
-        shouldOverwrite = shouldOverwrite,
+        shouldOverwriteLocal = shouldOverwriteLocal,
+        shouldOverwriteRemote = shouldOverwriteRemote,
     )
     onLog(
         "[Start] Starting to sync the $name: " +
@@ -290,6 +294,9 @@ suspend fun <
                 .flatMap { localDecoded ->
                     var lastRemote: Remote? = null
                     val scope = object : RemotePutScope<Remote> {
+                        override val force: Boolean
+                            get() = entry.force
+
                         override fun updateRemoteModel(remote: Remote) {
                             lastRemote = remote
                         }

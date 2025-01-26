@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity.api
 
+import com.artemchep.keyguard.common.util.to6DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -37,7 +38,8 @@ fun LoginRequest.Companion.of(
         uris = urisRequests,
         username = model.username,
         password = model.password,
-        passwordRevisionDate = model.passwordRevisionDate,
+        passwordRevisionDate = model.passwordRevisionDate
+            ?.to6DigitsNanosOfSecond(),
         totp = model.totp,
     )
 }

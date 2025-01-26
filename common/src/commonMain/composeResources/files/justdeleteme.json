@@ -530,6 +530,15 @@
     "notes": "Login, go to your profile settings on the top right, then go to the 'Account' tab and click 'Delete my Account'"
   },
   {
+    "name": "Afterpay",
+    "domains": [
+      "afterpay.com"
+    ],
+    "url": "https://portal.afterpay.com/en-AU/account",
+    "difficulty": "easy",
+    "notes": "Login, go to your account settings, select 'Close my account.'"
+  },
+  {
     "name": "Agence nationale des titres s\u00e9curis\u00e9s",
     "domains": [
       "ants.gouv.fr",
@@ -1539,6 +1548,16 @@
     "url": "https://audiomack.com/dashboard#delete-account",
     "difficulty": "easy",
     "notes": "Click the delete account link in the bottom left corner"
+  },
+  {
+    "name": "Augment",
+    "domains": [
+      "augment.com"
+    ],
+    "url": "https://help.augment.com/en/articles/4103227-account-deletion",
+    "difficulty": "hard",
+    "notes": "On the Augment website, log in, then click on the 'chat box' at the bottom right of the page, then request for your account to be deleted. Alternatively, send a GDPR request at the email address.",
+    "email": "gdpr@augment.com"
   },
   {
     "name": "Auth0",
@@ -7023,6 +7042,34 @@
     "email_body": "Please delete my GameJolt account under this email address."
   },
   {
+    "name": "Gamemaker",
+    "domains": [
+      "gamemaker.io"
+    ],
+    "url": "https://auth.opera.com/account/delete-profile",
+    "difficulty": "impossible",
+    "notes": "There is no option to delete your gamemaker account without deleting your Opera account."
+  },
+  {
+    "name": "GamersGate",
+    "domains": [
+      "gamersgate.com"
+    ],
+    "url": "https://www.gamersgate.com/account/delete/",
+    "difficulty": "medium",
+    "notes": "The account deletion form asks for a lot of information, some of which is already available in the account dashboard."
+  },
+  {
+    "name": "Gamesplanet",
+    "domains": [
+      "gamesplanet.com"
+    ],
+    "url": "https://us.gamesplanet.com/support/17-account/141-delete-account",
+    "difficulty": "hard",
+    "notes": "It is recommended to redeem/download any remaining purchases.",
+    "email": "help@gamesplanet.com"
+  },
+  {
     "name": "Gamespot",
     "domains": [
       "gamespot.com"
@@ -7041,6 +7088,15 @@
     "difficulty": "hard",
     "notes": "Account deletion requires contacting Customer Support.",
     "email": "GSContentRequests@gamestop.com"
+  },
+  {
+    "name": "Gamma",
+    "domains": [
+      "gamma.app"
+    ],
+    "url": "https://gamma.app/",
+    "difficulty": "easy",
+    "notes": "Click the profile icon in the top-right corner, go to Account Settings, select \"Delete my account\", check the confirmation box, and click \"Yes, delete my account\"."
   },
   {
     "name": "Garena",
@@ -9194,7 +9250,7 @@
     "domains": [
       "instagram.com"
     ],
-    "url": "https://instagram.com/accounts/remove/request/permanent/",
+    "url": "https://accountscenter.instagram.com/personal_info/account_ownership_and_control/deletion_and_deactivation",
     "difficulty": "easy"
   },
   {
@@ -9312,6 +9368,15 @@
     "email": "privacy@intigriti.com"
   },
   {
+    "name": "Into Real Pages",
+    "domains": [
+      "intorealpages.com"
+    ],
+    "url": "https://intorealpages.com/",
+    "difficulty": "impossible",
+    "notes": "There is no delete button nor do they ever reply by e-mail."
+  },
+  {
     "name": "Invajo",
     "domains": [
       "invajo.com"
@@ -9419,6 +9484,17 @@
     "difficulty": "hard",
     "notes": "Send them an email asking to delete your account.",
     "email": "support@ipinfo.io"
+  },
+  {
+    "name": "IranTalent",
+    "domains": [
+      "irantalent.com"
+    ],
+    "url": "https://www.irantalent.com/en/privacy-and-policy",
+    "difficulty": "hard",
+    "notes": "Send an email to their support address to request account deletion. it might take a few days.",
+    "email": "info@irantalent.com",
+    "email_subject": "Account Deletion Request"
   },
   {
     "name": "IRCCloud",
@@ -10049,6 +10125,15 @@
     "notes": "Cancel all of your monthly coffees and click the link sent to your email."
   },
   {
+    "name": "Kogan",
+    "domains": [
+      "kogan.com"
+    ],
+    "url": "https://www.kogan.com/au/contact-us/",
+    "difficulty": "hard",
+    "notes": "Contact Kogan directly via their 'Contact Us' page and request account deletion."
+  },
+  {
     "name": "Koingo Software",
     "domains": [
       "koingosw.com"
@@ -10492,9 +10577,9 @@
       "th.lgaccount.com",
       "vn.lgaccount.com"
     ],
-    "url": "https://www.lgaccount.com",
+    "url": "https://us.lgaccount.com",
     "difficulty": "easy",
-    "notes": "Log in, open the account administration tab, and press 'Delete Account'. Note that you might need to repeat going to the administration tab and pressing delete a couple times depending on the services you've got connected to LG Account. Once there's no more to delete, you should be logged out automatically (for good measure, verify you cannot login again)."
+    "notes": "Log in, open the account administration tab, and press 'Delete Account'. Note that you might need to repeat this process a couple times depending on the services you've got connected to LG Account. Once there's no more to delete, you should be logged out automatically (for good measure, verify you cannot login again). If you live in a country other than the US, you may also need to change the link URL to that of your country (e.g. Canadians should use ca.lgaccount.com instead)."
   },
   {
     "name": "Liberland",
@@ -11208,6 +11293,15 @@
     "url": "https://en.mapstr.com/faq",
     "difficulty": "easy",
     "notes": "Log in to your account in the app, then got to the \"Profile\" tab and open settings. After that, find the \"Data Management\" section and click \"Delete my account\"."
+  },
+  {
+    "name": "Markdown Converter",
+    "domains": [
+      "mdconverter.com"
+    ],
+    "url": "https://mdconverter.com/account/settings/deletion",
+    "difficulty": "easy",
+    "notes": "Go to the linked page and click close button"
   },
   {
     "name": "Marktplaats",
@@ -14706,6 +14800,15 @@
     "notes": "Log into your account \u2b95 Click the link \u2b95 Click on Send verification code \u2b95 Paste the code you got on your email and click Delete Account."
   },
   {
+    "name": "PrestaShop",
+    "domains": [
+      "prestashop.com"
+    ],
+    "url": "https://accounts.distribution.prestashop.net/settings/delete-account",
+    "difficulty": "easy",
+    "notes": "Fill out the form."
+  },
+  {
     "name": "Previewed",
     "domains": [
       "previewed.app"
@@ -17141,9 +17244,9 @@
     "domains": [
       "stan.com.au"
     ],
-    "url": "https://www.stan.com.au/privacy-policy",
-    "difficulty": "impossible",
-    "notes": "Stan provides no option to delete or deactivate your account, and will simply refuse if you send a request."
+    "url": "https://help.stan.com.au/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "Use the Stan Help Centre to submit a request, choose 'Account and Billing' then 'Cancelling my Stan account' and fill out the remaining fields."
   },
   {
     "name": "Standard Notes",
@@ -17253,15 +17356,6 @@
     "url": "https://steelseries.com/dashboard/profile/delete",
     "difficulty": "easy",
     "notes": "Login \u2b95 Hover over your username \u2b95 Overview \u2b95 Profile \u2b95 Delete Account \u2b95 Delete"
-  },
-  {
-    "name": "STEP (Smart Traveler Enrollment Program)",
-    "domains": [
-      "step.state.gov"
-    ],
-    "url": "https://step.state.gov",
-    "difficulty": "impossible",
-    "notes": "No self-serve options are available, and they will not delete accounts because \"Profile deletion requires an enormous amount of data about yourself, and your trips, which places users at risk for potential fraud issues\""
   },
   {
     "name": "StepMap",
@@ -18438,6 +18532,15 @@
     "notes": "They say they are working on it but planned to support it in March 2023. Sending an email leads to nothing. Contanting TLauncher administration regarding account deletion and possibly involving your country privacy laws through the Discord server is possible."
   },
   {
+    "name": "Today's Wordle",
+    "domains": [
+      "todayswordle.net"
+    ],
+    "url": "https://todayswordle.net/account/settings/deletion",
+    "difficulty": "easy",
+    "notes": "Go to the linked page and click the delete button"
+  },
+  {
     "name": "Todo Cloud",
     "domains": [
       "todo-cloud.com",
@@ -19322,10 +19425,9 @@
       "uxcel.com",
       "help.uxcel.com"
     ],
-    "url": "https://help.uxcel.com/en/articles/4634446-can-i-delete-my-uxcel-account",
-    "difficulty": "hard",
-    "notes": "Contact the customer support via email and request the deletion of your account.",
-    "email": "learn@uxcel.com"
+    "url": "https://app.uxcel.com/settings/account-settings",
+    "difficulty": "easy",
+    "notes": "In the account settings menu find and select the Account section. Then look for the option to Delete Account and click on it. Finally, confirm your decision in a popup."
   },
   {
     "name": "UXPin",
@@ -19660,7 +19762,7 @@
     ],
     "url": "https://www.voicemod.net/support/?letstalk=Account%20and%20Login&issue",
     "difficulty": "hard",
-    "notes": "Fill out the form, in the 'lets talk' field select 'Account & Login', in the second field select 'Delete account'."
+    "notes": "Fill out the form, in the 'lets talk' field select 'Account & Login', in the second field select 'Delete account'. If you have active licenses, you may have to confirm in a later reply."
   },
   {
     "name": "Volcano Hosting",
@@ -20097,6 +20199,16 @@
     ],
     "url": "https://kefu.weibo.com/faqdetail?id=20690",
     "difficulty": "easy"
+  },
+  {
+    "name": "WeMod",
+    "domains": [
+      "wemod.com"
+    ],
+    "url": "https://support.wemod.com/docs/how-do-i-delete-my-account",
+    "difficulty": "hard",
+    "notes": "If you have currently active licenses, you may need to confirm account deletion in a later email.",
+    "email": "support@wemod.com"
   },
   {
     "name": "Western Union",
@@ -20599,6 +20711,15 @@
     "email": "info@epark.com.au"
   },
   {
+    "name": "Wilson Parking",
+    "domains": [
+      "wilsonparking.com.au"
+    ],
+    "url": "https://www.wilsonparking.com.au",
+    "difficulty": "easy",
+    "notes": "To delete your online prepaid account, download the Wilson Parking App, select 'Account', 'Your Profile' under the 'About You' header, then scroll to 'Delete Account'."
+  },
+  {
     "name": "Windscribe",
     "domains": [
       "windscribe.com",
@@ -20740,6 +20861,15 @@
     "url": "https://www.woltlab.com/account-management/",
     "difficulty": "easy",
     "notes": "Your account will be deleted after a 7-day grace period. Created content, like forum posts, will not be deleted. Your username will be anonymized and protected against re-registration for a year."
+  },
+  {
+    "name": "Woolworths",
+    "domains": [
+      "woolworths.com.au"
+    ],
+    "url": "https://www.woolworths.com.au/shop/discover/about-us/contact-us",
+    "difficulty": "hard",
+    "notes": "Select the 'Chat with us' option and inform the chat bot you wish to delete your account until it gives you to option to talk to a human. Select that, tell them you want your account deleted, and they will action it for you."
   },
   {
     "name": "Woot",

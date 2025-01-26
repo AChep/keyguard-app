@@ -4028,17 +4028,6 @@
     "name": "Crazy Domains"
   },
   {
-    "domain": "credit-suisse.com",
-    "tfa": [
-      "custom-software"
-    ],
-    "custom-software": [
-      "SecureSign"
-    ],
-    "documentation": "https://www.credit-suisse.com/ch/en/private-clients/account-cards/services/faq-securesign-login.html",
-    "name": "Credit Suisse"
-  },
-  {
     "domain": "creditkarma.com",
     "tfa": [
       "sms",
@@ -4882,6 +4871,20 @@
     ],
     "documentation": "https://docs.docker.com/docker-hub/2fa/",
     "name": "Docker"
+  },
+  {
+    "domain": "doctolib.it",
+    "additional-domains": [
+      "doctolib.de",
+      "doctolib.fr",
+      "doctolib.com"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://doctolibpatient.zendesk.com/hc/articles/360021300860",
+    "name": "Doctolib"
   },
   {
     "domain": "docusign.com",
@@ -6437,12 +6440,15 @@
     "name": "Freshworks"
   },
   {
-    "domain": "frontapp.com",
+    "domain": "front.com",
+    "additional-domains": [
+      "frontapp.com"
+    ],
     "tfa": [
       "totp"
     ],
-    "documentation": "https://help.frontapp.com/t/36249g",
-    "name": "Front App"
+    "documentation": "https://help.front.com/en/articles/2376",
+    "name": "Front"
   },
   {
     "domain": "frontify.com",
@@ -8542,6 +8548,18 @@
     "name": "Kajabi"
   },
   {
+    "domain": "kakao.com",
+    "tfa": [
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "KakaoTalk app"
+    ],
+    "documentation": "https://cs.kakao.com/helps?service=52&category=1095",
+    "name": "Kakao"
+  },
+  {
     "domain": "kanka.io",
     "tfa": [
       "totp"
@@ -9304,6 +9322,29 @@
     ],
     "documentation": "https://help.m1.com/en/articles/9331936",
     "name": "M1"
+  },
+  {
+    "domain": "m365.cloud.microsoft",
+    "additional-domains": [
+      "login.microsoftonline.com",
+      "office.microsoft.com",
+      "microsoft365.com",
+      "office365.com",
+      "office.com",
+      "yammer.com"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "email",
+      "custom-software",
+      "totp"
+    ],
+    "custom-software": [
+      "Microsoft Authenticator"
+    ],
+    "documentation": "https://support.microsoft.com/account-billing/c7910146-672f-01e9-50a0-93b4585e7eb4",
+    "name": "Microsoft 365 Copilot"
   },
   {
     "domain": "macquarie.com.au",
@@ -10320,6 +10361,13 @@
     "name": "MURAL"
   },
   {
+    "domain": "musicmagpie.co.uk",
+    "tfa": [
+      "email"
+    ],
+    "name": "musicMagpie"
+  },
+  {
     "domain": "mxtoolbox.com",
     "tfa": [
       "sms",
@@ -10631,6 +10679,17 @@
     ],
     "documentation": "https://www.natwest.com/banking-with-natwest/how-to/card-reader.html",
     "name": "NatWest"
+  },
+  {
+    "domain": "naver.com",
+    "tfa": [
+      "custom-software"
+    ],
+    "custom-software": [
+      "NAVER app"
+    ],
+    "documentation": "https://help.naver.com/service/5640/contents/21127?lang=en",
+    "name": "NAVER"
   },
   {
     "domain": "navyfederal.org",
@@ -11283,29 +11342,6 @@
     ],
     "documentation": "https://www.odoo.com/documentation/latest/applications/general/auth/2fa.html",
     "name": "Odoo"
-  },
-  {
-    "domain": "office.com",
-    "additional-domains": [
-      "login.microsoftonline.com",
-      "office.microsoft.com",
-      "microsoft365.com",
-      "office365.com",
-      "cloud.microsoft",
-      "yammer.com"
-    ],
-    "tfa": [
-      "sms",
-      "call",
-      "email",
-      "custom-software",
-      "totp"
-    ],
-    "custom-software": [
-      "Microsoft Authenticator"
-    ],
-    "documentation": "https://support.office.com/en-US/article/Set-up-multi-factor-authentication-for-Office-365-8f0454b2-f51a-4d9c-bcde-2c48e41621c6",
-    "name": "Microsoft 365"
   },
   {
     "domain": "okcupid.com",
@@ -14230,6 +14266,14 @@
     "name": "Hamburg Serviceportal"
   },
   {
+    "domain": "servus.ca",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.servus.ca/security/protect-yourself/two-step-authentication",
+    "name": "Servus Credit Union"
+  },
+  {
     "domain": "seznam.cz",
     "tfa": [
       "totp",
@@ -14381,12 +14425,11 @@
   },
   {
     "domain": "signal.org",
-    "url": "https://www.signal.org/",
     "tfa": [
       "sms",
       "call"
     ],
-    "documentation": "https://support.signal.org/hc/en-us/articles/360007059792",
+    "documentation": "https://support.signal.org/hc/articles/360007059792",
     "name": "Signal"
   },
   {
@@ -15231,6 +15274,13 @@
     "name": "Studio Ninja"
   },
   {
+    "domain": "subito.it",
+    "tfa": [
+      "email"
+    ],
+    "name": "Subito"
+  },
+  {
     "domain": "subscribestar.com",
     "tfa": [
       "email",
@@ -16064,12 +16114,11 @@
   },
   {
     "domain": "towerfcu.org",
-    "url": "https://www.towerfcu.org/",
     "tfa": [
       "sms",
-      "call"
+      "call",
+      "totp"
     ],
-    "documentation": "https://server.iad.liveperson.net/hc/s-81758502/cmd/kbresource/kb-8660536393490959114/front_page!PAGETYPE?category=5352",
     "name": "Tower Federal Credit Union"
   },
   {
@@ -16468,6 +16517,17 @@
     ],
     "documentation": "https://www.typeform.com/help/a/4405277894548/",
     "name": "Typeform"
+  },
+  {
+    "domain": "ub.edu",
+    "tfa": [
+      "sms",
+      "call",
+      "totp"
+    ],
+    "documentation": "https://www.ub.edu/portal/web/iub/2fa",
+    "notes": "VPNT\u00e8cnic only supports TOTP.",
+    "name": "Universitat de Barcelona"
   },
   {
     "domain": "ubc.ca",
@@ -17548,6 +17608,15 @@
     "name": "WageWorks"
   },
   {
+    "domain": "wallapop.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://ayuda.wallapop.com/hc/articles/7727995450129",
+    "name": "Wallapop"
+  },
+  {
     "domain": "walmart.ca",
     "tfa": [
       "sms"
@@ -18250,6 +18319,17 @@
     "name": "Yclas"
   },
   {
+    "domain": "ynab.com",
+    "additional-domains": [
+      "youneedabudget.com"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.ynab.com/rkKHuLlRc",
+    "name": "YNAB (You Need A Budget)"
+  },
+  {
     "domain": "yoomoney.ru",
     "tfa": [
       "sms"
@@ -18301,15 +18381,6 @@
     ],
     "documentation": "https://www.youinvest.co.uk/faq/how-do-i-set-two-factor-authentication",
     "name": "AJ Bell Youinvest"
-  },
-  {
-    "domain": "youneedabudget.com",
-    "url": "https://www.youneedabudget.com/",
-    "tfa": [
-      "totp"
-    ],
-    "documentation": "https://support.ynab.com/rkKHuLlRc",
-    "name": "You Need A Budget (YNAB)"
   },
   {
     "domain": "youtube.com",
@@ -18470,7 +18541,7 @@
       "sms",
       "totp"
     ],
-    "documentation": "https://support.zoom.us/hc/en-us/articles/360038247071",
+    "documentation": "https://support.zoom.com/hc/article?id=zm_kb&sysparm_article=KB0066054",
     "name": "Zoom"
   }
 ]

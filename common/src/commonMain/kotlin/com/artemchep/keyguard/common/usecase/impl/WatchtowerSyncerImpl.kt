@@ -51,6 +51,7 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
+import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
@@ -155,7 +156,16 @@ private class WatchtowerClient(
                     logRepository.add(TAG, message)
 
                     val now = Clock.System.now()
-                    val results = processor.process(ciphers)
+                    val results = try {
+                        processor.process(ciphers)
+                    } catch (e: Exception) {
+                        // If there's a bug in the watchtower processor then we
+                        // just want to report that and not crash the app. The
+                        // watchtower crashes might be quite annoying because they
+                        // soft-lock you out of the app.
+                        recordException(e)
+                        return@onEach
+                    }
                     db.transaction {
                         results.forEach { r ->
                             // We might be inserting a threat report on a cipher that

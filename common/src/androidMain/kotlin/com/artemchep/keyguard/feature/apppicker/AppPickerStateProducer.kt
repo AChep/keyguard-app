@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Parcelable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -412,9 +414,21 @@ private fun getApps(
     val pm = context.packageManager
     val apps = pm.queryIntentActivities(intent, 0)
     apps
-        .map { info ->
-            val packageInfo = pm.getPackageInfo(info.activityInfo.packageName, 0)
-            val applicationInfo = pm.getApplicationInfo(info.activityInfo.packageName, 0)
+        .mapNotNull { info ->
+            // FIXME: Double check that this is a correct way to get the info about the package.
+            //  I saw a crash that points out to 'app.lawnchair' which does not exist on
+            //  the Google Play Store.
+            val packageInfo: PackageInfo
+            val applicationInfo: ApplicationInfo
+            try {
+                packageInfo = pm.getPackageInfo(info.activityInfo.packageName, 0)
+                applicationInfo = pm.getApplicationInfo(info.activityInfo.packageName, 0)
+            } catch (e: NameNotFoundException) {
+                // The app was removed in-between querying the list
+                // of activities and querying the info about each
+                // of the app.
+                return@mapNotNull null
+            }
             val system = run {
                 val mask =
                     ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP

@@ -32,7 +32,7 @@ class CipherExpiringCheckImpl() : CipherExpiringCheck {
     }
 
     private fun expiringCard(secret: DSecret, now: Instant): Instant? {
-        val cardDate = kotlin.run {
+        val cardDate = kotlin.runCatching {
             val card = secret.card ?: return null
             val month = card.expMonth
                 ?.trim()
@@ -45,7 +45,11 @@ class CipherExpiringCheckImpl() : CipherExpiringCheck {
                 ?: return null
             val finalYear = if (year <= 99) 2000 + year else year
             LocalDate(finalYear, month ?: 1, 1)
-        }
+        }.getOrNull()
+        // Card might have invalid month and year, and it's perfectly
+        // fine for the check. So we just ignore the crash and report that
+        // the card is not expiring.
+            ?: return null
         val cardInstant = cardDate
             // The card expiry date is inclusive, so the actual time
             // is the first day of the next month.

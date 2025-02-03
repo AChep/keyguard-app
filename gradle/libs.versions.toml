@@ -142,7 +142,7 @@ versionsPlugin = "0.52.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
-yubiKit = "2.7.0"
+yubiKit = "2.8.0"
 # https://github.com/srikanth-lingala/zip4j
 zip4j = "2.11.5"
 # https://github.com/nulab/zxcvbn4j

@@ -1428,6 +1428,20 @@
     "notes": "From the setup link, click \"Sign in\" > \"Continue with email\" to create a new account with a passkey.\n\nSign out, then repeat the same process to sign in with your passkey."
   },
   {
+    "id": "56769c8d458feef5ceab8fdda2135aac",
+    "name": "Karlsruhe Institute of Technology (KIT)",
+    "domain": "kit.edu",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://www.scc.kit.edu/dienste/18189.php",
+    "setup": "https://my.scc.kit.edu/token/index.php#/new-token",
+    "category": "Education",
+    "created_at": "2023-06-08T20:59:20.374225+00:00",
+    "notes": "Works on all KIT websites using the Shibboleth Identity Provider for login."
+  },
+  {
     "id": "235e9ff82379487dbac9544a09c5ef15",
     "name": "Klemn",
     "domain": "klemn.net",
@@ -1892,6 +1906,32 @@
     "setup": "https://my.nordaccount.com/account-settings/account-security/",
     "category": "Information Technology",
     "created_at": "2023-07-07T16:57:04.132945+00:00"
+  },
+  {
+    "id": "4d98a905e69080d96c131ceb13047990",
+    "name": "Notion",
+    "domain": "notion.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.notion.com/help/passkeys",
+    "setup": "http://notion.so/?target=profile",
+    "category": "Information Technology",
+    "created_at": "2025-01-24T07:32:58+00:00",
+    "notes": "**To set up a passkey on web or desktop:**\n- Go to Settings in your sidebar.\n- Under My account, select Add passkey.\n\n**To set up a passkey on mobile:**\n-  Go to Settings in your sidebar.\n- Under My settings, select Add passkey.\n\nChoose where you\u2019d like to store your passkey: in iCloud Keychain, Chrome Profile, or Password Manager.  _You can add up to five passkeys._"
+  },
+  {
+    "id": "eda1bc26fb5f1ef898fb5d8189cc9575",
+    "name": "Notion",
+    "domain": "notion.so",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.notion.com/help/passkeys",
+    "setup": "http://notion.so/?target=profile",
+    "category": "Information Technology",
+    "created_at": "2025-01-24T21:06:43+00:00",
+    "notes": "**To set up a passkey on web or desktop:**\n- Go to Settings in your sidebar.\n- Under My account, select Add passkey.\n\n**To set up a passkey on mobile:**\n-  Go to Settings in your sidebar.\n- Under My settings, select Add passkey.\n\nChoose where you\u2019d like to store your passkey: in iCloud Keychain, Chrome Profile, or Password Manager.  _You can add up to five passkeys._"
   },
   {
     "id": "cc8650d40c166d09310eed5aca932b7b",

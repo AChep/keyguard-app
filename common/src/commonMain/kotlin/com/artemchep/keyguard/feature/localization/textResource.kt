@@ -23,3 +23,11 @@ suspend fun textResource(
     quantity: Int,
     vararg args: Any,
 ): String = getPluralString(res, quantity, *args)
+
+suspend fun textResource(
+    text: TextHolder,
+    context: LeContext,
+): String = when (text) {
+    is TextHolder.Value -> text.data
+    is TextHolder.Res -> textResource(text.data, context)
+}

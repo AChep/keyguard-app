@@ -1,5 +1,6 @@
 package com.artemchep.jna
 
+import com.sun.jna.Callback
 import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
@@ -45,7 +46,10 @@ public interface DesktopLibJna : Library {
             if (instance == null) {
                 synchronized(DesktopLibJna::class.java) {
                     if (instance == null) {
-                        instance = Native.load(libraryFile.canonicalPath, DesktopLibJna::class.java) as DesktopLibJna
+                        instance = Native.load(
+                            libraryFile.canonicalPath,
+                            DesktopLibJna::class.java,
+                        ) as DesktopLibJna
                     }
                 }
             }
@@ -54,4 +58,33 @@ public interface DesktopLibJna : Library {
     }
 
     public fun autoType(payload: Pointer)
+
+    // Biometrics
+
+    public fun biometricsIsSupported(): Boolean
+
+    public fun biometricsVerify(
+        title: Pointer,
+        callback: BiometricsVerifyCallback,
+    )
+
+    public interface BiometricsVerifyCallback : Callback {
+        public fun invoke(success: Boolean, error: Pointer?)
+    }
+
+
+    // Keychain
+
+    public fun keychainAddPassword(id: Pointer, password: Pointer)
+
+    public fun keychainGetPassword(id: Pointer): Pointer
+
+    public fun keychainDeletePassword(id: Pointer): Boolean
+
+    public fun keychainContainsPassword(id: Pointer): Boolean
+
+    // Other
+
+    /** Frees given pointer */
+    public fun free(ptr: Pointer)
 }

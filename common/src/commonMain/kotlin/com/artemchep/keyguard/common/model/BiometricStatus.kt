@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.model
 
-import com.artemchep.keyguard.platform.LeCipher
+import com.artemchep.keyguard.platform.LeBiometricCipher
 
 sealed interface BiometricStatus {
     class Available(
@@ -8,8 +8,8 @@ sealed interface BiometricStatus {
          * Creates a cipher to use with a biometric
          * prompt.
          */
-        val createCipher: (BiometricPurpose) -> LeCipher,
-        val deleteCipher: () -> Unit,
+        val createCipher: suspend (BiometricPurpose) -> LeBiometricCipher,
+        val deleteCipher: suspend () -> Unit,
     ) : BiometricStatus
 
     data object Unavailable : BiometricStatus

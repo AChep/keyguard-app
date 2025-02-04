@@ -94,6 +94,8 @@ import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DeviceEncryptionKeyUseCase
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
+import com.artemchep.keyguard.common.usecase.DisableBiometric
+import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
@@ -114,6 +116,7 @@ import com.artemchep.keyguard.common.usecase.GetAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.GetAutofillRespectAutofillOff
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveRequest
 import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
+import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
@@ -232,6 +235,8 @@ import com.artemchep.keyguard.common.usecase.impl.BiometricKeyDecryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.BiometricKeyEncryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.ClearVaultSessionImpl
 import com.artemchep.keyguard.common.usecase.impl.ConfirmAccessByPasswordUseCaseImpl
+import com.artemchep.keyguard.common.usecase.impl.DisableBiometricImpl
+import com.artemchep.keyguard.common.usecase.impl.EnableBiometricImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterHashUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterSaltUseCaseImpl
@@ -250,6 +255,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillManualSelectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillRespectAutofillOffImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveRequestImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillSaveUriImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBiometricRemainingDurationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricRequireConfirmationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutVariantsImpl
@@ -436,6 +442,21 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<BiometricKeyEncryptUseCase> {
         BiometricKeyEncryptUseCaseImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetBiometricRemainingDuration> {
+        GetBiometricRemainingDurationImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<DisableBiometric> {
+        DisableBiometricImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<EnableBiometric> {
+        EnableBiometricImpl(
             directDI = this,
         )
     }

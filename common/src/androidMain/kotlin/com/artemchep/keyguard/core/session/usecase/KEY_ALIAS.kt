@@ -8,6 +8,8 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
+import com.artemchep.keyguard.platform.LeBiometricCipher
+import com.artemchep.keyguard.platform.LeBiometricCipherJvm
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -84,7 +86,7 @@ private fun deleteCipher() {
 
 private fun createCipher(
     biometricPurpose: BiometricPurpose,
-): Cipher = createEmptyCipher().apply {
+): LeBiometricCipher = createEmptyCipher().apply {
     val key = getSecretKey()
     when (biometricPurpose) {
         // Init cipher in encrypt mode with random iv
@@ -95,6 +97,8 @@ private fun createCipher(
             init(Cipher.DECRYPT_MODE, key, spec)
         }
     }
+}.let { platformCipher ->
+    LeBiometricCipherJvm(platformCipher)
 }
 
 private fun createEmptyCipher(): Cipher = Cipher

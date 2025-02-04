@@ -1,19 +1,12 @@
 package com.artemchep.autotype
 
-import com.artemchep.jna.DesktopLibJna
-import com.artemchep.jna.util.DisposableScope
 import com.artemchep.jna.util.asMemory
+import com.artemchep.jna.withDesktopLib
 
-public suspend fun autoType(payload: String) {
-    val lib = DesktopLibJna.get()
-    val scope = DisposableScope()
-    try {
-        lib.autoType(
-            payload = payload
-                .asMemory()
-                .let(scope::register),
-        )
-    } finally {
-        scope.dispose()
-    }
+public suspend fun autoType(payload: String): Unit = withDesktopLib { lib ->
+    lib.autoType(
+        payload = payload
+            .asMemory()
+            .let(::register),
+    )
 }

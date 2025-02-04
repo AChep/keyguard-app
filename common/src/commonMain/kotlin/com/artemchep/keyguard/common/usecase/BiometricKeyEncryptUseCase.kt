@@ -2,9 +2,9 @@ package com.artemchep.keyguard.common.usecase
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.MasterKey
-import com.artemchep.keyguard.platform.LeCipher
+import com.artemchep.keyguard.platform.LeBiometricCipher
 
 interface BiometricKeyEncryptUseCase : (
-    IO<LeCipher>,
+    IO<LeBiometricCipher>,
     MasterKey,
 ) -> IO<ByteArray>

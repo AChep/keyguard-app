@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.LeBiometricCipherJvm
 import com.artemchep.keyguard.ui.CollectedEffect
 import kotlinx.coroutines.flow.Flow
 
@@ -67,13 +68,18 @@ private suspend fun FragmentActivity.launchPrompt(
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
-                val cipher = result.cryptoObject?.cipher
+                val platformCipher = result.cryptoObject?.cipher
                     ?: return
+                val cipher = LeBiometricCipherJvm(platformCipher)
                 event.onComplete(cipher.right())
             }
         },
     )
-    val crypto = BiometricPrompt.CryptoObject(event.cipher)
+    val platformCipher = kotlin.run {
+        val platform = event.cipher as LeBiometricCipherJvm
+        platform.cipher
+    }
+    val crypto = BiometricPrompt.CryptoObject(platformCipher)
     prompt.authenticate(promptInfo, crypto)
 }
 

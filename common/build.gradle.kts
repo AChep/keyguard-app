@@ -183,6 +183,7 @@ kotlin {
                 api(libs.mayakapps.window.styler)
                 api(libs.wunderbox.nativefiledialog)
                 api(libs.willena.sqlite.jdbc)
+                api(project(":desktopLibJvm"))
             }
         }
         val androidMain by getting {

@@ -4,6 +4,8 @@ import com.artemchep.keyguard.common.exception.DecodeException
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.crypto.util.createAesCbc
+import com.artemchep.keyguard.crypto.util.encode
 import com.artemchep.keyguard.provider.bitwarden.crypto.AsymmetricCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
@@ -228,35 +230,7 @@ class CipherEncryptorImpl(
         encKey: ByteArray,
     ): ByteArray {
         val aes = createAesCbc(iv, encKey, forEncryption = false)
-        return cipherData(aes, ct)
-    }
-
-    private fun createAesCbc(
-        iv: ByteArray,
-        key: ByteArray,
-        forEncryption: Boolean,
-    ) = kotlin.run {
-        val aes = PaddedBufferedBlockCipher(
-            CBCBlockCipher.newInstance(
-                AESEngine.newInstance(),
-            ),
-            PKCS7Padding(),
-        )
-        val ivAndKey: CipherParameters = ParametersWithIV(KeyParameter(key), iv)
-        aes.init(forEncryption, ivAndKey)
-        aes
-    }
-
-    @Throws(Exception::class)
-    private fun cipherData(cipher: BufferedBlockCipher, data: ByteArray): ByteArray {
-        val minSize = cipher.getOutputSize(data.size)
-        val outBuf = ByteArray(minSize)
-        val length1 = cipher.processBytes(data, 0, data.size, outBuf, 0)
-        val length2 = cipher.doFinal(outBuf, length1)
-        val actualLength = length1 + length2
-        val result = ByteArray(actualLength)
-        System.arraycopy(outBuf, 0, result, 0, result.size)
-        return result
+        return aes.encode(ct)
     }
 
     private fun decodeRsa2048_OaepSha256_B64(
@@ -447,7 +421,7 @@ class CipherEncryptorImpl(
         encKey: ByteArray,
     ): List<ByteArray> {
         val aes = createAesCbc(iv, encKey, forEncryption = true)
-        val ct = cipherData(aes, plainText)
+        val ct = aes.encode(plainText)
         return listOf(iv, ct)
     }
 
@@ -475,7 +449,7 @@ class CipherEncryptorImpl(
         macKey: ByteArray,
     ): List<ByteArray> {
         val aes = createAesCbc(iv, encKey, forEncryption = true)
-        val ct = cipherData(aes, plainText)
+        val ct = aes.encode(plainText)
         val mac = cryptoGenerator.hmacSha256(macKey, iv + ct)
         return listOf(iv, ct, mac)
     }

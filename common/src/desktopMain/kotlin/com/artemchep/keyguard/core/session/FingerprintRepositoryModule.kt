@@ -1,32 +1,36 @@
 package com.artemchep.keyguard.core.session
 
 import arrow.core.partially1
+import arrow.core.partially2
 import arrow.optics.Getter
+import com.artemchep.autotype.biometricsIsSupported
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.bindBlocking
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AutofillTarget
+import com.artemchep.keyguard.common.model.BiometricPurpose
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
-import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.Subscription
-import com.artemchep.keyguard.common.model.WithBiometric
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
-import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.service.keychain.KeychainIds
+import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.FileJsonKeyValueStoreStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
@@ -36,14 +40,12 @@ import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
+import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
-import com.artemchep.keyguard.common.usecase.DisableBiometric
-import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
-import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
@@ -57,19 +59,19 @@ import com.artemchep.keyguard.copy.DownloadClientDesktop
 import com.artemchep.keyguard.copy.DownloadManagerDesktop
 import com.artemchep.keyguard.copy.DownloadRepositoryDesktop
 import com.artemchep.keyguard.copy.DownloadTaskDesktop
-import com.artemchep.keyguard.copy.ExportManagerImpl
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
-import com.artemchep.keyguard.copy.download.DownloadTaskJvm
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.util.traverse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DI
 import org.kodein.di.DirectDI
@@ -80,24 +82,73 @@ import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
 import java.io.File
-import kotlin.time.Duration
 
-class BiometricStatusUseCaseImpl : BiometricStatusUseCase {
-    override fun invoke(): Flow<BiometricStatus> = flowOf(BiometricStatus.Unavailable)
-}
+class BiometricStatusUseCaseImpl(
+    private val base64Service: Base64Service,
+    private val cryptoGenerator: CryptoGenerator,
+    private val keychainRepository: KeychainRepository,
+) : BiometricStatusUseCase {
+    constructor(directDI: DirectDI) : this(
+        base64Service = directDI.instance(),
+        cryptoGenerator = directDI.instance(),
+        keychainRepository = directDI.instance(),
+    )
 
-class GetBiometricRemainingDurationImpl : GetBiometricRemainingDuration {
-    override fun invoke(): Flow<Duration> = flowOf(Duration.INFINITE)
-}
+    override fun invoke(): Flow<BiometricStatus> = flow {
+        val hasBiometrics = hasBiometrics()
+        val event = if (hasBiometrics) {
+            BiometricStatus.Available(
+                createCipher = { purpose ->
+                    val cipher = LeBiometricCipherKeychain(
+                        defer = ::populateCipherWithParams
+                            .partially2(purpose),
+                        forEncryption = purpose is BiometricPurpose.Encrypt,
+                    )
+                    cipher
+                },
+                deleteCipher = {
+                    keychainRepository.delete(KeychainIds.BIOMETRIC_UNLOCK.value)
+                        .bind()
+                },
+            )
+        } else {
+            BiometricStatus.Unavailable
+        }
+        emit(event)
+    }
 
-class DisableBiometricImpl : DisableBiometric {
-    override fun invoke(): IO<Unit> =
-        ioRaise(RuntimeException())
-}
+    private suspend fun hasBiometrics(): Boolean {
+        return biometricsIsSupported()
+    }
 
-class EnableBiometricImpl : EnableBiometric {
-    override fun invoke(key: MasterSession.Key?): IO<WithBiometric> =
-        ioRaise(RuntimeException())
+    private fun populateCipherWithParams(
+        cipher: LeBiometricCipherKeychain,
+        purpose: BiometricPurpose,
+    ) {
+        when (purpose) {
+            is BiometricPurpose.Encrypt -> {
+                // Init cipher in encrypt mode with random iv
+                // seed. The user should persist iv for future use.
+                cipher._iv = cryptoGenerator.seed(length = 16)
+
+                val key = cryptoGenerator.seed(length = 32)
+                val keyBase64 = base64Service.encodeToString(key)
+                // Save the key in the login keychain.
+                keychainRepository.put(KeychainIds.BIOMETRIC_UNLOCK.value, keyBase64)
+                    .bindBlocking()
+                cipher._key = key
+            }
+
+            is BiometricPurpose.Decrypt -> {
+                cipher._iv = purpose.iv.byteArray
+                // Obtain the cipher key from the
+                // login keychain.
+                val keyBase64 = keychainRepository.get(KeychainIds.BIOMETRIC_UNLOCK.value)
+                    .bindBlocking()
+                cipher._key = base64Service.decode(keyBase64)
+            }
+        }
+    }
 }
 
 class GetSuggestionsImpl : GetSuggestions<Any?> {
@@ -195,7 +246,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
         LeContext()
     }
     bindSingleton<BiometricStatusUseCase> {
-        BiometricStatusUseCaseImpl()
+        BiometricStatusUseCaseImpl(
+            directDI = this,
+        )
     }
     bindSingleton<GetBarcodeImage> {
         GetBarcodeImageJvm(
@@ -206,16 +259,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
         PermissionServiceJvm(
             directDI = this,
         )
-    }
-
-    bindSingleton<GetBiometricRemainingDuration> {
-        GetBiometricRemainingDurationImpl()
-    }
-    bindSingleton<DisableBiometric> {
-        DisableBiometricImpl()
-    }
-    bindSingleton<EnableBiometric> {
-        EnableBiometricImpl()
     }
 
     bindSingleton<GetLocale> {

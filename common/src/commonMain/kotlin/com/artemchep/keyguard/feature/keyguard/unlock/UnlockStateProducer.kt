@@ -4,9 +4,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import arrow.core.Either
+import arrow.core.None
+import arrow.core.Option
 import arrow.core.andThen
+import arrow.core.getOrElse
 import arrow.core.identity
 import arrow.core.partially1
+import arrow.core.some
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.effectTap
@@ -25,8 +29,9 @@ import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.platform.LeCipher
+import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -37,6 +42,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 private val DEFAULT_PASSWORD = ""
@@ -164,7 +172,7 @@ private class BiometricStatePrecomputed(
     val enabled: UnlockState.Biometric,
 )
 
-private fun createBiometricState(
+private fun RememberStateFlowScope.createBiometricState(
     executor: LoadingTask,
     fn: UnlockVaultWithBiometric,
     clickable: Boolean,
@@ -173,20 +181,33 @@ private fun createBiometricState(
     onClick = if (!clickable) {
         null
     } else {
-        val prompt by lazy {
-            createPromptOrNull(executor, fn)
+        var promptWrapper: Option<BiometricAuthPrompt?> = None
+        val promptMutex by lazy {
+            Mutex()
         }
 
         // An action should trigger the biometric prompt upon
         // execution.
         fun() {
-            val p = prompt ?: return
-            requestBiometricAuthPrompt(p)
+            screenScope.launch {
+                // Get or create the prompt and remember
+                // it for the future invocations.
+                val prompt = promptMutex.withLock {
+                    promptWrapper.getOrElse {
+                        createPromptOrNull(executor, fn)
+                    }.also {
+                        promptWrapper = it.some()
+                    }
+                }
+                    ?: return@launch
+                // Send it down the sink
+                requestBiometricAuthPrompt(prompt)
+            }
         }
     },
 )
 
-private fun createPromptOrNull(
+private suspend fun createPromptOrNull(
     executor: LoadingTask,
     fn: UnlockVaultWithBiometric,
 ): BiometricAuthPrompt? = run {
@@ -250,7 +271,7 @@ private class UnlockVaultWithBiometric(
      * A getter for the cipher to pass to the biometric
      * authentication.
      */
-    val getCipher: () -> Either<Throwable, LeCipher>,
+    val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
     private val getCreateIo: () -> IO<Unit>,
     val requireConfirmation: Boolean,
 ) : () -> Unit {

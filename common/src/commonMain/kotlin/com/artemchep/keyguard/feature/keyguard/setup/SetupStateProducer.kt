@@ -2,8 +2,12 @@ package com.artemchep.keyguard.feature.keyguard.setup
 
 import androidx.compose.runtime.Composable
 import arrow.core.Either
+import arrow.core.None
+import arrow.core.Option
+import arrow.core.getOrElse
 import arrow.core.identity
 import arrow.core.partially1
+import arrow.core.some
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
@@ -17,7 +21,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.platform.LeCipher
+import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.crashlyticsIsEnabled
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
@@ -26,6 +30,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private const val DEFAULT_PASSWORD = ""
 private const val DEFAULT_BIOMETRIC = false
@@ -98,18 +105,31 @@ fun setupScreenState(
                 // If the biometric is checked & possible, then ask user to
                 // confirm his identity.
                 if (createVaultWithMasterPasswordAndBiometricFn != null && biometric?.checked == true) {
-                    val prompt by lazy {
-                        createPromptOrNull(
-                            executor = executor,
-                            createVaultWithMasterPasswordAndBiometricFn = createVaultWithMasterPasswordAndBiometricFn,
-                            password = validatedPassword.model,
-                        )
+                    var promptWrapper: Option<BiometricAuthPrompt?> = None
+                    val promptMutex by lazy {
+                        Mutex()
                     }
 
                     // An action should trigger the biometric prompt upon
                     // execution.
                     fun() {
-                        prompt?.let(biometricPromptSink::emit)
+                        screenScope.launch {
+                            // Get or create the prompt and remember
+                            // it for the future invocations.
+                            val prompt = promptMutex.withLock {
+                                promptWrapper.getOrElse {
+                                    createPromptOrNull(
+                                        executor = executor,
+                                        createVaultWithMasterPasswordAndBiometricFn = createVaultWithMasterPasswordAndBiometricFn,
+                                        password = validatedPassword.model,
+                                    )
+                                }.also {
+                                    promptWrapper = it.some()
+                                }
+                            }
+                            // Send it down the sink
+                            prompt?.let(biometricPromptSink::emit)
+                        }
                     }
                 } else {
                     createVaultByMasterPasswordFn.partially1(validatedPassword.model)
@@ -122,7 +142,7 @@ fun setupScreenState(
     }
 }
 
-private fun createPromptOrNull(
+private suspend fun createPromptOrNull(
     executor: LoadingTask,
     createVaultWithMasterPasswordAndBiometricFn: CreateVaultWithBiometric,
     password: String,
@@ -185,7 +205,7 @@ private class CreateVaultWithBiometric(
      * A getter for the cipher to pass to the biometric
      * authentication.
      */
-    val getCipher: () -> Either<Throwable, LeCipher>,
+    val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
     getCreateIo: (String) -> IO<Unit>,
     val requireConfirmation: Boolean,
 ) : CreateVaultWithPassword(executor, getCreateIo) {

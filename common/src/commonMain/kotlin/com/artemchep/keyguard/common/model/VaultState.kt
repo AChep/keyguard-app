@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.model
 
 import arrow.core.Either
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.platform.LeCipher
+import com.artemchep.keyguard.platform.LeBiometricCipher
 import org.kodein.di.DI
 
 sealed interface VaultState {
@@ -15,7 +15,7 @@ sealed interface VaultState {
         )
 
         class WithBiometric(
-            val getCipher: () -> Either<Throwable, LeCipher>,
+            val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
             val getCreateIo: (String) -> IO<Unit>,
             val requireConfirmation: Boolean,
         )
@@ -31,7 +31,7 @@ sealed interface VaultState {
         )
 
         class WithBiometric(
-            val getCipher: () -> Either<Throwable, LeCipher>,
+            val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
             val getCreateIo: () -> IO<Unit>,
             val requireConfirmation: Boolean,
         )
@@ -52,7 +52,7 @@ sealed interface VaultState {
             )
 
             class WithBiometric(
-                val getCipher: () -> Either<Throwable, LeCipher>,
+                val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
                 val getCreateIo: (String, String) -> IO<Unit>,
             )
 

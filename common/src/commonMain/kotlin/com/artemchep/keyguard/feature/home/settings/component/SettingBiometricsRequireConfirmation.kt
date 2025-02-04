@@ -14,6 +14,8 @@ import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.PutBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
@@ -43,7 +45,7 @@ fun settingBiometricsRequireConfirmationProvider(
     putBiometricRequireConfirmation: PutBiometricRequireConfirmation,
     windowCoroutineScope: WindowCoroutineScope,
 ): SettingComponent = biometricStatusUseCase()
-    .map { it is BiometricStatus.Available }
+    .map { it is BiometricStatus.Available && CurrentPlatform is Platform.Mobile }
     .distinctUntilChanged()
     .flatMapLatest { hasBiometrics ->
         if (hasBiometrics) {

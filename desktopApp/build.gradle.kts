@@ -24,7 +24,6 @@ kotlin {
                 implementation(libs.bouncycastle.bcprov)
                 implementation(libs.bouncycastle.bctls)
                 implementation(project(":common"))
-                implementation(project(":desktopLibJvm"))
             }
         }
     }

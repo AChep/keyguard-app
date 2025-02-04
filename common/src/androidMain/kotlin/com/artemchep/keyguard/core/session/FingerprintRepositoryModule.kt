@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import com.artemchep.keyguard.android.downloader.DownloadClientAndroid
 import com.artemchep.keyguard.android.downloader.DownloadManagerImpl
 import com.artemchep.keyguard.android.downloader.DownloadTaskAndroid
-import com.artemchep.keyguard.android.downloader.ExportManagerImpl
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
@@ -17,9 +16,9 @@ import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
-import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.service.keychain.KeychainRepository
+import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
@@ -28,18 +27,12 @@ import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
-import com.artemchep.keyguard.common.usecase.DisableBiometric
-import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
-import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
-import com.artemchep.keyguard.common.usecase.impl.DisableBiometricImpl
-import com.artemchep.keyguard.common.usecase.impl.EnableBiometricImpl
-import com.artemchep.keyguard.common.usecase.impl.GetBiometricRemainingDurationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.copy.AutofillServiceAndroid
@@ -48,7 +41,6 @@ import com.artemchep.keyguard.copy.ClipboardServiceAndroid
 import com.artemchep.keyguard.copy.ConnectivityServiceAndroid
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
-import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
 import com.artemchep.keyguard.copy.DirsServiceAndroid
 import com.artemchep.keyguard.copy.LinkInfoExtractorLaunch
 import com.artemchep.keyguard.copy.LogRepositoryAndroid
@@ -59,7 +51,6 @@ import com.artemchep.keyguard.copy.SharedPreferencesStoreFactory
 import com.artemchep.keyguard.copy.SharedPreferencesStoreFactoryDefault
 import com.artemchep.keyguard.copy.SubscriptionServiceAndroid
 import com.artemchep.keyguard.copy.TextServiceAndroid
-import com.artemchep.keyguard.copy.download.DownloadTaskJvm
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
@@ -89,24 +80,13 @@ fun diFingerprintRepositoryModule() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<KeychainRepository> {
+        KeychainRepositoryNoOp(
+            directDI = this,
+        )
+    }
     bindSingleton<GetBarcodeImage> {
         GetBarcodeImageJvm(
-            directDI = this,
-        )
-    }
-
-    bindSingleton<GetBiometricRemainingDuration> {
-        GetBiometricRemainingDurationImpl(
-            directDI = this,
-        )
-    }
-    bindSingleton<DisableBiometric> {
-        DisableBiometricImpl(
-            directDI = this,
-        )
-    }
-    bindSingleton<EnableBiometric> {
-        EnableBiometricImpl(
             directDI = this,
         )
     }

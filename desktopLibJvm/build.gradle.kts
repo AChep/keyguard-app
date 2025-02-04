@@ -15,6 +15,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(libs.java.jna)
+                implementation(libs.kotlinx.coroutines.core)
             }
 
             resources.srcDir(rootDir.resolve("desktopLibNative/build/bin/universal"))

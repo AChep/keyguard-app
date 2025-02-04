@@ -11,8 +11,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.service.vault.FingerprintReadRepository
@@ -103,7 +103,7 @@ private fun createSettingComponentFlow(
             onCheckedChange = { shouldBeChecked ->
                 if (shouldBeChecked) {
                     enableBiometric(null) // use global session
-                        .map { d ->
+                        .effectMap { d ->
                             val cipher = d.getCipher()
                             val prompt = BiometricAuthPrompt(
                                 title = TextHolder.Res(Res.string.pref_item_biometric_unlock_confirm_title),

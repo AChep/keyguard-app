@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import arrow.core.memoize
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.flatMap
+import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.BiometricPurpose
@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.util.memoize
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.security.KeyException
@@ -56,7 +57,7 @@ class EnableBiometricImpl(
             // Flat map
             .let { createCipher ->
                 // Lambda
-                {
+                suspend {
                     try {
                         createCipher()
                     } catch (e: KeyException) {
@@ -77,7 +78,7 @@ class EnableBiometricImpl(
                 val masterKey = session.masterKey
                 val cipherIo = ioEffect { getOrRecreateCipherForEncryption() }
                 biometricKeyEncryptUseCase(cipherIo, masterKey)
-                    .flatMap { encryptedMasterKey ->
+                    .effectMap { encryptedMasterKey ->
                         val cipher = getOrRecreateCipherForEncryption()
 
                         // Save new tokens to the repository.
@@ -88,6 +89,7 @@ class EnableBiometricImpl(
                         val newTokens = tokens.copy(biometric = biometricTokens)
                         keyReadWriteRepository.put(newTokens)
                     }
+                    .flatten()
             },
         )
     }

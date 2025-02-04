@@ -3,20 +3,21 @@ package com.artemchep.keyguard.common.usecase.impl
 import arrow.core.Either
 import arrow.core.compose
 import arrow.core.getOrElse
-import arrow.core.memoize
 import arrow.core.partially1
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.dispatchOn
+import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.flatTap
+import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.handleErrorWith
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
-import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AuthResult
 import com.artemchep.keyguard.common.model.BiometricPurpose
@@ -41,11 +42,12 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.common.util.catch
+import com.artemchep.keyguard.common.util.memoize
 import com.artemchep.keyguard.core.session.usecase.createSubDi
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
-import com.artemchep.keyguard.platform.LeCipher
-import com.artemchep.keyguard.platform.leIv
+import com.artemchep.keyguard.platform.LeBiometricCipher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -194,7 +196,7 @@ class UnlockUseCaseImpl(
                     .partially1(BiometricPurpose.Encrypt)
                     .let { block ->
                         // lambda
-                        { Either.catch(block) }
+                        suspend { Either.catch(block) }
                     }
                     // Save the cipher for further use by
                     // the code in the block. This allows us to not
@@ -219,7 +221,7 @@ class UnlockUseCaseImpl(
                                         val newException = BiometricKeyEncryptException(e)
                                         ioRaise(newException)
                                     }
-                                    .flatMap { encryptedMasterKey ->
+                                    .effectMap { encryptedMasterKey ->
                                         val cipher = getCipherForEncryption()
                                             .getOrElse { e ->
                                                 throw e
@@ -227,11 +229,12 @@ class UnlockUseCaseImpl(
                                         create(
                                             result = result,
                                             biometricTokens = FingerprintBiometric(
-                                                iv = cipher.leIv,
+                                                iv = cipher.iv,
                                                 encryptedMasterKey = encryptedMasterKey,
                                             ),
                                         )
                                     }
+                                    .flatten()
                             }
                             .flatTap {
                                 writeLastPasswordUseTimestamp()
@@ -277,7 +280,7 @@ class UnlockUseCaseImpl(
                     .createCipherOrDisableBiometrics()
                     .let { block ->
                         // lambda
-                        { Either.catch(block) }
+                        suspend { Either.catch(block) }
                     }
                     // Save the cipher for further use by
                     // the code in the block. This allows us to not
@@ -365,7 +368,7 @@ class UnlockUseCaseImpl(
                     .createCipherOrDisableBiometrics()
                     .let { block ->
                         // lambda
-                        { Either.catch(block) }
+                        suspend { Either.catch(block) }
                     }
                     // Save the cipher for further use by
                     // the code in the block. This allows us to not
@@ -399,7 +402,7 @@ class UnlockUseCaseImpl(
                                         val newException = BiometricKeyEncryptException(e)
                                         ioRaise(newException)
                                     }
-                                    .flatMap { encryptedNewMasterKey ->
+                                    .effectMap { encryptedNewMasterKey ->
                                         val cipher = getCipherForEncryption()
                                             .getOrElse { e ->
                                                 throw e
@@ -407,11 +410,12 @@ class UnlockUseCaseImpl(
                                         create(
                                             result = result,
                                             biometricTokens = FingerprintBiometric(
-                                                iv = cipher.leIv,
+                                                iv = cipher.iv,
                                                 encryptedMasterKey = encryptedNewMasterKey,
                                             ),
                                         )
                                     }
+                                    .flatten()
                             }
                             .flatTap {
                                 writeLastPasswordUseTimestamp()
@@ -430,10 +434,10 @@ class UnlockUseCaseImpl(
         )
     }
 
-    private fun (() -> LeCipher).createCipherOrDisableBiometrics() = this
+    private fun (suspend () -> LeBiometricCipher).createCipherOrDisableBiometrics() = this
         .let { createCipher ->
             // Lambda.
-            {
+            suspend {
                 try {
                     createCipher()
                 } catch (e: KeyException) {
@@ -442,7 +446,7 @@ class UnlockUseCaseImpl(
                     disableBiometric()
                         .crashlyticsTap()
                         .attempt()
-                        .launchIn(GlobalScope)
+                        .bind()
                     throw e
                 }
             }

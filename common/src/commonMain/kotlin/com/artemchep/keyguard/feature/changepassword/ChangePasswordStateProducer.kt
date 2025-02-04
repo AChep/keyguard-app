@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -184,42 +185,45 @@ private fun RememberStateFlowScope.ah(
     },
     changePasswordWithBiometric = if (state.changePassword.withMasterPasswordAndBiometric != null) {
         lambda@{ currentPassword, newPassword ->
-            val cipher = state.changePassword.withMasterPasswordAndBiometric.getCipher()
-                .fold(
-                    ifLeft = { e ->
-                        message(e)
-                        return@lambda
-                    },
-                    ifRight = ::identity,
-                )
-            val prompt = BiometricAuthPrompt(
-                title = TextHolder.Res(Res.string.changepassword_biometric_auth_confirm_title),
-                cipher = cipher,
-                requireConfirmation = requireConfirmation,
-                onComplete = { result ->
-                    result.fold(
+            screenScope.launch {
+                val cipher = state.changePassword.withMasterPasswordAndBiometric.getCipher()
+                    .fold(
                         ifLeft = { e ->
                             message(e)
+                            return@launch
                         },
-                        ifRight = {
-                            val io = state
-                                .changePassword.withMasterPasswordAndBiometric
-                                .getCreateIo(currentPassword, newPassword)
-                                .effectTap {
-                                    val msg = ToastMessage(
-                                        title = translate(Res.string.changepassword_password_changed_successfully),
-                                        type = ToastMessage.Type.SUCCESS,
-                                    )
-                                    message(msg)
-                                    // Pop the screen
-                                    navigatePopSelf()
-                                }
-                            io.launchIn(windowCoroutineScope)
-                        },
+                        ifRight = ::identity,
                     )
-                },
-            )
-            biometricPromptSink.emit(prompt)
+
+                val prompt = BiometricAuthPrompt(
+                    title = TextHolder.Res(Res.string.changepassword_biometric_auth_confirm_title),
+                    cipher = cipher,
+                    requireConfirmation = requireConfirmation,
+                    onComplete = { result ->
+                        result.fold(
+                            ifLeft = { e ->
+                                message(e)
+                            },
+                            ifRight = {
+                                val io = state
+                                    .changePassword.withMasterPasswordAndBiometric
+                                    .getCreateIo(currentPassword, newPassword)
+                                    .effectTap {
+                                        val msg = ToastMessage(
+                                            title = translate(Res.string.changepassword_password_changed_successfully),
+                                            type = ToastMessage.Type.SUCCESS,
+                                        )
+                                        message(msg)
+                                        // Pop the screen
+                                        navigatePopSelf()
+                                    }
+                                io.launchIn(windowCoroutineScope)
+                            },
+                        )
+                    },
+                )
+                biometricPromptSink.emit(prompt)
+            }
         }
     } else {
         null

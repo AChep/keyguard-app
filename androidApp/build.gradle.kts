@@ -65,6 +65,7 @@ android {
         kotlinOptions {
             freeCompilerArgs += listOf(
                 "-opt-in=androidx.compose.material.ExperimentalMaterialApi",
+                "-Xexpect-actual-classes",
             )
         }
     }

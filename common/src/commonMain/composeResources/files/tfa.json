@@ -5066,6 +5066,14 @@
     "name": "Dropbox"
   },
   {
+    "domain": "druide.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.antidote.info/en/druide-account/client-portal-user-guide/druide-account/safeguarding-your-account",
+    "name": "Druide"
+  },
+  {
     "domain": "drupal.org",
     "url": "https://www.drupal.org/",
     "tfa": [
@@ -13839,6 +13847,14 @@
     ],
     "documentation": "https://www.sanebox.com/help/127",
     "name": "SaneBox"
+  },
+  {
+    "domain": "sans.org",
+    "tfa": [
+      "totp",
+      "u2f"
+    ],
+    "name": "SANS"
   },
   {
     "domain": "santander.de",

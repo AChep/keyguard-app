@@ -1967,6 +1967,15 @@
     "email": "support@bemyeye.com"
   },
   {
+    "name": "Benfeitoria",
+    "domains": [
+      "benfeitoria.com"
+    ],
+    "url": "https://benfeitoria.com/restrito/conta/deletar-conta",
+    "difficulty": "easy",
+    "notes": "Log-in, then go to the page linked above, type \"EXCLUIR\" then click the button to permanently delete the account."
+  },
+  {
     "name": "BeReal",
     "domains": [
       "bere.al",
@@ -2377,6 +2386,16 @@
     "difficulty": "impossible",
     "notes": "You can only deactivate your account by contacting support as they state on the help page. There is no way to permanently delete your account or data, and an inactive public profile will always be visible to public.",
     "email": "privacy@bodybuilding.com"
+  },
+  {
+    "name": "Boeing",
+    "domains": [
+      "boeing.com",
+      "boeing.wd1.myworkdayjobs.com"
+    ],
+    "url": "https://privacyportal.onetrust.com/webform/7a02e6ee-4433-4d2d-b133-66ab66311d80/7fda90ac-fe12-4a4b-a816-4cb09137423d.html",
+    "difficulty": "hard",
+    "notes": "Fill out the form at the link provided and click Submit. Make sure to click Confirm Email in the email they send you."
   },
   {
     "name": "Bohemia Interactive",
@@ -3985,8 +4004,8 @@
       "couchsurfing.com"
     ],
     "url": "https://support.couchsurfing.org/hc/en-us/articles/200640880-How-can-I-Hide-or-Delete-my-profile",
-    "difficulty": "impossible",
-    "notes": "Cannot be deleted fully, reactivation is always available. Fill out the request form."
+    "difficulty": "medium",
+    "notes": "Go the [Account & Settings](https://www.couchsurfing.com/preferences/account) page. Click Deactivate My Account in the bottom right corner. Enter your email and click Delete. Check your email and click the button to complete deletion."
   },
   {
     "name": "Coursera",
@@ -4354,6 +4373,15 @@
     "url": "https://www.dailymotion.com/settings/delete-account",
     "difficulty": "easy",
     "notes": "Type your password and confirm your action by clicking \"Delete account\"."
+  },
+  {
+    "name": "Dan Murphy's",
+    "domains": [
+      "danmurphys.com.au"
+    ],
+    "url": "https://www.danmurphys.com.au/dm/home",
+    "difficulty": "medium",
+    "notes": "You can delete your account either using the mobile app and accessing 'Account' at the bottom right, or by using the live chat in a website browser."
   },
   {
     "name": "DansTonChat",
@@ -6625,6 +6653,25 @@
     "notes": "Use the contact form to ask customer service to delete your account."
   },
   {
+    "name": "Form.taxi",
+    "domains": [
+      "form.taxi"
+    ],
+    "url": "https://form.taxi/panel/profile",
+    "difficulty": "easy",
+    "notes": "If you are logged in, scroll down to the bottom of the page and click the 'Delete account' button."
+  },
+  {
+    "name": "Formula 1",
+    "domains": [
+      "formula1.com"
+    ],
+    "url": "https://account.formula1.com/#/en/privacy-policy",
+    "difficulty": "hard",
+    "notes": "Request deletion using the e-mail. There will be some back and forth on whether you want just the deletion or right to be forgotten, but it is all completed very quickly",
+    "email": "general@en.formula1.com"
+  },
+  {
     "name": "Forvo",
     "domains": [
       "forvo.com"
@@ -8051,6 +8098,19 @@
     "email": "dataprotection@greenmangaming.com"
   },
   {
+    "name": "Greip",
+    "domains": [
+      "greip.io",
+      "dashboard.greip.io",
+      "status.greip.io"
+    ],
+    "url": "https://docs.greip.io/knowledge-base/account-management/account-deletion",
+    "difficulty": "hard",
+    "email": "info@greip.io",
+    "email_subject": "Greip Account Deletion Request",
+    "email_body": "Hi, Please delete my Greip account which is registered under this email address."
+  },
+  {
     "name": "Grindr",
     "domains": [
       "grindr.com",
@@ -8851,6 +8911,14 @@
     "url": "https://dsar.humblebundle.com",
     "difficulty": "medium",
     "notes": "The easiest method is to submit a Data Subject Access Request at their [DSAR Privacy Portal](https://dsar.humblebundle.com/) to request account deletion. Alternatively, you can also [submit a support request](https://support.humblebundle.com/hc/en-us/requests/new) for account deletion. In the linked page under \"What can we help you with?\" select \"Humble Bundle Account\" \u2b95 \"Delete Account\", fill in your email, enter \"Account deletion\" as subject, add your honest reason for account deletion in the message, and submit. Someone from support should contact you and guide you further."
+  },
+  {
+    "name": "Hunter",
+    "domains": [
+      "hunter.io"
+    ],
+    "url": "https://hunter.io/users/edit?tab=delete-account",
+    "difficulty": "easy"
   },
   {
     "name": "Hype",
@@ -10359,6 +10427,16 @@
     "notes": "Go to the linked page, scroll down, click on \"LOG IN\" and confirm your deletion."
   },
   {
+    "name": "Lego",
+    "domains": [
+      "lego.com",
+      "identity.lego.com"
+    ],
+    "url": "https://identity.lego.com/profile/security/delete-account",
+    "difficulty": "easy",
+    "notes": "Login, go to the linked page and confirm deletion of the account."
+  },
+  {
     "name": "Lemehost",
     "domains": [
       "lemehost.com"
@@ -11228,6 +11306,15 @@
     "notes": "App \u2b95 Menu \u2b95 Account \u2b95 Settings \u2b95 Delete."
   },
   {
+    "name": "MakerBot",
+    "domains": [
+      "makerbot.com"
+    ],
+    "url": "https://cloudprint.makerbot.com/settings/account/info",
+    "difficulty": "easy",
+    "notes": "Click 'DELETE ACCOUNT' at the bottom of the 'Account Settings' page, then click 'DELETE'. This will also delete your Thingiverse account."
+  },
+  {
     "name": "Mangadex",
     "domains": [
       "mangadex.org"
@@ -11516,9 +11603,9 @@
       "meetup.com",
       "help.meetup.com"
     ],
-    "url": "https://help.meetup.com/hc/en-us/articles/360002861092-Deactivating-an-account-",
-    "difficulty": "impossible",
-    "notes": "Meetup accounts can only be deactivated, not deleted. To deactivate your account visit the linked page and follow the appropriate instructions for the method you used to sign up."
+    "url": "https://help.meetup.com/hc/en-us/articles/360050018571-Request-permanent-deletion-of-your-data",
+    "difficulty": "medium",
+    "notes": "Permenant deletion may be requested via a web form."
   },
   {
     "name": "MEGA",
@@ -12101,6 +12188,15 @@
     "url": "https://www.monespacesante.fr/questions-frequentes/acceder-a-mon-espace-sante/14",
     "difficulty": "easy",
     "notes": "Login to your account, click on your profile, then on \"Param\u00e8tres\". Then click on \"Cl\u00f4ture du profil\""
+  },
+  {
+    "name": "Monarch Money",
+    "domains": [
+      "monarchmoney.com"
+    ],
+    "url": "https://help.monarchmoney.com/hc/en-us/articles/4412388754708-Delete-a-Monarch-Account",
+    "difficulty": "easy",
+    "notes": "Click Delete Household in the Billing section of the Settings page."
   },
   {
     "name": "Money Dashboard",
@@ -13416,6 +13512,15 @@
     "url": "https://www.olx.com",
     "difficulty": "easy",
     "notes": "Click in the profile link, privacy and security and at the very bottom of the page, click in the Delete Account link and enter the password."
+  },
+  {
+    "name": "Olympics",
+    "domains": [
+      "olympics.com"
+    ],
+    "url": "https://privacyportal-eu.onetrust.com/webform/22395098-025a-4a86-b716-763ae9c9a4cf/787ca7a8-5c45-45f9-9c4d-29ef9d88bb1d",
+    "difficulty": "hard",
+    "notes": "In the bottom of the page, click 'Stop using Posti\u2019s electronic services'."
   },
   {
     "name": "OmaPosti",
@@ -15401,6 +15506,15 @@
     "url": "https://recargapay.com.br/user/close-account",
     "difficulty": "impossible",
     "notes": "You can't completely delete your account. On the account closure page, you are informed that after you closing your account, most of your data will be deleted from the system, however it's not specified which data will be kept and why. Closed accounts can also be reactivated at any time by the user."
+  },
+  {
+    "name": "Recreation.gov",
+    "domains": [
+      "recreation.gov"
+    ],
+    "url": "https://www.recreation.gov/account/delete-account",
+    "difficulty": "easy",
+    "notes": "Login and go to the link to click the button to delete account. Confirm your password and you'll receive an e-mail with the deletion completion."
   },
   {
     "name": "Red Hat",
@@ -18378,11 +18492,11 @@
   {
     "name": "Thingiverse",
     "domains": [
-      "thingiverse"
+      "thingiverse.com"
     ],
-    "url": "https://www.thingiverse.com/",
+    "url": "https://support.makerbot.com/s/article/MakerBot-Account-Information",
     "difficulty": "easy",
-    "notes": "Click your profile icon in the top right corner and select 'Account Settings', then scroll to the bottom of the page and click the red 'DELETE USER' button."
+    "notes": "Click the profile dropdown in the top right corner, click 'See Profile', click 'Edit profile', then scroll to the bottom of the page and click the red 'DELETE USER' button. This will also delete your MakerBot account."
   },
   {
     "name": "Things",
@@ -20067,6 +20181,21 @@
     "notes": "Closed accounts are deleted after six months."
   },
   {
+    "name": "WayFi Wireless",
+    "domains": [
+      "wayfiwireless.com",
+      "portal.wayfiwireless.com",
+      "dashboard.wayfiwireless.com",
+      "lookup.wayfiwireless.com",
+      "metabase.wayfiwireless.com"
+    ],
+    "url": "https://wayfiwireless.com/contact",
+    "difficulty": "hard",
+    "notes": "To opt out, send an email or fill out the contact form.",
+    "email": "privacy@wayfiwireless.com",
+    "email_body": "I want my account to be deleted. My full name is XXXXXX and my user name is XXXXXX. Please remove my profile from WayFi Wireless and delete all associated data."
+  },
+  {
     "name": "WAYN",
     "domains": [
       "wayn.com"
@@ -20897,7 +21026,7 @@
     ],
     "url": "https://wordpress.com/me/account",
     "difficulty": "medium",
-    "notes": "First cancel any active subscriptions in your account. Then go to Account Settings and click on \"Close your account permanently\"."
+    "notes": "First cancel any active subscriptions in your account. Then go to Account Settings, click 'Delete your account permanently', click 'Delete account', click 'Continue', enter your username and click 'Delete Account'. You will not be able to open a new account using this email for 30 days and your WooCommerce, Crowdsignal, IntenseDebate, and Gravatar accounts will also be deleted."
   },
   {
     "name": "WordPress.org",
@@ -21467,6 +21596,16 @@
     "url": "https://zulipchat.com/help/deactivate-your-account",
     "difficulty": "easy",
     "notes": "Navigate to Settings \u2b95 Your Account \u2b95 Deactivate Account"
+  },
+  {
+    "name": "zyBooks",
+    "domains": [
+      "zybooks.com"
+    ],
+    "url": "https://www.zybooks.com/privacy-policy",
+    "difficulty": "hard",
+    "notes": "Submit a deletion request by emailing them or calling +1-833-719-2300.",
+    "email": "info@zybooks.com"
   },
   {
     "name": "Zynga",

@@ -3,6 +3,7 @@ package com.artemchep.jna
 import com.sun.jna.Callback
 import com.sun.jna.Library
 import com.sun.jna.Native
+import com.sun.jna.Platform
 import com.sun.jna.Pointer
 import java.io.File
 import java.nio.file.Files
@@ -10,7 +11,9 @@ import java.nio.file.Files
 private const val RES_FILENAME = "libkeyguard"
 
 private const val OS_DIR_PREFIX = "libkeyguard"
+
 private const val OS_FILE_FILENAME = "libkeyguard"
+private const val OS_FILE_FILENAME_WINDOWS = "libkeyguard.dll"
 
 private val libraryFile by lazy {
     val filename = RES_FILENAME
@@ -23,8 +26,15 @@ private fun extractLibrary(filename: String): File {
     val outDir = Files
         .createTempDirectory(OS_DIR_PREFIX)
         .toFile()
-    val outFile = outDir
-        .resolve(OS_FILE_FILENAME)
+    val outFile = run {
+        val suffix = if (Platform.isWindows() || Platform.isWindowsCE()) {
+            OS_FILE_FILENAME_WINDOWS
+        } else {
+            OS_FILE_FILENAME
+        }
+        outDir
+            .resolve(suffix)
+    }
     outFile.deleteOnExit()
     // Copy the binary into the
     // output file.

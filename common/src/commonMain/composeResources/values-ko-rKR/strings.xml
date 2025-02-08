@@ -717,6 +717,7 @@
     <string name="cipher_type_ssh_key">SSH 키</string>
     <string name="cipher_type_passkey">패스키</string>
     <string name="field_type_text">텍스트</string>
+    <string name="field_type_text_concealed">Text (concealed)</string>
     <string name="field_type_boolean">참/거짓</string>
     <string name="field_type_linked">링크됨</string>
     <!--
@@ -811,6 +812,8 @@
     <string name="generator_passphrase_capitalize_title">첫 글자를 대문자로</string>
     <string name="generator_passphrase_number_title">숫자 포함</string>
     <string name="generator_passphrase_wordlist_title">단어 목록</string>
+    <string name="generator_pin_code_type">PIN</string>
+    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
     <string name="generator_username_type">사용자 이름</string>
     <string name="generator_username_delimiter_title">구분 기호</string>
     <string name="generator_username_custom_word_title">사용자 지정 단어</string>

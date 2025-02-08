@@ -717,6 +717,7 @@
     <string name="cipher_type_ssh_key">Chiave SSH</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Testo</string>
+    <string name="field_type_text_concealed">Text (concealed)</string>
     <string name="field_type_boolean">Booleano</string>
     <string name="field_type_linked">Collegato</string>
     <!--
@@ -811,6 +812,8 @@
     <string name="generator_passphrase_capitalize_title">Maiuscole</string>
     <string name="generator_passphrase_number_title">Numeri</string>
     <string name="generator_passphrase_wordlist_title">Wordlist</string>
+    <string name="generator_pin_code_type">PIN</string>
+    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
     <string name="generator_username_type">Nome utente</string>
     <string name="generator_username_delimiter_title">Separatore</string>
     <string name="generator_username_custom_word_title">Parola personalizzata</string>

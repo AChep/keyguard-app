@@ -717,6 +717,7 @@
     <string name="cipher_type_ssh_key">SSH-ключ</string>
     <string name="cipher_type_passkey">Ключ доступа</string>
     <string name="field_type_text">Текст</string>
+    <string name="field_type_text_concealed">Text (concealed)</string>
     <string name="field_type_boolean">Логическое значение</string>
     <string name="field_type_linked">Связанный</string>
     <!--
@@ -811,6 +812,8 @@
     <string name="generator_passphrase_capitalize_title">Прописные</string>
     <string name="generator_passphrase_number_title">Цифры</string>
     <string name="generator_passphrase_wordlist_title">Список слов</string>
+    <string name="generator_pin_code_type">PIN</string>
+    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
     <string name="generator_username_type">Имя пользователя</string>
     <string name="generator_username_delimiter_title">Разделитель</string>
     <string name="generator_username_custom_word_title">Пользовательское слово</string>

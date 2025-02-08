@@ -772,6 +772,7 @@
     <string name="cipher_type_unknown" translatable="false">Unknown</string>
 
     <string name="field_type_text">Text</string>
+    <string name="field_type_text_concealed">Text (concealed)</string>
     <string name="field_type_boolean">Boolean</string>
     <string name="field_type_linked">Linked</string>
 

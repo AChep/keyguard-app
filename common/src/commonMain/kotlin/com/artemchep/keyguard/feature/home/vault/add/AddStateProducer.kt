@@ -614,13 +614,15 @@ fun produceAddScreenState(
         .foldAsList()
 
     val fieldsFactories = kotlin.run {
-        val textFactory = AddStateItemFieldTextFactory()
+        val plainTextFactory = AddStateItemFieldTextFactory(false)
+        val concealedTextFactory = AddStateItemFieldTextFactory(true)
         val booleanFactory = AddStateItemFieldBooleanFactory()
         val linkedIdFactory = AddStateItemFieldLinkedIdFactory(
             typeFlow = typeFlow,
         )
         listOf(
-            textFactory,
+            plainTextFactory,
+            concealedTextFactory,
             booleanFactory,
             linkedIdFactory,
         )
@@ -653,9 +655,13 @@ fun produceAddScreenState(
                 scope = "field",
                 typesFlow = typeFlow
                     .map { type ->
-                        val textType = Foo2Type(
+                        val plainTextType = Foo2Type(
                             type = "field.text",
                             name = translate(Res.string.field_type_text),
+                        )
+                        val concealedTextType = Foo2Type(
+                            type = "field.text_concealed",
+                            name = translate(Res.string.field_type_text_concealed),
                         )
                         val booleanType = Foo2Type(
                             type = "field.boolean",
@@ -670,13 +676,15 @@ fun produceAddScreenState(
                             DSecret.Type.Card,
                             DSecret.Type.Identity,
                             -> listOf(
-                                textType,
+                                plainTextType,
+                                concealedTextType,
                                 booleanType,
                                 linkedIdType,
                             )
 
                             DSecret.Type.SecureNote -> listOf(
-                                textType,
+                                plainTextType,
+                                concealedTextType,
                                 booleanType,
                             )
 
@@ -1316,8 +1324,14 @@ abstract class AddStateItemFieldFactory : Foo2Factory<AddStateItem.Field<*>, DSe
     )
 }
 
-class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
-    override val type: String = "field.text"
+class AddStateItemFieldTextFactory(
+    private val defaultConcealed: Boolean = false,
+) : AddStateItemFieldFactory() {
+    override val type: String = if (defaultConcealed) {
+        "field.text_concealed"
+    } else {
+        "field.text"
+    }
 
     override fun RememberStateFlowScope.release(key: String) {
         clearPersistedFlow("$key.label")
@@ -1368,7 +1382,8 @@ class AddStateItemFieldTextFactory : AddStateItemFieldFactory() {
         }
 
         val concealSink = mutablePersistedFlow("$key.conceal") {
-            initial?.type == DSecret.Field.Type.Hidden
+            initial?.let { it.type == DSecret.Field.Type.Hidden }
+                ?: defaultConcealed
         }
 
         val actionsConcealItemFlow = concealSink

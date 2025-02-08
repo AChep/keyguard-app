@@ -717,6 +717,7 @@
     <string name="cipher_type_ssh_key">SSH-nyckel</string>
     <string name="cipher_type_passkey">Nyckel</string>
     <string name="field_type_text">Text</string>
+    <string name="field_type_text_concealed">Text (concealed)</string>
     <string name="field_type_boolean">Boolean</string>
     <string name="field_type_linked">Länkad</string>
     <!--
@@ -811,6 +812,8 @@
     <string name="generator_passphrase_capitalize_title">Capitalize</string>
     <string name="generator_passphrase_number_title">Nummer</string>
     <string name="generator_passphrase_wordlist_title">Ordlista</string>
+    <string name="generator_pin_code_type">PIN</string>
+    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
     <string name="generator_username_type">Användarnamn</string>
     <string name="generator_username_delimiter_title">Delimiter</string>
     <string name="generator_username_custom_word_title">Anpassat ord</string>

@@ -717,6 +717,7 @@
     <string name="cipher_type_ssh_key">SSH キー</string>
     <string name="cipher_type_passkey">パスキー</string>
     <string name="field_type_text">テキスト</string>
+    <string name="field_type_text_concealed">Text (concealed)</string>
     <string name="field_type_boolean">真偽値</string>
     <string name="field_type_linked">リンク</string>
     <!--
@@ -811,6 +812,8 @@
     <string name="generator_passphrase_capitalize_title">英単語の先頭を大文字にする</string>
     <string name="generator_passphrase_number_title">数字を含める</string>
     <string name="generator_passphrase_wordlist_title">ワードリスト</string>
+    <string name="generator_pin_code_type">PIN</string>
+    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
     <string name="generator_username_type">ユーザー名</string>
     <string name="generator_username_delimiter_title">区切り文字</string>
     <string name="generator_username_custom_word_title">カスタムワード</string>

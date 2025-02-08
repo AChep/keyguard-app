@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPassword
+import com.artemchep.keyguard.common.usecase.GetPinCode
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -23,6 +24,7 @@ class GetPasswordImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val keyPairGenerator: KeyPairGenerator,
     private val getPassphrase: GetPassphrase,
+    private val getPinCode: GetPinCode,
 ) : GetPassword {
     private val secureRandom by lazy {
         SecureRandom()
@@ -32,6 +34,7 @@ class GetPasswordImpl(
         cryptoGenerator = directDI.instance(),
         keyPairGenerator = directDI.instance(),
         getPassphrase = directDI.instance(),
+        getPinCode = directDI.instance(),
     )
 
     override fun invoke(
@@ -106,6 +109,13 @@ class GetPasswordImpl(
 
         is PasswordGeneratorConfig.Passphrase -> {
             getPassphrase(config)
+                .map { p ->
+                    GetPasswordResult.Value(p)
+                }
+        }
+
+        is PasswordGeneratorConfig.PinCode -> {
+            getPinCode(config)
                 .map { p ->
                     GetPasswordResult.Value(p)
                 }

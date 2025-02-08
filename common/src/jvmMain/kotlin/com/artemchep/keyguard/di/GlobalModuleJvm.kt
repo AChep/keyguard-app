@@ -155,6 +155,7 @@ import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.GetPinCode
 import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.GetSubscriptions
@@ -292,6 +293,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.GetOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasswordImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPinCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetProductsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetScreenStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSubscriptionsImpl
@@ -512,6 +514,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetPassword> {
         GetPasswordImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetPinCode> {
+        GetPinCodeImpl(
             directDI = this,
         )
     }

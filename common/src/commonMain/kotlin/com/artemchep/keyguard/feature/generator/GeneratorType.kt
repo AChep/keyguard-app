@@ -33,6 +33,13 @@ sealed interface GeneratorType2 {
         override val password: Boolean = true
     }
 
+    data object PinCode : GeneratorType2 {
+        override val key: String = "PIN_CODE"
+        override val group: String = GENERATOR_TYPE_GROUP_PASSWORD
+        override val title: TextHolder = TextHolder.Res(Res.string.generator_pin_code_type)
+        override val password: Boolean = true
+    }
+
     data object Username : GeneratorType2 {
         override val key: String = "USERNAME"
         override val group: String = GENERATOR_TYPE_GROUP_USERNAME

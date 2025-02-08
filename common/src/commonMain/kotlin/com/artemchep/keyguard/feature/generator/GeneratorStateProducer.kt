@@ -16,7 +16,9 @@ import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Mail
+import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Pin
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -184,6 +186,12 @@ private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MAX = 10
 
 private const val KEY_PAIR_RSA_LENGTH_DEFAULT = "4096"
 
+private const val PIN_CODE_LENGTH_DEFAULT = 4L
+private const val PIN_CODE_LENGTH_MIN = 3
+// Most not be longer than 9, because of the details of
+// the internal implementation.
+private const val PIN_CODE_LENGTH_MAX = 9
+
 @Composable
 fun produceGeneratorState(
     mode: AppMode,
@@ -219,6 +227,7 @@ private const val PREFIX_EMAIL_CATCH_ALL = "email_catch_all"
 private const val PREFIX_EMAIL_PLUS_ADDRESSING = "email_plus_addressing"
 private const val PREFIX_EMAIL_SUBDOMAIN_ADDRESSING = "email_subdomain_addressing"
 private const val PREFIX_KEY_PAIR = "key_pair"
+private const val PREFIX_PIN_CODE = "pin_code"
 
 private data class WordlistResult(
     val id: Long,
@@ -270,6 +279,7 @@ fun produceGeneratorState(
     val typesAllStatic = listOf(
         GeneratorType2.Password,
         GeneratorType2.Passphrase,
+        GeneratorType2.PinCode,
         GeneratorType2.Username,
         GeneratorType2.EmailCatchAll,
         GeneratorType2.EmailPlusAddressing,
@@ -569,6 +579,11 @@ fun produceGeneratorState(
         storage = storage,
     ) { PASSPHRASE_WORDLIST_ID_DEFAULT }
     val passphraseWordlistFlow = wordlist(passphraseWordlistIdSink)
+    // pin-code
+    val pinCodeLengthSink = mutablePersistedFlow(
+        key = "$PREFIX_PIN_CODE.length",
+        storage = storage,
+    ) { PIN_CODE_LENGTH_DEFAULT }
     // username
     val usernameLengthSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.length",
@@ -765,6 +780,32 @@ fun produceGeneratorState(
                     .compose { it.toLong() },
             ),
             items = items,
+        )
+    }
+
+    val pinCodeFilterTip = GeneratorState.Filter.Tip(
+        text = translate(Res.string.generator_pin_code_note),
+        onLearnMore = {
+            val url = "https://www.abc.net.au/news/2025-01-28/almost-one-in-ten-people-use-the-same-four-digit-pin/103946842"
+            val intent = NavigationIntent.NavigateToBrowser(url)
+            navigate(intent)
+        },
+        onHide = ::hideTip,
+    )
+
+    suspend fun createFilter(
+        config: PasswordGeneratorConfigBuilder2.PinCode,
+    ): GeneratorState.Filter {
+        return GeneratorState.Filter(
+            tip = pinCodeFilterTip,
+            length = GeneratorState.Filter.Length(
+                value = config.length,
+                min = PIN_CODE_LENGTH_MIN,
+                max = PIN_CODE_LENGTH_MAX,
+                onChange = pinCodeLengthSink::value::set
+                    .compose { it.toLong() },
+            ),
+            items = persistentListOf(),
         )
     }
 
@@ -1165,6 +1206,7 @@ fun produceGeneratorState(
     ) = when (config) {
         is PasswordGeneratorConfigBuilder2.Password -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.Passphrase -> createFilter(config)
+        is PasswordGeneratorConfigBuilder2.PinCode -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.Username -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.EmailCatchAll -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.EmailPlusAddressing -> createFilter(config)
@@ -1286,6 +1328,15 @@ fun produceGeneratorState(
                         wordlistId = wordlist?.id,
                         wordlists = wordlists,
                         wordlist = wordlist?.words,
+                    )
+                }
+
+                is GeneratorType2.PinCode -> combine(
+                    pinCodeLengthSink,
+                ) { array ->
+                    val length = array[0] as Long
+                    PasswordGeneratorConfigBuilder2.PinCode(
+                        length = length.toInt(),
                     )
                 }
 
@@ -1560,7 +1611,8 @@ fun produceGeneratorState(
                             title = null,
                             password = password,
                             source = passwordw,
-                            strength = type.password && args.password,
+                            strength = type.password && args.password &&
+                                    type !is GeneratorType2.PinCode,
                             dropdown = if (password.isNotEmpty()) {
                                 dropdown
                             } else {
@@ -1697,6 +1749,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
         onClick: () -> Unit,
     ): FlatItemAction {
         val primaryIcon = when {
+            type is GeneratorType2.PinCode -> Icons.Outlined.Numbers
             type.password -> Icons.Outlined.Password
             type.sshKey -> Icons.Outlined.Terminal
             type is GeneratorType2.Username -> Icons.Outlined.AlternateEmail

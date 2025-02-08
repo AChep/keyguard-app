@@ -24,6 +24,10 @@ sealed interface PasswordGeneratorConfig {
         val allChars: List<Char> = uppercaseChars + lowercaseChars + numberChars + symbolChars
     }
 
+    data class PinCode(
+        val length: Int,
+    ) : PasswordGeneratorConfig
+
     data class EmailRelay(
         val emailRelay: com.artemchep.keyguard.common.service.relays.api.EmailRelay,
         val config: DGeneratorEmailRelay,
@@ -42,6 +46,7 @@ sealed interface PasswordGeneratorConfig {
 fun PasswordGeneratorConfig.isExpensive(): Boolean = when (this) {
     is PasswordGeneratorConfig.Passphrase -> false
     is PasswordGeneratorConfig.Password -> false
+    is PasswordGeneratorConfig.PinCode -> false
     is PasswordGeneratorConfig.EmailRelay -> true
     is PasswordGeneratorConfig.KeyPair -> true
     is PasswordGeneratorConfig.Composite -> config.isExpensive()

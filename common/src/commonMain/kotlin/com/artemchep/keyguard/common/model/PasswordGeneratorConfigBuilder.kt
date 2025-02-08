@@ -40,6 +40,10 @@ sealed interface PasswordGeneratorConfigBuilder2 {
         val excludeAmbiguousCharacters: Boolean = true,
     ) : PasswordGeneratorConfigBuilder2
 
+    data class PinCode(
+        val length: Int,
+    ) : PasswordGeneratorConfigBuilder2
+
     data class EmailCatchAll(
         val length: Int,
         val domain: String,
@@ -68,6 +72,7 @@ sealed interface PasswordGeneratorConfigBuilder2 {
 fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (this) {
     is PasswordGeneratorConfigBuilder2.Password -> build()
     is PasswordGeneratorConfigBuilder2.Passphrase -> build()
+    is PasswordGeneratorConfigBuilder2.PinCode -> build()
     is PasswordGeneratorConfigBuilder2.Username -> build()
     is PasswordGeneratorConfigBuilder2.EmailCatchAll -> build()
     is PasswordGeneratorConfigBuilder2.EmailPlusAddressing -> build()
@@ -136,6 +141,11 @@ fun PasswordGeneratorConfigBuilder2.Passphrase.build() =
         includeNumber = includeNumber,
         customWord = customWord.trim().takeUnless { it.isEmpty() },
         wordlist = wordlist,
+    )
+
+fun PasswordGeneratorConfigBuilder2.PinCode.build() =
+    PasswordGeneratorConfig.PinCode(
+        length = length,
     )
 
 fun PasswordGeneratorConfigBuilder2.Username.build() =

@@ -1912,6 +1912,7 @@ private fun hahah(
             else -> ItemDecoratorNone
         }
 
+        val sectionIds = mutableSetOf<String>()
         val items = run {
             val out = mutableListOf<VaultItem2>()
             if (state.preferredList != null) {
@@ -1937,7 +1938,12 @@ private fun hahah(
             state.list.forEach { item ->
                 if (!item.favourite || orderConfig?.favourites != true) {
                     val section = decorator.getOrNull(item)
-                    if (section != null) out += section
+                    if (section != null && section.id !in sectionIds) {
+                        // Some weird combinations of items might lead to
+                        // duplicate # being used.
+                        sectionIds += section.id
+                        out += section
+                    }
                 }
                 out += item
             }

@@ -65,8 +65,10 @@ import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.util.traverse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -95,7 +97,9 @@ class BiometricStatusUseCaseImpl(
     )
 
     override fun invoke(): Flow<BiometricStatus> = flow {
-        val hasBiometrics = hasBiometrics()
+        // FIXME: Properly load native library on Flatpak platform
+        //  instead of just assuming that only MacOS supports biometrics.
+        val hasBiometrics = CurrentPlatform is Platform.Desktop.MacOS && hasBiometrics()
         val event = if (hasBiometrics) {
             BiometricStatus.Available(
                 createCipher = { purpose ->

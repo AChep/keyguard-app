@@ -58,6 +58,7 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
@@ -115,6 +116,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AnimatedCounterBadge
 import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
+import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -125,6 +127,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.ok
+import com.artemchep.keyguard.ui.time.rememberLocalizedRelativeTime
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
@@ -725,6 +728,8 @@ private fun RailStatusBadge(
             }
 
             else -> {
+                val subText = status.lastSyncTimestamp
+                    ?.let { rememberLocalizedRelativeTime(it) }
                 RailStatusBadgeContent(
                     contentColor = MaterialTheme.colorScheme.ok,
                     icon = {
@@ -734,6 +739,7 @@ private fun RailStatusBadge(
                         )
                     },
                     text = stringResource(Res.string.syncstatus_status_up_to_date),
+                    subText = subText,
                 )
             }
         }
@@ -747,6 +753,7 @@ private fun RailStatusBadgeContent(
     icon: @Composable () -> Unit,
     badge: String? = null,
     text: String,
+    subText: String? = null,
 ) {
     Column(
         modifier = modifier
@@ -754,7 +761,6 @@ private fun RailStatusBadgeContent(
                 horizontal = 4.dp,
                 vertical = 16.dp,
             ),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         BadgedBox(
@@ -775,6 +781,10 @@ private fun RailStatusBadgeContent(
                 }
             }
         }
+        Spacer(
+            modifier = Modifier
+                .height(4.dp),
+        )
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
@@ -782,6 +792,17 @@ private fun RailStatusBadgeContent(
             maxLines = 2,
             color = contentColor,
         )
+        if (subText != null) {
+            Text(
+                text = subText,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                fontSize = 9.sp,
+                maxLines = 1,
+                color = contentColorFor(LocalSurfaceColor.current)
+                    .combineAlpha(DisabledEmphasisAlpha),
+            )
+        }
     }
 }
 

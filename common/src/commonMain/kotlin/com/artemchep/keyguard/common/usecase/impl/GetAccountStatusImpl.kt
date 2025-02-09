@@ -41,6 +41,13 @@ class GetAccountStatusImpl(
     )
 
     override fun invoke(): Flow<DAccountStatus> {
+        val lastSyncTimestampFlow = getMetas()
+            .map { metas ->
+                metas
+                    .mapNotNull { meta -> meta.lastSyncTimestamp }
+                    .maxOrNull()
+            }
+            .distinctUntilChanged()
         val hasFailureFlow = kotlin.run {
             val m = getMetas()
                 .map { metas ->
@@ -86,11 +93,13 @@ class GetAccountStatusImpl(
                     .filterIsInstance<PermissionState.Declined>()
             }
         return combine(
+            lastSyncTimestampFlow,
             hasFailureFlow,
             hasPendingFlow,
             pendingPermissionsFlow,
-        ) { errorCount, pendingCount, pendingPermissions ->
+        ) { lastSyncTimestamp, errorCount, pendingCount, pendingPermissions ->
             DAccountStatus(
+                lastSyncTimestamp = lastSyncTimestamp,
                 error = DAccountStatus.Error(errorCount)
                     .takeIf { errorCount > 0 },
                 pending = DAccountStatus.Pending(pendingCount)

@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.model
 
-import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator.RsaLength
-import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator.RsaLength.Companion
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*

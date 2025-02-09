@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.KeyPair
+import com.artemchep.keyguard.common.model.KeyPairRaw
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 
 interface KeyPairGenerator {
@@ -48,4 +49,12 @@ interface KeyPairGenerator {
     fun populate(
         keyPair: KeyParameterRawZero,
     ): KeyPair
+
+    //
+    // Other
+    //
+
+    fun getPrivateKeyLengthOrNull(
+        keyPair: KeyParameterRawZero,
+    ): Int?
 }

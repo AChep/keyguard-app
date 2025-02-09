@@ -1049,6 +1049,26 @@ private fun RememberStateFlowScope.oh(
             )
             emit(privateKeyItem)
         }
+        if (keyPair != null) {
+            val keyLength = keyPairGenerator.getPrivateKeyLengthOrNull(keyPair)
+            val keyDesc = kotlin.run {
+                if (keyLength != null) {
+                    val bits = translate(Res.string.generator_key_length_item, keyLength)
+                    return@run "${keyPair.type.title}, $bits"
+                }
+
+                keyPair.type.title
+            }
+            val typeItem = create(
+                copy = copy,
+                id = "sshKey.keyType",
+                accountId = account.id,
+                title = translate(Res.string.key_type),
+                value = keyDesc,
+                elevated = true,
+            )
+            emit(typeItem)
+        }
     }
 
     val cipherCard = cipher.card

@@ -1,10 +1,12 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.common.exception.crypto.SshKeyDecodeException
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairRaw
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.platform.util.isRelease
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair
 import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator
 import org.bouncycastle.crypto.KeyGenerationParameters
@@ -14,6 +16,7 @@ import org.bouncycastle.crypto.params.AsymmetricKeyParameter
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import org.bouncycastle.crypto.params.RSAKeyGenerationParameters
 import org.bouncycastle.crypto.params.RSAKeyParameters
+import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
 import org.bouncycastle.crypto.util.OpenSSHPrivateKeyUtil
 import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.bouncycastle.util.encoders.Base64
@@ -21,7 +24,6 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.math.BigInteger
 import java.security.SecureRandom
-import kotlin.IllegalArgumentException
 
 
 class KeyPairGeneratorJvm(
@@ -58,10 +60,37 @@ class KeyPairGeneratorJvm(
     override fun parse(
         privateKey: String,
         publicKey: String,
+    ): KeyParameterRawZero = kotlin.runCatching {
+        performParse(
+            privateKey = privateKey,
+            publicKey = publicKey,
+        )
+    }.getOrElse { e ->
+        // Try to extract the type of the key.
+        val header = kotlin.run {
+            val headerRegex = "-{1,5}BEGIN (.*)-{1,5}".toRegex()
+            headerRegex.find(privateKey)?.groupValues?.firstOrNull()
+        }
+        // Throw the original exception, that possibly
+        // contains some sensitive info.
+        if (!isRelease) {
+            val newException = SshKeyDecodeException(header, e = e)
+            throw newException
+        }
+
+        throw SshKeyDecodeException(header)
+    }
+
+    private fun performParse(
+        privateKey: String,
+        publicKey: String,
     ): KeyParameterRawZero {
         val encodedPublicKey = kotlin.run {
+            // The format is
+            // key-type XXXXXX optional comment
             val encodedKeyBase64 = publicKey
                 .substringAfter(' ')
+                .substringBefore(' ')
                 .trim()
             val encodedKey = encodedKeyBase64
                 .decodeAsBase64()
@@ -70,12 +99,18 @@ class KeyPairGeneratorJvm(
         val parsedPublicKey = OpenSSHPublicKeyUtil.parsePublicKey(encodedPublicKey)
         val encodedPrivateKey = kotlin.run {
             val encodedKeyBase64 = privateKey
-                .replace("----.*----".toRegex(), "")
-                .trim()
+                .replace("-{1,5}(BEGIN|END) (|RSA |OPENSSH )PRIVATE KEY-{1,5}".toRegex(), "")
+                // Remove all line breaks
+                .lineSequence()
+                .map { it.trim() }
+                .joinToString(separator = "")
             val encodedKey = encodedKeyBase64
                 .decodeAsBase64()
             encodedKey
         }
+        // We parse it to confirm that we do understand
+        // it and can manipulate it in the future if we
+        // need to.
         val parsedPrivateKey = OpenSSHPrivateKeyUtil.parsePrivateKeyBlob(encodedPrivateKey)
         return KeyPairRaw(
             type = when (parsedPublicKey) {
@@ -111,12 +146,27 @@ class KeyPairGeneratorJvm(
         }
         val privateKey = kotlin.run {
             val ssh = kotlin.run {
-                val encodedKeyBase64 = keyPair.privateKey.encoded.encodeAsBase64()
-                """
-            -----BEGIN PRIVATE KEY-----
-            $encodedKeyBase64
-            -----END PRIVATE KEY-----
-            """.trimIndent()
+                // TODO: Current OpenSSHPrivateKeyUtil.encodePrivateKey(key) generates
+                //  a key in RSA format for the RSA key. Would be nice to always export
+                //  it as OPENSSH.
+                val (lineLength, headerType) = when (keyPair.type) {
+                    KeyPair.Type.ED25519 -> 70 to "OPENSSH PRIVATE KEY"
+                    KeyPair.Type.RSA -> 64 to "RSA PRIVATE KEY"
+                }
+
+                val encodedKeyBase64SingleLine = keyPair.privateKey.encoded.encodeAsBase64()
+                val encodedKeyBase64MultiLineList = encodedKeyBase64SingleLine
+                    .windowedSequence(lineLength, step = lineLength, partialWindows = true)
+                buildString {
+                    append("-----BEGIN $headerType-----")
+                    appendLine()
+                    encodedKeyBase64MultiLineList.forEach { line ->
+                        append(line)
+                        appendLine()
+                    }
+                    append("-----END $headerType-----")
+                    appendLine()
+                }
             }
             val fingerprint = keyPair.privateKey.encoded.encodeAsFingerprint()
             KeyPair.KeyParameter(
@@ -193,4 +243,15 @@ class KeyPairGeneratorJvm(
 
     private fun String.decodeAsBase64() = Base64
         .decode(this)
+
+    override fun getPrivateKeyLengthOrNull(
+        keyPair: KeyParameterRawZero,
+    ): Int? = kotlin.runCatching {
+        val key = OpenSSHPrivateKeyUtil
+            .parsePrivateKeyBlob(keyPair.privateKey.encoded)
+        when (key) {
+            is RSAPrivateCrtKeyParameters -> key.modulus.bitLength()
+            else -> null
+        }
+    }.getOrNull()
 }

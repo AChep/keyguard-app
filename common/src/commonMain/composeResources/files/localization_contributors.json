@@ -25,8 +25,8 @@
         "name": "Ukrainian"
       }
     ],
-    "translated": 6662,
-    "target": 6278,
+    "translated": 6681,
+    "target": 6299,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -587,8 +587,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2384,
-    "target": 3771,
+    "translated": 2403,
+    "target": 3804,
     "approved": 0,
     "voted": 10,
     "positiveVotes": 2,
@@ -785,13 +785,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5156,
-    "target": 4820,
-    "approved": 5397,
+    "translated": 5175,
+    "target": 4840,
+    "approved": 5416,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5121
+    "winning": 5140
   },
   {
     "user": {
@@ -1545,8 +1545,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5418,
-    "target": 5926,
+    "translated": 5437,
+    "target": 5948,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

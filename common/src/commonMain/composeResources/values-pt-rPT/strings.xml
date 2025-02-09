@@ -718,7 +718,7 @@
     <string name="cipher_type_ssh_key">Chave SSH</string>
     <string name="cipher_type_passkey">Chave de acesso</string>
     <string name="field_type_text">Texto</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Texto (ocultado)</string>
     <string name="field_type_boolean">Booleano</string>
     <string name="field_type_linked">Relacionado</string>
     <!--
@@ -773,6 +773,11 @@
     <string name="sortby_password_strength_title">Segurança da palavra-passe</string>
     <string name="sortby_password_strength_normal_mode">Mais fraco primeiro</string>
     <string name="sortby_password_strength_reverse_mode">Mais forte primeiro</string>
+    <string name="relative_time_just_now_short">now</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
     <string name="vault_main_search_placeholder">Pesquisar</string>
     <string name="vault_main_new_item_button">Nova entrada</string>
     <string name="vault_main_no_suggested_items">Não existem sugestões disponíveis para este contexto</string>
@@ -814,7 +819,7 @@
     <string name="generator_passphrase_number_title">Números</string>
     <string name="generator_passphrase_wordlist_title">Lista de palavras</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Quase uma em cada 10 pessoas utiliza o mesmo PIN de quatro dígitos. Gere PINs para evitar variantes comuns.</string>
     <string name="generator_username_type">Nome de utilizador</string>
     <string name="generator_username_delimiter_title">Limite de caracteres</string>
     <string name="generator_username_custom_word_title">Palavra personalizada</string>

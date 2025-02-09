@@ -717,7 +717,7 @@
     <string name="cipher_type_ssh_key">SSH-ключ</string>
     <string name="cipher_type_passkey">Ключ доступу</string>
     <string name="field_type_text">Текст</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Текст (прихований)</string>
     <string name="field_type_boolean">Логічний тип</string>
     <string name="field_type_linked">Пов'язаний тип</string>
     <!--
@@ -772,6 +772,11 @@
     <string name="sortby_password_strength_title">Надійністю пароля</string>
     <string name="sortby_password_strength_normal_mode">Спочатку слабкі</string>
     <string name="sortby_password_strength_reverse_mode">Спочатку надійні</string>
+    <string name="relative_time_just_now_short">now</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
     <string name="vault_main_search_placeholder">Пошук записів</string>
     <string name="vault_main_new_item_button">Новий запис</string>
     <string name="vault_main_no_suggested_items">Відсутні записи рекомендовані для поточного контексту</string>
@@ -812,8 +817,8 @@
     <string name="generator_passphrase_capitalize_title">З великої літери</string>
     <string name="generator_passphrase_number_title">Число</string>
     <string name="generator_passphrase_wordlist_title">Список слів</string>
-    <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_type">PIN-код</string>
+    <string name="generator_pin_code_note">Майже один із 10 людей використовує один і той же чотиризначний PIN-код. Генеруйте PIN-коди, щоб уникнути поширених варіантів.</string>
     <string name="generator_username_type">Ім'я користувача</string>
     <string name="generator_username_delimiter_title">Роздільник</string>
     <string name="generator_username_custom_word_title">Довільне слово</string>

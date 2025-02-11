@@ -132,7 +132,7 @@ sqlcipherAndroid = "4.6.1"
 # https://github.com/cashapp/sqldelight
 sqldelight = "2.0.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
-sqliteJdbcCrypt = "3.47.2.0"
+sqliteJdbcCrypt = "3.49.0.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor

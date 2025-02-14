@@ -29,6 +29,8 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.service.vault.SessionMetadataReadWriteRepository
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
@@ -43,6 +45,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.util.catch
+import com.artemchep.keyguard.common.util.flow.measureTimeTillFirstEvent
 import com.artemchep.keyguard.common.util.memoize
 import com.artemchep.keyguard.core.session.usecase.createSubDi
 import com.artemchep.keyguard.core.store.DatabaseManager
@@ -73,6 +76,7 @@ class UnlockUseCaseImpl(
     private val getVaultSession: GetVaultSession,
     private val putVaultSession: PutVaultSession,
     private val disableBiometric: DisableBiometric,
+    private val logRepository: LogRepository,
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
     private val sessionMetadataReadWriteRepository: SessionMetadataReadWriteRepository,
     private val getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
@@ -82,14 +86,26 @@ class UnlockUseCaseImpl(
     private val authConfirmMasterKeyUseCase: AuthConfirmMasterKeyUseCase,
     private val authGenerateMasterKeyUseCase: AuthGenerateMasterKeyUseCase,
 ) : UnlockUseCase {
+    companion object {
+        private const val TAG = "UnlockFlow"
+    }
+
     private val generateMasterKey = authGenerateMasterKeyUseCase()
         .compose { password: String ->
             MasterPassword.of(password)
         }
 
     private val sharedFlow = combine(
-        keyReadWriteRepository.get(),
-        getBiometricStatusFlow(),
+        keyReadWriteRepository.get()
+            .measureTimeTillFirstEvent { d, _ ->
+                val msg = "Fetching the vault info took $d"
+                logRepository.post(TAG, msg, level = LogLevel.INFO)
+            },
+        getBiometricStatusFlow()
+            .measureTimeTillFirstEvent { d, _ ->
+                val msg = "Fetching the biometric status took $d"
+                logRepository.post(TAG, msg, level = LogLevel.INFO)
+            },
         getVaultSession(),
     ) { persistableUserTokens, biometric, session ->
         when {
@@ -124,6 +140,12 @@ class UnlockUseCaseImpl(
         }
     }
         .distinctUntilChanged()
+        .measureTimeTillFirstEvent(
+            predicate = { it !is VaultState.Loading },
+        ) { d, _ ->
+            val msg = "Initializing the app took $d"
+            logRepository.post(TAG, msg, level = LogLevel.INFO)
+        }
         .shareIn(GlobalScope, SharingStarted.WhileSubscribed(10000L), replay = 1)
 
     constructor(directDI: DirectDI) : this(
@@ -132,6 +154,7 @@ class UnlockUseCaseImpl(
         getVaultSession = directDI.instance(),
         putVaultSession = directDI.instance(),
         disableBiometric = directDI.instance(),
+        logRepository = directDI.instance(),
         keyReadWriteRepository = directDI.instance(),
         sessionMetadataReadWriteRepository = directDI.instance(),
         getBiometricRequireConfirmation = directDI.instance(),

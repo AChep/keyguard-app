@@ -154,6 +154,10 @@ class JsonKeyValueStore(
         flow = flow,
     )
 
+    override fun getFile(): IO<File> = ioEffect {
+        throw NotImplementedError()
+    }
+
     override fun getAll(): IO<Map<String, Any?>> = ioRaise(RuntimeException())
 
     override fun getKeys(): IO<Set<String>> = getAll()

@@ -47,8 +47,11 @@ import com.artemchep.keyguard.copy.LogRepositoryAndroid
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
 import com.artemchep.keyguard.copy.PowerServiceAndroid
 import com.artemchep.keyguard.copy.ReviewServiceAndroid
+import com.artemchep.keyguard.copy.SharedPreferencesArg
 import com.artemchep.keyguard.copy.SharedPreferencesStoreFactory
-import com.artemchep.keyguard.copy.SharedPreferencesStoreFactoryDefault
+import com.artemchep.keyguard.copy.SharedPreferencesStoreFactoryV1
+import com.artemchep.keyguard.copy.SharedPreferencesStoreFactoryV2
+import com.artemchep.keyguard.copy.SharedPreferencesTypes
 import com.artemchep.keyguard.copy.SubscriptionServiceAndroid
 import com.artemchep.keyguard.copy.TextServiceAndroid
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
@@ -56,7 +59,9 @@ import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.LeContext
-import db_key_value.crypto_prefs.SecurePrefKeyValueStore
+import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
+import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
+import db_key_value.datastore.DataStoreKeyValueStore
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
 import org.kodein.di.DI
 import org.kodein.di.bind
@@ -204,20 +209,44 @@ fun diFingerprintRepositoryModule() = DI.Module(
         val factory = instance<SharedPreferencesStoreFactory>()
         factory.getStore(di, key)
     }
-    bind<KeyValueStore>("proto") with multiton { file: Files ->
-        SecurePrefKeyValueStore(
+    bind<KeyValueStore>(SharedPreferencesTypes.SHARED_PREFS_ENCRYPTED) with multiton { arg: SharedPreferencesArg ->
+        SecureSharedPrefsKeyValueStore(
             context = instance<Application>(),
-            file = file.filename,
+            file = arg.key.filename,
+            logRepository = instance(),
         )
     }
-    bind<KeyValueStore>("shared") with multiton { file: Files ->
+    bind<KeyValueStore>(SharedPreferencesTypes.SHARED_PREFS) with multiton { arg: SharedPreferencesArg ->
         SharedPrefsKeyValueStore(
             context = instance<Application>(),
-            file = file.filename,
+            file = arg.key.filename,
+            logRepository = instance(),
         )
     }
-    bindSingleton<SharedPreferencesStoreFactory> {
-        SharedPreferencesStoreFactoryDefault()
+    bind<KeyValueStore>(SharedPreferencesTypes.DATA_STORE_ENCRYPTED) with multiton { arg: SharedPreferencesArg ->
+        SecureDataStoreKeyValueStore(
+            context = instance<Application>(),
+            file = arg.key.filename,
+            logRepository = instance(),
+            backingStore = arg.store,
+        )
+    }
+    bind<KeyValueStore>(SharedPreferencesTypes.DATA_STORE) with multiton { arg: SharedPreferencesArg ->
+        DataStoreKeyValueStore(
+            context = instance<Application>(),
+            file = arg.key.filename,
+            logRepository = instance(),
+            backingStore = arg.store,
+        )
+    }
+    bindSingleton {
+        SharedPreferencesStoreFactoryV1()
+    }
+    bindSingleton {
+        SharedPreferencesStoreFactoryV2(this)
+    }
+    bindProvider<SharedPreferencesStoreFactory> {
+        instance<SharedPreferencesStoreFactoryV2>()
     }
     bindSingleton<DownloadDatabaseManager> {
         DownloadDatabaseManager(

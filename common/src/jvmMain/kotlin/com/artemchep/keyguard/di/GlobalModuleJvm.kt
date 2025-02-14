@@ -1324,7 +1324,6 @@ fun globalModuleJvm() = DI.Module(
     bindSingleton<IdRepository> {
         val store = instance<Files, KeyValueStore>(
             arg = Files.DEVICE_ID,
-            tag = "shared",
         )
         IdRepositoryImpl(
             store = store,

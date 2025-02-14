@@ -1,4 +1,4 @@
-package db_key_value.crypto_prefs
+package db_key_value.shared_prefs.encrypted
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -7,25 +7,37 @@ import android.security.keystore.StrongBoxUnavailableException
 import androidx.annotation.RequiresApi
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
-import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.platform.recordLog
-import db_key_value.shared_prefs.SharedPrefsKeyValueStore
 import java.io.IOException
 import java.security.GeneralSecurityException
 import java.security.KeyStore
+import androidx.core.content.edit
+import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
+import com.artemchep.keyguard.common.service.logging.LogRepository
+import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import db_key_value.shared_prefs.getSharedPrefsFile
 
-class SecurePrefKeyValueStore(
+class SecureSharedPrefsKeyValueStore(
     context: Context,
     file: String,
+    logRepository: LogRepository,
 ) : SecureKeyValueStore,
     KeyValueStore by SharedPrefsKeyValueStore(
+        provideFile = {
+            getSharedPrefsFile(
+                context = context,
+                file = file,
+            )
+        },
         createPrefs = {
             getEncryptedSharedPrefsOrRecreate(
                 context = context,
                 file = file,
             )
         },
+        logTag = file,
+        logRepository = logRepository,
     )
 
 @SuppressLint("ApplySharedPref")
@@ -134,9 +146,9 @@ private fun clearSharedPreferences(
 ) {
     // Clear the shared preferences
     context.getSharedPreferences(file, Context.MODE_PRIVATE)
-        .edit()
-        .clear()
-        .commit()
+        .edit(commit = true) {
+            clear()
+        }
 }
 
 private fun clearKeystore(

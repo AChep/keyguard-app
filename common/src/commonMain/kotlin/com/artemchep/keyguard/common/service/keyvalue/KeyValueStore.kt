@@ -4,13 +4,11 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.File
 
 interface KeyValueStore {
     companion object {
@@ -20,6 +18,8 @@ interface KeyValueStore {
          */
         const val HAS_MIGRATED = "__has_migrated"
     }
+
+    fun getFile(): IO<File>
 
     fun getAll(): IO<Map<String, Any?>>
 

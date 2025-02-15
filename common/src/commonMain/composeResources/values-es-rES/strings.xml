@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Vigilancia</string>
     <string name="home_settings_label">Ajustes</string>
     <string name="lock_reason_inactivity">Bloqueado por la inactividad</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Archivo</string>
     <string name="cipher_type_login">Iniciar sesión</string>

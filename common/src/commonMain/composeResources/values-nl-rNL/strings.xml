@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Instellingen</string>
     <string name="lock_reason_inactivity">Vergrendeld door inactiviteit</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Bestand</string>
     <string name="cipher_type_login">Login</string>

@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Őrtorony</string>
     <string name="home_settings_label">Beállítások</string>
     <string name="lock_reason_inactivity">Tétlenség miatt zárolva van</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Szöveg</string>
     <string name="send_type_file">Fájl</string>
     <string name="cipher_type_login">Bejelentkezés</string>

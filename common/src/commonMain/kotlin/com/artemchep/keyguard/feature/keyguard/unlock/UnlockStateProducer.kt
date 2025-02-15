@@ -81,6 +81,12 @@ fun unlockScreenState(
     val biometricPromptFlow = biometricPromptSink
         .onStart {
             if (unlockVaultWithBiometricFn != null) {
+                // Let the user see the reason why the vault was
+                // locked. Also helps to prevent spamming biometric
+                // auth on desktops.
+                if (lockReason != null) {
+                    return@onStart
+                }
                 val prompt = withContext(Dispatchers.Main) {
                     createPromptOrNull(
                         executor = executor,

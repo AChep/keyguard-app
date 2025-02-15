@@ -29,8 +29,7 @@ import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.feature.favicon.Favicon
-import com.artemchep.keyguard.feature.localization.textResource
-import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -210,7 +209,8 @@ class Main : BaseApp(), DIAware {
                 }
                 .filter { it is Screen.Off }
                 .onEach {
-                    clearVaultSession()
+                    val lockReason = TextHolder.Res(Res.string.lock_reason_inactivity)
+                    clearVaultSession(lockReason)
                         .attempt()
                         .launchIn(this)
                 }

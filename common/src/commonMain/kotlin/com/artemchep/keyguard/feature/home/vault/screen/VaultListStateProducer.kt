@@ -578,7 +578,8 @@ fun vaultListScreenState(
             },
             title = Res.string.vault_action_lock_vault_title.wrap(),
             onClick = {
-                clearVaultSession()
+                val reason = TextHolder.Res(Res.string.lock_reason_manually)
+                clearVaultSession(reason)
                     .launchIn(appScope)
             },
         )

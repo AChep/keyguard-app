@@ -5,11 +5,9 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
-import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
-import com.artemchep.keyguard.common.usecase.PutVaultSession
-import com.artemchep.keyguard.feature.localization.textResource
-import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.CoroutineScope
@@ -26,9 +24,8 @@ import org.kodein.di.instance
 
 class VaultSessionLocker(
     val getVaultLockAfterTimeout: GetVaultLockAfterTimeout,
-    val putVaultSession: PutVaultSession,
+    val clearVaultSession: ClearVaultSession,
     private val scope: CoroutineScope,
-    private val context: LeContext,
 ) {
     companion object {
         private const val DEBOUNCE_MS = 1000L 
@@ -57,10 +54,8 @@ class VaultSessionLocker(
                 }
                 .effectMap {
                     // Clear the current session.
-                    val session = MasterSession.Empty(
-                        reason = textResource(Res.string.lock_reason_inactivity, context),
-                    )
-                    putVaultSession(session)
+                    val reason = TextHolder.Res(Res.string.lock_reason_inactivity)
+                    clearVaultSession(reason)
                 }
                 .flatten()
                 .attempt()
@@ -70,9 +65,8 @@ class VaultSessionLocker(
 
     constructor(directDI: DirectDI) : this(
         getVaultLockAfterTimeout = directDI.instance(),
-        putVaultSession = directDI.instance(),
+        clearVaultSession = directDI.instance(),
         scope = GlobalScope,
-        context = directDI.instance(),
     )
 
     suspend fun keepAlive() {

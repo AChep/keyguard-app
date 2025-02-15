@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.icon
@@ -38,7 +39,8 @@ fun settingVaultLockProvider(
     ) {
         SettingVaultLock(
             onClick = {
-                clearVaultSession()
+                val reason = TextHolder.Res(Res.string.lock_reason_manually)
+                clearVaultSession(reason)
                     .launchIn(windowCoroutineScope)
             },
         )

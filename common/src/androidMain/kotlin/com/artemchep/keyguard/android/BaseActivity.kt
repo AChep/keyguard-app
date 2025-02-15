@@ -43,6 +43,7 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
 import com.artemchep.keyguard.feature.loading.ReadableExceptionMessage
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.N
 import com.artemchep.keyguard.feature.navigation.NavigationController
@@ -299,7 +300,8 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                     when (session) {
                         is MasterSession.Key -> {
                             val lockVault by session.di.instance<ClearVaultSession>()
-                            lockVault()
+                            val lockReason = TextHolder.Res(Res.string.lock_reason_manually)
+                            lockVault(lockReason)
                         }
 
                         is MasterSession.Empty -> ioUnit()

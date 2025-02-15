@@ -31,3 +31,14 @@ suspend fun textResource(
     is TextHolder.Value -> text.data
     is TextHolder.Res -> textResource(text.data, context)
 }
+
+@JvmName("textResourceNullable")
+suspend fun textResource(
+    text: TextHolder?,
+    context: LeContext,
+): String? = text?.let {
+    textResource(
+        text = it,
+        context = context,
+    )
+}

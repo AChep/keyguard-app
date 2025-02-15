@@ -111,6 +111,7 @@ import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
 import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
+import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -1939,11 +1940,21 @@ private fun hahah(
             state.list.forEach { item ->
                 if (!item.favourite || orderConfig?.favourites != true) {
                     val section = decorator.getOrNull(item)
-                    if (section != null && section.id !in sectionIds) {
+                    if (section != null) {
                         // Some weird combinations of items might lead to
                         // duplicate # being used.
-                        sectionIds += section.id
-                        out += section
+                        if (section.id !in sectionIds) {
+                            sectionIds += section.id
+                            out += section
+                        } else {
+                            val sections = sectionIds
+                                .joinToString()
+
+                            val msg =
+                                "Duplicate sections prevented @ VaultList: $sections, [${section.id}]"
+                            val exception = RuntimeException(msg)
+                            recordException(exception)
+                        }
                     }
                 }
                 out += item

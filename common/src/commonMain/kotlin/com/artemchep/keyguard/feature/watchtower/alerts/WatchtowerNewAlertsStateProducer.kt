@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
+import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
@@ -341,9 +342,11 @@ fun produceGeneratorHistoryState(
                     },
                 )
             val out = mutableListOf<WatchtowerNewAlertsState.Item>()
-            raw.forEach { item ->
-                val section = decorator.getOrNull(item)
-                if (section != null) out += section
+            raw.forEachWithDecorUniqueSectionsOnly(
+                decorator = decorator,
+                tag = "WatchtowerNewAlerts",
+                provideItemId = WatchtowerNewAlertsState.Item::id,
+            ) { item ->
                 out += item
             }
             out.toPersistentList()

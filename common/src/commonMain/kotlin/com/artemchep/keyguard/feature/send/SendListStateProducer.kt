@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
+import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountsRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
@@ -1036,8 +1037,6 @@ private fun hahah(
         )
     }
     .map { state ->
-        val keys = mutableSetOf<String>()
-
         val orderConfig = state.orderConfig
         val decorator: ItemDecorator<SendItem, SendItem.Item> = when {
             // Search does not guarantee meaningful order that we can
@@ -1110,10 +1109,11 @@ private fun hahah(
             )
             out += section
         }
-        state.list.forEach { item ->
-            val section = decorator.getOrNull(item)
-            if (section != null) out += section
-
+        state.list.forEachWithDecorUniqueSectionsOnly(
+            decorator = decorator,
+            tag = "SendList",
+            provideItemId = SendItem::id,
+        ) { item ->
             out += item
         }
         FilteredBoo(

@@ -51,6 +51,7 @@ import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
@@ -458,10 +459,26 @@ fun produceAttachmentsScreenState(
                                 as ItemDecorator<AttachmentsState.Item, AttachmentItem>
                 }
 
+            val sectionIds = mutableSetOf<String>()
             val out = mutableListOf<AttachmentsState.Item>()
             state.list.forEach { item ->
                 val section = decorator.getOrNull(item.item)
-                if (section != null) out += section
+                // Some weird combinations of items might lead to
+                // duplicate # being used.
+                if (section != null) {
+                    if (section.key !in sectionIds) {
+                        sectionIds += section.key
+                        out += section
+                    } else {
+                        val sections = sectionIds
+                            .joinToString()
+
+                        val msg =
+                            "Duplicate sections prevented @ AttachmentList: $sections, [${section.key}]"
+                        val exception = RuntimeException(msg)
+                        recordException(exception)
+                    }
+                }
 
                 val wrappedItem = AttachmentsState.Item.Attachment(
                     key = item.item.key,

@@ -23,6 +23,7 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
+import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -357,11 +358,11 @@ fun produceGeneratorHistoryState(
                 },
             )
             val out = mutableListOf<GeneratorHistoryItem>()
-            items.forEach { item ->
-                val section = decorator.getOrNull(item)
-                if (section != null) {
-                    out += section
-                }
+            items.forEachWithDecorUniqueSectionsOnly(
+                decorator = decorator,
+                tag = "GeneratorHistory",
+                provideItemId = GeneratorHistoryItem::id,
+            ) { item ->
                 out += item
             }
             out.toPersistentList()

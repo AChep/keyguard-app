@@ -717,7 +717,7 @@
     <string name="cipher_type_ssh_key">SSH-Schlüssel</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Text</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Text (versteckt)</string>
     <string name="field_type_boolean">Wahrheitswert</string>
     <string name="field_type_linked">Verknüpft</string>
     <!--
@@ -772,11 +772,11 @@
     <string name="sortby_password_strength_title">Passwortstärke</string>
     <string name="sortby_password_strength_normal_mode">Schwächste zuerst</string>
     <string name="sortby_password_strength_reverse_mode">Stärkste zuerst</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">Jetzt</string>
+    <string name="relative_time_minute_short">vor <xliff:g id="minute" example="1">%1$s</xliff:g>m</string>
+    <string name="relative_time_hour_short">vor <xliff:g id="hour" example="1">%1$s</xliff:g>h</string>
+    <string name="relative_time_day_short">vor <xliff:g id="day" example="1">%1$s</xliff:g>d</string>
+    <string name="relative_time_week_short">vor <xliff:g id="week" example="1">%1$s</xliff:g>w</string>
     <string name="vault_main_search_placeholder">Tresor durchsuchen</string>
     <string name="vault_main_new_item_button">Neuer Eintrag</string>
     <string name="vault_main_no_suggested_items">Es gibt keine Vorschläge für diesen Kontext</string>
@@ -818,7 +818,7 @@
     <string name="generator_passphrase_number_title">Zahlen</string>
     <string name="generator_passphrase_wordlist_title">Wortliste</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Fast jede zehnte Person verwendet dieselbe vierstellige PIN. Generieren Sie PINs, um gängige Varianten zu vermeiden.</string>
     <string name="generator_username_type">Benutzername</string>
     <string name="generator_username_delimiter_title">Trennzeichen</string>
     <string name="generator_username_custom_word_title">Benutzerdefiniertes Wort</string>

@@ -231,7 +231,7 @@
     <string name="bitwarden_premium">Bitwarden 프리미엄</string>
     <string name="bitwarden_premium_required">Bitwarden 프리미엄 필요</string>
     <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip">팁: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
     <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
     <string name="account_action_change_name_title">이름 바꾸기</string>
@@ -717,7 +717,7 @@
     <string name="cipher_type_ssh_key">SSH 키</string>
     <string name="cipher_type_passkey">패스키</string>
     <string name="field_type_text">텍스트</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">텍스트(감춰짐)</string>
     <string name="field_type_boolean">참/거짓</string>
     <string name="field_type_linked">링크됨</string>
     <!--
@@ -772,11 +772,11 @@
     <string name="sortby_password_strength_title">비밀번호 보안 강도</string>
     <string name="sortby_password_strength_normal_mode">약한 순</string>
     <string name="sortby_password_strength_reverse_mode">강한 순</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">지금</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>분 전</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>시간 전</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>일 전</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>주 전</string>
     <string name="vault_main_search_placeholder">보관함 검색</string>
     <string name="vault_main_new_item_button">새 항목</string>
     <string name="vault_main_no_suggested_items">이 콘텍스트에 대해 추천할 수 있는 항목이 없습니다.</string>

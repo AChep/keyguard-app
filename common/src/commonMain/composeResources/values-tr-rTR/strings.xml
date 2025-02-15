@@ -772,11 +772,11 @@
     <string name="sortby_password_strength_title">Parola gücü</string>
     <string name="sortby_password_strength_normal_mode">En zayıf önce</string>
     <string name="sortby_password_strength_reverse_mode">En güçlü önce</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">şimdi</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>dakika önce</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>saat önce</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>gün önce</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>hafta önce</string>
     <string name="vault_main_search_placeholder">Kasa içinde ara</string>
     <string name="vault_main_new_item_button">Yeni öğe</string>
     <string name="vault_main_no_suggested_items">Bu bağlamda önerilen öğe yok</string>

@@ -25,7 +25,7 @@ jobs:
           echo "$has_changes"
           echo "HAS_CHANGES=$has_changes" >> "$GITHUB_OUTPUT"
       - name: Commit and push changes
-        uses: devops-infra/action-commit-push@v0.9.2
+        uses: devops-infra/action-commit-push@v0.10.0
         if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
         with:
           github_token: "${{ secrets.PERSONAL_TOKEN }}"

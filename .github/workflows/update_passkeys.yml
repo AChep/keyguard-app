@@ -37,7 +37,7 @@ jobs:
           force: true
           target_branch: passkeys_action
       - name: Create pull request
-        uses: devops-infra/action-pull-request@v0.5.5
+        uses: devops-infra/action-pull-request@v0.6.0
         if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
         with:
           github_token: "${{ secrets.PERSONAL_TOKEN }}"

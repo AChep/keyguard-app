@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Gözlemci</string>
     <string name="home_settings_label">Ayarlar</string>
     <string name="lock_reason_inactivity">Etkinliksizliğe bağlı olarak kilitlendi</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Metin</string>
     <string name="send_type_file">Dosya</string>
     <string name="cipher_type_login">Giriş</string>

@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Wachturm</string>
     <string name="home_settings_label">Einstellungen</string>
     <string name="lock_reason_inactivity">Wegen Inaktivität gesperrt</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Datei</string>
     <string name="cipher_type_login">Login</string>

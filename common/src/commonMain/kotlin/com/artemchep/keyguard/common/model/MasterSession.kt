@@ -34,8 +34,17 @@ sealed interface MasterSession {
 
     @optics
     data class Empty(
-        val reason: String? = null,
+        val lockInfo: LockInfo? = null,
     ) : MasterSession {
-        companion object
+        companion object;
+
+        @optics
+        data class LockInfo(
+            val type: LockReason,
+            val timestamp: Instant,
+            val reason: String,
+        ) {
+            companion object
+        }
     }
 }

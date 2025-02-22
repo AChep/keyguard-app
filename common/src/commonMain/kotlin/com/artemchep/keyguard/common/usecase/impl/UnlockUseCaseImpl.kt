@@ -125,7 +125,7 @@ class UnlockUseCaseImpl(
                 createUnlockVaultState(
                     tokens = persistableUserTokens,
                     biometric = biometric.forUnlock,
-                    lockReason = session.reason,
+                    lockInfo = session.lockInfo,
                 )
 
             persistableUserTokens != null && session is MasterSession.Key ->
@@ -275,7 +275,7 @@ class UnlockUseCaseImpl(
     private suspend fun createUnlockVaultState(
         tokens: Fingerprint,
         biometric: BiometricStatus,
-        lockReason: String?,
+        lockInfo: MasterSession.Empty.LockInfo?,
     ): VaultState {
         val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
             .compose { password: String ->
@@ -336,7 +336,13 @@ class UnlockUseCaseImpl(
             } else {
                 null
             },
-            lockReason = lockReason,
+            lockInfo = lockInfo?.run {
+                VaultState.Unlock.LockInfo(
+                    type = type,
+                    timestamp = timestamp,
+                    reason = reason,
+                )
+            },
         )
     }
 

@@ -68,13 +68,13 @@ fun UnlockScreen(
      */
     unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
-    lockReason: String?,
+    lockInfo: VaultState.Unlock.LockInfo?,
 ) {
     val loadableState = unlockScreenState(
         clearData = localDI().direct.instance(),
         unlockVaultByMasterPassword = unlockVaultByMasterPassword,
         unlockVaultByBiometric = unlockVaultByBiometric,
-        lockReason = lockReason,
+        lockInfo = lockInfo,
     )
     loadableState.fold(
         ifLoading = {

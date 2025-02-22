@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.io.parallelSearch
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -330,7 +331,7 @@ fun sendListScreenState(
             title = Res.string.vault_action_lock_vault_title.wrap(),
             onClick = {
                 val reason = TextHolder.Res(Res.string.lock_reason_manually)
-                clearVaultSession(reason)
+                clearVaultSession(LockReason.LOCK, reason)
                     .launchIn(appScope)
             },
         )

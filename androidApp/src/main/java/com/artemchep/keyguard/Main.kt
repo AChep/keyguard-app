@@ -16,6 +16,7 @@ import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.io.*
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.power.PowerService
@@ -210,7 +211,7 @@ class Main : BaseApp(), DIAware {
                 .filter { it is Screen.Off }
                 .onEach {
                     val lockReason = TextHolder.Res(Res.string.lock_reason_inactivity)
-                    clearVaultSession(lockReason)
+                    clearVaultSession(LockReason.TIMEOUT, lockReason)
                         .attempt()
                         .launchIn(this)
                 }

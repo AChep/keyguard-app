@@ -11,14 +11,14 @@ class UnlockRoute(
      */
     val unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     val unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
-    val lockReason: String?,
+    val lockInfo: VaultState.Unlock.LockInfo?,
 ) : Route {
     @Composable
     override fun Content() {
         UnlockScreen(
             unlockVaultByMasterPassword = unlockVaultByMasterPassword,
             unlockVaultByBiometric = unlockVaultByBiometric,
-            lockReason = lockReason,
+            lockInfo = lockInfo,
         )
     }
 }

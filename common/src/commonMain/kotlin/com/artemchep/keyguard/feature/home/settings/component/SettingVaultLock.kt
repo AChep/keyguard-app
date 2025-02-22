@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
@@ -40,7 +41,7 @@ fun settingVaultLockProvider(
         SettingVaultLock(
             onClick = {
                 val reason = TextHolder.Res(Res.string.lock_reason_manually)
-                clearVaultSession(reason)
+                clearVaultSession(LockReason.LOCK, reason)
                     .launchIn(windowCoroutineScope)
             },
         )

@@ -75,7 +75,7 @@ fun ManualAppScreenOnUnlock(
         UnlockRoute(
             unlockVaultByMasterPassword = state.unlockWithMasterPassword,
             unlockVaultByBiometric = state.unlockWithBiometric,
-            lockReason = state.lockReason,
+            lockInfo = state.lockInfo,
         )
     }
     NavigationNode(

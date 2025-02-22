@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.model
 import arrow.core.Either
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.platform.LeBiometricCipher
+import kotlinx.datetime.Instant
 import org.kodein.di.DI
 
 sealed interface VaultState {
@@ -24,7 +25,7 @@ sealed interface VaultState {
     class Unlock(
         val unlockWithMasterPassword: WithPassword,
         val unlockWithBiometric: WithBiometric?,
-        val lockReason: String?,
+        val lockInfo: LockInfo?,
     ) : VaultState {
         class WithPassword(
             val getCreateIo: (String) -> IO<Unit>,
@@ -34,6 +35,12 @@ sealed interface VaultState {
             val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
             val getCreateIo: () -> IO<Unit>,
             val requireConfirmation: Boolean,
+        )
+
+        data class LockInfo(
+            val type: LockReason,
+            val timestamp: Instant,
+            val reason: String,
         )
     }
 

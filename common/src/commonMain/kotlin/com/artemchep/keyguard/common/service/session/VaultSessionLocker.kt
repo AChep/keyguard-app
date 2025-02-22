@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -55,7 +56,7 @@ class VaultSessionLocker(
                 .effectMap {
                     // Clear the current session.
                     val reason = TextHolder.Res(Res.string.lock_reason_inactivity)
-                    clearVaultSession(reason)
+                    clearVaultSession(LockReason.TIMEOUT, reason)
                 }
                 .flatten()
                 .attempt()

@@ -35,6 +35,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
@@ -580,7 +581,7 @@ fun vaultListScreenState(
             title = Res.string.vault_action_lock_vault_title.wrap(),
             onClick = {
                 val reason = TextHolder.Res(Res.string.lock_reason_manually)
-                clearVaultSession(reason)
+                clearVaultSession(LockReason.LOCK, reason)
                     .launchIn(appScope)
             },
         )

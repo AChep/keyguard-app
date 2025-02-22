@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -46,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 
 private val DEFAULT_PASSWORD = ""
 
@@ -54,7 +56,7 @@ fun unlockScreenState(
     clearData: ClearData,
     unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
-    lockReason: String? = null,
+    lockInfo: VaultState.Unlock.LockInfo? = null,
 ): Loadable<UnlockState> = produceScreenState<Loadable<UnlockState>>(
     key = "unlock",
     initial = Loadable.Loading,
@@ -84,8 +86,17 @@ fun unlockScreenState(
                 // Let the user see the reason why the vault was
                 // locked. Also helps to prevent spamming biometric
                 // auth on desktops.
-                if (lockReason != null) {
-                    return@onStart
+                if (lockInfo != null) kotlin.run {
+                    // If the lock has happened more than 5 minutes
+                    // ago then trigger the biometrics immediately.
+                    val dt = Clock.System.now() - lockInfo.timestamp
+                    if (dt.inWholeMinutes >= 5) {
+                        return@run
+                    }
+                    when (lockInfo.type) {
+                        LockReason.TIMEOUT -> return@run
+                        LockReason.LOCK -> return@onStart // do not trigger biometric
+                    }
                 }
                 val prompt = withContext(Dispatchers.Main) {
                     createPromptOrNull(
@@ -148,7 +159,7 @@ fun unlockScreenState(
         val error = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = error == null && !taskExecuting
         val state = UnlockState(
-            lockReason = lockReason,
+            lockReason = lockInfo?.reason,
             password = TextFieldModel2.of(
                 state = passwordState,
                 validated = validatedPassword,
@@ -238,7 +249,7 @@ private suspend fun createPromptOrNull(
                         BiometricAuthException.ERROR_CANCELED,
                         BiometricAuthException.ERROR_USER_CANCELED,
                         BiometricAuthException.ERROR_NEGATIVE_BUTTON,
-                        -> return@fold
+                            -> return@fold
                     }
 
                     val io = ioRaise<Unit>(exception)

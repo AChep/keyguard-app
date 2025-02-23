@@ -29,6 +29,7 @@ import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -301,7 +302,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                         is MasterSession.Key -> {
                             val lockVault by session.di.instance<ClearVaultSession>()
                             val lockReason = TextHolder.Res(Res.string.lock_reason_manually)
-                            lockVault(lockReason)
+                            lockVault(LockReason.LOCK, lockReason)
                         }
 
                         is MasterSession.Empty -> ioUnit()

@@ -21,6 +21,7 @@ data class WatchtowerState(
         val unreadThreats: StateFlow<Loadable<UnreadThreats?>>,
         val unsecureWebsites: StateFlow<Loadable<UnsecureWebsites?>>,
         val duplicateWebsites: StateFlow<Loadable<DuplicateWebsites?>>,
+        val broadWebsites: StateFlow<Loadable<BroadWebsites?>>,
         val inactiveTwoFactorAuth: StateFlow<Loadable<InactiveTwoFactorAuth?>>,
         val inactivePasskey: StateFlow<Loadable<InactivePasskey?>>,
         val accountCompromised: StateFlow<Loadable<CompromisedAccounts?>>,
@@ -42,6 +43,13 @@ data class WatchtowerState(
         )
 
         data class DuplicateWebsites(
+            val revision: Int,
+            val count: Int,
+            val new: Int,
+            val onClick: (() -> Unit)? = null,
+        )
+
+        data class BroadWebsites(
             val revision: Int,
             val count: Int,
             val new: Int,

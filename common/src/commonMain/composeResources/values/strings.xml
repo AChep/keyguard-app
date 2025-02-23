@@ -964,6 +964,8 @@
     <string name="watchtower_item_expiring_items_text">Items that have expired or are expiring soon.</string>
     <string name="watchtower_item_duplicate_websites_title">Duplicate URIs</string>
     <string name="watchtower_item_duplicate_websites_text">Items that have one or more URIs that cover the same websites after applying the match detection.</string>
+    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
+    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
     <string name="watchtower_item_trashed_items_title">Trashed Items</string>
     <string name="watchtower_item_trashed_items_text">Items that have been moved into the trash. Having too many items in the trash may slow down operations with your vault.</string>
     <string name="watchtower_item_empty_folders_title">Empty Folders</string>

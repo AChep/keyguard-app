@@ -8,6 +8,8 @@ import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
+import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
 import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
@@ -21,11 +23,6 @@ import org.kodein.di.instance
 class CipherUrlCheckImpl(
     private val tldService: TldService,
 ) : CipherUrlCheck {
-    companion object {
-        private const val PROTOCOL_ANDROID_APP = "androidapp://"
-        private const val PROTOCOL_IOS_APP = "iosapp://"
-    }
-
     constructor(directDI: DirectDI) : this(
         tldService = directDI.instance(),
     )

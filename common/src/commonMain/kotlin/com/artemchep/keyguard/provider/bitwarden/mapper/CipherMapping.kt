@@ -82,6 +82,7 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE -> DWatchtowerAlertType.PASSKEY_WEBSITE
     BitwardenCipher.IgnoreAlertType.DUPLICATE -> DWatchtowerAlertType.DUPLICATE
     BitwardenCipher.IgnoreAlertType.DUPLICATE_URIS -> DWatchtowerAlertType.DUPLICATE_URIS
+    BitwardenCipher.IgnoreAlertType.BROAD_URIS -> DWatchtowerAlertType.BROAD_URIS
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
 }

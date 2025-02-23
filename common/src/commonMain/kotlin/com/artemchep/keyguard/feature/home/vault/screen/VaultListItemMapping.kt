@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.model.passwordRevisionDate
 import com.artemchep.keyguard.common.model.passwordStrength
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
@@ -185,9 +186,9 @@ fun DSecret.toVaultItemIcon(
     )
     val appIcon = if (appIcons) {
         uris
-            .firstOrNull { uri -> uri.uri.startsWith("androidapp://") }
+            .firstOrNull { uri -> uri.uri.startsWith(PROTOCOL_ANDROID_APP) }
             ?.let { uri ->
-                val packageName = uri.uri.substringAfter("androidapp://")
+                val packageName = uri.uri.substringAfter(PROTOCOL_ANDROID_APP)
                 VaultItemIcon.AppIcon(
                     data = AppIconUrl(packageName),
                     fallback = vectorIcon,

@@ -13,14 +13,13 @@ import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
-import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.tld.TldService
-import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
+import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
@@ -37,6 +36,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
+import com.artemchep.keyguard.ui.icons.KeyguardBroadWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardDuplicateWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardExpiringItems
 import com.artemchep.keyguard.ui.icons.KeyguardFailedItems
@@ -49,14 +49,11 @@ import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
-import io.ktor.http.Url
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toSet
 import kotlinx.datetime.Clock
 import kotlinx.serialization.SerialName
@@ -77,7 +74,6 @@ import kotlin.collections.emptyList
 import kotlin.collections.emptyMap
 import kotlin.collections.filter
 import kotlin.collections.first
-import kotlin.collections.firstOrNull
 import kotlin.collections.forEach
 import kotlin.collections.indices
 import kotlin.collections.isNotEmpty
@@ -1229,6 +1225,75 @@ sealed interface DFilter {
         private fun shouldIgnore(
             cipher: DSecret,
         ) = cipher.ignores(DWatchtowerAlertType.DUPLICATE_URIS)
+    }
+
+    @Serializable
+    @SerialName("by_broad_websites")
+    data object ByBroadWebsites : PrimitiveSimple {
+        @Transient
+        override val key: String = "broad_websites"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.string.watchtower_item_broad_websites_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardBroadWebsites,
+        )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterBroadWebsites(
+                directDI = directDI,
+                ciphers = ciphers,
+            )
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+
+        /** Counts a number of ciphers that contain broad websites */
+        suspend fun count(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = filterBroadWebsites(directDI, ciphers).count()
+
+        private suspend fun filterBroadWebsites(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val getAutofillDefaultMatchDetection =
+                directDI.instance<GetAutofillDefaultMatchDetection>()
+            val cipherUrlBroadCheck = directDI.instance<CipherUrlBroadCheck>()
+            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
+
+            val equivalentDomainsBuilder = equivalentDomainsBuilderFactory
+                .build()
+            val defaultMatchDetection = getAutofillDefaultMatchDetection()
+                .first()
+
+            val c = ciphers
+                .filter { cipher ->
+                    !cipher.deleted && !shouldIgnore(cipher)
+                }
+            val result = cipherUrlBroadCheck(
+                c,
+                defaultMatchDetection,
+                equivalentDomainsBuilder,
+            ).bind()
+            result
+                .map { it.cipher }
+        }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlertType.BROAD_URIS)
     }
 
     @Serializable

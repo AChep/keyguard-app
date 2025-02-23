@@ -152,6 +152,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerBroadUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
@@ -486,6 +487,11 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<WatchtowerDuplicateUris>() {
         WatchtowerDuplicateUris(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerBroadUris>() {
+        WatchtowerBroadUris(
             directDI = this,
         )
     }

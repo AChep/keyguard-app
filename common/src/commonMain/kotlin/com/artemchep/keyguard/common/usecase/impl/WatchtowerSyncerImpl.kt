@@ -30,6 +30,7 @@ import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
+import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
@@ -43,7 +44,6 @@ import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
-import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey.Companion.findFirstMatchOrNull
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.DatabaseDispatcher
 import com.artemchep.keyguard.core.store.DatabaseManager
@@ -1014,6 +1014,59 @@ class WatchtowerDuplicateUris(
     private fun shouldIgnore(
         cipher: DSecret,
     ) = cipher.ignores(DWatchtowerAlertType.DUPLICATE_URIS)
+}
+
+class WatchtowerBroadUris(
+    private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
+    private val cipherUrlBroadCheck: CipherUrlBroadCheck,
+    private val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+) : WatchtowerClientTyped {
+    override val type: Long
+        get() = DWatchtowerAlertType.BROAD_URIS.value
+
+    constructor(directDI: DirectDI) : this(
+        getAutofillDefaultMatchDetection = directDI.instance(),
+        cipherUrlBroadCheck = directDI.instance(),
+        equivalentDomainsBuilderFactory = directDI.instance(),
+    )
+
+    override fun version() = combineJoinToVersion(
+        getAutofillDefaultMatchDetection()
+            .map { it.name },
+        version = "1",
+    )
+
+    override suspend fun process(
+        ciphers: List<DSecret>,
+    ): List<WatchtowerClientResult> {
+        val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
+        val defaultMatchDetection = getAutofillDefaultMatchDetection()
+            .first()
+
+        val allActiveCiphers = ciphers
+            .filter { !it.deleted && !shouldIgnore(it) }
+        val result = cipherUrlBroadCheck(
+            allActiveCiphers,
+            defaultMatchDetection,
+            equivalentDomainsBuilder
+        ).bind()
+        val resultMap = result.associateBy { it.cipher.id }
+
+        return ciphers
+            .map { cipher ->
+                val data = resultMap[cipher.id]
+                val threat = data != null
+                WatchtowerClientResult(
+                    value = data?.value,
+                    threat = threat,
+                    cipher = cipher,
+                )
+            }
+    }
+
+    private fun shouldIgnore(
+        cipher: DSecret,
+    ) = cipher.ignores(DWatchtowerAlertType.BROAD_URIS)
 }
 
 private fun parseHost(uri: DSecret.Uri) = if (

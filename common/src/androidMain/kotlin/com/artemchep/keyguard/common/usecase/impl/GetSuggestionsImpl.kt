@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetSuggestions
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import io.ktor.http.Url
 import kotlinx.coroutines.Dispatchers
@@ -351,7 +352,7 @@ private fun GetSuggestionsImpl.AutofillTargetAndroid.findByApp(
     // the cipher, then we give it maximum priority.
     val scoreByUri = secret.uris
         .any { uri ->
-            uri.uri.startsWith("androidapp://") &&
+            uri.uri.startsWith(PROTOCOL_ANDROID_APP) &&
                     uri.uri.trim().endsWith(appId) &&
                     uri.match != DSecret.Uri.MatchType.Never
         }

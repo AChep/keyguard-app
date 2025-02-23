@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
+import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.encodedPath
@@ -13,9 +15,6 @@ import kotlin.reflect.KClass
 
 class LinkInfoPlatformExtractor : LinkInfoExtractor<DSecret.Uri, LinkInfoPlatform> {
     companion object {
-        private const val ANDROID_SCHEME_PREFIX = "androidapp://"
-        private const val IOS_SCHEME_PREFIX = "iosapp://"
-
         private const val HTTP_SCHEME_PREFIX = "http://"
         private const val HTTPS_SCHEME_PREFIX = "https://"
     }
@@ -27,10 +26,10 @@ class LinkInfoPlatformExtractor : LinkInfoExtractor<DSecret.Uri, LinkInfoPlatfor
     override fun extractInfo(uri: DSecret.Uri): IO<LinkInfoPlatform> = ioEffect {
         val url = uri.uri
         when {
-            url.startsWith(ANDROID_SCHEME_PREFIX, ignoreCase = true) ->
+            url.startsWith(PROTOCOL_ANDROID_APP, ignoreCase = true) ->
                 createAndroidPlatform(uri)
 
-            url.startsWith(IOS_SCHEME_PREFIX, ignoreCase = true) ->
+            url.startsWith(PROTOCOL_IOS_APP, ignoreCase = true) ->
                 createIOSPlatform(uri)
 
             url.startsWith(HTTP_SCHEME_PREFIX, ignoreCase = true) ||
@@ -43,7 +42,7 @@ class LinkInfoPlatformExtractor : LinkInfoExtractor<DSecret.Uri, LinkInfoPlatfor
 
     private fun createAndroidPlatform(uri: DSecret.Uri): LinkInfoPlatform {
         val packageName = uri.uri
-            .substring(ANDROID_SCHEME_PREFIX.length)
+            .substring(PROTOCOL_ANDROID_APP.length)
         return LinkInfoPlatform.Android(
             packageName = packageName,
         )
@@ -51,7 +50,7 @@ class LinkInfoPlatformExtractor : LinkInfoExtractor<DSecret.Uri, LinkInfoPlatfor
 
     private fun createIOSPlatform(uri: DSecret.Uri): LinkInfoPlatform {
         val packageName = uri.uri
-            .substring(IOS_SCHEME_PREFIX.length)
+            .substring(PROTOCOL_IOS_APP.length)
         return LinkInfoPlatform.IOS(
             packageName = packageName,
         )

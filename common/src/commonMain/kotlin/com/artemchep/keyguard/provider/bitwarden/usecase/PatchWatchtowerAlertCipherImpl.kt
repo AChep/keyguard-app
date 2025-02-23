@@ -55,6 +55,7 @@ class PatchWatchtowerAlertCipherImpl(
                     DWatchtowerAlertType.PASSKEY_WEBSITE -> BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE
                     DWatchtowerAlertType.DUPLICATE -> BitwardenCipher.IgnoreAlertType.DUPLICATE
                     DWatchtowerAlertType.DUPLICATE_URIS -> BitwardenCipher.IgnoreAlertType.DUPLICATE_URIS
+                    DWatchtowerAlertType.BROAD_URIS -> BitwardenCipher.IgnoreAlertType.BROAD_URIS
                     DWatchtowerAlertType.INCOMPLETE -> BitwardenCipher.IgnoreAlertType.INCOMPLETE
                     DWatchtowerAlertType.EXPIRING -> BitwardenCipher.IgnoreAlertType.EXPIRING
                 }

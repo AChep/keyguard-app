@@ -721,6 +721,49 @@ fun produceWatchtowerState(
         },
     )
 
+    suspend fun onClickBroadWebsites(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            VaultRoute.watchtower(
+                title = translate(Res.string.watchtower_item_broad_websites_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByBroadWebsites,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val broadWebsitesFlow = createCipherAlertStateFlow(
+        key = DFilter.ByBroadWebsites.key,
+        type = DWatchtowerAlertType.BROAD_URIS,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickBroadWebsites(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.BroadWebsites(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
     suspend fun onClickTfaWebsites(
         filter: DFilter,
     ) {
@@ -1169,6 +1212,7 @@ fun produceWatchtowerState(
         unreadThreats = unreadThreatsFlow,
         unsecureWebsites = unsecureWebsitesFlow,
         duplicateWebsites = duplicateWebsitesFlow,
+        broadWebsites = broadWebsitesFlow,
         inactiveTwoFactorAuth = inactiveTwoFactorAuthFlow,
         inactivePasskey = inactivePasskeyFlow,
         accountCompromised = accountCompromisedFlow,

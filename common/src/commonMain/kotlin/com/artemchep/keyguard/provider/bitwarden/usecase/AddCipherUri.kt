@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.isEmpty
 import com.artemchep.keyguard.common.util.Browsers
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
@@ -135,7 +136,7 @@ fun List<DSecret.Uri>.autofill(
     // If the application we autofill for does not
     // exist there, we append it.
     if (applicationId != null) {
-        val androidAppUri = "androidapp://$applicationId"
+        val androidAppUri = "$PROTOCOL_ANDROID_APP$applicationId"
         val androidAppUriExists = existingUris.any { it.uri == androidAppUri }
         if (!androidAppUriExists) {
             existingUris += DSecret.Uri(
@@ -168,7 +169,7 @@ fun autofill1(
     // If the application we autofill for does not
     // exist there, we append it.
     if (applicationId != null) {
-        val androidAppUri = "androidapp://$applicationId"
+        val androidAppUri = "$PROTOCOL_ANDROID_APP$applicationId"
         uris += BitwardenCipher.Login.Uri(
             uri = androidAppUri,
             match = BitwardenCipher.Login.Uri.MatchType.Domain,

@@ -87,6 +87,7 @@ import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.AuthGenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.BiometricKeyDecryptUseCase
 import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
+import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
@@ -388,6 +389,7 @@ import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
+import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
 import io.ktor.client.HttpClient
@@ -880,6 +882,9 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<CipherUrlDuplicateCheck> {
         CipherUrlDuplicateCheckImpl(this)
+    }
+    bindSingleton<CipherUrlBroadCheck> {
+        CipherUrlBroadCheckImpl(this)
     }
     bindSingleton<GetCanWrite> {
         GetCanWriteImpl(

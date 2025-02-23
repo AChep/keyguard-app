@@ -169,6 +169,8 @@ data class BitwardenCipher(
         DUPLICATE,
         @SerialName("duplicate_uris")
         DUPLICATE_URIS,
+        @SerialName("broad_uris")
+        BROAD_URIS,
         @SerialName("incomplete")
         INCOMPLETE,
         @SerialName("expiring")

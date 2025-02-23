@@ -103,6 +103,7 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardBroadWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardDuplicateItems
 import com.artemchep.keyguard.ui.icons.KeyguardDuplicateWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardExpiringItems
@@ -402,6 +403,12 @@ fun WatchtowerScreen2(
                     transform = { duplicateWebsites },
                 ) { duplicateWebsites ->
                     CardDuplicateWebsites(duplicateWebsites)
+                }
+
+                state.content.RenderCard(
+                    transform = { broadWebsites },
+                ) { broadWebsites ->
+                    CardBroadWebsites(broadWebsites)
                 }
 
                 state.content.RenderCard(
@@ -1001,6 +1008,26 @@ private fun CardDuplicateWebsites(
         },
         text = stringResource(Res.string.watchtower_item_duplicate_websites_text),
         imageVector = Icons.Outlined.KeyguardDuplicateWebsites,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
+private fun CardBroadWebsites(
+    state: WatchtowerState.Content.BroadWebsites,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_broad_websites_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_broad_websites_text),
+        imageVector = Icons.Outlined.KeyguardBroadWebsites,
         onClick = state.onClick,
     )
 }

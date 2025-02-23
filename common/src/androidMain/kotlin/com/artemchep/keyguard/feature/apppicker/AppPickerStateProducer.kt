@@ -17,6 +17,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.android.util.broadcastFlow
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.feature.apppicker.model.AppPickerSortItem
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
@@ -288,7 +289,7 @@ fun produceAppPickerState(
         .stateIn(screenScope)
 
     fun onClick(appInfo: AppInfo) {
-        val uri = "androidapp://${appInfo.packageName}"
+        val uri = "$PROTOCOL_ANDROID_APP${appInfo.packageName}"
         val result = AppPickerResult.Confirm(uri)
         transmitter(result)
         navigatePopSelf()

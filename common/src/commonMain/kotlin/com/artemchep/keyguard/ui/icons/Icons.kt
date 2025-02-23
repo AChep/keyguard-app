@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lens
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material.icons.outlined.PanoramaWideAngle
 import androidx.compose.material.icons.outlined.Recycling
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
@@ -92,6 +93,9 @@ val Icons.Outlined.KeyguardUnsecureWebsites
 
 val Icons.Outlined.KeyguardDuplicateWebsites
     get() = KeyguardWebsite
+
+val Icons.Outlined.KeyguardBroadWebsites
+    get() = PanoramaWideAngle
 
 val Icons.Outlined.KeyguardDuplicateItems
     get() = CopyAll

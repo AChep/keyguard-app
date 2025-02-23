@@ -60,6 +60,11 @@ enum class DWatchtowerAlertType(
         title = Res.string.watchtower_item_duplicate_websites_title,
         level = Level.INFO,
     ),
+    BROAD_URIS(
+        value = 12L,
+        title = Res.string.watchtower_item_broad_websites_title,
+        level = Level.INFO,
+    ),
     INCOMPLETE(
         value = 9L,
         title = Res.string.watchtower_item_incomplete_items_title,

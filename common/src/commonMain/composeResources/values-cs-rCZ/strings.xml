@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Kontroly</string>
     <string name="home_settings_label">Nastavení</string>
     <string name="lock_reason_inactivity">Uzamčeno z důvodu neaktivity</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Soubor</string>
     <string name="cipher_type_login">Přihlášení</string>
@@ -893,6 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Položky, které expirovaly nebo brzy expirují.</string>
     <string name="watchtower_item_duplicate_websites_title">Duplicitní URI</string>
     <string name="watchtower_item_duplicate_websites_text">Položky, které mají jednu nebo více URI, které pokrývají stejné weby po použití detekce shody.</string>
+    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
+    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
     <string name="watchtower_item_trashed_items_title">Vyhozené položky</string>
     <string name="watchtower_item_trashed_items_text">Položky, které byly přesunuty do koše. Příliš mnoho položek v koši může zpomalit operace s vaším trezorem.</string>
     <string name="watchtower_item_empty_folders_title">Prázdné složky</string>

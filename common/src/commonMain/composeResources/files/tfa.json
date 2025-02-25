@@ -4435,6 +4435,18 @@
     "name": "Deliverr"
   },
   {
+    "domain": "delta.com",
+    "tfa": [
+      "sms",
+      "email",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Fly Delta app"
+    ],
+    "name": "Delta"
+  },
+  {
     "domain": "deltadental.com",
     "tfa": [
       "sms"
@@ -17262,7 +17274,7 @@
       "Voice Verification"
     ],
     "documentation": "https://investor.vanguard.com/security/security-keys",
-    "notes": "Hardware based 2FA requires SMS / Phone call 2FA as a backup.",
+    "notes": "Security keys can not be used to log in to mobile app or mobile website.",
     "name": "Vanguard"
   },
   {

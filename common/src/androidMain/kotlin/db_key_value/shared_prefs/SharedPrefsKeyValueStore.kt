@@ -78,27 +78,27 @@ class SharedPrefsKeyValueStore(
         .map { it.keys }
 
     override fun getInt(key: String, defaultValue: Int): KeyValuePreference<Int> =
-        SharedPrefsKeyValuePreference(key, defaultValue) {
+        SharedPrefsKeyValuePreference.of(key, defaultValue) {
             getFlowPrefs().getInt(key, defaultValue)
         }
 
     override fun getFloat(key: String, defaultValue: Float): KeyValuePreference<Float> =
-        SharedPrefsKeyValuePreference(key, defaultValue) {
+        SharedPrefsKeyValuePreference.of(key, defaultValue) {
             getFlowPrefs().getFloat(key, defaultValue)
         }
 
     override fun getBoolean(key: String, defaultValue: Boolean): KeyValuePreference<Boolean> =
-        SharedPrefsKeyValuePreference(key, defaultValue) {
+        SharedPrefsKeyValuePreference.of(key, defaultValue) {
             getFlowPrefs().getBoolean(key, defaultValue)
         }
 
     override fun getLong(key: String, defaultValue: Long): KeyValuePreference<Long> =
-        SharedPrefsKeyValuePreference(key, defaultValue) {
+        SharedPrefsKeyValuePreference.of(key, defaultValue) {
             getFlowPrefs().getLong(key, defaultValue)
         }
 
     override fun getString(key: String, defaultValue: String): KeyValuePreference<String> =
-        SharedPrefsKeyValuePreference(key, defaultValue) {
+        SharedPrefsKeyValuePreference.of(key, defaultValue) {
             getFlowPrefs().getString(key, defaultValue)
         }
 }

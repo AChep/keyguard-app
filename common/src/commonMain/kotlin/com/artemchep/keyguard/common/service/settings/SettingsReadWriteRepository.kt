@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
 
@@ -13,6 +14,14 @@ import kotlin.time.Duration
  * @author Artem Chepurnyi
  */
 interface SettingsReadWriteRepository : SettingsReadRepository {
+    fun restore(
+        state: KeyValueBackupState,
+    ): IO<Unit>
+
+    //
+    // Actual settings
+    //
+
     fun setAutofillDefaultMatchDetection(
         matchDetection: String,
     ): IO<Unit>

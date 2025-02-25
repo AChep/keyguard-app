@@ -1,10 +1,13 @@
 package com.artemchep.keyguard.common.service.settings
 
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
+import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
@@ -13,6 +16,20 @@ import kotlin.time.Duration
  * @author Artem Chepurnyi
  */
 interface SettingsReadRepository {
+    /**
+     * Returns all the key-value keys used in the
+     * repository.
+     */
+    fun getPrefs(
+        includeInternalPrefs: Boolean = false,
+    ): List<KeyValuePreference<*>>
+
+    fun backup(): IO<KeyValueBackupState>
+
+    //
+    // Actual settings
+    //
+
     fun getAutofillDefaultMatchDetection(): Flow<String>
 
     fun getAutofillInlineSuggestions(): Flow<Boolean>

@@ -48,6 +48,7 @@ import com.artemchep.keyguard.common.usecase.AddPasskeyCipher
 import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.AddUrlOverride
+import com.artemchep.keyguard.common.usecase.BackupSettings
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
@@ -141,6 +142,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.AddEmailRelayImpl
 import com.artemchep.keyguard.common.usecase.impl.AddGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
+import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentMetadataImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
@@ -321,6 +323,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<RemoveWordlistById> {
         RemoveWordlistByIdImpl(this)
+    }
+    bindSingleton<BackupSettings> {
+        BackupSettingsImpl(this)
     }
     bindSingleton<AddUrlOverride> {
         AddUrlOverrideImpl(this)

@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
@@ -32,6 +33,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import java.io.File
+import kotlin.reflect.KClass
 
 class DefaultJsonKeyValueStoreStore : JsonKeyValueStoreStore {
     override fun read(): IO<PersistentMap<String, Any?>> =
@@ -75,11 +77,12 @@ class JsonKeyValueStore(
     private val str: JsonKeyValueStoreStore = DefaultJsonKeyValueStoreStore(),
 ) : KeyValueStore, SecureKeyValueStore {
     class SharedPrefsKeyValuePreference<T : Any>(
-        private val key: String,
+        override val key: String,
+        override val clazz: KClass<*>,
         private val default: T,
         private val update: suspend ((PersistentMap<String, Any?>) -> PersistentMap<String, Any?>) -> Unit,
         private val flow: Flow<PersistentMap<String, Any?>>,
-    ) : KeyValuePreference<T> {
+    ) : RealKeyValuePreference<T> {
         override fun setAndCommit(value: T): IO<Unit> = ioEffect {
             update { state ->
                 state.put(key, value)
@@ -139,11 +142,22 @@ class JsonKeyValueStore(
         return sink.value
     }
 
+    private inline fun <reified T : Any> getFlowPrefs(
+        key: String,
+        defaultValue: T,
+    ) = getFlowPrefs(
+        key = key,
+        clazz = T::class,
+        defaultValue = defaultValue,
+    )
+
     private fun <T : Any> getFlowPrefs(
         key: String,
+        clazz: KClass<T>,
         defaultValue: T,
     ) = SharedPrefsKeyValuePreference(
         key = key,
+        clazz = clazz,
         default = defaultValue,
         update = {
             ensureInit()

@@ -44,6 +44,13 @@ fun DebugSettingsScreen() {
                     SettingPaneItem.Item(Setting.ROTATE_DEVICE_ID),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "experiment",
+                title = "Experiments".let(TextHolder::Value),
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.BACKUP_SETTINGS),
+                ),
+            ),
         )
     }
     SettingPaneContent(

@@ -2,7 +2,7 @@ package db_key_value.shared_prefs
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
+import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
 import com.fredporciuncula.flow.preferences.Preference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.FlowCollector
@@ -12,12 +12,28 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlin.reflect.KClass
 
 class SharedPrefsKeyValuePreference<T : Any>(
-    private val key: String,
+    override val key: String,
+    override val clazz: KClass<*>,
     private val defaultValue: T,
     private val prefFactory: suspend () -> Preference<T>,
-) : KeyValuePreference<T> {
+) : RealKeyValuePreference<T> {
+    companion object {
+        /* Only primitive types are supported! */
+        inline fun <reified T : Any> of(
+            key: String,
+            defaultValue: T,
+            noinline prefFactory: suspend () -> Preference<T>,
+        ) = SharedPrefsKeyValuePreference(
+            key = key,
+            clazz = T::class,
+            defaultValue = defaultValue,
+            prefFactory = prefFactory,
+        )
+    }
+
     private var pref: Preference<T>? = null
 
     private val prefMutex = Mutex()

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.settings.impl
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AppColors
@@ -9,8 +10,11 @@ import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.asDuration
+import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
+import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupUtil
 import com.artemchep.keyguard.common.service.keyvalue.getEnumNullable
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
@@ -23,7 +27,6 @@ import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -115,7 +118,8 @@ class SettingsRepositoryImpl(
 
     private val biometricTimeoutPref = store.getLong(KEY_BIOMETRIC_TIMEOUT, NONE_DURATION)
 
-    private val biometricRequireConfirmationPref = store.getBoolean(KEY_BIOMETRIC_REQUIRE_CONFIRMATION, false)
+    private val biometricRequireConfirmationPref =
+        store.getBoolean(KEY_BIOMETRIC_REQUIRE_CONFIRMATION, false)
 
     private val clipboardClearDelayPref =
         store.getLong(KEY_CLIPBOARD_CLEAR_DELAY, NONE_DURATION)
@@ -228,10 +232,98 @@ class SettingsRepositoryImpl(
             defaultValue = null,
         )
 
+    private val internalPrefKeys = setOf(
+        KEY_WRITE_ACCESS,
+        KEY_DEBUG_PREMIUM,
+        KEY_DEBUG_SCREEN_DELAY,
+        KEY_CACHE_PREMIUM,
+        KEY_ONBOARDING_LAST_VISIT,
+        KEY_VERSION_LOG,
+    )
+
+    private val allPrefs by lazy {
+        listOf(
+            autofillDefaultMatchDetectionPref,
+            autofillInlineSuggestionsPref,
+            autofillManualSelectionPref,
+            autofillRespectAutofillOffPref,
+            autofillSaveRequestPref,
+            autofillSaveUriPref,
+            autofillCopyTotpPref,
+            vaultPersistPref,
+            vaultLockAfterRebootPref,
+            vaultTimeoutPref,
+            vaultScreenLockPref,
+            biometricTimeoutPref,
+            biometricRequireConfirmationPref,
+            clipboardClearDelayPref,
+            clipboardUpdateDurationPref,
+            concealFieldsPref,
+            allowScreenshotsPref,
+            checkPwnedPasswordsPref,
+            checkPwnedServicesPref,
+            checkTwoFAPref,
+            checkPasskeysPref,
+            writeAccessPref,
+            debugPremiumPref,
+            debugScreenDelayPref,
+            cachePremiumPref,
+            appIconsPref,
+            websiteIconsPref,
+            markdownPref,
+            themeUseAmoledDarkPref,
+            keepScreenOnPref,
+            gravatarPref,
+            navLabelPref,
+            allowTwoPanelLayoutInLandscapePref,
+            allowTwoPanelLayoutInPortraitPref,
+            useExternalBrowserPref,
+            closeToTrayPref,
+            navAnimationPref,
+            fontPref,
+            themePref,
+            colorsPref,
+            localePref,
+            onboardingLastVisitInstantPref,
+            versionLogPref,
+        )
+    }
+
     constructor(directDI: DirectDI) : this(
         store = directDI.instance<Files, KeyValueStore>(arg = Files.SETTINGS),
         json = directDI.instance(),
     )
+
+    override fun getPrefs(
+        includeInternalPrefs: Boolean,
+    ): List<KeyValuePreference<*>> = if (includeInternalPrefs) {
+        allPrefs
+    } else {
+        allPrefs
+            .filter { it.key !in internalPrefKeys }
+    }
+
+    override fun backup(): IO<KeyValueBackupState> = ioEffect {
+        val prefs = getPrefs(includeInternalPrefs = false)
+        KeyValueBackupUtil.backup(prefs)
+            .bind()
+    }
+
+    override fun restore(
+        state: KeyValueBackupState,
+    ): IO<Unit> = ioEffect {
+        val prefs = getPrefs(includeInternalPrefs = false)
+        KeyValueBackupUtil
+            .restore(
+                prefs = prefs,
+                state = state,
+            )
+            .bind()
+    }
+
+    //
+    // Actual settings
+    //
 
     override fun setAutofillDefaultMatchDetection(
         matchDetection: String,

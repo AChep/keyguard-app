@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPro
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRespectAutofillOffProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveRequestProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveUriProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBackupSettings
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBiometricsRequireConfirmationProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCheckPasskeysProvider
@@ -146,6 +147,7 @@ object Setting {
     const val VAULT_LOCK_AFTER_SCREEN_OFF = "vault_screen_lock"
     const val VAULT_LOCK_AFTER_TIMEOUT = "vault_timeout"
     const val ROTATE_DEVICE_ID = "rotate_device_id"
+    const val BACKUP_SETTINGS = "backup_settings"
     const val CLIPBOARD_AUTO_CLEAR = "clipboard_auto_clear"
     const val CLIPBOARD_AUTO_REFRESH = "clipboard_auto_refresh"
     const val CLIPBOARD_NOTIFICATION_SETTINGS = "clipboard_notification_settings"
@@ -234,6 +236,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.VAULT_LOCK_AFTER_SCREEN_OFF to ::settingVaultLockAfterScreenOffProvider,
     Setting.VAULT_LOCK_AFTER_TIMEOUT to ::settingVaultLockAfterTimeoutProvider,
     Setting.ROTATE_DEVICE_ID to ::settingRotateDeviceId,
+    Setting.BACKUP_SETTINGS to ::settingBackupSettings,
     Setting.CLIPBOARD_AUTO_CLEAR to ::settingClipboardAutoClearProvider,
     Setting.CLIPBOARD_AUTO_REFRESH to ::settingClipboardAutoRefreshProvider,
     Setting.CLIPBOARD_NOTIFICATION_SETTINGS to ::settingClipboardNotificationSettingsProvider,

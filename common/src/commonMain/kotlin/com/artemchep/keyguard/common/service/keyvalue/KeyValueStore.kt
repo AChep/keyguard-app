@@ -11,14 +11,6 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 interface KeyValueStore {
-    companion object {
-        /**
-         * Flag that marks that the migration from X to this
-         * key value store has been completed.
-         */
-        const val HAS_MIGRATED = "__has_migrated"
-    }
-
     fun getFile(): IO<File>
 
     fun getAll(): IO<Map<String, Any?>>
@@ -43,9 +35,15 @@ fun <T> KeyValueStore.getObject(
     defaultValue: T,
     serialize: (T) -> String,
     deserialize: (String) -> T,
-): KeyValuePreference<T> {
+): VirtualKeyValuePreference<T, String> {
     val stringPref = getString(key, serialize(defaultValue))
-    return object : KeyValuePreference<T> {
+    return object : VirtualKeyValuePreference<T, String> {
+        override val key: String
+            get() = key
+
+        override val field: KeyValuePreference<String>
+            get() = stringPref
+
         override fun setAndCommit(value: T): IO<Unit> = ioEffect(Dispatchers.Default) {
             serialize(value)
         }

@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">설정</string>
     <string name="lock_reason_inactivity">일정 시간 미사용으로 잠김</string>
+    <string name="lock_reason_manually">사용자에 의해 잠김</string>
     <string name="send_type_text">텍스트</string>
     <string name="send_type_file">파일</string>
     <string name="cipher_type_login">로그인</string>
@@ -893,6 +894,8 @@
     <string name="watchtower_item_expiring_items_text">만료되었거나 곧 만료될 항목입니다.</string>
     <string name="watchtower_item_duplicate_websites_title">중복 URI</string>
     <string name="watchtower_item_duplicate_websites_text">일치 인식을 적용한 뒤, 같은 사이트에 하나 이상의 URI가 있는 항목입니다.</string>
+    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
+    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
     <string name="watchtower_item_trashed_items_title">휴지통에 있는 항목</string>
     <string name="watchtower_item_trashed_items_text">휴지통으로 간 항목입니다. 휴지통에 항목이 너무 많으면 보관함이 느려질 수 있습니다.</string>
     <string name="watchtower_item_empty_folders_title">빈 폴더</string>

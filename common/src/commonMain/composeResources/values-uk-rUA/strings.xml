@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Варт. вежа</string>
     <string name="home_settings_label">Налашт.</string>
     <string name="lock_reason_inactivity">Заблоковано через неактивність</string>
+    <string name="lock_reason_manually">Заблоковано вручну</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
     <string name="cipher_type_login">Логін</string>
@@ -893,6 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Записи у яких або закінчився термін дії, або скоро закінчиться.</string>
     <string name="watchtower_item_duplicate_websites_title">Повторювані URI-адреси</string>
     <string name="watchtower_item_duplicate_websites_text">Записи, які мають URI-адреси, котрі після обробки на виявлення збігів покривають однакові вебсайти.</string>
+    <string name="watchtower_item_broad_websites_title">Широкі правила виявлення збігів URL-адрес</string>
+    <string name="watchtower_item_broad_websites_text">Записи, які мають одну або більше URL-адресу правила виявлення збігів котрих, скоріш за все, можна зробити більш жорсткими.</string>
     <string name="watchtower_item_trashed_items_title">Записи в кошику</string>
     <string name="watchtower_item_trashed_items_text">Записи які були переміщенні в кошик. Забагато записів в кошику може сповільнити операції зі сховищем.</string>
     <string name="watchtower_item_empty_folders_title">Порожні теки</string>

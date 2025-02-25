@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Settings</string>
     <string name="lock_reason_inactivity">Locked due to inactivity</string>
+    <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">File</string>
     <string name="cipher_type_login">Login</string>
@@ -893,6 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Items that have expired or are expiring soon.</string>
     <string name="watchtower_item_duplicate_websites_title">Duplicate URIs</string>
     <string name="watchtower_item_duplicate_websites_text">Items that have one or more URIs that cover the same websites after applying the match detection.</string>
+    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
+    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
     <string name="watchtower_item_trashed_items_title">Binned Items</string>
     <string name="watchtower_item_trashed_items_text">Items that have been moved into the bin. Having too many items in the bin may slow down operations with your vault.</string>
     <string name="watchtower_item_empty_folders_title">Empty Folders</string>

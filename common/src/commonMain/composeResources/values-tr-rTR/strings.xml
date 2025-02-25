@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Gözlemci</string>
     <string name="home_settings_label">Ayarlar</string>
     <string name="lock_reason_inactivity">Etkinliksizliğe bağlı olarak kilitlendi</string>
+    <string name="lock_reason_manually">Manuel olarak kilitlendi</string>
     <string name="send_type_text">Metin</string>
     <string name="send_type_file">Dosya</string>
     <string name="cipher_type_login">Giriş</string>
@@ -893,6 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Süresi dolmuş veya yakında dolacak öğeler.</string>
     <string name="watchtower_item_duplicate_websites_title">Yinelenen URI'ler</string>
     <string name="watchtower_item_duplicate_websites_text">Eşleşme tespiti uygulandıktan sonra aynı web sitelerini kapsayan bir veya daha fazla URI içeren öğeler.</string>
+    <string name="watchtower_item_broad_websites_title">Geniş URI eşleşme tespiti</string>
+    <string name="watchtower_item_broad_websites_text">Tespit kurallarıyla eşleşen bir veya daha fazla URI'ye sahip öğeler muhtemelen daraltılmalıdır.</string>
     <string name="watchtower_item_trashed_items_title">Çöpteki öğeler</string>
     <string name="watchtower_item_trashed_items_text">Çöpe taşınmış öğeler. Çöpte çok fazla öğe olması kasanızla yapılan işlemleri yavaşlatabilir.</string>
     <string name="watchtower_item_empty_folders_title">Boş klasörler</string>

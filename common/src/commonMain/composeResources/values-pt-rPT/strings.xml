@@ -709,6 +709,7 @@
     <string name="home_watchtower_label">Guardião</string>
     <string name="home_settings_label">Definições</string>
     <string name="lock_reason_inactivity">Bloqueado devido a inatividade</string>
+    <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Ficheiro</string>
     <string name="cipher_type_login">Início de sessão</string>
@@ -894,6 +895,8 @@
     <string name="watchtower_item_expiring_items_text">Dados que terminaram a validade ou estão para terminar em breve.</string>
     <string name="watchtower_item_duplicate_websites_title">URIs duplicados</string>
     <string name="watchtower_item_duplicate_websites_text">Entradas que têm um ou mais URIs que cobrem os mesmos sites após a aplicação da detecção de correspondência.</string>
+    <string name="watchtower_item_broad_websites_title">Detecção de correspondência URI alargada</string>
+    <string name="watchtower_item_broad_websites_text">Os itens que possuem um ou mais URIs que correspondam às regras de deteção deverão ser provavelmente reduzidos.</string>
     <string name="watchtower_item_trashed_items_title">Entradas apagadas</string>
     <string name="watchtower_item_trashed_items_text">Dados que foram movidos para a reciclagem. Ter muitos dados na reciclagem pode reduzir a velocidade nas operações com o seu cofre.</string>
     <string name="watchtower_item_empty_folders_title">Pastas vazias</string>

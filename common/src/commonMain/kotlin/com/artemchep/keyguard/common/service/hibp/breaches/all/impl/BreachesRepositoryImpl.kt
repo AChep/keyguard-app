@@ -42,12 +42,14 @@ class BreachesRepositoryImpl(
         remoteDataSource = directDI.instance(),
     )
 
-    override fun get(): IO<HibpBreachGroup> = localDataSource.get().toIO()
+    override fun get(
+        forceRefresh: Boolean,
+    ): IO<HibpBreachGroup> = localDataSource.get().toIO()
         .flatMap { localEntity ->
             logRepository.postDebug(TAG) {
                 "Got breaches from local."
             }
-            if (localEntity != null) {
+            if (!forceRefresh && localEntity != null) {
                 return@flatMap if (localEntity.hasExpired()) {
                     getRemoteAndSave()
                         .handleError { localEntity.model }

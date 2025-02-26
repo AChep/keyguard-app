@@ -782,7 +782,7 @@ sealed interface DFilter {
             val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory = directDI.instance()
             val getBreaches: GetBreaches = directDI.instance()
 
-            val breaches = getBreaches()
+            val breaches = getBreaches(false)
                 .handleError {
                     HibpBreachGroup(emptyList())
                 }

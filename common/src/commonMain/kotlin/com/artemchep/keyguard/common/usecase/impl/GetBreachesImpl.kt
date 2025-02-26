@@ -21,7 +21,7 @@ class GetBreachesImpl(
         getCheckPwnedServices = directDI.instance(),
     )
 
-    override fun invoke(): IO<HibpBreachGroup> = getCheckPwnedServices()
+    override fun invoke(forceRefresh: Boolean): IO<HibpBreachGroup> = getCheckPwnedServices()
         .toIO()
         .flatMap { enabled ->
             if (!enabled) {
@@ -29,6 +29,6 @@ class GetBreachesImpl(
                 return@flatMap ioRaise(e)
             }
 
-            breachesRepository.get()
+            breachesRepository.get(forceRefresh = forceRefresh)
         }
 }

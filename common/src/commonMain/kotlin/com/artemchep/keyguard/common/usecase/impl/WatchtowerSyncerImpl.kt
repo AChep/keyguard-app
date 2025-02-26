@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
@@ -34,6 +35,7 @@ import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
+import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
@@ -114,6 +116,7 @@ class WatchtowerSyncerImpl(
 
 private class WatchtowerClient(
     private val getCiphers: GetCiphers,
+    private val getBreaches: GetBreaches,
     private val databaseManager: DatabaseManager,
     private val logRepository: LogRepository,
     private val list: List<WatchtowerClientTyped>,
@@ -125,6 +128,7 @@ private class WatchtowerClient(
 
     constructor(directDI: DirectDI) : this(
         getCiphers = directDI.instance(),
+        getBreaches = directDI.instance(),
         databaseManager = directDI.instance(),
         logRepository = directDI.instance(),
         list = directDI.allInstances(),
@@ -186,6 +190,13 @@ private class WatchtowerClient(
                 .flowOn(Dispatchers.Default)
                 .launchIn(this)
         }
+
+        // Auto-refresh the list of breaches, it's required
+        // for the watchtower to know when to re-compute some
+        // of the clients.
+        getBreaches(true) // force refresh
+            .attempt()
+            .launchIn(this)
     }
 
     private fun getPendingCiphersFlow(
@@ -255,6 +266,7 @@ class WatchtowerPasswordStrength(
 
 class WatchtowerPasswordPwned(
     private val checkPasswordSetLeak: CheckPasswordSetLeak,
+    private val getBreachesLatestDate: GetBreachesLatestDate,
     private val getCheckPwnedPasswords: GetCheckPwnedPasswords,
 ) : WatchtowerClientTyped {
     override val type: Long
@@ -262,6 +274,7 @@ class WatchtowerPasswordPwned(
 
     constructor(directDI: DirectDI) : this(
         checkPasswordSetLeak = directDI.instance(),
+        getBreachesLatestDate = directDI.instance(),
         getCheckPwnedPasswords = directDI.instance(),
     )
 
@@ -274,12 +287,8 @@ class WatchtowerPasswordPwned(
         version = "2",
     )
 
-    private fun getDatabaseVersionFlow() = flow {
-        // Refresh weekly
-        val seconds = Clock.System.now().epochSeconds
-        val weeks = seconds / 604800L
-        emit(weeks.toString())
-    }
+    private fun getDatabaseVersionFlow() = getBreachesLatestDate()
+        .map { it.toString() }
 
     override suspend fun process(
         ciphers: List<DSecret>,
@@ -346,6 +355,7 @@ class WatchtowerWebsitePwned(
     private val cipherBreachCheck: CipherBreachCheck,
     private val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
     private val getBreaches: GetBreaches,
+    private val getBreachesLatestDate: GetBreachesLatestDate,
     private val getEquivalentDomains: GetEquivalentDomains,
     private val getCheckPwnedServices: GetCheckPwnedServices,
 ) : WatchtowerClientTyped {
@@ -357,6 +367,7 @@ class WatchtowerWebsitePwned(
         cipherBreachCheck = directDI.instance(),
         equivalentDomainsBuilderFactory = directDI.instance(),
         getBreaches = directDI.instance(),
+        getBreachesLatestDate = directDI.instance(),
         getEquivalentDomains = directDI.instance(),
         getCheckPwnedServices = directDI.instance(),
     )
@@ -374,12 +385,8 @@ class WatchtowerWebsitePwned(
         version = "2",
     )
 
-    private fun getDatabaseVersionFlow() = flow {
-        // Refresh weekly
-        val seconds = Clock.System.now().epochSeconds
-        val weeks = seconds / 604800L
-        emit(weeks.toString())
-    }
+    private fun getDatabaseVersionFlow() = getBreachesLatestDate()
+        .map { it.toString() }
 
     override suspend fun process(
         ciphers: List<DSecret>,
@@ -419,7 +426,7 @@ class WatchtowerWebsitePwned(
         defaultMatchDetection: DSecret.Uri.MatchType,
         equivalentDomainsBuilder: EquivalentDomainsBuilder,
     ): Set<String> = ioEffect {
-        val breaches = getBreaches()
+        val breaches = getBreaches(false)
             .handleError {
                 HibpBreachGroup(emptyList())
             }

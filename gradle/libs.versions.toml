@@ -124,7 +124,7 @@ signalr = "9.0.1"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
 msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.16"
+slf4j = "2.0.17"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.80"
 # https://github.com/sqlcipher/sqlcipher-android

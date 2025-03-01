@@ -881,7 +881,7 @@
     "target": 432,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 1,
+    "positiveVotes": 3,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1017,8 +1017,8 @@
     "target": 3960,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 2,
-    "negativeVotes": 3,
+    "positiveVotes": 3,
+    "negativeVotes": 4,
     "winning": 0
   },
   {

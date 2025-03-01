@@ -3,7 +3,7 @@
     <string name="ok">Aceptar</string>
     <string name="close">Cerrar</string>
     <string name="quit">Salir</string>
-    <string name="yes">Si</string>
+    <string name="yes">Sí</string>
     <string name="no">No</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Mostar Keyguard</string>
@@ -26,8 +26,8 @@
     <string name="public_url">URL Pública</string>
     <string name="url">URL</string>
     <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="field_label">Etiqueta</string>
+    <string name="field_value">Valor</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Recuento de acceso</string>
     <!--
@@ -103,7 +103,7 @@
     <string name="organization">Organización</string>
     <string name="organizations">Organizaciones</string>
     <string name="organizations_empty_label">Sin organizaciones</string>
-    <string name="equivalent_domains">Equivalent domains</string>
+    <string name="equivalent_domains">Dominios equivalentes</string>
     <string name="equivalent_domains_empty_label">No equivalent domains</string>
     <string name="misc">Varios</string>
     <string name="category">Categoría</string>
@@ -180,7 +180,7 @@
     <string name="passkey_available">Llave de acceso disponible</string>
     <string name="twofa_available">Autenticación en dos pasos habilitada</string>
     <string name="custom">Personalizado</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Otorgar permiso</string>
     <string name="create_account">Crear cuenta</string>
     <string name="follow_system_settings">Usar Ajustes del sistema</string>
     <!-- A feature is coming soon! -->
@@ -217,9 +217,9 @@
     <string name="reveal_secure_note">Revelar una nota segura</string>
     <string name="hide_secure_note">Ocultar una nota segura</string>
     <string name="master_password_hint">Sugerencia de contraseña maestra</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
+    <string name="public_key">Llave pública</string>
+    <string name="private_key">Llave privada</string>
+    <string name="fingerprint">Huella</string>
     <string name="key_type">Key type</string>
     <string name="key_pair">Key pair</string>
     <string name="key_ssh">SSH Key</string>
@@ -282,7 +282,7 @@
     <string name="ciphers_action_change_passwords_title">Cambiar contraseñas</string>
     <string name="ciphers_action_view_password_history_title">Ver historial de contraseñas</string>
     <string name="ciphers_action_trash_title">Papelera</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
+    <string name="ciphers_action_trash_confirmation_title">¿Mover a la papelera?</string>
     <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Restaurar</string>
     <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
@@ -346,7 +346,7 @@
     <string name="uri_unsecure">Inseguro</string>
     <string name="uri_match_app_title">Coincidir app</string>
     <string name="uri_match_detection_title">Detección de coincidencia</string>
-    <string name="uri_match_detection_default_title">Default</string>
+    <string name="uri_match_detection_default_title">Por defecto</string>
     <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Dominio base</string>
     <string name="uri_match_detection_domain_note">Coincide recursos por dominio de nivel superior y de segundo nivel.</string>
@@ -392,7 +392,7 @@
     <string name="text_action_send_title">Crear un envío</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
     <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
-    <string name="ssh_key_action_save_public_key_title">Save public key</string>
+    <string name="ssh_key_action_save_public_key_title">Guardar clave pública</string>
     <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
     <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
@@ -773,7 +773,7 @@
     <string name="sortby_password_strength_title">Seguridad de la contraseña</string>
     <string name="sortby_password_strength_normal_mode">Más débil primero</string>
     <string name="sortby_password_strength_reverse_mode">Más fuerte primero</string>
-    <string name="relative_time_just_now_short">now</string>
+    <string name="relative_time_just_now_short">ahora</string>
     <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
     <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
     <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Te ayuda a identificar y eliminar objetos duplicados en tu caja fuerte.</string>
     <string name="watchtower_item_compromised_accounts_title">Cuentas Comprometidas</string>
     <string name="watchtower_item_compromised_accounts_text">Compruebe las filtraciones de datos por un nombre de usuario o dirección de correo electrónico.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">Nuevas alertas de torre de vigilancia</string>
     <string name="watchtower_mark_all_as_read_title">Marcar todo como leído</string>
     <string name="changepassword_header_title">Cambiar contraseña de la app</string>

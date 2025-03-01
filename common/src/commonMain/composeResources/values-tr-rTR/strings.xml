@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Kasadaki yinelenen öğeleri tanımlamanıza ve ortadan kaldırmanıza yardımcı olur.</string>
     <string name="watchtower_item_compromised_accounts_title">Ele geçirilmiş hesaplar</string>
     <string name="watchtower_item_compromised_accounts_text">Bir kullanıcı adı veya e-posta adresine göre veri ihlallerini kontrol edin.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">Yeni Gözlemci uyarıları</string>
     <string name="watchtower_mark_all_as_read_title">Tümünü okundu olarak işaretle</string>
     <string name="changepassword_header_title">Uygulama şifresini değiştir</string>

@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">보관함에 있는 중복된 항목입니다.</string>
     <string name="watchtower_item_compromised_accounts_title">유출된 계정</string>
     <string name="watchtower_item_compromised_accounts_text">사용자 이름이나 이메일 주소가 유출되었는지 확인합니다.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">새 Watchtower 경고</string>
     <string name="watchtower_mark_all_as_read_title">모두 읽은 상태로 표시</string>
     <string name="changepassword_header_title">앱 비밀번호 변경</string>

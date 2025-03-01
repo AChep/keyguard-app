@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Vous aide à identifier et à éliminer les doublons dans votre coffre.</string>
     <string name="watchtower_item_compromised_accounts_title">Comptes Compromis</string>
     <string name="watchtower_item_compromised_accounts_text">Vérifier les violations de données par un nom d'utilisateur ou une adresse e-mail.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">Nouvelles alertes de watchtower</string>
     <string name="watchtower_mark_all_as_read_title">Tout marquer comme lu</string>
     <string name="changepassword_header_title">Modifier le mot de passe de l'application</string>

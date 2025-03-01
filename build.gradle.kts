@@ -44,6 +44,7 @@ subprojects {
             allow("Apache-2.0")
             allow("MIT")
             allow("EPL-1.0")
+            allow("EPL-2.0")
             allow("CC0-1.0")
             allow("BSD-2-Clause")
             allow("BSD-3-Clause")
@@ -81,6 +82,9 @@ subprojects {
             allowUrl("https://opensource.org/licenses/mit-license.php") {
                 because("MIT License, but self-hosted copy of the license")
             }
+            allowUrl("https://github.com/hypfvieh/dbus-java/blob/master/LICENSE") {
+                because("MIT License, but self-hosted copy of the license")
+            }
             allowUrl("https://github.com/icerockdev/moko-resources/blob/master/LICENSE.md") {
                 because("Apache License-2.0, but self-hosted copy of the license")
             }
@@ -92,6 +96,9 @@ subprojects {
             }
             allowUrl("https://github.com/WonderzGmbH/nativefiledialog-java/blob/master/LICENSE") {
                 because("zlib License, but self-hosted copy of the license")
+            }
+            allowUrl("https://asm.ow2.io/license.html") {
+                because("3-Clause BSD License, but self-hosted copy of the license")
             }
             allowDependency("com.github.AChep", "bindin", "1.4.0") {
                 because("MIT License, but self-hosted copy of the license")

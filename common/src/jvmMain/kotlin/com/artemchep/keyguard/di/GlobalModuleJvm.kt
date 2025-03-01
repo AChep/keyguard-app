@@ -227,6 +227,7 @@ import com.artemchep.keyguard.common.usecase.ReadWordlistFromUrl
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RequestAppReview
 import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.common.usecase.ShowNotification
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
@@ -366,6 +367,7 @@ import com.artemchep.keyguard.common.usecase.impl.ReadWordlistFromFileImpl
 import com.artemchep.keyguard.common.usecase.impl.ReadWordlistFromUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.RequestAppReviewImpl
+import com.artemchep.keyguard.common.usecase.impl.ShowNotificationImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
@@ -1063,6 +1065,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<UpdateVersionLog> {
         UpdateVersionLogImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ShowNotification> {
+        ShowNotificationImpl(
             directDI = this,
         )
     }

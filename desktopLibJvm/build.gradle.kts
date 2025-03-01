@@ -16,6 +16,8 @@ kotlin {
             dependencies {
                 implementation(libs.java.jna)
                 implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.dbus.java.core)
+                implementation(libs.dbus.java.transport)
             }
 
             resources.srcDir(rootDir.resolve("desktopLibNative/build/bin/universal"))

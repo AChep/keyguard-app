@@ -17,6 +17,9 @@
     <string name="notification_clipboard_channel_id" translatable="false">com.artemchep.keyguard.CLIPBOARD</string>
     <string name="notification_clipboard_channel_name">Clipboard</string>
 
+    <string name="notification_watchtower_channel_id" translatable="false">com.artemchep.keyguard.WATCHTOWER</string>
+    <string name="notification_watchtower_channel_name">Watchtower</string>
+
     <string name="notification_sync_vault_channel_id" translatable="false">com.artemchep.keyguard.SYNC_VAULT</string>
     <string name="notification_sync_vault_channel_name">Sync vault</string>
     <string name="notification_sync_vault_title">Syncing vault</string>

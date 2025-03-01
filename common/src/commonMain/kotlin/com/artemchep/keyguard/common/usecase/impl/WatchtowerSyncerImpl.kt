@@ -12,17 +12,23 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
+import com.artemchep.keyguard.common.model.DNotification
+import com.artemchep.keyguard.common.model.DNotificationChannel
+import com.artemchep.keyguard.common.model.DNotificationId
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
+import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
@@ -45,20 +51,28 @@ import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
+import com.artemchep.keyguard.common.usecase.ShowNotification
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.core.store.DatabaseDispatcher
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import io.ktor.http.*
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -75,6 +89,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -87,6 +102,11 @@ import org.kodein.di.instance
 class WatchtowerSyncerImpl(
     private val getVaultSession: GetVaultSession,
 ) : WatchtowerSyncer {
+    private class Holder(
+        val client: WatchtowerClient,
+        val notifications: WatchtowerNotifications,
+    )
+
     constructor(directDI: DirectDI) : this(
         getVaultSession = directDI.instance(),
     )
@@ -100,17 +120,100 @@ class WatchtowerSyncerImpl(
                 getVaultSession()
                     .map { session ->
                         val key = session as? MasterSession.Key
-                        key?.di?.direct?.let(::WatchtowerClient)
+                        key?.di?.direct?.let { direct ->
+                            Holder(
+                                client = WatchtowerClient(direct),
+                                notifications = WatchtowerNotifications(direct),
+                            )
+                        }
                     }
-                    .collectLatest { client ->
-                        if (client != null) {
+                    .collectLatest { holder ->
+                        if (holder != null) {
                             coroutineScope {
-                                client.launch(this)
+                                holder.client.launch(this)
+                                holder.notifications.launch(this)
                             }
                         }
                     }
             }
             .launchIn(scope)
+    }
+}
+
+private class WatchtowerNotifications(
+    private val context: LeContext,
+    private val getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
+    private val showNotification: ShowNotification,
+    private val cryptoGenerator: CryptoGenerator,
+    private val base64Service: Base64Service,
+) {
+    companion object {
+        private const val FLOW_DEBOUNCE_MS = 1000L
+    }
+
+    constructor(directDI: DirectDI) : this(
+        context = directDI.instance(),
+        getWatchtowerUnreadAlerts = directDI.instance(),
+        showNotification = directDI.instance(),
+        cryptoGenerator = directDI.instance(),
+        base64Service = directDI.instance(),
+    )
+
+    fun launch(scope: CoroutineScope) = scope.launch {
+        val unreadAlertsFlow = getWatchtowerUnreadAlerts()
+            .debounce(FLOW_DEBOUNCE_MS)
+        unreadAlertsFlow
+            // This also drops the first event, which
+            // is exactly what we want.
+            .runningReduce { oldValue, newValue ->
+                val alerts = newValue
+                    .filter { alert ->
+                        oldValue.none { it.alertId == alert.alertId }
+                    }
+                if (alerts.isNotEmpty()) {
+                    GlobalScope.launchNewAlertsNotification(alerts)
+                }
+
+                newValue
+            }
+            .launchIn(this)
+    }
+
+    private fun CoroutineScope.launchNewAlertsNotification(
+        alerts: List<DWatchtowerAlert>,
+    ) = launch {
+        val notification = kotlin.run {
+            val title = textResource(
+                Res.string.watchtower_notification_new_alerts_title,
+                context,
+            )
+            val text = alerts
+                .groupBy { it.type }
+                .map { alertGroup ->
+                    val typeTitle = textResource(alertGroup.key.title, context)
+                    "$typeTitle (${alertGroup.value.size})"
+                }
+                .joinToString()
+            val tag = alerts
+                .asSequence()
+                .map { it.alertId }
+                .sorted()
+                .joinToString()
+                .toByteArray()
+                .let(cryptoGenerator::hashMd5)
+                .let(base64Service::decodeToString)
+            DNotification(
+                id = DNotificationId.WATCHTOWER,
+                tag = tag,
+                title = title,
+                text = text,
+                channel = DNotificationChannel.WATCHTOWER,
+                number = alerts.size,
+            )
+        }
+        showNotification(notification)
+            .attempt()
+            .bind()
     }
 }
 
@@ -1055,7 +1158,7 @@ class WatchtowerBroadUris(
         val result = cipherUrlBroadCheck(
             allActiveCiphers,
             defaultMatchDetection,
-            equivalentDomainsBuilder
+            equivalentDomainsBuilder,
         ).bind()
         val resultMap = result.associateBy { it.cipher.id }
 

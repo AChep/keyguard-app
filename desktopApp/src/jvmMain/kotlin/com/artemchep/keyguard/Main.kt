@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
+import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -37,6 +38,7 @@ import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
+import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
 import com.artemchep.keyguard.desktop.util.navigateToBrowser
 import com.artemchep.keyguard.desktop.util.navigateToEmail
 import com.artemchep.keyguard.desktop.util.navigateToFile
@@ -119,6 +121,11 @@ fun main() {
         }
         bindSingleton<KeychainRepository> {
             KeychainRepositoryNative(
+                directDI = this,
+            )
+        }
+        bindSingleton<NotificationRepository> {
+            NotificationRepositoryNative(
                 directDI = this,
             )
         }

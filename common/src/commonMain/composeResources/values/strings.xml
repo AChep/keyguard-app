@@ -975,6 +975,8 @@
     <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
 
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+
     <string name="watchtower_alerts_header_title">New watchtower alerts</string>
     <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
 

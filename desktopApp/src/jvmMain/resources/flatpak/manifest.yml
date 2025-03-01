@@ -10,6 +10,7 @@ finish-args:
   - --socket=fallback-x11
   - --device=dri
   - --talk-name=org.gtk.vfs.*
+  - --talk-name=org.freedesktop.Notifications
   - --filesystem=xdg-run/gvfsd
   - --filesystem=xdg-download
   - --filesystem=xdg-documents:ro

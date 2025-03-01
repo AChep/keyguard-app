@@ -9,6 +9,7 @@ import com.artemchep.keyguard.android.downloader.DownloadTaskAndroid
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
+import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -19,6 +20,7 @@ import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
@@ -87,6 +89,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<KeychainRepository> {
         KeychainRepositoryNoOp(
+            directDI = this,
+        )
+    }
+    bindSingleton<NotificationRepository> {
+        NotificationRepositoryAndroid(
             directDI = this,
         )
     }

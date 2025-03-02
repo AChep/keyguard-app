@@ -93,6 +93,14 @@ public interface DesktopLibJna : Library {
 
     public fun keychainContainsPassword(id: Pointer): Boolean
 
+    // Notification
+
+    public fun postNotification(
+        id: Int,
+        title: Pointer,
+        text: Pointer
+    ): Boolean
+
     // Other
 
     /** Frees given pointer */

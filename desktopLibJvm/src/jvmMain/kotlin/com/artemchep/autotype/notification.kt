@@ -1,6 +1,8 @@
 package com.artemchep.autotype
 
 import com.artemchep.dbus.notification.postNotificationDbus
+import com.artemchep.jna.util.asMemory
+import com.artemchep.jna.withDesktopLib
 import com.sun.jna.Platform
 
 public suspend fun postNotification(
@@ -16,6 +18,15 @@ public suspend fun postNotification(
         )
     }
 
-    // Not supported
-    return false
+    return withDesktopLib { lib ->
+        lib.postNotification(
+            id = id,
+            title = title
+                .asMemory()
+                .let(::register),
+            text = text
+                .asMemory()
+                .let(::register),
+        )
+    }
 }

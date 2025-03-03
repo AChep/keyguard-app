@@ -3,14 +3,17 @@ package com.artemchep.keyguard.feature.watchtower
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
+import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.formatH2
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
+import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
@@ -47,22 +50,28 @@ import com.artemchep.keyguard.feature.watchtower.alerts.WatchtowerAlertsRoute
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.buildContextItems
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+
+const val DISMISS_NOTIFICATIONS_DELAY_MS = 1000L
 
 @Composable
 fun produceWatchtowerState(
@@ -84,6 +93,7 @@ fun produceWatchtowerState(
         getWatchtowerAlerts = instance(),
         getWatchtowerUnreadAlerts = instance(),
         cipherDuplicatesCheck = instance(),
+        dismissNotificationsByChannel = instance(),
     )
 }
 
@@ -119,6 +129,7 @@ fun produceWatchtowerState(
     getWatchtowerAlerts: GetWatchtowerAlerts,
     getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
     cipherDuplicatesCheck: CipherDuplicatesCheck,
+    dismissNotificationsByChannel: DismissNotificationsByChannel,
 ): WatchtowerState = produceScreenState(
     initial = WatchtowerState(),
     key = "watchtower",
@@ -126,6 +137,18 @@ fun produceWatchtowerState(
         getCiphers,
     ),
 ) {
+    // Dismiss all the notifications related to
+    // the watchtower. You're on the watchtower
+    // screen, so you must have seen all the alerts.
+    isStartedFlow
+        .filter { it }
+        .onEach {
+            delay(DISMISS_NOTIFICATIONS_DELAY_MS)
+            dismissNotificationsByChannel(DNotificationChannel.WATCHTOWER)
+                .bind()
+        }
+        .launchIn(screenScope)
+
     val storage = kotlin.run {
         val disk = loadDiskHandle(
             key = "cache",

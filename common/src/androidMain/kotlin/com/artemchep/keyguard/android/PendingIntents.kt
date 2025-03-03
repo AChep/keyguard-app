@@ -8,4 +8,8 @@ object PendingIntents {
         start = 1000000,
         endExclusive = 1100000,
     )
+    val notification = NotificationIdPool.sequential(
+        start = 1100000,
+        endExclusive = 1200000,
+    )
 }

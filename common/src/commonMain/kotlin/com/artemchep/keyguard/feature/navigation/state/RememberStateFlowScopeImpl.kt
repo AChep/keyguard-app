@@ -113,7 +113,7 @@ class RememberStateFlowScopeImpl(
      */
     private val keepAliveSharedFlow = MutableSharedFlow<Unit>()
 
-    private val isStartedFlow = keepAliveSharedFlow
+    override val isStartedFlow = keepAliveSharedFlow
         .subscriptionCount
         .map { it > 0 }
         .distinctUntilChanged()

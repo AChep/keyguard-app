@@ -69,6 +69,8 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
 
     val colorScheme: ColorScheme
 
+    val isStartedFlow: Flow<Boolean>
+
     /**
      * Commands a closest router to execute the
      * given intent.

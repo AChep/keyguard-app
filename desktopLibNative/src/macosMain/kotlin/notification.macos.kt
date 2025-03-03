@@ -10,7 +10,7 @@ public actual fun postNotification(
     id: Int,
     title: String,
     text: String,
-): Boolean {
+): Int {
     dispatch_async(dispatch_get_main_queue()) {
         val center = UNUserNotificationCenter.currentNotificationCenter()
         center.requestAuthorizationWithOptions(
@@ -36,5 +36,5 @@ public actual fun postNotification(
         )
     }
 
-    return true
+    return 0
 }

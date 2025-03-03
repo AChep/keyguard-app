@@ -40,6 +40,8 @@ import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogReposit
 import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepositoryImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
+import com.artemchep.keyguard.common.service.notification.NotificationFingerprintRepository
+import com.artemchep.keyguard.common.service.notification.impl.NotificationFingerprintRepositoryImpl
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.impl.PassKeyServiceImpl
 import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
@@ -96,6 +98,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DeviceEncryptionKeyUseCase
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.DisableBiometric
+import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
 import com.artemchep.keyguard.common.usecase.EnableBiometric
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterKeyUseCase
@@ -239,6 +242,7 @@ import com.artemchep.keyguard.common.usecase.impl.BiometricKeyEncryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.ClearVaultSessionImpl
 import com.artemchep.keyguard.common.usecase.impl.ConfirmAccessByPasswordUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.DisableBiometricImpl
+import com.artemchep.keyguard.common.usecase.impl.DismissNotificationsByChannelImpl
 import com.artemchep.keyguard.common.usecase.impl.EnableBiometricImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterHashUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterKeyUseCaseImpl
@@ -1073,6 +1077,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<DismissNotificationsByChannel> {
+        DismissNotificationsByChannelImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutOnboardingLastVisitInstant> {
         PutOnboardingLastVisitInstantImpl(
             directDI = this,
@@ -1274,6 +1283,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PassKeyService> {
         PassKeyServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<NotificationFingerprintRepository> {
+        NotificationFingerprintRepositoryImpl(
             directDI = this,
         )
     }

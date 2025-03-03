@@ -9,7 +9,7 @@ public suspend fun postNotification(
     id: Int,
     title: String,
     text: String,
-): Boolean {
+): Int? {
     if (Platform.isLinux()) {
         return postNotificationDbus(
             id = id,
@@ -27,6 +27,6 @@ public suspend fun postNotification(
             text = text
                 .asMemory()
                 .let(::register),
-        )
+        ).takeIf { it != 0 }
     }
 }

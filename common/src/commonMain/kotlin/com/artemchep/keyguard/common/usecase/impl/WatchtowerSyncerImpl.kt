@@ -191,17 +191,10 @@ private class WatchtowerNotifications(
                 .groupBy { it.type }
                 .map { alertGroup ->
                     val typeTitle = textResource(alertGroup.key.title, context)
-                    "$typeTitle (${alertGroup.value.size})"
+                    "$typeTitle (+${alertGroup.value.size})"
                 }
                 .joinToString()
-            val tag = alerts
-                .asSequence()
-                .map { it.alertId }
-                .sorted()
-                .joinToString()
-                .toByteArray()
-                .let(cryptoGenerator::hashMd5)
-                .let(base64Service::decodeToString)
+            val tag = cryptoGenerator.uuid()
             DNotification(
                 id = DNotificationId.WATCHTOWER,
                 tag = tag,

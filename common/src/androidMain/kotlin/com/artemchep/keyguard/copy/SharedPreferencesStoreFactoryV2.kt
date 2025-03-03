@@ -34,6 +34,7 @@ class SharedPreferencesStoreFactoryV2(
                 Files.DEVICE_ID,
                 Files.UI_STATE,
                 Files.REVIEW,
+                Files.NOTIFICATIONS,
                     -> SharedPreferencesTypes.DATA_STORE
 
                 else -> SharedPreferencesTypes.DATA_STORE_ENCRYPTED

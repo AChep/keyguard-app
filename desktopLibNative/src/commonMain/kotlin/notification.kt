@@ -6,4 +6,4 @@ public expect fun postNotification(
     id: Int,
     title: String,
     text: String,
-): Boolean
+): Int

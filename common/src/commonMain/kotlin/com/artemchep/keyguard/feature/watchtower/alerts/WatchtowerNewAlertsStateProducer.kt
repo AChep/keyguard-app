@@ -2,8 +2,10 @@ package com.artemchep.keyguard.feature.watchtower.alerts
 
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
@@ -11,6 +13,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetConcealFields
@@ -34,19 +37,23 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.watchtower.DISMISS_NOTIFICATIONS_DELAY_MS
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentHashSet
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -81,6 +88,7 @@ fun produceGeneratorHistoryState(
         getWebsiteIcons = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
+        dismissNotificationsByChannel = instance(),
     )
 }
 
@@ -99,6 +107,7 @@ fun produceGeneratorHistoryState(
     getWebsiteIcons: GetWebsiteIcons,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
+    dismissNotificationsByChannel: DismissNotificationsByChannel,
 ): Loadable<WatchtowerNewAlertsState> = produceScreenState(
     initial = Loadable.Loading,
     key = "watchtower_new_alerts",
@@ -107,8 +116,19 @@ fun produceGeneratorHistoryState(
         clipboardService,
     ),
 ) {
-    val copy = copy(clipboardService)
+    // Dismiss all the notifications related to
+    // the watchtower. You're on the watchtower
+    // screen, so you must have seen all the alerts.
+    isStartedFlow
+        .filter { it }
+        .onEach {
+            delay(DISMISS_NOTIFICATIONS_DELAY_MS)
+            dismissNotificationsByChannel(DNotificationChannel.WATCHTOWER)
+                .bind()
+        }
+        .launchIn(screenScope)
 
+    val copy = copy(clipboardService)
 
     fun navigatePopAll() {
         val intent = NavigationIntent.PopById(

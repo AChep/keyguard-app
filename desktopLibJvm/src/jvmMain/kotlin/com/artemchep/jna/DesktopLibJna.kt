@@ -99,7 +99,7 @@ public interface DesktopLibJna : Library {
         id: Int,
         title: Pointer,
         text: Pointer
-    ): Boolean
+    ): Int
 
     // Other
 

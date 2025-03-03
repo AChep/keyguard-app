@@ -12,4 +12,5 @@ enum class Files(
     SETTINGS("settings"),
     BREACHES("breaches"),
     REVIEW("review"),
+    NOTIFICATIONS("notifications"),
 }

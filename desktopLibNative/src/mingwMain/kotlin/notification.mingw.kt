@@ -6,4 +6,4 @@ public actual fun postNotification(
     id: Int,
     title: String,
     text: String
-): Boolean = false
+): Int = 0

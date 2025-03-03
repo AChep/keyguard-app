@@ -11,7 +11,7 @@ internal fun postNotificationDbus(
     id: Int,
     title: String,
     text: String,
-): Boolean = runCatching {
+): Int? = runCatching {
     DBusConnectionBuilder.forSessionBus().build().use { conn ->
         val notifications: Notifications = conn.getRemoteObject(
             "org.freedesktop.Notifications",
@@ -35,11 +35,11 @@ internal fun postNotificationDbus(
             hints,
             0,
         ).toInt()
-        id > 0
+        id
     }
 }.getOrElse { e ->
     e.printStackTrace()
-    false
+    null
 }
 
 @DBusInterfaceName("org.freedesktop.Notifications")

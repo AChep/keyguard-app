@@ -92,6 +92,7 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.platform.input.IncognitoInput
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.bringIntoView
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -267,39 +268,41 @@ fun ConcealedFlatTextField(
     val visibilityState = remember {
         VisibilityState()
     }
-    FlatTextField(
-        modifier = modifier,
-        fieldModifier = fieldModifier,
-        boxModifier = boxModifier,
-        testTag = testTag,
-        label = label,
-        placeholder = placeholder,
-        value = value,
-        textStyle = LocalTextStyle.current.copy(
-            fontFamily = monoFontFamily,
-        ),
-        visualTransformation = if (visibilityState.isVisible) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        singleLine = singleLine,
-        maxLines = maxLines,
-        interactionSource = interactionSource,
-        clearButton = clearButton,
-        leading = leading,
-        trailing = {
-            VisibilityToggle(
-                visibilityState = visibilityState,
-            )
-            if (trailing != null) {
-                trailing()
-            }
-        },
-        content = content,
-    )
+    IncognitoInput {
+        FlatTextField(
+            modifier = modifier,
+            fieldModifier = fieldModifier,
+            boxModifier = boxModifier,
+            testTag = testTag,
+            label = label,
+            placeholder = placeholder,
+            value = value,
+            textStyle = LocalTextStyle.current.copy(
+                fontFamily = monoFontFamily,
+            ),
+            visualTransformation = if (visibilityState.isVisible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            singleLine = singleLine,
+            maxLines = maxLines,
+            interactionSource = interactionSource,
+            clearButton = clearButton,
+            leading = leading,
+            trailing = {
+                VisibilityToggle(
+                    visibilityState = visibilityState,
+                )
+                if (trailing != null) {
+                    trailing()
+                }
+            },
+            content = content,
+        )
+    }
 }
 
 @Composable

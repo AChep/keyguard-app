@@ -172,7 +172,9 @@ class JsonKeyValueStore(
         throw NotImplementedError()
     }
 
-    override fun getAll(): IO<Map<String, Any?>> = ioRaise(RuntimeException())
+    override fun getAll(): IO<Map<String, Any?>> = ioEffect {
+        ensureInit()
+    }
 
     override fun getKeys(): IO<Set<String>> = getAll()
         .map { it.keys }

@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
@@ -77,7 +78,7 @@ fun organizationsScreenState(
     )
 
     val organizationsComparator = Comparator { a: DOrganization, b: DOrganization ->
-        a.name.compareTo(b.name, ignoreCase = true)
+        AlphabeticalSort.compareStr(a.name, b.name)
     }
     val organizationsFlow = getOrganizations()
         .map { organizations ->

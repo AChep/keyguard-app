@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.model
 
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import kotlinx.datetime.Instant
 
 data class DCollection(
@@ -16,6 +17,7 @@ data class DCollection(
 
     override fun accountId(): String = accountId
 
-    override fun compareTo(other: DCollection): Int =
-        name.compareTo(other.name, ignoreCase = true)
+    override fun compareTo(other: DCollection): Int {
+        return AlphabeticalSort.compareStr(name, other.name)
+    }
 }

@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.screen.verify
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherCopyToAction
@@ -202,7 +203,7 @@ fun produceDuplicatesListState(
         }
 
     val ciphersComparator = Comparator<DSecret> { a, b ->
-        var r = a.name.compareTo(b.name, ignoreCase = true)
+        var r = AlphabeticalSort.compareStr(a.name, b.name)
         if (r == 0) r = a.id.compareTo(b.id)
         r
     }

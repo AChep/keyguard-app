@@ -25,6 +25,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -101,7 +102,7 @@ fun foldersScreenState(
     )
 
     val foldersComparator = Comparator { a: DFolder, b: DFolder ->
-        a.name.compareTo(b.name, ignoreCase = true)
+        AlphabeticalSort.compareStr(a.name, b.name)
     }
     val foldersFilter = args.filter ?: DFilter.All
     val foldersFlow = getFolders()

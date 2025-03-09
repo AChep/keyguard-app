@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.send.search
 
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.send.SendItem
 import com.artemchep.keyguard.platform.parcelize.LeIgnoredOnParcel
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
@@ -19,6 +20,6 @@ object AlphabeticalSendSort : SendSort {
     ): Int = kotlin.run {
         val aTitle = a.title.text
         val bTitle = b.title.text
-        aTitle.compareTo(bTitle, ignoreCase = true)
+        AlphabeticalSort.compareStr(aTitle, bTitle)
     }
 }

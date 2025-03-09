@@ -22,6 +22,7 @@ import com.artemchep.keyguard.feature.apppicker.model.AppPickerSortItem
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -99,7 +100,7 @@ data object AppPickerAlphabeticalSort : AppPickerSort {
     ): Int = kotlin.run {
         val aTitle = a.label
         val bTitle = b.label
-        aTitle.compareTo(bTitle, ignoreCase = true)
+        AlphabeticalSort.compareStr(aTitle, bTitle)
     }
 }
 

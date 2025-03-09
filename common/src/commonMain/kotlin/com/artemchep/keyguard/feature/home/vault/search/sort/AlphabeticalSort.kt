@@ -5,10 +5,27 @@ import com.artemchep.keyguard.platform.parcelize.LeIgnoredOnParcel
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.text.Collator
 
 @LeParcelize
 @Serializable
 object AlphabeticalSort : Sort, PureSort {
+    /**
+     * Collator is not thread safe, therefore each
+     * thread must have its very own collator.
+     */
+    private val collatorThreadLocal = ThreadLocal.withInitial {
+        Collator.getInstance().apply {
+            strength = Collator.PRIMARY
+            decomposition = Collator.CANONICAL_DECOMPOSITION
+        }
+    }
+
+    fun compareStr(a: String, b: String) = kotlin.run {
+        val collator = collatorThreadLocal.get()
+        collator.compare(a, b)
+    }
+
     @LeIgnoredOnParcel
     @Transient
     override val id: String = "alphabetical"
@@ -19,6 +36,6 @@ object AlphabeticalSort : Sort, PureSort {
     ): Int = kotlin.run {
         val aTitle = a.title.text
         val bTitle = b.title.text
-        aTitle.compareTo(bTitle, ignoreCase = true)
+        compareStr(aTitle, bTitle)
     }
 }

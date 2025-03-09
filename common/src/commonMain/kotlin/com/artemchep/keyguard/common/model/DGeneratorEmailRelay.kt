@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.model
 
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.datetime.Instant
@@ -17,6 +18,6 @@ data class DGeneratorEmailRelay(
     }
 
     override fun compareTo(other: DGeneratorEmailRelay): Int {
-        return name.compareTo(other.name, ignoreCase = true)
+        return AlphabeticalSort.compareStr(name, other.name)
     }
 }

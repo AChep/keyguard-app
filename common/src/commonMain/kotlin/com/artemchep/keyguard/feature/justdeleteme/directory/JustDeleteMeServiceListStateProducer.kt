@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.IndexedModel
@@ -57,7 +58,7 @@ fun produceJustDeleteMeServiceListState(
     }
 
     val modelComparator = Comparator { a: JustDeleteMeServiceInfo, b: JustDeleteMeServiceInfo ->
-        a.name.compareTo(b.name, ignoreCase = true)
+        AlphabeticalSort.compareStr(a.name, b.name)
     }
 
     fun onClick(model: JustDeleteMeServiceInfo) {

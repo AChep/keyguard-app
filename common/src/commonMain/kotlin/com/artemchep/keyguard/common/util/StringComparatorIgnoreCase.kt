@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.util
 
+import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
+
 class StringComparatorIgnoreCase<T>(
     private val descending: Boolean = false,
     private val getter: (T) -> String?,
@@ -21,6 +23,6 @@ class StringComparatorIgnoreCase<T>(
         if (a === b) return 0
         if (a == null) return -1
         if (b == null) return 1
-        return a.compareTo(b, ignoreCase = true)
+        return AlphabeticalSort.compareStr(a, b)
     }
 }

@@ -25,8 +25,8 @@
         "name": "Ukrainian"
       }
     ],
-    "translated": 6747,
-    "target": 6369,
+    "translated": 6750,
+    "target": 6373,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -201,8 +201,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 596,
-    "target": 626,
+    "translated": 634,
+    "target": 672,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -785,13 +785,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5241,
-    "target": 4904,
-    "approved": 5482,
+    "translated": 5244,
+    "target": 4907,
+    "approved": 5546,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5206
+    "winning": 5266
   },
   {
     "user": {
@@ -881,7 +881,7 @@
     "target": 432,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 1,
+    "positiveVotes": 3,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1017,8 +1017,8 @@
     "target": 3960,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 2,
-    "negativeVotes": 3,
+    "positiveVotes": 3,
+    "negativeVotes": 4,
     "winning": 0
   },
   {
@@ -1129,7 +1129,7 @@
     "voted": 1,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 258
+    "winning": 262
   },
   {
     "user": {
@@ -1158,7 +1158,7 @@
       "id": "16247856",
       "username": "lucasmz.dev",
       "fullName": "LucasMZ (lucasmz.dev)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/f1e9c476f7fb8f0e7e9098259dedf0d5_default.png",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/fb4e71ba1c9e14eacd9c8a214008105e.jpg",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [
@@ -1533,6 +1533,28 @@
   },
   {
     "user": {
+      "id": "18711",
+      "username": "NCAA",
+      "fullName": "NCAA",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/18711/medium/238db0b2ab4e727190e951c803b045b2_default.png",
+      "joined": "2025-03-02 18:11:31"
+    },
+    "languages": [
+      {
+        "id": "da",
+        "name": "Danish"
+      }
+    ],
+    "translated": 5408,
+    "target": 4758,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "25199",
       "username": "PN_Rus",
       "fullName": "PN_Rus",
@@ -1567,8 +1589,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5503,
-    "target": 6018,
+    "translated": 5506,
+    "target": 6022,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

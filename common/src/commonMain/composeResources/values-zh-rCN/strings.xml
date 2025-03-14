@@ -140,7 +140,7 @@
     <string name="select_linked_type">选择类型</string>
     <string name="select_file">选择文件</string>
     <string name="autofill">自动填充</string>
-    <string name="autofill_and_save_uri">自动填充并保存应用程序或网站信息</string>
+    <string name="autofill_and_save_uri">自动填充并保存应用或网站信息</string>
     <string name="passkey">通行密钥</string>
     <string name="passkey_create_header">创建通行密钥</string>
     <string name="passkey_unlock_header">解锁 Keyguard</string>
@@ -194,7 +194,7 @@
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">记住登录状态</string>
     <!-- A Trash screen -->
-    <string name="trash">回收站</string>
+    <string name="trash">丢弃</string>
     <!-- To download something -->
     <string name="download">下载</string>
     <string name="downloads">下载</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">概况</string>
     <string name="home_settings_label">设置</string>
     <string name="lock_reason_inactivity">因不活动而被锁定</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">手动锁定</string>
     <string name="send_type_text">文本</string>
     <string name="send_type_file">文件</string>
     <string name="cipher_type_login">登录</string>
@@ -773,7 +773,7 @@
     <string name="sortby_password_strength_title">按密码强度排序</string>
     <string name="sortby_password_strength_normal_mode">按密码强度不安全的靠前</string>
     <string name="sortby_password_strength_reverse_mode">按密码强度安全的靠前</string>
-    <string name="relative_time_just_now_short">now</string>
+    <string name="relative_time_just_now_short">刚刚</string>
     <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
     <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
     <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">帮助您寻找并删除密码库中的重复项目。</string>
     <string name="watchtower_item_compromised_accounts_title">被盗账户</string>
     <string name="watchtower_item_compromised_accounts_text">使用用户名或电子邮件地址检查数据泄露情况。</string>
+    <string name="watchtower_notification_new_alerts_title">新的概况提醒</string>
     <string name="watchtower_alerts_header_title">新的概况提醒</string>
     <string name="watchtower_mark_all_as_read_title">全部标记为已读</string>
     <string name="changepassword_header_title">修改应用专用密码</string>
@@ -974,7 +975,7 @@
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
         -->
-    <string name="pref_item_app_build_ref_title">应用构建日期</string>
+    <string name="pref_item_app_build_ref_title">应用程序构建参考值</string>
     <string name="pref_item_app_changelog_title">应用更新日志</string>
     <string name="pref_item_app_team_title">开发团队</string>
     <string name="pref_item_reddit_community_title">Reddit 社区</string>

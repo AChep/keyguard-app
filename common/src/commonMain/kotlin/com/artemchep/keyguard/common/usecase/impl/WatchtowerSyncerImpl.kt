@@ -49,6 +49,7 @@ import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetPasskeys
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
@@ -68,7 +69,6 @@ import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import io.ktor.http.*
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,6 +80,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -241,15 +242,32 @@ private class WatchtowerClient(
             val requestsFlow = versionFlow
                 .distinctUntilChanged()
                 .flatMapLatest { version ->
-                    getPendingCiphersFlow(
-                        db = db,
-                        type = type,
-                        version = version,
-                    )
+                    val ciphersFlow = when (processor.mode) {
+                        WatchtowerClientMode.CHANGED_ONLY -> {
+                            // Only emit the changed ciphers, this
+                            // helps a LOT because it avoid processing
+                            // of non-changed ciphers.
+                            getPendingCiphersFlow(
+                                db = db,
+                                type = type,
+                                version = version,
+                            )
+                        }
+
+                        WatchtowerClientMode.ALL -> {
+                            getAllCiphersFlow(
+                                db = db,
+                                type = type,
+                                version = version,
+                            )
+                        }
+                    }
+                    ciphersFlow
                         .map { ciphers -> version to ciphers }
                 }
             requestsFlow
                 .debounce(1000L)
+                .filter { (version, ciphers) -> ciphers.isNotEmpty() }
                 .onEach { (version, ciphers) ->
                     val message = "Processing watchtower alert [$type/$version]: " +
                             ciphers.joinToString { it.id }
@@ -295,27 +313,59 @@ private class WatchtowerClient(
             .launchIn(this)
     }
 
+    private fun getAllCiphersFlow(
+        db: Database,
+        type: Long,
+        version: String,
+    ): Flow<List<DSecret>> {
+        val cipherIdsFlow = getPendingCipherIdsFlow(
+            db = db,
+            type = type,
+            version = version,
+        )
+        val cipherNonEmptyFlow = cipherIdsFlow
+            .map { it.isNotEmpty() }
+        return getCiphers()
+            .combine(cipherNonEmptyFlow) { ciphers, nonEmpty ->
+                if (nonEmpty) {
+                    return@combine ciphers
+                }
+
+                emptyList()
+            }
+    }
+
     private fun getPendingCiphersFlow(
         db: Database,
         type: Long,
         version: String,
     ): Flow<List<DSecret>> {
-        val cipherIdsFlow = db.watchtowerThreatQueries
-            .getPendingCipherIds(
-                type = type,
-                version = version,
-            )
-            .asFlow()
-            .mapToList(dispatcher)
-            .map { ids ->
-                ids.toSet()
-            }
+        val cipherIdsFlow = getPendingCipherIdsFlow(
+            db = db,
+            type = type,
+            version = version,
+        )
         return getCiphers()
             .combine(cipherIdsFlow) { ciphers, ids ->
                 ciphers
                     .filter { it.id in ids }
             }
     }
+
+    private fun getPendingCipherIdsFlow(
+        db: Database,
+        type: Long,
+        version: String,
+    ): Flow<Set<String>> = db.watchtowerThreatQueries
+        .getPendingCipherIds(
+            type = type,
+            version = version,
+        )
+        .asFlow()
+        .mapToList(dispatcher)
+        .map { ids ->
+            ids.toSet()
+        }
 }
 
 data class WatchtowerClientResult(
@@ -324,8 +374,15 @@ data class WatchtowerClientResult(
     val cipher: DSecret,
 )
 
+enum class WatchtowerClientMode {
+    CHANGED_ONLY,
+    ALL,
+}
+
 interface WatchtowerClientTyped {
     val type: Long
+
+    val mode: WatchtowerClientMode get() = WatchtowerClientMode.CHANGED_ONLY
 
     fun version(): Flow<String>
 
@@ -1126,6 +1183,9 @@ class WatchtowerBroadUris(
 ) : WatchtowerClientTyped {
     override val type: Long
         get() = DWatchtowerAlertType.BROAD_URIS.value
+
+    override val mode: WatchtowerClientMode
+        get() = WatchtowerClientMode.ALL
 
     constructor(directDI: DirectDI) : this(
         getAutofillDefaultMatchDetection = directDI.instance(),

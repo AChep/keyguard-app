@@ -28,7 +28,6 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
@@ -144,9 +143,10 @@ class WatchtowerSyncerImpl(
 private class WatchtowerNotifications(
     private val context: LeContext,
     private val getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
+    private val getCiphers: GetCiphers,
+    private val getProfiles: GetProfiles,
     private val showNotification: ShowNotification,
     private val cryptoGenerator: CryptoGenerator,
-    private val base64Service: Base64Service,
 ) {
     companion object {
         private const val FLOW_DEBOUNCE_MS = 1000L
@@ -155,14 +155,45 @@ private class WatchtowerNotifications(
     constructor(directDI: DirectDI) : this(
         context = directDI.instance(),
         getWatchtowerUnreadAlerts = directDI.instance(),
+        getCiphers = directDI.instance(),
+        getProfiles = directDI.instance(),
         showNotification = directDI.instance(),
         cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
     )
 
     fun launch(scope: CoroutineScope) = scope.launch {
+        // A set of profiles that are not
+        // hidden and should account for the
+        // watchtower alerts.
+        val visibleAccountIdsFlow = getProfiles()
+            .map { profiles ->
+                profiles
+                    .mapNotNull { it.takeIf { !it.hidden }?.accountId }
+                    .toSet()
+            }
+            .distinctUntilChanged()
+        val visibleCipherIdsFlow = getCiphers()
+            .map { ciphers ->
+                ciphers
+                    .mapNotNull { it.takeIf { !it.deleted }?.id }
+                    .toSet()
+            }
+            .distinctUntilChanged()
         val unreadAlertsFlow = getWatchtowerUnreadAlerts()
+            // Hide the non-public (hidden) accounts
+            // from the notifications.
+            .combine(visibleAccountIdsFlow) { alerts, publicAccountIds ->
+                alerts
+                    .filter { it.accountId.id in publicAccountIds }
+            }
+            // Hide the deleted ciphers
+            // from the notifications.
+            .combine(visibleCipherIdsFlow) { alerts, publicCipherIds ->
+                alerts
+                    .filter { it.cipherId.id in publicCipherIds }
+            }
             .debounce(FLOW_DEBOUNCE_MS)
+
         unreadAlertsFlow
             // This also drops the first event, which
             // is exactly what we want.

@@ -880,6 +880,18 @@
     "email": "data.compliance@altium.com"
   },
   {
+    "name": "AltTextGeneratorAI",
+    "domains": [
+      "alttextgeneratorai.com"
+    ],
+    "url": "https://alttextgeneratorai.com/terms-of-use",
+    "difficulty": "hard",
+    "notes": "Send an email. After receiving the email, your account will be deleted in the next 24 hours.",
+    "email": "balt1794@gmail.com",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Account Deletion Request"
+  },
+  {
     "name": "Alvanista",
     "domains": [
       "alvanista.com"
@@ -974,6 +986,15 @@
     "url": "https://www.ameli.fr/assure/mentions-legales-cgu",
     "difficulty": "easy",
     "notes": "On the page \"Mes informations\", click on \"R\u00e9silier mon compte\". It will automatically re-enable sending documents trough your mailbox."
+  },
+  {
+    "name": "American Airlines",
+    "domains": [
+      "aa.com"
+    ],
+    "url": "https://privacyportal.aa.com/",
+    "difficulty": "easy",
+    "notes": "You can request data erasure in the given privacy portal."
   },
   {
     "name": "AmiAmi",
@@ -1382,6 +1403,18 @@
     "url": "https://arstechnica.com/civis/",
     "difficulty": "hard",
     "notes": "You have to make a forum post about deleting your account and eventually the admins will delete your account, although your comment and post history stays on the website"
+  },
+  {
+    "name": "Artlist",
+    "domains": [
+      "artlist.io"
+    ],
+    "url": "https://artlist.io/",
+    "difficulty": "hard",
+    "notes": "You have to contact the support team by email.",
+    "email": "help@art-list.io",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Hi, I request to permanently remove all of my data from your platform. Please provide an update on the process via this email."
   },
   {
     "name": "Artsy",
@@ -5751,6 +5784,15 @@
     "notes": "Complete the form, they will send you an email where you must respond indicating the identity document."
   },
   {
+    "name": "ELSA Speak",
+    "domains": [
+      "elsaspeak.com"
+    ],
+    "url": "https://elsaspeak.com/app/account",
+    "difficulty": "easy",
+    "notes": "(Desktop version) Click the \"Delete my account\" button and follow the simple instructions."
+  },
+  {
     "name": "Elsevier",
     "domains": [
       "elsevier.com"
@@ -9381,12 +9423,9 @@
       "indiegala.com",
       "docs.indiegala.com"
     ],
-    "url": "https://docs.indiegala.com/support/contacts.html",
+    "url": "https://docs.indiegala.com/support/contacts.html#customer-support",
     "difficulty": "hard",
-    "notes": "Contact the customer support via email and request the deletion of your account. In order for them to identify your account, make the request through the same email address that you have used to create your IndieGala account.",
-    "email": "support@indiegala.com",
-    "email_subject": "[ Permanently Account Deletion Request ]",
-    "email_body": "I have no further interest in using the services provided by IndieGala, so I would like my account to be permanently deleted."
+    "notes": "Log into their Discord server and go to the \"customer-support\" channel. Type a message requesting account deletion. After a while a new ticket channel will be created (only you and the administrators can see it). You will be asked for your email and once you provide it they will delete your account"
   },
   {
     "name": "Indiegogo",
@@ -10422,6 +10461,16 @@
     "url": "https://notice.sp-prod.net/sar/index.html?message_id=539278&account_id=1195&ccpa_type=delete",
     "difficulty": "hard",
     "notes": "Fill out the form using the email address of your account and click on the verification link that is sent."
+  },
+  {
+    "name": "Koyeb",
+    "domains": [
+      "koyeb.com",
+      "app.koyeb.com"
+    ],
+    "url": "https://app.koyeb.com/settings?settings",
+    "difficulty": "medium",
+    "notes": "While logged in, first deactivate and delete/leave your organization. Once you do this everytime you visit its going to tell you to create an organization, but in the top right you click your profile icon, then settings and then delete."
   },
   {
     "name": "Krafton",
@@ -14485,7 +14534,7 @@
     ],
     "url": "https://www.payback.de/info/mein-payback/kontakt",
     "difficulty": "hard",
-    "notes": "According to their help page, you need to contanct their Service-Center"
+    "notes": "According to their help page, you need to contact their Service-Center"
   },
   {
     "name": "PayByPhone",
@@ -15159,7 +15208,16 @@
     ],
     "url": "https://www.points.com/pdccontent/salesforce/",
     "difficulty": "hard",
-    "notes": "Must contact support through Contanct form or online chat."
+    "notes": "Must contact support through contact form or online chat."
+  },
+  {
+    "name": "PokeMMO",
+    "domains": [
+      "pokemmo.com"
+    ],
+    "url": "https://support.pokemmo.com/knowledgebase/article/account-deletion",
+    "difficulty": "hard",
+    "notes": "On their Support page, log in and create a new ticket with Ticket Type 'Support Requests' and Sub Type 'Account Deletion' to request account deletion."
   },
   {
     "name": "Pok\u00e9mon GO",
@@ -15423,6 +15481,18 @@
     ],
     "url": "https://proofwiki.org/wiki/ProofWiki:Privacy_policy#Removal_of_user_accounts",
     "difficulty": "impossible"
+  },
+  {
+    "name": "PropertyListingsAI",
+    "domains": [
+      "propertylistingsai.com"
+    ],
+    "url": "https://propertylistingsai.com/terms-of-use",
+    "difficulty": "hard",
+    "notes": "Send an email. After receiving the email, your account will be deleted in the next 24 hours.",
+    "email": "balt1794@gmail.com",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Account Deletion Request"
   },
   {
     "name": "Prosper",
@@ -16160,6 +16230,18 @@
     "url": "https://app.reservio.com/#/business/settings",
     "difficulty": "medium",
     "notes": "Go to the <b>Business</b> tab \u2b95 <b>Settings</b>. You will find the option for the deletion of your account at the bottom of this page."
+  },
+  {
+    "name": "ResumeBoostAI",
+    "domains": [
+      "resumeboostai.com"
+    ],
+    "url": "https://resumeboostai.com/privacy",
+    "difficulty": "hard",
+    "notes": "Send an email. After receiving the email, your account will be deleted in the next 24 hours.",
+    "email": "balt1794@gmail.com",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Account Deletion Request"
   },
   {
     "name": "ResumeGenius",
@@ -20218,6 +20300,18 @@
     "notes": "Visit the linked page and follow the instructions."
   },
   {
+    "name": "VideosGeneratorAI",
+    "domains": [
+      "videosgeneratorai.com"
+    ],
+    "url": "https://videosgeneratorai.com/terms-of-use",
+    "difficulty": "hard",
+    "notes": "Send an email. After receiving the email, your account will be deleted in the next 24 hours.",
+    "email": "balt1794@gmail.com",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Account Deletion Request"
+  },
+  {
     "name": "Vidio",
     "domains": [
       "vidio.com",
@@ -22105,6 +22199,15 @@
     "url": "https://zenkit.com/profile",
     "difficulty": "easy",
     "notes": "Login to your account, go to profile, scroll down and click 'Delete Account'. Confirm by entering 'DELETEMYACCOUNT' and click 'Delete My Account'."
+  },
+  {
+    "name": "ZenMarket",
+    "domains": [
+      "zenmarket.jp"
+    ],
+    "url": "https://zenmarket.jp/en/help.aspx",
+    "difficulty": "hard",
+    "notes": "You must contact support to request account deletion."
   },
   {
     "name": "Zeplin",

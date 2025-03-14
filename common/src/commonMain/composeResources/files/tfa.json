@@ -10672,7 +10672,8 @@
     "tfa": [
       "sms",
       "call",
-      "email"
+      "email",
+      "totp"
     ],
     "documentation": "https://www.nasafcu.com/img/newebranch/ebranch_new.html",
     "name": "NASA Federal Credit Union"

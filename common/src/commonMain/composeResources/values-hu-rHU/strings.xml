@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Segít azonosítani és törölni az ismétlődő elemeket a széfben.</string>
     <string name="watchtower_item_compromised_accounts_title">Veszélyben Lévő Fiókok</string>
     <string name="watchtower_item_compromised_accounts_text">Ellenőrizze az adatszivárgásokat felhasználónév vagy e-mail cím alapján.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">Új őrtorony figyelmeztetések</string>
     <string name="watchtower_mark_all_as_read_title">Összes megjelölése olvasottként</string>
     <string name="changepassword_header_title">Alkalmazás jelszó módosítása</string>

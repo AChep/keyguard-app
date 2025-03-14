@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Guardião</string>
     <string name="home_settings_label">Configurações</string>
     <string name="lock_reason_inactivity">Bloqueado devido à inatividade</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Arquivo</string>
     <string name="cipher_type_login">Entrar</string>
@@ -773,7 +773,7 @@
     <string name="sortby_password_strength_title">Força da senha</string>
     <string name="sortby_password_strength_normal_mode">Mais fraca Primeiro</string>
     <string name="sortby_password_strength_reverse_mode">Mais forte Primeiro</string>
-    <string name="relative_time_just_now_short">now</string>
+    <string name="relative_time_just_now_short">agora</string>
     <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
     <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
     <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
@@ -819,7 +819,7 @@
     <string name="generator_passphrase_number_title">Número</string>
     <string name="generator_passphrase_wordlist_title">Lista de Palavras</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Quase uma em cada 10 pessoas usam o mesmo PIN de quatro dígitos. Gere PINs para evitar variantes comuns.</string>
     <string name="generator_username_type">Nome de usuário</string>
     <string name="generator_username_delimiter_title">Delimitador</string>
     <string name="generator_username_custom_word_title">Palavra customizada</string>
@@ -895,7 +895,7 @@
     <string name="watchtower_item_duplicate_websites_title">URIs duplicados</string>
     <string name="watchtower_item_duplicate_websites_text">Itens que têm um ou mais URIs que abrangem os mesmos sites após a aplicação da detecção de correspondência.</string>
     <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_text">Itens que possuem um ou mais URIs que correspondem a regras de detecção provavelmente devem ser reduzidos.</string>
     <string name="watchtower_item_trashed_items_title">Itens descartados</string>
     <string name="watchtower_item_trashed_items_text">Itens que foram movidos para a lixeira. O excesso de itens na lixeira pode atrasar as operações do seu cofre.</string>
     <string name="watchtower_item_empty_folders_title">Pastas vazias</string>
@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Ajuda a identificar e eliminar itens duplicados no seu cofre.</string>
     <string name="watchtower_item_compromised_accounts_title">Contas Comprometidas</string>
     <string name="watchtower_item_compromised_accounts_text">Verificar vazamentos de dados por um nome de usuário ou endereço de e-mail.</string>
+    <string name="watchtower_notification_new_alerts_title">Novos alertas de Torre de Vigia</string>
     <string name="watchtower_alerts_header_title">Nova torre de vigia</string>
     <string name="watchtower_mark_all_as_read_title">Marcar tudo como lido</string>
     <string name="changepassword_header_title">Alterar senha do aplicativo</string>

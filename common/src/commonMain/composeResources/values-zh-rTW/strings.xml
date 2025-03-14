@@ -536,7 +536,7 @@
     <string name="justdeleteme_empty_label">No instructions</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_subtitle">A collection of info of how to get the data from your account from web services</string>
     <!-- Simple process -->
     <string name="justgetmydata_difficulty_easy_label">簡單</string>
     <!-- Some extra steps involved -->
@@ -887,7 +887,7 @@
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
     <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure then a password.</string>
+    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure than a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
     <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>
     <string name="watchtower_item_expiring_items_title">Expiring Items</string>
@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Helps you identify and eliminate duplicate items in your vault.</string>
     <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">New watchtower alerts</string>
     <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
     <string name="changepassword_header_title">Change app password</string>
@@ -960,7 +961,7 @@
     <string name="pref_item_notifications_title">Notifications</string>
     <string name="pref_item_notifications_text">Alerts</string>
     <string name="pref_item_appearance_title">Appearance</string>
-    <string name="pref_item_appearance_text">Language, theme and animations</string>
+    <string name="pref_item_appearance_text">Language, theme, and animations</string>
     <string name="pref_item_dev_title">Development</string>
     <string name="pref_item_dev_text">Test settings for development</string>
     <string name="pref_item_other_title">Other</string>
@@ -1140,7 +1141,7 @@
     <string name="feat_item_show_barcode_title">Show as Barcode</string>
     <string name="feat_item_show_barcode_text">Encode a text as different barcodes.</string>
     <string name="feat_item_generator_title">Generator</string>
-    <string name="feat_item_generator_text">Generate passwords, usernames, emails and keys.</string>
+    <string name="feat_item_generator_text">Generate passwords, usernames, emails, and keys.</string>
     <string name="feat_item_export_title">Export</string>
     <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
     <string name="datasafety_header_title">Data safety</string>

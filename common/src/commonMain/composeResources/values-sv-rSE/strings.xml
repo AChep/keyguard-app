@@ -536,7 +536,7 @@
     <string name="justdeleteme_empty_label">Inga instruktioner</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the from your account from web services</string>
+    <string name="justgetmydata_subtitle">A collection of info of how to get the data from your account from web services</string>
     <!-- Simple process -->
     <string name="justgetmydata_difficulty_easy_label">Easy</string>
     <!-- Some extra steps involved -->
@@ -585,7 +585,7 @@
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">This organization will have an ownership of the copy. You will not be the direct owner.</string>
+    <string name="destinationpicker_organization_ownership_note">This organization will have ownership of the copy. You will not become the direct owner.</string>
     <string name="emailrelay_list_header_title">Email forwarders</string>
     <string name="emailrelay_list_section_title">Email forwarders</string>
     <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
@@ -887,7 +887,7 @@
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Webbplatser som har tvåfaktorsautentisering tillgänglig men som du inte har konfigurerat än.</string>
     <string name="watchtower_item_inactive_passkey_title">Tillgängliga nycklar</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure then a password.</string>
+    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure than a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
     <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>
     <string name="watchtower_item_expiring_items_title">Expiring Items</string>
@@ -904,6 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Hjälper dig att identifiera och eliminera dubbletter i ditt valv.</string>
     <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
+    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
     <string name="watchtower_alerts_header_title">New watchtower alerts</string>
     <string name="watchtower_mark_all_as_read_title">Markera alla som lästa</string>
     <string name="changepassword_header_title">Change app password</string>

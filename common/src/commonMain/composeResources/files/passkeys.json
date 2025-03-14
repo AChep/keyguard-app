@@ -896,7 +896,8 @@
     "documentation": "https://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-authenticator-passkey#enable-passkeys-in-authenticator-in-the-admin-center",
     "setup": "https://entra.microsoft.com",
     "category": "Information Technology",
-    "created_at": "2023-09-30T10:34:07.960403+00:00"
+    "created_at": "2023-09-30T10:34:07.960403+00:00",
+    "notes": "Microsoft Entra ID exclusively supports device-bound passkeys through FIDO2 security keys and the Microsoft Authenticator app. For more information: \n\nhttps://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-passkey-fido2\n"
   },
   {
     "id": "493e539072cc378649c3b2363ba03409",

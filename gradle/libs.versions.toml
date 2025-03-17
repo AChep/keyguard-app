@@ -137,7 +137,7 @@ sqliteJdbcCrypt = "3.49.1.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
-touchIcon = "0.9.9"
+touchIcon = "0.9.10"
 # https://github.com/littlerobots/version-catalog-update-plugin
 versionCatalogPlugin = "0.8.5"
 # https://github.com/ben-manes/gradle-versions-plugin

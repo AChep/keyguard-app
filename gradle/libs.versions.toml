@@ -62,7 +62,7 @@ composeMultiplatform = "1.8.0-alpha04"
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.3"
-dbusJava = "5.1.0"
+dbusJava = "5.1.1"
 firebase = "33.10.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"

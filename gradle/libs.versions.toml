@@ -99,7 +99,7 @@ ktlintPlugin = "12.2.0"
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
 ktor = "3.1.1"
 # https://github.com/java-native-access/jna
-jna = "5.16.0"
+jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
 # https://github.com/skydoves/landscapist

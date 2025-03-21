@@ -333,9 +333,9 @@ class DropdownScopeImpl(
     override val onDismissRequest: () -> Unit,
 ) : DropdownScope, ColumnScope by parent
 
-context(DropdownScope)
 @Composable
 fun <T> ColumnScope.DropdownMenuExpandableContainer(
+    dropdownScope: DropdownScope,
     list: List<T>,
     maxItems: Int = 4,
     render: @Composable (T) -> Unit,
@@ -346,7 +346,7 @@ fun <T> ColumnScope.DropdownMenuExpandableContainer(
     list.forEachIndexed { i, el ->
         if (!maximized) {
             if (i == maxItems) {
-                DropdownMenuItemFlatLayout(
+                dropdownScope.DropdownMenuItemFlatLayout(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {

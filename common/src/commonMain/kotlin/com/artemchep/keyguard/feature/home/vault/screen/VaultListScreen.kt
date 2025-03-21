@@ -450,14 +450,13 @@ fun VaultHomeScreenListPane(
                             onDismissRequest = onDismissRequest,
                         ) {
                             val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                            with(scope) {
-                                DropdownMenuExpandableContainer(
-                                    list = state.primaryActions,
-                                ) { action ->
-                                    DropdownMenuItemFlat(
-                                        action = action,
-                                    )
-                                }
+                            DropdownMenuExpandableContainer(
+                                dropdownScope = scope,
+                                list = state.primaryActions,
+                            ) { action ->
+                                scope.DropdownMenuItemFlat(
+                                    action = action,
+                                )
                             }
                         }
                     },

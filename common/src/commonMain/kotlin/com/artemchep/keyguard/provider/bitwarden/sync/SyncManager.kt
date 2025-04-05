@@ -79,17 +79,39 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
             .getOrDefault(false, emptyList()) // no remote
         val localItemsExistingByRemoteId = localItemsGrouped
             .getOrDefault(true, emptyList()) // remote
-            .asSequence()
-            .map { localItem ->
-                val id = requireNotNull(localItem.service.remote?.id)
-                id to localItem
+            .groupBy { localItem ->
+                val remoteId = requireNotNull(localItem.service.remote?.id)
+                remoteId
             }
-            .toMap(mutableMapOf())
+            .toMutableMap()
 
         remoteItems.forEach { remoteItem ->
             val remoteItemId = remote.getId(remoteItem)
-            val localItem = localItemsExistingByRemoteId
+            val localItemGroup = localItemsExistingByRemoteId
                 .remove(remoteItemId)
+            val localItem = localItemGroup?.let { group ->
+                // If there's only one item in the group, then
+                // we can safely use it.
+                if (group.size <= 1) {
+                    return@let group.firstOrNull()
+                }
+
+                // Try to auto-fix the conflict by using the
+                // item with the freshest revision date and
+                // removing the old item.
+                val localItem = group
+                    .maxByOrNull { localItem ->
+                        getDate(localItem)
+                    }
+                // Remove all other items in the group.
+                group.forEach { item ->
+                    if (item === localItem) {
+                        return@forEach
+                    }
+                    localDeletedCipherIds += Df.Ite(item, null)
+                }
+                localItem
+            }
             if (localItem != null) {
                 // TODO: Replace it with a migration mechanism
                 if (localItem.service.version < BitwardenService.VERSION) {
@@ -182,8 +204,10 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
         // The item has remote id, but the remote items
         // do not have it -- therefore it has deleted on remote.
         localDeletedCipherIds += localItemsExistingByRemoteId
-            .map { (_, localItem) ->
-                Df.Ite(localItem, null)
+            .asSequence()
+            .flatMap { it.value }
+            .map { item ->
+                Df.Ite(item, null)
             }
 
         //

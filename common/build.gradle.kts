@@ -29,7 +29,7 @@ val versionInfo = createVersionInfo(
 // We want to know when the public data files
 // change. For example we might need to re-compute
 // watchtower alerts in that case.
-val generateResHashesTask = tasks.register("generateKeyguardResHashes") {
+val generateResHashesKtTask = tasks.register("generateKeyguardResHashesKt") {
     val packageName = "com.artemchep.keyguard.build"
 
     val prefix = "src/commonMain/composeResources/files"
@@ -43,7 +43,7 @@ val generateResHashesTask = tasks.register("generateKeyguardResHashes") {
     src.forEach { file ->
         inputs.files(file)
     }
-    val out = file("build/generated/keyguardResHashes/kotlin/")
+    val out = file("build/generated/keyguardResHashesKt/kotlin/")
     outputs.dir(out)
 
     fun File.md5(): String {
@@ -79,8 +79,83 @@ $payload
     }
 }
 
+private fun collectLocalesFromComposeResources(): List<String> {
+    val locales = mutableListOf<String>()
+    locales += "en-US" // the default locale!
+
+    // Find all the locales that the
+    // app currently supports.
+    val regex = "^values-(([a-z]{2})(-r([A-Z]+))?)$".toRegex()
+    val root = file("src/commonMain/composeResources")
+    root.listFiles()?.forEach { dir ->
+        if (!dir.isDirectory) return@forEach
+        val dirName = dir.name
+
+        val match = regex.matchEntire(dirName)
+            ?: return@forEach
+        val language = match.groupValues.getOrNull(2)
+            ?: return@forEach
+        val region = match.groupValues.getOrNull(4)
+        locales += language + region?.let { "-$it" }
+    }
+    return locales
+}
+
+val generateResLocaleConfigKtTask = tasks.register("generateResLocaleConfigKt") {
+    val packageName = "com.artemchep.keyguard.build"
+
+    val locales = collectLocalesFromComposeResources()
+    val inputKey = locales
+        .joinToString { it }
+    inputs.property("locale_config", inputKey)
+
+    val out = file("build/generated/keyguardResLocaleConfigKt/kotlin/")
+    outputs.dir(out)
+
+    doFirst {
+        val payload = locales
+            .joinToString { "\"$it\"" }
+        val content = """
+package $packageName
+
+data object LocaleConfig {
+    val locales = listOf($payload)
+}
+        """.trimIndent()
+        out
+            .resolve("LocaleConfig.kt")
+            .writeText(content)
+    }
+}
+
+val generateResLocaleConfigResTask = tasks.register("generateResLocaleConfigRes") {
+    val locales = collectLocalesFromComposeResources()
+    val inputKey = locales
+        .joinToString { it }
+    inputs.property("locale_config", inputKey)
+
+    val out = file("build/generated/keyguardResLocaleConfigRes/res/")
+    outputs.dir(out)
+
+    doFirst {
+        val payload = locales
+            .joinToString(separator = System.lineSeparator()) { "<locale android:name=\"$it\" />" }
+        val content = """
+<?xml version="1.0" encoding="utf-8"?>
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+$payload
+</locale-config>
+        """.trimIndent()
+        out
+            .resolve("xml/locale_config.xml")
+            .also { it.parentFile.mkdirs() }
+            .writeText(content)
+    }
+}
+
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
-    dependsOn(generateResHashesTask)
+    dependsOn(generateResHashesKtTask)
+    dependsOn(generateResLocaleConfigKtTask)
 }
 
 kotlin {
@@ -99,7 +174,8 @@ kotlin {
             languageSettings.optIn("androidx.compose.material3.ExperimentalMaterial3Api")
         }
         commonMain {
-            kotlin.srcDir(generateResHashesTask.get().outputs.files)
+            kotlin.srcDir(generateResHashesKtTask.get().outputs.files)
+            kotlin.srcDir(generateResLocaleConfigKtTask.get().outputs.files)
         }
     }
 
@@ -290,6 +366,12 @@ android {
             buildConfigField("boolean", "ANALYTICS", "false")
         }
     }
+}
+
+android.libraryVariants.configureEach {
+    registerGeneratedResFolders(
+        project.files(generateResLocaleConfigResTask.map { it.outputs.files }),
+    )
 }
 
 kotlin {

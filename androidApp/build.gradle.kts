@@ -78,11 +78,6 @@ android {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
-    androidResources {
-        @Suppress("UnstableApiUsage")
-        generateLocaleConfig = true
-    }
-
     bundle {
         language {
             enableSplit = false

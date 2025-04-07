@@ -87,7 +87,7 @@ kotlinCoroutines = "1.10.1"
 kotlinDatetime = "0.6.2"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinSerialization = "1.8.0"
+kotlinSerialization = "1.8.1"
 # https://github.com/google/ksp/releases
 kspPlugin = "2.1.20-1.0.31"
 # https://github.com/pinterest/ktlint/releases

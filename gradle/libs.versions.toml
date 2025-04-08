@@ -139,7 +139,7 @@ stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
 touchIcon = "0.9.9"
 # https://github.com/littlerobots/version-catalog-update-plugin
-versionCatalogPlugin = "0.8.5"
+versionCatalogPlugin = "1.0.0"
 # https://github.com/ben-manes/gradle-versions-plugin
 versionsPlugin = "0.52.0"
 # https://github.com/MayakaApps/ComposeWindowStyler

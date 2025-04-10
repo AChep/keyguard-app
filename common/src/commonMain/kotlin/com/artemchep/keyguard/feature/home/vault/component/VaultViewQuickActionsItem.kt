@@ -42,11 +42,23 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun VaultViewQuickActionsItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.QuickActions,
+) {
+    HorizontalContextItems(
+        modifier = modifier,
+        items = item.actions,
+    )
+}
+
+@Composable
+fun HorizontalContextItems(
+    modifier: Modifier = Modifier,
+    items: ImmutableList<ContextItem>,
 ) {
     Row(
         modifier = modifier
@@ -57,7 +69,7 @@ fun VaultViewQuickActionsItem(
             modifier = Modifier
                 .width(4.dp),
         )
-        item.actions.forEach { i ->
+        items.forEach { i ->
             HorizontalContextItem(
                 modifier = Modifier
                     .widthIn(max = DropdownMinWidth),

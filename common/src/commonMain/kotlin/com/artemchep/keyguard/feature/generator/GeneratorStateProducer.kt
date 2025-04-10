@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -25,7 +27,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import arrow.core.compose
@@ -34,10 +38,13 @@ import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.Emails
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.handleErrorTap
+import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioRaise
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.shared
@@ -50,6 +57,7 @@ import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfigBuilder2
 import com.artemchep.keyguard.common.model.build
 import com.artemchep.keyguard.common.model.getOrNull
@@ -95,6 +103,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
 import com.artemchep.keyguard.platform.util.isRelease
+import com.artemchep.keyguard.provider.bitwarden.model.PasswordResult
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
@@ -188,6 +197,7 @@ private const val KEY_PAIR_RSA_LENGTH_DEFAULT = "4096"
 
 private const val PIN_CODE_LENGTH_DEFAULT = 4L
 private const val PIN_CODE_LENGTH_MIN = 3
+
 // Most not be longer than 9, because of the details of
 // the internal implementation.
 private const val PIN_CODE_LENGTH_MAX = 9
@@ -786,7 +796,8 @@ fun produceGeneratorState(
     val pinCodeFilterTip = GeneratorState.Filter.Tip(
         text = translate(Res.string.generator_pin_code_note),
         onLearnMore = {
-            val url = "https://www.abc.net.au/news/2025-01-28/almost-one-in-ten-people-use-the-same-four-digit-pin/103946842"
+            val url =
+                "https://www.abc.net.au/news/2025-01-28/almost-one-in-ten-people-use-the-same-four-digit-pin/103946842"
             val intent = NavigationIntent.NavigateToBrowser(url)
             navigate(intent)
         },
@@ -1699,12 +1710,136 @@ fun produceGeneratorState(
         .map { tipVisibilityItem ->
             optionsStatic.add(0, tipVisibilityItem)
         }
+    val suggestionsFlow = typeFlow
+        .flatMapLatest { type ->
+            fun <T, R> generateFrom(
+                builder: T,
+                convert: (T) -> IO<R>,
+            ): IO<R> = convert(builder)
+
+            fun generateFromPasswordConfigBuilder(
+                type: CopyText.Type,
+                builder: PasswordGeneratorConfigBuilder2,
+            ): IO<GeneratorState.Suggestion?> = generateFrom(
+                builder = builder,
+                convert = {
+                    val config = it.build()
+                    getPassword(generatorContext, config)
+                        .map { passwordResult ->
+                            val valueResult = passwordResult as? GetPasswordResult.Value
+                            valueResult?.value
+                        }
+                        .map { password ->
+                            password
+                                ?: return@map null
+                            GeneratorState.Suggestion(
+                                length = password.length,
+                                value = password,
+                                onCopy = {
+                                    copyItemFactory.copy(
+                                        text = password,
+                                        hidden = false,
+                                        type = type,
+                                    )
+                                },
+                            )
+                        }
+                },
+            )
+
+            val v = when (type) {
+                is GeneratorType2.Password -> listOf(
+                    PasswordGeneratorConfigBuilder2.Password(
+                        length = 24,
+                        includeSymbols = false,
+                    ),
+                    PasswordGeneratorConfigBuilder2.Password(
+                        length = 24,
+                    ),
+                    PasswordGeneratorConfigBuilder2.Password(
+                        length = 16,
+                    ),
+                )
+                    .map { builder ->
+                        generateFromPasswordConfigBuilder(
+                            type = CopyText.Type.PASSWORD,
+                            builder = builder,
+                        )
+                    }
+
+                is GeneratorType2.PinCode -> listOf(
+                    PasswordGeneratorConfigBuilder2.PinCode(
+                        length = 8,
+                    ),
+                    PasswordGeneratorConfigBuilder2.PinCode(
+                        length = 6,
+                    ),
+                    PasswordGeneratorConfigBuilder2.PinCode(
+                        length = 4,
+                    ),
+                )
+                    .map { builder ->
+                        generateFromPasswordConfigBuilder(
+                            type = CopyText.Type.PASSWORD,
+                            builder = builder,
+                        )
+                    }
+
+                is GeneratorType2.Username,
+                is GeneratorType2.EmailCatchAll,
+                is GeneratorType2.EmailPlusAddressing,
+                is GeneratorType2.EmailSubdomainAddressing,
+                is GeneratorType2.EmailRelay,
+                    -> {
+                    //
+                    if (getProfiles == null) {
+                        return@flatMapLatest flowOf(persistentListOf())
+                    }
+
+                    return@flatMapLatest getProfiles()
+                        .map { profiles ->
+                            profiles
+                                .map { it.email }
+                                .toSortedSet()
+                                .map { email ->
+                                    GeneratorState.Suggestion(
+                                        value = email,
+                                        onCopy = {
+                                            copyItemFactory.copy(
+                                                text = email,
+                                                hidden = false,
+                                                type = CopyText.Type.EMAIL,
+                                            )
+                                        },
+                                    )
+                                }
+                                .toPersistentList()
+                        }
+                }
+
+                else -> {
+                    emptyList()
+                }
+            }
+            flowOf(v)
+                .map {
+                    it
+                        .mapNotNull {
+                            val value = it.attempt().bind().getOrNull()
+                                ?: return@mapNotNull null
+                            value
+                        }
+                        .toPersistentList()
+                }
+        }
+        .stateIn(screenScope)
 
     optionsFlow
         .map { options ->
             val state = GeneratorState(
                 onOpenHistory = ::onOpenHistory,
                 options = options,
+                suggestionsState = suggestionsFlow,
                 loadedState = loadingFlow,
                 typeState = typesFlow,
                 valueState = passwordFlow,

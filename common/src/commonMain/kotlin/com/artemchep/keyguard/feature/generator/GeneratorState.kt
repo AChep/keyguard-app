@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 data class GeneratorState(
     val onOpenHistory: () -> Unit,
     val options: ImmutableList<ContextItem>,
+    val suggestionsState: StateFlow<ImmutableList<Suggestion>>,
     val loadedState: StateFlow<Loading>,
     val typeState: StateFlow<Type>,
     val valueState: StateFlow<Value?>,
@@ -34,6 +35,18 @@ data class GeneratorState(
     data class Type(
         val title: String,
         val items: ImmutableList<ContextItem>,
+    )
+
+    @Immutable
+    data class Suggestion(
+        /**
+         * Length of the value, if that information is
+         * important: for example the password's length is
+         * important while email's is not.
+         */
+        val length: Int? = null,
+        val value: String,
+        val onCopy: () -> Unit,
     )
 
     @Immutable

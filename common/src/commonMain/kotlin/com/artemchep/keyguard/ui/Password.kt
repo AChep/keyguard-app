@@ -68,10 +68,10 @@ private fun colorizePasswordDigitColor(onDark: Boolean) = run {
     val lightness: Float
     if (onDark) {
         saturation = 0.52f // saturation
-        lightness = 0.56f // value
+        lightness = 0.66f // value
     } else {
         saturation = 0.72f // saturation
-        lightness = 0.62f // value
+        lightness = 0.42f // value
     }
     Color.hsl(
         hue = 210f,

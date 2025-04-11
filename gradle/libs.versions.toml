@@ -22,19 +22,19 @@ androidxActivity = "1.10.1"
 androidxAppCompat = "1.7.0"
 androidxAutofill = "1.3.0-rc01"
 androidxBaselineProfile = "1.3.4"
-androidxBenchmarkMacroJUnit4 = "1.3.3"
+androidxBenchmarkMacroJUnit4 = "1.3.4"
 androidxBiometricKtx = "1.4.0-alpha02"
 androidxBrowser = "1.8.0"
 androidxCamera = "1.4.2"
-androidxCoreKtx = "1.15.0"
+androidxCoreKtx = "1.16.0"
 androidxCoreSplash = "1.2.0-beta01"
 androidxCoreShortcuts = "1.1.0"
 androidxCredentials = "1.5.0"
-androidxDatastore = "1.1.3"
+androidxDatastore = "1.1.4"
 androidxLifecycle = "2.8.7"
 androidxProfileInstaller = "1.4.1"
-androidxRoom = "2.6.1"
-androidxSecurityCryptoKtx = "1.1.0-alpha06"
+androidxRoom = "2.7.0"
+androidxSecurityCryptoKtx = "1.1.0-alpha07"
 androidxTestEspresso = "3.6.1"
 coreTestingVersion = "2.2.0"
 androidxTestCore = "1.6.1"
@@ -63,7 +63,7 @@ composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.3"
 dbusJava = "5.1.1"
-firebase = "33.10.0"
+firebase = "33.12.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
@@ -117,7 +117,7 @@ okHttp = "4.12.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
-playServicesBase = "18.5.0"
+playServicesBase = "18.6.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha02"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
@@ -129,7 +129,7 @@ slf4j = "2.0.17"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.80"
 # https://github.com/sqlcipher/sqlcipher-android
-sqlcipherAndroid = "4.6.1"
+sqlcipherAndroid = "4.7.2"
 # https://github.com/cashapp/sqldelight
 sqldelight = "2.0.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
@@ -137,7 +137,7 @@ sqliteJdbcCrypt = "3.49.1.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
-touchIcon = "0.9.9"
+touchIcon = "0.9.10"
 # https://github.com/littlerobots/version-catalog-update-plugin
 versionCatalogPlugin = "1.0.0"
 # https://github.com/ben-manes/gradle-versions-plugin

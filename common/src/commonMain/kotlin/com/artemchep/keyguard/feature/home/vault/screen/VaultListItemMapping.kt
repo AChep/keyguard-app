@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.ui.text.AnnotatedString
+import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
@@ -144,9 +145,9 @@ suspend fun DSecret.toVaultListItem(
                 )
             }
             .toImmutableList(),
-        password = DSecret.login.password.getOrNull(this),
-        passwordRevisionDate = DSecret.login.passwordRevisionDate.getOrNull(this),
-        score = DSecret.login.passwordStrength.getOrNull(this),
+        password = DSecret.login.notNull.password.getOrNull(this),
+        passwordRevisionDate = DSecret.login.notNull.passwordRevisionDate.getOrNull(this),
+        score = DSecret.login.notNull.passwordStrength.getOrNull(this),
         icon = icon,
         type = type.name,
         folderId = folderId,

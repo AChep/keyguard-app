@@ -47,7 +47,7 @@ androidxWork = "2.10.0"
 # https://github.com/harawata/appdirs
 appDirs = "1.4.0"
 # https://github.com/arrow-kt/arrow
-arrow = "1.2.4"
+arrow = "2.0.1"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
@@ -201,7 +201,9 @@ androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.re
 androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRule" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "androidxTestUiAutomator" }
+arrow-arrow-cache4k = { module = "io.arrow-kt:arrow-cache4k", version.ref = "arrow" }
 arrow-arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-arrow-functions = { module = "io.arrow-kt:arrow-functions", version.ref = "arrow" }
 arrow-arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow" }
 arrow-arrow-optics-ksp-plugin = { module = "io.arrow-kt:arrow-optics-ksp-plugin", version.ref = "arrow" }
 cash-sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }

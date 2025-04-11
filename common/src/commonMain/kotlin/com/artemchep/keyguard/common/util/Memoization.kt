@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.util
 
-import arrow.core.continuations.AtomicRef
-import arrow.core.continuations.loop
+import arrow.core.Some
+import io.github.reactivecircus.cache4k.Cache
 
 fun <R> (suspend () -> R).memoize(): suspend () -> R {
     val m = MemoizedHandler<suspend () -> R, MemoizeKey0<R>, R>(this@memoize)
@@ -47,23 +47,9 @@ private data class MemoizeKey3<out P1, out P2, out P3, R>(val p1: P1, val p2: P2
 }
 
 private class MemoizedHandler<F, in K : MemoizedCall<F, R>, out R>(val f: F) {
-    private val cache = AtomicRef(emptyMap<K, R>())
+    private val cache = Cache.Builder<K, Some<R>>().build()
 
-    suspend fun invoke(k: K): R = when (k) {
-        in cache.get() -> cache.get().getValue(k)
-        else -> {
-            val b = k.invoke(f)
-            cache.loop { old ->
-                when (k) {
-                    in old ->
-                        return@invoke old.getValue(k)
-
-                    else -> {
-                        if (cache.compareAndSet(old, old + Pair(k, b)))
-                            return@invoke b
-                    }
-                }
-            }
-        }
-    }
+    suspend fun invoke(k: K): R = cache.get(k) {
+        Some(k.invoke(f))
+    }.value
 }

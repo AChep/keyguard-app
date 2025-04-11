@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.core.store.bitwarden.nullableDeletedDate
+import com.artemchep.keyguard.core.store.bitwarden.deletedDate
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -37,7 +37,7 @@ class RestoreCipherByIdImpl(
         var new = model
         // Un-trash the model.
         new = model.copy(
-            data_ = BitwardenCipher.nullableDeletedDate.set(new.data_, null),
+            data_ = BitwardenCipher.deletedDate.set(new.data_, null),
         )
         new
     }

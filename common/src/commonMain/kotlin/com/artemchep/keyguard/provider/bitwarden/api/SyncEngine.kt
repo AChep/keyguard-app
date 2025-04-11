@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api
 
+import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.SyncScope
@@ -656,7 +657,7 @@ class SyncEngine(
             localDecoder = { rawLocal, remote ->
                 // Inject the URL checksums into the list of URLs before
                 // processing the entry.
-                val local = BitwardenCipher.login.uris.modify(rawLocal) { uris ->
+                val local = BitwardenCipher.login.notNull.uris.modify(rawLocal) { uris ->
                     uris
                         .map { uri ->
                             if (uri.uriChecksumBase64 != null) return@map uri

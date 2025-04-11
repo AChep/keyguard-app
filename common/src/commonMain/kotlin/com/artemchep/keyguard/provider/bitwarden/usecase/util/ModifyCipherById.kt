@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase.util
 
+import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -58,7 +59,7 @@ class ModifyCipherById(
                     // When we edit or create an item with a password, we must set the
                     // passwords revision date. Otherwise you loose the info of when the
                     // password was created.
-                    val newData = BitwardenCipher.login.modify(new.data_) { login ->
+                    val newData = BitwardenCipher.login.notNull.modify(new.data_) { login ->
                         val passwordRevisionDate = login.passwordRevisionDate
                             ?: new.data_.revisionDate
                                 .takeIf {

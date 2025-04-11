@@ -9,7 +9,7 @@ import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.core.store.bitwarden.nullableFolderId
+import com.artemchep.keyguard.core.store.bitwarden.folderId
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import org.kodein.di.DirectDI
@@ -63,7 +63,7 @@ class MoveCipherToFolderByIdImpl(
     ) { model ->
         var new = model
         new = new.copy(
-            data_ = BitwardenCipher.nullableFolderId.set(new.data_, folderId),
+            data_ = BitwardenCipher.folderId.set(new.data_, folderId),
         )
         new
     }

@@ -13,21 +13,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import arrow.core.flatten
 import arrow.core.partially1
 import arrow.core.partially2
-import arrow.optics.Optional
+import arrow.optics.Lens
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.model.create.deletionDate
+import com.artemchep.keyguard.common.model.create.deletionDateAsDuration
 import com.artemchep.keyguard.common.model.create.disabled
 import com.artemchep.keyguard.common.model.create.expirationDate
+import com.artemchep.keyguard.common.model.create.expirationDateAsDuration
 import com.artemchep.keyguard.common.model.create.hidden
 import com.artemchep.keyguard.common.model.create.hideEmail
 import com.artemchep.keyguard.common.model.create.maxAccessCount
 import com.artemchep.keyguard.common.model.create.note
-import com.artemchep.keyguard.common.model.create.nullableDeletionDateAsDuration
-import com.artemchep.keyguard.common.model.create.nullableExpirationDateAsDuration
 import com.artemchep.keyguard.common.model.create.password
 import com.artemchep.keyguard.common.model.create.text
 import com.artemchep.keyguard.common.model.requiresPremium
@@ -533,7 +533,7 @@ private suspend fun RememberStateFlowScope.produceTextState(
         singleLine: Boolean = false,
         autocompleteOptions: ImmutableList<String> = persistentListOf(),
         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-        lens: Optional<CreateSendRequest, String>,
+        lens: Lens<CreateSendRequest, String?>,
     ) = createItem<CreateSendRequest>(
         prefix = prefix,
         key = key,
@@ -720,7 +720,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                 .stateIn(screenScope),
             populator = { state ->
                 val duration = state.data as Duration?
-                CreateSendRequest.nullableDeletionDateAsDuration.set(this, duration)
+                CreateSendRequest.deletionDateAsDuration.set(this, duration)
             },
         )
         AddStateItem.Enum(
@@ -822,7 +822,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                 .stateIn(screenScope),
             populator = { state ->
                 val duration = state.data as Duration?
-                CreateSendRequest.nullableExpirationDateAsDuration.set(this, duration)
+                CreateSendRequest.expirationDateAsDuration.set(this, duration)
             },
         )
         AddStateItem.Enum(

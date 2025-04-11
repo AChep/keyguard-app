@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -56,7 +57,7 @@ class ChangeCipherPasswordByIdImpl(
                     }?.attempt()?.bind()?.getOrNull()
 
                 var new = model
-                val data = BitwardenCipher.login.modify(new.data_) { login ->
+                val data = BitwardenCipher.login.notNull.modify(new.data_) { login ->
                     val passwordHistory = kotlin.run {
                         val list = login.passwordHistory.toMutableList()
                         // The existing password was changed, so we should

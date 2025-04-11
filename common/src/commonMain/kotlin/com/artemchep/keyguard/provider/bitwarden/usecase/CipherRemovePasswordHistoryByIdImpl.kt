@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
@@ -32,7 +33,7 @@ class CipherRemovePasswordHistoryByIdImpl(
     ) { model ->
         var new = model
         new = new.copy(
-            data_ = BitwardenCipher.login.passwordHistory
+            data_ = BitwardenCipher.login.notNull.passwordHistory
                 .modify(new.data_) { oldPasswordHistory ->
                     oldPasswordHistory
                         .filter { it.id !in passwordIds }

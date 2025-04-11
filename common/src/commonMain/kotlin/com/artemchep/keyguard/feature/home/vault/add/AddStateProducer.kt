@@ -27,7 +27,7 @@ import arrow.core.flatten
 import arrow.core.partially1
 import arrow.core.partially2
 import arrow.core.widen
-import arrow.optics.Optional
+import arrow.optics.Lens
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
@@ -2564,7 +2564,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         autocompleteOptions: ImmutableList<String> = persistentListOf(),
         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
         visualTransformation: VisualTransformation = VisualTransformation.None,
-        lens: Optional<CreateRequest, String>,
+        lens: Lens<CreateRequest, String?>,
     ) = createItem<CreateRequest>(
         prefix = prefix,
         key = key,
@@ -2589,7 +2589,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
         autocompleteOptions: ImmutableList<String> = persistentListOf(),
         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
         visualTransformation: VisualTransformation = VisualTransformation.None,
-        lens: Optional<CreateRequest, String>,
+        lens: Lens<CreateRequest, String?>,
     ) = kotlin.run {
         val id = "$prefix.$key"
 
@@ -2906,7 +2906,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
         singleLine: Boolean = false,
         autocompleteOptions: ImmutableList<String> = persistentListOf(),
         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-        lens: Optional<CreateRequest, String>,
+        lens: Lens<CreateRequest, String?>,
     ) = createItem<CreateRequest>(
         prefix = prefix,
         key = key,

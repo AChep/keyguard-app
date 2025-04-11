@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
@@ -51,7 +52,7 @@ class CipherUnsecureUrlAutoFixImpl(
 
         var new = model
         new = new.copy(
-            data_ = BitwardenCipher.login.uris.set(new.data_, uris),
+            data_ = BitwardenCipher.login.notNull.uris.set(new.data_, uris),
         )
         new
     }.map { Unit }

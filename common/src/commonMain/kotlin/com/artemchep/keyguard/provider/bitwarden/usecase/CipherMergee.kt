@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
-import arrow.core.some
-import arrow.optics.Optional
+import arrow.optics.Lens
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.address1
 import com.artemchep.keyguard.common.model.address2
@@ -45,8 +44,8 @@ import org.kodein.di.DirectDI
  */
 class CipherMergeImpl() : CipherMerge {
     private val mergeRules = Node.Group<DSecret, DSecret>(
-        lens = Optional(
-            getOption = { it.some() },
+        lens = Lens<DSecret, DSecret, DSecret, DSecret>(
+            get = { it },
             set = { _, newValue -> newValue },
         ),
         children = listOf(
@@ -123,15 +122,15 @@ class CipherMergeImpl() : CipherMerge {
     )
 
     private sealed interface Node<Input : Any> {
-        val lens: Optional<Input, *>
+        val lens: Lens<Input, *>
 
         class Group<Input : Any, Focus : Any>(
-            override val lens: Optional<Input, Focus>,
+            override val lens: Lens<Input, out Focus?>,
             val children: List<Node<Focus>> = emptyList(),
         ) : Node<Input>
 
         class Leaf<Input : Any, Focus : Any>(
-            override val lens: Optional<Input, Focus>,
+            override val lens: Lens<Input, out Focus?>,
             val strategy: PickStrategy<Focus> = PickModeStrategy(),
         ) : Node<Input>
     }
@@ -213,7 +212,7 @@ class CipherMergeImpl() : CipherMerge {
     ): Any {
         return when (this) {
             is Node.Group<*, *> -> {
-                val lensFixed = lens as Optional<Any, Any>
+                val lensFixed = lens as Lens<Any, Any?>
                 val lensData = data
                     .mapNotNull(lensFixed::getOrNull)
                 // We can not merge empty list of sources, so
@@ -236,7 +235,7 @@ class CipherMergeImpl() : CipherMerge {
             }
 
             is Node.Leaf<*, *> -> {
-                val lensFixed = lens as Optional<Any, Any>
+                val lensFixed = lens as Lens<Any, Any?>
                 val lensData = data
                     .mapNotNull(lensFixed::getOrNull)
                 if (lensData.isEmpty()) {

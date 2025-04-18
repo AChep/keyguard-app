@@ -82,7 +82,7 @@ kotlin = "2.1.20"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.3.8"
 # https://github.com/Kotlin/kotlinx.coroutines
-kotlinCoroutines = "1.10.1"
+kotlinCoroutines = "1.10.2"
 # https://github.com/Kotlin/kotlinx-datetime
 kotlinDatetime = "0.6.2"
 kotlinDsl = "4.3.0"

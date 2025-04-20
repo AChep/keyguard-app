@@ -382,8 +382,8 @@ kotlin {
 
 // Generate KSP code for the common code:
 // https://github.com/google/ksp/issues/567
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().all {
-    if (name != "kspCommonMainKotlinMetadata") {
+tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
+    if (name.startsWith("compileKotlin")) {
         dependsOn("kspCommonMainKotlinMetadata")
     }
 }

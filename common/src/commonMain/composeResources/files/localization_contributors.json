@@ -135,8 +135,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 292,
-    "target": 490,
+    "translated": 4955,
+    "target": 8305,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -223,8 +223,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5476,
-    "target": 4712,
+    "translated": 5514,
+    "target": 4745,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -403,7 +403,7 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 17,
+    "positiveVotes": 18,
     "negativeVotes": 3,
     "winning": 0
   },
@@ -587,10 +587,10 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2403,
-    "target": 3804,
+    "translated": 2466,
+    "target": 3882,
     "approved": 0,
-    "voted": 10,
+    "voted": 11,
     "positiveVotes": 2,
     "negativeVotes": 0,
     "winning": 0
@@ -1189,8 +1189,8 @@
         "name": "French"
       }
     ],
-    "translated": 861,
-    "target": 1011,
+    "translated": 1017,
+    "target": 1211,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 12,

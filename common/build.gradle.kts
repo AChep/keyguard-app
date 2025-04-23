@@ -382,9 +382,15 @@ kotlin {
 
 // Generate KSP code for the common code:
 // https://github.com/google/ksp/issues/567
+val compileKotlinRegex = "^compile.*Kotlin.*".toRegex()
+val kspKotlinRegex = "^ksp.*Kotlin.*".toRegex()
 tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
-    if (name.startsWith("compileKotlin")) {
-        dependsOn("kspCommonMainKotlinMetadata")
+    val kspCommonTaskName = "kspCommonMainKotlinMetadata"
+    if (kspCommonTaskName != name) {
+        return@configureEach
+    }
+    if (compileKotlinRegex.matches(name) || kspKotlinRegex.matches(name)) {
+        dependsOn(kspCommonTaskName)
     }
 }
 kotlin.compilerOptions {

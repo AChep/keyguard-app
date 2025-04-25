@@ -46,7 +46,7 @@ androidxTestRunner = "1.6.2"
 androidxTestRule = "1.6.1"
 androidxTestJUnit = "1.2.1"
 androidxTestOrchestrator = "1.5.1"
-androidxWork = "2.10.0"
+androidxWork = "2.10.1"
 # https://github.com/harawata/appdirs
 appDirs = "1.4.0"
 # https://github.com/arrow-kt/arrow

@@ -33,7 +33,7 @@ androidxCredentials = "1.5.0"
 # Before updating the version, check if
 # https://issuetracker.google.com/issues/413061399
 # has been fixed.
-androidxDatastore = "1.1.4"
+androidxDatastore = "1.1.5"
 androidxLifecycle = "2.8.7"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.7.1"

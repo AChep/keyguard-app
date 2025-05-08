@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 帳號</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 事件</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 單詞</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 結果</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 秒</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 分鐘</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 小時</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 天</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 周</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 月</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 年</item>
     </plurals>
 </resources>

@@ -7,12 +7,11 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -20,6 +19,7 @@ import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.VisibilityIcon
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.theme.Dimens
+import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -27,23 +27,23 @@ fun VaultViewNoteItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Note,
 ) {
+    val visibilityConfig = item.visibility
+    val visibilityState = rememberVisibilityState(
+        visibilityConfig,
+    )
     Column(
         modifier = modifier,
     ) {
-        val updatedVerify by rememberUpdatedState(item.verify)
-        val visibilityState = remember(
-            item.conceal,
-        ) { mutableStateOf(!item.conceal) }
-
-        if (item.conceal) {
+        if (!visibilityState.value.value) {
+            val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
             FlatItem(
                 leading = {
                     VisibilityIcon(
-                        visible = visibilityState.value,
+                        visible = visibilityState.value.value,
                     )
                 },
                 title = {
-                    val text = if (visibilityState.value) {
+                    val text = if (visibilityState.value.value) {
                         stringResource(Res.string.hide_secure_note)
                     } else {
                         stringResource(Res.string.reveal_secure_note)
@@ -53,24 +53,17 @@ fun VaultViewNoteItem(
                     )
                 },
                 onClick = {
-                    val shouldBeConcealed = !visibilityState.value
-                    val verify = updatedVerify
-                    if (
-                        verify != null &&
-                        shouldBeConcealed
-                    ) {
-                        verify.invoke {
-                            visibilityState.value = true
-                        }
-                        return@FlatItem
+                    updatedVisibilityConfig.transformUserEvent(!visibilityState.value.value) { newValue ->
+                        visibilityState.value = Visibility.Event(
+                            value = newValue,
+                            timestamp = Clock.System.now(),
+                        )
                     }
-
-                    visibilityState.value = shouldBeConcealed
                 },
             )
         }
         ExpandedIfNotEmpty(
-            Unit.takeIf { visibilityState.value },
+            Unit.takeIf { visibilityState.value.value },
             modifier = Modifier
                 .fillMaxWidth(),
         ) {
@@ -100,17 +93,6 @@ fun VaultViewNoteItemLayout(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-//    Surface(
-//        modifier = Modifier
-//            .padding(
-//                horizontal = 8.dp,
-//                vertical = 2.dp,
-//            )
-//            .padding(top = 8.dp)
-//            .fillMaxWidth(),
-//        shape = MaterialTheme.shapes.medium,
-//        color = MaterialTheme.colorScheme.noteContainer,
-//    ) {
     Column(
         modifier = modifier
             .padding(
@@ -120,5 +102,4 @@ fun VaultViewNoteItemLayout(
     ) {
         content()
     }
-//    }
 }

@@ -60,6 +60,7 @@ class FlowHolderViewModel(
                 scope = vmCoroutineScope,
                 navigationController = c,
                 backPressInterceptorHost = navigationEntry,
+                keyEventInterceptorHost = navigationEntry,
                 showMessage = showMessage,
                 getScreenState = getScreenState,
                 putScreenState = putScreenState,

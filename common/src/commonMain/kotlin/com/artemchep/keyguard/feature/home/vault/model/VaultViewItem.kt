@@ -11,9 +11,9 @@ import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
-import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
@@ -33,8 +33,7 @@ sealed interface VaultViewItem {
         override val id: String,
         val elevation: Dp,
         val data: DSecret.Card,
-        val concealFields: Boolean,
-        val verify: ((() -> Unit) -> Unit)? = null,
+        val visibility: Visibility = Visibility(),
         val dropdown: ImmutableList<ContextItem> = persistentListOf(),
     ) : VaultViewItem {
         companion object
@@ -87,15 +86,13 @@ sealed interface VaultViewItem {
         val title: String?,
         val value: String,
         val maxLines: Int = Int.MAX_VALUE,
-        val private: Boolean = false,
-        val hidden: Boolean = false,
+        val visibility: Visibility = Visibility(),
         val monospace: Boolean = false,
         val colorize: Boolean = false,
         val leading: (@Composable RowScope.() -> Unit)? = null,
         val trailing: (@Composable RowScope.() -> Unit)? = null,
         val badge: Badge? = null,
         val badge2: List<StateFlow<Badge?>> = emptyList(),
-        val verify: ((() -> Unit) -> Unit)? = null,
         /**
          * List of the callable actions appended
          * to the item.
@@ -113,6 +110,7 @@ sealed interface VaultViewItem {
             val text: String,
             val score: Float,
         )
+
     }
 
     data class Error(
@@ -158,8 +156,7 @@ sealed interface VaultViewItem {
         override val id: String,
         val content: Content,
         val elevation: Dp = 0.dp,
-        val conceal: Boolean = false,
-        val verify: ((() -> Unit) -> Unit)? = null,
+        val visibility: Visibility = Visibility(),
     ) : VaultViewItem {
         companion object;
 
@@ -268,8 +265,8 @@ sealed interface VaultViewItem {
         override val id: String,
         val copy: CopyText,
         val title: String,
+        val shortcut: KeyShortcut? = null,
         val elevation: Dp,
-        val verify: ((() -> Unit) -> Unit)? = null,
         val totp: TotpToken,
         val localStateFlow: StateFlow<LocalState>,
     ) : VaultViewItem {
@@ -328,4 +325,5 @@ sealed interface VaultViewItem {
     ) : VaultViewItem {
         companion object
     }
+
 }

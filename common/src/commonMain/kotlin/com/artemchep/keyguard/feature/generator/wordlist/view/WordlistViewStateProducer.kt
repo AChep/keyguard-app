@@ -17,6 +17,7 @@ import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.searchFilter
@@ -65,6 +66,7 @@ fun produceWordlistViewState(
     ),
 ) {
     val queryHandle = searchQueryHandle("query")
+    searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
         WordlistViewState.Filter(
             revision = revision,

@@ -31,6 +31,9 @@ import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.impl.JustDeleteMeServiceImpl
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.impl.JustGetMyDataServiceImpl
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceImpl
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.license.LicenseService
 import com.artemchep.keyguard.common.service.license.impl.LicenseServiceImpl
@@ -434,6 +437,17 @@ fun globalModuleJvm() = DI.Module(
         DownloadServiceImpl(
             directDI = this,
         )
+    }
+    bindSingleton<KeyboardShortcutsServiceImpl> {
+        KeyboardShortcutsServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<KeyboardShortcutsService> {
+        instance<KeyboardShortcutsServiceImpl>()
+    }
+    bindSingleton<KeyboardShortcutsServiceHost> {
+        instance<KeyboardShortcutsServiceImpl>()
     }
     bindSingleton<AuthConfirmMasterKeyUseCase> {
         AuthConfirmMasterKeyUseCaseImpl(

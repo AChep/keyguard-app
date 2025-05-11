@@ -54,8 +54,10 @@ import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
+import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
+import com.artemchep.keyguard.ui.tooltip.Tooltip
 import com.artemchep.keyguard.ui.totp.formatCode2
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
@@ -146,10 +148,14 @@ fun VaultViewTotpItem(
                         onCopy?.invoke()
                     },
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ContentCopy,
-                        contentDescription = null,
-                    )
+                    ShortcutTooltip(
+                        valueOrNull = item.shortcut,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
         },

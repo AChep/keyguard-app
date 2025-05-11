@@ -11,18 +11,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -36,6 +35,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,11 +50,12 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PlainTextField
+import com.artemchep.keyguard.ui.focus.FocusRequester2
+import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SearchTextField(
@@ -58,6 +63,8 @@ fun SearchTextField(
     text: String,
     placeholder: String,
     searchIcon: Boolean = true,
+    focusRequester: FocusRequester2,
+    focusFlow: Flow<Unit>?,
     count: Int? = null,
     leading: @Composable () -> Unit,
     trailing: @Composable () -> Unit,
@@ -67,11 +74,20 @@ fun SearchTextField(
         MutableInteractionSource()
     }
 
+    LaunchedEffect(focusFlow) {
+        focusFlow
+            ?: return@LaunchedEffect
+        focusFlow.collect {
+            focusRequester.requestFocus(showKeyboard = true)
+        }
+    }
+
     val isEmptyState = rememberUpdatedState(text.isEmpty())
     val isFocusedState = interactionSource.collectIsFocusedAsState()
     Row(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .focusRequester2(focusRequester),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -124,7 +140,17 @@ fun SearchTextField(
             PlainTextField(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(1f),
+                    .weight(1f)
+                    // When focused, clicking the Escape key should
+                    // clear the text field.
+                    .onKeyEvent { keyEvent ->
+                        if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
+                            updatedOnChange?.invoke("")
+                            return@onKeyEvent true
+                        }
+
+                        false
+                    },
                 interactionSource = interactionSource,
                 value = text,
                 textStyle = textStyle,

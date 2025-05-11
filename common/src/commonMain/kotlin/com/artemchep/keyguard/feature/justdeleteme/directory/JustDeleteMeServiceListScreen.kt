@@ -164,11 +164,12 @@ fun JustDeleteMeListScreen(
                         ?.items
                         ?.size
                     SearchTextField(
-                        modifier = Modifier
-                            .focusRequester2(focusRequester),
+                        modifier = Modifier,
                         text = queryText,
                         placeholder = stringResource(Res.string.justdeleteme_search_placeholder),
                         searchIcon = false,
+                        focusRequester = focusRequester,
+                        focusFlow = query?.focusFlow,
                         count = count,
                         leading = {},
                         trailing = {},

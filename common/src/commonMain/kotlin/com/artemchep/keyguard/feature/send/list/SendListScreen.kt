@@ -191,10 +191,10 @@ fun SendListScreen(
         header = { modifier ->
             CustomSearchbarContent(
                 modifier = modifier,
-                searchFieldModifier = Modifier
-                    .focusRequester2(focusRequester),
+                searchFieldModifier = Modifier,
                 searchFieldModel = state.query,
                 searchFieldPlaceholder = stringResource(Res.string.send_main_search_placeholder),
+                focusRequester = focusRequester,
                 title = args.appBar?.title
                     ?: stringResource(Res.string.send_main_header_title),
                 subtitle = args.appBar?.subtitle,
@@ -264,10 +264,10 @@ private fun SendScreenContent(
             ) {
                 CustomSearchbarContent(
                     modifier = Modifier,
-                    searchFieldModifier = Modifier
-                        .focusRequester2(focusRequester),
+                    searchFieldModifier = Modifier,
                     searchFieldModel = state.query,
                     searchFieldPlaceholder = stringResource(Res.string.send_main_search_placeholder),
+                    focusRequester = focusRequester,
                     title = title
                         ?: stringResource(Res.string.send_main_header_title),
                     subtitle = subtitle,

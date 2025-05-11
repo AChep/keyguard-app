@@ -67,6 +67,7 @@ import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevati
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -105,6 +106,7 @@ data class FlatItemAction(
     val title: TextHolder,
     val text: TextHolder? = null,
     val type: Type? = null,
+    val shortcut: KeyShortcut? = null,
     val selected: Boolean = false,
     val onClick: (() -> Unit)? = {},
 ) : ContextItem {
@@ -185,12 +187,14 @@ class ContextItemBuilder(
 fun CopyText.FlatItemAction(
     title: TextHolder,
     value: String?,
+    shortcut: KeyShortcut? = null,
     hidden: Boolean = false,
     type: CopyText.Type = CopyText.Type.VALUE,
 ) = value?.let {
     FlatItemAction(
         title = title,
         value = it,
+        shortcut = shortcut,
         hidden = hidden,
         type = type,
     )
@@ -200,6 +204,7 @@ fun CopyText.FlatItemAction(
     leading: (@Composable () -> Unit)? = null,
     title: TextHolder,
     value: String,
+    shortcut: KeyShortcut? = null,
     hidden: Boolean = false,
     type: CopyText.Type = CopyText.Type.VALUE,
 ) = FlatItemAction(
@@ -208,6 +213,7 @@ fun CopyText.FlatItemAction(
     title = title,
     text = value.takeUnless { hidden }
         ?.let(TextHolder::Value),
+    shortcut = shortcut,
     type = FlatItemAction.Type.COPY,
     onClick = {
         copy(

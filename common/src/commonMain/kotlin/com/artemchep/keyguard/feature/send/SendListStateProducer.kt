@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
 import arrow.core.identity
 import arrow.core.partially1
 import com.artemchep.keyguard.AppMode
@@ -59,6 +60,8 @@ import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSi
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -215,6 +218,77 @@ fun sendListScreenState(
 
     val querySink = mutablePersistedFlow("query") { "" }
     val queryState = mutableComposeState(querySink)
+    val queryFocusSink = EventFlow<Unit>()
+
+    fun clearField() {
+        queryState.value = ""
+    }
+
+    fun focusField() {
+        queryFocusSink.emit(Unit)
+    }
+
+    // Intercept the back button while the
+    // search query is not empty.
+    interceptBackPress(
+        interceptorFlow = querySink
+            .map { it.isNotEmpty() }
+            .distinctUntilChanged()
+            .map { enabled ->
+                if (enabled) {
+                    // lambda
+                    ::clearField
+                } else {
+                    null
+                }
+            },
+    )
+
+    // Keyboard shortcuts
+    interceptKeyEvents(
+        // Ctrl+Alt+F: Focus search field
+        KeyShortcut(
+            key = Key.F,
+            isCtrlPressed = true,
+            isAltPressed = true,
+        ) to flowOf(true)
+            .map { enabled ->
+                if (enabled) {
+                    // lambda
+                    {
+                        clearField()
+                        focusField()
+                    }
+                } else {
+                    null
+                }
+            },
+        // Ctrl+N: Create new send
+        KeyShortcut(
+            key = Key.N,
+            isCtrlPressed = true,
+        ) to combine(
+            getAccounts()
+                .map { it.isNotEmpty() },
+            getCanWrite(),
+        ) { hasAccounts, canWrite -> hasAccounts && canWrite }
+            .map { enabled ->
+                if (enabled) {
+                    // lambda
+                    {
+                        val route = SendAddRoute(
+                            args = SendAddRoute.Args(
+                                type = DSend.Type.Text,
+                            ),
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
+                    }
+                } else {
+                    null
+                }
+            },
+    )
 
     val cipherSink = EventFlow<DSend>()
 
@@ -842,6 +916,7 @@ fun sendListScreenState(
             TextFieldModel2(
                 state = queryState,
                 text = query,
+                focusFlow = queryFocusSink,
                 onChange = queryState::value::set,
             )
         } else {

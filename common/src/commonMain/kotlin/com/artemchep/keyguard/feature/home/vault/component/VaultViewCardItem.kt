@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -25,13 +24,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
+import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -106,10 +108,12 @@ fun VaultViewCardItem(
 ) {
     val cardNumber = item.data.number
 
-    val updatedVerify by rememberUpdatedState(item.verify)
-    val visibilityState = remember(
-        item.concealFields,
-    ) { mutableStateOf(!item.concealFields) }
+    val visibilityConfig = item.visibility
+    val visibilityState = rememberVisibilityState(
+        visibilityConfig,
+    )
+
+    val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
     FlatDropdown(
         modifier = modifier,
         elevation = item.elevation,
@@ -131,7 +135,7 @@ fun VaultViewCardItem(
             Row {
                 if (cardNumber != null) {
                     val progress by animateFloatAsState(
-                        targetValue = if (visibilityState.value) {
+                        targetValue = if (visibilityState.value.value) {
                             1f
                         } else {
                             0f
@@ -226,22 +230,16 @@ fun VaultViewCardItem(
             }
         },
         trailing = {
-            if (item.concealFields && cardNumber != null) {
+            if (item.visibility.concealed && cardNumber != null) {
                 VisibilityToggle(
-                    visible = visibilityState.value,
-                    onVisibleChange = { shouldBeConcealed ->
-                        val verify = updatedVerify
-                        if (
-                            verify != null &&
-                            shouldBeConcealed
-                        ) {
-                            verify.invoke {
-                                visibilityState.value = true
-                            }
-                            return@VisibilityToggle
+                    visible = visibilityState.value.value,
+                    onVisibleChange = { possibleNewValue ->
+                        updatedVisibilityConfig.transformUserEvent(possibleNewValue) { newValue ->
+                            visibilityState.value = Visibility.Event(
+                                value = newValue,
+                                timestamp = Clock.System.now(),
+                            )
                         }
-
-                        visibilityState.value = shouldBeConcealed
                     },
                 )
             }
@@ -260,10 +258,14 @@ fun VaultViewCardItem(
                         onCopy?.invoke()
                     },
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ContentCopy,
-                        contentDescription = null,
-                    )
+                    ShortcutTooltip(
+                        valueOrNull = onCopyAction.shortcut,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
         },

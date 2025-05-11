@@ -1,21 +1,21 @@
 package com.artemchep.keyguard.ui
 
-//import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material.ElevationOverlay
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -25,13 +25,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.GraphicsLayerScope
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -41,17 +41,106 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import com.artemchep.keyguard.platform.leIme
+import com.artemchep.keyguard.platform.leSystemBars
 
 // Menu open/close animation.
 private const val InTransitionDuration = 180
 private const val OutTransitionDuration = 125
 
 @Composable
-fun WunderPopup(
-    modifier: Modifier = Modifier,
+fun DialogPopup(
+    onDismissRequest: () -> Unit,
+    expanded: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    // Popups on the desktop are by default embedded in the component in which
+    // they are defined and aligned within its bounds. But an [AlertDialog] needs
+    // to be aligned within the window, not the parent component, so we cannot use
+    // [alignment] property of [Popup] and have to use [Box] that fills all the
+    // available space. Also [Box] provides a dismiss request feature when clicked
+    // outside of the [AlertDialog] content.
+    val transformOriginState = remember { mutableStateOf(TransformOrigin.Center) }
+    val density = LocalDensity.current
+    // The original [DropdownMenuPositionProvider] is not yet suitable for large screen devices,
+    // so we need to make additional checks and adjust the position of the [DropdownMenu] to
+    // avoid content being cut off if the [DropdownMenu] contains too many items.
+    // See: https://github.com/JetBrains/compose-jb/issues/1388
+    val popupPositionProvider = DesktopDialogPositionProvider(
+        density,
+    )
+    BasicPopup(
+        contentModifier = Modifier
+            .padding(16.dp),
+        graphicsModifier = { alpha, scale ->
+            this.translationY = (1f - scale) * 512.dp.toPx()
+            this.scaleX = scale
+            this.scaleY = scale
+            this.alpha = alpha
+            transformOrigin = transformOriginState.value
+        },
+        onDismissRequest = onDismissRequest,
+        expanded = expanded,
+        popupPositionProvider = popupPositionProvider,
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun SheetPopup(
     onDismissRequest: () -> Unit,
     expanded: Boolean = true,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
+    content: @Composable () -> Unit,
+) {
+    // Popups on the desktop are by default embedded in the component in which
+    // they are defined and aligned within its bounds. But an [AlertDialog] needs
+    // to be aligned within the window, not the parent component, so we cannot use
+    // [alignment] property of [Popup] and have to use [Box] that fills all the
+    // available space. Also [Box] provides a dismiss request feature when clicked
+    // outside of the [AlertDialog] content.
+    val transformOriginState = remember { mutableStateOf(TransformOrigin.Center) }
+    val density = LocalDensity.current
+    // The original [DropdownMenuPositionProvider] is not yet suitable for large screen devices,
+    // so we need to make additional checks and adjust the position of the [DropdownMenu] to
+    // avoid content being cut off if the [DropdownMenu] contains too many items.
+    // See: https://github.com/JetBrains/compose-jb/issues/1388
+    val popupPositionProvider = DesktopDropdownMenuPositionProvider(
+        offset,
+        density,
+    ) { parentBounds, menuBounds ->
+        transformOriginState.value = calculateTransformOrigin(parentBounds, menuBounds)
+    }
+    BasicPopup(
+        contentModifier = Modifier
+            .fillMaxSize(),
+        graphicsModifier = { alpha, scale ->
+            this.translationX = (1f - scale) * 496.dp.toPx()
+            this.alpha = alpha
+            transformOrigin = transformOriginState.value
+        },
+        onDismissRequest = onDismissRequest,
+        expanded = expanded,
+        popupPositionProvider = popupPositionProvider,
+        shape = MaterialTheme.shapes.extraLarge
+            .copy(
+                topEnd = CornerSize(0.dp),
+                bottomEnd = CornerSize(0.dp),
+            ),
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun BasicPopup(
+    contentModifier: Modifier = Modifier,
+    graphicsModifier: GraphicsLayerScope.(alpha: Float, scale: Float) -> Unit,
+    onDismissRequest: () -> Unit,
+    expanded: Boolean,
+    popupPositionProvider: PopupPositionProvider,
+    shape: Shape = MaterialTheme.shapes.extraLarge,
     content: @Composable () -> Unit,
 ) {
     val expandedStates = remember {
@@ -63,7 +152,7 @@ fun WunderPopup(
     }
 
     // Menu open/close animation.
-    val transition = rememberTransition(expandedStates, "DropDownMenu")
+    val transition = rememberTransition(expandedStates, "BasicPopup")
     val alpha by transition.animateFloat(
         transitionSpec = {
             if (false isTransitioningTo true) {
@@ -97,16 +186,6 @@ fun WunderPopup(
         properties = PopupProperties(
             focusable = true,
         ),
-        //onPreviewKeyEvent = { false },
-        //onKeyEvent = {
-        // TODO:  && it.awtEventOrNull?.keyCode == KeyEvent.VK_ESCAPE
-        //if (it.type == KeyEventType.KeyDown) {
-        //    onDismissRequest()
-        //    true
-        //} else {
-        //        false
-        //}
-        //},
     ) {
         val scrimColor = MaterialTheme.colorScheme.scrim
             .copy(alpha = 0.32f)
@@ -121,40 +200,12 @@ fun WunderPopup(
         )
     }
 
-    // Popups on the desktop are by default embedded in the component in which
-    // they are defined and aligned within its bounds. But an [AlertDialog] needs
-    // to be aligned within the window, not the parent component, so we cannot use
-    // [alignment] property of [Popup] and have to use [Box] that fills all the
-    // available space. Also [Box] provides a dismiss request feature when clicked
-    // outside of the [AlertDialog] content.
-    val transformOriginState = remember { mutableStateOf(TransformOrigin.Center) }
-    val density = LocalDensity.current
-    // The original [DropdownMenuPositionProvider] is not yet suitable for large screen devices,
-    // so we need to make additional checks and adjust the position of the [DropdownMenu] to
-    // avoid content being cut off if the [DropdownMenu] contains too many items.
-    // See: https://github.com/JetBrains/compose-jb/issues/1388
-    val popupPositionProvider = DesktopDropdownMenuPositionProvider(
-        offset,
-        density,
-    ) { parentBounds, menuBounds ->
-        transformOriginState.value = calculateTransformOrigin(parentBounds, menuBounds)
-    }
     Popup(
         popupPositionProvider = popupPositionProvider,
         onDismissRequest = onDismissRequest,
         properties = PopupProperties(
             focusable = true,
         ),
-        //onPreviewKeyEvent = { false },
-        //onKeyEvent = {
-        // TODO:  && it.awtEventOrNull?.keyCode == KeyEvent.VK_ESCAPE
-        //if (it.type == KeyEventType.KeyDown) {
-        //    onDismissRequest()
-        //    true
-        //} else {
-        //        false
-        //}
-        //},
     ) {
         val scale by transition.animateFloat(
             transitionSpec = {
@@ -179,13 +230,17 @@ fun WunderPopup(
                 0.9f
             }
         }
-        val elevation = 1.dp
-        val maxWidth = 418.dp
+        val maxWidth = 560.dp
+        val verticalInsets = WindowInsets.leSystemBars
+            .union(WindowInsets.leIme)
         Surface(
             modifier = Modifier
-                .widthIn(max = maxWidth)
-                .fillMaxWidth(0.8f)
-                .fillMaxHeight()
+                .windowInsetsPadding(verticalInsets)
+                .consumeWindowInsets(verticalInsets)
+                .widthIn(
+                    min = 280.dp,
+                    max = maxWidth,
+                )
                 .pointerInput(onDismissRequest) {
                     detectTapGestures(
                         onPress = {
@@ -194,26 +249,37 @@ fun WunderPopup(
                         },
                     )
                 }
+                .then(contentModifier)
                 .graphicsLayer {
-                    this.translationX = (1f - scale) * maxWidth.toPx()
-                    this.alpha = alpha
-                    transformOrigin = transformOriginState.value
+                    graphicsModifier(this, alpha, scale)
                 },
-            shape = MaterialTheme.shapes.large
-                .copy(
-                    topEnd = CornerSize(0.dp),
-                    bottomEnd = CornerSize(0.dp),
-                ),
-            tonalElevation = elevation,
-            shadowElevation = elevation,
+            shape = shape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 0.dp,
+            shadowElevation = 1.dp,
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier,
             ) {
                 content()
             }
         }
+    }
+}
+
+@Immutable
+private data class DesktopDialogPositionProvider(
+    val density: Density,
+) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize,
+    ): IntOffset {
+        val x = (windowSize.width - popupContentSize.width) / 2
+        val y = (windowSize.height - popupContentSize.height) / 2
+        return IntOffset(x, y)
     }
 }
 
@@ -307,17 +373,4 @@ private fun calculateTransformOrigin(
         }
     }
     return TransformOrigin(pivotX, pivotY)
-}
-
-@Composable
-private fun surfaceColorAtElevation(
-    color: Color,
-    elevationOverlay: ElevationOverlay?,
-    absoluteElevation: Dp,
-): Color {
-    return if (color == MaterialTheme.colorScheme.surface && elevationOverlay != null) {
-        elevationOverlay.apply(color, absoluteElevation)
-    } else {
-        color
-    }
 }

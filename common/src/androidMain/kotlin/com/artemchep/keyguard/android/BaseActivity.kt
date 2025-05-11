@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import androidx.activity.compose.setContent
@@ -32,6 +33,7 @@ import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
@@ -74,6 +76,8 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     private val logRepository: LogRepository by instance()
 
     private val permissionService: PermissionServiceAndroid by instance()
+
+    private val keyboardShortcutsService: KeyboardShortcutsService by instance()
 
     private val navTag = N.tag("BaseActivity")
 
@@ -518,5 +522,10 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         permissionService.refresh()
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        val composeEvent = androidx.compose.ui.input.key.KeyEvent(event)
+        return keyboardShortcutsService.handle(composeEvent) || super.onKeyDown(keyCode, event)
     }
 }

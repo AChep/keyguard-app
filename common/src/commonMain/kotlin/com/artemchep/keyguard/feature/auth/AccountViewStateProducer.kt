@@ -76,6 +76,7 @@ import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
@@ -100,11 +101,9 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.KeyguardCollection
 import com.artemchep.keyguard.ui.icons.KeyguardOrganization
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
-import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
-import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.isDark
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -1149,7 +1148,9 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
             id = id,
             title = scope.translate(Res.string.master_password_hint),
             value = hint.orEmpty(),
-            private = true,
+            visibility = Visibility(
+                concealed = true,
+            ),
             leading = {
                 Icon(Icons.AutoMirrored.Outlined.HelpOutline, null)
             },

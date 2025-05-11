@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -42,10 +43,12 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
@@ -59,7 +62,6 @@ import com.artemchep.keyguard.common.model.DFolderTree
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
@@ -124,7 +126,6 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
-import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
@@ -160,6 +161,7 @@ import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
@@ -180,6 +182,8 @@ import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
@@ -191,6 +195,8 @@ import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
 import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -216,6 +222,7 @@ import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -232,13 +239,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.allInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.net.URI
+
+typealias RevealConcealFlow = Flow<Unit>
 
 @Composable
 fun vaultViewScreenState(
@@ -326,6 +337,13 @@ private class Holder(
         )
     }
 }
+
+private class CipherSauce(
+    val cipher: DSecret,
+    val cipherUrisIo: IO<List<Holder>>,
+    val canEdit: Boolean,
+    val canDelete: Boolean,
+)
 
 @Composable
 fun vaultViewScreenState(
@@ -440,6 +458,7 @@ fun vaultViewScreenState(
                 .firstOrNull { it.id == itemId && it.accountId == accountId }
         }
         .distinctUntilChanged()
+        .shareInScreenScope()
     launchAutoPopSelfHandler(secretFlow)
 
     // Mark watchtower alert as read if the screen
@@ -499,15 +518,453 @@ fun vaultViewScreenState(
         }
         .distinctUntilChanged()
 
+    fun getCipherUrisIo(
+        now: Instant,
+        cipher: DSecret,
+        urlOverrides: List<DGlobalUrlOverride>,
+    ) = ioEffect {
+        val extractors = LinkInfoRegistry(linkInfoExtractors)
+
+        // Processes a single URI
+        suspend fun processUri(
+            uri: DSecret.Uri,
+        ) = when (uri.match) {
+            // Regular expressions may use the {} control
+            // symbols already. Since we do not want to break
+            // existing data we ignore the placeholders and overrides.
+            DSecret.Uri.MatchType.RegularExpression -> {
+                val extra = extractors.process(uri)
+                Holder(
+                    uri = uri,
+                    info = extra,
+                )
+            }
+
+            else -> {
+                val newUriPlaceholders = placeholderFactories
+                    .create(
+                        scope = PlaceholderScope(
+                            now = now,
+                            cipher = cipher,
+                        ),
+                    )
+                val newUriString = kotlin.runCatching {
+                    uri.uri.placeholderFormat(newUriPlaceholders)
+                }.getOrElse { uri.uri }
+                val newUri = uri.copy(uri = newUriString)
+
+                // Process URL overrides
+                val urlOverridePlaceholders by lazy {
+                    placeholderFactories
+                        .create(
+                            scope = PlaceholderScope(
+                                now = now,
+                                cipher = cipher,
+                                url = newUriString,
+                            ),
+                        )
+                }
+                val urlOverrideList = urlOverrides
+                    .filter { override ->
+                        override.enabled &&
+                                override.regex.matches(newUriString)
+                    }
+                    .map { override ->
+                        val contentOrException = Either.catch {
+                            val command = override.command
+                                .placeholderFormat(
+                                    placeholders = urlOverridePlaceholders,
+                                )
+                            val extra = extractors.process(
+                                DSecret.Uri(
+                                    uri = command,
+                                    match = DSecret.Uri.MatchType.Exact,
+                                ),
+                            )
+                            Holder.Override.Content(
+                                uri = command,
+                                info = extra,
+                            )
+                        }
+                        Holder.Override(
+                            override = override,
+                            contentOrException = contentOrException,
+                        )
+                    }
+
+                val extra = extractors.process(newUri)
+                Holder(
+                    uri = newUri,
+                    info = extra,
+                    overrides = urlOverrideList,
+                )
+            }
+        }
+
+        cipher
+            .uris
+            .map { uri ->
+                processUri(uri)
+            }
+    }
+
+    val cipherExtraFlow = combine(
+        secretFlow,
+        collectionsFlow,
+        getUrlOverrides(),
+        getCanWrite(),
+    ) { cipher, collections, urlOverrides, hasWriteAccess ->
+        cipher
+            ?: return@combine null
+        val now = Clock.System.now()
+
+        // Find ciphers that have some limitations
+        val belongsToReadOnlyCollection by lazy {
+            collections.any { it.readOnly }
+        }
+        val canEdit = hasWriteAccess && cipher.canEdit() && !belongsToReadOnlyCollection
+        val canDelete = hasWriteAccess && cipher.canDelete() && !belongsToReadOnlyCollection
+
+        val hasCanNotSeePassword =
+            collections.all { it.hidePasswords } && collections.isNotEmpty()
+
+        // Process URL placeholders and extract the link info.
+        // We share the underlying job, so separate parts can
+        // re-use the processing result.
+        val cipherUrisIo = getCipherUrisIo(
+            now = now,
+            cipher = cipher,
+            urlOverrides = urlOverrides,
+        ).shared(tag = "Cipher URIs")
+
+        CipherSauce(
+            cipher = cipher,
+            cipherUrisIo = cipherUrisIo,
+            canEdit = canEdit,
+            canDelete = canDelete,
+        )
+    }
+
     val fff = MutableStateFlow(false)
     val bbb = fff
         .combine(secretFlow) { elevatedAccess, cipher ->
             elevatedAccess || cipher?.reprompt != true
         }
         .stateIn(appScope)
+
+    fun executeWithRePrompt(
+        reprompt: Boolean = true,
+        block: () -> Unit,
+    ) {
+        if (reprompt) {
+            // Handle the re-prompt protection
+            if (!fff.value) {
+                val intent = createElevatedAccessDialogIntent {
+                    fff.value = true
+                    block()
+                }
+                navigate(intent)
+                return
+            }
+        }
+
+        block()
+    }
+
+    fun onLaunchEdit(
+        cipher: DSecret,
+    ) {
+        val route = LeAddRoute(
+            args = AddRoute.Args(
+                behavior = AddRoute.Args.Behavior(
+                    // When you edit a cipher, you do not know what field
+                    // user is targeting, so it's better to not show the
+                    // keyboard automatically.
+                    autoShowKeyboard = false,
+                    launchEditedCipher = false,
+                ),
+                initialValue = cipher,
+            ),
+        )
+        val intent = NavigationIntent.NavigateToRoute(route)
+        navigate(intent)
+    }
+
+    val visibilityGlobalSink = mutablePersistedFlow("reveal") {
+        Visibility.Event(
+            value = false,
+            timestamp = Clock.System.now(),
+        )
+    }
+    val visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit =
+        argh@{ newValue, setter ->
+            if (!newValue) {
+                visibilityGlobalSink.value = Visibility.Event(
+                    value = false,
+                    timestamp = Clock.System.now(),
+                )
+                return@argh Unit
+            }
+
+            // Handle the re-prompt protection
+            return@argh executeWithRePrompt {
+                setter(true)
+            }
+        }
+    val visibilityGlobalConfig = Visibility.Global(
+        globalRevealStateFlow = visibilityGlobalSink,
+    )
+
+    fun pairUnlessEmpty(
+        value: String?,
+        type: CopyText.Type,
+    ): Pair<String, CopyText.Type>? {
+        if (value.isNullOrEmpty()) {
+            return null
+        }
+        return value to type
+    }
+
+    interceptKeyEvents(
+        // Ctrl+C: Copy the primary field value
+        KeyShortcut(
+            key = Key.C,
+            isCtrlPressed = true,
+        ) to secretFlow
+            .map { cipher ->
+                val primaryFieldPair =
+                    pairUnlessEmpty(cipher?.login?.username, CopyText.Type.USERNAME)
+                        ?: pairUnlessEmpty(cipher?.card?.number, CopyText.Type.CARD_NUMBER)
+                        ?: pairUnlessEmpty(cipher?.identity?.email, CopyText.Type.EMAIL)
+                        ?: pairUnlessEmpty(cipher?.identity?.phone, CopyText.Type.PHONE_NUMBER)
+                        ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.KEY)
+                        ?: pairUnlessEmpty(cipher?.notes, CopyText.Type.VALUE)
+                if (primaryFieldPair == null) {
+                    return@map null
+                }
+
+                // lambda
+                {
+                    val (value, type) = primaryFieldPair
+                    copy.copy(value, false, type)
+                }
+            },
+        // Ctrl+Shift+C: Copy the secret field value
+        KeyShortcut(
+            key = Key.C,
+            isCtrlPressed = true,
+            isShiftPressed = true,
+        ) to secretFlow
+            .map { cipher ->
+                val secretFieldPair =
+                    pairUnlessEmpty(cipher?.login?.password, CopyText.Type.PASSWORD)
+                        ?: pairUnlessEmpty(cipher?.card?.code, CopyText.Type.CARD_CVV)
+                        ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.KEY)
+                if (secretFieldPair == null) {
+                    return@map null
+                }
+
+                val performCopy = {
+                    val (value, type) = secretFieldPair
+                    copy.copy(value, true, type)
+                }
+                val needsRePrompt = cipher?.reprompt != false
+                // lambda
+                shortcut@{
+                    executeWithRePrompt(needsRePrompt, performCopy)
+                }
+            },
+        // Ctrl+Alt+C: Copy the one time password value
+        KeyShortcut(
+            key = Key.C,
+            isCtrlPressed = true,
+            isAltPressed = true,
+        ) to secretFlow
+            .map { cipher ->
+                val totpField = cipher?.login?.totp?.token
+                    ?: return@map null
+                // lambda
+                {
+                    // Generate the TOTP code and
+                    // copy it.
+                    appScope.launch {
+                        val code = getTotpCode(totpField)
+                            .firstOrNull()
+                            ?.code
+                        if (code != null) {
+                            val copyType = CopyText.Type.OTP
+                            copy.copy(code, false, copyType)
+                        }
+                    }
+                }
+            },
+        // Ctrl+Shift+F: Open website
+        KeyShortcut(
+            key = Key.F,
+            isCtrlPressed = true,
+            isShiftPressed = true,
+        ) to cipherExtraFlow
+            .map { cipherExtra ->
+                cipherExtra
+                    ?: return@map null
+
+                val uris = cipherExtra.cipherUrisIo
+                    .attempt()
+                    .bind()
+                    .getOrElse {
+                        return@map null
+                    }
+
+                fun getIntentForWebLinkInfo(info: LinkInfo): NavigationIntent? {
+                    if (info !is LinkInfoPlatform.Web)
+                        return null
+                    return NavigationIntent.NavigateToBrowser(info.url.toString())
+                }
+
+                fun getIntentForAndroidLinkInfo(info: LinkInfo): NavigationIntent? {
+                    if (info !is LinkInfoPlatform.Android)
+                        return null
+                    return NavigationIntent.NavigateToApp(info.packageName)
+                }
+
+                val handlers = buildList<(LinkInfo) -> NavigationIntent?> {
+                    add(::getIntentForWebLinkInfo)
+                    // On Android we can also open the app directly.
+                    if (CurrentPlatform is Platform.Mobile.Android) {
+                        add(::getIntentForAndroidLinkInfo)
+                    }
+                }
+
+                fun findFirstIntentOrNull(
+                    info: List<LinkInfo>,
+                ): NavigationIntent? {
+                    return info
+                        .firstNotNullOfOrNull { linkInfo ->
+                            handlers.firstNotNullOfOrNull { handler -> handler(linkInfo) }
+                        }
+                }
+
+                val shortcutIntent = uris
+                    .firstNotNullOfOrNull { uri ->
+                        findFirstIntentOrNull(uri.info)
+                            ?: uri.overrides
+                                .firstNotNullOfOrNull { override ->
+                                    val overrideContent = override.contentOrException
+                                        .getOrNull()
+                                        ?: return@firstNotNullOfOrNull null
+                                    findFirstIntentOrNull(overrideContent.info)
+                                }
+                    }
+                    ?: return@map null
+                // lambda
+                {
+                    navigate(shortcutIntent)
+                }
+            },
+        // Ctrl+R: Reveal/conceal th secret values
+        KeyShortcut(
+            key = Key.R,
+            isCtrlPressed = true,
+        ) to secretFlow
+            .map { cipher ->
+                val needsRePrompt = cipher?.reprompt != false
+                // lambda
+                shortcut@{
+                    val visible = !visibilityGlobalSink.value.value
+                    executeWithRePrompt(
+                        reprompt = visible && needsRePrompt
+                    ) {
+                        visibilityGlobalSink.value = Visibility.Event(
+                            value = visible,
+                            timestamp = Clock.System.now(),
+                        )
+                    }
+                }
+            },
+        // Ctrl+E: Edit an item
+        KeyShortcut(
+            key = Key.E,
+            isCtrlPressed = true,
+        ) to cipherExtraFlow
+            .map { cipherExtra ->
+                if (cipherExtra == null || !cipherExtra.canEdit) {
+                    return@map null
+                }
+
+                val cipher = cipherExtra.cipher
+                // lambda
+                shortcut@{
+                    executeWithRePrompt(cipher.reprompt) {
+                        onLaunchEdit(cipher)
+                    }
+                }
+            },
+        // Delete: Ask to move an item to trash
+        KeyShortcut(
+            key = Key.Delete,
+        ) to cipherExtraFlow
+            .map { cipherExtra ->
+                if (cipherExtra == null || !cipherExtra.canDelete) {
+                    return@map null
+                }
+
+                val cipher = cipherExtra.cipher
+                val action = flow<FlatItemAction> {
+                    if (cipher.deletedDate == null && cipher.service.remote != null) {
+                        val trashAction = cipherTrashAction(
+                            trashCipherById = trashCipherById,
+                            ciphers = listOf(cipher),
+                        )
+                        emit(trashAction)
+                    }
+                    if (cipher.deletedDate != null ||
+                        cipher.service.remote == null ||
+                        cipher.hasError
+                    ) {
+                        val deleteAction = cipherDeleteAction(
+                            removeCipherById = removeCipherById,
+                            ciphers = listOf(cipher),
+                        )
+                        emit(deleteAction)
+                    }
+                }.firstOrNull()
+                    ?.onClick
+                    ?: return@map null
+                // lambda
+                shortcut@{
+                    action()
+                }
+            },
+        // Ctrl+Delete: Ask to delete an item
+        KeyShortcut(
+            key = Key.Delete,
+            isCtrlPressed = true,
+        ) to cipherExtraFlow
+            .map { cipherExtra ->
+                if (cipherExtra == null || !cipherExtra.canDelete) {
+                    return@map null
+                }
+
+                val cipher = cipherExtra.cipher
+                val action = flow<FlatItemAction> {
+                    val deleteAction = cipherDeleteAction(
+                        removeCipherById = removeCipherById,
+                        ciphers = listOf(cipher),
+                    )
+                    emit(deleteAction)
+                }.firstOrNull()
+                    ?.onClick
+                    ?: return@map null
+                // lambda
+                shortcut@{
+                    action()
+                }
+            },
+    )
+
     combine(
         accountFlow,
-        secretFlow,
+        cipherExtraFlow,
         folderFlow,
         ciphersFlow,
         collectionsFlow,
@@ -516,10 +973,10 @@ fun vaultViewScreenState(
         getAppIcons(),
         getWebsiteIcons(),
         getCanWrite(),
-        getUrlOverrides(),
     ) { array ->
         val accountOrNull = array[0] as DAccount?
-        val secretOrNull = array[1] as DSecret?
+        val secretSauceOrNull = array[1] as CipherSauce?
+        val secretOrNull = secretSauceOrNull?.cipher
         val folderOrNull = array[2] as DFolderTree?
         val ciphers = array[3] as List<DSecret>
         val collections = array[4] as List<DCollection>
@@ -528,7 +985,6 @@ fun vaultViewScreenState(
         val appIcons = array[7] as Boolean
         val websiteIcons = array[8] as Boolean
         val canAddSecret = array[9] as Boolean
-        val urlOverrides = array[10] as List<DGlobalUrlOverride>
 
         val content = when {
             accountOrNull == null || secretOrNull == null -> VaultViewState.Content.NotFound
@@ -557,85 +1013,8 @@ fun vaultViewScreenState(
                 val canEdit = canAddSecret && secretOrNull.canEdit() && !hasCanNotWriteCiphers
                 val canDelete = canAddSecret && secretOrNull.canDelete() && !hasCanNotWriteCiphers
 
-                val now = Clock.System.now()
-
-                val extractors = LinkInfoRegistry(linkInfoExtractors)
-                val cipherUris = secretOrNull
-                    .uris
-                    .map { uri ->
-                        when (uri.match) {
-                            // Regular expressions may use the {} control
-                            // symbols already. Since we do not want to break
-                            // existing data we ignore the placeholders and overrides.
-                            DSecret.Uri.MatchType.RegularExpression -> {
-                                val extra = extractors.process(uri)
-                                Holder(
-                                    uri = uri,
-                                    info = extra,
-                                )
-                            }
-
-                            else -> {
-                                val newUriPlaceholders = placeholderFactories
-                                    .create(
-                                        scope = PlaceholderScope(
-                                            now = now,
-                                            cipher = secretOrNull,
-                                        ),
-                                    )
-                                val newUriString = kotlin.runCatching {
-                                    uri.uri.placeholderFormat(newUriPlaceholders)
-                                }.getOrElse { uri.uri }
-                                val newUri = uri.copy(uri = newUriString)
-
-                                // Process URL overrides
-                                val urlOverridePlaceholders by lazy {
-                                    placeholderFactories
-                                        .create(
-                                            scope = PlaceholderScope(
-                                                now = now,
-                                                cipher = secretOrNull,
-                                                url = newUriString,
-                                            ),
-                                        )
-                                }
-                                val urlOverrideList = urlOverrides
-                                    .filter { override ->
-                                        override.enabled &&
-                                                override.regex.matches(newUriString)
-                                    }
-                                    .map { override ->
-                                        val contentOrException = Either.catch {
-                                            val command = override.command
-                                                .placeholderFormat(
-                                                    placeholders = urlOverridePlaceholders,
-                                                )
-                                            val extra = extractors.process(
-                                                DSecret.Uri(
-                                                    uri = command,
-                                                    match = DSecret.Uri.MatchType.Exact,
-                                                ),
-                                            )
-                                            Holder.Override.Content(
-                                                uri = command,
-                                                info = extra,
-                                            )
-                                        }
-                                        Holder.Override(
-                                            override = override,
-                                            contentOrException = contentOrException,
-                                        )
-                                    }
-
-                                val extra = extractors.process(newUri)
-                                Holder(
-                                    uri = newUri,
-                                    info = extra,
-                                    overrides = urlOverrideList,
-                                )
-                            }
-                        }
-                    }
+                val cipherUris = secretSauceOrNull
+                    .cipherUrisIo.attempt().bind().getOrNull().orEmpty()
                 val icon = secretOrNull.toVaultItemIcon(
                     appIcons = appIcons,
                     websiteIcons = websiteIcons,
@@ -691,25 +1070,8 @@ fun vaultViewScreenState(
                     onEdit = if (canEdit) {
                         // lambda
                         {
-                            val route = LeAddRoute(
-                                args = AddRoute.Args(
-                                    behavior = AddRoute.Args.Behavior(
-                                        // When you edit a cipher, you do not know what field
-                                        // user is targeting, so it's better to not show the
-                                        // keyboard automatically.
-                                        autoShowKeyboard = false,
-                                        launchEditedCipher = false,
-                                    ),
-                                    initialValue = secretOrNull,
-                                ),
-                            )
-                            val intent = NavigationIntent.NavigateToRoute(route)
-                            if (verify != null) {
-                                verify {
-                                    navigate(intent)
-                                }
-                            } else {
-                                navigate(intent)
+                            executeWithRePrompt(secretOrNull.reprompt) {
+                                onLaunchEdit(secretOrNull)
                             }
                         }
                     } else {
@@ -809,6 +1171,8 @@ fun vaultViewScreenState(
                         copy = copy,
                         dateFormatter = dateFormatter,
                         linkInfoExtractors = linkInfoExtractors,
+                        visibilityGlobalConfig = visibilityGlobalConfig,
+                        visibilityGlobalUserTransform = visibilityGlobalUserTransform,
                         account = accountOrNull,
                         cipher = secretOrNull,
                         folder = folderOrNull,
@@ -866,6 +1230,8 @@ private fun RememberStateFlowScope.oh(
     copy: CopyText,
     dateFormatter: DateFormatter,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    visibilityGlobalConfig: Visibility.Global,
+    visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit,
     account: DAccount,
     cipher: DSecret,
     folder: DFolderTree?,
@@ -974,7 +1340,7 @@ private fun RememberStateFlowScope.oh(
             ioEffect(Dispatchers.Default) {
                 val gen = keyPairGenerator.parse(
                     privateKey = sshKey.privateKey,
-                    publicKey = sshKey.publicKey
+                    publicKey = sshKey.publicKey,
                 )
                 keyPairGenerator.populate(gen)
             }
@@ -989,6 +1355,10 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = translate(Res.string.public_key),
                 value = sshKey.publicKey,
+                shortcut = KeyShortcut(
+                    Key.C,
+                    isCtrlPressed = true,
+                ),
                 maxLines = 4, // public key is too long to always show
                 monospace = true,
                 colorize = true,
@@ -1026,6 +1396,11 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = translate(Res.string.private_key),
                 value = sshKey.privateKey,
+                shortcut = KeyShortcut(
+                    Key.C,
+                    isCtrlPressed = true,
+                    isShiftPressed = true,
+                ),
                 verify = verify.takeIf { concealFields },
                 // Private key might be too long to show if you
                 // select a 4096-bit RSA. There's no point in
@@ -1034,8 +1409,12 @@ private fun RememberStateFlowScope.oh(
                 monospace = true,
                 colorize = true,
                 elevated = true,
-                private = concealFields,
-                hidden = hasCanNotSeePassword,
+                visibility = Visibility(
+                    concealed = concealFields,
+                    hidden = hasCanNotSeePassword,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
                 onBuildActions = {
                     if (keyPair == null) {
                         return@create
@@ -1075,9 +1454,17 @@ private fun RememberStateFlowScope.oh(
     if (cipherCard != null) {
         val model = create(
             copy = copy,
+            copyShortcut = KeyShortcut(
+                Key.C,
+                isCtrlPressed = true,
+            ),
             id = "card",
             verify = verify.takeIf { concealFields },
-            concealFields = concealFields,
+            visibility = Visibility(
+                concealed = concealFields,
+                transformUserEvent = visibilityGlobalUserTransform,
+                globalConfig = visibilityGlobalConfig,
+            ),
             name = cipher.name,
             data = cipherCard,
         )
@@ -1116,8 +1503,18 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = translate(Res.string.vault_view_card_cvv_label),
                 value = cipherCardCode,
+                shortcut = KeyShortcut(
+                    Key.C,
+                    isCtrlPressed = true,
+                    isShiftPressed = true,
+                ),
                 verify = verify.takeIf { concealFields },
-                private = concealFields,
+                visibility = Visibility(
+                    concealed = concealFields,
+                    hidden = hasCanNotSeePassword,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
                 monospace = true,
                 elevated = true,
             )
@@ -1138,6 +1535,10 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = translate(Res.string.username),
                 value = cipherLoginUsername,
+                shortcut = KeyShortcut(
+                    Key.C,
+                    isCtrlPressed = true,
+                ),
                 username = true,
                 elevated = true,
                 leading = {
@@ -1173,9 +1574,18 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = translate(Res.string.password),
                 value = cipherLoginPassword,
+                shortcut = KeyShortcut(
+                    Key.C,
+                    isCtrlPressed = true,
+                    isShiftPressed = true,
+                ),
                 verify = verify.takeIf { concealFields },
-                private = concealFields,
-                hidden = hasCanNotSeePassword,
+                visibility = Visibility(
+                    concealed = concealFields,
+                    hidden = hasCanNotSeePassword,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
                 password = true,
                 monospace = true,
                 colorize = true,
@@ -1297,9 +1707,13 @@ private fun RememberStateFlowScope.oh(
                 id = "login.totp",
                 elevation = 1.dp,
                 title = translate(Res.string.one_time_password),
+                shortcut = KeyShortcut(
+                    Key.C,
+                    isCtrlPressed = true,
+                    isAltPressed = true,
+                ),
                 copy = copy,
                 totp = cipherLoginTotp.token,
-                verify = verify,
                 localStateFlow = localStateFlow,
             )
             emit(model)
@@ -1518,7 +1932,6 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = title,
                 value = value,
-                private = false,
                 monospace = false,
                 elevated = true,
                 username = username,
@@ -1563,8 +1976,11 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = title,
                 value = value,
-                verify = verify.takeIf { conceal },
-                private = conceal,
+                visibility = Visibility(
+                    concealed = conceal,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
                 monospace = false,
                 elevated = false,
             )
@@ -1619,7 +2035,6 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = title,
                 value = value,
-                private = false,
                 monospace = false,
                 elevated = false,
             )
@@ -1664,8 +2079,11 @@ private fun RememberStateFlowScope.oh(
         val note = VaultViewItem.Note(
             id = "note.text",
             content = content,
-            verify = verify,
-            conceal = verify != null,
+            visibility = Visibility(
+                concealed = verify != null,
+                transformUserEvent = visibilityGlobalUserTransform,
+                globalConfig = visibilityGlobalConfig,
+            ),
         )
         emit(note)
     }
@@ -1858,8 +2276,11 @@ private fun RememberStateFlowScope.oh(
                 accountId = account.id,
                 title = field.name.orEmpty(),
                 value = field.value.orEmpty(),
-                verify = verify.takeIf { hidden && concealFields },
-                private = hidden && concealFields,
+                visibility = Visibility(
+                    concealed = hidden && concealFields,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
             )
             emit(m)
         }
@@ -1878,8 +2299,11 @@ private fun RememberStateFlowScope.oh(
         val note = VaultViewItem.Note(
             id = "note.text",
             content = content,
-            verify = verify,
-            conceal = verify != null,
+            visibility = Visibility(
+                concealed = verify != null,
+                transformUserEvent = visibilityGlobalUserTransform,
+                globalConfig = visibilityGlobalConfig,
+            ),
         )
         emit(note)
     }
@@ -1976,11 +2400,11 @@ private fun RememberStateFlowScope.oh(
         val section = VaultViewItem.Section(
             id = "collection",
             text =
-            if (collections.size == 1) {
-                translate(Res.string.collection)
-            } else {
-                translate(Res.string.collections)
-            },
+                if (collections.size == 1) {
+                    translate(Res.string.collection)
+                } else {
+                    translate(Res.string.collections)
+                },
         )
         emit(section)
         collections.forEach { collection ->
@@ -2780,6 +3204,8 @@ suspend fun RememberStateFlowScope.create(
     accountId: AccountId,
     title: String?,
     value: String,
+    shortcut: KeyShortcut? = null,
+    visibility: Visibility = Visibility(),
     badge: VaultViewItem.Value.Badge? = null,
     badge2: List<StateFlow<VaultViewItem.Value.Badge?>> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
@@ -2788,19 +3214,18 @@ suspend fun RememberStateFlowScope.create(
     maxLines: Int = 64,
     password: Boolean = false,
     username: Boolean = false,
-    private: Boolean = false,
-    hidden: Boolean = false,
     monospace: Boolean = false,
     colorize: Boolean = false,
     elevated: Boolean = false,
 ): VaultViewItem {
-    val dropdown = if (!hidden) {
+    val dropdown = if (!visibility.hidden) {
         buildContextItems {
             section {
                 this += copy.FlatItemAction(
                     title = Res.string.copy.wrap(),
                     value = value,
-                    hidden = private,
+                    shortcut = shortcut,
+                    hidden = visibility.concealed,
                 )
             }
             if (onBuildActions != null) {
@@ -2871,10 +3296,8 @@ suspend fun RememberStateFlowScope.create(
         elevation = if (elevated) 1.dp else 0.dp,
         title = title,
         value = value,
-        verify = verify,
         maxLines = maxLines,
-        private = private,
-        hidden = hidden,
+        visibility = visibility,
         monospace = monospace,
         colorize = colorize,
         leading = leading,
@@ -2927,9 +3350,6 @@ suspend fun RememberStateFlowScope.createExpDate(
         elevation = if (elevated) 1.dp else 0.dp,
         title = title,
         value = valueFormatted,
-        verify = null,
-        private = false,
-        hidden = false,
         monospace = false,
         colorize = false,
         leading = null,
@@ -2941,9 +3361,10 @@ suspend fun RememberStateFlowScope.createExpDate(
 
 private suspend fun RememberStateFlowScope.create(
     copy: CopyText,
+    copyShortcut: KeyShortcut?,
     id: String,
     verify: ((() -> Unit) -> Unit)? = null,
-    concealFields: Boolean,
+    visibility: Visibility,
     name: String,
     data: DSecret.Card,
 ): VaultViewItem {
@@ -2952,7 +3373,8 @@ private suspend fun RememberStateFlowScope.create(
             this += copy.FlatItemAction(
                 title = Res.string.copy_card_number.wrap(),
                 value = data.number,
-                hidden = concealFields,
+                shortcut = copyShortcut,
+                hidden = visibility.concealed,
                 type = CopyText.Type.CARD_NUMBER,
             )?.verify(verify)
             this += copy.FlatItemAction(
@@ -3000,9 +3422,8 @@ private suspend fun RememberStateFlowScope.create(
     return VaultViewItem.Card(
         id = id,
         data = data,
-        verify = verify,
         dropdown = dropdown,
-        concealFields = concealFields,
+        visibility = visibility,
         elevation = 1.dp,
     )
 }

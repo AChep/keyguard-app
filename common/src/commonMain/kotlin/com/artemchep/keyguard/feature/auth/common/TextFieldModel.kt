@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.feature.auth.common
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.Flow
 
 @Stable
 @optics
@@ -17,6 +17,7 @@ data class TextFieldModel2(
     val error: String? = null,
     val vl: Vl? = null,
     val autocompleteOptions: ImmutableList<String> = persistentListOf(),
+    val focusFlow: Flow<Unit>? = null,
     val onChange: ((String) -> Unit)? = null,
 ) {
     companion object {

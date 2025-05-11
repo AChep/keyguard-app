@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.navigation.state
 
 import androidx.compose.material3.ColorScheme
+import androidx.compose.ui.input.key.KeyEvent
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -107,6 +108,10 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
      */
     fun interceptBackPress(
         interceptorFlow: Flow<(() -> Unit)?>,
+    ): () -> Unit
+
+    fun interceptKeyEvent(
+        interceptorFlow: Flow<((KeyEvent) -> Boolean)?>,
     ): () -> Unit
 
     fun launchUi(

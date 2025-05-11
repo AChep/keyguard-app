@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.input.key.KeyEvent
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.GetScreenState
@@ -19,6 +20,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.backpress.BackPressInterceptorHost
 import com.artemchep.keyguard.feature.navigation.backpress.interceptBackPress
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyEventInterceptorHost
+import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvent
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.contains
@@ -52,6 +55,7 @@ class RememberStateFlowScopeImpl(
     private val windowCoroutineScope: WindowCoroutineScope,
     private val navigationController: NavigationController,
     private val backPressInterceptorHost: BackPressInterceptorHost,
+    private val keyEventInterceptorHost: KeyEventInterceptorHost,
     private val json: Json,
     private val scope: CoroutineScope,
     private val screen: String,
@@ -182,6 +186,21 @@ class RememberStateFlowScopeImpl(
         // to a user.
         return launchUi {
             backPressInterceptorHost.interceptBackPress(
+                scope = this,
+                interceptorFlow = interceptorFlow,
+            )
+        }
+    }
+
+    override fun interceptKeyEvent(
+        interceptorFlow: Flow<((KeyEvent) -> Boolean)?>,
+    ): () -> Unit {
+        // We want to launch key event interceptor only when the
+        // screen is currently added to the composable. Otherwise
+        // it would intercept the e event if visually invisible
+        // to a user.
+        return launchUi {
+            keyEventInterceptorHost.interceptKeyEvent(
                 scope = this,
                 interceptorFlow = interceptorFlow,
             )

@@ -3,7 +3,6 @@ package com.artemchep.keyguard.feature.home.vault.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -17,6 +16,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
@@ -37,11 +39,15 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.animatedConcealedText
 import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.colorizePassword
+import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VaultViewValueItem(
     modifier: Modifier = Modifier,
@@ -59,18 +65,19 @@ fun VaultViewValueItem(
         }
     }
 
-    val updatedVerify by rememberUpdatedState(item.verify)
-    val visibilityState = remember(
-        item.private,
-        item.hidden,
-    ) { mutableStateOf(!item.private && !item.hidden) }
+    val visibilityConfig = item.visibility
+    val visibilityState = rememberVisibilityState(
+        visibilityConfig,
+    )
+
+    val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
     FlatDropdown(
         modifier = modifier,
         elevation = item.elevation,
         content = {
             val shownValue = animatedConcealedText(
                 text = value,
-                concealed = !visibilityState.value,
+                concealed = !visibilityState.value.value || visibilityConfig.hidden,
             )
 
             FlatItemTextContent2(
@@ -138,22 +145,17 @@ fun VaultViewValueItem(
         dropdown = item.dropdown,
         leading = item.leading,
         trailing = {
-            if (item.private && !item.hidden) {
+            if (visibilityConfig.concealed && !visibilityConfig.hidden) {
+                val visible = visibilityState.value.value
                 VisibilityToggle(
-                    visible = visibilityState.value,
-                    onVisibleChange = { shouldBeConcealed ->
-                        val verify = updatedVerify
-                        if (
-                            verify != null &&
-                            shouldBeConcealed
-                        ) {
-                            verify.invoke {
-                                visibilityState.value = true
-                            }
-                            return@VisibilityToggle
+                    visible = visible,
+                    onVisibleChange = { possibleNewValue ->
+                        updatedVisibilityConfig.transformUserEvent(possibleNewValue) { newValue ->
+                            visibilityState.value = Visibility.Event(
+                                value = newValue,
+                                timestamp = Clock.System.now(),
+                            )
                         }
-
-                        visibilityState.value = shouldBeConcealed
                     },
                 )
             }
@@ -172,16 +174,53 @@ fun VaultViewValueItem(
                         onCopy?.invoke()
                     },
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ContentCopy,
-                        contentDescription = null,
-                    )
+                    ShortcutTooltip(
+                        valueOrNull = onCopyAction.shortcut,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ContentCopy,
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
 
             item.trailing?.invoke(this)
         },
     )
+}
+
+@Composable
+fun rememberVisibilityState(
+    visibilityConfig: Visibility,
+): MutableState<Visibility.Event> {
+    val visibilityState = remember(
+        visibilityConfig,
+    ) {
+        val initialValue = !visibilityConfig.concealed && !visibilityConfig.hidden
+        val initialState = Visibility.Event(
+            value = initialValue,
+            timestamp = Instant.DISTANT_PAST,
+        )
+        mutableStateOf(initialState)
+    }
+
+    LaunchedEffect(visibilityConfig.globalConfig) {
+        val cfg = visibilityConfig.globalConfig
+            .takeIf { visibilityConfig.concealed }
+            ?: return@LaunchedEffect
+        // Update the value of a switch basing on the global
+        // reveal state, if it is newer than the current one.
+        cfg.globalRevealStateFlow
+            .onEach { event ->
+                val curValue = visibilityState.value
+                if (curValue.timestamp < event.timestamp) {
+                    visibilityState.value = event
+                }
+            }
+            .collect()
+    }
+    return visibilityState
 }
 
 @Composable

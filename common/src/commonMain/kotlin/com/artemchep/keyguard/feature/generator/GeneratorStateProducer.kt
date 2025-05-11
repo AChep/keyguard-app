@@ -29,6 +29,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
@@ -96,6 +102,8 @@ import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -1833,6 +1841,37 @@ fun produceGeneratorState(
                 }
         }
         .stateIn(screenScope)
+
+    interceptKeyEvents(
+        // Ctrl+C: Copy the current value
+        KeyShortcut(
+            key = Key.C,
+            isCtrlPressed = true,
+        ) to passwordTextFlow
+            .map { passwordEvent ->
+                val passwordResult = passwordEvent.data.getOrNull()?.result?.getOrNull()
+                    ?: return@map null
+                val value = when (passwordResult) {
+                    is GetPasswordResult.Value -> {
+                        val value = passwordResult.value
+                        value
+                    }
+                    is GetPasswordResult.AsyncKey -> {
+                        val value = passwordResult.keyPair.publicKey.fingerprint
+                        value
+                    }
+                }
+                // lambda
+                {
+                    copyItemFactory.copy(value, false)
+                }
+            },
+        // Ctrl+R: Re-generate the value
+        KeyShortcut(
+            key = Key.R,
+            isCtrlPressed = true,
+        ) to flowOf(refreshValue::invoke),
+    )
 
     optionsFlow
         .map { options ->

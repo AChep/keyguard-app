@@ -7,6 +7,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -14,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import org.kodein.di.compose.rememberInstance
 import kotlin.uuid.Uuid
 
 @Composable
@@ -43,6 +45,26 @@ fun NavigationRouter(
             ),
             entry = entry,
         )
+    }
+
+    val keyboardShortcutsService by rememberInstance<KeyboardShortcutsServiceHost>()
+    DisposableEffect(navPile) {
+        val unregister = keyboardShortcutsService.register { keyEvent ->
+            navPile.value
+                .flatMap { it.value }
+                .asReversed()
+                .flatMap { navEntry ->
+                    val keyEventInterceptors =
+                        navEntry.activeKeyEventInterceptorsStateFlow.value
+                    keyEventInterceptors.values
+                }
+                .firstOrNull { interceptor ->
+                    interceptor.block(keyEvent)
+                } != null
+        }
+        onDispose {
+            unregister.invoke()
+        }
     }
 
     val canPop = remember(navPile) {

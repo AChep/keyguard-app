@@ -112,11 +112,12 @@ fun SearchSettingsScreenContent(
 
                     val count = state.items.size
                     SearchTextField(
-                        modifier = Modifier
-                            .focusRequester2(focusRequester),
+                        modifier = Modifier,
                         text = state.query.state.value,
                         placeholder = stringResource(Res.string.settingssearch_search_placeholder),
                         searchIcon = false,
+                        focusRequester = focusRequester,
+                        focusFlow = state.query.focusFlow,
                         count = count,
                         leading = {},
                         trailing = {},

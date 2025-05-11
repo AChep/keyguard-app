@@ -19,6 +19,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import arrow.core.identity
 import arrow.core.partially1
 import arrow.optics.Getter
@@ -35,8 +41,10 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.formatH
+import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -102,6 +110,8 @@ import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSi
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
@@ -346,6 +356,15 @@ fun vaultListScreenState(
 
     val querySink = mutablePersistedFlow("query") { "" }
     val queryState = mutableComposeState(querySink)
+    val queryFocusSink = EventFlow<Unit>()
+
+    fun clearField() {
+        queryState.value = ""
+    }
+
+    fun focusField() {
+        queryFocusSink.emit(Unit)
+    }
 
     // Intercept the back button while the
     // search query is not empty.
@@ -356,8 +375,66 @@ fun vaultListScreenState(
             .map { enabled ->
                 if (enabled) {
                     // lambda
+                    ::clearField
+                } else {
+                    null
+                }
+            },
+    )
+
+    // Keyboard shortcuts
+    interceptKeyEvents(
+        // Ctrl+Alt+F: Focus search field
+        KeyShortcut(
+            key = Key.F,
+            isCtrlPressed = true,
+            isAltPressed = true,
+        ) to flowOf(true)
+            .map { enabled ->
+                if (enabled) {
+                    // lambda
                     {
-                        queryState.value = ""
+                        clearField()
+                        focusField()
+                    }
+                } else {
+                    null
+                }
+            },
+        // Ctrl+N: Create new cipher
+        KeyShortcut(
+            key = Key.N,
+            isCtrlPressed = true,
+        ) to combine(
+            getAccounts()
+                .map { it.isNotEmpty() },
+            getCanWrite(),
+        ) { hasAccounts, canWrite -> hasAccounts && canWrite }
+            .map { enabled ->
+                if (enabled) {
+                    // lambda
+                    {
+                        val autofill = when (mode) {
+                            is AppMode.Main -> null
+                            is AppMode.SavePasskey -> null
+                            is AppMode.PickPasskey -> null
+                            is AppMode.Save -> {
+                                AddRoute.Args.Autofill.leof(mode.args)
+                            }
+
+                            is AppMode.Pick -> {
+                                AddRoute.Args.Autofill.leof(mode.args)
+                            }
+                        }
+                        val route = LeAddRoute(
+                            args = AddRoute.Args(
+                                type = DSecret.Type.Login,
+                                autofill = autofill,
+                                name = null, //queryTrimmed.takeIf { it.isNotEmpty() },
+                            ),
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
                     }
                 } else {
                     null
@@ -1526,6 +1603,7 @@ fun vaultListScreenState(
             TextFieldModel2(
                 state = queryState,
                 text = query,
+                focusFlow = queryFocusSink,
                 onChange = queryState::value::set,
             )
         } else {

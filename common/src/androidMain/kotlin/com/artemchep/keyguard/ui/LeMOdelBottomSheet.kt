@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 
@@ -20,10 +19,9 @@ actual fun LeMOdelBottomSheet(
         configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     }
     if (isLandscape) {
-        WunderPopup(
+        SheetPopup(
             expanded = visible,
             onDismissRequest = onDismissRequest,
-            modifier = Modifier,
         ) {
             val contentPadding = PaddingValues(0.dp)
             content(contentPadding)

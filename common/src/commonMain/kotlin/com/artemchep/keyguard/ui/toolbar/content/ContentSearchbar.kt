@@ -7,6 +7,8 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.focus.FocusRequester2
+import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -15,6 +17,7 @@ fun CustomSearchbarContent(
     searchFieldModifier: Modifier = Modifier,
     searchFieldModel: TextFieldModel2,
     searchFieldPlaceholder: String,
+    focusRequester: FocusRequester2,
     title: String? = null,
     subtitle: String? = null,
     icon: @Composable () -> Unit = {},
@@ -38,6 +41,8 @@ fun CustomSearchbarContent(
             text = searchFieldModel.state.value,
             placeholder = searchFieldPlaceholder,
             searchIcon = !hasTopBar,
+            focusRequester = focusRequester,
+            focusFlow = searchFieldModel.focusFlow,
             leading = {
                 if (!hasTopBar) {
                     icon()

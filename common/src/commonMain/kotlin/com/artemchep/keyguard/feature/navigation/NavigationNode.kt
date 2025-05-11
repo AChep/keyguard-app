@@ -1,7 +1,10 @@
 package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +18,15 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.platform.LocalAnimationFactor
 import kotlinx.collections.immutable.PersistentList
@@ -213,15 +219,15 @@ fun NavigationNode(
                 entry = entries.last(),
             )
         }
-        Crossfade(
-            targetState = bar,
-        ) { bar ->
-            val entry = bar.entry
+        val transition = updateTransition(bar, "Dialog Transition")
+        transition.DialogCrossLifecycle(modifier) { el, alive ->
+            val entry = el.entry
             key(entry?.id) {
                 if (entry != null) {
                     CompositionLocalProvider(
-                        LocalNavigationNodeLogicalStack provides bar.logicalStack,
-                        LocalNavigationNodeVisualStack provides bar.visualStack,
+                        LocalNavigationNodeLogicalStack provides el.logicalStack,
+                        LocalNavigationNodeVisualStack provides el.visualStack,
+                        LocalNavigationNodeFinishing provides !alive,
                     ) {
                         NavigationRoute(
                             entry = entry,
@@ -230,6 +236,52 @@ fun NavigationNode(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun <T> Transition<T>.DialogCrossLifecycle(
+    modifier: Modifier = Modifier,
+    contentKey: (targetState: T) -> Any? = { it },
+    content: @Composable (targetState: T, finishing: Boolean) -> Unit,
+) {
+    val currentlyVisible = remember { mutableStateListOf<T>().apply { add(currentState) } }
+    val contentMap = remember { mutableStateMapOf<T, @Composable () -> Unit>() }
+    if (currentState == targetState) {
+        // If not animating, just display the current state
+        if (currentlyVisible.size != 1 || currentlyVisible[0] != targetState) {
+            // Remove all the intermediate items from the list once the animation is finished.
+            currentlyVisible.removeAll { it != targetState }
+            contentMap.clear()
+        }
+    }
+    if (targetState !in contentMap) {
+        // Replace target with the same key if any
+        val replacementId =
+            currentlyVisible.indexOfFirst { contentKey(it) == contentKey(targetState) }
+        if (replacementId == -1) {
+            currentlyVisible.add(targetState)
+        } else {
+            currentlyVisible[replacementId] = targetState
+        }
+        contentMap.clear()
+        currentlyVisible.fastForEach { stateForContent ->
+            contentMap[stateForContent] = {
+                val alive = this.targetState == stateForContent
+                // Spawn unused animation just for the
+                // compose to not immediately end the transition.
+                animateFloat(transitionSpec = { tween() }) {
+                    if (it == stateForContent) 1f else 0f
+                }
+                Box {
+                    content(stateForContent, alive)
+                }
+            }
+        }
+    }
+
+    Box(modifier) {
+        currentlyVisible.fastForEach { key(contentKey(it)) { contentMap[it]?.invoke() } }
     }
 }
 
@@ -260,6 +312,10 @@ internal val LocalNavigationNodeLogicalStack = compositionLocalOf<PersistentList
 
 internal val LocalNavigationNodeVisualStack = compositionLocalOf<PersistentList<NavigationEntry>> {
     persistentListOf()
+}
+
+internal val LocalNavigationNodeFinishing = compositionLocalOf<Boolean> {
+    false
 }
 
 @Composable

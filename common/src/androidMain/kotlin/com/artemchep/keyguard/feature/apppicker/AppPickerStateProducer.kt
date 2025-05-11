@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.searchFilter
@@ -167,6 +168,7 @@ fun produceAppPickerState(
         revisionFlow = sortSink
             .map { it.hashCode() },
     )
+    searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
         AppPickerState.Filter(
             revision = revision,

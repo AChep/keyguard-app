@@ -1,9 +1,12 @@
 package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.input.key.KeyEvent
 import com.artemchep.keyguard.common.util.job
 import com.artemchep.keyguard.feature.navigation.backpress.BackPressInterceptorHost
 import com.artemchep.keyguard.feature.navigation.backpress.BackPressInterceptorRegistration
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyEventInterceptorHost
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyEventInterceptorRegistration
 import com.artemchep.keyguard.feature.navigation.state.FlowHolderViewModel
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -20,7 +23,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
-interface NavigationEntry : BackPressInterceptorHost {
+interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
     companion object {
         fun new() {
         }
@@ -34,6 +37,8 @@ interface NavigationEntry : BackPressInterceptorHost {
     val vm: FlowHolderViewModel
 
     val activeBackPressInterceptorsStateFlow: StateFlow<ImmutableMap<String, BackPressInterceptorRegistration>>
+
+    val activeKeyEventInterceptorsStateFlow: StateFlow<ImmutableMap<String, KeyEventInterceptorRegistration>>
 
     fun getOrCreate(id: String, create: () -> NavigationStack): NavigationPile
 
@@ -65,6 +70,13 @@ data class NavigationEntryImpl(
     override val activeBackPressInterceptorsStateFlow: StateFlow<ImmutableMap<String, BackPressInterceptorRegistration>>
         get() = activeBackPressInterceptorsStateSink
 
+    private val activeKeyEventInterceptorsStateSink = MutableStateFlow(
+        persistentMapOf<String, KeyEventInterceptorRegistration>(),
+    )
+
+    override val activeKeyEventInterceptorsStateFlow: StateFlow<ImmutableMap<String, KeyEventInterceptorRegistration>>
+        get() = activeKeyEventInterceptorsStateSink
+
     init {
         require('/' !in id)
         require('/' !in type)
@@ -93,6 +105,24 @@ data class NavigationEntryImpl(
         }
         return {
             activeBackPressInterceptorsStateSink.update { state ->
+                state.remove(id)
+            }
+        }
+    }
+
+    override fun interceptKeyEvent(
+        block: (KeyEvent) -> Boolean,
+    ): () -> Unit {
+        val id = Uuid.random().toString()
+        val entry = KeyEventInterceptorRegistration(
+            id = id,
+            block = block,
+        )
+        activeKeyEventInterceptorsStateSink.update { state ->
+            state.put(id, entry)
+        }
+        return {
+            activeKeyEventInterceptorsStateSink.update { state ->
                 state.remove(id)
             }
         }

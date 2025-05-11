@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Tray
@@ -23,6 +24,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
@@ -302,11 +304,15 @@ private fun ApplicationScope.KeyguardWindow(
     onCloseRequest: () -> Unit,
 ) {
     val windowState = windowStateManager.rememberWindowState()
+    val keyboardShortcutsService by rememberInstance<KeyboardShortcutsService>()
     Window(
         onCloseRequest = onCloseRequest,
         icon = painterResource(Res.drawable.ic_keyguard),
         state = windowState,
         title = "Keyguard",
+        onKeyEvent = { event ->
+            keyboardShortcutsService.handle(event)
+        },
     ) {
         LaunchLifecycleProviderEffect(
             processLifecycleProvider = processLifecycleProvider,

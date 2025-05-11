@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -18,7 +19,6 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.common.model.DAccount
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.LinkInfo
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -49,10 +49,13 @@ import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -61,6 +64,7 @@ import com.artemchep.keyguard.feature.send.action.createShareAction
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.feature.send.toVaultItemIcon
 import com.artemchep.keyguard.feature.send.util.SendUtil
+import com.artemchep.keyguard.feature.send.util.SendUtil.deleteActionOrNull
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -75,6 +79,7 @@ import io.ktor.http.Url
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
@@ -120,9 +125,10 @@ fun sendViewScreenState(
     )
 }
 
-private class Holder(
-    val uri: DSecret.Uri,
-    val info: List<LinkInfo>,
+private class SendSauce(
+    val send: DSend,
+    val canEdit: Boolean,
+    val canDelete: Boolean,
 )
 
 @Composable
@@ -194,6 +200,137 @@ fun sendViewScreenState(
         }
         .distinctUntilChanged()
     launchAutoPopSelfHandler(secretFlow)
+
+    val sendExtraFlow = combine(
+        secretFlow,
+        getCanWrite(),
+    ) { send, hasWriteAccess ->
+        send
+            ?: return@combine null
+
+        // Find sends that have some limitations
+        val canEdit = hasWriteAccess
+        val canDelete = hasWriteAccess
+
+        SendSauce(
+            send = send,
+            canEdit = canEdit,
+            canDelete = canDelete,
+        )
+    }
+
+    fun pairUnlessEmpty(
+        value: String?,
+        type: CopyText.Type,
+    ): Pair<String, CopyText.Type>? {
+        if (value.isNullOrEmpty()) {
+            return null
+        }
+        return value to type
+    }
+
+    interceptKeyEvents(
+        // Ctrl+C: Copy the public URL
+        KeyShortcut(
+            key = Key.C,
+            isCtrlPressed = true,
+        ) to secretFlow
+            .map { send ->
+                send
+                    ?: return@map null
+
+                val url = getEnvSendUrl(send)
+                    .attempt()
+                    .bind()
+                    .getOrNull()
+                val primaryFieldPair =
+                    pairUnlessEmpty(url, CopyText.Type.URL)
+                if (primaryFieldPair == null) {
+                    return@map null
+                }
+
+                // lambda
+                {
+                    val (value, type) = primaryFieldPair
+                    copy.copy(value, false, type)
+                }
+            },
+        // Ctrl+Shift+F: Open website
+        KeyShortcut(
+            key = Key.F,
+            isCtrlPressed = true,
+            isShiftPressed = true,
+        ) to secretFlow
+            .map { send ->
+                send
+                    ?: return@map null
+
+                val shortcutIntent = getEnvSendUrl(send)
+                    .attempt()
+                    .bind()
+                    .map { url ->
+                        NavigationIntent.NavigateToBrowser(url)
+                    }
+                    .getOrNull()
+                    ?: return@map null
+                // lambda
+                {
+                    navigate(shortcutIntent)
+                }
+            },
+        // Delete: Ask to move an item to trash
+        KeyShortcut(
+            key = Key.Delete,
+        ) to sendExtraFlow
+            .map { sendExtra ->
+                sendExtra
+                    ?: return@map null
+
+                val action = flow<FlatItemAction> {
+                    val deleteAction = deleteActionOrNull(
+                        removeSendById = toolbox.removeSendById,
+                        sends = listOf(sendExtra.send),
+                        canDelete = sendExtra.canDelete,
+                    )
+                    if (deleteAction != null) {
+                        emit(deleteAction)
+                    }
+                }.firstOrNull()
+                    ?.onClick
+                    ?: return@map null
+                // lambda
+                shortcut@{
+                    action()
+                }
+            },
+        // Ctrl+Delete: Ask to delete an item
+        KeyShortcut(
+            key = Key.Delete,
+            isCtrlPressed = true,
+        ) to sendExtraFlow
+            .map { sendExtra ->
+                sendExtra
+                    ?: return@map null
+
+                val action = flow<FlatItemAction> {
+                    val deleteAction = deleteActionOrNull(
+                        removeSendById = toolbox.removeSendById,
+                        sends = listOf(sendExtra.send),
+                        canDelete = sendExtra.canDelete,
+                    )
+                    if (deleteAction != null) {
+                        emit(deleteAction)
+                    }
+                }.firstOrNull()
+                    ?.onClick
+                    ?: return@map null
+                // lambda
+                shortcut@{
+                    action()
+                }
+            },
+    )
+
     combine(
         accountFlow,
         secretFlow,
@@ -563,8 +700,10 @@ suspend fun RememberStateFlowScope.create(
         elevation = if (elevated) 1.dp else 0.dp,
         title = title,
         value = value,
-        private = private,
-        hidden = hidden,
+        visibility = Visibility(
+            concealed = private,
+            hidden = hidden,
+        ),
         monospace = monospace,
         colorize = colorize,
         leading = leading,

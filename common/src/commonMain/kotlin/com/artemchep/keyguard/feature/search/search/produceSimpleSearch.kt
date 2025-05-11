@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.search.search
 
 import androidx.compose.runtime.MutableState
+import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -22,6 +23,7 @@ class SearchQueryHandle(
     val querySink: MutableStateFlow<String>,
     val queryState: MutableState<String>,
     val queryIndexed: Flow<IndexedText?>,
+    val focusSink: EventFlow<Unit>,
     val revisionFlow: Flow<Int>,
 ) {
 }
@@ -43,11 +45,13 @@ fun RememberStateFlowScope.searchQueryHandle(
             )
         }
 
+    val focusSink = EventFlow<Unit>()
     return SearchQueryHandle(
         scope = this,
         querySink = querySink,
         queryState = queryState,
         queryIndexed = queryIndexedFlow,
+        focusSink = focusSink,
         revisionFlow = revisionFlow,
     )
 }
@@ -63,6 +67,7 @@ suspend fun <T> RememberStateFlowScope.searchFilter(
     val model = TextFieldModel2(
         state = handle.queryState,
         text = query,
+        focusFlow = handle.focusSink,
         onChange = handle.queryState::value::set,
     )
     transform(

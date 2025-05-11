@@ -156,10 +156,10 @@ fun VaultListScreen(
         header = { modifier ->
             CustomSearchbarContent(
                 modifier = modifier,
-                searchFieldModifier = Modifier
-                    .focusRequester2(focusRequester),
+                searchFieldModifier = Modifier,
                 searchFieldModel = state.query,
                 searchFieldPlaceholder = stringResource(Res.string.vault_main_search_placeholder),
+                focusRequester = focusRequester,
                 title = args.appBar?.title,
                 subtitle = args.appBar?.subtitle,
                 icon = {
@@ -357,10 +357,10 @@ fun VaultHomeScreenListPane(
             ) {
                 CustomSearchbarContent(
                     modifier = Modifier,
-                    searchFieldModifier = Modifier
-                        .focusRequester2(focusRequester),
+                    searchFieldModifier = Modifier,
                     searchFieldModel = state.query,
                     searchFieldPlaceholder = stringResource(Res.string.vault_main_search_placeholder),
+                    focusRequester = focusRequester,
                     title = title,
                     subtitle = subtitle,
                     icon = {

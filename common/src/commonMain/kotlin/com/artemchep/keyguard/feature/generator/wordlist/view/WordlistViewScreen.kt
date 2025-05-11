@@ -190,11 +190,12 @@ fun WordlistViewScreen(
                         ?.items
                         ?.size
                     SearchTextField(
-                        modifier = Modifier
-                            .focusRequester2(focusRequester),
+                        modifier = Modifier,
                         text = queryText,
                         placeholder = stringResource(Res.string.wordlist_word_search_placeholder),
                         searchIcon = searchIcon,
+                        focusRequester = focusRequester,
+                        focusFlow = query?.focusFlow,
                         count = count,
                         leading = {},
                         trailing = {},

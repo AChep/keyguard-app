@@ -2,7 +2,6 @@ package com.artemchep.keyguard.ui.shortcut
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -11,8 +10,8 @@ import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.key.toText
 import com.artemchep.keyguard.ui.tooltip.Tooltip
-import java.awt.event.KeyEvent
 
 @Composable
 fun ShortcutTooltip(
@@ -61,7 +60,7 @@ private fun KeyShortcut.toText(): AnnotatedString {
             append("+")
         }
 
-        val keyStr = KeyEvent.getKeyText(key.nativeKeyCode)
+        val keyStr = key.toText()
         appendKey(keyStr)
     }
 }

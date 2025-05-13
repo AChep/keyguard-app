@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.auth.common.util
 
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
+import com.artemchep.keyguard.common.util.REGEX_ANDROID_APP
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -56,10 +58,23 @@ fun validateUri(
         } else {
             ValidationUri.ERROR_EMPTY
         }
-    } else if (!REGEX_WEB_URI.matches(uri)) {
-        ValidationUri.ERROR_INVALID
     } else {
-        ValidationUri.OK
+        when {
+            // Android-specific rules for a
+            // package name.
+            // https://developer.android.com/guide/topics/manifest/manifest-element.html#package
+            uri.startsWith(PROTOCOL_ANDROID_APP) -> {
+                return if (!REGEX_ANDROID_APP.matches(uri)) {
+                    ValidationUri.ERROR_INVALID
+                } else ValidationUri.OK
+            }
+        }
+
+        if (!REGEX_WEB_URI.matches(uri)) {
+            ValidationUri.ERROR_INVALID
+        } else {
+            ValidationUri.OK
+        }
     }
 }
 

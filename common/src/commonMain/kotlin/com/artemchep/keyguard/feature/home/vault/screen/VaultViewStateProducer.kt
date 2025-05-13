@@ -652,8 +652,19 @@ fun vaultViewScreenState(
         }
         .stateIn(appScope)
 
+    var defaultReprompt = false
+
+    // Observe the cipher pilling the
+    // information whether we should or
+    // should not show the reprompt.
+    secretFlow
+        .onEach { cipher ->
+            defaultReprompt = cipher?.reprompt == true
+        }
+        .launchIn(appScope)
+
     fun executeWithRePrompt(
-        reprompt: Boolean = true,
+        reprompt: Boolean = defaultReprompt,
         block: () -> Unit,
     ) {
         if (reprompt) {

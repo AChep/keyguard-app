@@ -194,7 +194,7 @@
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">记住登录状态</string>
     <!-- A Trash screen -->
-    <string name="trash">丢弃</string>
+    <string name="trash">回收站</string>
     <!-- To download something -->
     <string name="download">下载</string>
     <string name="downloads">下载</string>
@@ -774,10 +774,10 @@
     <string name="sortby_password_strength_normal_mode">按密码强度不安全的靠前</string>
     <string name="sortby_password_strength_reverse_mode">按密码强度安全的靠前</string>
     <string name="relative_time_just_now_short">刚刚</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>分钟前</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>小时前</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>天前</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>周前</string>
     <string name="vault_main_search_placeholder">搜索密码库</string>
     <string name="vault_main_new_item_button">新项目</string>
     <string name="vault_main_no_suggested_items">在此上下文中没有建议的项目</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">已过期或即将过期的项目。</string>
     <string name="watchtower_item_duplicate_websites_title">重复的 URI</string>
     <string name="watchtower_item_duplicate_websites_text">在应用匹配检测后，具有一个或多个覆写相同网站的 URI 的项目</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">广泛的 URI 匹配检测</string>
+    <string name="watchtower_item_broad_websites_text">具有一个或多个符合探测规则的 URI 的项目可能会被缩小。</string>
     <string name="watchtower_item_trashed_items_title">回收站中的项目</string>
     <string name="watchtower_item_trashed_items_text">已移入回收站的项目，回收站中的物品过多可能会减慢密码库的运行速度。</string>
     <string name="watchtower_item_empty_folders_title">空文件夹</string>

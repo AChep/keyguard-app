@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.company
 import com.artemchep.keyguard.common.model.country
 import com.artemchep.keyguard.common.model.email
 import com.artemchep.keyguard.common.model.favorite
+import com.artemchep.keyguard.common.model.fido2Credentials
 import com.artemchep.keyguard.common.model.fields
 import com.artemchep.keyguard.common.model.sshKey
 import com.artemchep.keyguard.common.model.privateKey
@@ -81,6 +82,10 @@ class CipherMergeImpl() : CipherMerge {
                     Node.Leaf(DSecret.Login.username),
                     Node.Leaf(DSecret.Login.password),
                     Node.Leaf(DSecret.Login.totp),
+                    Node.Leaf(
+                        lens = DSecret.Login.fido2Credentials,
+                        strategy = PickPasskeyStrategy(),
+                    ),
                 ),
             ),
             Node.Leaf(
@@ -173,6 +178,14 @@ class CipherMergeImpl() : CipherMerge {
         override fun pick(
             list: List<List<DSecret.Field>>,
         ): List<DSecret.Field> = list
+            .flatten()
+            .distinct()
+    }
+
+    private class PickPasskeyStrategy : PickStrategy<List<DSecret.Login.Fido2Credentials>> {
+        override fun pick(
+            list: List<List<DSecret.Login.Fido2Credentials>>,
+        ): List<DSecret.Login.Fido2Credentials> = list
             .flatten()
             .distinct()
     }

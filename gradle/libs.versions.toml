@@ -134,7 +134,7 @@ bouncycastle = "1.80"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.8.0"
 # https://github.com/cashapp/sqldelight
-sqldelight = "2.0.2"
+sqldelight = "2.1.0"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.49.1.0"
 # https://github.com/rrice/java-string-similarity

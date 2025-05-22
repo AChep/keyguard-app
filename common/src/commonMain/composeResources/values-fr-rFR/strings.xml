@@ -103,8 +103,8 @@
     <string name="organization">Organisation</string>
     <string name="organizations">Organisations</string>
     <string name="organizations_empty_label">Aucune organisation</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Domaines équivalents</string>
+    <string name="equivalent_domains_empty_label">Aucun domaine équivalent</string>
     <string name="misc">Divers</string>
     <string name="category">Catégorie</string>
     <string name="command">Commande</string>
@@ -231,8 +231,8 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Nécessite Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Serveur Bitwarden non-officiel</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip">Astuce : <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Générer des e-mails uniques pour une meilleure confidentialité.</string>
     <string name="account_last_synced_at">Dernière synchronisation le <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Modifier le nom</string>
     <string name="account_action_change_color_title">Modifier la couleur</string>
@@ -346,8 +346,8 @@
     <string name="uri_unsecure">Non sécurisé</string>
     <string name="uri_match_app_title">Faire correspondre l'appli</string>
     <string name="uri_match_detection_title">Détection de correspondances</string>
-    <string name="uri_match_detection_default_title">Default</string>
-    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
+    <string name="uri_match_detection_default_title">Par défaut</string>
+    <string name="uri_match_detection_default_note">Utilise un comportement global de détection de correspondance par défaut sélectionné dans Paramètres → Remplissage automatique → Détection de correspondance URI par défaut. La correspondance avec le domaine de base est l'option par défaut.</string>
     <string name="uri_match_detection_domain_title">Domaine de base</string>
     <string name="uri_match_detection_domain_note">Faire correspondre les ressources par domaine de premier niveau et de deuxième niveau.</string>
     <string name="uri_match_detection_host_title">Hôte</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Paramètres</string>
     <string name="lock_reason_inactivity">Application verrouillée en raison de l’inactivité</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Verrouillé manuellement</string>
     <string name="send_type_text">Texte</string>
     <string name="send_type_file">Fichier</string>
     <string name="cipher_type_login">Identifiant</string>
@@ -718,7 +718,7 @@
     <string name="cipher_type_ssh_key">Clé SSH</string>
     <string name="cipher_type_passkey">Clé d'accès</string>
     <string name="field_type_text">Texte</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Texte (caché)</string>
     <string name="field_type_boolean">Booléen</string>
     <string name="field_type_linked">Lié</string>
     <!--
@@ -773,11 +773,11 @@
     <string name="sortby_password_strength_title">Robustesse du mot de passe</string>
     <string name="sortby_password_strength_normal_mode">Les plus fragiles d'abord</string>
     <string name="sortby_password_strength_reverse_mode">Les plus forts en premier</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">maintenant</string>
+    <string name="relative_time_minute_short">Il y a <xliff:g id="minute" example="1">%1$s</xliff:g>m</string>
+    <string name="relative_time_hour_short">Il y a <xliff:g id="hour" example="1">%1$s</xliff:g>h</string>
+    <string name="relative_time_day_short">Il y a <xliff:g id="day" example="1">%1$s</xliff:g>j</string>
+    <string name="relative_time_week_short">Il y a <xliff:g id="week" example="1">%1$s</xliff:g> sem</string>
     <string name="vault_main_search_placeholder">Rechercher dans le coffre</string>
     <string name="vault_main_new_item_button">Nouvel élément</string>
     <string name="vault_main_no_suggested_items">Il n'y a aucun élément suggéré disponible pour ce contexte</string>
@@ -818,8 +818,8 @@
     <string name="generator_passphrase_capitalize_title">Mettre en majuscules</string>
     <string name="generator_passphrase_number_title">Numéro</string>
     <string name="generator_passphrase_wordlist_title">Liste de mots</string>
-    <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_type">Code PIN</string>
+    <string name="generator_pin_code_note">Près d'une personne sur 10 utilise le même code PIN à quatre chiffres. Générez des codes PIN pour éviter les variantes les plus courantes.</string>
     <string name="generator_username_type">Nom d'utilisateur</string>
     <string name="generator_username_delimiter_title">Délimiteur</string>
     <string name="generator_username_custom_word_title">Mot personnalisé</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Les éléments qui ont expiré ou qui expirent bientôt.</string>
     <string name="watchtower_item_duplicate_websites_title">URI en doublons</string>
     <string name="watchtower_item_duplicate_websites_text">Éléments qui ont une ou plusieurs URI qui couvrent les mêmes sites Web après avoir appliqué la détection de correspondance.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">Détection des correspondances entre les URI large</string>
+    <string name="watchtower_item_broad_websites_text">Les éléments dont un ou plusieurs URI correspondent aux règles de détection devraient probablement être restreints.</string>
     <string name="watchtower_item_trashed_items_title">Éléments dans la corbeille</string>
     <string name="watchtower_item_trashed_items_text">Les éléments qui ont été déplacés dans la corbeille. Avoir trop d'éléments dans la corbeille peut ralentir les opérations dans votre coffre.</string>
     <string name="watchtower_item_empty_folders_title">Dossiers vides</string>
@@ -904,7 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Vous aide à identifier et à éliminer les doublons dans votre coffre.</string>
     <string name="watchtower_item_compromised_accounts_title">Comptes Compromis</string>
     <string name="watchtower_item_compromised_accounts_text">Vérifier les violations de données par un nom d'utilisateur ou une adresse e-mail.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Nouvelles alertes de la Watchtower</string>
     <string name="watchtower_alerts_header_title">Nouvelles alertes de watchtower</string>
     <string name="watchtower_mark_all_as_read_title">Tout marquer comme lu</string>
     <string name="changepassword_header_title">Modifier le mot de passe de l'application</string>
@@ -917,7 +917,7 @@
     <string name="changepassword_password_changed_successfully">Mot de passe modifié avec succès</string>
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
-    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_note">Exporter le coffre-fort sous la forme d'une archive ZIP chiffrée.</string>
     <string name="exportaccount_attachments_note">Le coffre-fort restera déverrouillé pendant le processus d'exportation. Les pièces jointes sont référencées dans les données du coffre-fort. Les pièces jointes ne sont jamais stockées en clair au cours du processus.</string>
     <string name="exportaccount_include_attachments_title">Exporter les pièces jointes</string>
     <string name="exportaccount_export_button">Exporter</string>
@@ -1059,7 +1059,7 @@
 3. Confirmez et redémarrez Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Copier automatiquement le mot de passe unique</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Lors de la saisie des informations de connexion, copiez automatiquement les mots de passe uniques</string>
-    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
+    <string name="pref_item_autofill_default_match_detection_title">Détection de correspondance par défaut</string>
     <string name="pref_item_autofill_inline_suggestions_title">Suggestions</string>
     <string name="pref_item_autofill_inline_suggestions_text">Intègre les suggestions de remplissage automatique directement dans les claviers compatibles</string>
     <string name="pref_item_autofill_manual_selection_title">Sélection manuelle</string>
@@ -1142,8 +1142,8 @@
     <string name="feat_item_show_barcode_text">Encoder un texte sous la forme de codes-barres différents.</string>
     <string name="feat_item_generator_title">Générateur</string>
     <string name="feat_item_generator_text">Générer des mots de passe ou des noms d'utilisateurs.</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">Exporter</string>
+    <string name="feat_item_export_text">Exporter les données du coffre, y compris les pièces jointes.</string>
     <string name="datasafety_header_title">Sécurité des données</string>
     <string name="datasafety_local_section">Données locales</string>
     <string name="datasafety_local_text">Les données locales se composent de téléchargements, de paramètres de l'utilisateur, de coffre. Ils sont stockés dans le stockage interne d'un appareil, qui n'est accessible que par le système Android ou le Keyguard.</string>

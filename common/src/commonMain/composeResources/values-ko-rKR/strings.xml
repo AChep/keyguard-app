@@ -288,7 +288,7 @@
     <string name="ciphers_action_restore_confirmation_title">휴지통에서 복원하시겠습니까?</string>
     <string name="ciphers_action_delete_title">완전히 삭제</string>
     <string name="ciphers_action_delete_confirmation_title">완전히 삭제하시겠습니까?</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Watchtower 경고 설정</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">감시탑 경고 설정</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">연관 항목을 휴지통으로 이동</string>
     <string name="sends_action_change_name_title">이름 바꾸기</string>
     <string name="sends_action_change_names_title">이름 바꾸기</string>
@@ -705,7 +705,7 @@
     <string name="home_vault_label">보관함</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">생성기</string>
-    <string name="home_watchtower_label">Watchtower</string>
+    <string name="home_watchtower_label">감시탑</string>
     <string name="home_settings_label">설정</string>
     <string name="lock_reason_inactivity">일정 시간 미사용으로 잠김</string>
     <string name="lock_reason_manually">사용자에 의해 잠김</string>
@@ -819,7 +819,7 @@
     <string name="generator_passphrase_number_title">숫자 포함</string>
     <string name="generator_passphrase_wordlist_title">단어 목록</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">10명 중 1명꼴로 같은 4자리 PIN을 사용합니다. PIN을 생성하여 사용하면 자주 사용되는 PIN을 피할 수 있습니다.</string>
     <string name="generator_username_type">사용자 이름</string>
     <string name="generator_username_delimiter_title">구분 기호</string>
     <string name="generator_username_custom_word_title">사용자 지정 단어</string>
@@ -870,7 +870,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">모든 비밀번호 기록을 삭제합니다.</string>
     <string name="passwordhistory_delete_one_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
     <string name="passwordhistory_delete_many_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
-    <string name="watchtower_header_title">Watchtower</string>
+    <string name="watchtower_header_title">감시탑</string>
     <string name="watchtower_section_password_strength_label">비밀번호 보안 강도</string>
     <string name="watchtower_section_security_label">보안</string>
     <string name="watchtower_section_maintenance_label">관리</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">만료되었거나 곧 만료될 항목입니다.</string>
     <string name="watchtower_item_duplicate_websites_title">중복 URI</string>
     <string name="watchtower_item_duplicate_websites_text">일치 인식을 적용한 뒤, 같은 사이트에 하나 이상의 URI가 있는 항목입니다.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">느슨한 URI 일치 인식</string>
+    <string name="watchtower_item_broad_websites_text">일치 규칙을 더 명확하게 해야 할 만한 URI가 포함된 항목입니다.</string>
     <string name="watchtower_item_trashed_items_title">휴지통에 있는 항목</string>
     <string name="watchtower_item_trashed_items_text">휴지통으로 간 항목입니다. 휴지통에 항목이 너무 많으면 보관함이 느려질 수 있습니다.</string>
     <string name="watchtower_item_empty_folders_title">빈 폴더</string>
@@ -904,8 +904,8 @@
     <string name="watchtower_item_duplicate_items_text">보관함에 있는 중복된 항목입니다.</string>
     <string name="watchtower_item_compromised_accounts_title">유출된 계정</string>
     <string name="watchtower_item_compromised_accounts_text">사용자 이름이나 이메일 주소가 유출되었는지 확인합니다.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
-    <string name="watchtower_alerts_header_title">새 Watchtower 경고</string>
+    <string name="watchtower_notification_new_alerts_title">새 감시탑 경고</string>
+    <string name="watchtower_alerts_header_title">새 감시탑 경고</string>
     <string name="watchtower_mark_all_as_read_title">모두 읽은 상태로 표시</string>
     <string name="changepassword_header_title">앱 비밀번호 변경</string>
     <string name="changepassword_change_password_button">비밀번호 변경</string>
@@ -946,7 +946,7 @@
     <string name="settings_permissions_header_title">권한</string>
     <string name="settings_security_header_title">보안</string>
     <string name="settings_subscriptions_header_title">Keyguard 프리미엄</string>
-    <string name="settings_watchtower_header_title">Watchtower</string>
+    <string name="settings_watchtower_header_title">감시탑</string>
     <string name="settings_open_source_licenses_header_title">오픈 소스 라이선스</string>
     <string name="pref_item_accounts_title">계정</string>
     <string name="pref_item_accounts_text">계정 추가 및 확인</string>
@@ -956,7 +956,7 @@
     <string name="pref_item_security_text">생체 정보, 비밀번호 변경, 보관함 시간 제한</string>
     <string name="pref_item_subscription_title">Keyguard 프리미엄</string>
     <string name="pref_item_subscription_text">추가 기능 잠금 해제, 앱 개발 지원</string>
-    <string name="pref_item_watchtower_title">Watchtower</string>
+    <string name="pref_item_watchtower_title">감시탑</string>
     <string name="pref_item_watchtower_text">유출된 서비스, 취약한 비밀번호</string>
     <string name="pref_item_notifications_title">알림</string>
     <string name="pref_item_notifications_text">경고</string>
@@ -1118,7 +1118,7 @@
     <string name="feat_item_filter_text">폴더, 조직, 유형 등으로 항목을 필터링합니다.</string>
     <string name="feat_item_multiple_keywords_title">다중 키워드</string>
     <string name="feat_item_multiple_keywords_text">예를 들어 'Bitwarden Test Account' 항목을 검색하려면 'bitw test'를 입력하세요.</string>
-    <string name="feat_section_watchtower_title">Watchtower</string>
+    <string name="feat_section_watchtower_title">감시탑</string>
     <string name="feat_item_pwned_passwords_title">유출된 비밀번호</string>
     <string name="feat_item_pwned_passwords_text">알려진 유출 데이터베이스를 통해 비밀번호가 유출된 항목을 찾습니다.</string>
     <string name="feat_item_password_strength_title">비밀번호 보안 강도</string>

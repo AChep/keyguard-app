@@ -3,7 +3,6 @@ package com.artemchep.keyguard.android.autofill
 import android.app.assist.AssistStructure
 import android.os.Build
 import android.text.InputType
-import android.util.Log
 import android.view.View
 import android.view.autofill.AutofillId
 import androidx.autofill.HintConstants
@@ -553,10 +552,7 @@ class AutofillStructureParser {
         node: AssistStructure.ViewNode,
         parentWebViewNodeId: Int? = null,
     ): AutofillStructure {
-        var webView = node.className == "android.webkit.WebView"
-        val webViewNodeId = node.id
-            .takeIf { webView }
-            ?: parentWebViewNodeId
+        var webView = false
 
         var webDomain: String? = node.webDomain?.takeIf { it.isNotEmpty() }
         var webScheme: String? =
@@ -569,6 +565,11 @@ class AutofillStructureParser {
         val out = mutableListOf<AutofillStructureItem>()
         // Only parse visible nodes
         if (node.visibility == View.VISIBLE) {
+            webView = node.className == "android.webkit.WebView"
+            val webViewNodeId = node.id
+                .takeIf { webView }
+                ?: parentWebViewNodeId
+
             if (node.autofillId != null) {
                 val outBuilders = mutableListOf<AutofillStructureItemBuilder>()
                 // Parse methods

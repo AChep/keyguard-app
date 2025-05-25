@@ -71,6 +71,14 @@
       "created_at": "2025-05-20T16:33:18Z",
       "repoId": 669697660,
       "pullRequestNo": 947
+    },
+    {
+      "name": "Adolar0042",
+      "id": 39769465,
+      "comment_id": 2907916736,
+      "created_at": "2025-05-25T16:06:45Z",
+      "repoId": 669697660,
+      "pullRequestNo": 952
     }
   ]
 }

@@ -27,5 +27,6 @@ class AddCipherUsedPasskeyHistoryImpl(
                 type = CipherHistoryType.USED_PASSKEY,
                 createdAt = request.instant,
             )
+            Unit
         }
 }

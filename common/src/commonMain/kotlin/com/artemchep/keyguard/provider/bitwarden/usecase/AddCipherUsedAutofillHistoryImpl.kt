@@ -26,5 +26,6 @@ class AddCipherUsedAutofillHistoryImpl(
                 type = CipherHistoryType.USED_AUTOFILL,
                 createdAt = request.instant,
             )
+            Unit
         }
 }

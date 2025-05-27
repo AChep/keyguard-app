@@ -26,5 +26,6 @@ class AddCipherOpenedHistoryImpl(
                 type = CipherHistoryType.OPENED,
                 createdAt = request.instant,
             )
+            Unit
         }
 }

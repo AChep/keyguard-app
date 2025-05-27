@@ -12,7 +12,7 @@ appVersionName = "1.12.1"
 # @keep
 appVersionCode = "6"
 # https://github.com/google/accompanist
-accompanist = "0.36.0"
+accompanist = "0.37.3"
 androidBillingClient = "7.1.1"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.1.5"
@@ -23,7 +23,7 @@ androidxAppCompat = "1.7.0"
 androidxAutofill = "1.3.0-rc01"
 androidxBaselineProfile = "1.3.4"
 androidxBenchmarkMacroJUnit4 = "1.3.4"
-androidxBiometricKtx = "1.4.0-alpha02"
+androidxBiometricKtx = "1.4.0-alpha04"
 androidxBrowser = "1.8.0"
 androidxCamera = "1.4.2"
 androidxCoreKtx = "1.16.0"
@@ -33,7 +33,7 @@ androidxCredentials = "1.5.0"
 # Before updating the version, check if
 # https://issuetracker.google.com/issues/413061399
 # has been fixed.
-androidxDatastore = "1.1.4"
+androidxDatastore = "1.1.7"
 androidxLifecycle = "2.9.0"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.7.1"
@@ -50,7 +50,7 @@ androidxWork = "2.10.1"
 # https://github.com/harawata/appdirs
 appDirs = "1.4.0"
 # https://github.com/arrow-kt/arrow
-arrow = "2.1.1"
+arrow = "2.1.2"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
@@ -60,7 +60,7 @@ commonsCodec = "1.18.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.17.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.8.0"
+composeMultiplatform = "1.8.1"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
@@ -75,15 +75,15 @@ googleServicesPlugin = "4.4.2"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
-kamel = "1.0.3"
+kamel = "1.0.5"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kodein-Framework/Kodein-DI
-kodeinDi = "7.22.0"
+kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.1.20"
+kotlin = "2.1.21"
 # https://github.com/Kotlin/kotlinx.collections.immutable
-kotlinCollections = "0.3.8"
+kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinCoroutines = "1.10.2"
 # https://github.com/Kotlin/kotlinx-datetime
@@ -92,7 +92,7 @@ kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinSerialization = "1.8.1"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.1.20-2.0.1"
+kspPlugin = "2.1.21-2.0.1"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"
@@ -106,7 +106,7 @@ jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
 # https://github.com/skydoves/landscapist
-landscapist = "2.4.7"
+landscapist = "2.4.8"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.13.0"
 # https://github.com/tony19/logback-android
@@ -124,7 +124,7 @@ playServicesBase = "18.7.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha02"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "9.0.4"
+signalr = "9.0.5"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
 msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api

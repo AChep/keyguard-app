@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.PersistableBundle
 import androidx.core.content.getSystemService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.platform.CurrentPlatformImpl
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -48,5 +49,8 @@ class ClipboardServiceAndroid(
         clipboardManager.setPrimaryClip(clip)
     }
 
-    override fun hasCopyNotification() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+    // Chromebooks do not show the copy notification, at least for now, therefore
+    // we want to show the copy notification for those devices.
+    override fun hasCopyNotification() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !CurrentPlatformImpl.isChromebook
 }

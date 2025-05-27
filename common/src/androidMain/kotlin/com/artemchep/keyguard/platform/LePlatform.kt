@@ -2,7 +2,7 @@ package com.artemchep.keyguard.platform
 
 import android.os.Build
 
-private val platform by lazy {
+val CurrentPlatformImpl by lazy {
     val isChromebook = Build.DEVICE.orEmpty()
         .matches(".+_cheets|cheets_.+".toRegex())
     Platform.Mobile.Android(
@@ -12,4 +12,4 @@ private val platform by lazy {
 }
 
 actual val CurrentPlatform: Platform
-    get() = platform
+    get() = CurrentPlatformImpl

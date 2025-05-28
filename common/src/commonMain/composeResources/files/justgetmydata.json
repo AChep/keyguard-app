@@ -53,9 +53,16 @@
   {
     "name": "Amazon",
     "domains": [],
-    "url": "https://www.amazon.com/gp/help/customer/display/",
-    "difficulty": "hard",
-    "notes": "Go to https://www.amazon.com/gp/help/customer/display and down, in browse help topic, go to \"Security & Privacy\" and \"How Do I Request My Data?\". There click \"Request My Data\", choose whatever you need/want and click \"Send Request\". An e-mail will be send to your Amazon linked e-mail to confirm the Data Request. Just click confirm and within a few weeks your data will be ready for download. However here comes the hard part, you'll be presented with 100s of tiny files, with no option to download all at once."
+    "url": "https://www.amazon.com/hz/privacy-central/data-requests/preview.html",
+    "difficulty": "easy",
+    "notes": "Visit the linked page. After signing in, select \"Request All Your Data\" and click \"Submit Request.\" You'll receive a confirmation email that must be clicked within 5 days. Once verified, Amazon will compile and send a downloadable ZIP file containing your account data."
+  },
+  {
+    "name": "Anthropic",
+    "domains": [],
+    "url": "https://claude.ai/settings/data-privacy-controls",
+    "difficulty": "easy",
+    "notes": " Go to Settings \u2192 Privacy \u2192 \"Export data.\" Your account data will be compiled and made available for download with a single click."
   },
   {
     "name": "Apple",
@@ -286,6 +293,13 @@
     "notes": "Since Gmail is a service by Google, please refer to the instructions for [Google](./#google)."
   },
   {
+    "name": "GoDaddy",
+    "domains": [],
+    "url": "https://sso.godaddy.com/preferences/download-data",
+    "difficulty": "easy",
+    "notes": "After signing in, go to Account Settings \u2192 Download Your Information. You'll receive a file containing your account info including name, email, and address."
+  },
+  {
     "name": "GOG",
     "domains": [],
     "url": "https://support.gog.com/hc/en-us/requests/new?form=other&product=gog",
@@ -320,6 +334,13 @@
     "difficulty": "hard",
     "notes": "Contact the customer support via email and request a copy of your data.",
     "email": "dpo@hype.it"
+  },
+  {
+    "name": "Infinibrowser",
+    "domains": [],
+    "url": "https://infinibrowser.wiki/profile/settings",
+    "difficulty": "easy",
+    "notes": "Go to the url provided and press the Download button under Privacy."
   },
   {
     "name": "ING",
@@ -552,6 +573,15 @@
     "url": "https://id.sonyentertainmentnetwork.com/id/management_ca/?entry=privacy_settings",
     "difficulty": "easy",
     "notes": "Click on your profile icon, then on \"Account Settings\", then on \"Privacy Settings\", then on \"Data Access Request\", then on \"Request Data\". You will receive an email with a link to download your data when it is ready."
+  },
+  {
+    "name": "Plex",
+    "domains": [],
+    "url": "https://preferences.plex.tv/",
+    "difficulty": "easy",
+    "notes": "Select your country and state of residence, then click \"Start Access Request\" to receive a copy of your account data. This replaces the older email-based request process.",
+    "email": "dataprotection@plex.tv",
+    "email_body": "Please send me a copy of my account data. My username is XXXXXX."
   },
   {
     "name": "Popeyes",

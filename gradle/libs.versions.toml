@@ -8,7 +8,7 @@ androidTargetSdk = "35"
 # @keep
 jdk = "17"
 # @keep
-appVersionName = "1.12.1"
+appVersionName = "1.12.2"
 # @keep
 appVersionCode = "6"
 # https://github.com/google/accompanist

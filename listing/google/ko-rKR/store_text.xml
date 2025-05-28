@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_store_google_app_name">Keyguard for Bitwarden</string>
+    <string name="listing_store_google_app_name">Keyguard</string>
     <string name="listing_store_google_short_description">사용자 경험(UX)을 중시하는 서드파티 클라이언트입니다.</string>
     <!-- A name of the Yearly subscription plan -->
     <string name="listing_store_google_subscription_yearly">연간 구독</string>

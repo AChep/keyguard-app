@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_store_google_app_name">Keyguard dla Bitwarden</string>
+    <string name="listing_store_google_app_name">Keyguard</string>
     <string name="listing_store_google_short_description">Nieoficjalny klient skupiający się na doświadczeniu użytkownika.</string>
     <!-- A name of the Yearly subscription plan -->
     <string name="listing_store_google_subscription_yearly">Plan roczny</string>

@@ -9,29 +9,109 @@
     },
     "languages": [
       {
+        "id": "ar",
+        "name": "Arabic"
+      },
+      {
+        "id": "ca",
+        "name": "Catalan"
+      },
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      },
+      {
+        "id": "zh-TW",
+        "name": "Chinese Traditional"
+      },
+      {
+        "id": "cs",
+        "name": "Czech"
+      },
+      {
+        "id": "da",
+        "name": "Danish"
+      },
+      {
         "id": "nl",
         "name": "Dutch"
+      },
+      {
+        "id": "en-GB",
+        "name": "English, United Kingdom"
+      },
+      {
+        "id": "fr",
+        "name": "French"
       },
       {
         "id": "de",
         "name": "German"
       },
       {
+        "id": "hu",
+        "name": "Hungarian"
+      },
+      {
+        "id": "it",
+        "name": "Italian"
+      },
+      {
+        "id": "ja",
+        "name": "Japanese"
+      },
+      {
+        "id": "ko",
+        "name": "Korean"
+      },
+      {
+        "id": "pl",
+        "name": "Polish"
+      },
+      {
+        "id": "pt-PT",
+        "name": "Portuguese"
+      },
+      {
+        "id": "pt-BR",
+        "name": "Portuguese, Brazilian"
+      },
+      {
+        "id": "ro",
+        "name": "Romanian"
+      },
+      {
         "id": "ru",
         "name": "Russian"
       },
       {
+        "id": "es-ES",
+        "name": "Spanish"
+      },
+      {
+        "id": "sv-SE",
+        "name": "Swedish"
+      },
+      {
+        "id": "tr",
+        "name": "Turkish"
+      },
+      {
         "id": "uk",
         "name": "Ukrainian"
+      },
+      {
+        "id": "vi",
+        "name": "Vietnamese"
       }
     ],
-    "translated": 6750,
-    "target": 6373,
+    "translated": 6774,
+    "target": 6397,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
     "negativeVotes": 1,
-    "winning": 419
+    "winning": 420
   },
   {
     "user": {
@@ -135,8 +215,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 292,
-    "target": 490,
+    "translated": 4955,
+    "target": 8305,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -223,8 +303,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5476,
-    "target": 4712,
+    "translated": 5514,
+    "target": 4745,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -403,7 +483,7 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 17,
+    "positiveVotes": 18,
     "negativeVotes": 3,
     "winning": 0
   },
@@ -587,10 +667,10 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2403,
-    "target": 3804,
+    "translated": 2466,
+    "target": 3882,
     "approved": 0,
-    "voted": 10,
+    "voted": 11,
     "positiveVotes": 2,
     "negativeVotes": 0,
     "winning": 0
@@ -776,7 +856,7 @@
       "id": "15972315",
       "username": "mikropsoft",
       "fullName": "\ud835\udddb\ud835\uddfc\ud835\uddf9\ud835\uddf6 (mikropsoft)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/15972315/medium/5744712b0e535e09097f439fc31ac804.jpg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/15972315/medium/23948a4df1f365f3bd7accc92c87bc4e.jpg",
       "joined": "2024-03-03 10:01:05"
     },
     "languages": [
@@ -785,13 +865,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5244,
-    "target": 4907,
-    "approved": 5546,
+    "translated": 5253,
+    "target": 4913,
+    "approved": 5556,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5266
+    "winning": 5275
   },
   {
     "user": {
@@ -921,8 +1001,8 @@
         "name": "Italian"
       }
     ],
-    "translated": 711,
-    "target": 764,
+    "translated": 761,
+    "target": 816,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 3,
@@ -1189,8 +1269,8 @@
         "name": "French"
       }
     ],
-    "translated": 861,
-    "target": 1011,
+    "translated": 1017,
+    "target": 1211,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 12,
@@ -1525,6 +1605,28 @@
     ],
     "translated": 387,
     "target": 327,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17064036",
+      "username": "krychtor",
+      "fullName": "krychtor",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17064036/medium/fa42fa093ff1c3746dfae625bb784048.png",
+      "joined": "2025-04-25 13:51:11"
+    },
+    "languages": [
+      {
+        "id": "cs",
+        "name": "Czech"
+      }
+    ],
+    "translated": 786,
+    "target": 745,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

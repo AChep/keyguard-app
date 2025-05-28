@@ -312,7 +312,7 @@
     <string name="sends_action_disable_title">Deactivate</string>
     <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
     <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
+    <string name="sends_action_disabled_note">Questo send è disattivato, nessuno può accederci.</string>
     <string name="sends_action_delete_title">Delete forever</string>
     <string name="sends_action_delete_confirmation_title">Delete forever?</string>
     <string name="file_action_open_with_title">Apri con…</string>
@@ -323,7 +323,7 @@
     <string name="file_action_view_cipher_title">Visualizza elemento genitore</string>
     <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">Mostra sempre tastiera</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Ricorda il metodo di ordinamento</string>
     <string name="vault_action_sync_vault_title">Sincronizza</string>
     <string name="vault_action_lock_vault_title">Blocca</string>
     <string name="vault_action_rename_folder_title">Rinomina cartella</string>
@@ -389,13 +389,13 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato a nome e cognome</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> collegato a un campo sconosciuto</string>
     <string name="text_action_share_with_title">Condividi con…</string>
-    <string name="text_action_send_title">Create a send</string>
+    <string name="text_action_send_title">Crea un send</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
     <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
     <string name="ssh_key_action_save_public_key_title">Save public key</string>
     <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Salva chiave privata in chiaro</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Chiave privata in chiaro salvata nei download</string>
     <string name="ssh_key_action_add_key_title">Add keys</string>
     <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selezionati</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Torre di Guardia</string>
     <string name="home_settings_label">Impostazioni</string>
     <string name="lock_reason_inactivity">Bloccato per inattività</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Bloccato manualmente</string>
     <string name="send_type_text">Testo</string>
     <string name="send_type_file">File</string>
     <string name="cipher_type_login">Accesso</string>
@@ -718,7 +718,7 @@
     <string name="cipher_type_ssh_key">Chiave SSH</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="field_type_text">Testo</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Testo (nascosto)</string>
     <string name="field_type_boolean">Booleano</string>
     <string name="field_type_linked">Collegato</string>
     <!--
@@ -783,7 +783,7 @@
     <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Codice di sicurezza</string>
-    <string name="vault_view_saved_to_label">Saved to <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_label">Salvato in <xliff:g id="email" example="username@example.com">%1$s</xliff:g> a <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Ultima modifica password il <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Passkey creata il <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Ultima modifica il <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>

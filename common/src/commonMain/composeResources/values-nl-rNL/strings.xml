@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Instellingen</string>
     <string name="lock_reason_inactivity">Vergrendeld door inactiviteit</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Handmatig vergrendeld</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Bestand</string>
     <string name="cipher_type_login">Login</string>
@@ -718,7 +718,7 @@
     <string name="cipher_type_ssh_key">SSH sleutel</string>
     <string name="cipher_type_passkey">Toegangssleutel</string>
     <string name="field_type_text">Tekst</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Tekst (verborgen)</string>
     <string name="field_type_boolean">Boolean</string>
     <string name="field_type_linked">Gekoppeld</string>
     <!--
@@ -773,8 +773,8 @@
     <string name="sortby_password_strength_title">Wachtwoordsterkte</string>
     <string name="sortby_password_strength_normal_mode">Zwakste eerst</string>
     <string name="sortby_password_strength_reverse_mode">Sterkste eerst</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
+    <string name="relative_time_just_now_short">zojuist</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m geleden</string>
     <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
     <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
     <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>

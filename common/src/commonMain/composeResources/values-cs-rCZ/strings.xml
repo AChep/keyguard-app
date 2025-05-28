@@ -23,11 +23,11 @@
     <string name="email_verified">Ověřeno</string>
     <string name="email_not_verified">Neověřeno</string>
     <string name="email_visibility">Viditelnost e-mailu</string>
-    <string name="public_url">Veřejná adresa URL</string>
+    <string name="public_url">Veřejná URL adresa</string>
     <string name="url">URL</string>
-    <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
+    <string name="conceal_value">Skrýt hodnotu</string>
+    <string name="field_label">Označení</string>
+    <string name="field_value">Hodnota</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Počet přihlášení</string>
     <!--
@@ -42,8 +42,8 @@
     <string name="card_number">Číslo karty</string>
     <string name="card_number_empty_label">Žádné číslo karty</string>
     <string name="card_type">Značka</string>
-    <string name="card_cvv">Bezpečnostní kód  – CVV</string>
-    <string name="card_valid_from">Platné od</string>
+    <string name="card_cvv">Bezpečnostní kód (CVV)</string>
+    <string name="card_valid_from">Platnost od</string>
     <string name="card_valid_to">Platnost do</string>
     <string name="card_expiry_month">Měsíc expirace karty</string>
     <string name="card_expiry_year">Rok expirace karty</string>
@@ -65,10 +65,10 @@
     <string name="info">Informace</string>
     <string name="cancel">Zrušit</string>
     <string name="continue_">Pokračovat</string>
-    <string name="country">Země</string>
+    <string name="country">Stát</string>
     <string name="address">Adresa</string>
     <string name="postal_code">PSČ</string>
-    <string name="pull_to_search">Táhněte pro vyhledávání</string>
+    <string name="pull_to_search">Potáhněte pro vyhledávání</string>
     <string name="save">Uložit</string>
     <string name="save_to">Uložit do</string>
     <string name="uri">URI</string>
@@ -95,16 +95,16 @@
     <string name="folder">Složka</string>
     <string name="folders">Složky</string>
     <string name="folders_empty_label">Žádné složky</string>
-    <string name="collection_none">Žádná sbírka</string>
-    <string name="collection">Sbírka</string>
-    <string name="collections">Sbírky</string>
-    <string name="collections_empty_label">Žádné sbírky</string>
+    <string name="collection_none">Žádná kolekce</string>
+    <string name="collection">Kolekce</string>
+    <string name="collections">Kolekce</string>
+    <string name="collections_empty_label">Žádné kolekce</string>
     <string name="organization_none">Můj trezor</string>
     <string name="organization">Organizace</string>
     <string name="organizations">Organizace</string>
     <string name="organizations_empty_label">Žádné organizace</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Ekvivalentní domény</string>
+    <string name="equivalent_domains_empty_label">Žádné ekvivalentní domény</string>
     <string name="misc">Různé</string>
     <string name="category">Kategorie</string>
     <string name="command">Příkaz</string>
@@ -118,7 +118,7 @@
     <string name="account_none">Žádný účet</string>
     <string name="type">Typ</string>
     <string name="options">Možnosti</string>
-    <string name="send">Send</string>
+    <string name="send">Odeslat</string>
     <string name="reset">Resetovat</string>
     <string name="length">Délka</string>
     <string name="security">Zabezpečení</string>
@@ -137,7 +137,7 @@
     <string name="expiration_date">Datum expirace</string>
     <string name="expiration_date_custom">Vlastní</string>
     <string name="expiration_date_never">Nikdy</string>
-    <string name="select_linked_type">Vyberte typ</string>
+    <string name="select_linked_type">Vybrat typ</string>
     <string name="select_file">Vybrat soubor</string>
     <string name="autofill">Automatické vyplňování</string>
     <string name="autofill_and_save_uri">Automaticky vyplnit a uložit informace o aplikaci nebo webu</string>
@@ -178,9 +178,9 @@
     <string name="passkey_use_short">Použít</string>
     <string name="passkey_save">Uložit přístupový klíč</string>
     <string name="passkey_available">Dostupný přístupový klíč</string>
-    <string name="twofa_available">Dvoufaktorové ověření je k dispozici</string>
+    <string name="twofa_available">K dispozici dvoufaktorové ověření</string>
     <string name="custom">Vlastní</string>
-    <string name="grant_permission">Grant permission</string>
+    <string name="grant_permission">Udělit oprávnění</string>
     <string name="create_account">Vytvořit účet</string>
     <string name="follow_system_settings">Dle nastavení systému</string>
     <!-- A feature is coming soon! -->
@@ -188,7 +188,7 @@
     <string name="powered_by">Funguje pomocí</string>
     <string name="verification_code">Ověřovací kód</string>
     <string name="resend_verification_code">Odeslat ověřovací kód</string>
-    <string name="requested_verification_email">Požádán ověřovací e-mail</string>
+    <string name="requested_verification_email">Zažádán ověřovací e-mail</string>
     <string name="web_vault">Webový trezor</string>
     <string name="launch_web_vault">Spustit Webový trezor</string>
     <!-- Remember me to not have to enter OTP code second time -->
@@ -216,13 +216,13 @@
     <string name="custom_fields">Vlastní pole</string>
     <string name="reveal_secure_note">Odhalit zabezpečenou poznámku</string>
     <string name="hide_secure_note">Skrýt zabezpečenou poznámku</string>
-    <string name="master_password_hint">Nápověda k hlavnímu heslu</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
-    <string name="key_type">Key type</string>
-    <string name="key_pair">Key pair</string>
-    <string name="key_ssh">SSH Key</string>
+    <string name="master_password_hint">Nápověda k master heslu</string>
+    <string name="public_key">Veřejný klíč</string>
+    <string name="private_key">Privátní klíč</string>
+    <string name="fingerprint">Otisk prstu</string>
+    <string name="key_type">Typ klíče</string>
+    <string name="key_pair">Klíčový pár</string>
+    <string name="key_ssh">SSH klíč</string>
     <string name="fingerprint_phrase">Fráze otisku prstu</string>
     <string name="fingerprint_phrase_help_title">Co je to otisk prstu?</string>
     <string name="filter_auth_reprompt_items">Opakovaná výzva k ověření</string>
@@ -232,7 +232,7 @@
     <string name="bitwarden_premium_required">Vyžaduje Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Neoficiální server Bitwarden</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip_generate_email_relay_title">Vytvářeje unikátní e-maily pro lepší soukromí.</string>
     <string name="account_last_synced_at">Naposledy synchronizováno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Změnit jméno</string>
     <string name="account_action_change_color_title">Změnit barvu</string>
@@ -243,10 +243,10 @@
     <string name="account_action_export_individual_vault_title">Exportovat individuální trezor</string>
     <string name="account_action_hide_title">Skrýt položky</string>
     <string name="account_action_hide_text">Skrýt položky z hlavních obrazovek aplikace</string>
-    <string name="account_action_email_verify_instructions_title">Navštivte webový trezor pro ověření vaší e-mailové adresy</string>
-    <string name="account_action_premium_purchase_instructions_title">Vylepšete svůj účet na předplatné Premium a odemkněte spoustu skvělých doplňkových funkcí</string>
+    <string name="account_action_email_verify_instructions_title">Pro ověření vaší e-mailové adresy navštivte Webový trezor</string>
+    <string name="account_action_premium_purchase_instructions_title">Upgradujte svůj účet na předplatné Premium a odemkněte pár skvělých doplňkových funkcí</string>
     <string name="account_action_tfa_title">Dvoufaktorové ověřování</string>
-    <string name="account_action_tfa_text">Vyžadovat ověření přihlášení jiným zařízením, například bezpečnostním klíčem, autentifikační aplikací, SMS nebo e-mailem</string>
+    <string name="account_action_tfa_text">Požadovat ověření přihlášení jiným zařízením, jako bezpečnostní klíče, autentizační aplikace, SMS nebo e-mail</string>
     <string name="account_action_tfa_active_status">Aktivní</string>
     <string name="account_action_items_title">Položky</string>
     <string name="account_action_log_out_title">Odhlásit se</string>
@@ -259,7 +259,7 @@
     <string name="folder_action_create_title">Vytvořit složku</string>
     <string name="folder_delete_one_confirmation_title">Odstranit složku?</string>
     <string name="folder_delete_many_confirmation_title">Odstranit složky?</string>
-    <string name="folder_delete_confirmation_text">Tyto položky budou okamžitě odstraněny. Tato akce je nevratná.</string>
+    <string name="folder_delete_confirmation_text">Tato položka/položky budou okamžitě odstraněny. Tato akce je nevratná.</string>
     <string name="ciphers_recently_opened">Nedávno otevřené</string>
     <string name="ciphers_often_opened">Často otevírané</string>
     <string name="ciphers_history_empty">Zatím žádná historie</string>
@@ -283,11 +283,11 @@
     <string name="ciphers_action_view_password_history_title">Zobrazit historii hesel</string>
     <string name="ciphers_action_trash_title">Koš</string>
     <string name="ciphers_action_trash_confirmation_title">Přesunout do koše?</string>
-    <string name="ciphers_action_trash_confirmation_text">Položky, které se nacházejí v koši více než 30 dní, budou automaticky smazány.</string>
+    <string name="ciphers_action_trash_confirmation_text">Položky, které budou v koši více než 30 dní, se automaticky smažou.</string>
     <string name="ciphers_action_restore_title">Obnovit</string>
     <string name="ciphers_action_restore_confirmation_title">Obnovit z koše?</string>
-    <string name="ciphers_action_delete_title">Trvale smazat</string>
-    <string name="ciphers_action_delete_confirmation_title">Navždy odstranit?</string>
+    <string name="ciphers_action_delete_title">Trvale odstranit</string>
+    <string name="ciphers_action_delete_confirmation_title">Trvale odstranit?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Konfigurace Watchtower upozornění</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Přesunout přidružené položky do koše</string>
     <string name="sends_action_change_name_title">Změnit název</string>
@@ -314,48 +314,48 @@
     <string name="sends_action_disable_confirmation_title">Deaktivovat?</string>
     <string name="sends_action_disabled_note">Tento Send je deaktivován, nikdo k němu nemá přístup.</string>
     <string name="sends_action_delete_title">Navždy odstranit</string>
-    <string name="sends_action_delete_confirmation_title">Navždy odstranit?</string>
+    <string name="sends_action_delete_confirmation_title">Odstranit navždy?</string>
     <string name="file_action_open_with_title">Otevřít pomocí…</string>
     <string name="file_action_send_with_title">Odeslat pomocí…</string>
-    <string name="file_action_open_in_file_manager_title">Otevřít pomocí Správce souborů</string>
-    <string name="file_action_delete_local_title">Odstranit místní soubor</string>
-    <string name="file_action_delete_local_many_title">Odstranit místní soubory</string>
+    <string name="file_action_open_in_file_manager_title">Otevřít správcem souborů</string>
+    <string name="file_action_delete_local_title">Odstranit lokální soubor</string>
+    <string name="file_action_delete_local_many_title">Odstranit lokální soubory</string>
     <string name="file_action_view_cipher_title">Zobrazit nadřazenou položku</string>
-    <string name="file_action_reveal_title">Reveal</string>
+    <string name="file_action_reveal_title">Odhalit</string>
     <string name="vault_action_always_show_keyboard_title">Vždy zobrazit klávesnici</string>
     <string name="vault_action_remember_sorting_title">Zapamatovat způsob řazení</string>
     <string name="vault_action_sync_vault_title">Synchronizovat trezor</string>
     <string name="vault_action_lock_vault_title">Uzamknout trezor</string>
     <string name="vault_action_rename_folder_title">Přejmenovat složku</string>
     <string name="email_action_check_data_breach_title">Zkontrolovat e-mail v databázi datových úniků</string>
-    <string name="username_action_check_data_breach_title">Zkontrolovat uživatelské jméno v databázi datových úniků</string>
-    <string name="password_action_check_data_breach_title">Zkontrolovat heslo v databázi datových úniků</string>
-    <string name="website_action_check_data_breach_title">Zkontrolovat web ve známých únicích dat</string>
+    <string name="username_action_check_data_breach_title">Zkontrolovat uživatelské jméno v databázi uniklých dat</string>
+    <string name="password_action_check_data_breach_title">Zkontrolovat heslo v databázi uniklých dat</string>
+    <string name="website_action_check_data_breach_title">Zkontrolovat web v databázi uniklých dat</string>
     <string name="uri_action_launch_app_title">Otevřít aplikaci</string>
     <string name="uri_action_launch_website_title">Otevřít web</string>
     <string name="uri_action_launch_docs_title">Otevřít dokumenty</string>
     <string name="uri_action_launch_browser_title">Otevřít prohlížeč</string>
     <string name="uri_action_launch_browser_main_page_title">Otevřít hlavní stránku</string>
     <string name="uri_action_launch_play_store_title">Otevřít Obchod Play</string>
-    <string name="uri_action_launch_in_app_title">Otevřít pomocí <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_app_title">Spustit pomocí <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Spustit pomocí…</string>
-    <string name="uri_action_how_to_delete_account_title">Jak odstraním účet?</string>
-    <string name="uri_action_get_my_data_account_title">Jak získám svá data?</string>
+    <string name="uri_action_how_to_delete_account_title">Jak odstranit účet?</string>
+    <string name="uri_action_get_my_data_account_title">Jak získat svá data?</string>
     <string name="uri_action_autofix_unsecure_title">Automaticky opravit nezabezpečené adresy URL</string>
     <string name="uri_action_autofix_unsecure_text">Změní protokol na zabezpečenou variantu, pokud je dostupná</string>
     <string name="uri_unsecure">Nezabezpečené</string>
     <string name="uri_match_app_title">Shoda aplikace</string>
     <string name="uri_match_detection_title">Detekce shody</string>
-    <string name="uri_match_detection_default_title">Default</string>
-    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
+    <string name="uri_match_detection_default_title">Výchozí</string>
+    <string name="uri_match_detection_default_note">Použije globální výchozí chování zjišťování shody vybrané v Nastavení → Automatické vyplňování → Výchozí zjišťování shody URI. Shoda základní domény je výchozí možností.</string>
     <string name="uri_match_detection_domain_title">Základní doména</string>
     <string name="uri_match_detection_domain_note">Shoda zdrojů podle domény nejvyšší a druhé úrovně.</string>
     <string name="uri_match_detection_host_title">Hostitel</string>
-    <string name="uri_match_detection_host_note">Shoda zdrojů podle hostitelského jména a portu (pokud byl specifikován).</string>
+    <string name="uri_match_detection_host_note">Shoda zdrojů podle hostu a portu (pokud specifikován).</string>
     <string name="uri_match_detection_startswith_title">Začíná na</string>
-    <string name="uri_match_detection_startswith_note">Shoda zdrojů, pokud zjištěný zdroj začíná s URI.</string>
+    <string name="uri_match_detection_startswith_note">Přiřadit prostředky, pokud začíná detekovaný prostředek identifikátorem URI.</string>
     <string name="uri_match_detection_exact_title">Přesně</string>
-    <string name="uri_match_detection_exact_note">Shoda zdrojů, pokud zjištěný zdroj přesně odpovídá URI.</string>
+    <string name="uri_match_detection_exact_note">Přiřadit prostředky, pokud zjištěný zdroj přesně odpovídá URI.</string>
     <string name="uri_match_detection_regex_title">Regulární výraz</string>
     <string name="uri_match_detection_regex_note">Shoda zdrojů podle regulárního výrazu. Pokročilá možnost.</string>
     <string name="uri_match_detection_never_title">Nikdy</string>
@@ -365,22 +365,22 @@
     <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno se jménem držitele karty</string>
     <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s měsícem expirace</string>
     <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s rokem expirace</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s kódem karty</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s kódem karty (CVV)</string>
     <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno se značkou karty</string>
     <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s číslem karty</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s titulem</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s názvem</string>
     <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s prostředním jménem</string>
     <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s adresním řádkem (1)</string>
     <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s adresním řádkem (2)</string>
     <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s adresním řádkem (3)</string>
     <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s městem</string>
     <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno se státem</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s poštovním směrovacím číslem</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno se zemí</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno se společností</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s PSČ</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno se státem</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s firmou</string>
     <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s e-mailem</string>
     <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s telefonním číslem</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s číslem soc. zabezp.</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s rodným číslem</string>
     <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s uživatelským jménem</string>
     <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s číslem pasu</string>
     <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s číslem dokladu totožnosti</string>
@@ -390,14 +390,14 @@
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> propojeno s neznámým polem</string>
     <string name="text_action_share_with_title">Sdílet s…</string>
     <string name="text_action_send_title">Vytvořit Send</string>
-    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
-    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
-    <string name="ssh_key_action_save_public_key_title">Save public key</string>
-    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
-    <string name="ssh_key_action_add_key_title">Add keys</string>
-    <string name="ssh_key_action_replace_key_title">Replace keys</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Uložit nešifrované klíče</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Klíče uloženy do složky Downloads</string>
+    <string name="ssh_key_action_save_public_key_title">Uložit veřejný klíč</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Veřejný klíč uložen do složky Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Uložit nešifrovaný soukromý klíč</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Nešifrovaný soukromý klíč uložen do složky Downloads</string>
+    <string name="ssh_key_action_add_key_title">Přidat klíče</string>
+    <string name="ssh_key_action_replace_key_title">Nahradit klíče</string>
     <string name="selection_n_selected">Vybráno <xliff:g id="size" example="15">%1$d</xliff:g></string>
     <string name="copy">Kopírovat</string>
     <string name="copy_value">Kopírovat hodnotu</string>
@@ -418,15 +418,15 @@
     <string name="copy_cvv_code">Kopírovat bezpečnostní kód</string>
     <string name="copy_otp_code">Kopírovat jednorázové heslo</string>
     <string name="copy_otp_secret_code">Kopírovat bezpečnostní klíč</string>
-    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
-    <string name="copy_ssh_public_key">Copy public key</string>
-    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
+    <string name="copy_ssh_unencrypted_private_key">Kopírovat nešifrovaný soukromý klíč</string>
+    <string name="copy_ssh_public_key">Kopírovat veřejný klíč</string>
+    <string name="copy_ssh_fingerprint">Kopírovat otisk</string>
     <string name="copied_value">Hodnota zkopírována</string>
     <string name="copied_url">Adresa URL zkopírována</string>
     <string name="copied_uri">URI zkopírována</string>
     <string name="copied_package_name">Název balíčku zkopírován</string>
-    <string name="copied_key">Copied a key</string>
-    <string name="copied_fingerprint">Copied a fingerprint</string>
+    <string name="copied_key">Klíč kopírován</string>
+    <string name="copied_fingerprint">Otisk kopírován</string>
     <string name="copied_password">Heslo zkopírováno</string>
     <string name="copied_username">Uživatelské jméno zkopírováno</string>
     <string name="copied_email">E-mail zkopírován</string>
@@ -494,22 +494,22 @@
     <string name="error_invalid_uri">Neplatná URI</string>
     <string name="error_invalid_card_number">Neplatné číslo karty</string>
     <string name="error_incorrect_password">Neplatné heslo</string>
-    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
+    <string name="error_otp_key_must_not_be_empty">Tajný klíč OTP kódu nesmí být prázdný</string>
     <string name="error_failed_generate_kdf_hash_oom">Nepodařilo se vytvořit klíč, nedostatek paměti. Zkontrolujte prosím nastavení vašeho serveru KDF.</string>
     <string name="error_failed_generate_otp_code">Nepodařilo se vygenerovat OTP kód</string>
     <string name="error_failed_create_passkey">Nepodařilo se vytvořit přístupový klíč</string>
     <string name="error_failed_use_passkey">Nepodařilo se autorizovat požadavek</string>
     <string name="error_failed_open_uri">Nepodařilo se otevřít URI</string>
     <string name="error_failed_format_placeholder">Nepodařilo se naformátovat proměnnou</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
-    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
-    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
+    <string name="error_failed_open_app_for">Žádná nainstalovaná aplikace nemůže zpracovat tento požadavek</string>
+    <string name="error_failed_unknown">Něco se pokazilo</string>
+    <string name="error_failed_encrypt_biometric_key">Biometrický klíč se nepodařilo zašifrovat</string>
+    <string name="error_failed_decrypt_biometric_key">Biometrický klíč se nepodařilo dešifrovat</string>
     <string name="scanqr_title">Načíst QR kód</string>
     <string name="scanqr_load_from_image_note">Načíst a zpracovat QR kód z obrázku.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
-    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
-    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
+    <string name="scanqr_camera_permission_required_text">Ke skenování QR kódů je požadováno povolení fotoaparátu.</string>
+    <string name="post_notifications_permission_banner_title">Oznámení jsou zakázána</string>
+    <string name="post_notifications_permission_banner_text">Udělte oprávnění k notifikacím, aby Keyguard zobrazoval OTP kódy při automatickém vyplňování &amp; více.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Čárový kód</string>
     <string name="barcodetype_action_show_in_barcode_title">Zobrazit jako čárový kód</string>
@@ -612,7 +612,7 @@
     <string name="urloverride_delete_many_confirmation_title">Odstranit přepsání adresy URL?</string>
     <string name="urloverride_empty_label">Žádná přepsání adres URL</string>
     <string name="setup_header_text">Vytvořit šifrovaný trezor, kam budou ukládána lokální data.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">Pokračováním potvrzujete, že jste zakoupili Keyguard nebo měli aktivní licenci.</string>
     <string name="setup_field_app_password_label">Heslo aplikace</string>
     <string name="setup_checkbox_biometric_auth">Biometrické přihlašování</string>
     <string name="setup_biometric_auth_confirm_title">Vytvořit trezor</string>
@@ -659,7 +659,7 @@
     <string name="addaccount_captcha_need_client_secret_note">Chcete-li projít ověřením captcha v neoficiálním klientovi Bitwarden, musíte zadat tajný klíč klienta. Chcete-li jej zjistit, navštivte Webový trezor / Nastavení / Zabezpečení / Klíče / Klíč API.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Tajný klíč klienta</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
+    <string name="addaccount_create_an_account_title">Vytvořit účet</string>
     <string name="addaccount_sign_in_button">Přihlásit se</string>
     <string name="addaccount_region_section">Oblast</string>
     <string name="addaccount_region_us_type">Spojené státy</string>
@@ -708,17 +708,17 @@
     <string name="home_watchtower_label">Kontroly</string>
     <string name="home_settings_label">Nastavení</string>
     <string name="lock_reason_inactivity">Uzamčeno z důvodu neaktivity</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Zamknuto manuálně</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Soubor</string>
     <string name="cipher_type_login">Přihlášení</string>
     <string name="cipher_type_card">Karta</string>
     <string name="cipher_type_identity">Identita</string>
     <string name="cipher_type_note">Poznámka</string>
-    <string name="cipher_type_ssh_key">SSH Key</string>
+    <string name="cipher_type_ssh_key">SSH klíč</string>
     <string name="cipher_type_passkey">Přístupový klíč</string>
     <string name="field_type_text">Text</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Text (skrytý)</string>
     <string name="field_type_boolean">Logická hodnota</string>
     <string name="field_type_linked">Propojené</string>
     <!--
@@ -773,11 +773,11 @@
     <string name="sortby_password_strength_title">Síla hesla</string>
     <string name="sortby_password_strength_normal_mode">Nejslabší první</string>
     <string name="sortby_password_strength_reverse_mode">Nejsilnější první</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">nyní</string>
+    <string name="relative_time_minute_short">před <xliff:g id="minute" example="1">%1$s</xliff:g> minutami</string>
+    <string name="relative_time_hour_short">před <xliff:g id="hour" example="1">%1$s</xliff:g> hodinami</string>
+    <string name="relative_time_day_short">před <xliff:g id="day" example="1">%1$s</xliff:g> dny</string>
+    <string name="relative_time_week_short">před <xliff:g id="week" example="1">%1$s</xliff:g> týdny</string>
     <string name="vault_main_search_placeholder">Hledat v trezoru</string>
     <string name="vault_main_new_item_button">Nová položka</string>
     <string name="vault_main_no_suggested_items">Pro tento obsah nejsou dostupné žádné doporučené položky</string>
@@ -807,11 +807,11 @@
     <string name="generator_header_title">Generátor</string>
     <string name="generator_header_username_title">Generátor uživatelských jmen</string>
     <string name="generator_header_password_title">Generátor hesel</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
+    <string name="generator_header_ssh_key_title">Generátor SSH klíčů</string>
     <string name="generator_generate_button">Generovat</string>
     <string name="generator_regenerate_button">Vygenerovat znovu</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
+    <string name="generator_use_button">Použít</string>
     <string name="generator_passphrase_type">Heslová fráze</string>
     <string name="generator_passphrase_note">Náhodné heslové fráze poskytují nejlepší kombinaci zapamatovatelnosti a bezpečnosti.</string>
     <string name="generator_passphrase_delimiter_title">Oddělovač</string>
@@ -819,7 +819,7 @@
     <string name="generator_passphrase_number_title">Číslo</string>
     <string name="generator_passphrase_wordlist_title">Seznam slov</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Alespoň jeden z 10 lidí používá stejný čtyř číselný PIN. Generujte PINy, aby jste se vyhli běžným variantám.</string>
     <string name="generator_username_type">Uživatelské jméno</string>
     <string name="generator_username_delimiter_title">Oddělovač</string>
     <string name="generator_username_custom_word_title">Vlastní slovo</string>
@@ -847,15 +847,15 @@
     <string name="generator_email_subdomain_addressing_note">Adresa se subdoménou znamená, že všechny e-maily poslané na adresu <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> stále přijdou na váš účet. Znamená to, že můžete mít spoustu variací vaší e-mailové adresy, které můžete dát různým lidem, webům nebo e-mailovým seznamům. Před použitím této funkce se ujistěte, že ji váš poskytovatel e-mailového hostingu podporuje.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Alias přeposílaného e-mailu</string>
-    <string name="generator_key_length_title">Length</string>
-    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
-    <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
-    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
-    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
-    <string name="generator_key_ed25519_text">Fast and most modern standard</string>
+    <string name="generator_key_length_title">Délka</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bitový</string>
+    <string name="generator_key_rsa_note">Všichni SSH klienti podporují tento algoritmus. Pro RSA se doporučuje velikost klíče alespoň 2048 bitů; 4096 bitů je lepší. Je docela možné, že se algoritmus RSA stane prakticky prolomitelným.</string>
+    <string name="generator_key_rsa_text">Kompatibilní se všemi SSH servery</string>
+    <string name="generator_key_ed25519_note">Toto je ten nejrychlejší a nejmodernější standard. Podpora v SSH klientech zatím není univerzální.</string>
+    <string name="generator_key_ed25519_text">Nejrychlejší a nejmodernější standard</string>
     <string name="generator_create_item_with_password_title">Vytvořit nové přihlášení s heslem</string>
     <string name="generator_create_item_with_username_title">Vytvořit nové přihlášení s uživatelským jménem</string>
-    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
+    <string name="generator_create_item_with_ssh_key_title">Vytvořit novou položku s SSH klíčem</string>
     <string name="generator_password_history_title">Historie hesel</string>
     <string name="generator_show_tips_title">Zobrazovat tipy</string>
     <string name="generatorhistory_header_title">Historie generátoru</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Položky, které expirovaly nebo brzy expirují.</string>
     <string name="watchtower_item_duplicate_websites_title">Duplicitní URI</string>
     <string name="watchtower_item_duplicate_websites_text">Položky, které mají jednu nebo více URI, které pokrývají stejné weby po použití detekce shody.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">Široká detekce shody URI</string>
+    <string name="watchtower_item_broad_websites_text">Položky, které mají jeden nebo více URI, které odpovídají pravidlům detekce, by měly být pravděpodobně zúženy.</string>
     <string name="watchtower_item_trashed_items_title">Vyhozené položky</string>
     <string name="watchtower_item_trashed_items_text">Položky, které byly přesunuty do koše. Příliš mnoho položek v koši může zpomalit operace s vaším trezorem.</string>
     <string name="watchtower_item_empty_folders_title">Prázdné složky</string>
@@ -904,7 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Pomůže vám najít a odstranit duplicitní položky ve vašem trezoru.</string>
     <string name="watchtower_item_compromised_accounts_title">Kompromitované účty</string>
     <string name="watchtower_item_compromised_accounts_text">Kontrola úniků dat podle uživatelského jména nebo e-mailové adresy.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Nové Watchtower výstrahy</string>
     <string name="watchtower_alerts_header_title">Nová upozornění kontroly</string>
     <string name="watchtower_mark_all_as_read_title">Označit vše jako přečtené</string>
     <string name="changepassword_header_title">Změnit heslo aplikace</string>
@@ -914,10 +914,10 @@
     <string name="changepassword_biometric_auth_confirm_title">Změnit heslo aplikace</string>
     <string name="changepassword_disclaimer_local_note">Heslo aplikace se nikdy neukládá do zařízení ani není posíláno přes síť. Je používáno k vygenerování tajného klíče, kterým jsou zašifrována lokální data.</string>
     <string name="changepassword_disclaimer_abuse_note">Pokud nemáte podezření na neoprávněný přístup nebo v zařízení neobjevíte škodlivý software, není třeba heslo měnit, pokud je silné a jedinečné.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_password_changed_successfully">Heslo úspěšně změněno</string>
     <string name="exportaccount_header_title">Export položek</string>
     <string name="exportaccount_password_label">Heslo archivu</string>
-    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_note">Exportovat trezor jako šifrovaný ZIP archiv.</string>
     <string name="exportaccount_attachments_note">Trezor zůstane během procesu exportu odemčený. Na přílohy se odkazuje v datech trezoru. Přílohy se v procesu nikdy neukládají v nezašifrované podobě.</string>
     <string name="exportaccount_include_attachments_title">Exportovat přílohy</string>
     <string name="exportaccount_export_button">Exportovat</string>
@@ -979,7 +979,7 @@
     <string name="pref_item_reddit_community_title">Komunita na Redditu</string>
     <string name="pref_item_github_title">GitHub projekt</string>
     <string name="pref_item_crowdin_title">Crowdin projekt</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Zobrazit vše</string>
     <string name="pref_item_open_source_licenses_title">Licence open source</string>
     <string name="pref_item_download_apk_title">Stáhnout soubor APK</string>
     <string name="pref_item_load_app_icons_title">Načítat ikony aplikací</string>
@@ -1053,13 +1053,13 @@
     <string name="pref_item_autofill_service_title">Služba automatického vyplňování</string>
     <string name="pref_item_autofill_service_text">Použít službu systému Android pro automatické vyplňování pro pomoc při vyplňování přihlašovacích údajů do jiných aplikací v zařízení</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Některá zařízení Xiaomi vyžadují ruční povolení oprávnění „Zobrazovat vyskakovací okna při běhu na pozadí“. Otevřete nastavení a ověřte, zda je povoleno.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome to support third-party autofill services natively</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Open Chrome's Settings and tap Autofill Services
-2. Choose Autofill using another service
-3. Confirm and restart Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Nativní automatické vyplňování aplikacemi třetích stran prohlížečem Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Otevřete Nastavení Chromu a klepněte na Služby automatického vyplňování
+2. Zvolte Automatické vyplňování pomocí jiné služby
+3. Potvrďte a následně restartujte Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Automaticky kopírovat jednorázová hesla</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Při vyplňování přihlašovacích informací automaticky zkopírovat jednorázové heslo</string>
-    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
+    <string name="pref_item_autofill_default_match_detection_title">Výchozí detekce shody</string>
     <string name="pref_item_autofill_inline_suggestions_title">Návrhy v klávesnici</string>
     <string name="pref_item_autofill_inline_suggestions_text">Vloží návrhy na automatické vyplňování přímo do kompatibilních klávesnic</string>
     <string name="pref_item_autofill_manual_selection_title">Ruční výběr</string>
@@ -1142,8 +1142,8 @@
     <string name="feat_item_show_barcode_text">Kódování textu do různých čárových kódů.</string>
     <string name="feat_item_generator_title">Generátor</string>
     <string name="feat_item_generator_text">Generujte hesla a uživatelská jména.</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">Exportovat</string>
+    <string name="feat_item_export_text">Exportovat data trezoru, včetně příloh.</string>
     <string name="datasafety_header_title">Bezpečnost dat</string>
     <string name="datasafety_local_section">Lokální data</string>
     <string name="datasafety_local_text">Lokální data obsahují Stažené, Uživatelská nastavení, Trezor. Jsou uložena ve vnitřním úložišti zařízení a má k nim přístup pouze systém Android a aplikace Keyguard.</string>
@@ -1157,9 +1157,9 @@
     <string name="datasafety_remote_section">Vzdálená data</string>
     <string name="datasafety_remote_text">Vzdálená data jsou uložena na serverech společnosti Bitwarden s šifrováním s nulovým přístupem.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Localization contributors</string>
-    <string name="localization_contributors_search_placeholder">Search contributors</string>
-    <string name="localization_contributors_empty_label">No contributors</string>
+    <string name="localization_contributors_title">Přispěvatelé lokalizace</string>
+    <string name="localization_contributors_search_placeholder">Přispěvatelé vyhledávání</string>
+    <string name="localization_contributors_empty_label">Žádní přispěvatelé</string>
     <string name="logs_header_title">Protokoly</string>
     <string name="logs_start_recording_fab_title">Spustit nahrávání</string>
     <string name="logs_stop_recording_fab_title">Zastavit nahrávání</string>

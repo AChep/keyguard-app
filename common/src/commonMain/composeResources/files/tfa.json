@@ -387,6 +387,13 @@
     "name": "Aha!"
   },
   {
+    "domain": "airasia.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "AirAsia"
+  },
+  {
     "domain": "airbank.cz",
     "tfa": [
       "sms",
@@ -622,7 +629,8 @@
     "domain": "americafirst.com",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "totp"
     ],
     "documentation": "https://www.americafirst.com/online_banking.html",
     "name": "America First Credit Union"
@@ -1515,13 +1523,13 @@
   {
     "domain": "berkeley.edu",
     "tfa": [
-      "sms",
       "u2f",
       "custom-hardware",
       "custom-software"
     ],
     "custom-hardware": [
-      "Duo D100 Token"
+      "Duo D100 Token",
+      "Feitian OTP c100 Token"
     ],
     "custom-software": [
       "Duo"
@@ -2100,6 +2108,13 @@
     "notes": "BankID only available for users using banking features",
     "documentation": "https://www.bokio.se/hjalp/bokio-medlemskap/ditt-bokiokonto/tvafaktor-autentisering-med-bokio/",
     "name": "Bokio [SE]"
+  },
+  {
+    "domain": "bolt.eu",
+    "tfa": [
+      "email"
+    ],
+    "name": "Bolt"
   },
   {
     "domain": "bonus.ly",
@@ -3661,6 +3676,19 @@
     "name": "University of Colorado Boulder"
   },
   {
+    "domain": "columbia.edu",
+    "tfa": [
+      "call",
+      "u2f",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://www.cuit.columbia.edu/mfa",
+    "name": "Columbia University"
+  },
+  {
     "domain": "combell.com",
     "tfa": [
       "totp"
@@ -3972,6 +4000,18 @@
     ],
     "documentation": "https://www.cox.com/residential/support/enrolling-in-multifactor-authentication-in-my-account.html",
     "name": "Cox"
+  },
+  {
+    "domain": "cpoms.co.uk",
+    "additional-domains": [
+      "cpoms.net"
+    ],
+    "tfa": [
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://raptor.my.site.com/CPOMS/s/article/CPOMS-Login-Help-Guide-4cb23e40",
+    "name": "CPOMS"
   },
   {
     "domain": "cpp.edu",
@@ -4339,6 +4379,14 @@
     ],
     "documentation": "https://help.letsdeel.com/hc/en-gb/articles/4407737656465",
     "name": "Deel"
+  },
+  {
+    "domain": "deepl.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.deepl.com/hc/articles/17764808297628",
+    "name": "DeepL"
   },
   {
     "domain": "degiro.nl",
@@ -5096,10 +5144,7 @@
   },
   {
     "domain": "duke.edu",
-    "url": "https://www.duke.edu",
     "tfa": [
-      "sms",
-      "call",
       "custom-software",
       "custom-hardware"
     ],
@@ -6163,17 +6208,6 @@
     "name": "first direct"
   },
   {
-    "domain": "firstrepublic.com",
-    "url": "https://www.firstrepublic.com/",
-    "tfa": [
-      "sms",
-      "call",
-      "email"
-    ],
-    "documentation": "https://www.firstrepublic.com/resource/entering-a-6-digit-code-at-every-sign-in",
-    "name": "First Republic Bank"
-  },
-  {
     "domain": "firsttechfed.com",
     "url": "https://www.firsttechfed.com/",
     "tfa": [
@@ -6481,6 +6515,14 @@
     "name": "Frontify"
   },
   {
+    "domain": "ftb.ca.gov",
+    "tfa": [
+      "sms",
+      "call"
+    ],
+    "name": "California Franchise Tax Board"
+  },
+  {
     "domain": "gaijin.net",
     "tfa": [
       "sms",
@@ -6622,6 +6664,18 @@
     ],
     "documentation": "https://support.gemini.com/hc/en-us/articles/204732985",
     "name": "Gemini"
+  },
+  {
+    "domain": "georgetown.edu",
+    "tfa": [
+      "u2f",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://uis.georgetown.edu/security/duo/",
+    "name": "Georgetown University"
   },
   {
     "domain": "geotrust.com",
@@ -6828,9 +6882,11 @@
     "domain": "gog.com",
     "url": "https://www.gog.com",
     "tfa": [
-      "email"
+      "email",
+      "totp"
     ],
     "documentation": "https://support.gog.com/hc/en-us/articles/115003660533",
+    "notes": "Only one method of authentication can be used at a time.",
     "name": "GOG.com"
   },
   {
@@ -7014,6 +7070,21 @@
     "name": "Gusto"
   },
   {
+    "domain": "gwu.edu",
+    "url": "https://www.gwu.edu",
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Microsoft Authenticator"
+    ],
+    "documentation": "https://it.gwu.edu/two-step-authentication",
+    "name": "George Washington University"
+  },
+  {
     "domain": "gyazo.com",
     "tfa": [
       "email"
@@ -7104,15 +7175,17 @@
   },
   {
     "domain": "harvard.edu",
-    "url": "https://www.harvard.edu",
     "tfa": [
       "sms",
       "call",
+      "u2f",
+      "totp",
       "custom-software",
       "custom-hardware"
     ],
     "custom-software": [
-      "Duo"
+      "Duo",
+      "Okta Verify"
     ],
     "custom-hardware": [
       "Yubico OTP"
@@ -7150,6 +7223,18 @@
       "totp"
     ],
     "name": "Hurricane Electric"
+  },
+  {
+    "domain": "headway.co",
+    "tfa": [
+      "sms",
+      "call",
+      "email",
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://help.headway.co/hc/articles/4428388155028#h_01J6CN885B50GFFC3QCXY51QT7",
+    "name": "Headway"
   },
   {
     "domain": "healthcare.gov",
@@ -8410,6 +8495,15 @@
     "name": "Cooperativa JEP"
   },
   {
+    "domain": "jetblue.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.jetblue.com/help/trueblue-basics#what-is-2-step-authentication",
+    "name": "JetBlue"
+  },
+  {
     "domain": "jetbrains.com",
     "tfa": [
       "totp"
@@ -8783,6 +8877,16 @@
     "documentation": "https://help.ko-fi.com/hc/en-us/articles/6355489342737",
     "notes": "TOTP is only available with SMS as a backup",
     "name": "Ko-fi"
+  },
+  {
+    "domain": "koho.ca",
+    "tfa": [
+      "sms",
+      "call",
+      "totp"
+    ],
+    "documentation": "https://help.koho.ca/articles/9401393",
+    "name": "Koho"
   },
   {
     "domain": "koofr.eu",
@@ -10440,12 +10544,13 @@
     "name": "MyAnimeList"
   },
   {
-    "domain": "mychart.com",
+    "domain": "mychart.org",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "totp"
     ],
-    "documentation": "https://www.mychart.com/Features",
+    "documentation": "https://www.mychart.org/Help/two-factor-auth",
     "name": "MyChart"
   },
   {
@@ -11072,11 +11177,15 @@
   },
   {
     "domain": "nimbusweb.me",
+    "additional-domains": [
+      "thefusebase.com"
+    ],
     "tfa": [
       "totp"
     ],
     "documentation": "https://nimbusweb.me/guides/settings/account-settings-2-step-verification-for-sign-in/",
-    "name": "Nimbus Platform"
+    "notes": "Available for Pro and Business users only.",
+    "name": "FuseBase"
   },
   {
     "domain": "nitrotype.com",
@@ -11249,6 +11358,16 @@
     "name": "Notejoy"
   },
   {
+    "domain": "notesnook.com",
+    "tfa": [
+      "sms",
+      "email",
+      "totp"
+    ],
+    "documentation": "https://blog.notesnook.com/improving-user-account-security-with-2fa",
+    "name": "Notesnook"
+  },
+  {
     "domain": "notion.so",
     "tfa": [
       "sms",
@@ -11326,6 +11445,19 @@
     ],
     "documentation": "https://support.nutmeg.com/?article=115000495111-How-to-set-up-and-manage-2-step-verification",
     "name": "Nutmeg"
+  },
+  {
+    "domain": "nyu.edu",
+    "tfa": [
+      "sms",
+      "u2f",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://www.nyu.edu/life/information-technology/accounts-and-access/access/mfa.html",
+    "name": "New York University"
   },
   {
     "domain": "o2.pl",
@@ -11588,6 +11720,15 @@
     "name": "OpenAI (ChatGPT)"
   },
   {
+    "domain": "openapply.com",
+    "tfa": [
+      "totp"
+    ],
+    "notes": "2FA can only be enabled for Admin users",
+    "documentation": "https://help.openapply.com/hc/articles/9061135475865",
+    "name": "OpenApply"
+  },
+  {
     "domain": "openbank.es",
     "url": "https://www.openbank.es",
     "tfa": [
@@ -11828,6 +11969,13 @@
     ],
     "documentation": "https://crm.pachca.com/know/articles/dvuhfaktornaya-autentifikaciya-(2fa)/",
     "name": "\u041f\u0430\u0447\u043a\u0430"
+  },
+  {
+    "domain": "pacificpower.net",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Pacific Power"
   },
   {
     "domain": "packagist.org",
@@ -12292,7 +12440,8 @@
   {
     "domain": "pirateship.com",
     "tfa": [
-      "email"
+      "email",
+      "totp"
     ],
     "documentation": "https://support.pirateship.com/en/articles/9931109-what-is-two-factor-authentication-2fa-on-pirate-ship",
     "name": "Pirate Ship"
@@ -14015,6 +14164,8 @@
   {
     "domain": "scotiabank.com",
     "tfa": [
+      "call",
+      "sms",
       "custom-software"
     ],
     "custom-software": [
@@ -15594,6 +15745,25 @@
     "name": "Talkdesk"
   },
   {
+    "domain": "tamu.edu",
+    "tfa": [
+      "sms",
+      "call",
+      "u2f",
+      "custom-software",
+      "custom-hardware"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "custom-hardware": [
+      "Yubico OTP",
+      "Duo D100 Token"
+    ],
+    "documentation": "https://it.tamu.edu/duo/",
+    "name": "Texas A&M University"
+  },
+  {
     "domain": "tangerine.ca",
     "tfa": [
       "sms"
@@ -15674,16 +15844,6 @@
     ],
     "documentation": "https://www.td.com/privacy-and-security/privacy-and-security/how-we-protect-you/online-security/2fa.jsp",
     "name": "TD Bank"
-  },
-  {
-    "domain": "tdameritrade.com",
-    "additional-domains": [
-      "ameritrade.com"
-    ],
-    "tfa": [
-      "sms"
-    ],
-    "name": "TD Ameritrade"
   },
   {
     "domain": "teamviewer.com",
@@ -16452,6 +16612,15 @@
     "name": "TuneCore"
   },
   {
+    "domain": "tunnelbear.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.tunnelbear.com/hc/articles/16123360922267",
+    "name": "TunnelBear"
+  },
+  {
     "domain": "turbosquid.com",
     "url": "https://www.turbosquid.com",
     "tfa": [
@@ -16653,6 +16822,62 @@
     "name": "University of Calgary"
   },
   {
+    "domain": "ucdavis.edu",
+    "tfa": [
+      "u2f",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://movetoduo.ucdavis.edu",
+    "name": "University of California, Davis"
+  },
+  {
+    "domain": "uci.edu",
+    "tfa": [
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Yubico OTP",
+      "Duo D100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://www.oit.uci.edu/services/accounts-passwords/duo/",
+    "name": "University of California, Irvine"
+  },
+  {
+    "domain": "ucla.edu",
+    "tfa": [
+      "sms",
+      "call",
+      "u2f",
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Yubico OTP",
+      "Duo D100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://dts.ucla.edu/products-services/security/multi-factor-authentication/activate-ucla-logon-mfa",
+    "name": "University of California, Los Angeles"
+  },
+  {
+    "domain": "uclahealth.org",
+    "tfa": [
+      "email",
+      "sms",
+      "totp"
+    ],
+    "name": "UCLA Health"
+  },
+  {
     "domain": "ucmerced.edu",
     "url": "https://www.ucmerced.edu",
     "tfa": [
@@ -16669,6 +16894,86 @@
     ],
     "documentation": "https://it.ucmerced.edu/2FA",
     "name": "University of California, Merced"
+  },
+  {
+    "domain": "ucr.edu",
+    "tfa": [
+      "u2f",
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Duo D100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://its.ucr.edu/mfa",
+    "name": "University of California, Riverside"
+  },
+  {
+    "domain": "ucsb.edu",
+    "tfa": [
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Feitian OTP c100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://it.ucsb.edu/mfa",
+    "name": "University of California, Santa Barbara"
+  },
+  {
+    "domain": "ucsc.edu",
+    "tfa": [
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Yubico OTP",
+      "Duo D100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://slughub.ucsc.edu/its?id=kb_article&sysparm_article=KB0021200",
+    "name": "University of California, Santa Cruz"
+  },
+  {
+    "domain": "ucsd.edu",
+    "tfa": [
+      "sms",
+      "u2f",
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Duo D100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://blink.ucsd.edu/technology/security/services/two-step-login/",
+    "name": "University of California, San Diego"
+  },
+  {
+    "domain": "ucsf.edu",
+    "tfa": [
+      "custom-hardware",
+      "custom-software"
+    ],
+    "custom-hardware": [
+      "Yubico OTP",
+      "Duo D100 Token"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://it.ucsf.edu/service/multi-factor-authentication-duo",
+    "name": "University of California, San Francisco"
   },
   {
     "domain": "udel.edu",
@@ -17424,6 +17729,38 @@
       "BankID"
     ],
     "name": "Vimla"
+  },
+  {
+    "domain": "vinted.com",
+    "additional-domains": [
+      "vinted.at",
+      "vinted.be",
+      "vinted.cz",
+      "vinted.de",
+      "vinted.dk",
+      "vinted.es",
+      "vinted.fi",
+      "vinted.fr",
+      "vinted.gr",
+      "vinted.hr",
+      "vinted.hu",
+      "vinted.ie",
+      "vinted.it",
+      "vinted.lt",
+      "vinted.lu",
+      "vinted.nl",
+      "vinted.pl",
+      "vinted.ro",
+      "vinted.se",
+      "vinted.sk",
+      "vinted.co.uk"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.vinted.com/help/15/537",
+    "name": "Vinted"
   },
   {
     "domain": "virginmoney.com",

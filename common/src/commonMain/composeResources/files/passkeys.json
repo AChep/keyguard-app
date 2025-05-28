@@ -731,7 +731,7 @@
     "setup": "https://www.cvs.com/account/login",
     "category": "Health & Wellness",
     "created_at": "2023-05-04T20:56:39.15274+00:00",
-    "notes": "Register individual passkeys using iOS, with Safari or Edge browsers.\n\nPlease note: Saving and signing in with passkeys on CVS is currently incompatible with 1Password in the browser and third-party passkey managers on iOS."
+    "notes": "*Register individual passkeys using iOS with Safari or Edge*\n\n**Note:** Saving and signing in with passkeys on CVS.com is currently incompatible with 1Password in the browser and other third-party passkey managers on iOS.\n\n1. On your iOS device, go to CVS.com and sign in.\n2. When prompted, save a passkey using 1Password and follow the on-screen instructions.\n"
   },
   {
     "id": "aa22ff73d751c7779549193be4e6d976",
@@ -885,6 +885,18 @@
     "setup": "https://eduid.ch/web/edit-passkey/",
     "category": "Education",
     "created_at": "2024-05-09T11:28:44.354265+00:00"
+  },
+  {
+    "id": "0833983cbe55cacb5b892fe2067485a2",
+    "name": "EE",
+    "domain": "ee.co.uk",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://ee.co.uk/help/profile/registration-setup/about-passkeys",
+    "setup": "https://auth.ee.co.uk/",
+    "category": "Information Technology",
+    "created_at": "2025-02-06T19:58:12+00:00"
   },
   {
     "id": "7390a69ef1f382189612985ece21ad8a",
@@ -2821,6 +2833,16 @@
     "created_at": "2023-10-10T16:47:49+00:00"
   },
   {
+    "id": "c16f045bf46002e5471f8289b6494247",
+    "name": "Ulys",
+    "domain": "ulys.com",
+    "features": [
+      "signin"
+    ],
+    "category": "Automotive",
+    "created_at": "2025-04-26T12:09:32.880732+00:00"
+  },
+  {
     "id": "55a0f9ccf405f9a08fbf08cca61fb052",
     "name": "usesarchbtw.lol",
     "domain": "usesarchbtw.lol",
@@ -2924,7 +2946,7 @@
     "setup": "https://www.walmart.com/help/article/passkeys/79bc4a57374146c497ebe3bf8d4f9b10",
     "category": "eCommerce",
     "created_at": "2023-04-17T03:59:34.286021+00:00",
-    "notes": "Only available through the mobile app and on consumer accounts"
+    "notes": "Only available through the mobile app and on consumer accounts. \n\nPasskeys only work with 1Password in the iOS and Android app, not the walmart.com website"
   },
   {
     "id": "ffe0c8cc238d5545af34bcdde2e1c523",
@@ -2949,6 +2971,18 @@
     "category": "Finance",
     "created_at": "2024-03-30T03:34:36.985661+00:00",
     "notes": "Please note passkeys are only used for the Webull app, they are not available on the Desktop platform."
+  },
+  {
+    "id": "48473a7703cdeb7bff9baa960ecb33c8",
+    "name": "Wells Fargo",
+    "domain": "wellsfargo.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.wellsfargo.com/help/security-and-fraud/passkey-faqs/",
+    "setup": "https://www.wellsfargo.com/privacy-security/fraud/security-tools-and-options/",
+    "category": "Finance",
+    "created_at": "2023-03-23T13:08:39.78707+00:00"
   },
   {
     "id": "984539bebc8e61742dd9cc0856041d91",

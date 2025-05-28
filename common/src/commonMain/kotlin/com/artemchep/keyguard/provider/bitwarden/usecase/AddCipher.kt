@@ -420,7 +420,7 @@ private suspend fun BitwardenCipher.Companion.of(
         ),
         // common
         name = request.title,
-        notes = request.note,
+        notes = request.note?.takeIf { it.isNotEmpty() },
         favorite = favourite,
         fields = fields,
         attachments = attachments,

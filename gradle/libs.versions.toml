@@ -23,7 +23,7 @@ androidxAppCompat = "1.7.0"
 androidxAutofill = "1.3.0-rc01"
 androidxBaselineProfile = "1.3.4"
 androidxBenchmarkMacroJUnit4 = "1.3.4"
-androidxBiometricKtx = "1.4.0-alpha04"
+androidxBiometric = "1.4.0-alpha04"
 androidxBrowser = "1.8.0"
 androidxCamera = "1.4.2"
 androidxCoreKtx = "1.16.0"
@@ -166,7 +166,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppCompat" }
 androidx-autofill = { module = "androidx.autofill:autofill", version.ref = "androidxAutofill" }
 androidx-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "androidxBenchmarkMacroJUnit4" }
-androidx-biometric-ktx = { module = "androidx.biometric:biometric-ktx", version.ref = "androidxBiometricKtx" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidxBiometric" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "androidxBrowser" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidxCamera" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "androidxCamera" }

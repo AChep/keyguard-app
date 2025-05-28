@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_store_google_app_name">Keyguard：為 Bitwarden 設計的密碼庫</string>
+    <string name="listing_store_google_app_name">Keyguard</string>
     <string name="listing_store_google_short_description">注重使用者體驗的第三方客戶端。</string>
     <!-- A name of the Yearly subscription plan -->
     <string name="listing_store_google_subscription_yearly">年度計劃</string>

@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
@@ -210,31 +212,38 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
                                     foo()
                                 }
                             } else {
-                                Row(
+                                val insets = scaffoldContentWindowInsets
+                                Box(
                                     modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .alpha(0.035f),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        .padding(insets.asPaddingValues())
+                                        .fillMaxSize(),
                                 ) {
-                                    Icon(
+                                    Row(
                                         modifier = Modifier
-                                            .size(48.dp),
-                                        imageVector = Icons.Outlined.Lock,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onBackground,
-                                    )
-                                    val textStyle = MaterialTheme.typography.displayLarge
-                                    AutoSizeText(
-                                        text = remember {
-                                            keyguardSpan()
-                                        },
-                                        minTextSize = MaterialTheme.typography.displayMedium.fontSize,
-                                        maxTextSize = textStyle.fontSize,
-                                        style = textStyle,
-                                        color = MaterialTheme.colorScheme.onBackground,
-                                        maxLines = 1,
-                                    )
+                                            .align(Alignment.Center)
+                                            .alpha(0.035f),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(48.dp),
+                                            imageVector = Icons.Outlined.Lock,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onBackground,
+                                        )
+                                        val textStyle = MaterialTheme.typography.displayLarge
+                                        AutoSizeText(
+                                            text = remember {
+                                                keyguardSpan()
+                                            },
+                                            minTextSize = MaterialTheme.typography.displayMedium.fontSize,
+                                            maxTextSize = textStyle.fontSize,
+                                            style = textStyle,
+                                            color = MaterialTheme.colorScheme.onBackground,
+                                            maxLines = 1,
+                                        )
+                                    }
                                 }
                             }
                         }

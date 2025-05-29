@@ -50,6 +50,12 @@ data class TwoFactorProvider(
                 priority = 0,
                 supported = true,
             ),
+            TwoFactorProviderType.EmailNewDevice to TwoFactorProvider(
+                type = TwoFactorProviderType.EmailNewDevice,
+                name = Res.string.provider_2fa_email,
+                priority = 0,
+                supported = true,
+            ),
             // As far as I understand the U2f is replaced by the Fido2WebAuthn
             // provider. Therefore most likely this is never going to be implemented.
             TwoFactorProviderType.U2f to TwoFactorProvider(

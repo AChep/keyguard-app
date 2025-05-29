@@ -174,6 +174,17 @@ fun produceLoginTwofaScreenState(
                             transmitter = transmitter,
                         )
 
+                    TwoFactorProviderType.EmailNewDevice ->
+                        createStateFlowForEmailNewDevice(
+                            cryptoGenerator = cryptoGenerator,
+                            actionExecutor = actionExecutor,
+                            addAccount = addAccount,
+                            requestEmailTfa = requestEmailTfa,
+                            args = args,
+                            provider = providerArgs as TwoFactorProviderArgument.EmailNewDevice,
+                            transmitter = transmitter,
+                        )
+
                     TwoFactorProviderType.Duo ->
                         createStateFlowForDuo(
                             actionExecutor = actionExecutor,
@@ -504,6 +515,98 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
                 validated = codeValidated,
             ),
             rememberMe = rememberMe,
+            primaryAction = primaryAction,
+        )
+    }
+}
+
+private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
+    cryptoGenerator: CryptoGenerator,
+    actionExecutor: LoadingTask,
+    addAccount: AddAccount,
+    requestEmailTfa: RequestEmailTfa,
+    args: LoginTwofaRoute.Args,
+    provider: TwoFactorProviderArgument.EmailNewDevice,
+    transmitter: RouteResultTransmitter<Unit>,
+): Flow<LoginTwofaState> {
+    val codeSink = mutablePersistedFlow("email_new_device.code") { "" }
+    val codeState = mutableComposeState(codeSink)
+
+    val codeValidatedFlow = codeSink
+        .map { rawCode ->
+            val code = rawCode
+                .trim()
+            if (code.isEmpty()) {
+                Validated.Failure(
+                    model = code,
+                    error = translate(Res.string.error_must_not_be_blank),
+                )
+            } else {
+                Validated.Success(
+                    model = code,
+                )
+            }
+        }
+
+    val onResendFlow = createResendFlow(
+        cryptoGenerator = cryptoGenerator,
+        prefix = "email_new_device.send_email",
+        io = requestEmailTfa(
+            args.env,
+            args.email,
+            args.password,
+        ).effectTap {
+            val model = ToastMessage(
+                title = translate(Res.string.requested_verification_email),
+            )
+            message(model)
+        },
+    )
+
+    return combine(
+        codeValidatedFlow,
+        actionExecutor.isExecutingFlow,
+        onResendFlow,
+    ) { codeValidated, isLoading, onResend ->
+        val canLogin = codeValidated is Validated.Success &&
+                !isLoading
+        val primaryAction = LoginTwofaState.PrimaryAction(
+            text = translate(Res.string.continue_),
+            icon = if (isLoading) {
+                LoginTwofaState.PrimaryAction.Icon.LOADING
+            } else {
+                LoginTwofaState.PrimaryAction.Icon.LOGIN
+            },
+            onClick = if (canLogin) {
+                // lambda
+                {
+                    val io = addAccount(
+                        args.accountId,
+                        args.env,
+                        ServerTwoFactorToken(
+                            token = codeValidated.model,
+                            provider = TwoFactorProviderType.EmailNewDevice,
+                            remember = false,
+                        ),
+                        args.clientSecret,
+                        args.email,
+                        args.password,
+                    ).effectTap {
+                        transmitter(Unit)
+                    }
+                    actionExecutor.execute(io)
+                }
+            } else {
+                null
+            },
+        )
+        LoginTwofaState.EmailNewDevice(
+            email = args.email,
+            emailResend = null, // TODO: Add a support for resending the email
+            code = TextFieldModel2.of(
+                state = codeState,
+                validated = codeValidated,
+            ),
             primaryAction = primaryAction,
         )
     }

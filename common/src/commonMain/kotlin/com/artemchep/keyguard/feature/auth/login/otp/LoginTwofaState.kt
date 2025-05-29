@@ -103,6 +103,17 @@ sealed class LoginTwofaState {
 
     @Immutable
     @optics
+    data class EmailNewDevice(
+        val email: String? = null,
+        val emailResend: (() -> Unit)? = null,
+        val code: TextFieldModel2,
+        override val primaryAction: PrimaryAction? = null,
+    ) : LoginTwofaState(), HasPrimaryAction {
+        companion object
+    }
+
+    @Immutable
+    @optics
     data class Fido2WebAuthn(
         val authUrl: String,
         val callbackUrls: Set<String>,

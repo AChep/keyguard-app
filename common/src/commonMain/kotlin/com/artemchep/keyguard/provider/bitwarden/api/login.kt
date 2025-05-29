@@ -28,6 +28,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.toDomain
 import com.artemchep.keyguard.provider.bitwarden.model.Login
 import com.artemchep.keyguard.provider.bitwarden.model.PasswordResult
 import com.artemchep.keyguard.provider.bitwarden.model.PreLogin
+import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
 import io.ktor.client.HttpClient
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.header
@@ -191,7 +192,9 @@ private suspend fun internalLogin(
                 append("deviceType", persona.deviceType)
                 append("deviceName", persona.deviceName)
 
-                if (twoFactorToken != null) {
+                if (twoFactorToken?.provider == TwoFactorProviderType.EmailNewDevice) {
+                    append("newDeviceOtp", twoFactorToken.token)
+                } else if (twoFactorToken != null) {
                     val providerEntity = TwoFactorProviderTypeEntity.of(twoFactorToken.provider)
                     val providerId = json
                         .encodeToString(providerEntity)

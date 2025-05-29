@@ -15,6 +15,11 @@ sealed interface TwoFactorProviderArgument {
         override val type get() = TwoFactorProviderType.Email
     }
 
+    // https://bitwarden.com/help/new-device-verification/
+    data object EmailNewDevice : TwoFactorProviderArgument {
+        override val type get() = TwoFactorProviderType.EmailNewDevice
+    }
+
     data class Duo(
         val host: String? = null,
         val signature: String? = null,

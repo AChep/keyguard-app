@@ -191,6 +191,21 @@ fun ErrorEntity.toException(
             )
         }
 
+        // New device verification for some reason is not handled as
+        // a classic two factor authentication. According to the
+        // https://www.reddit.com/r/Bitwarden/comments/1j3uay3/new_device_login_protection_is_now_live_for/
+        //
+        // announcement it should not happen if any of the other methods are
+        // enabled, so we should be ok faking it right here.
+        if (errorModel?.message?.lowercase() == "new device verification required") {
+            val newDeviceTwoFaProviders = listOf(
+                TwoFactorProviderArgument.EmailNewDevice,
+            )
+            return@run ApiException.Type.TwoFaRequired(
+                providers = newDeviceTwoFaProviders,
+            )
+        }
+
         // Default exception does not have any additional
         // information.
         null

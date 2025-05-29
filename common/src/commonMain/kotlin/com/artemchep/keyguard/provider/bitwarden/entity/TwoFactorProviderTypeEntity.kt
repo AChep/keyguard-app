@@ -40,6 +40,7 @@ enum class TwoFactorProviderTypeEntity {
             TwoFactorProviderType.Unknown -> Unknown
             TwoFactorProviderType.Authenticator -> Authenticator
             TwoFactorProviderType.Email -> Email
+            TwoFactorProviderType.EmailNewDevice -> Unknown
             TwoFactorProviderType.Duo -> Duo
             TwoFactorProviderType.YubiKey -> YubiKey
             TwoFactorProviderType.U2f -> U2f

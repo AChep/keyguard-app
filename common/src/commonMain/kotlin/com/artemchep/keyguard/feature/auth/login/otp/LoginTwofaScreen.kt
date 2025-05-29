@@ -207,6 +207,7 @@ fun LoginTwofaScreenContent(
                 is LoginTwofaState.Authenticator -> LoginOtpScreenContentAuthenticator(scope, s)
                 is LoginTwofaState.YubiKey -> LoginOtpScreenContentYubiKey(scope, s)
                 is LoginTwofaState.Email -> LoginOtpScreenContentEmail(scope, s)
+                is LoginTwofaState.EmailNewDevice -> LoginOtpScreenContentEmailNewDevice(scope, s)
                 is LoginTwofaState.Fido2WebAuthn -> LoginOtpScreenContentFido2WebAuthnBrowser(
                     scope,
                     s,
@@ -551,6 +552,93 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
         },
         onClick = state.rememberMe.onChange?.partially1(!state.rememberMe.checked),
     )
+}
+
+@Composable
+private fun ColumnScope.LoginOtpScreenContentEmailNewDevice(
+    screenScope: LoginOtpScreenScope,
+    state: LoginTwofaState.EmailNewDevice,
+) {
+    val focusRequester = screenScope.initialFocusRequesterEffect()
+
+    val primaryActionOnClick = state.primaryAction?.onClick
+    val keyboardOnGo: (KeyboardActionScope.() -> Unit)? =
+        if (primaryActionOnClick != null) {
+            // lambda
+            {
+                primaryActionOnClick()
+            }
+        } else {
+            null
+        }
+
+    Text(
+        modifier = Modifier
+            .padding(horizontal = Dimens.horizontalPadding),
+        text = stringResource(Res.string.addaccount2fa_email_note, state.email.orEmpty()),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Spacer(Modifier.height(16.dp))
+    FlatTextField(
+        modifier = Modifier
+            .padding(horizontal = Dimens.horizontalPadding),
+        // TODO: Should be Email code, when compose autofill
+        //  adds a support for that.
+        fieldModifier = Modifier
+            .focusRequester(focusRequester),
+        label = stringResource(Res.string.verification_code),
+        value = state.code,
+        textStyle = TextStyle(
+            fontFamily = monoFontFamily,
+        ),
+        keyboardOptions = KeyboardOptions(
+            autoCorrectEnabled = false,
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Go,
+        ),
+        keyboardActions = KeyboardActions(
+            onGo = keyboardOnGo,
+        ),
+        maxLines = 1,
+        singleLine = true,
+        leading = {
+            IconBox(
+                main = Icons.Outlined.KeyguardTwoFa,
+            )
+        },
+    )
+    Spacer(Modifier.height(8.dp))
+    AnimatedVisibility(
+        visible = state.emailResend != null,
+    ) {
+        FlatItemLayout(
+            leading = {
+                Box {
+                    Icon(Icons.Outlined.MailOutline, null)
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Refresh,
+                            null,
+                            Modifier
+                                .padding(1.dp)
+                                .size(12.dp),
+                        )
+                    }
+                }
+            },
+            content = {
+                Text(
+                    text = stringResource(Res.string.resend_verification_code),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            onClick = state.emailResend,
+        )
+    }
 }
 
 // TODO: Switch to WebView implementation after

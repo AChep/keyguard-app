@@ -100,6 +100,11 @@ scoop bucket add extras
 scoop install keyguard
 ```
 
+##### [WinGet](https://aka.ms/getwinget)
+```pwsh
+winget install --id ArtemChepurnyi.Keyguard
+```
+
 ## License
 
 The source code is available for **personal use** only.

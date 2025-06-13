@@ -124,7 +124,7 @@ playServicesBase = "18.7.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha02"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "9.0.5"
+signalr = "9.0.6"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
 msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api

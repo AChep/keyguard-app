@@ -64,7 +64,7 @@ composeMultiplatform = "1.8.1"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
-crashlyticsPlugin = "3.0.3"
+crashlyticsPlugin = "3.0.4"
 dbusJava = "5.1.1"
 firebase = "33.15.0"
 # https://github.com/tfcporciuncula/flow-preferences

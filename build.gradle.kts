@@ -67,6 +67,9 @@ subprojects {
             // Self-hosted
             //
 
+            allowUrl("https://opensource.org/license/mit") {
+                because("MIT License, but self-hosted copy of the license")
+            }
             allowUrl("https://github.com/devsrsouza/compose-icons/blob/master/LICENSE") {
                 because("MIT License, but self-hosted copy of the license")
             }

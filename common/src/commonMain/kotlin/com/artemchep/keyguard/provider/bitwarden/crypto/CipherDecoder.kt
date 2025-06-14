@@ -153,7 +153,12 @@ fun BitwardenCipher.Companion.encrypted(
                     fingerprint = keyFingerprint,
                 )
             },
-    )
+    ).let {
+        // Put remote into itself, since
+        // we are creating it from remote
+        // entity.
+        it.copy(remoteEntity = it)
+    }
 }
 
 fun BitwardenCipher.Attachment.Companion.encrypted(

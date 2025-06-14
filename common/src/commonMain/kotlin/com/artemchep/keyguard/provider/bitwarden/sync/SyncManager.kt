@@ -20,6 +20,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
         val getLocalId: (T) -> String,
         val getLocalRevisionDate: (T) -> Instant,
         val getLocalDeletedDate: (T) -> Instant? = { null },
+        val getMergeable: (T) -> Boolean = { false },
     )
 
     data class Df<Local : Any, Remote : Any>(
@@ -29,6 +30,8 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
         // Put items
         val remotePutCipher: List<Ite<Local, Remote?>>,
         val localPutCipher: List<Ite<Local?, Remote>>,
+        // Merge items
+        val mergeCipher: List<Ite<Local, Remote>>,
     ) {
         data class Ite<Local, Remote>(
             val local: Local,
@@ -70,6 +73,8 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
         // Put items
         val remotePutCipher = mutableListOf<Df.Ite<Local, Remote?>>()
         val localPutCipher = mutableListOf<Df.Ite<Local?, Remote>>()
+        // Merge items
+        val mergeCipher = mutableListOf<Df.Ite<Local, Remote>>()
 
         val localItemsGrouped = localItems
             .groupBy {
@@ -143,14 +148,19 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                     date.roundToMillis()
                 }
                 // If the local item has outdated remote revision, then it must
-                // be updated and any of its changes are going to be discarded.
+                // be updated and any of its changes are going to be discarded
+                // or merged.
                 //
                 // Why:
                 // This is needed to resolve a conflict where you edit one item
                 // on multiple devices simultaneously.
                 val remoteRevDate = getDate(remoteItem).roundToMillis()
                 if (remoteRevDate != localRemoteRevDate) {
-                    localPutCipher += Df.Ite(localItem, remoteItem)
+                    if (local.getMergeable(localItem)) {
+                        mergeCipher += Df.Ite(localItem, remoteItem)
+                    } else {
+                        localPutCipher += Df.Ite(localItem, remoteItem)
+                    }
                     return@forEach
                 }
 
@@ -159,7 +169,9 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                     localRevDate.compareTo(remoteRevDate)
                 }
                 when {
-                    diff < 0 -> localPutCipher += Df.Ite(localItem, remoteItem)
+                    diff < 0 -> {
+                        localPutCipher += Df.Ite(localItem, remoteItem)
+                    }
                     diff > 0 -> {
                         if (localItem.service.deleted) {
                             remoteDeletedCipherIds += Df.Ite(localItem, remoteItem)
@@ -231,6 +243,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
             localDeletedCipherIds = localDeletedCipherIds,
             remotePutCipher = remotePutCipher,
             localPutCipher = localPutCipher,
+            mergeCipher = mergeCipher,
         )
     }
 }

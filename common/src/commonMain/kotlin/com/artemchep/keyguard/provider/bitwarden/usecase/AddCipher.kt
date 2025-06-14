@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherCryptoKeyMaterial
@@ -285,6 +286,8 @@ private suspend fun BitwardenCipher.Companion.of(
     when (type) {
         BitwardenCipher.Type.Login -> {
             login = BitwardenCipher.Login.of(
+                cryptoGenerator = cryptoGenerator,
+                base64Service = base64Service,
                 getPasswordStrength = getPasswordStrength,
                 request = request,
                 now = now,
@@ -418,6 +421,7 @@ private suspend fun BitwardenCipher.Companion.of(
             deleted = false,
             version = BitwardenService.VERSION,
         ),
+        remoteEntity = old?.remoteEntity,
         // common
         name = request.title,
         notes = request.note?.takeIf { it.isNotEmpty() },
@@ -468,6 +472,8 @@ private fun BitwardenCipher.Field.LinkedId.Companion.of(
 }
 
 private suspend fun BitwardenCipher.Login.Companion.of(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
     getPasswordStrength: GetPasswordStrength,
     request: CreateRequest,
     now: Instant,
@@ -535,8 +541,14 @@ private suspend fun BitwardenCipher.Login.Companion.of(
                 DSecret.Uri.MatchType.RegularExpression -> BitwardenCipher.Login.Uri.MatchType.RegularExpression
                 DSecret.Uri.MatchType.Never -> BitwardenCipher.Login.Uri.MatchType.Never
             }
+            val uriChecksumBase64 = BitwardenCipher.Login.Uri.getUrlChecksumBase64(
+                cryptoGenerator = cryptoGenerator,
+                base64Service = base64Service,
+                uri = uri.uri,
+            )
             BitwardenCipher.Login.Uri(
                 uri = uri.uri,
+                uriChecksumBase64 = uriChecksumBase64,
                 match = match,
             )
         }

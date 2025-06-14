@@ -8,7 +8,9 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.handleErrorTap
+import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.SyncScope
@@ -126,6 +128,7 @@ suspend fun <
     localDecodedToString: (LocalDecoded) -> String = { it.toString() },
     localDeleteById: suspend (List<String>) -> Unit,
     localPut: suspend (List<RemoteDecoded>) -> Unit,
+    merge: suspend (Local, RemoteDecoded) -> Local? = { _, _ -> null },
     shouldOverwriteLocal: (Local, Remote) -> Boolean = { _, _ -> false },
     shouldOverwriteRemote: (Local, Remote) -> Boolean = { _, _ -> false },
     remoteItems: Collection<Remote>,
@@ -173,27 +176,45 @@ suspend fun <
     )
     localDeleteById(localDeletedCipherIds)
 
+    /**
+     * Decodes the remote and saves it as
+     * a local item, replacing previously
+     * existing one if needed.
+     */
+    fun getLocalPutRemoteDecodedModelIo(
+        localOrNull: Local? = null,
+        remote: Remote,
+    ) = ioEffect {
+        val remoteId = remote.let(remoteLens.getId)
+        onLog(
+            "[local] Decoding $remoteId $name entry...",
+            LogLevel.DEBUG,
+        )
+        remoteDecoder(remote, localOrNull)
+    }
+
+    fun IO<RemoteDecoded>.handleErrorWithRemoteDecodedFallback(
+        localOrNull: Local? = null,
+        remote: Remote,
+    ) = this
+        // If we fail to decode the remote, then we generate a placeholder
+        // entity instead to show a user that something has gone wrong.
+        .handleError { e ->
+            val remoteId = remoteLens.getId(remote)
+            val localId = localOrNull?.let(localLens.getLocalId)
+            val msg = "[local] Failed to decode the item: " +
+                    "remote_id=$remoteId, " +
+                    "local_id=$localId"
+            onLog(msg, LogLevel.WARNING)
+            e.printStackTrace()
+
+            remoteDecodedFallback(remote, localOrNull, e)
+        }
+
     val localPutCipherDecodedIos = df.localPutCipher
         .map { (localOrNull, remote) ->
-            ioEffect {
-                val remoteId = remote.let(remoteLens.getId)
-                onLog(
-                    "[local] Decoding $remoteId $name entry...",
-                    LogLevel.DEBUG,
-                )
-                remoteDecoder(remote, localOrNull)
-            }
-                .handleError { e ->
-                    val remoteId = remoteLens.getId(remote)
-                    val localId = localOrNull?.let(localLens.getLocalId)
-                    val msg = "[local] Failed to decode the item: " +
-                            "remote_id=$remoteId, " +
-                            "local_id=$localId"
-                    onLog(msg, LogLevel.WARNING)
-                    e.printStackTrace()
-
-                    remoteDecodedFallback(remote, localOrNull, e)
-                }
+            getLocalPutRemoteDecodedModelIo(localOrNull, remote)
+                .handleErrorWithRemoteDecodedFallback(localOrNull, remote)
         }
     // Save the decoded items in groups. This way if a sync takes
     // a lot of time we at least save some intermediate progress and
@@ -258,6 +279,109 @@ suspend fun <
         localPut(listOf(update))
     }
 
+    /**
+     * Decodes the remote and saves it as
+     * a local item, replacing previously
+     * existing one if needed.
+     */
+    fun getRemotePutIo(
+        local: Local,
+        remoteOrNull: Remote?,
+        force: Boolean,
+    ) = ioEffect { localDecoder(local, remoteOrNull) }
+        .handleErrorTap { e ->
+            handleFailedToPut(local, e = e)
+        }
+        .flatMap { localDecoded ->
+            var lastRemote: Remote? = null
+            val scope = object : RemotePutScope<Remote> {
+                override val force: Boolean get() = force
+
+                override fun updateRemoteModel(remote: Remote) {
+                    lastRemote = remote
+                }
+            }
+            ioEffect { remotePut(scope, localDecoded) }
+                .handleErrorTap { e ->
+                    handleFailedToPut(
+                        local = local,
+                        remote = lastRemote,
+                        e = e,
+                    )
+                }
+                .effectMap {
+                    val update = listOf(it)
+                    localPut(update)
+                }
+                // If a client wants to block an access to database
+                // while we are doing this operation -> this is a right place.
+                .let { io -> sync(localLens.getLocalId(local), io) }
+        }
+
+    df.mergeCipher
+        .map { entry ->
+            val local = entry.local
+            val remote = entry.remote
+            ioEffect {
+                fun saveRemote(remoteDecodedIo: IO<RemoteDecoded>): IO<Any?> = remoteDecodedIo
+                    .handleErrorWithRemoteDecodedFallback(local, remote)
+                    // 1. Save the remote item to the local storage.
+                    .effectMap {
+                        val list = listOf(it)
+                        localPut(list)
+
+                        it
+                    }
+
+                fun saveMerged(mergedIo: IO<Local>): IO<Any?> = mergedIo
+                    // 1. Save the merged item to the local storage. This is the
+                    // same as if we have updated the new remote item.
+                    .effectMap {
+                        val mergedReEncoded = localReEncoder(it)
+                        val mergedReEncodedAsList = listOf(mergedReEncoded)
+                        localPut(mergedReEncodedAsList)
+
+                        it
+                    }
+                    // 2. Save the merged item to the remote storage.
+                    .effectMap {
+                        getRemotePutIo(
+                            local = it,
+                            remoteOrNull = remote,
+                            force = false,
+                        )
+                            .attempt()
+                            .bind()
+                    }
+
+                val msg = "[local] Merging ${remoteLens.getId(remote)} $name entry " +
+                        "with ${localLens.getLocalId(local)}..."
+                onLog(msg, LogLevel.DEBUG)
+
+                val remoteDecodedResult = getLocalPutRemoteDecodedModelIo(local, remote)
+                    .attempt()
+                    .bind()
+                remoteDecodedResult.fold(
+                    ifLeft = { e ->
+                        val remoteDecodedIo = ioRaise<RemoteDecoded>(e)
+                        saveRemote(remoteDecodedIo)
+                    },
+                    ifRight = { remoteDecoded ->
+                        val merged = merge(local, remoteDecoded)
+                        if (merged != null) {
+                            val mergedIo = io(merged)
+                            return@fold saveMerged(mergedIo)
+                        }
+
+                        val remoteDecodedIo = io(remoteDecoded)
+                        saveRemote(remoteDecodedIo)
+                    },
+                ).bind()
+            }
+        }
+        .parallel(Dispatchers.Default)
+        .bind()
+
     df.remoteDeletedCipherIds
         .map { entry ->
             val localId = localLens.getLocalId(entry.local)
@@ -286,37 +410,11 @@ suspend fun <
 
     df.remotePutCipher
         .map { entry ->
-            val localId = localLens.getLocalId(entry.local)
-            ioEffect { localDecoder(entry.local, entry.remote) }
-                .handleErrorTap { e ->
-                    handleFailedToPut(entry.local, e = e)
-                }
-                .flatMap { localDecoded ->
-                    var lastRemote: Remote? = null
-                    val scope = object : RemotePutScope<Remote> {
-                        override val force: Boolean
-                            get() = entry.force
-
-                        override fun updateRemoteModel(remote: Remote) {
-                            lastRemote = remote
-                        }
-                    }
-                    ioEffect { remotePut(scope, localDecoded) }
-                        .handleErrorTap { e ->
-                            handleFailedToPut(
-                                local = entry.local,
-                                remote = lastRemote,
-                                e = e,
-                            )
-                        }
-                        .effectMap {
-                            val update = listOf(it)
-                            localPut(update)
-                        }
-                        // If a client wants to block an access to database
-                        // while we are doing this operation -> this is a right place.
-                        .let { io -> sync(localId, io) }
-                }
+            getRemotePutIo(
+                local = entry.local,
+                remoteOrNull = entry.remote,
+                force = entry.force,
+            )
                 // I want to filter out the items that were failed to
                 // be decoded.
                 .attempt()

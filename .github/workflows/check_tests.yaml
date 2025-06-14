@@ -33,7 +33,9 @@ jobs:
       - name: "Move licenses"
         run: |
           mv -f androidApp/build/reports/licensee/androidPlayStoreRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
-      - name: "Run tests"
+      - name: "Run unit tests"
+        run: ./gradlew :common:desktopTest
+      - name: "Run integration tests"
         id: baseline-profiles
         uses: reactivecircus/android-emulator-runner@v2
         with:

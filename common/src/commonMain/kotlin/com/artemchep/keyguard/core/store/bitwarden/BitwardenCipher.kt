@@ -1,6 +1,11 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
+import arrow.optics.Getter
 import arrow.optics.optics
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinderNode
+import com.artemchep.keyguard.common.service.text.Base64Service
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -30,6 +35,11 @@ data class BitwardenCipher(
     val deletedDate: Instant? = null,
     // service fields
     override val service: BitwardenService,
+    /**
+     * If available, contains the entity as last seen
+     * by the server. Used to resolve merge conflicts.
+     */
+    val remoteEntity: BitwardenCipher? = null,
     // common
     val keyBase64: String? = null,
     val name: String?,
@@ -257,6 +267,7 @@ data class BitwardenCipher(
         )
     }
 
+    @optics
     @Serializable
     data class Card(
         val cardholderName: String? = null,
@@ -269,6 +280,7 @@ data class BitwardenCipher(
         companion object
     }
 
+    @optics
     @Serializable
     data class Identity(
         val title: String? = null,
@@ -313,6 +325,117 @@ data class BitwardenCipher(
     ) {
         companion object
     }
+}
+
+/**
+ * Returns the [DiffFinderNode.Group] merge rules, using which you can combine
+ * ciphers together potentially not loosing any data.
+ */
+fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
+    DiffFinderNode.Group<BitwardenCipher, BitwardenCipher>(
+        lens = Getter.id(),
+        identity = {
+            val msg = "Can not merge ciphers some of which are null. " +
+                    "This is not something that should happen!"
+            throw IllegalStateException(msg)
+        },
+        children = listOf(
+            DiffFinderNode.Leaf(BitwardenCipher.name),
+            DiffFinderNode.Leaf(BitwardenCipher.notes),
+            DiffFinderNode.Leaf(BitwardenCipher.favorite),
+            DiffFinderNode.Leaf(
+                lens = BitwardenCipher.fields,
+                finder = DiffApplierByListValue(),
+            ),
+            // Types
+            DiffFinderNode.Group(
+                lens = BitwardenCipher.login,
+                identity = {
+                    BitwardenCipher.Login(
+                        uris = emptyList(),
+                    )
+                },
+                children = listOf(
+                    DiffFinderNode.Leaf(BitwardenCipher.Login.username),
+                    DiffFinderNode.Leaf(BitwardenCipher.Login.totp),
+                    // FIXME: Use the second login merger to
+                    //  merge these two fields at once.
+                    DiffFinderNode.Leaf(BitwardenCipher.Login.password),
+                    DiffFinderNode.Leaf(BitwardenCipher.Login.passwordRevisionDate),
+                    DiffFinderNode.Leaf(
+                        lens = BitwardenCipher.Login.uris,
+                        finder = DiffApplierByListValue(),
+                    ),
+                    DiffFinderNode.Leaf(
+                        lens = BitwardenCipher.Login.fido2Credentials,
+                        finder = DiffApplierByListValue(),
+                    ),
+                ),
+            ),
+            DiffFinderNode.Group(
+                lens = BitwardenCipher.card,
+                identity = {
+                    BitwardenCipher.Card(
+                    )
+                },
+                children = listOf(
+                    DiffFinderNode.Leaf(BitwardenCipher.Card.cardholderName),
+                    DiffFinderNode.Leaf(BitwardenCipher.Card.brand),
+                    DiffFinderNode.Leaf(BitwardenCipher.Card.number),
+                    DiffFinderNode.Leaf(BitwardenCipher.Card.expMonth),
+                    DiffFinderNode.Leaf(BitwardenCipher.Card.expYear),
+                    DiffFinderNode.Leaf(BitwardenCipher.Card.code),
+                ),
+            ),
+            DiffFinderNode.Group(
+                lens = BitwardenCipher.identity,
+                identity = {
+                    BitwardenCipher.Identity(
+                    )
+                },
+                children = listOf(
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.title),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.firstName),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.middleName),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.lastName),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.address1),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.address2),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.address3),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.city),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.state),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.postalCode),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.country),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.company),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.email),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.phone),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.ssn),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.username),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.passportNumber),
+                    DiffFinderNode.Leaf(BitwardenCipher.Identity.licenseNumber),
+                ),
+            ),
+            DiffFinderNode.Leaf(BitwardenCipher.sshKey),
+        ),
+    )
+}
+
+fun BitwardenCipher.Login.Uri.Companion.getUrlChecksum(
+    cryptoGenerator: CryptoGenerator,
+    uri: String?,
+): ByteArray {
+    return cryptoGenerator.hashSha256(uri.orEmpty().toByteArray())
+}
+
+fun BitwardenCipher.Login.Uri.Companion.getUrlChecksumBase64(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+    uri: String?,
+): String {
+    val rawHash = getUrlChecksum(
+        cryptoGenerator = cryptoGenerator,
+        uri = uri,
+    )
+    return base64Service.encodeToString(rawHash)
 }
 
 fun BitwardenCipher.Companion.generated(): BitwardenCipher {

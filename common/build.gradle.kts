@@ -217,6 +217,9 @@ kotlin {
                 api(libs.devsrsouza.feather)
             }
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
 
         // Share jvm code between different JVM platforms, see:
         // https://youtrack.jetbrains.com/issue/KT-28194

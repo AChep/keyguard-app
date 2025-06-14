@@ -5,13 +5,18 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 fun BitwardenCipher.transform(
     itemCrypto: BitwardenCrCta,
     globalCrypto: BitwardenCrCta,
-) = copy(
+): BitwardenCipher = copy(
     // common
     keyBase64 = keyBase64?.let(globalCrypto::transformBase64),
     name = itemCrypto.transformString(name),
     notes = itemCrypto.transformString(notes),
     fields = fields.transform(itemCrypto),
     attachments = attachments.transform(itemCrypto),
+    remoteEntity = remoteEntity
+        ?.transform(
+            itemCrypto = itemCrypto,
+            globalCrypto = globalCrypto,
+        ),
     // types
     login = login?.transform(itemCrypto),
     secureNote = secureNote?.transform(itemCrypto),

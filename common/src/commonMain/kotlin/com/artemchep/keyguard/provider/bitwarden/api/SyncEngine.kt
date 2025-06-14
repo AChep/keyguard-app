@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.util.isOver6DigitsNanosOfSecond
@@ -22,6 +23,8 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.getMergeRules
+import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.core.store.bitwarden.uris
 import com.artemchep.keyguard.data.Database
@@ -637,6 +640,9 @@ class SyncEngine(
             getRevisionDate = { cipher -> cipher.revisionDate },
             getDeletedDate = { cipher -> cipher.deletedDate },
         )
+        val cipherMergeRules by lazy {
+            BitwardenCipher.getMergeRules()
+        }
         val existingCipher = cipherDao
             .getByAccountId(
                 accountId = user.id,
@@ -650,6 +656,7 @@ class SyncEngine(
                 getLocalId = { it.cipherId },
                 getLocalRevisionDate = { cipher -> cipher.revisionDate },
                 getLocalDeletedDate = { cipher -> cipher.deletedDate },
+                getMergeable = { cipher -> cipher.remoteEntity != null },
             ),
             localReEncoder = { model ->
                 model
@@ -661,11 +668,11 @@ class SyncEngine(
                     uris
                         .map { uri ->
                             if (uri.uriChecksumBase64 != null) return@map uri
-                            val uriChecksumBase64 = kotlin.run {
-                                val rawHash =
-                                    cryptoGenerator.hashSha256(uri.uri.orEmpty().toByteArray())
-                                base64Service.encodeToString(rawHash)
-                            }
+                            val uriChecksumBase64 = BitwardenCipher.Login.Uri.getUrlChecksumBase64(
+                                cryptoGenerator = cryptoGenerator,
+                                base64Service = base64Service,
+                                uri = uri.uri,
+                            )
                             uri.copy(
                                 uriChecksumBase64 = uriChecksumBase64,
                             )
@@ -713,7 +720,31 @@ class SyncEngine(
                     }
                 }
             },
+            merge = { local, remoteDecoded ->
+                // Merge can only be performed if we know the previous
+                // entity on remote. This way we can compute the difference
+                // and apply it on top of the new remote.
+                val base = local.remoteEntity
+                    ?: return@syncX null
+
+                val merged = kotlin.run {
+                    val diffUtil = ModelDiffUtil()
+                    with(diffUtil) {
+                        cipherMergeRules
+                            .merge(base, local, remoteDecoded)
+                    } as BitwardenCipher?
+                }
+                merged?.copy(
+                    revisionDate = now,
+                )
+            },
             shouldOverwriteLocal = { local, remote ->
+                // We want every cipher model to store last remove entity,
+                // so we can merge items correctly in a case of conflicts.
+                if (local.remoteEntity == null) {
+                    return@syncX true
+                }
+
                 val remoteAttachments = remote.attachments
                     .orEmpty()
                 // fast path:

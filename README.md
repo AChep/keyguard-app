@@ -29,6 +29,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - beautiful **Light**/**Dark theme**;
 - a generator with **SSH keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
 - a support for [shortcuts](wiki/SHORTCUTS.md), [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
+- a [smart conflict resolution](wiki/CONFLICTS.md);
 - and much more!
 
 🌠 _- on Android requires the Premium one-time or subscription license_. 

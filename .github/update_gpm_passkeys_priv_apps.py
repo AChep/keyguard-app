@@ -4,40 +4,54 @@ import requests
 URL_APPS = "https://www.gstatic.com/gpm-passkeys-privileged-apps/apps.json"
 
 EXTRA_APPS = [
-    {
-        "type": "android",
-        "info": {
-            "package_name": "org.chromium.chrome",
-            "signatures": [
-                {
-                    "build": "release",
-                    "cert_fingerprint_sha256": "A8:56:48:50:79:BC:B3:57:BF:BE:69:BA:19:A9:BA:43:CD:0A:D9:AB:22:67:52:C7:80:B6:88:8A:FD:48:21:6B"
-                }
-            ]
-        }
-    },
-    {
-        "type": "android",
-        "info": {
-            "package_name": "org.cromite.cromite",
-            "signatures": [
-                {
-                    "build": "release",
-                    "cert_fingerprint_sha256": "63:3F:A4:1D:82:11:D6:D0:91:6A:81:9B:89:66:8C:6D:E9:2E:64:23:2D:A6:7F:9D:16:FD:81:C3:B7:E9:23:FF"
-                }
-            ]
-        }
-    },
-    # Firefox Nightly for Developers
-    # https://play.google.com/store/apps/details?id=org.mozilla.fenix
+    # Iceraven
+    # https://github.com/fork-maintainers/iceraven-browser
     {
       "type": "android",
       "info": {
-        "package_name": "org.mozilla.fenix",
+        "package_name": "io.github.forkmaintainers.iceraven",
         "signatures": [
           {
             "build": "release",
-            "cert_fingerprint_sha256": "50:04:77:90:88:E7:F9:88:D5:BC:5C:C5:F8:79:8F:EB:F4:F8:CD:08:4A:1B:2A:46:EF:D4:C8:EE:4A:EA:F2:11"
+            "cert_fingerprint_sha256": "9C:0D:22:37:9F:48:7B:70:A4:F9:F8:BE:C0:17:3C:F9:1A:16:44:F0:8F:93:38:5B:5B:78:2C:E3:76:60:BA:81"
+          }
+        ]
+      }
+    },
+    {
+      "type": "android",
+      "info": {
+        "package_name": "org.chromium.chrome",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "A8:56:48:50:79:BC:B3:57:BF:BE:69:BA:19:A9:BA:43:CD:0A:D9:AB:22:67:52:C7:80:B6:88:8A:FD:48:21:6B"
+          }
+        ]
+      }
+    },
+    {
+      "type": "android",
+      "info": {
+        "package_name": "org.cromite.cromite",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "63:3F:A4:1D:82:11:D6:D0:91:6A:81:9B:89:66:8C:6D:E9:2E:64:23:2D:A6:7F:9D:16:FD:81:C3:B7:E9:23:FF"
+          }
+        ]
+      }
+    },
+      # Ironfox
+      # https://gitlab.com/ironfox-oss/IronFox
+    {
+      "type": "android",
+      "info": {
+        "package_name": "org.ironfoxoss.ironfox",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "C5:E2:91:B5:A5:71:F9:C8:CD:9A:97:99:C2:C9:4E:02:EC:97:03:94:88:93:F2:CA:75:6D:67:B9:42:04:F9:04"
           }
         ]
       }
@@ -45,48 +59,16 @@ EXTRA_APPS = [
     # Fennec F-Droid
     # https://f-droid.org/en/packages/org.mozilla.fennec_fdroid/
     {
-        "type": "android",
-        "info": {
-            "package_name": "org.mozilla.fennec_fdroid",
-            "signatures": [
-                {
-                    "build": "release",
-                    "cert_fingerprint_sha256": "06:66:53:58:EF:D8:BA:05:BE:23:6A:47:A1:2C:B0:95:8D:7D:75:DD:93:9D:77:C2:B3:1F:53:98:53:7E:BD:C5"
-                }
-            ]
-        }
-    },
-    # Mull F-Droid
-    # https://f-droid.org/uk/packages/us.spotco.fennec_dos/
-    {
-        "type": "android",
-        "info": {
-            "package_name": "us.spotco.fennec_dos",
-            "signatures": [
-                {
-                    "build": "release",
-                    "cert_fingerprint_sha256": "26:0E:0A:49:67:8C:78:B7:0C:02:D6:53:7A:DD:3B:6D:C0:A1:71:71:BB:DE:8C:E7:5F:D4:02:6A:8A:3E:18:D2"
-                },
-                {
-                    "build": "release",
-                    "cert_fingerprint_sha256": "FF:81:F5:BE:56:39:65:94:EE:E7:0F:EF:28:32:25:6E:15:21:41:22:E2:BA:9C:ED:D2:60:05:FF:D4:BC:AA:A8"
-                }
-            ]
-        }
-    },
-    # Iceraven
-    # https://github.com/fork-maintainers/iceraven-browser
-    {
-        "type": "android",
-        "info": {
-            "package_name": "io.github.forkmaintainers.iceraven",
-            "signatures": [
-                {
-                    "build": "release",
-                    "cert_fingerprint_sha256": "9C:0D:22:37:9F:48:7B:70:A4:F9:F8:BE:C0:17:3C:F9:1A:16:44:F0:8F:93:38:5B:5B:78:2C:E3:76:60:BA:81"
-                }
-            ]
-        }
+      "type": "android",
+      "info": {
+        "package_name": "org.mozilla.fennec_fdroid",
+        "signatures": [
+          {
+            "build": "release",
+            "cert_fingerprint_sha256": "06:66:53:58:EF:D8:BA:05:BE:23:6A:47:A1:2C:B0:95:8D:7D:75:DD:93:9D:77:C2:B3:1F:53:98:53:7E:BD:C5"
+          }
+        ]
+      }
     },
 ]
 

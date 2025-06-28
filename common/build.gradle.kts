@@ -270,7 +270,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(jvmMain)
             dependencies {
-                api(platform(libs.firebase.bom.get()))
+                api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics.ktx)
                 api(libs.firebase.crashlytics.ktx)
                 api(libs.achep.bindin)

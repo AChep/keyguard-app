@@ -106,7 +106,7 @@ jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
 # https://github.com/skydoves/landscapist
-landscapist = "2.4.8"
+landscapist = "2.5.0"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.13.0"
 # https://github.com/tony19/logback-android

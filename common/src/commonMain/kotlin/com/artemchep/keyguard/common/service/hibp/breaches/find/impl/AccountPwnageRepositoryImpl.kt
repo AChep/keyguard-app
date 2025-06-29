@@ -21,7 +21,7 @@ import com.artemchep.keyguard.common.service.hibp.breaches.find.AccountPwnageRep
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.data.pwnage.AccountBreach
 import kotlinx.coroutines.Dispatchers
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.random.Random

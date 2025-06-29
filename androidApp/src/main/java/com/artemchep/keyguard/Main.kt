@@ -36,7 +36,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.*
 import org.kodein.di.android.x.androidXModule
 import java.util.*

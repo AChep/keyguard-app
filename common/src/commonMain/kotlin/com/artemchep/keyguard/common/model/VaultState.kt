@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.model
 import arrow.core.Either
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.platform.LeBiometricCipher
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.kodein.di.DI
 
 sealed interface VaultState {

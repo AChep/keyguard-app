@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.vault
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi

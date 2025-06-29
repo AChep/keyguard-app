@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.export.entity
 
 import com.artemchep.keyguard.provider.bitwarden.entity.UriMatchTypeEntity
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable

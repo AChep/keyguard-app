@@ -9,7 +9,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 
 class InMemoryLogRepositoryImpl(

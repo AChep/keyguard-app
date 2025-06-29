@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.export.entity
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable

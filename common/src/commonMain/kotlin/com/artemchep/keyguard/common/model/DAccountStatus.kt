@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.common.service.permission.PermissionState
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class DAccountStatus(
     val lastSyncTimestamp: Instant? = null,

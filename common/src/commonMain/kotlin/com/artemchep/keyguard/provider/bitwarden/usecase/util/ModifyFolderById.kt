@@ -3,7 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase.util
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.data.bitwarden.Folder
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

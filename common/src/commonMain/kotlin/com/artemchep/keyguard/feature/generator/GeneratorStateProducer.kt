@@ -149,7 +149,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.allInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct

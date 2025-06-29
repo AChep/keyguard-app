@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.android.downloader.journal.room
 
 import androidx.room.Entity
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @Entity(
     primaryKeys = [

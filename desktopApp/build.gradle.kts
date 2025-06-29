@@ -9,7 +9,6 @@ plugins {
 
 kotlin {
     jvm {
-        withJava()
     }
     sourceSets {
         val jvmMain by getting {
@@ -21,6 +20,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 implementation(compose.desktop.currentOs)
                 implementation(compose.components.resources)
+                implementation(libs.kotlin.stdlib)
                 implementation(libs.bouncycastle.bcprov)
                 implementation(libs.bouncycastle.bctls)
                 implementation(project(":common"))

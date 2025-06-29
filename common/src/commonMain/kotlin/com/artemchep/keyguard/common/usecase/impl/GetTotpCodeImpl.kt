@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.usecase.GetTotpCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.ExperimentalTime

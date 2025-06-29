@@ -22,7 +22,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.FieldTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.LinkedIdTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.UriMatchTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.of
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

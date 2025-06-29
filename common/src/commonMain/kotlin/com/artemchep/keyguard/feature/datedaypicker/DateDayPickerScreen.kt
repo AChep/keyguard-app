@@ -21,7 +21,7 @@ import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime

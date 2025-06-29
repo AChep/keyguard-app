@@ -5,7 +5,7 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.asInstant
 import com.artemchep.keyguard.common.service.keyvalue.setAndCommit
 import com.artemchep.keyguard.common.service.review.ReviewLog
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

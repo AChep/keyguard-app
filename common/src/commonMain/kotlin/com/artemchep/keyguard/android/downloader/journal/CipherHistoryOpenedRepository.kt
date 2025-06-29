@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DCipherOpenedHistory
 import com.artemchep.keyguard.provider.bitwarden.repository.BaseRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 interface CipherHistoryOpenedRepository : BaseRepository<DCipherOpenedHistory> {
     fun getCount(): Flow<Long>

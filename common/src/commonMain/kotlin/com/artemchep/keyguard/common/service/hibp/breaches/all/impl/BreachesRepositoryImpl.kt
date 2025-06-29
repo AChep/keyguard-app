@@ -15,7 +15,7 @@ import com.artemchep.keyguard.common.service.hibp.breaches.all.model.LocalBreach
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.random.Random

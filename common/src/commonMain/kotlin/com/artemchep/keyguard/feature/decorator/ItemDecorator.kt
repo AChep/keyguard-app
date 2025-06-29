@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.decorator
 
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.monthsUntil
 

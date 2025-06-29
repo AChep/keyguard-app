@@ -2,7 +2,7 @@ package com.artemchep.keyguard.android.downloader.journal.room
 
 import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @ProvidedTypeConverter
 class DownloadDatabaseTypeConverter {

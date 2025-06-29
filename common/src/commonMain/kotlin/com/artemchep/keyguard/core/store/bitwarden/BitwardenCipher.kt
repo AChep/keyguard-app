@@ -6,8 +6,8 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinderNode
 import com.artemchep.keyguard.common.service.text.Base64Service
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.days

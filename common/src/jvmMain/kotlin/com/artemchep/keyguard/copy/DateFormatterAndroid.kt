@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.datepicker.getMonthTitleStringRes
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone

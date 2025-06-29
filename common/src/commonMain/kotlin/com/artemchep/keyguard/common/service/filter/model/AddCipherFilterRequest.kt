@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.common.service.filter.model
 
 import com.artemchep.keyguard.common.model.DFilter
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 data class AddCipherFilterRequest(
     val now: Instant = Clock.System.now(),

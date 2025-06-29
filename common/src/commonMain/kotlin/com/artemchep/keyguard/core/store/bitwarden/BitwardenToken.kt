@@ -3,7 +3,7 @@ package com.artemchep.keyguard.core.store.bitwarden
 import arrow.optics.optics
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlin.uuid.Uuid
 

@@ -6,7 +6,7 @@ import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.platform.LeUri
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @optics
 data class CreateRequest(

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.android.uploader
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable

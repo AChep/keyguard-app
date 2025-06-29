@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class DCollection(
     val id: String,

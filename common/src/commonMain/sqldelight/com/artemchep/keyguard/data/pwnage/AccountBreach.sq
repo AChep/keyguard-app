@@ -1,4 +1,4 @@
-import kotlinx.datetime.Instant;
+import kotlin.time.Instant;
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup;
 
 CREATE TABLE accountBreach (

@@ -22,7 +22,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_IPV4
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.toJavaInstant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

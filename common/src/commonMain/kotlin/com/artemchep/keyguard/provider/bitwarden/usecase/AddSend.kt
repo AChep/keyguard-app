@@ -31,8 +31,8 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import org.kodein.di.DirectDI

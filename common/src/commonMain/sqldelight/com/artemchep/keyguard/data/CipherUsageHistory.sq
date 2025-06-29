@@ -1,4 +1,4 @@
-import kotlinx.datetime.Instant;
+import kotlin.time.Instant;
 
 CREATE TABLE cipherUsageHistory (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

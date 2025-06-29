@@ -19,7 +19,7 @@ import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.VisibilityIcon
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.theme.Dimens
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

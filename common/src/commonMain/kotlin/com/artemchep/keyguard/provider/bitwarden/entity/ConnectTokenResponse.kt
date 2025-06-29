@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.provider.bitwarden.model.Login
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames

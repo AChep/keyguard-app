@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 

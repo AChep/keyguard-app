@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.ui.icons.AccentColors
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class DOrganization(
     val id: String,

@@ -2,7 +2,7 @@ package com.artemchep.keyguard.core.store.bitwarden
 
 import com.artemchep.keyguard.common.util.canRetry
 import io.ktor.http.HttpStatusCode
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 fun BitwardenService.Error.canRetry(revisionDate: Instant): Boolean =
     expired(revisionDate) || code.canRetry()

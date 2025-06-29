@@ -3,7 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.crypto
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 fun BitwardenCollection.Companion.encrypted(
     accountId: String,

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.passkey
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class PassKeyServiceInfo(
     val id: String,

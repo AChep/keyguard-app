@@ -9,7 +9,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.api.LoginRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.api.SecureNoteRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.api.of
 import com.artemchep.keyguard.provider.bitwarden.entity.of
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

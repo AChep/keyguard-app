@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Immutable

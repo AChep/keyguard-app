@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.time.Duration
 
 /**

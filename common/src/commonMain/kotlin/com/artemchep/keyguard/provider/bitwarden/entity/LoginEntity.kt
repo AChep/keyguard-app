@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames

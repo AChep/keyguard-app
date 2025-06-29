@@ -4,8 +4,9 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import org.kodein.di.DirectDI
@@ -46,11 +47,11 @@ class DateTimePlaceholder(
         }
         // Month component of the current local date/time.
         key.equals("dt_month", ignoreCase = true) -> {
-            localDateTime.month.value.toString().let(::io)
+            localDateTime.month.number.toString().let(::io)
         }
         // Day component of the current local date/time.
         key.equals("dt_day", ignoreCase = true) -> {
-            localDateTime.dayOfMonth.toString().let(::io)
+            localDateTime.day.toString().let(::io)
         }
         // Hour component of the current local date/time.
         key.equals("dt_hour", ignoreCase = true) -> {
@@ -81,11 +82,11 @@ class DateTimePlaceholder(
         }
         // Month component of the current UTC date/time.
         key.equals("dt_utc_month", ignoreCase = true) -> {
-            utcDateTime.month.value.toString().let(::io)
+            utcDateTime.month.number.toString().let(::io)
         }
         // Day component of the current UTC date/time.
         key.equals("dt_utc_day", ignoreCase = true) -> {
-            utcDateTime.dayOfMonth.toString().let(::io)
+            utcDateTime.day.toString().let(::io)
         }
         // Hour component of the current UTC date/time.
         key.equals("dt_utc_hour", ignoreCase = true) -> {

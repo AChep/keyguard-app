@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.vault.SessionMetadataReadWriteRepository
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

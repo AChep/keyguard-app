@@ -21,7 +21,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.String

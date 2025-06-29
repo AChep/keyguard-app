@@ -189,6 +189,7 @@ kotlin {
                 implementation(compose.materialIconsExtended)
                 api(compose.components.resources)
 
+                api(libs.kotlin.stdlib)
                 api(libs.kdrag0n.colorkt)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)

@@ -10,9 +10,10 @@ import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import java.time.Year
 
@@ -50,7 +51,7 @@ fun produceDatePickerState(
 
     val monthSink = mutablePersistedFlow("month") {
         val month = args.month
-            ?: Clock.System.now().toLocalDateTime(TimeZone.UTC).month.value
+            ?: Clock.System.now().toLocalDateTime(TimeZone.UTC).month.number
         month
     }
     val monthItems = kotlin.run {
@@ -91,7 +92,7 @@ fun produceDatePickerState(
             },
             onConfirm = {
                 val result = DatePickerResult.Confirm(
-                    month = Month.of(month),
+                    month = java.time.Month.of(month),
                     year = Year.of(year),
                 )
                 transmitter(result)

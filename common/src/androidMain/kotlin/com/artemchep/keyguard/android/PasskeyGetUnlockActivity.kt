@@ -42,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.*
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)

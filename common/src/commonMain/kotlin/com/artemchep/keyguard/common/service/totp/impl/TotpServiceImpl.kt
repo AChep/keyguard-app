@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.millis
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.util.Locale

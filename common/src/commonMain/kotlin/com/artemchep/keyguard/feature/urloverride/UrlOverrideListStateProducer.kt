@@ -46,7 +46,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance

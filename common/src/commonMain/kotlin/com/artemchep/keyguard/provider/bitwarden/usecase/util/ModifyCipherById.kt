@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.data.bitwarden.Cipher
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

@@ -81,7 +81,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
 import org.jetbrains.compose.resources.painterResource
@@ -96,7 +96,9 @@ import org.kodein.di.instance
 import java.security.Security
 import java.util.Locale
 import kotlin.reflect.KClass
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 fun main() {
     // Add BouncyCastle as the first security provider
     // to make OkHTTP use its TLS instead of a platform

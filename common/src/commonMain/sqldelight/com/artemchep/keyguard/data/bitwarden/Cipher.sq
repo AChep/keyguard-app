@@ -1,5 +1,5 @@
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher;
-import kotlinx.datetime.Instant;
+import kotlin.time.Instant;
 
 CREATE TABLE cipher (
   cipherId TEXT NOT NULL PRIMARY KEY,

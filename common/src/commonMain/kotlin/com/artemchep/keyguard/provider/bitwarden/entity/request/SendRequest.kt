@@ -7,8 +7,8 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullab
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.provider.bitwarden.entity.SendTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.of
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 import arrow.optics.optics
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.kodein.di.DI
 
 @optics

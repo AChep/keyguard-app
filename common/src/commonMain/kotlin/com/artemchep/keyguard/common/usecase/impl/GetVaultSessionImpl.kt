@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.Copy
 import org.kodein.di.DI
 import org.kodein.di.DirectDI

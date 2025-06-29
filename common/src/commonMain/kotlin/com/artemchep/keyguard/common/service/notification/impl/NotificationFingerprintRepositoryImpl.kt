@@ -13,8 +13,8 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
 import com.artemchep.keyguard.common.service.notification.NotificationFingerprintRepository
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class Login(
     val accessToken: String,

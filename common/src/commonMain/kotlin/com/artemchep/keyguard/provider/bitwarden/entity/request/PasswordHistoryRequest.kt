@@ -2,7 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.entity.request
 
 import com.artemchep.keyguard.common.util.to6DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

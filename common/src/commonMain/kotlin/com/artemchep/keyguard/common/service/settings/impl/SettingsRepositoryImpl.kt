@@ -26,7 +26,7 @@ import com.artemchep.keyguard.common.service.settings.entity.toDomain
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance

@@ -12,7 +12,7 @@ import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

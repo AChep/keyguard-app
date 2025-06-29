@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.placeholder
 
 import com.artemchep.keyguard.common.model.DSecret
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class PlaceholderScope(
     val now: Instant,

@@ -8,7 +8,6 @@ kotlin {
     explicitApi()
 
     jvm {
-        withJava()
     }
 
     sourceSets {

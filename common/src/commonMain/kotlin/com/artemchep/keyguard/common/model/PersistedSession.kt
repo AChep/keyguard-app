@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.model
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class PersistedSession(
     val masterKey: MasterKey,

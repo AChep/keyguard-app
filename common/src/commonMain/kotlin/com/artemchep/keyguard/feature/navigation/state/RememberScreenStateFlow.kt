@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.json.Json
 import org.kodein.di.compose.rememberInstance
 
@@ -75,7 +75,6 @@ fun <T> rememberScreenStateFlow(
         context,
         *rargs,
     ) {
-        val now = Clock.System.now()
         val flow: RememberStateFlowScopeZygote.() -> Flow<T> = {
             val structureFlow = flow {
                 val shouldDelay = getDebugScreenDelay().firstOrNull() == true

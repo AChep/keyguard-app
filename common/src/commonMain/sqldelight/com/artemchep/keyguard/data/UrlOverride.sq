@@ -1,4 +1,4 @@
-import kotlinx.datetime.Instant;
+import kotlin.time.Instant;
 
 CREATE TABLE urlOverride (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

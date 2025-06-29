@@ -4,9 +4,11 @@ import com.artemchep.keyguard.common.service.vault.SessionMetadataReadRepository
 import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.util.flowOfTime
+import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Duration
@@ -29,6 +31,12 @@ class GetBiometricRemainingDurationImpl(
         (expiryTime - currentTime)
             .coerceAtLeast(Duration.ZERO)
     }
+        .catch { e ->
+            recordException(e)
+            // Disable biometric if there's an error calculating
+            // the duration.
+            emit(Duration.ZERO)
+        }
 
     private fun getExpiryTimeFlow() = combine(
         sessionMetadataReadRepository.getLastPasswordUseTimestamp(),

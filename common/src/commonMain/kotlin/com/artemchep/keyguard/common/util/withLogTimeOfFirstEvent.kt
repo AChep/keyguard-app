@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 inline fun <T> Flow<T>.withLogTimeOfFirstEvent(
     logRepository: LogRepository,

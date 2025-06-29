@@ -3,7 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync
 import com.artemchep.keyguard.common.util.millis
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.canRetry
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.math.roundToLong
 
 class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(

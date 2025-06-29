@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.vault
 
 import com.artemchep.keyguard.common.io.IO
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi

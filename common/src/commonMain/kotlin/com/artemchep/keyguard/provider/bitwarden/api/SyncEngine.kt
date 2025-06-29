@@ -66,8 +66,8 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.of
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlin.RuntimeException
 import kotlin.String

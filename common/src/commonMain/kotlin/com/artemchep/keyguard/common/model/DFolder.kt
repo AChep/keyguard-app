@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.exists
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 data class DFolder(
     val id: String,

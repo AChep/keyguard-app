@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.model
 import androidx.compose.runtime.Immutable
 import arrow.core.None
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @Immutable
 data class Visibility(

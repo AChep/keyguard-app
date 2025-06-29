@@ -3,7 +3,7 @@ package com.artemchep.keyguard.android.downloader.journal.room
 import androidx.room.Embedded
 import androidx.room.Entity
 import com.artemchep.keyguard.common.util.canRetry
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 @Entity(
     primaryKeys = [

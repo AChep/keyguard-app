@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.AddPasskeyCipherRequest
 import com.artemchep.keyguard.common.usecase.AddPasskeyCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

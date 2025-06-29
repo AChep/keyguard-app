@@ -69,7 +69,7 @@ import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.DividerColor
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.GlobalScope
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.kodein.di.compose.rememberInstance
 
 val onboardingItemsPremium = listOf(

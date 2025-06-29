@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
 import arrow.optics.optics
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable

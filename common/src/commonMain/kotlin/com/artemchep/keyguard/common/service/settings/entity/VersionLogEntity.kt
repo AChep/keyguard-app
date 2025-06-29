@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.settings.entity
 
 import com.artemchep.keyguard.common.model.AppVersionLog
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable

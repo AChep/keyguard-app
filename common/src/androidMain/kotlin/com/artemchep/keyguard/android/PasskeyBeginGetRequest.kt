@@ -23,12 +23,12 @@ import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_IPV4
 import kotlin.time.Instant
-import kotlinx.datetime.toJavaInstant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.time.toJavaInstant
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)

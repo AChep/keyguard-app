@@ -85,6 +85,9 @@ subprojects {
             allowUrl("https://opensource.org/licenses/mit-license.php") {
                 because("MIT License, but self-hosted copy of the license")
             }
+            allowUrl("https://github.com/vinceglb/FileKit/blob/main/LICENSE") {
+                because("MIT License, but self-hosted copy of the license")
+            }
             allowUrl("https://github.com/hypfvieh/dbus-java/blob/master/LICENSE") {
                 because("MIT License, but self-hosted copy of the license")
             }

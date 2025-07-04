@@ -327,6 +327,16 @@
     "name": "A\u00e9za"
   },
   {
+    "domain": "affinityfcu.com",
+    "tfa": [
+      "sms",
+      "call",
+      "email"
+    ],
+    "documentation": "https://www.affinityfcu.com/Privacy-Disclosures/Business-Banking-User-Guide.pdf",
+    "name": "Affinity Federal Credit Union"
+  },
+  {
     "domain": "afip.gob.ar",
     "tfa": [
       "custom-software"
@@ -2993,6 +3003,14 @@
     ],
     "documentation": "https://www.chime.com/security-and-control/",
     "name": "Chime"
+  },
+  {
+    "domain": "choko.link",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.choko.link/hc/choko/articles/1751036302-2fa",
+    "name": "Choko.Link"
   },
   {
     "domain": "cibc.com",
@@ -7051,6 +7069,14 @@
     "name": "Guild Wars 2"
   },
   {
+    "domain": "gumlet.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.gumlet.com/docs/profile-overview#password-and-2fa",
+    "name": "Gumlet"
+  },
+  {
     "domain": "gumroad.com",
     "tfa": [
       "email"
@@ -7381,8 +7407,8 @@
       "sms",
       "email"
     ],
-    "documentation": "https://help.hilton.com/s/article/What-is-enhanced-security-2FA-on-my-account",
-    "name": "Hilton Honors"
+    "documentation": "https://www.hilton.com/en/help-center/your-account/enhanced-security-authentication/",
+    "name": "Hilton"
   },
   {
     "domain": "hint.com",
@@ -8018,6 +8044,15 @@
     "name": "Imperva"
   },
   {
+    "domain": "impots.gouv.fr",
+    "url": "https://www.impots.gouv.fr",
+    "tfa": [
+      "email"
+    ],
+    "documentation": "https://www.impots.gouv.fr/actualite/la-securite-de-votre-espace-particulier-se-renforce",
+    "name": "impots.gouv.fr"
+  },
+  {
     "domain": "improvmx.com",
     "tfa": [
       "totp"
@@ -8318,16 +8353,6 @@
       "totp"
     ],
     "name": "Invictus Capital"
-  },
-  {
-    "domain": "invisionapp.com",
-    "url": "https://www.invisionapp.com",
-    "tfa": [
-      "totp",
-      "sms"
-    ],
-    "documentation": "https://support.invisionapp.com/hc/en-us/articles/360033708112",
-    "name": "InVision"
   },
   {
     "domain": "invoice.2go.com",
@@ -9394,6 +9419,20 @@
     ],
     "documentation": "https://docs.lokalise.com/en/articles/2329387",
     "name": "Lokalise"
+  },
+  {
+    "domain": "lonestar.edu",
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Microsoft Authenticator"
+    ],
+    "documentation": "https://www.lonestar.edu/OTS-MFA.htm",
+    "name": "Lone Star College"
   },
   {
     "domain": "looker.com",
@@ -13131,7 +13170,11 @@
   {
     "domain": "pz.gov.pl",
     "tfa": [
-      "sms"
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "mObywatel app"
     ],
     "documentation": "https://pz.gov.pl/Instrukcja_Uzytkownika_PZ.pdf",
     "name": "Profil zaufany"
@@ -13818,12 +13861,14 @@
   },
   {
     "domain": "robinhood.com",
-    "url": "https://www.robinhood.com/",
     "tfa": [
       "sms",
-      "totp"
+      "custom-software"
     ],
-    "documentation": "https://support.robinhood.com/hc/en-us/articles/360001213783",
+    "custom-software": [
+      "Robinhood app"
+    ],
+    "documentation": "https://robinhood.com/support/articles/verifying-its-you/",
     "name": "Robinhood"
   },
   {
@@ -14109,38 +14154,43 @@
   {
     "domain": "schibsted.com",
     "additional-domains": [
-      "schibsted.no",
-      "schibsted.fi",
-      "schibsted.dk",
-      "vg.no",
-      "finn.no",
-      "blocket.se",
-      "e24.no",
-      "aftonbladet.se",
-      "dba.dk",
       "adressa.no",
-      "tronderbladet.no",
-      "bt.no",
-      "fvn.no",
-      "svd.se",
-      "tv.nu",
       "aftenbladet.no",
-      "klart.se",
-      "omni.se",
-      "bytbil.com",
+      "aftenposten.no",
+      "aftonbladet.se",
+      "bt.no",
+      "e24.no",
+      "fvn.no",
       "godt.no",
+      "klart.se",
       "minmote.no",
+      "omni.se",
       "pent.no",
+      "podme.com",
+      "schibsted.dk",
+      "schibsted.fi",
+      "schibsted.no",
+      "schibsted.se",
+      "svd.se",
       "tek.no",
-      "oikotie.fi",
-      "tori.fi"
+      "tronderbladet.no",
+      "tv.nu",
+      "vg.no"
     ],
     "tfa": [
       "sms",
       "totp"
     ],
-    "documentation": "https://login.schibsted.com/profile-pages/faq#how-to-activate-and-deactivate-2fa",
+    "documentation": "https://payment.schibsted.no/profile-pages/faq#how-to-activate-and-deactivate-2fa",
     "name": "Schibsted"
+  },
+  {
+    "domain": "schoolsfirstfcu.org",
+    "tfa": [
+      "sms",
+      "call"
+    ],
+    "name": "SchoolsFirst FCU"
   },
   {
     "domain": "schwab.com",
@@ -15296,6 +15346,18 @@
     "name": "Starbucks"
   },
   {
+    "domain": "starlink.com",
+    "additional-domains": [
+      "star.link"
+    ],
+    "tfa": [
+      "email",
+      "sms"
+    ],
+    "documentation": "https://www.starlink.com/support/article/52aff4ed-3167-ec24-d54c-249563df8f5e",
+    "name": "Starlink"
+  },
+  {
     "domain": "starone.org",
     "tfa": [
       "sms",
@@ -16066,6 +16128,19 @@
     "name": "Transport for London"
   },
   {
+    "domain": "theiconic.com.au",
+    "additional-domains": [
+      "theiconic.co.nz",
+      "theiconic.com"
+    ],
+    "tfa": [
+      "totp",
+      "sms"
+    ],
+    "documentation": "https://theiconicsupport.zendesk.com/hc/articles/34125099545241",
+    "name": "The Iconic"
+  },
+  {
     "domain": "therapynotes.com",
     "url": "https://www.therapynotes.com",
     "tfa": [
@@ -16495,15 +16570,11 @@
   {
     "domain": "truist.com",
     "tfa": [
-      "custom-software",
       "sms",
       "call",
       "email"
     ],
-    "custom-software": [
-      "Truist Authenticator"
-    ],
-    "documentation": "https://www.truist.com/truist-authenticator-app",
+    "notes": "They have a custom app, but users on both iOS and Android report that it doesn't work.",
     "name": "Truist"
   },
   {
@@ -17638,6 +17709,28 @@
     "name": "Veem"
   },
   {
+    "domain": "vend.com",
+    "additional-domains": [
+      "bilbasen.dk",
+      "blocket.se",
+      "bytbil.com",
+      "dba.dk",
+      "finn.no",
+      "oikotie.fi",
+      "tori.fi",
+      "vend.dk",
+      "vend.fi",
+      "vend.no",
+      "vend.se"
+    ],
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://account.vend.no/faq#how-to-activate-and-deactivate-2fa",
+    "name": "Vend"
+  },
+  {
     "domain": "venmo.com",
     "tfa": [
       "sms"
@@ -18282,7 +18375,8 @@
     "domain": "whatsapp.com",
     "tfa": [
       "sms",
-      "call"
+      "call",
+      "email"
     ],
     "documentation": "https://www.whatsapp.com/faq/en/general/26000021",
     "name": "WhatsApp"

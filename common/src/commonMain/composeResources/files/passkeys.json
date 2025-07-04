@@ -1408,6 +1408,19 @@
     "created_at": "2024-05-13T12:46:24.529221+00:00"
   },
   {
+    "id": "af06d6eada560bf0fc02dd4c31d21641",
+    "name": "Indeed",
+    "domain": "indeed.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.indeed.com/hc/en-us/articles/35932737328397-Creating-and-Managing-Passkeys",
+    "setup": "https://secure.indeed.com/settings/security\u2028",
+    "category": "Other",
+    "created_at": "2023-03-26T09:58:27.227342+00:00",
+    "notes": "#### To set up a passkey on your Indeed account:\n1. Go to your account settings\n2. Find the Passkey section\n3. Click or tap Create passkey\n4. Follow the instructions to create a new passkey\n\n#### Supported browsers and devices:\n\u2022 macOS Ventura or newer\\\n\u2022 ChromeOS 109 or newer\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n\n<p align=\"center\"><sup><sub>Updated on June 24th, 2025</sub></sup></p>"
+  },
+  {
     "id": "b0b7851d81b36c34280be5ab4ad0a5bc",
     "name": "Instacart",
     "domain": "instacart.com",
@@ -2743,7 +2756,7 @@
       "mfa",
       "signin"
     ],
-    "documentation": "https://help.trimble.com/s/article/Trimble-Identity-Passkeys",
+    "documentation": "https://help.trimble.com/en/trimble-account-services/trimble-account-services/sign-in-and-profile/manage-my-trimble-id-profile/trimble-id-passkeys-faq",
     "setup": "https://myprofile.trimble.com",
     "category": "Information Technology",
     "created_at": "2025-01-22T11:08:15+00:00",

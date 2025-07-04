@@ -288,7 +288,7 @@
     <string name="ciphers_action_restore_confirmation_title">Aus dem Papierkorb wiederherstellen?</string>
     <string name="ciphers_action_delete_title">Für immer löschen</string>
     <string name="ciphers_action_delete_confirmation_title">Endgültig löschen?</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Wachturm Alarme konfigurieren</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Wachturmalarme konfigurieren</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">Zugehörige Elemente in den Papierkorb verschieben</string>
     <string name="sends_action_change_name_title">Name ändern</string>
     <string name="sends_action_change_names_title">Namen ändern</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Wachturm</string>
     <string name="home_settings_label">Einstellungen</string>
     <string name="lock_reason_inactivity">Wegen Inaktivität gesperrt</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Manuell gesperrt</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Datei</string>
     <string name="cipher_type_login">Login</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Elemente, die abgelaufen sind oder bald ablaufen.</string>
     <string name="watchtower_item_duplicate_websites_title">Duplizierte URIs</string>
     <string name="watchtower_item_duplicate_websites_text">Elemente, die eine oder mehrere URIs haben, die die gleiche Website abdecken, nachdem die Match-Erkennung angewendet wurde.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">Breite URI-Übereinstimmungserkennung</string>
+    <string name="watchtower_item_broad_websites_text">Gegenstände, die eine oder mehr URIs haben und den Erkennungsregeln entsprechen, sollten am besten verengt werden.</string>
     <string name="watchtower_item_trashed_items_title">Gelöschte Elemente</string>
     <string name="watchtower_item_trashed_items_text">Elemente, die in den Papierkorb verschoben wurden. Wenn sich zu viele Elemente im Papierkorb befinden, kann dies den Betrieb des Tresors verlangsamen.</string>
     <string name="watchtower_item_empty_folders_title">Leere Ordner</string>
@@ -904,7 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Hilft dabei, identische Elemente in deinem Tresor zu identifizieren und zu entfernen.</string>
     <string name="watchtower_item_compromised_accounts_title">Komprimierte Konten</string>
     <string name="watchtower_item_compromised_accounts_text">Datenlecks nach Nutzernamen oder E-Mail-Adressen überprüfen.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Neue Wachturmalarme</string>
     <string name="watchtower_alerts_header_title">Neue Wachturm Alarme</string>
     <string name="watchtower_mark_all_as_read_title">Alle als gelesen markieren</string>
     <string name="changepassword_header_title">App-Passwort ändern</string>

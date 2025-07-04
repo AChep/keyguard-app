@@ -103,8 +103,8 @@
     <string name="organization">Tổ chức</string>
     <string name="organizations">Tổ chức</string>
     <string name="organizations_empty_label">Không có tổ chức</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Các miền tương đương</string>
+    <string name="equivalent_domains_empty_label">Không có miền tương đương</string>
     <string name="misc">Khác</string>
     <string name="category">Danh mục</string>
     <string name="command">Lệnh</string>
@@ -231,7 +231,7 @@
     <string name="bitwarden_premium">Bitwarden cao cấp</string>
     <string name="bitwarden_premium_required">Yêu cầu Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Máy chủ Bitwarden không chính thức</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip">Mẹo xịn: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Tạo email duy nhất để bảo mật tốt hơn.</string>
     <string name="account_last_synced_at">Đồng bộ hóa lần cuối lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Đổi tên</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Tháp canh</string>
     <string name="home_settings_label">Thiết đặt</string>
     <string name="lock_reason_inactivity">Bị khóa do không hoạt động</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Đã khóa thủ công</string>
     <string name="send_type_text">Văn bản</string>
     <string name="send_type_file">Tệp</string>
     <string name="cipher_type_login">Đăng nhập</string>
@@ -718,7 +718,7 @@
     <string name="cipher_type_ssh_key">Khóa SSH</string>
     <string name="cipher_type_passkey">Khóa truy cập</string>
     <string name="field_type_text">Văn bản</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Văn bản (ẩn)</string>
     <string name="field_type_boolean">Boolean</string>
     <string name="field_type_linked">Đã liên kết</string>
     <!--
@@ -773,11 +773,11 @@
     <string name="sortby_password_strength_title">Độ mạnh mật khẩu</string>
     <string name="sortby_password_strength_normal_mode">Yếu nhất trước</string>
     <string name="sortby_password_strength_reverse_mode">Mạnh nhất trước</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">bây giờ</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>p trước</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>g trước</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>ng trước</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>t trước</string>
     <string name="vault_main_search_placeholder">Tìm trong kho</string>
     <string name="vault_main_new_item_button">Mục mới</string>
     <string name="vault_main_no_suggested_items">Không có mục được đề xuất nào cho bối cảnh này</string>
@@ -819,7 +819,7 @@
     <string name="generator_passphrase_number_title">Số</string>
     <string name="generator_passphrase_wordlist_title">Danh sách từ</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Gần một trong 10 người sử dụng cùng một mã PIN bốn chữ số. Tạo mã PIN để tránh các biến thể phổ biến.</string>
     <string name="generator_username_type">Tên người dùng</string>
     <string name="generator_username_delimiter_title">Dấu phân cách</string>
     <string name="generator_username_custom_word_title">Từ tùy chỉnh</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Các mục đã hết hạn hoặc sắp hết hạn.</string>
     <string name="watchtower_item_duplicate_websites_title">URI trùng lặp</string>
     <string name="watchtower_item_duplicate_websites_text">Các mục có một hoặc nhiều URI bao gồm cùng một trang web sau khi áp dụng tính năng phát hiện trùng khớp.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">Phát hiện sự trùng khớp URI rộng</string>
+    <string name="watchtower_item_broad_websites_text">Các mục có một hoặc nhiều URI khớp với các quy tắc phát hiện có thể sẽ được thu hẹp.</string>
     <string name="watchtower_item_trashed_items_title">Các mục đã vứt</string>
     <string name="watchtower_item_trashed_items_text">Các mục đã được dời vô sọt rác. Việc có quá nhiều mục trong sọt rác có thể làm chậm hoạt động của kho.</string>
     <string name="watchtower_item_empty_folders_title">Các thư mục trống</string>
@@ -904,7 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Giúp bạn xác định và loại bỏ các mục trùng lặp trong kho của bạn.</string>
     <string name="watchtower_item_compromised_accounts_title">Tài khoản bị xâm phạm</string>
     <string name="watchtower_item_compromised_accounts_text">Kiểm tra vi phạm dữ liệu bằng tên người dùng hoặc địa chỉ email.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Cảnh báo mới của Tháp canh</string>
     <string name="watchtower_alerts_header_title">Các cảnh báo tháp canh mới</string>
     <string name="watchtower_mark_all_as_read_title">Đánh dấu tất cả như đã đọc</string>
     <string name="changepassword_header_title">Thay đổi mật khẩu ứng dụng</string>
@@ -917,7 +917,7 @@
     <string name="changepassword_password_changed_successfully">Mật khẩu đã được thay đổi thành công</string>
     <string name="exportaccount_header_title">Xuất các mục</string>
     <string name="exportaccount_password_label">Lưu trữ mật khẩu</string>
-    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_note">Xuất kho lưu trữ dưới dạng tệp ZIP được mã hóa.</string>
     <string name="exportaccount_attachments_note">Kho sẽ được giữ mở khóa trong quá trình xuất. Các tệp đính kèm được tham chiếu trong dữ liệu của kho. Các tệp đính kèm không bao giờ được lưu trữ ở dạng không được mã hóa trong quá trình này.</string>
     <string name="exportaccount_include_attachments_title">Xuất tệp đính kèm</string>
     <string name="exportaccount_export_button">Xuất</string>
@@ -1085,7 +1085,7 @@
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Không tải được một danh sách đăng ký</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Không tải được một danh sách sản phẩm</string>
     <string name="pref_item_premium_status_active">Hiệu lực</string>
-    <string name="pref_item_premium_status_free_trial_n">Free <xliff:g id="period" example="1 month">%1$s</xliff:g> trial</string>
+    <string name="pref_item_premium_status_free_trial_n">Dùng thử miễn phí <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Sẽ không gia hạn</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Quản lý trên Cửa hàng Play</string>
     <string name="pref_item_permission_post_notifications_title">Đăng thông báo</string>
@@ -1142,8 +1142,8 @@
     <string name="feat_item_show_barcode_text">Mã hóa văn bản thành các mã vạch khác nhau.</string>
     <string name="feat_item_generator_title">Bộ tạo</string>
     <string name="feat_item_generator_text">Tạo các mật khẩu hoặc tên người dùng.</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">Xuất</string>
+    <string name="feat_item_export_text">Xuất dữ liệu của Kho, bao gồm cả tệp đính kèm.</string>
     <string name="datasafety_header_title">An toàn dữ liệu</string>
     <string name="datasafety_local_section">Dữ liệu cục bộ</string>
     <string name="datasafety_local_text">Dữ liệu cục bộ bao gồm Tải xuống, Thiết đặt người dùng, Kho. Chúng được lưu trữ trong bộ nhớ trong của thiết bị và chỉ hệ thống Android hoặc Keyguard mới có thể truy cập được.</string>

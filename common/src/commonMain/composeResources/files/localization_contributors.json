@@ -777,8 +777,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 3873,
-    "target": 5786,
+    "translated": 4037,
+    "target": 5983,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -865,13 +865,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5253,
-    "target": 4913,
+    "translated": 5329,
+    "target": 4956,
     "approved": 5556,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5275
+    "winning": 5286
   },
   {
     "user": {
@@ -1027,6 +1027,28 @@
     "target": 135,
     "approved": 0,
     "voted": 22,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "16075040",
+      "username": "mctaylors",
+      "fullName": "Vlad Taylor (mctaylors)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16075040/medium/84072564a8bed162e87dd552ecd7232b.jpeg",
+      "joined": "2025-07-04 06:47:47"
+    },
+    "languages": [
+      {
+        "id": "ru",
+        "name": "Russian"
+      }
+    ],
+    "translated": 348,
+    "target": 313,
+    "approved": 0,
+    "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -1209,7 +1231,7 @@
     "voted": 1,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 262
+    "winning": 244
   },
   {
     "user": {
@@ -1238,7 +1260,7 @@
       "id": "16247856",
       "username": "lucasmz.dev",
       "fullName": "LucasMZ (lucasmz.dev)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/fb4e71ba1c9e14eacd9c8a214008105e.jpg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/bf1b720619c7668b7a6b7de148671438.jpg",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [

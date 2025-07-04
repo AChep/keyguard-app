@@ -49,21 +49,21 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> дня</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> Неделя</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> недели</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> неделя</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> недели</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> недель</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> недель</item>
     </plurals>
     <plurals name="months_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> месяц</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> Месяцы</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> месяца</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> месяцев</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> месяцев</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> год</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> года</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> лет</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> лет</item>
     </plurals>
 </resources>

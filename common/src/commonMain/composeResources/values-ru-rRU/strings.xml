@@ -103,8 +103,8 @@
     <string name="organization">Организация</string>
     <string name="organizations">Организации</string>
     <string name="organizations_empty_label">Нет организаций</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="equivalent_domains">Эквивалентные домены</string>
+    <string name="equivalent_domains_empty_label">Нет эквивалентных доменов</string>
     <string name="misc">Разное</string>
     <string name="category">Категория</string>
     <string name="command">Команда</string>
@@ -231,8 +231,8 @@
     <string name="bitwarden_premium">Bitwarden премиум</string>
     <string name="bitwarden_premium_required">Требуется премиум Bitwarden</string>
     <string name="bitwarden_unofficial_server">Неофициальный Bitwarden сервер</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip">На заметку: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Генерируйте уникальные письма для лучшей конфиденциальности.</string>
     <string name="account_last_synced_at">Последний раз синхронизировано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Изменить название</string>
     <string name="account_action_change_color_title">Изменить цвет</string>
@@ -347,7 +347,7 @@
     <string name="uri_match_app_title">Выбрать приложение</string>
     <string name="uri_match_detection_title">Обнаружение совпадений</string>
     <string name="uri_match_detection_default_title">По умолчанию</string>
-    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
+    <string name="uri_match_detection_default_note">Использует поведение глобального определения соответствия по умолчанию, выбранное в Настройках → Автозаполнение → Стандартное определение соответствия URI.</string>
     <string name="uri_match_detection_domain_title">Основной домен</string>
     <string name="uri_match_detection_domain_note">Сравнивать ресурсы по доменам первого и второго уровня.</string>
     <string name="uri_match_detection_host_title">Хост</string>
@@ -395,7 +395,7 @@
     <string name="ssh_key_action_save_public_key_title">Сохранить открытый ключ</string>
     <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Открытый ключ сохранен в папку Загрузки</string>
     <string name="ssh_key_action_save_unencrypted_private_key_title">Сохранить незашифрованный секретный ключ</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Незашифрованный секретный ключ сохранен в Загрузки</string>
     <string name="ssh_key_action_add_key_title">Добавить ключи</string>
     <string name="ssh_key_action_replace_key_title">Заменить ключи</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> выбрано</string>
@@ -418,15 +418,15 @@
     <string name="copy_cvv_code">Скопировать CVV код</string>
     <string name="copy_otp_code">Копировать одноразовый пароль</string>
     <string name="copy_otp_secret_code">Копировать секретный ключ</string>
-    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
-    <string name="copy_ssh_public_key">Copy public key</string>
-    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
+    <string name="copy_ssh_unencrypted_private_key">Скопировать незашифрованный секретный ключ</string>
+    <string name="copy_ssh_public_key">Скопировать открытый ключ</string>
+    <string name="copy_ssh_fingerprint">Скопировать отпечаток</string>
     <string name="copied_value">Скопировано значение</string>
     <string name="copied_url">Скопирован URL</string>
     <string name="copied_uri">Скопирован URI</string>
     <string name="copied_package_name">Скопировано имя пакета</string>
-    <string name="copied_key">Copied a key</string>
-    <string name="copied_fingerprint">Copied a fingerprint</string>
+    <string name="copied_key">Скопирован ключ</string>
+    <string name="copied_fingerprint">Скопирован отпечаток</string>
     <string name="copied_password">Скопирован пароль</string>
     <string name="copied_username">Скопировано имя пользователя</string>
     <string name="copied_email">Скопирован e-mail</string>
@@ -494,7 +494,7 @@
     <string name="error_invalid_uri">Неверный URI</string>
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_incorrect_password">Неверный пароль</string>
-    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
+    <string name="error_otp_key_must_not_be_empty">Секретный ключ одноразового пароля не должен быть пустым</string>
     <string name="error_failed_generate_kdf_hash_oom">Не удалось создать ключ, недостаточно памяти. Проверьте настройки KDF сервера.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
@@ -503,13 +503,13 @@
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <string name="error_failed_open_app_for">Ни одно установленное приложение не может обработать этот запрос</string>
     <string name="error_failed_unknown">Произошла ошибка</string>
-    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
-    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
+    <string name="error_failed_encrypt_biometric_key">Не удалось зашифровать биометрический ключ</string>
+    <string name="error_failed_decrypt_biometric_key">Не удалось расшифровать биометрический ключ</string>
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
     <string name="post_notifications_permission_banner_title">Уведомления отключены</string>
-    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
+    <string name="post_notifications_permission_banner_text">Предоставить разрешение на отображение уведомлений, чтобы разрешить Keyguard показывать одноразовые пароли при автозаполнении.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Показать как штрих-код</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Доз. башня</string>
     <string name="home_settings_label">Настройки</string>
     <string name="lock_reason_inactivity">Заблокировано из-за бездействия</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_manually">Заблокирован вручную</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
     <string name="cipher_type_login">Логин</string>
@@ -718,7 +718,7 @@
     <string name="cipher_type_ssh_key">SSH-ключ</string>
     <string name="cipher_type_passkey">Ключ доступа</string>
     <string name="field_type_text">Текст</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">Текст (скрытый)</string>
     <string name="field_type_boolean">Логическое значение</string>
     <string name="field_type_linked">Связанный</string>
     <!--
@@ -773,11 +773,11 @@
     <string name="sortby_password_strength_title">Надёжность пароля</string>
     <string name="sortby_password_strength_normal_mode">Сначала слабые</string>
     <string name="sortby_password_strength_reverse_mode">Сначала надёжные</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">сейчас</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g> мин. назад</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g> ч. назад</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g> дн. назад</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g> нед. назад</string>
     <string name="vault_main_search_placeholder">Поиск по хранилищу</string>
     <string name="vault_main_new_item_button">Новая запись</string>
     <string name="vault_main_no_suggested_items">Нет предложенных пунктов для этого контекста</string>
@@ -818,8 +818,8 @@
     <string name="generator_passphrase_capitalize_title">Прописные</string>
     <string name="generator_passphrase_number_title">Цифры</string>
     <string name="generator_passphrase_wordlist_title">Список слов</string>
-    <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_type">PIN-код</string>
+    <string name="generator_pin_code_note">Примерно 1 к 10 человек используют один и тот же четырехзначный PIN-код. Сгенерируйте PIN-коды, чтобы избежать похожих вариантов.</string>
     <string name="generator_username_type">Имя пользователя</string>
     <string name="generator_username_delimiter_title">Разделитель</string>
     <string name="generator_username_custom_word_title">Пользовательское слово</string>
@@ -848,14 +848,14 @@
     <string name="generator_email_subdomain_addressing_email_title">E-mail</string>
     <string name="generator_email_forward_alias_type">Псевдоним электронной почты для пересылки</string>
     <string name="generator_key_length_title">Длина</string>
-    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-бит</string>
     <string name="generator_key_rsa_note">Все клиенты SSH поддерживают этот алгоритм. Для RSA рекомендуется размер ключа не менее 2048 бит, лучше - 4096 бит. Вполне возможно, что в обозримом будущем алгоритм RSA станет практически неуязвимым.</string>
-    <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
-    <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
+    <string name="generator_key_rsa_text">Совместим со всеми SSH серверами</string>
+    <string name="generator_key_ed25519_note">Это самый быстрый и самый современный стандарт. Поддержка в SSH клиентах пока еще не универсальна.</string>
     <string name="generator_key_ed25519_text">Быстрый и самый современный стандарт</string>
     <string name="generator_create_item_with_password_title">Использовать в качестве пароля</string>
     <string name="generator_create_item_with_username_title">Использовать в качестве логина</string>
-    <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
+    <string name="generator_create_item_with_ssh_key_title">Создать новый SSH ключ</string>
     <string name="generator_password_history_title">История паролей</string>
     <string name="generator_show_tips_title">Показать советы</string>
     <string name="generatorhistory_header_title">История генерации</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Записи, срок действия которых истек или скоро истекают.</string>
     <string name="watchtower_item_duplicate_websites_title">Повторяющиеся URI-адреса</string>
     <string name="watchtower_item_duplicate_websites_text">Записи с URI-адресами, которые после обработки на обнаружение совпадений покрывают одинаковые веб-сайты.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">Обнаружение совпадений URI</string>
+    <string name="watchtower_item_broad_websites_text">Элементы, имеющие один или несколько URI, совпадающих с правилами обнаружения должны сузиться.</string>
     <string name="watchtower_item_trashed_items_title">Удаленные записи</string>
     <string name="watchtower_item_trashed_items_text">Записи, которые были перемещены в корзину. Слишком большое количество записей в корзине может замедлить операции с хранилищем.</string>
     <string name="watchtower_item_empty_folders_title">Пустые папки</string>
@@ -904,7 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Помогает найти и исправить записи с повторяющимися данными.</string>
     <string name="watchtower_item_compromised_accounts_title">Скомпрометированные учетные записи</string>
     <string name="watchtower_item_compromised_accounts_text">Проверить утечку данных по имени пользователя или адресу электронной почты.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Новые оповещения Watchtower</string>
     <string name="watchtower_alerts_header_title">Новые оповещения от дозорной башни</string>
     <string name="watchtower_mark_all_as_read_title">Прочитано</string>
     <string name="changepassword_header_title">Изменить пароль приложения</string>
@@ -917,7 +917,7 @@
     <string name="changepassword_password_changed_successfully">Пароль успешно изменён</string>
     <string name="exportaccount_header_title">Экспорт элементов</string>
     <string name="exportaccount_password_label">Пароль архива</string>
-    <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_note">Экспортировать хранилище как зашифрованный ZIP архив.</string>
     <string name="exportaccount_attachments_note">Хранилище будет разблокировано пока экспорт не закончится. Данные хранилища включают в себя информацию об экспортированных файлах. Файлы в процессе экспорта не сохраняются в не зашифрованном формате.</string>
     <string name="exportaccount_include_attachments_title">Экспортировать файлы</string>
     <string name="exportaccount_export_button">Экспортировать</string>
@@ -1059,7 +1059,7 @@
 3. Подтвердите и перезагрузите Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автокопирование одноразовых паролей</string>
     <string name="pref_item_autofill_auto_copy_otp_text">При заполнении регистрационной информации автоматически копировать одноразовые пароли</string>
-    <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
+    <string name="pref_item_autofill_default_match_detection_title">Метод обнаружения по умолчанию</string>
     <string name="pref_item_autofill_inline_suggestions_title">Встроенные предложения</string>
     <string name="pref_item_autofill_inline_suggestions_text">Встраивает предложения автозаполнения прямо в совместимые клавиатуры</string>
     <string name="pref_item_autofill_manual_selection_title">Ручной выбор</string>
@@ -1142,8 +1142,8 @@
     <string name="feat_item_show_barcode_text">Кодируйте текст в виде различных штрих-кодов.</string>
     <string name="feat_item_generator_title">Генератор</string>
     <string name="feat_item_generator_text">Генерировать пароли или имена пользователей.</string>
-    <string name="feat_item_export_title">Export</string>
-    <string name="feat_item_export_text">Export Vault's data, including attachments.</string>
+    <string name="feat_item_export_title">Экспортировать</string>
+    <string name="feat_item_export_text">Экспорт данных хранилища, включая вложения.</string>
     <string name="datasafety_header_title">Безопасность данных</string>
     <string name="datasafety_local_section">Локальные данные</string>
     <string name="datasafety_local_text">Локальные данные состоят из загрузок, настроек пользователя и хранилища. Они хранятся во внутренней памяти устройства, которая доступна только для системы Android или Keyguard.</string>

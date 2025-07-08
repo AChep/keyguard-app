@@ -100,7 +100,7 @@ ktlint = "0.50.0"
 ktlintPlugin = "12.3.0"
 # https://github.com/ktorio/ktor
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
-ktor = "3.1.3"
+ktor = "3.2.1"
 # https://github.com/java-native-access/jna
 jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore

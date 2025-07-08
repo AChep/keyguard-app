@@ -27,7 +27,7 @@ androidxBiometric = "1.4.0-alpha04"
 androidxBrowser = "1.8.0"
 androidxCamera = "1.4.2"
 androidxCoreKtx = "1.16.0"
-androidxCoreSplash = "1.2.0-beta02"
+androidxCoreSplash = "1.2.0-rc01"
 androidxCoreShortcuts = "1.1.0"
 androidxCredentials = "1.5.0"
 # Before updating the version, check if

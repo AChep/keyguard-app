@@ -961,7 +961,7 @@
     "target": 432,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 3,
+    "positiveVotes": 5,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1119,7 +1119,7 @@
     "target": 3960,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 3,
+    "positiveVotes": 4,
     "negativeVotes": 4,
     "winning": 0
   },
@@ -1170,9 +1170,9 @@
   {
     "user": {
       "id": "16155212",
-      "username": "Medzik",
-      "fullName": "Oskar (Medzik)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16155212/medium/44f5b83d4a4039b9f1f976627d4f6e7c.png",
+      "username": "OskarKarpinski",
+      "fullName": "Oskar Karpi\u0144ski (OskarKarpinski)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16155212/medium/1ef30f95766c646ce5e5f21317320371_default.png",
       "joined": "2025-02-18 05:13:09"
     },
     "languages": [
@@ -1405,7 +1405,7 @@
     "target": 141,
     "approved": 0,
     "voted": 3,
-    "positiveVotes": 4,
+    "positiveVotes": 5,
     "negativeVotes": 1,
     "winning": 0
   },
@@ -1453,6 +1453,28 @@
     "target": 128,
     "approved": 0,
     "voted": 6,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "16486399",
+      "username": "TheRedCyclops",
+      "fullName": "TheRedCyclops",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16486399/medium/7f39226180120d5a9efcb8e13d8aec8e_default.png",
+      "joined": "2025-07-06 18:58:58"
+    },
+    "languages": [
+      {
+        "id": "es-ES",
+        "name": "Spanish"
+      }
+    ],
+    "translated": 254,
+    "target": 276,
+    "approved": 0,
+    "voted": 5,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0

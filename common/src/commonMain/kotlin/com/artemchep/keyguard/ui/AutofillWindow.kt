@@ -286,9 +286,7 @@ private fun ColumnScope.GeneratorValue2(
                 } else {
                     // composable
                     {
-                        CircularProgressIndicator(
-                            color = LocalContentColor.current,
-                        )
+                        KeyguardLoadingIndicator()
                     }
                 }
                 val onClick: (() -> Unit)? = if (loaded) {

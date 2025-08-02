@@ -14,9 +14,12 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,10 +86,19 @@ fun DropdownScope.DropdownMenuItemFlat(
             )
             .minimumInteractiveComponentSize(),
     ) {
-        FlatItemActionContent(
-            action = action,
-            compact = true,
-        )
+        val contentColor =
+            if (action.selected) {
+                val background = MaterialTheme.colorScheme.selectedContainer
+                contentColorFor(background)
+            } else {
+                LocalContentColor.current
+            }
+        CompositionLocalProvider(LocalContentColor provides contentColor) {
+            FlatItemActionContent(
+                action = action,
+                compact = true,
+            )
+        }
     }
 }
 

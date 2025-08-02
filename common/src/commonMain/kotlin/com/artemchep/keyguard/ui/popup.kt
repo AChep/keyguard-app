@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -258,10 +260,14 @@ private fun BasicPopup(
             tonalElevation = 0.dp,
             shadowElevation = 1.dp,
         ) {
-            Column(
-                modifier = Modifier,
+            CompositionLocalProvider(
+                LocalAbsoluteTonalElevation provides 16.dp,
             ) {
-                content()
+                Column(
+                    modifier = Modifier,
+                ) {
+                    content()
+                }
             }
         }
     }

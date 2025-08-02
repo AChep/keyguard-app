@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.History
@@ -22,8 +23,12 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +49,7 @@ import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
@@ -73,6 +79,8 @@ import com.artemchep.keyguard.ui.SmallFab
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.Stub
+import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
@@ -257,7 +265,7 @@ private fun VaultListSortButton(
     ExperimentalFoundationApi::class,
     ExperimentalLayoutApi::class,
     ExperimentalAnimationApi::class,
-    ExperimentalMaterialApi::class,
+    ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun VaultHomeScreenListPane(

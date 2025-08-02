@@ -94,7 +94,7 @@ fun PasswordStrengthBadge(
                     )
                 }
             } else {
-                CircularProgressIndicator(
+                KeyguardLoadingIndicator(
                     modifier = Modifier
                         .size(17.dp),
                 )

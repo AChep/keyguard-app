@@ -1028,6 +1028,8 @@
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
 
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Accounts</string>
     <string name="pref_item_accounts_text">Add &amp; view accounts</string>
     <string name="pref_item_autofill_title">Autofill</string>

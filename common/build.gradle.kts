@@ -187,10 +187,12 @@ kotlin {
                 implementation(compose.material)
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
+                implementation("org.jetbrains.compose.material3:material3:1.9.0-alpha04")
                 api(compose.components.resources)
 
                 api(libs.kotlin.stdlib)
                 api(libs.kdrag0n.colorkt)
+                api(libs.kyant0.m3color)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)

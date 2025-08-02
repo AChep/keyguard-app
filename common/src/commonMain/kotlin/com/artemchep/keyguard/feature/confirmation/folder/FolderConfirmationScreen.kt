@@ -36,6 +36,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatTextField
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -95,10 +96,11 @@ fun FolderConfirmationScreen(
             }
 
             if (state.content is Loadable.Loading && data == null) {
-                CircularProgressIndicator(
+                KeyguardLoadingIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(16.dp),
+                    contained = true,
                 )
             }
         },

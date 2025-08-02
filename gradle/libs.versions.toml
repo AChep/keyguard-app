@@ -60,7 +60,7 @@ commonsCodec = "1.18.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.17.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.9.0-alpha03"
+composeMultiplatform = "1.9.0-beta01"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
@@ -78,6 +78,8 @@ htmlText = "2.0.0-beta01"
 kamel = "1.0.6"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
+# https://github.com/Kyant0/m3color
+m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
@@ -122,7 +124,7 @@ playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
 playServicesBase = "18.7.2"
 # https://github.com/halilozercan/compose-richtext/releases
-richtext = "1.0.0-alpha02"
+richtext = "1.0.0-alpha03"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
 signalr = "9.0.6"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
@@ -243,6 +245,7 @@ harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
 html-text = { module = "de.charlex.compose.material3:material3-html-text", version.ref = "htmlText" }
 kamel-image = { module = "media.kamel:kamel-image-default", version.ref = "kamel" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
+kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }
 kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }
 kodein-kodein-di-framework-android-x-viewmodel-savedstate = { module = "org.kodein.di:kodein-di-framework-android-x-viewmodel-savedstate", version.ref = "kodeinDi" }
 kodein-kodein-di-framework-compose = { module = "org.kodein.di:kodein-di-framework-compose", version.ref = "kodeinDi" }

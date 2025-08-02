@@ -4,6 +4,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import com.artemchep.keyguard.ui.theme.plainDarkColorScheme
+import com.artemchep.keyguard.ui.theme.plainLightColorScheme
 import dev.kdrag0n.colorkt.conversion.ConversionGraph
 import dev.kdrag0n.colorkt.rgb.Srgb
 import com.artemchep.keyguard.ui.theme.monet.ColorScheme as MonetColorScheme
@@ -65,7 +67,7 @@ fun MonetColorScheme.lightMonetCompatScheme(
     inverseSurface: Color = getMonetNeutralColor(1, 800),
     inverseOnSurface: Color = getMonetNeutralColor(2, 50),
     outline: Color = getMonetAccentColor(2, 500),
-): ColorScheme = lightColorScheme(
+): ColorScheme = plainLightColorScheme().copy(
     primary = primary,
     onPrimary = onPrimary,
     primaryContainer = primaryContainer,
@@ -109,7 +111,7 @@ fun MonetColorScheme.darkMonetCompatScheme(
     inverseSurface: Color = getMonetNeutralColor(1, 100),
     inverseOnSurface: Color = getMonetNeutralColor(1, 800),
     outline: Color = getMonetNeutralColor(2, 500),
-): ColorScheme = darkColorScheme(
+): ColorScheme = plainDarkColorScheme().copy(
     primary = primary,
     onPrimary = onPrimary,
     primaryContainer = primaryContainer,

@@ -45,7 +45,9 @@ fun AccountListScreen() {
         controller.queue(NavigationIntent.Pop)
     }
 
-    val accountListStateWrapper = accountListScreenState()
+    val accountListStateWrapper = accountListScreenState(
+        rootRouterName = "accounts",
+    )
     val accountListState = remember(accountListStateWrapper) {
         accountListStateWrapper.unwrap(
             onAddAccount = {

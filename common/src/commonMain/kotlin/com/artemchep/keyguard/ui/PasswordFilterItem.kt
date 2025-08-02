@@ -3,6 +3,7 @@ package com.artemchep.keyguard.ui
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +69,8 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
@@ -483,6 +486,21 @@ fun FlatItemLayout(
             .padding(paddingValues),
         color = contentColor,
     ) {
+        val shape = MaterialTheme.shapes.medium
+        val shapeBottomCornerDp by kotlin.run {
+            val target = if (actions.isEmpty()) {
+                16.dp
+            } else {
+                flatItemSmallCornerSizeDp
+            }
+            animateDpAsState(targetValue = target)
+        }
+
+        val shapeWithBottomCorners = shape.copy(
+            bottomStart = CornerSize(shapeBottomCornerDp),
+            bottomEnd = CornerSize(shapeBottomCornerDp),
+        )
+
         val backgroundModifier = kotlin.run {
             // Check if there's actually a background color
             // to render.
@@ -500,28 +518,13 @@ fun FlatItemLayout(
                 .background(fg.compositeOver(bg))
         }
 
-        val shape = MaterialTheme.shapes.medium
-        val shapeBottomCornerDp by kotlin.run {
-            val target = if (actions.isEmpty()) {
-                16.dp
-            } else {
-                flatItemSmallCornerSizeDp
-            }
-            animateDpAsState(targetValue = target)
-        }
-
         val haptic by rememberUpdatedState(LocalHapticFeedback.current)
         val updatedOnClick by rememberUpdatedState(onClick)
         val updatedOnLongClick by rememberUpdatedState(onLongClick)
 
         Row(
             modifier = Modifier
-                .clip(
-                    shape.copy(
-                        bottomStart = CornerSize(shapeBottomCornerDp),
-                        bottomEnd = CornerSize(shapeBottomCornerDp),
-                    ),
-                )
+                .clip(shapeWithBottomCorners)
                 .then(backgroundModifier)
                 .then(
                     if ((onClick != null || onLongClick != null) && enabled) {

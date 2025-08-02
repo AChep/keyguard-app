@@ -75,6 +75,7 @@ import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
@@ -250,9 +251,7 @@ fun LoginContent(
                         targetState = loginState.isLoading,
                     ) { isLoading ->
                         if (isLoading) {
-                            CircularProgressIndicator(
-                                color = LocalContentColor.current,
-                            )
+                            KeyguardLoadingIndicator()
                         } else {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.Login,

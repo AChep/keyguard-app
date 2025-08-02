@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.platform.leDisplayCutout
@@ -70,6 +71,7 @@ import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
 import com.artemchep.keyguard.ui.scrollbar.LazyColumnScrollbar
 import com.artemchep.keyguard.ui.selection.SelectionBar
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
@@ -254,10 +256,21 @@ fun ScaffoldColumn(
     }
 }
 
+@Composable
 private fun calculatePaddingWithFab(
     contentPadding: PaddingValues,
     fabState: State<FabState?>,
 ) = run {
+    val screenPaddingTop: Dp
+    val screenPaddingBottom: Dp
+    if (LocalExpressive.current) {
+        screenPaddingTop = 16.dp
+        screenPaddingBottom = 16.dp
+    } else {
+        screenPaddingTop = 8.dp
+        screenPaddingBottom = 8.dp
+    }
+
     val fabHeight = 56.dp
     val fabPadding = fabHeight + 16.dp * 2
     val extraPadding = if (fabState.value != null) {

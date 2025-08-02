@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home
 
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -18,7 +19,7 @@ sealed interface HomeLayout {
 
 @Composable
 fun ResponsiveLayout(
-    content: @Composable () -> Unit,
+    content: @Composable BoxWithConstraintsScope.() -> Unit,
 ) = BoxWithConstraints(
     modifier = Modifier
         .fillMaxSize(),

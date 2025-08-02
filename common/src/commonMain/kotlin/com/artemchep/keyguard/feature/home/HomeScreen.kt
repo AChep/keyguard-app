@@ -31,9 +31,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuOpen
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -46,21 +48,38 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationItemColors
+import androidx.compose.material3.NavigationItemIconPosition
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
+import androidx.compose.material3.ShortNavigationBarItemDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.WideNavigationRail
+import androidx.compose.material3.WideNavigationRailColors
+import androidx.compose.material3.WideNavigationRailDefaults
+import androidx.compose.material3.WideNavigationRailItem
+import androidx.compose.material3.WideNavigationRailItemDefaults
+import androidx.compose.material3.WideNavigationRailValue
 import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.rememberWideNavigationRailState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -68,6 +87,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -119,6 +139,7 @@ import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
@@ -136,6 +157,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.kodein.di.compose.rememberInstance
 
 const val HOME_VAULT_TEST_TAG = "nav_bar:vault"
@@ -259,6 +281,7 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomeScreenContent(
     backStack: PersistentList<NavigationEntry>,
@@ -266,6 +289,9 @@ fun HomeScreenContent(
     navBarVisible: Boolean = true,
 ) {
     ResponsiveLayout {
+        val maxWidth = maxWidth
+        val maxHeight = maxHeight
+
         val horizontalInsets = WindowInsets.leStatusBars
             .union(WindowInsets.leNavigationBars)
             .union(WindowInsets.leDisplayCutout)
@@ -291,18 +317,47 @@ fun HomeScreenContent(
                 visible = LocalHomeLayout.current is HomeLayout.Horizontal && navBarVisible,
             ) {
                 Row {
-                    val scrollState = rememberScrollState()
+                    val scope = rememberCoroutineScope()
+
+                    val railState = rememberWideNavigationRailState()
                     val verticalInsets = WindowInsets.leSystemBars
                         .union(WindowInsets.leIme)
                         .only(WindowInsetsSides.Vertical)
-                    NavigationRail(
+
+                    val canExpand = maxHeight >= 480.dp
+                    LaunchedEffect(canExpand) {
+                        if (!canExpand) railState.collapse()
+                    }
+
+                    WideNavigationRail(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            // When the keyboard is opened, there might be not
-                            // enough space for all the items.
-                            .verticalScroll(scrollState),
-                        containerColor = Color.Transparent,
+                            .fillMaxHeight(),
+                        state = railState,
+                        colors = WideNavigationRailDefaults.colors()
+                            .copy(containerColor = Color.Transparent),
                         windowInsets = verticalInsets,
+                        header = if (canExpand) {
+                            // composable
+                            {
+                                IconButton(
+                                    modifier = Modifier
+                                        .padding(start = 24.dp),
+                                    onClick = {
+                                        scope.launch {
+                                            railState.toggle()
+                                        }
+                                    },
+                                ) {
+                                    if (railState.targetValue == WideNavigationRailValue.Expanded) {
+                                        Icon(Icons.AutoMirrored.Filled.MenuOpen, null)
+                                    } else {
+                                        Icon(Icons.Filled.Menu, null)
+                                    }
+                                }
+                            }
+                        } else {
+                            null
+                        },
                     ) {
                         routes.forEach { r ->
                             key(r.key) {
@@ -314,6 +369,7 @@ fun HomeScreenContent(
                                     route = r.route,
                                     icon = r.icon,
                                     iconSelected = r.iconSelected,
+                                    expanded = railState.currentValue == WideNavigationRailValue.Expanded,
                                     count = counterState.value,
                                     label = if (navLabelState.value) {
                                         // composable
@@ -331,11 +387,11 @@ fun HomeScreenContent(
                         }
                         Spacer(
                             modifier = Modifier
-                                .weight(1f),
+                                .height(24.dp),
                         )
                         Column(
                             modifier = Modifier
-                                .padding(top = 16.dp)
+                                .padding(start = 10.dp)
                                 .width(IntrinsicSize.Min),
                         ) {
                             RailStatusBadge(
@@ -353,7 +409,7 @@ fun HomeScreenContent(
             val bottomNavBarVisible =
                 LocalHomeLayout.current is HomeLayout.Vertical && navBarVisible
             var bottomNavBarSize by remember {
-                mutableStateOf(80.dp)
+                mutableStateOf(64.dp)
             }
             Column(
                 modifier = Modifier
@@ -429,7 +485,7 @@ fun HomeScreenContent(
                             .onSizeChanged {
                                 val heightDp = (it.height.toFloat() / updatedDensity.density).dp
                                 bottomNavBarSize = heightDp
-                                    .coerceAtLeast(80.dp)
+                                    .coerceAtLeast(64.dp)
                             },
                     ) {
                         Column(
@@ -440,12 +496,13 @@ fun HomeScreenContent(
                                     .fillMaxWidth(),
                                 statusState = accountStatusState,
                             )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .selectableGroup(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                            val iconPosition = if (maxWidth <= 680.dp) {
+                                NavigationItemIconPosition.Top
+                            } else {
+                                NavigationItemIconPosition.Start
+                            }
+                            ShortNavigationBar(
+                                containerColor = Color.Unspecified,
                             ) {
                                 routes.forEach { r ->
                                     key(r.key) {
@@ -457,6 +514,7 @@ fun HomeScreenContent(
                                             route = r.route,
                                             icon = r.icon,
                                             iconSelected = r.iconSelected,
+                                            iconPosition = iconPosition,
                                             count = counterState.value,
                                             label = if (navLabelState.value) {
                                                 // composable
@@ -806,19 +864,21 @@ private fun RailStatusBadgeContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ColumnScope.RailNavigationControllerItem(
+private fun RailNavigationControllerItem(
     modifier: Modifier = Modifier,
     backStack: ImmutableList<NavigationEntry>,
     route: Route,
     icon: ImageVector,
     iconSelected: ImageVector,
+    expanded: Boolean,
     count: Int?,
     label: @Composable (() -> Unit)? = null,
 ) {
     val controller = LocalNavigationController.current
     val selected = isSelected(backStack, route)
-    NavigationRailItem(
+    WideNavigationRailItem(
         modifier = modifier,
         icon = {
             NavigationIcon(
@@ -830,6 +890,7 @@ private fun ColumnScope.RailNavigationControllerItem(
         },
         label = label,
         selected = selected,
+        railExpanded = expanded,
         colors = navigationRailItemColors(),
         onClick = {
             navigateOnClick(controller, backStack, route)
@@ -837,8 +898,43 @@ private fun ColumnScope.RailNavigationControllerItem(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun RowScope.BottomNavigationControllerItem(
+private fun BottomNavigationControllerItem(
+    modifier: Modifier = Modifier,
+    backStack: ImmutableList<NavigationEntry>,
+    route: Route,
+    icon: ImageVector,
+    iconSelected: ImageVector,
+    iconPosition: NavigationItemIconPosition,
+    count: Int?,
+    label: @Composable (() -> Unit)? = null,
+) {
+    val controller = LocalNavigationController.current
+    val selected = isSelected(backStack, route)
+    ShortNavigationBarItem(
+        modifier = modifier,
+        icon = {
+            NavigationIcon(
+                selected = selected,
+                icon = icon,
+                iconSelected = iconSelected,
+                count = count,
+            )
+        },
+        label = label,
+        selected = selected,
+        iconPosition = iconPosition,
+        colors = navigationBarItemColors(),
+        onClick = {
+            navigateOnClick(controller, backStack, route)
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun RowScope.BottomNavigationControllerItem2(
     modifier: Modifier = Modifier,
     backStack: ImmutableList<NavigationEntry>,
     route: Route,
@@ -861,21 +957,22 @@ private fun RowScope.BottomNavigationControllerItem(
         },
         label = label,
         selected = selected,
-        colors = navigationBarItemColors(),
         onClick = {
             navigateOnClick(controller, backStack, route)
         },
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun navigationRailItemColors(): NavigationRailItemColors {
-    return NavigationRailItemDefaults.colors()
+private fun navigationRailItemColors(): NavigationItemColors {
+    return WideNavigationRailItemDefaults.colors()
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun navigationBarItemColors(): NavigationBarItemColors {
-    return NavigationBarItemDefaults.colors()
+private fun navigationBarItemColors(): NavigationItemColors {
+    return ShortNavigationBarItemDefaults.colors()
 }
 
 private fun isSelected(

@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.OtherScaffold
@@ -200,9 +201,7 @@ private fun UnlockScreen(
                         targetState = unlockState.isLoading,
                     ) { isLoading ->
                         if (isLoading) {
-                            CircularProgressIndicator(
-                                color = LocalContentColor.current,
-                            )
+                            KeyguardLoadingIndicator()
                         } else {
                             Icon(
                                 imageVector = Icons.Outlined.LockOpen,

@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
@@ -53,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.luminance
@@ -65,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
@@ -90,7 +93,12 @@ import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
 import com.artemchep.keyguard.ui.rightClickable
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.ui.surface.LocalSurfaceElevation
+import com.artemchep.keyguard.ui.surface.surfaceElevationColor
+import com.artemchep.keyguard.ui.surface.surfaceNextGroupColorToElevationColor
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
 import com.artemchep.keyguard.ui.theme.selectedContainer
@@ -299,9 +307,10 @@ fun VaultListItemText(
     } else {
         backgroundColor
     }
-    FlatItemLayout2(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         content = {
             FlatItemTextContent(
                 title = {
@@ -463,7 +472,7 @@ fun VaultListItemText(
 
                 is VaultItem2.Item.Feature.Totp,
                 is VaultItem2.Item.Feature.None,
-                -> {
+                    -> {
                 }
             }
 
@@ -639,18 +648,17 @@ private enum class Try {
     NONE,
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
-)
+private val expressiveInnerCornerSize = CornerSize(4.dp)
+
 @Composable
-fun FlatItemLayout2(
+fun FlatItemLayoutExpressive(
     modifier: Modifier = Modifier,
-    backgroundColor: Color,
+    backgroundColor: Color = Color.Unspecified,
     contentColor: Color = backgroundColor
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
+    shapeState: Int = ShapeState.ALL,
     content: @Composable ColumnScope.() -> Unit,
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
@@ -658,11 +666,19 @@ fun FlatItemLayout2(
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = onClick != null,
 ) {
+    val expressive = LocalExpressive.current
+
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
+        val color = if (backgroundColor.isSpecified || !expressive) {
+            backgroundColor
+        } else {
+            val surfaceElevation = LocalSurfaceElevation.current
+            surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+        }
         Modifier
             .drawBehind {
-                drawRect(backgroundColor)
+                drawRect(color)
             }
     }
     val clickable = run {
@@ -683,20 +699,63 @@ fun FlatItemLayout2(
             }
             .rightClickable(onLongClick)
     }
+
+    val shape: Shape
+    val outerHorizontalPadding: Dp
+    val innerHorizontalPadding: Dp
+    val innerVerticalPadding: Dp
+    if (expressive) {
+        val shapeSrc = MaterialTheme.shapes.large
+        shape = when (shapeState) {
+            ShapeState.START -> shapeSrc
+                .copy(
+                    bottomStart = expressiveInnerCornerSize,
+                    bottomEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.CENTER -> shapeSrc
+                .copy(
+                    topStart = expressiveInnerCornerSize,
+                    topEnd = expressiveInnerCornerSize,
+                    bottomStart = expressiveInnerCornerSize,
+                    bottomEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.END -> shapeSrc
+                .copy(
+                    topStart = expressiveInnerCornerSize,
+                    topEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.ALL -> shapeSrc
+            else -> shapeSrc
+        }
+
+        outerHorizontalPadding = 12.dp
+        innerHorizontalPadding = 12.dp
+        innerVerticalPadding = 10.dp
+    } else {
+        shape = MaterialTheme.shapes.medium
+        outerHorizontalPadding = 8.dp
+        innerHorizontalPadding = 8.dp
+        innerVerticalPadding = 8.dp
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                horizontal = 8.dp,
-                vertical = 2.dp,
+                start = outerHorizontalPadding,
+                end = outerHorizontalPadding,
+                top = 1.dp,
+                bottom = 2.dp, // in Android notifications the margin is 3 dp
             )
-            .clip(MaterialTheme.shapes.medium)
+            .clip(shape)
             .then(background)
             .then(clickable)
             .minimumInteractiveComponentSize()
             .padding(
-                horizontal = 8.dp,
-                vertical = 8.dp,
+                horizontal = innerHorizontalPadding,
+                vertical = innerVerticalPadding,
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -794,7 +853,7 @@ fun ColorScheme.surfaceColorAtElevationSemi(
 ): Color {
     if (elevation == 0.dp) return Color.Unspecified
     val alpha = ((4.5f * ln(elevation.value + 1)) + 2f) / 100f
-    return surfaceTint.copy(alpha = alpha)
+    return surfaceTint.combineAlpha(alpha = alpha)
 }
 
 @Composable
@@ -839,7 +898,7 @@ fun BoxScope.VaultItemIcon2(
 
         is VaultItemIcon.WebsiteIcon,
         is VaultItemIcon.AppIcon,
-        -> {
+            -> {
             FaviconImage(
                 modifier = modifier
                     .fillMaxSize()

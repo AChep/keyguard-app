@@ -43,8 +43,10 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.LockReason
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
@@ -1406,19 +1408,25 @@ fun vaultListScreenState(
                 it.list
             } else {
                 it.list
-                    .map {
-                        when (it) {
+                    .mapIndexed { index, item ->
+                        when (item) {
                             is VaultItem2.Item -> {
-                                it.copy(
-                                    token = it.token.takeIf { keepOtp },
-                                    passkeys = it.passkeys.takeIf { keepPasskey }
+                                val shapeState = getShapeState(
+                                    list = it.list,
+                                    index = index,
+                                    predicate = { el, _ -> el is VaultItem2.Item },
+                                )
+                                item.copy(
+                                    shapeState = shapeState,
+                                    token = item.token.takeIf { keepOtp },
+                                    passkeys = item.passkeys.takeIf { keepPasskey }
                                         ?: persistentListOf(),
-                                    attachments2 = it.attachments2.takeIf { keepAttachment }
+                                    attachments2 = item.attachments2.takeIf { keepAttachment }
                                         ?: persistentListOf(),
                                 )
                             }
 
-                            else -> it
+                            else -> item
                         }
                     }
             }

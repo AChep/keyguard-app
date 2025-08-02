@@ -106,6 +106,7 @@ import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
@@ -354,9 +355,7 @@ private fun GeneratorPaneMaster(
                                 contentDescription = null,
                             )
                         } else {
-                            CircularProgressIndicator(
-                                color = LocalContentColor.current,
-                            )
+                            KeyguardLoadingIndicator()
                         }
                     }
                 },

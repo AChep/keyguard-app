@@ -8,6 +8,7 @@ import androidx.compose.ui.text.AnnotatedString
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.PasswordStrength
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
@@ -103,6 +104,7 @@ sealed interface VaultItem2 {
         val text: String?,
         val favourite: Boolean,
         val attachments: Boolean,
+        val shapeState: Int = 0,
         //
         val action: Action,
         val localStateFlow: StateFlow<LocalState>,

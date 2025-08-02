@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 
 @Composable
 fun LoadingScreen() {
@@ -22,6 +23,8 @@ private fun LoadingScreenContent() {
             .fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        CircularProgressIndicator()
+        KeyguardLoadingIndicator(
+            contained = true,
+        )
     }
 }

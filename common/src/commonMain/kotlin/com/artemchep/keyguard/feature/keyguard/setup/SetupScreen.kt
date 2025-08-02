@@ -51,6 +51,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.skeleton.SkeletonButton
@@ -265,9 +266,7 @@ fun ColumnScope.SetupContent(
             targetState = setupState.isLoading,
         ) { isLoading ->
             if (isLoading) {
-                CircularProgressIndicator(
-                    color = LocalContentColor.current,
-                )
+                KeyguardLoadingIndicator()
             } else {
                 Icon(
                     imageVector = Icons.Outlined.Add,

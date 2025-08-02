@@ -19,6 +19,7 @@ import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -38,10 +39,11 @@ fun OrganizationScreen(
         content = {
             state.content.fold(
                 ifLoading = {
-                    CircularProgressIndicator(
+                    KeyguardLoadingIndicator(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(16.dp),
+                        contained = true,
                     )
                 },
                 ifOk = { contentOrNull ->

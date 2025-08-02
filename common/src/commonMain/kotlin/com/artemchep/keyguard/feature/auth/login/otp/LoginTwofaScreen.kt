@@ -76,6 +76,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.grid.SimpleGridLayout
@@ -170,9 +171,7 @@ fun LoginTwofaScreenContent(
                                 )
 
                             LoginTwofaState.PrimaryAction.Icon.LOADING ->
-                                CircularProgressIndicator(
-                                    color = LocalContentColor.current,
-                                )
+                                KeyguardLoadingIndicator()
 
                             null -> {
                                 // Draw nothing.

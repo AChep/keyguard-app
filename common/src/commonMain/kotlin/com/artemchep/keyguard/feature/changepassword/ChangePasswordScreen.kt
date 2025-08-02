@@ -32,6 +32,7 @@ import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
@@ -188,9 +189,7 @@ fun ChangePasswordScreen(
                         targetState = state.isLoading,
                     ) { isLoading ->
                         if (isLoading) {
-                            CircularProgressIndicator(
-                                color = LocalContentColor.current,
-                            )
+                            KeyguardLoadingIndicator()
                         } else {
                             Icon(
                                 imageVector = Icons.Outlined.Save,

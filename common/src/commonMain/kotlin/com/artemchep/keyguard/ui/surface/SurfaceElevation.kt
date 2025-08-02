@@ -7,6 +7,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.theme.isDark
 
 data class SurfaceElevation(
     val from: Float,
@@ -49,6 +50,50 @@ fun surfaceElevationColor(elevation: Float): Color {
     return max
         .combineAlpha(elevation)
         .compositeOver(min)
+}
+
+@Composable
+@ReadOnlyComposable
+fun surfaceNextGroupColorToElevationColor(elevation: Float): Color {
+    return if (MaterialTheme.colorScheme.isDark) {
+        surfaceNextGroupColorToElevationColorDarkTheme(elevation)
+    } else {
+        surfaceNextGroupColorToElevationColorLightTheme(elevation)
+    }
+}
+
+@Composable
+@ReadOnlyComposable
+fun surfaceNextGroupColorToElevationColorLightTheme(elevation: Float): Color {
+    when (elevation) {
+        1.0f -> return MaterialTheme.colorScheme.surfaceContainerLow
+        0.75f -> return MaterialTheme.colorScheme.background
+        // Makes sense on practice after you have seen
+        // how these containers are positioned. If we just
+        // use the code below, then the difference between these
+        // containers becomes too subtle.
+        0.625f -> return MaterialTheme.colorScheme.surfaceContainerLow
+        0.5f -> return MaterialTheme.colorScheme.surfaceContainerLow
+        0.25f -> return MaterialTheme.colorScheme.surfaceContainer
+    }
+    return surfaceElevationColor(elevation.plus(0.25f).coerceIn(0f, 1f))
+}
+
+@Composable
+@ReadOnlyComposable
+fun surfaceNextGroupColorToElevationColorDarkTheme(elevation: Float): Color {
+    when (elevation) {
+        1.0f -> return MaterialTheme.colorScheme.surfaceContainerLow
+        0.75f -> return MaterialTheme.colorScheme.surfaceContainer
+        // Makes sense on practice after you have seen
+        // how these containers are positioned. If we just
+        // use the code below, then the difference between these
+        // containers becomes too subtle.
+        0.625f -> return MaterialTheme.colorScheme.surfaceContainerHigh
+        0.5f -> return MaterialTheme.colorScheme.surfaceContainerHigh
+        0.25f -> return MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    return surfaceElevationColor(elevation.minus(0.25f).coerceIn(0f, 1f))
 }
 
 val SurfaceElevation.width get() = to - from

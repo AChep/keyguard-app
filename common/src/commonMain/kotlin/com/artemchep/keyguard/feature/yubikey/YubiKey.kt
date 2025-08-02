@@ -40,6 +40,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
@@ -135,7 +136,7 @@ fun YubiKeyUsbCard(
                         targetState = isCapturing,
                     ) { capturing ->
                         if (capturing) {
-                            CircularProgressIndicator()
+                            KeyguardLoadingIndicator()
                         }
                     }
                     Spacer(

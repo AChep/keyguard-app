@@ -47,6 +47,7 @@ import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.composable
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -246,9 +247,7 @@ private fun AppInfo(
             when (state) {
                 is Loadable.Loading ->
                     composable {
-                        CircularProgressIndicator(
-                            color = LocalContentColor.current,
-                        )
+                        KeyguardLoadingIndicator()
                     }
 
                 is Loadable.Ok -> if (state.value.icon != null) {

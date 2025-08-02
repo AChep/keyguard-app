@@ -54,8 +54,11 @@ import org.kodein.di.direct
 import org.kodein.di.instance
 
 @Composable
-fun accountListScreenState(): AccountListStateWrapper = with(localDI().direct) {
+fun accountListScreenState(
+    rootRouterName: String,
+): AccountListStateWrapper = with(localDI().direct) {
     accountListScreenState(
+        rootRouterName = rootRouterName,
         queueSyncById = instance(),
         syncSupervisor = instance(),
         removeAccountById = instance(),
@@ -69,6 +72,7 @@ fun accountListScreenState(): AccountListStateWrapper = with(localDI().direct) {
 
 @Composable
 fun accountListScreenState(
+    rootRouterName: String,
     queueSyncById: QueueSyncById,
     syncSupervisor: SupervisorRead,
     removeAccountById: RemoveAccountById,
@@ -267,7 +271,7 @@ fun accountListScreenState(
                             val route = AccountViewRoute(it.id)
                             val intent = NavigationIntent.Composite(
                                 listOf(
-                                    NavigationIntent.PopById("accounts"),
+                                    NavigationIntent.PopById(rootRouterName),
                                     NavigationIntent.NavigateToRoute(route),
                                 ),
                             )

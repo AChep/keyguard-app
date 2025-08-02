@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">بريميوم حارس المفاتيح</string>
     <string name="settings_watchtower_header_title">برج المراقبة</string>
     <string name="settings_open_source_licenses_header_title">تراخيص مفتوحة المصدر</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">الحسابات</string>
     <string name="pref_item_accounts_text">إضافة &amp; عرض للحسابات</string>
     <string name="pref_item_autofill_title">الملء التلقائي</string>

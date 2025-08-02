@@ -151,7 +151,7 @@ fun SettingListScreen() {
             ),
             SettingsSectionItem(
                 id = "section.premium",
-                title = TextHolder.Value(Res.string.pref_section_premium_title),
+                title = TextHolder.Res(Res.string.pref_section_premium_title),
             ).takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
             SettingsItem(
                 id = "subscription",

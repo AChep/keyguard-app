@@ -45,7 +45,7 @@ androidxTestUiAutomator = "2.3.0"
 androidxTestRunner = "1.6.2"
 androidxTestRule = "1.6.1"
 androidxTestJUnit = "1.2.1"
-androidxTestOrchestrator = "1.5.1"
+androidxTestOrchestrator = "1.6.0"
 androidxWork = "2.10.2"
 # https://github.com/harawata/appdirs
 appDirs = "1.4.0"

@@ -12,9 +12,11 @@ import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
@@ -67,7 +69,16 @@ private fun SettingAutofillSaveUri(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_auto_save_source_title),
+                    )
+                },
+            )
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -78,11 +89,6 @@ private fun SettingAutofillSaveUri(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_auto_save_source_title),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

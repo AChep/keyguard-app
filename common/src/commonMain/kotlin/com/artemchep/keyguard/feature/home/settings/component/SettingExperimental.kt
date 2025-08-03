@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.feature.home.settings.experimental.ExperimentalSettingsRoute
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
@@ -42,7 +43,7 @@ fun settingExperimentalProvider(): SettingComponent = kotlin.run {
 private fun SettingExperimental(
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.Biotech),
         trailing = {
             ChevronIcon()

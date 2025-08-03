@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.PutNavLabel
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
@@ -63,7 +64,7 @@ private fun SettingNavLabel(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.AutoMirrored.Outlined.Label),
         trailing = {
             CompositionLocalProvider(

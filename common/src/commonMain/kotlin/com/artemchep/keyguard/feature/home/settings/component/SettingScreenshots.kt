@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -67,7 +68,7 @@ private fun SettingScreenshotsFields(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.Screenshot),
         trailing = {
             CompositionLocalProvider(

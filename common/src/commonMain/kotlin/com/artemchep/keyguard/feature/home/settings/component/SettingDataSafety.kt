@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.feature.datasafety.DataSafetyRoute
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
@@ -51,7 +52,7 @@ fun settingDataSafetyProvider(): SettingComponent = kotlin.run {
 private fun SettingPermissionDetails(
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.PrivacyTip),
         trailing = {
             ChevronIcon()

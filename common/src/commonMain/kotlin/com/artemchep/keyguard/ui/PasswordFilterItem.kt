@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.isUnspecified
@@ -713,13 +714,14 @@ fun Avatar(
         .let {
             it.copy(alpha = 0.05f * LocalContentColor.current.alpha)
         },
+    shape: Shape = MaterialTheme.shapes.medium,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val contentColor = LocalContentColor.current.copy(alpha = DisabledEmphasisAlpha)
     Box(
         modifier = modifier
             .size(36.dp)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(shape)
             .background(color),
     ) {
         content()

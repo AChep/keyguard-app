@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.PutMarkdown
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
@@ -82,47 +83,50 @@ private fun SettingMarkdown(
     onCheckedChange: ((Boolean) -> Unit)?,
     onLearnMore: (() -> Unit)?,
 ) {
-    Column {
-        FlatItemLayout(
-            leading = icon<RowScope>(Icons.Outlined.TextFormat),
-            trailing = {
-                CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-                ) {
-                    Switch(
-                        checked = checked,
-                        enabled = onCheckedChange != null,
-                        onCheckedChange = onCheckedChange,
-                    )
-                }
-            },
-            content = {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = stringResource(Res.string.pref_item_markdown_title),
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = stringResource(Res.string.pref_item_markdown_text),
-                        )
-                    },
+    FlatItemLayoutExpressive(
+        leading = icon<RowScope>(Icons.Outlined.TextFormat),
+        trailing = {
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+            ) {
+                Switch(
+                    checked = checked,
+                    enabled = onCheckedChange != null,
+                    onCheckedChange = onCheckedChange,
                 )
-            },
-            onClick = onCheckedChange?.partially1(!checked),
-        )
-        TextButton(
-            modifier = Modifier
-                .padding(horizontal = 46.dp),
-            enabled = onLearnMore != null,
-            onClick = {
-                onLearnMore?.invoke()
-            },
-        ) {
-            Text(
-                text = stringResource(Res.string.learn_more),
+            }
+        },
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_markdown_title),
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_markdown_text),
+                    )
+                },
             )
-        }
-    }
+        },
+        footer = {
+            TextButton(
+                modifier = Modifier
+                    .padding(
+                        horizontal = 46.dp,
+                        vertical = 4.dp,
+                    ),
+                enabled = onLearnMore != null,
+                onClick = {
+                    onLearnMore?.invoke()
+                },
+            ) {
+                Text(
+                    text = stringResource(Res.string.learn_more),
+                )
+            }
+        },
+        onClick = onCheckedChange?.partially1(!checked),
+    )
 }

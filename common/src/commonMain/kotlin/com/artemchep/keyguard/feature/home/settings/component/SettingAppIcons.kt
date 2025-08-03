@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.PutAppIcons
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -64,7 +65,7 @@ private fun SettingAppIcons(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         leading = icon<RowScope>(Icons.Stub),
         trailing = {
             CompositionLocalProvider(

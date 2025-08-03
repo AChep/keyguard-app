@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -49,6 +50,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,6 +75,7 @@ import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.textResource
@@ -81,11 +84,15 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownMinWidth
+import com.artemchep.keyguard.ui.DropdownScope
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -651,6 +658,154 @@ private enum class Try {
 private val expressiveInnerCornerSize = CornerSize(4.dp)
 
 @Composable
+fun FlatDropdownSimpleExpressive(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
+    shapeState: Int = LocalSettingItemShape.current,
+    expressive: Boolean = LocalExpressive.current,
+    content: @Composable ColumnScope.() -> Unit,
+    dropdown: List<ContextItem> = emptyList(),
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    enabled: Boolean = dropdown.isNotEmpty() || onClick != null || onLongClick != null,
+) {
+    FlatDropdownLayoutExpressive(
+        modifier = modifier,
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        shapeState = shapeState,
+        expressive = expressive,
+        content = content,
+        dropdown = if (dropdown.isNotEmpty()) {
+            // composable
+            {
+                dropdown.forEach { action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        footer = footer,
+        leading = leading,
+        trailing = trailing,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        enabled = enabled,
+    )
+}
+
+@Composable
+fun FlatDropdownLayoutExpressive(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
+    shapeState: Int = LocalSettingItemShape.current,
+    expressive: Boolean = LocalExpressive.current,
+    content: @Composable ColumnScope.() -> Unit,
+    dropdown: (@Composable DropdownScope.() -> Unit)? = null,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    enabled: Boolean = dropdown != null || onClick != null || onLongClick != null,
+) {
+    var isContentDropdownExpanded by remember { mutableStateOf(false) }
+    FlatItemLayoutExpressive(
+        modifier = modifier,
+        backgroundColor = backgroundColor,
+        contentColor = contentColor,
+        shapeState = shapeState,
+        expressive = expressive,
+        content = {
+            content()
+
+            // Inject the dropdown popup to the bottom of the
+            // content.
+            val onDismissRequest = {
+                isContentDropdownExpanded = false
+            }
+            DropdownMenu(
+                expanded = isContentDropdownExpanded,
+                onDismissRequest = onDismissRequest,
+                modifier = Modifier
+                    .widthIn(min = DropdownMinWidth),
+            ) {
+                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
+                dropdown?.invoke(scope)
+            }
+        },
+        footer = footer,
+        leading = leading,
+        trailing = trailing,
+        onClick = when {
+            onClick != null -> onClick
+            dropdown != null -> {
+                // lambda
+                {
+                    isContentDropdownExpanded = !isContentDropdownExpanded
+                }
+            }
+
+            else -> null
+        },
+        onLongClick = onLongClick,
+        enabled = enabled,
+    )
+}
+
+@Composable
+fun FlatItemSimpleExpressive(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.Unspecified,
+    contentColor: Color = backgroundColor
+        .takeIf { it.isSpecified }
+        ?.let { contentColorFor(it) }
+        ?: LocalContentColor.current,
+    shapeState: Int = LocalSettingItemShape.current,
+    expressive: Boolean = LocalExpressive.current,
+    title: @Composable () -> Unit,
+    text: (@Composable () -> Unit)? = null,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
+    leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
+    enabled: Boolean = onClick != null,
+) = FlatItemLayoutExpressive(
+    modifier = modifier,
+    backgroundColor = backgroundColor,
+    contentColor = contentColor,
+    shapeState = shapeState,
+    expressive = expressive,
+    content = {
+        FlatItemTextContent(
+            title = title,
+            text = text,
+        )
+    },
+    footer = footer,
+    leading = leading,
+    trailing = trailing,
+    onClick = onClick,
+    onLongClick = onLongClick,
+    enabled = enabled,
+)
+
+@Composable
 fun FlatItemLayoutExpressive(
     modifier: Modifier = Modifier,
     backgroundColor: Color = Color.Unspecified,
@@ -658,16 +813,16 @@ fun FlatItemLayoutExpressive(
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
-    shapeState: Int = ShapeState.ALL,
+    shapeState: Int = LocalSettingItemShape.current,
+    expressive: Boolean = LocalExpressive.current,
     content: @Composable ColumnScope.() -> Unit,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = onClick != null,
 ) {
-    val expressive = LocalExpressive.current
-
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
         val color = if (backgroundColor.isSpecified || !expressive) {
@@ -740,7 +895,7 @@ fun FlatItemLayoutExpressive(
         innerHorizontalPadding = 8.dp
         innerVerticalPadding = 8.dp
     }
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(
@@ -750,43 +905,51 @@ fun FlatItemLayoutExpressive(
                 bottom = 2.dp, // in Android notifications the margin is 3 dp
             )
             .clip(shape)
-            .then(background)
-            .then(clickable)
-            .minimumInteractiveComponentSize()
-            .padding(
-                horizontal = innerHorizontalPadding,
-                vertical = innerVerticalPadding,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
+            .then(background),
     ) {
-        CompositionLocalProvider(
-            LocalContentColor provides contentColor
-                .let { color ->
-                    if (enabled) {
-                        color
-                    } else {
-                        color.combineAlpha(alpha = DisabledEmphasisAlpha)
-                    }
-                },
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(clickable)
+                .minimumInteractiveComponentSize()
+                .padding(
+                    horizontal = innerHorizontalPadding,
+                    vertical = innerVerticalPadding,
+                ),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (leading != null) {
-                CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-                ) {
-                    leading()
-                }
-                Spacer(Modifier.width(16.dp))
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f),
+            CompositionLocalProvider(
+                LocalContentColor provides contentColor
+                    .let { color ->
+                        if (enabled) {
+                            color
+                        } else {
+                            color.combineAlpha(alpha = DisabledEmphasisAlpha)
+                        }
+                    },
             ) {
-                content()
+                if (leading != null) {
+                    CompositionLocalProvider(
+                        LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+                    ) {
+                        leading()
+                    }
+                    Spacer(Modifier.width(16.dp))
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f),
+                ) {
+                    content()
+                }
+                if (trailing != null) {
+                    Spacer(Modifier.width(16.dp))
+                    trailing()
+                }
             }
-            if (trailing != null) {
-                Spacer(Modifier.width(16.dp))
-                trailing()
-            }
+        }
+        if (footer != null) {
+            footer()
         }
     }
 }

@@ -23,10 +23,12 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
@@ -141,7 +143,16 @@ private fun SettingBiometrics(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_biometric_unlock_title),
+                    )
+                },
+            )
+        },
         leading = icon<RowScope>(Icons.Outlined.Fingerprint),
         trailing = {
             CompositionLocalProvider(
@@ -153,11 +164,6 @@ private fun SettingBiometrics(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_biometric_unlock_title),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

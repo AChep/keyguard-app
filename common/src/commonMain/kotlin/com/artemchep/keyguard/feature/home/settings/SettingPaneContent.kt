@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.settings
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -15,6 +16,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.settings.component.SettingComponent
@@ -105,6 +108,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
@@ -199,6 +203,10 @@ object Setting {
     const val SUBSCRIPTIONS_DEBUG = "subscriptions_debug"
     const val SCREEN_DELAY = "screen_delay"
     const val KEEP_SCREEN_ON = "keep_screen_on"
+}
+
+val LocalSettingItemShape = staticCompositionLocalOf<Int> {
+    ShapeState.ALL
 }
 
 val LocalSettingItemArgs = staticCompositionLocalOf<Any?> {
@@ -382,10 +390,14 @@ fun SettingPaneContent(
             }
     }.collectAsState(initial = SettingPaneState())
 
-    SettingPaneContent2(
-        title = title,
-        state = state,
-    )
+    CompositionLocalProvider(
+        LocalExpressive provides true,
+    ) {
+        SettingPaneContent2(
+            title = title,
+            state = state,
+        )
+    }
 }
 
 @OptIn(
@@ -430,12 +442,21 @@ fun SettingPaneContent2(
                     }
                 }
 
-                items(
+                itemsIndexed(
                     items = list,
-                    key = { model -> model.compositeKey },
-                ) { model ->
+                    key = { _, model -> model.compositeKey },
+                ) { index, model ->
+                    val shapeState = getShapeState(
+                        list,
+                        index,
+                        predicate = { item, _ ->
+                            item.groupKey == model.groupKey &&
+                                    item.itemKey != "divider"
+                        },
+                    )
                     CompositionLocalProvider(
                         LocalSettingItemArgs provides model.args,
+                        LocalSettingItemShape provides shapeState,
                     ) {
                         model.content?.invoke()
                     }

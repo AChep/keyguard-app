@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
@@ -65,7 +66,7 @@ private fun SettingTwoPanelLayoutPortrait(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.PhoneAndroid),
         trailing = {
             CompositionLocalProvider(

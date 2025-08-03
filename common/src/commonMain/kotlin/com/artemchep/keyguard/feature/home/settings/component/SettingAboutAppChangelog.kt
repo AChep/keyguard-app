@@ -6,11 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.GetVersionLog
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
@@ -58,18 +60,22 @@ private fun SettingAboutAppChangelog(
     oldRef: String,
 ) {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    FlatItem(
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_app_changelog_title),
+    FlatItemLayoutExpressive(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_app_changelog_title),
+                    )
+                },
+                text = {
+                    Row {
+                        Text(newRef)
+                        Text("...")
+                        Text(oldRef)
+                    }
+                },
             )
-        },
-        text = {
-            Row {
-                Text(newRef)
-                Text("...")
-                Text(oldRef)
-            }
         },
         trailing = {
             ChevronIcon()

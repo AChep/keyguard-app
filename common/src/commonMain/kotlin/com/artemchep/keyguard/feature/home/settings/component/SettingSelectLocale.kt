@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -126,34 +127,37 @@ private fun SettingLocale(
     dropdown: List<FlatItemAction>,
     onHelpTranslate: (() -> Unit)? = null,
 ) {
-    Column {
-        FlatDropdown(
-            leading = icon<RowScope>(Icons.Outlined.Language),
-            content = {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = stringResource(Res.string.pref_item_locale_title),
-                        )
-                    },
-                    text = {
-                        Text(text)
-                    },
-                )
-            },
-            dropdown = dropdown,
-        )
-        TextButton(
-            modifier = Modifier
-                .padding(horizontal = 46.dp),
-            enabled = onHelpTranslate != null,
-            onClick = {
-                onHelpTranslate?.invoke()
-            },
-        ) {
-            Text(
-                text = stringResource(Res.string.pref_item_locale_help_translation_button),
+    FlatDropdownSimpleExpressive(
+        leading = icon<RowScope>(Icons.Outlined.Language),
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_locale_title),
+                    )
+                },
+                text = {
+                    Text(text)
+                },
             )
-        }
-    }
+        },
+        footer = {
+            TextButton(
+                modifier = Modifier
+                    .padding(
+                        horizontal = 46.dp,
+                        vertical = 4.dp,
+                    ),
+                enabled = onHelpTranslate != null,
+                onClick = {
+                    onHelpTranslate?.invoke()
+                },
+            ) {
+                Text(
+                    text = stringResource(Res.string.pref_item_locale_help_translation_button),
+                )
+            }
+        },
+        dropdown = dropdown,
+    )
 }

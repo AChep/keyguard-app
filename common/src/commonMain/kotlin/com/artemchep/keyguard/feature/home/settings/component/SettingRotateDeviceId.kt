@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.RotateDeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.icon
@@ -52,7 +53,7 @@ fun settingRotateDeviceId(
 private fun SettingRotateDeviceId(
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.Key),
         title = {
             Text("Rotate device id")

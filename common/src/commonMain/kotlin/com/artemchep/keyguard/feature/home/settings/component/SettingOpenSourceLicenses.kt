@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.license.LicenseRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -50,7 +51,7 @@ fun settingOpenSourceLicensesProvider(): SettingComponent = kotlin.run {
 private fun SettingOpenSourceLicenses(
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.AutoMirrored.Outlined.TextSnippet),
         trailing = {
             ChevronIcon()

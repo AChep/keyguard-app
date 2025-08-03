@@ -14,11 +14,13 @@ import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.PutBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -100,7 +102,21 @@ private fun SettingBiometricsRequireConfirmation(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_biometric_unlock_require_confirmation_title),
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_biometric_unlock_require_confirmation_text),
+                    )
+                },
+            )
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -111,16 +127,6 @@ private fun SettingBiometricsRequireConfirmation(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_biometric_unlock_require_confirmation_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.pref_item_biometric_unlock_require_confirmation_text),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

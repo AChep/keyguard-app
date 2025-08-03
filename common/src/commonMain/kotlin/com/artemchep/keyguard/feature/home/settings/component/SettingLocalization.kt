@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorCrown
 import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorsListRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -55,7 +57,7 @@ import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-private const val CONTRIBUTORS_TOP_SIZE = 5
+private const val CONTRIBUTORS_TOP_SIZE = 3
 
 fun settingLocalizationProvider(
     directDI: DirectDI,
@@ -85,97 +87,114 @@ fun settingLocalizationProvider(
                 )
                 navigationController.queue(intent)
             },
-        )
-
-        // Show top localization contributors
-        val topLocalizationContributorsState = remember {
-            mutableStateOf<List<LocalizationContributor>?>(null)
-        }
-        LaunchedEffect(topLocalizationContributorsState) {
-            val contributorsResult = localizationContributorsService.get()
-                .attempt()
-                .bind()
-            topLocalizationContributorsState.value = contributorsResult
-                .getOrElse { emptyList() }
-                .take(CONTRIBUTORS_TOP_SIZE)
-        }
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Spacer(
-                modifier = Modifier
-                    .width(40.dp),
-            )
-
-            val list = topLocalizationContributorsState.value
-            if (list == null) {
-                repeat(CONTRIBUTORS_TOP_SIZE) {
-                    val backgroundColor = LocalContentColor.current
-                        .combineAlpha(DisabledEmphasisAlpha)
-                    Avatar {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(3.dp)
-                                .clip(CircleShape)
-                                .shimmer()
-                                .background(backgroundColor),
-                        )
-                    }
-                }
-            } else {
-                list.forEachIndexed { index, contributor ->
-                    BadgedBox(
-                        badge = {
-                            if (index <= 2) LocalizationContributorCrown(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clip(CircleShape),
-                                index = index,
-                            )
-                        },
-                    ) {
-                        Avatar {
-                            UserIcon(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(3.dp)
-                                    .clip(CircleShape),
-                                pictureUrl = contributor.user.avatarUrl,
-                            )
-                        }
-                    }
-                }
-            }
-
-            TextButton(
-                onClick = {
-                    val intent = NavigationIntent.NavigateToRoute(LocalizationContributorsListRoute)
-                    navigationController.queue(intent)
-                },
-            ) {
-                Text(
-                    text = stringResource(Res.string.pref_item_crowdin_view_all_contributors_title),
+            footer = {
+                SettingLocalizationTopContributors(
+                    modifier = Modifier
+                        .padding(
+                            vertical = 4.dp,
+                        ),
+                    localizationContributorsService = localizationContributorsService,
                 )
-            }
-
-            Spacer(
-                modifier = Modifier
-                    .width(16.dp),
-            )
-        }
+            },
+        )
     }
     flowOf(item)
 }
 
 @Composable
+private fun SettingLocalizationTopContributors(
+    modifier: Modifier = Modifier,
+    localizationContributorsService: LocalizationContributorsService,
+) {
+    // Show top localization contributors
+    val topLocalizationContributorsState = remember {
+        mutableStateOf<List<LocalizationContributor>?>(null)
+    }
+    LaunchedEffect(topLocalizationContributorsState) {
+        val contributorsResult = localizationContributorsService.get()
+            .attempt()
+            .bind()
+        topLocalizationContributorsState.value = contributorsResult
+            .getOrElse { emptyList() }
+            .take(CONTRIBUTORS_TOP_SIZE)
+    }
+    Row(
+        modifier = modifier
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Spacer(
+            modifier = Modifier
+                .width(36.dp),
+        )
+
+        val list = topLocalizationContributorsState.value
+        if (list == null) {
+            repeat(CONTRIBUTORS_TOP_SIZE) {
+                val backgroundColor = LocalContentColor.current
+                    .combineAlpha(DisabledEmphasisAlpha)
+                Avatar {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(3.dp)
+                            .clip(CircleShape)
+                            .shimmer()
+                            .background(backgroundColor),
+                    )
+                }
+            }
+        } else {
+            list.forEachIndexed { index, contributor ->
+                BadgedBox(
+                    badge = {
+                        if (index <= 2) LocalizationContributorCrown(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clip(CircleShape),
+                            index = index,
+                        )
+                    },
+                ) {
+                    Avatar {
+                        UserIcon(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(3.dp)
+                                .clip(CircleShape),
+                            pictureUrl = contributor.user.avatarUrl,
+                        )
+                    }
+                }
+            }
+        }
+
+        val navigationController by rememberUpdatedState(LocalNavigationController.current)
+        TextButton(
+            onClick = {
+                val intent = NavigationIntent.NavigateToRoute(LocalizationContributorsListRoute)
+                navigationController.queue(intent)
+            },
+        ) {
+            Text(
+                text = stringResource(Res.string.pref_item_crowdin_view_all_contributors_title),
+            )
+        }
+
+        Spacer(
+            modifier = Modifier
+                .width(16.dp),
+        )
+    }
+}
+
+@Composable
 private fun SettingLocalization(
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.Translate, Icons.Outlined.KeyguardWebsite),
         trailing = {
             ChevronIcon()
@@ -185,6 +204,7 @@ private fun SettingLocalization(
                 text = stringResource(Res.string.pref_item_crowdin_title),
             )
         },
+        footer = footer,
         onClick = onClick,
     )
 }

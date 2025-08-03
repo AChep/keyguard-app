@@ -22,12 +22,15 @@ import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
@@ -38,9 +41,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.graphics.shapes.RoundedPolygon
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetAccountsHasError
@@ -100,6 +105,7 @@ data class SettingsItem(
     val title: TextHolder,
     val text: TextHolder,
     val icon: ImageVector? = null,
+    val iconShape: RoundedPolygon? = null,
     val shapeState: Int = 0,
     val leading: (@Composable RowScope.() -> Unit)? = null,
     val trailing: (@Composable RowScope.() -> Unit)? = null,
@@ -117,6 +123,7 @@ data class SettingsAccountsItem(
     val state: State<AccountListState>,
 ) : SettingsItem2
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
@@ -144,6 +151,9 @@ fun SettingListScreen() {
     accountsState.value = accountListState
 
     val items = remember {
+        val premiumShape = MaterialShapes.SoftBurst
+        val optionsShape = MaterialShapes.Square
+
         val items = listOfNotNull<SettingsItem2>(
             SettingsAccountsItem(
                 id = "accounts",
@@ -157,6 +167,7 @@ fun SettingListScreen() {
                 id = "subscription",
                 title = TextHolder.Res(Res.string.pref_item_subscription_title),
                 text = TextHolder.Res(Res.string.pref_item_subscription_text),
+                iconShape = premiumShape,
                 leading = {
                     val getPurchased by rememberInstance<GetPurchased>()
                     val isPurchased by remember(getPurchased) {
@@ -187,7 +198,7 @@ fun SettingListScreen() {
                     )
                 },
                 route = SubscriptionsSettingsRoute,
-            ).takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
+            ),//.takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
             SettingsSectionItem(
                 id = "section.options",
                 title = TextHolder.Res(Res.string.pref_section_options_title),
@@ -197,6 +208,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_autofill_title),
                 text = TextHolder.Res(Res.string.pref_item_autofill_text),
                 icon = Icons.Outlined.AutoAwesome,
+                iconShape = optionsShape,
                 route = AutofillSettingsRoute,
             ).takeIf { CurrentPlatform.hasAutofill() || !isRelease },
             SettingsItem(
@@ -204,6 +216,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_security_title),
                 text = TextHolder.Res(Res.string.pref_item_security_text),
                 icon = Icons.Outlined.Lock,
+                iconShape = optionsShape,
                 route = SecuritySettingsRoute,
             ),
             SettingsItem(
@@ -211,6 +224,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_watchtower_title),
                 text = TextHolder.Res(Res.string.pref_item_watchtower_text),
                 icon = Icons.Outlined.Security,
+                iconShape = optionsShape,
                 route = WatchtowerSettingsRoute,
             ),
             SettingsItem(
@@ -218,6 +232,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_notifications_title),
                 text = TextHolder.Res(Res.string.pref_item_notifications_text),
                 icon = Icons.Outlined.Notifications,
+                iconShape = optionsShape,
                 route = NotificationsSettingsRoute,
             ).takeIf { !isRelease },
             SettingsItem(
@@ -225,6 +240,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_appearance_title),
                 text = TextHolder.Res(Res.string.pref_item_appearance_text),
                 icon = Icons.Outlined.ColorLens,
+                iconShape = optionsShape,
                 route = UiSettingsRoute,
             ),
             SettingsItem(
@@ -232,6 +248,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_dev_title),
                 text = TextHolder.Res(Res.string.pref_item_dev_text),
                 icon = Icons.Outlined.Code,
+                iconShape = optionsShape,
                 route = DebugSettingsRoute,
             ).takeIf { !isRelease },
             SettingsItem(
@@ -239,6 +256,7 @@ fun SettingListScreen() {
                 title = TextHolder.Res(Res.string.pref_item_other_title),
                 text = TextHolder.Res(Res.string.pref_item_other_text),
                 icon = Icons.Outlined.Info,
+                iconShape = optionsShape,
                 route = OtherSettingsRoute,
             ),
         )

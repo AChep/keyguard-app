@@ -17,6 +17,7 @@ import androidx.credentials.CredentialManager
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
@@ -90,7 +91,7 @@ private fun SettingCredentialProvider(
     onClick: (() -> Unit)?,
     hasFeature: Boolean,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.Key),
         trailing = {
             ChevronIcon()

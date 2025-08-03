@@ -9,14 +9,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.theme.Dimens
 import org.jetbrains.compose.resources.stringResource
@@ -56,33 +59,36 @@ private fun SettingCheckPwnedServices(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    Column {
-        FlatItem(
-            trailing = {
-                CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-                ) {
-                    Switch(
-                        checked = checked,
-                        enabled = onCheckedChange != null,
-                        onCheckedChange = onCheckedChange,
-                    )
-                }
-            },
-            title = {
-                Text(
-                    text = stringResource(Res.string.pref_item_check_pwned_services_title),
+    FlatItemSimpleExpressive(
+        trailing = {
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+            ) {
+                Switch(
+                    checked = checked,
+                    enabled = onCheckedChange != null,
+                    onCheckedChange = onCheckedChange,
                 )
-            },
-            text = {
-                val text = stringResource(Res.string.watchtower_item_vulnerable_accounts_text)
-                Text(text)
-            },
-            onClick = onCheckedChange?.partially1(!checked),
-        )
-        PoweredByHaveibeenpwned(
-            modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
-        )
-    }
+            }
+        },
+        title = {
+            Text(
+                text = stringResource(Res.string.pref_item_check_pwned_services_title),
+            )
+        },
+        text = {
+            val text = stringResource(Res.string.watchtower_item_vulnerable_accounts_text)
+            Text(text)
+        },
+        footer = {
+            PoweredByHaveibeenpwned(
+                modifier = Modifier
+                    .padding(
+                        horizontal = Dimens.horizontalPadding,
+                        vertical = 4.dp,
+                    ),
+            )
+        },
+        onClick = onCheckedChange?.partially1(!checked),
+    )
 }

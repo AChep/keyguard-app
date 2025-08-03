@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
@@ -87,52 +88,55 @@ private fun SettingMarkdown(
     onCheckedChange: ((Boolean) -> Unit)?,
     onLearnMore: (() -> Unit)?,
 ) {
-    Column {
-        FlatItemLayout(
-            leading = icon<RowScope>(Icons.Outlined.KeyguardWebsite),
-            trailing = {
-                CompositionLocalProvider(
-                    LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-                ) {
-                    Switch(
-                        checked = checked,
-                        enabled = onCheckedChange != null,
-                        onCheckedChange = onCheckedChange,
+    FlatItemLayoutExpressive(
+        leading = icon<RowScope>(Icons.Outlined.KeyguardWebsite),
+        trailing = {
+            CompositionLocalProvider(
+                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
+            ) {
+                Switch(
+                    checked = checked,
+                    enabled = onCheckedChange != null,
+                    onCheckedChange = onCheckedChange,
+                )
+            }
+        },
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_load_website_icons_title),
                     )
-                }
-            },
-            content = {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = stringResource(Res.string.pref_item_load_website_icons_title),
-                        )
-                    },
-                )
-                Spacer(
-                    modifier = Modifier
-                        .height(8.dp),
-                )
-                Text(
-                    color = LocalContentColor.current
-                        .combineAlpha(MediumEmphasisAlpha),
-                    style = MaterialTheme.typography.bodySmall,
-                    text = stringResource(Res.string.pref_item_load_website_icons_text),
-                )
-            },
-            onClick = onCheckedChange?.partially1(!checked),
-        )
-        TextButton(
-            modifier = Modifier
-                .padding(horizontal = 46.dp),
-            enabled = onLearnMore != null,
-            onClick = {
-                onLearnMore?.invoke()
-            },
-        ) {
-            Text(
-                text = stringResource(Res.string.learn_more),
+                },
             )
-        }
-    }
+            Spacer(
+                modifier = Modifier
+                    .height(8.dp),
+            )
+            Text(
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+                style = MaterialTheme.typography.bodySmall,
+                text = stringResource(Res.string.pref_item_load_website_icons_text),
+            )
+        },
+        footer = {
+            TextButton(
+                modifier = Modifier
+                    .padding(
+                        horizontal = 46.dp,
+                        vertical = 4.dp,
+                    ),
+                enabled = onLearnMore != null,
+                onClick = {
+                    onLearnMore?.invoke()
+                },
+            ) {
+                Text(
+                    text = stringResource(Res.string.learn_more),
+                )
+            }
+        },
+        onClick = onCheckedChange?.partially1(!checked),
+    )
 }

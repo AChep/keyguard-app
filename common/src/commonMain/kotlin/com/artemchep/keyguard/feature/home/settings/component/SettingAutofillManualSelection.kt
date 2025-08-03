@@ -11,9 +11,11 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.PutAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
@@ -59,7 +61,21 @@ private fun SettingAutofillManualSelection(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_manual_selection_title),
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_manual_selection_text),
+                    )
+                },
+            )
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -70,16 +86,6 @@ private fun SettingAutofillManualSelection(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_manual_selection_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_manual_selection_text),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

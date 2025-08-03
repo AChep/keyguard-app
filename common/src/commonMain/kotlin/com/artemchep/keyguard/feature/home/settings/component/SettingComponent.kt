@@ -2,8 +2,10 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KClass
 
@@ -25,17 +27,22 @@ fun SettingListItem(
     title: String,
     text: String? = null,
 ) {
-    FlatItem(
-        title = {
-            Text(title)
-        },
-        text = if (text != null) {
-            // composable
-            {
-                Text(text)
-            }
-        } else {
-            null
+    FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(title)
+                },
+                text = if (text != null) {
+                    // composable
+                    {
+                        Text(text)
+                    }
+                } else {
+                    null
+                },
+            )
         },
     )
 }

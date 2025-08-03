@@ -8,11 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
@@ -51,11 +53,15 @@ fun settingApkProvider(
 @Composable
 private fun SettingApk() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    FlatItem(
+    FlatItemLayoutExpressive(
         leading = icon<RowScope>(Icons.Outlined.FileDownload),
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_download_apk_title),
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_download_apk_title),
+                    )
+                },
             )
         },
         trailing = {

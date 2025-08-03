@@ -11,9 +11,11 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
 import com.artemchep.keyguard.common.usecase.PutAutofillCopyTotp
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
@@ -62,7 +64,21 @@ private fun SettingAutofillCopyTotp(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemLayoutExpressive(
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_title),
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_text),
+                    )
+                },
+            )
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -73,16 +89,6 @@ private fun SettingAutofillCopyTotp(
                     onCheckedChange = onCheckedChange,
                 )
             }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_text),
-            )
         },
         onClick = onCheckedChange?.partially1(!checked),
     )

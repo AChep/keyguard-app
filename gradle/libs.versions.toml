@@ -6,7 +6,7 @@ androidCompileSdk = "35"
 # @keep
 androidTargetSdk = "35"
 # @keep
-jdk = "17"
+jdk = "21"
 # @keep
 appVersionName = "1.13.0"
 # @keep

@@ -198,7 +198,7 @@ fun SettingListScreen() {
                     )
                 },
                 route = SubscriptionsSettingsRoute,
-            ),//.takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
+            ).takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
             SettingsSectionItem(
                 id = "section.options",
                 title = TextHolder.Res(Res.string.pref_section_options_title),

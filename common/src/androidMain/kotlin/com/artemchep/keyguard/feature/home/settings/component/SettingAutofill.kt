@@ -25,6 +25,7 @@ import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.feature.apppicker.flowOfInstalledAppsAnyOf
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
@@ -114,7 +115,7 @@ private fun SettingAutofill(
     onCheckedChange: ((Boolean) -> Unit)?,
     platformWarning: AutofillPlatformWarning?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.AutoAwesome),
         trailing = {
             Switch(

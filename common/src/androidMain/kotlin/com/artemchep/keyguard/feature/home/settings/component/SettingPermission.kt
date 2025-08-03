@@ -55,7 +55,7 @@ fun settingPermissionDetailsProvider(): SettingComponent = kotlin.run {
 private fun SettingPermissionDetails(
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.DeveloperMode),
         trailing = {
             ChevronIcon()

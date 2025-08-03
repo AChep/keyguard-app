@@ -2,7 +2,7 @@
 # @keep
 androidMinSdk = "26"
 # @keep
-androidCompileSdk = "35"
+androidCompileSdk = "36"
 # @keep
 androidTargetSdk = "35"
 # @keep
@@ -17,14 +17,14 @@ androidBillingClient = "7.1.1"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.1.5"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "8.11.0"
+androidPlugin = "8.11.1"
 androidxActivity = "1.10.1"
 androidxAppCompat = "1.7.1"
 androidxAutofill = "1.3.0"
-androidxBaselineProfile = "1.3.4"
-androidxBenchmarkMacroJUnit4 = "1.3.4"
+androidxBaselineProfile = "1.4.0"
+androidxBenchmarkMacroJUnit4 = "1.4.0"
 androidxBiometric = "1.4.0-alpha04"
-androidxBrowser = "1.8.0"
+androidxBrowser = "1.9.0"
 androidxCamera = "1.4.2"
 androidxCoreKtx = "1.16.0"
 androidxCoreSplash = "1.2.0-rc01"
@@ -37,16 +37,16 @@ androidxDatastore = "1.1.7"
 androidxLifecycle = "2.9.2"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.7.2"
-androidxSecurityCryptoKtx = "1.1.0-beta01"
-androidxTestEspresso = "3.6.1"
+androidxSecurityCryptoKtx = "1.1.0"
+androidxTestEspresso = "3.7.0"
 coreTestingVersion = "2.2.0"
-androidxTestCore = "1.6.1"
+androidxTestCore = "1.7.0"
 androidxTestUiAutomator = "2.3.0"
-androidxTestRunner = "1.6.2"
-androidxTestRule = "1.6.1"
-androidxTestJUnit = "1.2.1"
-androidxTestOrchestrator = "1.5.1"
-androidxWork = "2.10.2"
+androidxTestRunner = "1.7.0"
+androidxTestRule = "1.7.0"
+androidxTestJUnit = "1.3.0"
+androidxTestOrchestrator = "1.6.1"
+androidxWork = "2.10.3"
 # https://github.com/harawata/appdirs
 appDirs = "1.4.0"
 # https://github.com/arrow-kt/arrow
@@ -56,15 +56,15 @@ bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
 buildkonfigPlugin = "0.17.1"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
-commonsCodec = "1.18.0"
+commonsCodec = "1.19.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-commonsLang3 = "3.17.0"
+commonsLang3 = "3.18.0"
 # https://github.com/JetBrains/compose-multiplatform
 composeMultiplatform = "1.9.0-beta01"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
-crashlyticsPlugin = "3.0.4"
+crashlyticsPlugin = "3.0.5"
 dbusJava = "5.1.1"
 firebase = "33.16.0"
 # https://github.com/tfcporciuncula/flow-preferences
@@ -75,7 +75,7 @@ googleServicesPlugin = "4.4.3"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/Kamel-Media/Kamel
-kamel = "1.0.6"
+kamel = "1.0.7"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
@@ -99,10 +99,10 @@ kspPlugin = "2.2.0-2.0.2"
 # @keep
 ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
-ktlintPlugin = "12.3.0"
+ktlintPlugin = "13.0.0"
 # https://github.com/ktorio/ktor
 # Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
-ktor = "3.2.2"
+ktor = "3.2.3"
 # https://github.com/java-native-access/jna
 jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore
@@ -118,7 +118,7 @@ mlkitBarcodeScanning = "18.3.1"
 # https://github.com/WonderzGmbH/nativefiledialog-java
 nfd = "1.0.3"
 # https://square.github.io/okhttp/changelogs/changelog/
-okHttp = "4.12.0"
+okHttp = "5.1.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
@@ -126,7 +126,7 @@ playServicesBase = "18.7.2"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha03"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "9.0.6"
+signalr = "9.0.7"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
 msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
@@ -140,7 +140,7 @@ sqldelight = "2.1.0"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.50.1.0"
 # https://github.com/vinceglb/FileKit
-filekit = "0.10.0-beta04"
+filekit = "0.10.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
@@ -152,7 +152,7 @@ versionsPlugin = "0.52.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
-yubiKit = "2.8.1"
+yubiKit = "2.8.2"
 # https://github.com/srikanth-lingala/zip4j
 zip4j = "2.11.5"
 # https://github.com/nulab/zxcvbn4j

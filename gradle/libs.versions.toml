@@ -66,7 +66,7 @@ composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.5"
 dbusJava = "5.1.1"
-firebase = "33.16.0"
+firebase = "34.0.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide

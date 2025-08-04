@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -98,14 +99,23 @@ fun settingAutofillProvider(
                 } else {
                     null
                 },
-                platformWarning = platformWarning,
-            )
+                footer = {
+                    ExpandedIfNotEmpty(
+                        valueOrNull = platformWarning
+                            .takeIf { enabled },
+                    ) {
+                        SettingAutofillPlatformWarning(
+                            platformWarning = it,
+                        )
+                    }
 
-            ExpandedIfNotEmpty(
-                valueOrNull = isChromeInstalled.takeIf { it },
-            ) {
-                SettingAutofillChromeNativeAutofillWarning()
-            }
+                    ExpandedIfNotEmpty(
+                        valueOrNull = isChromeInstalled.takeIf { it },
+                    ) {
+                        SettingAutofillChromeNativeAutofillWarning()
+                    }
+                },
+            )
         }
     }
 
@@ -113,7 +123,7 @@ fun settingAutofillProvider(
 private fun SettingAutofill(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
-    platformWarning: AutofillPlatformWarning?,
+    footer: @Composable ColumnScope.() -> Unit,
 ) {
     FlatItemSimpleExpressive(
         leading = icon<RowScope>(Icons.Outlined.AutoAwesome),
@@ -134,16 +144,9 @@ private fun SettingAutofill(
                 text = stringResource(Res.string.pref_item_autofill_service_text),
             )
         },
+        footer = footer,
         onClick = onCheckedChange?.partially1(!checked),
     )
-
-    ExpandedIfNotEmpty(
-        valueOrNull = platformWarning.takeIf { checked },
-    ) {
-        SettingAutofillPlatformWarning(
-            platformWarning = it,
-        )
-    }
 }
 
 @Composable

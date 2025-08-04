@@ -89,7 +89,7 @@ private fun SettingCheckPasskeys(
             PoweredByPasskeys(
                 modifier = Modifier
                     .padding(
-                        horizontal = Dimens.horizontalPadding,
+                        horizontal = 12.dp,
                         vertical = 4.dp,
                     ),
             )

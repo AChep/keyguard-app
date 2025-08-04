@@ -22,6 +22,7 @@ import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.poweredby.PoweredBy2factorauth
 import com.artemchep.keyguard.ui.poweredby.PoweredByHaveibeenpwned
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
@@ -84,7 +85,7 @@ private fun SettingCheckPwnedPasswords(
             PoweredByHaveibeenpwned(
                 modifier = Modifier
                     .padding(
-                        horizontal = Dimens.horizontalPadding,
+                        horizontal = 12.dp,
                         vertical = 4.dp,
                     ),
             )

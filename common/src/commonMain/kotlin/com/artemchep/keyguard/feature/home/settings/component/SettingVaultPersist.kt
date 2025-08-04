@@ -110,21 +110,22 @@ private fun SettingVaultPersist(
                 },
             )
         },
+        footer = {
+            ExpandedIfNotEmpty(
+                valueOrNull = Unit.takeIf { checked },
+            ) {
+                FlatSimpleNote(
+                    modifier = Modifier
+                        .padding(
+                            top = 8.dp,
+                            bottom = 8.dp,
+                            start = Dimens.horizontalPadding * 1 + 24.dp,
+                        ),
+                    type = SimpleNote.Type.WARNING,
+                    text = stringResource(Res.string.pref_item_persist_vault_key_note),
+                )
+            }
+        },
         onClick = onCheckedChange?.partially1(!checked),
     )
-
-    ExpandedIfNotEmpty(
-        valueOrNull = Unit.takeIf { checked },
-    ) {
-        FlatSimpleNote(
-            modifier = Modifier
-                .padding(
-                    top = 8.dp,
-                    bottom = 8.dp,
-                    start = Dimens.horizontalPadding * 1 + 24.dp,
-                ),
-            type = SimpleNote.Type.WARNING,
-            text = stringResource(Res.string.pref_item_persist_vault_key_note),
-        )
-    }
 }

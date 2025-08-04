@@ -84,7 +84,7 @@ private fun SettingCheckTwoFA(
             PoweredBy2factorauth(
                 modifier = Modifier
                     .padding(
-                        horizontal = Dimens.horizontalPadding,
+                        horizontal = 12.dp,
                         vertical = 4.dp,
                     ),
             )

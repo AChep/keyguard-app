@@ -145,7 +145,7 @@ private fun SettingLocale(
             TextButton(
                 modifier = Modifier
                     .padding(
-                        horizontal = 46.dp,
+                        horizontal = 40.dp,
                         vertical = 4.dp,
                     ),
                 enabled = onHelpTranslate != null,

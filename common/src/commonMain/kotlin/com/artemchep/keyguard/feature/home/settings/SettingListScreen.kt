@@ -47,6 +47,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
 import com.artemchep.keyguard.common.model.ShapeState
+import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetAccountsHasError
 import com.artemchep.keyguard.common.usecase.GetPurchased
@@ -54,6 +55,7 @@ import com.artemchep.keyguard.feature.auth.login.LoginRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountListState
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountListStateWrapper
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountsRoute
+import com.artemchep.keyguard.feature.home.settings.accounts.AccountsSelection
 import com.artemchep.keyguard.feature.home.settings.accounts.accountListScreenState
 import com.artemchep.keyguard.feature.home.settings.autofill.AutofillSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.debug.DebugSettingsRoute
@@ -84,6 +86,7 @@ import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -294,6 +297,7 @@ fun SettingListScreen() {
         LocalExpressive provides true,
     ) {
         SettingListScreenContent(
+            accountsState = accountsState,
             items = items,
         )
     }
@@ -306,6 +310,7 @@ fun SettingListScreen() {
 )
 @Composable
 private fun SettingListScreenContent(
+    accountsState: State<AccountListState>,
     items: List<SettingsItem2>,
 ) {
     val q = LocalNavigationController.current
@@ -354,6 +359,12 @@ private fun SettingListScreenContent(
                 modifier = Modifier
                     .padding(contentPadding.value),
                 pullRefreshState = pullRefreshState,
+            )
+        },
+        bottomBar = {
+            val selectionOrNull = accountsState.value.selection
+            AccountsSelection(
+                selection = selectionOrNull,
             )
         },
     ) {

@@ -107,42 +107,9 @@ fun AccountListScreenContent(
             )
         },
         bottomBar = {
-            ExpandedIfNotEmpty(
-                valueOrNull = state.selection,
-            ) { selection ->
-                SelectionBar(
-                    title = {
-                        val text = stringResource(Res.string.selection_n_selected, selection.count)
-                        Text(text)
-                    },
-                    trailing = {
-                        val updatedOnSelectAll by rememberUpdatedState(selection.onSelectAll)
-                        IconButton(
-                            enabled = updatedOnSelectAll != null,
-                            onClick = {
-                                updatedOnSelectAll?.invoke()
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.SelectAll,
-                                contentDescription = null,
-                            )
-                        }
-                        IconButton(
-                            enabled = selection.onSync != null,
-                            onClick = {
-                                selection.onSync?.invoke()
-                            },
-                        ) {
-                            SyncIcon(rotating = false)
-                        }
-                        OptionsButton(
-                            actions = selection.actions,
-                        )
-                    },
-                    onClear = selection.onClear,
-                )
-            }
+            AccountsSelection(
+                selection = state.selection,
+            )
         },
     ) {
         if (state.items.isEmpty()) {

@@ -1,5 +1,10 @@
 package com.artemchep.keyguard.feature.home.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,7 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -45,6 +52,7 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
+import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import org.jetbrains.compose.resources.stringResource
@@ -199,6 +207,36 @@ fun SettingListAccountsItem(
                     )
                 },
                 trailing = {
+                    if (accountItem.error) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            tint = MaterialTheme.colorScheme.error,
+                            contentDescription = null,
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = accountItem.syncing,
+                        enter = fadeIn() + scaleIn(),
+                        exit = scaleOut() + fadeOut(),
+                    ) {
+                        SyncIcon(
+                            rotating = true,
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    ExpandedIfNotEmptyForRow(
+                        accountItem.isSelected.takeIf { accountItem.selecting },
+                    ) { selected ->
+                        Checkbox(
+                            checked = selected,
+                            onCheckedChange = null,
+                        )
+                    }
+
                     ExpandedIfNotEmptyForRow(
                         Unit.takeIf { !accountItem.selecting },
                     ) {

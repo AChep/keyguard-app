@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">بريميوم حارس المفاتيح</string>
     <string name="settings_watchtower_header_title">برج المراقبة</string>
     <string name="settings_open_source_licenses_header_title">تراخيص مفتوحة المصدر</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">الحسابات</string>
     <string name="pref_item_accounts_text">إضافة &amp; عرض للحسابات</string>
     <string name="pref_item_autofill_title">الملء التلقائي</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">لون خفيف</string>
     <string name="pref_item_color_scheme_title">سمة</string>
     <string name="pref_item_color_scheme_amoled_dark_title">استخدم سمة سوداء متباينة</string>
+    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">فتح الروابط في متصفح خارجي</string>
     <string name="pref_item_close_to_tray_title">بالقرب من علبة النظام</string>
     <string name="pref_item_check_pwned_passwords_title">التحقق من وجود كلمات المرور Pwned</string>

@@ -286,8 +286,9 @@ nulabinc-zxcvbn = { module = "com.nulab-inc:zxcvbn", version.ref = "zxcvbn4j" }
 ricecode-string-similarity = { module = "net.ricecode:string-similarity", version.ref = "stringSimilarity" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipherAndroid" }
-squareup-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okHttp" }
-squareup-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okHttp" }
+squareup-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor" }
+squareup-okhttp = { module = "com.squareup.okhttp3:okhttp" }
+squareup-okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okHttp" }
 tony19-logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback" }
 willena-sqlite-jdbc = { module = "io.github.willena:sqlite-jdbc", version.ref = "sqliteJdbcCrypt" }
 vinceglb-filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }

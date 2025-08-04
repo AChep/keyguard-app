@@ -244,6 +244,7 @@ kotlin {
                 implementation(libs.msgpack.jackson.dataformat)
                 // ...implicitly added by SignalR, so we might as well opt-in
                 // for the latest and 'best-est' version.
+                implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)
                 api(libs.ktor.ktor.client.okhttp)
@@ -315,6 +316,7 @@ kotlin {
                 api(libs.google.play.review.ktx)
                 api(libs.google.play.services.base)
                 api(libs.google.play.services.mlkit.barcode.scanning)
+                api(project.dependencies.platform(libs.squareup.okhttp.bom))
                 api(libs.squareup.okhttp)
                 api(libs.squareup.logging.interceptor)
                 api(libs.ktor.ktor.client.okhttp)

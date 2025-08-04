@@ -162,6 +162,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         useAmoledDark: Boolean,
     ): IO<Unit>
 
+    fun setThemeM3Expressive(
+        expressive: Boolean,
+    ): IO<Unit>
+
     fun setKeepScreenOn(
         keepScreenOn: Boolean,
     ): IO<Unit>

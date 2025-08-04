@@ -9,6 +9,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +24,7 @@ import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetTheme
+import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.theme.hasDarkThemeEnabled
@@ -264,7 +266,11 @@ fun KeyguardTheme(
 ) {
     val getTheme by rememberInstance<GetTheme>()
     val getThemeUseAmoledDark by rememberInstance<GetThemeUseAmoledDark>()
+    val getThemeExpressive by rememberInstance<GetThemeExpressive>()
     val getColors by rememberInstance<GetColors>()
+    val expressive by remember(getThemeExpressive) {
+        getThemeExpressive()
+    }.collectAsState(true)
     val theme by remember(getTheme) {
         getTheme()
     }.collectAsState(initial = null)
@@ -345,7 +351,11 @@ fun KeyguardTheme(
                     onSecondary = scheme.onSecondary,
                 ),
         ) {
-            content()
+            CompositionLocalProvider(
+                GlobalExpressive provides expressive,
+            ) {
+                content()
+            }
         }
     }
 }

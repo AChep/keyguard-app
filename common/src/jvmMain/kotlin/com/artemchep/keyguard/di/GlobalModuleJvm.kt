@@ -167,6 +167,7 @@ import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.GetSubscriptions
 import com.artemchep.keyguard.common.usecase.GetTheme
+import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetTotpCode
@@ -219,6 +220,7 @@ import com.artemchep.keyguard.common.usecase.PutNavLabel
 import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.PutTheme
+import com.artemchep.keyguard.common.usecase.PutThemeExpressive
 import com.artemchep.keyguard.common.usecase.PutThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.PutUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterReboot
@@ -306,6 +308,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetPinCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetProductsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetScreenStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSubscriptionsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeVariantsImpl
@@ -360,6 +363,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.PutOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.PutScreenStateImpl
+import com.artemchep.keyguard.common.usecase.impl.PutThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.PutUserExternalBrowserImpl
@@ -709,6 +713,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<PutThemeExpressive> {
+        PutThemeExpressiveImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutColors> {
         PutColorsImpl(
             directDI = this,
@@ -879,6 +888,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetThemeUseAmoledDark> {
         GetThemeUseAmoledDarkImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetThemeExpressive> {
+        GetThemeExpressiveImpl(
             directDI = this,
         )
     }

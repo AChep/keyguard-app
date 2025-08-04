@@ -92,6 +92,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -294,7 +295,7 @@ fun SettingListScreen() {
             }
     }
     CompositionLocalProvider(
-        LocalExpressive provides true,
+        LocalExpressive provides GlobalExpressive.current,
     ) {
         SettingListScreenContent(
             accountsState = accountsState,

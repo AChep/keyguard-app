@@ -78,6 +78,7 @@ class SettingsRepositoryImpl(
         private const val KEY_FONT = "font"
         private const val KEY_THEME = "theme"
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
+        private const val KEY_THEME_M3_EXPRESSIVE = "theme_m3_expressive"
         private const val KEY_ONBOARDING_LAST_VISIT = "onboarding_last_visit"
         private const val KEY_KEEP_SCREEN_ON = "keep_screen_on"
         private const val KEY_GRAVATAR = "gravatar"
@@ -173,6 +174,9 @@ class SettingsRepositoryImpl(
 
     private val themeUseAmoledDarkPref =
         store.getBoolean(KEY_THEME_USE_AMOLED_DARK, false)
+
+    private val themeM3Expressive =
+        store.getBoolean(KEY_THEME_M3_EXPRESSIVE, true)
 
     private val keepScreenOnPref =
         store.getBoolean(KEY_KEEP_SCREEN_ON, true)
@@ -525,6 +529,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(useAmoledDark)
 
     override fun getThemeUseAmoledDark() = themeUseAmoledDarkPref
+
+    override fun setThemeM3Expressive(expressive: Boolean) = themeM3Expressive
+        .setAndCommit(expressive)
+
+    override fun getThemeM3Expressive() = themeM3Expressive
 
     override fun setKeepScreenOn(keepScreenOn: Boolean) = keepScreenOnPref
         .setAndCommit(keepScreenOn)

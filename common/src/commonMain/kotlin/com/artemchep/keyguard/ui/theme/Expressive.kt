@@ -5,3 +5,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 val LocalExpressive = staticCompositionLocalOf {
     false
 }
+
+val GlobalExpressive = staticCompositionLocalOf {
+    true
+}

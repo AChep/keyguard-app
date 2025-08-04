@@ -1077,6 +1077,7 @@
     <string name="pref_item_color_accent_title">Tint color</string>
     <string name="pref_item_color_scheme_title">Theme</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Use contrast black theme</string>
+    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
     <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>

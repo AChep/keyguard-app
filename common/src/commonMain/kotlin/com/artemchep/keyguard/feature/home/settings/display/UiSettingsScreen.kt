@@ -25,6 +25,7 @@ fun UiSettingsScreen() {
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.COLOR_SCHEME),
                     SettingPaneItem.Item(Setting.COLOR_SCHEME_AMOLED_DARK),
+                    SettingPaneItem.Item(Setting.COLOR_SCHEME_EXPRESSIVE),
                     SettingPaneItem.Item(Setting.COLOR_ACCENT),
                     SettingPaneItem.Item(Setting.FONT),
                     SettingPaneItem.Item(Setting.MARKDOWN),

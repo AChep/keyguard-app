@@ -100,6 +100,8 @@ interface SettingsReadRepository {
 
     fun getThemeUseAmoledDark(): Flow<Boolean>
 
+    fun getThemeM3Expressive(): Flow<Boolean>
+
     fun getKeepScreenOn(): Flow<Boolean>
 
     fun getGravatar(): Flow<Boolean>

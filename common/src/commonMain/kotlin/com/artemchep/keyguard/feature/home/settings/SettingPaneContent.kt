@@ -91,6 +91,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocal
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpressiveProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
@@ -108,6 +109,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -136,6 +138,7 @@ object Setting {
     const val LOCALE = "locale"
     const val COLOR_SCHEME = "color_scheme"
     const val COLOR_SCHEME_AMOLED_DARK = "color_scheme_amoled_dark"
+    const val COLOR_SCHEME_EXPRESSIVE = "color_scheme_expressive"
     const val COLOR_ACCENT = "color_accent"
     const val MASTER_PASSWORD = "master_password"
     const val PERMISSION_DETAILS = "permission_details" // screen
@@ -229,6 +232,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOCALE to ::settingSelectLocaleProvider,
     Setting.COLOR_SCHEME to ::settingColorSchemeProvider,
     Setting.COLOR_SCHEME_AMOLED_DARK to ::settingThemeUseAmoledDarkProvider,
+    Setting.COLOR_SCHEME_EXPRESSIVE to ::settingThemeExpressiveProvider,
     Setting.COLOR_ACCENT to ::settingColorAccentProvider,
     Setting.MASTER_PASSWORD to ::settingMasterPasswordProvider,
     Setting.PERMISSION_DETAILS to ::settingPermissionDetailsProvider,
@@ -391,7 +395,7 @@ fun SettingPaneContent(
     }.collectAsState(initial = SettingPaneState())
 
     CompositionLocalProvider(
-        LocalExpressive provides true,
+        LocalExpressive provides GlobalExpressive.current,
     ) {
         SettingPaneContent2(
             title = title,

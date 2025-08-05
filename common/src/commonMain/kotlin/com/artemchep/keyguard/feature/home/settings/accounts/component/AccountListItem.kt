@@ -46,6 +46,7 @@ import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.icons.SyncIcon
@@ -166,8 +167,10 @@ fun AccountListItemText(
                 enter = fadeIn() + scaleIn(),
                 exit = scaleOut() + fadeOut(),
             ) {
-                SyncIcon(
-                    rotating = true,
+                KeyguardLoadingIndicator(
+                    modifier = Modifier
+                        .size(24.dp),
+                    contained = true,
                 )
             }
 

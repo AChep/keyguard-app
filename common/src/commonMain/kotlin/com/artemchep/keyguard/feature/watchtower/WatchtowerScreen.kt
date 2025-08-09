@@ -82,6 +82,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.formatLocalized
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.appreview.RequestAppReviewEffect
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
@@ -290,7 +291,7 @@ fun WatchtowerScreen2(
                             modifier = Modifier
                                 .height(8.dp),
                         )
-                        FlatItem(
+                        FlatItemSimpleExpressive(
                             leading = {
                                 BadgedBox(
                                     modifier = Modifier

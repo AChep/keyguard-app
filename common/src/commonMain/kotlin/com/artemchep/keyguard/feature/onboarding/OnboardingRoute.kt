@@ -1,11 +1,18 @@
 package com.artemchep.keyguard.feature.onboarding
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 
 object OnboardingRoute : Route {
     @Composable
     override fun Content() {
-        OnboardingScreen()
+        CompositionLocalProvider(
+            LocalExpressive provides GlobalExpressive.current,
+        ) {
+            OnboardingScreen()
+        }
     }
 }

@@ -2,7 +2,6 @@
 
 package com.artemchep.keyguard.feature.onboarding
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,9 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -45,11 +42,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
@@ -61,12 +58,9 @@ import com.artemchep.keyguard.ui.grid.SimpleGridLayout
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
-import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
-import com.artemchep.keyguard.ui.util.DividerColor
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.GlobalScope
 import kotlin.time.Clock
@@ -209,8 +203,7 @@ fun OnboardingScreen() {
 private fun ColumnScope.OnboardingScreenContent() {
     OnboardingContainer(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
+            .fillMaxWidth(),
         items = onboardingItemsPremium,
     )
     Section(
@@ -218,8 +211,7 @@ private fun ColumnScope.OnboardingScreenContent() {
     )
     OnboardingContainer(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
+            .fillMaxWidth(),
         items = onboardingItemsSearch,
     )
     Section(
@@ -227,8 +219,7 @@ private fun ColumnScope.OnboardingScreenContent() {
     )
     OnboardingContainer(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
+            .fillMaxWidth(),
         items = onboardingItemsWatchtower,
     )
     Section(
@@ -236,8 +227,7 @@ private fun ColumnScope.OnboardingScreenContent() {
     )
     OnboardingContainer(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
+            .fillMaxWidth(),
         items = onboardingItemsOther,
     )
 }
@@ -247,19 +237,24 @@ private fun OnboardingContainer(
     modifier: Modifier = Modifier,
     items: List<OnboardingItem>,
 ) {
-    SimpleGridLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
-    ) {
-        items.forEach { item ->
-            OnboardingCard(
-                modifier = Modifier,
-                title = stringResource(item.title),
-                text = stringResource(item.text),
-                premium = item.premium,
-                imageVector = item.icon,
-            )
-        }
-    }
+        content = {
+            SimpleGridLayout(
+            ) {
+                items.forEach { item ->
+                    OnboardingCard(
+                        modifier = Modifier,
+                        title = stringResource(item.title),
+                        text = stringResource(item.text),
+                        premium = item.premium,
+                        imageVector = item.icon,
+                    )
+                }
+            }
+        },
+        enabled = true,
+    )
 }
 
 @Composable

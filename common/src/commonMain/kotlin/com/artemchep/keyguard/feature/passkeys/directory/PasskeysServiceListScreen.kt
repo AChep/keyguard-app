@@ -30,7 +30,9 @@ import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.ErrorView
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -227,11 +229,20 @@ fun PasskeysListScreen(
                             items = items,
                             key = { it.key },
                         ) { item ->
-                            AppItem(
-                                modifier = Modifier
-                                    .animateItem(),
-                                item = item,
-                            )
+                            when (item) {
+                                is PasskeysServiceListState.Item.Content -> {
+                                    AppItem(
+                                        modifier = Modifier
+                                            .animateItem(),
+                                        item = item,
+                                    )
+                                }
+                                is PasskeysServiceListState.Item.Section -> {
+                                    Section(
+                                        text = item.name,
+                                    )
+                                }
+                            }
                         }
                     },
                 )
@@ -252,7 +263,7 @@ private fun NoItemsPlaceholder(
 @Composable
 private fun AppItem(
     modifier: Modifier,
-    item: PasskeysServiceListState.Item,
+    item: PasskeysServiceListState.Item.Content,
 ) {
     val backgroundColor = run {
         if (LocalHasDetailPane.current) {
@@ -267,9 +278,10 @@ private fun AppItem(
 
         Color.Unspecified
     }
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         leading = {
             item.icon()
         },

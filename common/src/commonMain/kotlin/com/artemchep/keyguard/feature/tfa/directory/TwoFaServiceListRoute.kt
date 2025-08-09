@@ -1,11 +1,18 @@
 package com.artemchep.keyguard.feature.tfa.directory
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 
 object TwoFaServiceListRoute : Route {
     @Composable
     override fun Content() {
-        TwoFaServiceListScreen()
+        CompositionLocalProvider(
+            LocalExpressive provides GlobalExpressive.current,
+        ) {
+            TwoFaServiceListScreen()
+        }
     }
 }

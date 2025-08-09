@@ -9,14 +9,19 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.service.twofa.TwoFaService
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.decorator.ItemDecorator
+import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
+import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
+import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
+import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListState
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
@@ -24,6 +29,7 @@ import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
+import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
@@ -79,7 +85,7 @@ fun produceTwoFaServiceListState(
         navigate(intent)
     }
 
-    fun List<TwoFaServiceInfo>.toItems(): List<TwoFaServiceListState.Item> {
+    fun List<TwoFaServiceInfo>.toItems(): List<TwoFaServiceListState.Item.Content> {
         val nameCollisions = mutableMapOf<String, Int>()
         return this
             .sortedWith(modelComparator)
@@ -97,7 +103,7 @@ fun produceTwoFaServiceListState(
                         url = url,
                     )
                 }
-                TwoFaServiceListState.Item(
+                TwoFaServiceListState.Item.Content(
                     key = key,
                     icon = {
                         FaviconImage(
@@ -134,6 +140,72 @@ fun produceTwoFaServiceListState(
             // Replace the origin text with the one with
             // search decor applied to it.
             item.copy(name = result.highlightedText)
+        }
+        .map { (items, rev) ->
+            val decorator: ItemDecorator<TwoFaServiceListState.Item, TwoFaServiceListState.Item.Content> =
+                when {
+                    items.size >= AlphabeticalSortMinItemsSize ->
+                        ItemDecoratorTitle(
+                            selector = { it.name.text },
+                            factory = { id, text ->
+                                TwoFaServiceListState.Item.Section(
+                                    key = id,
+                                    name = text,
+                                )
+                            },
+                        )
+
+                    else ->
+                        ItemDecoratorNone
+                                as ItemDecorator<TwoFaServiceListState.Item, TwoFaServiceListState.Item.Content>
+                }
+
+            val sectionIds = mutableSetOf<String>()
+            val out = mutableListOf<TwoFaServiceListState.Item>()
+            items.forEach { item ->
+                val section = decorator.getOrNull(item)
+                // Some weird combinations of items might lead to
+                // duplicate # being used.
+                if (section != null) {
+                    if (section.key !in sectionIds) {
+                        sectionIds += section.key
+                        out += section
+                    } else {
+                        val sections = sectionIds
+                            .joinToString()
+
+                        val msg =
+                            "Duplicate sections prevented @ JustDeleteMeList: $sections, [${section.key}]"
+                        val exception = RuntimeException(msg)
+                        recordException(exception)
+                    }
+                }
+
+                out += item
+            }
+            out to rev
+        }
+        .map { (items, rev) ->
+            val shapedItems = items
+                .mapIndexed { index, item ->
+                    when (item) {
+                        is TwoFaServiceListState.Item.Content -> {
+                            val shapeState = getShapeState(
+                                list = items,
+                                index = index,
+                                predicate = { el, offset ->
+                                    el is TwoFaServiceListState.Item.Content
+                                },
+                            )
+                            item.copy(
+                                shapeState = shapeState,
+                            )
+                        }
+
+                        else -> item
+                    }
+                }
+            shapedItems to rev
         }
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->

@@ -30,7 +30,9 @@ import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.ErrorView
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -39,10 +41,8 @@ import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.FocusRequester2
-import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
@@ -227,11 +227,20 @@ fun TwoFaServiceListScreen(
                             items = items,
                             key = { it.key },
                         ) { item ->
-                            AppItem(
-                                modifier = Modifier
-                                    .animateItem(),
-                                item = item,
-                            )
+                            when (item) {
+                                is TwoFaServiceListState.Item.Content -> {
+                                    AppItem(
+                                        modifier = Modifier
+                                            .animateItem(),
+                                        item = item,
+                                    )
+                                }
+                                is TwoFaServiceListState.Item.Section -> {
+                                    Section(
+                                        text = item.name,
+                                    )
+                                }
+                            }
                         }
                     },
                 )
@@ -252,7 +261,7 @@ private fun NoItemsPlaceholder(
 @Composable
 private fun AppItem(
     modifier: Modifier,
-    item: TwoFaServiceListState.Item,
+    item: TwoFaServiceListState.Item.Content,
 ) {
     val backgroundColor = run {
         if (LocalHasDetailPane.current) {
@@ -267,9 +276,10 @@ private fun AppItem(
 
         Color.Unspecified
     }
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         leading = {
             item.icon()
         },

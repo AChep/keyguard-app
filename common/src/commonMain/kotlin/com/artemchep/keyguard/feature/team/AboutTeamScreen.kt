@@ -23,6 +23,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.ShapeState
+import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -58,6 +61,7 @@ private data class SocialNetwork(
 private data class SocialNetworkItem(
     val title: String,
     val username: String,
+    val shapeState: Int = ShapeState.ALL,
     val leading: @Composable RowScope.() -> Unit,
     val onClick: () -> Unit,
 )
@@ -67,7 +71,7 @@ private data class SocialNetworkItem(
 fun AboutTeamScreen() {
     val navController by rememberUpdatedState(LocalNavigationController.current)
     val socialNetworks = remember {
-        listOf(
+        val items = listOf(
             SocialNetwork(
                 title = "GitHub",
                 username = "AChep",
@@ -124,7 +128,21 @@ fun AboutTeamScreen() {
                     navController.queue(intent)
                 },
             )
-        }.toPersistentList()
+        }
+        items
+            .mapIndexed { index, item ->
+                val shapeState = getShapeState(
+                    list = items,
+                    index = index,
+                    predicate = { el, offset ->
+                        true
+                    },
+                )
+                item.copy(
+                    shapeState = shapeState,
+                )
+            }
+            .toPersistentList()
     }
 
     val scrollBehavior = ToolbarBehavior.behavior()
@@ -163,8 +181,9 @@ fun AboutTeamScreen() {
             text = stringResource(Res.string.team_follow_me_section),
         )
         socialNetworks.forEach { item ->
-            FlatItem(
+            FlatItemSimpleExpressive(
                 leading = item.leading,
+                shapeState = item.shapeState,
                 trailing = {
                     ChevronIcon()
                 },
@@ -181,7 +200,7 @@ fun AboutTeamScreen() {
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
-            text = "Thanks to Vira & my friends for supporting me and patiently testing the app.",
+            text = "Thanks you my friends for supporting me and patiently testing the app.",
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),

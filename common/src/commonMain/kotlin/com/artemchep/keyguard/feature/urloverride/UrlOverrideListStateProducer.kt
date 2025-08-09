@@ -12,6 +12,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.usecase.AddUrlOverride
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
@@ -23,6 +24,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.home.settings.SettingsItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.wrap
@@ -268,7 +270,7 @@ fun produceUrlOverrideListState(
         }
     val itemsFlow = itemsRawFlow
         .map { list ->
-            list
+            val items = list
                 .map {
                     val dropdown = buildContextItems {
                         section {
@@ -354,7 +356,20 @@ fun produceUrlOverrideListState(
                         selectableState = selectableStateFlow,
                     )
                 }
-                .toPersistentList()
+                items
+                    .mapIndexed { index, item ->
+                        val shapeState = getShapeState(
+                            list = items,
+                            index = index,
+                            predicate = { el, offset ->
+                                true
+                            },
+                        )
+                        item.copy(
+                            shapeState = shapeState,
+                        )
+                    }
+                    .toPersistentList()
         }
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the URL override list!"

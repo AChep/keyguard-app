@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.Either
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.ui.ContextItem
@@ -33,6 +34,7 @@ data class UrlOverrideListState(
         val title: String,
         val regex: AnnotatedString,
         val command: AnnotatedString,
+        val shapeState: Int = ShapeState.ALL,
         val icon: VaultItemIcon,
         val accentLight: Color,
         val accentDark: Color,

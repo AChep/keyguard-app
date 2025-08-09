@@ -1,11 +1,18 @@
 package com.artemchep.keyguard.feature.urloverride
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 
 object UrlOverrideListRoute : Route {
     @Composable
     override fun Content() {
-        UrlOverrideListScreen()
+        CompositionLocalProvider(
+            LocalExpressive provides GlobalExpressive.current,
+        ) {
+            UrlOverrideListScreen()
+        }
     }
 }

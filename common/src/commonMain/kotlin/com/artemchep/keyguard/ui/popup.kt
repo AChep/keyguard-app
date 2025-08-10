@@ -235,38 +235,43 @@ private fun BasicPopup(
         val maxWidth = 560.dp
         val verticalInsets = WindowInsets.leSystemBars
             .union(WindowInsets.leIme)
-        Surface(
+        Box(
             modifier = Modifier
-                .windowInsetsPadding(verticalInsets)
-                .consumeWindowInsets(verticalInsets)
-                .widthIn(
-                    min = 280.dp,
-                    max = maxWidth,
-                )
-                .pointerInput(onDismissRequest) {
-                    detectTapGestures(
-                        onPress = {
-                            // Workaround to disable clicks on Surface background
-                            // https://github.com/JetBrains/compose-jb/issues/2581
-                        },
-                    )
-                }
-                .then(contentModifier)
-                .graphicsLayer {
-                    graphicsModifier(this, alpha, scale)
-                },
-            shape = shape,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = 1.dp,
+                .padding(start = 64.dp),
         ) {
-            CompositionLocalProvider(
-                LocalAbsoluteTonalElevation provides 16.dp,
+            Surface(
+                modifier = Modifier
+                    .windowInsetsPadding(verticalInsets)
+                    .consumeWindowInsets(verticalInsets)
+                    .widthIn(
+                        min = 280.dp,
+                        max = maxWidth,
+                    )
+                    .pointerInput(onDismissRequest) {
+                        detectTapGestures(
+                            onPress = {
+                                // Workaround to disable clicks on Surface background
+                                // https://github.com/JetBrains/compose-jb/issues/2581
+                            },
+                        )
+                    }
+                    .then(contentModifier)
+                    .graphicsLayer {
+                        graphicsModifier(this, alpha, scale)
+                    },
+                shape = shape,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 0.dp,
+                shadowElevation = 1.dp,
             ) {
-                Column(
-                    modifier = Modifier,
+                CompositionLocalProvider(
+                    LocalAbsoluteTonalElevation provides 16.dp,
                 ) {
-                    content()
+                    Column(
+                        modifier = Modifier,
+                    ) {
+                        content()
+                    }
                 }
             }
         }

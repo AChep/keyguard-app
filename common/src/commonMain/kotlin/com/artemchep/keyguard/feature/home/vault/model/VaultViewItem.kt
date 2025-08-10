@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.usecase.CopyText
@@ -61,6 +62,7 @@ sealed interface VaultViewItem {
     data class Action(
         override val id: String,
         val elevation: Dp = 0.dp,
+        val shapeState: Int = ShapeState.ALL,
         val title: String,
         val text: String? = null,
         val leading: (@Composable RowScope.() -> Unit)? = null,
@@ -87,6 +89,7 @@ sealed interface VaultViewItem {
         val value: String,
         val maxLines: Int = Int.MAX_VALUE,
         val visibility: Visibility = Visibility(),
+        val shapeState: Int = ShapeState.ALL,
         val monospace: Boolean = false,
         val colorize: Boolean = false,
         val leading: (@Composable RowScope.() -> Unit)? = null,

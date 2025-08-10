@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -206,6 +207,7 @@ fun Section(
     modifier: Modifier = Modifier,
     text: String? = null,
     caps: Boolean = true,
+    expressive: Boolean = false,
 ) {
     if (text != null) {
         Text(
@@ -220,6 +222,11 @@ fun Section(
             fontWeight = FontWeight.Medium,
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),
+        )
+    } else if (expressive) {
+        Spacer(
+            modifier = Modifier
+                .height(24.dp),
         )
     } else {
         HorizontalDivider(
@@ -660,6 +667,7 @@ private val expressiveInnerCornerSize = CornerSize(4.dp)
 @Composable
 fun FlatDropdownSimpleExpressive(
     modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
     backgroundColor: Color = Color.Unspecified,
     contentColor: Color = backgroundColor
         .takeIf { it.isSpecified }
@@ -678,6 +686,7 @@ fun FlatDropdownSimpleExpressive(
 ) {
     FlatDropdownLayoutExpressive(
         modifier = modifier,
+        elevation = elevation,
         backgroundColor = backgroundColor,
         contentColor = contentColor,
         shapeState = shapeState,
@@ -707,6 +716,7 @@ fun FlatDropdownSimpleExpressive(
 @Composable
 fun FlatDropdownLayoutExpressive(
     modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
     backgroundColor: Color = Color.Unspecified,
     contentColor: Color = backgroundColor
         .takeIf { it.isSpecified }
@@ -726,6 +736,7 @@ fun FlatDropdownLayoutExpressive(
     var isContentDropdownExpanded by remember { mutableStateOf(false) }
     FlatItemLayoutExpressive(
         modifier = modifier,
+        elevation = elevation,
         backgroundColor = backgroundColor,
         contentColor = contentColor,
         shapeState = shapeState,
@@ -770,6 +781,7 @@ fun FlatDropdownLayoutExpressive(
 @Composable
 fun FlatItemSimpleExpressive(
     modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
     backgroundColor: Color = Color.Unspecified,
     contentColor: Color = backgroundColor
         .takeIf { it.isSpecified }
@@ -787,6 +799,7 @@ fun FlatItemSimpleExpressive(
     enabled: Boolean = onClick != null,
 ) = FlatItemLayoutExpressive(
     modifier = modifier,
+    elevation = elevation,
     backgroundColor = backgroundColor,
     contentColor = contentColor,
     shapeState = shapeState,
@@ -808,6 +821,7 @@ fun FlatItemSimpleExpressive(
 @Composable
 fun FlatItemLayoutExpressive(
     modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
     backgroundColor: Color = Color.Unspecified,
     contentColor: Color = backgroundColor
         .takeIf { it.isSpecified }
@@ -825,8 +839,11 @@ fun FlatItemLayoutExpressive(
 ) {
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
-        val color = if (backgroundColor.isSpecified || !expressive) {
-            backgroundColor
+        val color = if (backgroundColor.isSpecified || elevation.value > 0f || !expressive) {
+            val bg = backgroundColor.takeIf { it.isSpecified }
+                ?: Color.Transparent
+            val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
+            fg.compositeOver(bg)
         } else {
             val surfaceElevation = LocalSurfaceElevation.current
             surfaceNextGroupColorToElevationColor(surfaceElevation.to)

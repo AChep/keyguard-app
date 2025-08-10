@@ -71,9 +71,10 @@ fun VaultViewValueItem(
     )
 
     val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
+        shapeState = item.shapeState,
         content = {
             val shownValue = animatedConcealedText(
                 text = value,

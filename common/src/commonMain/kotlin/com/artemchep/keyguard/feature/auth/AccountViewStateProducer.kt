@@ -41,6 +41,7 @@ import com.artemchep.keyguard.common.model.DMeta
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.PutProfileHiddenRequest
 import com.artemchep.keyguard.common.model.firstOrNull
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -75,6 +76,7 @@ import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
+import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
@@ -353,7 +355,7 @@ fun accountState(
         profileFlow.prepare(),
         countersFlow.prepare(),
     ) { meta, account, profile, counters ->
-        buildItemsFlow(
+        val items = buildItemsFlow(
             accountId = accountId,
             scope = this,
             account = account,
@@ -369,6 +371,32 @@ fun accountState(
             dateFormatter = dateFormatter,
             getGravatarUrl = getGravatarUrl,
         ).toList()
+        items
+            .mapIndexed { index, item ->
+                when (item) {
+                    is VaultViewItem.Value -> {
+                        val shapeState = getShapeState(
+                            list = items,
+                            index = index,
+                            predicate = { el, _ -> el is VaultViewItem.Value },
+                        )
+                        item.copy(
+                            shapeState = shapeState,
+                        )
+                    }
+                    is VaultViewItem.Action -> {
+                        val shapeState = getShapeState(
+                            list = items,
+                            index = index,
+                            predicate = { el, _ -> el is VaultViewItem.Action },
+                        )
+                        item.copy(
+                            shapeState = shapeState,
+                        )
+                    }
+                    else -> item
+                }
+            }
     }
     val actionsFlow = combine(
         accountFlow,

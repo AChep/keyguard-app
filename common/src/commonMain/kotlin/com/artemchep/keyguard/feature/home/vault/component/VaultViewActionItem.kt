@@ -15,9 +15,10 @@ fun VaultViewActionItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Action,
 ) {
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         elevation = item.elevation,
+        shapeState = item.shapeState,
         leading = item.leading,
         content = {
             FlatItemTextContent(

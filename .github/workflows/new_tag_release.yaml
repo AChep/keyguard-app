@@ -330,27 +330,27 @@ jobs:
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
       - name: "Download Mac app (Intel)"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-mac-intel
           path: artifacts
       - name: "Download Mac app (Apple Silicon)"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-mac-silicon
           path: artifacts
       - name: "Download Linux app"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-linux-flatpak
           path: artifacts
       - name: "Download Windows app"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-windows
           path: artifacts
       - name: "Download Android app"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: app-android
           path: artifacts

@@ -1,24 +1,20 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.ButtonShapes
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -35,6 +31,7 @@ import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.Stub
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.ImmutableList
 
@@ -54,19 +51,16 @@ fun HorizontalContextItems(
     modifier: Modifier = Modifier,
     items: ImmutableList<ContextItem>,
 ) {
-    Row(
+    FlowRow(
         modifier = modifier
-            .horizontalScroll(rememberScrollState())
             .padding(
-                top = 0.dp,
+                start = Dimens.contentPadding,
+                end = Dimens.contentPadding,
                 bottom = 24.dp,
             ),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Spacer(
-            modifier = Modifier
-                .width(0.dp),
-        )
         items.forEach { i ->
             HorizontalContextItem(
                 modifier = Modifier
@@ -74,10 +68,6 @@ fun HorizontalContextItems(
                 item = i,
             )
         }
-        Spacer(
-            modifier = Modifier
-                .width(0.dp),
-        )
     }
 }
 
@@ -116,12 +106,8 @@ private fun HorizontalFlatActionItem(
     item: FlatItemAction,
 ) {
     val updatedOnClick by rememberUpdatedState(item.onClick)
-    OutlinedButton(
+    Button(
         modifier = modifier,
-        shapes = ButtonShapes(
-            shape = MaterialTheme.shapes.medium,
-            pressedShape = MaterialTheme.shapes.extraLarge,
-        ),
         onClick = {
             updatedOnClick?.invoke()
         },

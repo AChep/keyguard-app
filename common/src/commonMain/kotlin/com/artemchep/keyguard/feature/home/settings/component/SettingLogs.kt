@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.logs.LogsRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -53,6 +54,7 @@ private fun SettingLogs(
     onClick: (() -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Stub),
         trailing = {
             ChevronIcon()

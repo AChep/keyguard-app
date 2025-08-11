@@ -16,8 +16,9 @@ fun VaultViewOrganizationItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Organization,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
             Icon(
                 Icons.Outlined.KeyguardOrganization,

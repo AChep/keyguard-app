@@ -79,6 +79,7 @@ import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
+import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
@@ -372,31 +373,7 @@ fun accountState(
             getGravatarUrl = getGravatarUrl,
         ).toList()
         items
-            .mapIndexed { index, item ->
-                when (item) {
-                    is VaultViewItem.Value -> {
-                        val shapeState = getShapeState(
-                            list = items,
-                            index = index,
-                            predicate = { el, _ -> el is VaultViewItem.Value },
-                        )
-                        item.copy(
-                            shapeState = shapeState,
-                        )
-                    }
-                    is VaultViewItem.Action -> {
-                        val shapeState = getShapeState(
-                            list = items,
-                            index = index,
-                            predicate = { el, _ -> el is VaultViewItem.Action },
-                        )
-                        item.copy(
-                            shapeState = shapeState,
-                        )
-                    }
-                    else -> item
-                }
-            }
+            .transformShapes()
     }
     val actionsFlow = combine(
         accountFlow,

@@ -26,6 +26,7 @@ import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.feature.apppicker.flowOfInstalledAppsAnyOf
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -126,6 +127,7 @@ private fun SettingAutofill(
     footer: @Composable ColumnScope.() -> Unit,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.AutoAwesome),
         trailing = {
             Switch(

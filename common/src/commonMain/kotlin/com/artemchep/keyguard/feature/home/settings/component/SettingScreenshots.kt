@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
@@ -69,6 +70,7 @@ private fun SettingScreenshotsFields(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Screenshot),
         trailing = {
             CompositionLocalProvider(

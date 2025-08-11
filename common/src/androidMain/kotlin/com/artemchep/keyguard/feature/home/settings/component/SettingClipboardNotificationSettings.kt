@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.artemchep.keyguard.common.R
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -39,6 +40,7 @@ fun SettingClipboardNotificationSettings(
 ) {
     val updatedContext by rememberUpdatedState(LocalContext.current)
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.EditNotifications),
         title = {
             Text(

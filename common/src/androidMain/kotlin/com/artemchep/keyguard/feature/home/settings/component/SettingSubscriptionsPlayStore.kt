@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -35,6 +36,7 @@ private fun SettingSubscriptionsPlayStore() {
     val context by rememberUpdatedState(LocalContext.current)
     val controller by rememberUpdatedState(LocalNavigationController.current)
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Settings),
         title = {
             Text(

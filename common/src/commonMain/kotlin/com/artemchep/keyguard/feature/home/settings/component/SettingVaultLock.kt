@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -71,6 +72,7 @@ fun SettingVaultLock(
     onClick: () -> Unit,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Lock),
         title = {
             Text(

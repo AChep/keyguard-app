@@ -27,9 +27,10 @@ fun VaultViewReusedPasswordItem(
     val contentColor = MaterialTheme.colorScheme.error
     val backgroundColor = MaterialTheme.colorScheme.errorContainer
         .combineAlpha(DisabledEmphasisAlpha)
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         leading = {
             Icon(
                 Icons.Outlined.ErrorOutline,

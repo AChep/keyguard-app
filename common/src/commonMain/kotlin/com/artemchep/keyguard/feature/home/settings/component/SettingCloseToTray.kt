@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
@@ -72,6 +73,7 @@ private fun SettingCloseToTray(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.CloseFullscreen),
         trailing = {
             CompositionLocalProvider(

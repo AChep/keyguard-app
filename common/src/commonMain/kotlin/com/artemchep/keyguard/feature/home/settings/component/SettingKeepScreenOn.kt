@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -62,6 +63,7 @@ private fun SettingKeepScreenOn(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,

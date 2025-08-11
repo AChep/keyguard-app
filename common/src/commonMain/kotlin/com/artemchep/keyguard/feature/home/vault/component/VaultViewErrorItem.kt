@@ -40,6 +40,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.HighEmphasisAlpha
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 
@@ -55,7 +56,7 @@ fun VaultViewErrorItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                horizontal = 8.dp,
+                horizontal = Dimens.contentPadding,
                 vertical = 2.dp,
             )
             .padding(bottom = 24.dp),

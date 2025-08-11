@@ -114,9 +114,10 @@ fun VaultViewCardItem(
     )
 
     val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
+        shapeState = item.shapeState,
         content = {
             val brand = item.data.brand
                 ?: item.data.creditCardType?.name
@@ -162,9 +163,11 @@ fun VaultViewCardItem(
                         }
                         i
                     }
-                    val obscureFrom by derivedStateOf {
-                        val indexFloat = cardNumberFormatted.length.toFloat() * progress
-                        indexFloat.roundToInt()
+                    val obscureFrom by remember(cardNumberFormatted) {
+                        derivedStateOf {
+                            val indexFloat = cardNumberFormatted.length.toFloat() * progress
+                            indexFloat.roundToInt()
+                        }
                     }
                     val finalCardNumber = remember(
                         obscureFrom,

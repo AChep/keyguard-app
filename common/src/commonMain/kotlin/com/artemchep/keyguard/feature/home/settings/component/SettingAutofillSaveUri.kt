@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.GetAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.PutAutofillSaveUri
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -70,6 +71,7 @@ private fun SettingAutofillSaveUri(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         content = {
             FlatItemTextContent(
                 title = {

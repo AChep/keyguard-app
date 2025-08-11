@@ -106,9 +106,10 @@ fun VaultViewTotpItem(
 ) {
     val state by item.localStateFlow.collectAsState()
     val dropdown = state.dropdown
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
+        shapeState = item.shapeState,
         content = {
             FlatItemTextContent2(
                 title = {

@@ -36,6 +36,7 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.core.store.bitwarden.size
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor

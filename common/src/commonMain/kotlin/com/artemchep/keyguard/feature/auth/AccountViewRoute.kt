@@ -12,12 +12,8 @@ data class AccountViewRoute(
 ) : Route {
     @Composable
     override fun Content() {
-        CompositionLocalProvider(
-            LocalExpressive provides GlobalExpressive.current,
-        ) {
-            AccountViewScreen(
-                accountId = accountId,
-            )
-        }
+        AccountViewScreen(
+            accountId = accountId,
+        )
     }
 }

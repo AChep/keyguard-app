@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
@@ -82,7 +83,7 @@ fun FlatSimpleNote(
         SimpleNote.Type.WARNING -> MaterialTheme.colorScheme.onWarningContainer
         SimpleNote.Type.ERROR -> MaterialTheme.colorScheme.onErrorContainer
     }
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = surfaceColor
             .combineAlpha(DisabledEmphasisAlpha),

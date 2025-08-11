@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.PutDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.ui.FlatItem
@@ -55,6 +56,7 @@ private fun SettingDebugScreenDelay(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,

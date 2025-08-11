@@ -213,8 +213,9 @@ fun Section(
         Text(
             modifier = modifier
                 .padding(
-                    vertical = 16.dp,
-                    horizontal = Dimens.horizontalPadding,
+                    vertical = Dimens.contentPadding
+                        .coerceAtLeast(16.dp),
+                    horizontal = Dimens.contentPadding,
                 ),
             text = if (caps) text.uppercase() else text,
             style = MaterialTheme.typography.labelLarge,
@@ -232,7 +233,7 @@ fun Section(
         HorizontalDivider(
             modifier = modifier
                 .padding(
-                    vertical = 4.dp,
+                    vertical = Dimens.contentPadding / 2,
                 ),
         )
     }
@@ -662,7 +663,7 @@ private enum class Try {
     NONE,
 }
 
-private val expressiveInnerCornerSize = CornerSize(4.dp)
+val expressiveInnerCornerSize = CornerSize(4.dp)
 
 @Composable
 fun FlatDropdownSimpleExpressive(
@@ -673,7 +674,7 @@ fun FlatDropdownSimpleExpressive(
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
-    shapeState: Int = LocalSettingItemShape.current,
+    shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     content: @Composable ColumnScope.() -> Unit,
     dropdown: List<ContextItem> = emptyList(),
@@ -722,7 +723,7 @@ fun FlatDropdownLayoutExpressive(
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
-    shapeState: Int = LocalSettingItemShape.current,
+    shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     content: @Composable ColumnScope.() -> Unit,
     dropdown: (@Composable DropdownScope.() -> Unit)? = null,
@@ -787,7 +788,7 @@ fun FlatItemSimpleExpressive(
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
-    shapeState: Int = LocalSettingItemShape.current,
+    shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     title: @Composable () -> Unit,
     text: (@Composable () -> Unit)? = null,
@@ -827,7 +828,7 @@ fun FlatItemLayoutExpressive(
         .takeIf { it.isSpecified }
         ?.let { contentColorFor(it) }
         ?: LocalContentColor.current,
-    shapeState: Int = LocalSettingItemShape.current,
+    shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     content: @Composable ColumnScope.() -> Unit,
     footer: (@Composable ColumnScope.() -> Unit)? = null,
@@ -873,8 +874,9 @@ fun FlatItemLayoutExpressive(
     }
 
     val shape: Shape
-    val outerHorizontalPadding: Dp
-    val innerHorizontalPadding: Dp
+    val dimens = Dimens
+    val outerHorizontalPadding: Dp = dimens.contentPadding
+    val innerHorizontalPadding: Dp = dimens.contentPadding
     val innerVerticalPadding: Dp
     if (expressive) {
         val shapeSrc = MaterialTheme.shapes.large
@@ -903,13 +905,9 @@ fun FlatItemLayoutExpressive(
             else -> shapeSrc
         }
 
-        outerHorizontalPadding = 12.dp
-        innerHorizontalPadding = 12.dp
         innerVerticalPadding = 10.dp
     } else {
         shape = MaterialTheme.shapes.medium
-        outerHorizontalPadding = 8.dp
-        innerHorizontalPadding = 8.dp
         innerVerticalPadding = 8.dp
     }
     Column(

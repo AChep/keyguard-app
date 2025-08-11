@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
@@ -128,6 +129,7 @@ private fun SettingLocale(
     onHelpTranslate: (() -> Unit)? = null,
 ) {
     FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Language),
         content = {
             FlatItemTextContent(
@@ -145,7 +147,7 @@ private fun SettingLocale(
             TextButton(
                 modifier = Modifier
                     .padding(
-                        horizontal = 40.dp,
+                        horizontal = getSettingsButtonStartPadding(),
                         vertical = 4.dp,
                     ),
                 enabled = onHelpTranslate != null,

@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -79,6 +80,7 @@ private fun SettingLockAfterReboot(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Stub),
         trailing = {
             CompositionLocalProvider(

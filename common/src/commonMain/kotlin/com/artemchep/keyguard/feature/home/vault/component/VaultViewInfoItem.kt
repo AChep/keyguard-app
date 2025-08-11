@@ -74,7 +74,7 @@ fun VaultViewInfoItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                horizontal = 8.dp,
+                horizontal = Dimens.contentPadding,
                 vertical = 2.dp,
             )
             .padding(bottom = 24.dp),

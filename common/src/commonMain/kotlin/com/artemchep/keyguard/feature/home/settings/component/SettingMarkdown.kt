@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.PutMarkdown
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -84,6 +85,7 @@ private fun SettingMarkdown(
     onLearnMore: (() -> Unit)?,
 ) {
     FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.TextFormat),
         trailing = {
             CompositionLocalProvider(
@@ -114,7 +116,7 @@ private fun SettingMarkdown(
             TextButton(
                 modifier = Modifier
                     .padding(
-                        horizontal = 40.dp,
+                        horizontal = getSettingsButtonStartPadding(),
                         vertical = 4.dp,
                     ),
                 enabled = onLearnMore != null,

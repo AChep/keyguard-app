@@ -294,14 +294,10 @@ fun SettingListScreen() {
                 }
             }
     }
-    CompositionLocalProvider(
-        LocalExpressive provides GlobalExpressive.current,
-    ) {
-        SettingListScreenContent(
-            accountsState = accountsState,
-            items = items,
-        )
-    }
+    SettingListScreenContent(
+        accountsState = accountsState,
+        items = items,
+    )
 }
 
 @OptIn(
@@ -329,6 +325,7 @@ private fun SettingListScreenContent(
         modifier = Modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(

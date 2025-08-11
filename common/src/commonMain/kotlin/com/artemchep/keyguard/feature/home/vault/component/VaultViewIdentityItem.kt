@@ -17,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.localization.textResource
@@ -61,13 +63,30 @@ fun VaultViewIdentityItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    .padding(horizontal = Dimens.contentPadding),
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                item.actions.forEach { action ->
+                item.actions.forEachIndexed { index, action ->
+                    val isFirst = index == 0
+                    val isLast = index == item.actions.lastIndex
+
+                    val shape = MaterialTheme.shapes.large
+                        .let { shape ->
+                            shape.copy(
+                                topStart = shape.topStart.takeIf { isFirst }
+                                    ?: expressiveInnerCornerSize,
+                                topEnd = shape.topEnd.takeIf { isLast }
+                                    ?: expressiveInnerCornerSize,
+                                bottomStart = shape.bottomStart.takeIf { isFirst }
+                                    ?: expressiveInnerCornerSize,
+                                bottomEnd = shape.bottomEnd.takeIf { isLast }
+                                    ?: expressiveInnerCornerSize,
+                            )
+                        }
                     Ah(
                         modifier = Modifier
                             .weight(1f),
+                        shape = shape,
                         icon = {
                             if (action.leading != null) {
                                 action.leading.invoke()
@@ -90,10 +109,11 @@ private fun Ah(
     icon: @Composable () -> Unit,
     title: String,
     onClick: (() -> Unit)?,
+    shape: Shape = MaterialTheme.shapes.medium,
 ) {
     Surface(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
+        shape = shape,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
     ) {

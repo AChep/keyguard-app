@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.common.usecase.GetNavAnimationVariants
 import com.artemchep.keyguard.common.usecase.PutNavAnimation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.localization.wrap
@@ -83,6 +84,7 @@ private fun SettingNavAnimation(
     dropdown: List<FlatItemAction>,
 ) {
     FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Animation),
         content = {
             FlatItemTextContent(

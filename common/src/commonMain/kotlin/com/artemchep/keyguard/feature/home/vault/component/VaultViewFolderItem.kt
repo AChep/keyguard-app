@@ -36,8 +36,9 @@ fun VaultViewFolderItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Folder,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
             Icon(
                 Icons.Outlined.Folder,

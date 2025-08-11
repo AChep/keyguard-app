@@ -36,9 +36,10 @@ fun VaultViewPasskeyItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Passkey,
 ) {
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
         elevation = 1.dp,
+        shapeState = item.shapeState,
         leading = icon<RowScope>(Icons.Outlined.Key),
         content = {
             val columnLayout = item.onUse != null

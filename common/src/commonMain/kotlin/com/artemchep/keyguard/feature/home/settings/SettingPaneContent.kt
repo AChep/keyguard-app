@@ -394,14 +394,10 @@ fun SettingPaneContent(
             }
     }.collectAsState(initial = SettingPaneState())
 
-    CompositionLocalProvider(
-        LocalExpressive provides GlobalExpressive.current,
-    ) {
-        SettingPaneContent2(
-            title = title,
-            state = state,
-        )
-    }
+    SettingPaneContent2(
+        title = title,
+        state = state,
+    )
 }
 
 @OptIn(
@@ -418,6 +414,7 @@ fun SettingPaneContent2(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(

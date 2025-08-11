@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.PutAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
@@ -79,6 +80,7 @@ private fun SettingAutofillDefaultMatchDetection(
     dropdown: List<FlatItemAction>,
 ) {
     FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Domain),
         content = {
             FlatItemTextContent(

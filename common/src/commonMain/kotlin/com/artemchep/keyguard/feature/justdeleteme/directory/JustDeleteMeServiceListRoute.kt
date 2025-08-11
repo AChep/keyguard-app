@@ -9,10 +9,6 @@ import com.artemchep.keyguard.ui.theme.LocalExpressive
 object JustDeleteMeServiceListRoute : Route {
     @Composable
     override fun Content() {
-        CompositionLocalProvider(
-            LocalExpressive provides GlobalExpressive.current,
-        ) {
-            JustDeleteMeListScreen()
-        }
+        JustDeleteMeListScreen()
     }
 }

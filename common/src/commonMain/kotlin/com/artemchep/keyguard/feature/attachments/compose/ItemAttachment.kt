@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
@@ -250,7 +251,7 @@ private fun ItemAttachmentLayout(
         } else {
             Color.Unspecified
         }
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
         content = {

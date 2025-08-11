@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeoutVariants
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
@@ -99,6 +100,7 @@ fun SettingLockAfterTimeout(
     dropdown: List<FlatItemAction>,
 ) {
     FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Timer),
         dropdown = dropdown,
         content = {

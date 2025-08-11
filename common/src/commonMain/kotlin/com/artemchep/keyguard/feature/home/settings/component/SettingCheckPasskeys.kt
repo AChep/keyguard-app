@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.PutCheckPasskeys
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -61,6 +62,7 @@ private fun SettingCheckPasskeys(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         content = {
             FlatItemTextContent(
                 title = {
@@ -89,7 +91,7 @@ private fun SettingCheckPasskeys(
             PoweredByPasskeys(
                 modifier = Modifier
                     .padding(
-                        horizontal = 12.dp,
+                        horizontal = Dimens.contentPadding,
                         vertical = 4.dp,
                     ),
             )

@@ -36,6 +36,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorCrown
 import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorsListRoute
@@ -195,6 +196,7 @@ private fun SettingLocalization(
     onClick: (() -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.Translate, Icons.Outlined.KeyguardWebsite),
         trailing = {
             ChevronIcon()

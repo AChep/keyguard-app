@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
@@ -144,6 +145,7 @@ private fun SettingBiometrics(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         content = {
             FlatItemTextContent(
                 title = {

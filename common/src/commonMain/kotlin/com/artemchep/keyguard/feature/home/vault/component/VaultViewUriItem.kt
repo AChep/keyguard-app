@@ -57,8 +57,9 @@ fun VaultViewUriItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Uri,
 ) {
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
             item.icon()
         },

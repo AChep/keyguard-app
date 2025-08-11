@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -61,6 +62,7 @@ private fun SettingCheckPwnedPasswords(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -85,7 +87,7 @@ private fun SettingCheckPwnedPasswords(
             PoweredByHaveibeenpwned(
                 modifier = Modifier
                     .padding(
-                        horizontal = 12.dp,
+                        horizontal = Dimens.contentPadding,
                         vertical = 4.dp,
                     ),
             )

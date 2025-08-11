@@ -16,8 +16,9 @@ fun VaultViewCollectionItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Collection,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
             Icon(
                 Icons.Outlined.KeyguardCollection,

@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.PutWriteAccess
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.ui.FlatItem
 import kotlinx.coroutines.flow.combine
@@ -56,6 +57,7 @@ private fun SettingWriteAccess(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,

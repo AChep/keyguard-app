@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.PutAutofillManualSelection
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -62,6 +63,7 @@ private fun SettingAutofillManualSelection(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         content = {
             FlatItemTextContent(
                 title = {

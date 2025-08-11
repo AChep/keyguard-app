@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
 import com.artemchep.keyguard.common.usecase.PutBiometricTimeout
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
@@ -149,6 +150,7 @@ fun SettingRequireMasterPassword(
     dropdown: List<FlatItemAction>,
 ) {
     FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         content = {
             SettingRequireMasterPasswordContent(
                 text = text,

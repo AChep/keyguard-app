@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -54,6 +55,7 @@ fun settingApkProvider(
 private fun SettingApk() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
     FlatItemLayoutExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.FileDownload),
         content = {
             FlatItemTextContent(

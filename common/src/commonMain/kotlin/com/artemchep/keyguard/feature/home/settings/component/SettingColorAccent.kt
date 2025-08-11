@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.PutColors
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -112,6 +113,7 @@ private fun SettingFont(
     dropdown: List<FlatItemAction>,
 ) {
     FlatDropdownSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         leading = icon<RowScope>(Icons.Outlined.FormatColorFill),
         content = {
             FlatItemTextContent(

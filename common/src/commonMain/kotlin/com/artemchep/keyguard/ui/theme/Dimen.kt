@@ -20,6 +20,7 @@ data class Dimen(
     val horizontalPadding: Dp,
     val topPaddingCaption: Dp,
     val buttonIconPadding: Dp = 12.dp,
+    val contentPadding: Dp = horizontalPadding,
 ) {
     companion object {
         fun normal() = Dimen(

@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -60,6 +61,7 @@ private fun SettingCheckTwoFA(
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     FlatItemSimpleExpressive(
+        shapeState = LocalSettingItemShape.current,
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -84,7 +86,7 @@ private fun SettingCheckTwoFA(
             PoweredBy2factorauth(
                 modifier = Modifier
                     .padding(
-                        horizontal = 12.dp,
+                        horizontal = Dimens.contentPadding,
                         vertical = 4.dp,
                     ),
             )

@@ -162,6 +162,7 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
+import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
@@ -1198,7 +1199,7 @@ fun vaultViewScreenState(
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
                         verify = verify,
-                    ).toList(),
+                    ).toList().transformShapes(),
                 )
             }
         }

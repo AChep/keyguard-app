@@ -236,8 +236,7 @@ private fun BasicPopup(
         val verticalInsets = WindowInsets.leSystemBars
             .union(WindowInsets.leIme)
         Box(
-            modifier = Modifier
-                .padding(start = 64.dp),
+            modifier = Modifier,
         ) {
             Surface(
                 modifier = Modifier

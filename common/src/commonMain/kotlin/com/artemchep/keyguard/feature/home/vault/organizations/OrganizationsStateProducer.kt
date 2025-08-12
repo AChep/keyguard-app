@@ -9,12 +9,14 @@ import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.wrap
@@ -256,9 +258,29 @@ fun organizationsScreenState(
                     },
                 )
             }
+            .toList()
+        val itemsReShaped = items
+            .mapIndexed { index, item ->
+                when (item) {
+                    is OrganizationsState.Content.Item -> {
+                        val shapeState = getShapeState(
+                            list = items,
+                            index = index,
+                            predicate = { el, offset ->
+                                el is OrganizationsState.Content.Item
+                            },
+                        )
+                        item.copy(
+                            shapeState = shapeState,
+                        )
+                    }
+
+                    else -> item
+                }
+            }
             .toImmutableList()
         OrganizationsState.Content(
-            items = items,
+            items = itemsReShaped,
         )
     }
     combine(

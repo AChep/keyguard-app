@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -25,6 +26,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -500,9 +502,29 @@ fun foldersScreenState(
                     },
                 )
             }
+            .toList()
+        val itemsReShaped = items
+            .mapIndexed { index, item ->
+                when (item) {
+                    is FoldersState.Content.Item.Folder -> {
+                        val shapeState = getShapeState(
+                            list = items,
+                            index = index,
+                            predicate = { el, offset ->
+                                el is FoldersState.Content.Item.Folder
+                            },
+                        )
+                        item.copy(
+                            shapeState = shapeState,
+                        )
+                    }
+
+                    else -> item
+                }
+            }
             .toImmutableList()
         FoldersState.Content(
-            items = items,
+            items = itemsReShaped,
         )
     }
     combine(

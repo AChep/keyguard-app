@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -70,6 +71,7 @@ fun FoldersScreenContent(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -198,9 +200,10 @@ private fun FoldersScreenFolderItem(
 ) {
     val backgroundColor =
         if (item.selected) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         dropdown = item.actions,
         leading = {
             val pillElevation = LocalAbsoluteTonalElevation.current + 8.dp

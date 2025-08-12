@@ -47,6 +47,7 @@ import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.IconSmallBox
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
@@ -155,13 +156,19 @@ fun VaultViewUriItem(
                     )
                 }
             }
-
+        },
+        footer = {
             var selectedDropdown by remember {
                 mutableStateOf<List<ContextItem>>(emptyList())
             }
             if (item.overrides.isNotEmpty()) FlowRow(
                 modifier = Modifier
-                    .padding(top = 8.dp)
+                    .padding(
+                        top = 8.dp,
+                        bottom = 8.dp,
+                        end = Dimens.contentPadding,
+                        start = Dimens.contentPadding + 16.dp + 24.dp,
+                    )
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

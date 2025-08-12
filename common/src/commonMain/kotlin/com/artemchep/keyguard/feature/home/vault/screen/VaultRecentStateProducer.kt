@@ -6,6 +6,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.model.CipherOpenedHistoryMode
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
@@ -203,7 +204,7 @@ fun vaultRecentScreenState(
         configFlow,
     ) { secrets, organizationsById, cfg -> Triple(secrets, organizationsById, cfg) }
         .map { (secrets, organizationsById, cfg) ->
-            secrets
+            val items = secrets
                 .map { secret ->
                     secret.toVaultListItem(
                         copy = copy,
@@ -225,6 +226,19 @@ fun vaultRecentScreenState(
                         onClickPasskey = {
                             null
                         },
+                    )
+                }
+            items
+                .mapIndexed { index, item ->
+                    val shapeState = getShapeState(
+                        list = items,
+                        index = index,
+                        predicate = { el, offset ->
+                            true
+                        },
+                    )
+                    item.copy(
+                        shapeState = shapeState,
                     )
                 }
         }

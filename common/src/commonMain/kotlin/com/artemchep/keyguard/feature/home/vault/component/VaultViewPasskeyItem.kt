@@ -38,7 +38,6 @@ fun VaultViewPasskeyItem(
 ) {
     FlatItemLayoutExpressive(
         modifier = modifier,
-        elevation = 1.dp,
         shapeState = item.shapeState,
         leading = icon<RowScope>(Icons.Outlined.Key),
         content = {

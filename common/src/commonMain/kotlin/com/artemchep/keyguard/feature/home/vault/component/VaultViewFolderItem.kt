@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
@@ -58,40 +61,38 @@ fun VaultViewFolderItem(
                         horizontal = 8.dp,
                         vertical = 4.dp,
                     )
+                val tintColor = MaterialTheme.colorScheme
+                    .surfaceColorAtElevationSemi(1.dp)
                 item.nodes.forEachIndexed { index, s ->
                     if (item.nodes.size > 1 && index != item.nodes.lastIndex) {
-                        Surface(
+                        val updatedOnClick by rememberUpdatedState(s.onClick)
+                        Row(
                             modifier = Modifier
-                                .align(Alignment.CenterVertically),
-                            shape = MaterialTheme.shapes.small,
-                            tonalElevation = 1.dp,
+                                .clip(MaterialTheme.shapes.small)
+                                .background(tintColor)
+                                .clickable {
+                                    updatedOnClick()
+                                }
+                                .then(paddingModifier),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
                         ) {
-                            val updatedOnClick by rememberUpdatedState(s.onClick)
-                            Row(
+                            Text(
                                 modifier = Modifier
-                                    .clickable {
-                                        updatedOnClick()
-                                    }
-                                    .then(paddingModifier),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    modifier = Modifier
-                                        .weight(1f, fill = false),
-                                    text = s.name,
-                                    overflow = TextOverflow.Ellipsis,
-                                    maxLines = 5,
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(
-                                    Icons.Outlined.ChevronRight,
-                                    null,
-                                    modifier = Modifier
-                                        .size(18.dp),
-                                    tint = LocalContentColor.current
-                                        .combineAlpha(DisabledEmphasisAlpha),
-                                )
-                            }
+                                    .weight(1f, fill = false),
+                                text = s.name,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 5,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                Icons.Outlined.ChevronRight,
+                                null,
+                                modifier = Modifier
+                                    .size(18.dp),
+                                tint = LocalContentColor.current
+                                    .combineAlpha(DisabledEmphasisAlpha),
+                            )
                         }
                     } else if (item.nodes.size == 1) {
                         Text(

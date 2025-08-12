@@ -36,7 +36,7 @@ fun VaultViewNoteItem(
     ) {
         if (!visibilityState.value.value) {
             val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
-            FlatItem(
+            FlatItemSimpleExpressive(
                 leading = {
                     VisibilityIcon(
                         visible = visibilityState.value.value,
@@ -96,8 +96,9 @@ fun VaultViewNoteItemLayout(
     Column(
         modifier = modifier
             .padding(
-                vertical = 12.dp,
-                horizontal = Dimens.horizontalPadding,
+                vertical = Dimens.contentPadding
+                    .coerceAtLeast(16.dp),
+                horizontal = Dimens.contentPadding,
             ),
     ) {
         content()

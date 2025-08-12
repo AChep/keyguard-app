@@ -215,7 +215,7 @@ fun Section(
                 .padding(
                     vertical = Dimens.contentPadding
                         .coerceAtLeast(16.dp),
-                    horizontal = Dimens.contentPadding,
+                    horizontal = Dimens.contentPadding * 2,
                 ),
             text = if (caps) text.uppercase() else text,
             style = MaterialTheme.typography.labelLarge,

@@ -147,10 +147,8 @@ sealed interface VaultViewItem {
         val shapeState: Int = ShapeState.ALL,
         val name: String,
         val message: String? = null,
-    ) : VaultViewItem, Groupable<Info> {
+    ) : VaultViewItem {
         companion object;
-
-        override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 
     data class Switch(

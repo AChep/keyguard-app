@@ -271,7 +271,7 @@ fun ScaffoldColumn(
 }
 
 @Composable
-private fun ProvideScaffoldLocalValues(
+fun ProvideScaffoldLocalValues(
     expressive: Boolean,
     content: @Composable () -> Unit,
 ) {

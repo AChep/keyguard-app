@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -33,10 +34,13 @@ import com.artemchep.keyguard.feature.home.vault.component.VaultListItem
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
 import com.artemchep.keyguard.ui.Placeholder
+import com.artemchep.keyguard.ui.ProvideScaffoldLocalValues
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonSegmented
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.compose.resources.stringResource
@@ -104,17 +108,21 @@ fun RecentsButtonRaw(
         Column(
             modifier = Modifier,
         ) {
-            RecentsWindow(
-                contentPadding = contentPadding,
-                onComplete = { cipher ->
-                    if (onValueChange != null) {
-                        onValueChange(cipher)
-                    }
-                    // Hide the dropdown window on click on one
-                    // of the buttons.
-                    onDismissRequest()
-                },
-            )
+            ProvideScaffoldLocalValues(
+                expressive = true,
+            ) {
+                RecentsWindow(
+                    contentPadding = contentPadding,
+                    onComplete = { cipher ->
+                        if (onValueChange != null) {
+                            onValueChange(cipher)
+                        }
+                        // Hide the dropdown window on click on one
+                        // of the buttons.
+                        onDismissRequest()
+                    },
+                )
+            }
         }
     }
 }

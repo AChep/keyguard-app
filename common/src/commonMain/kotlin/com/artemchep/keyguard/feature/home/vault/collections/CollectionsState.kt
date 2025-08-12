@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.Selection
 import kotlinx.collections.immutable.ImmutableList
@@ -42,6 +43,7 @@ data class CollectionsState(
             data class Collection(
                 override val key: String,
                 val title: String,
+                val shapeState: Int = ShapeState.ALL,
                 val ciphers: Int,
                 val selecting: Boolean,
                 val selected: Boolean,

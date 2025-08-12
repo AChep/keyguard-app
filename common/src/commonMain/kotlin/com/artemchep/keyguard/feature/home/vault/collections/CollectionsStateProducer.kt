@@ -8,10 +8,12 @@ import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
+import com.artemchep.keyguard.feature.home.settings.SettingsItem
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collection.CollectionRoute
 import com.artemchep.keyguard.feature.localization.wrap
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import kotlin.collections.mapIndexed
 import kotlin.uuid.Uuid
 
 @Composable
@@ -315,10 +318,30 @@ fun collectionsScreenState(
                     yield(item)
                 }
             }
+            .toList()
+        val itemsReShaped = items
+            .mapIndexed { index, item ->
+                when (item) {
+                    is CollectionsState.Content.Item.Collection -> {
+                        val shapeState = getShapeState(
+                            list = items,
+                            index = index,
+                            predicate = { el, offset ->
+                                el is CollectionsState.Content.Item.Collection
+                            },
+                        )
+                        item.copy(
+                            shapeState = shapeState,
+                        )
+                    }
+
+                    else -> item
+                }
+            }
             .toImmutableList()
         CollectionsState.Content(
             title = CollectionsState.Content.Title(),
-            items = items,
+            items = itemsReShaped,
         )
     }
     combine(

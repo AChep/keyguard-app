@@ -128,19 +128,9 @@ fun SettingListItem(
                     },
                 )
             },
+            footer = item.footer,
             onClick = onClick,
         )
-        if (item.content != null) {
-            Row(
-                modifier = Modifier
-                    .padding(top = 8.dp, bottom = 16.dp)
-                    .horizontalScroll(rememberScrollState())
-                    .padding(start = 64.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                item.content.invoke(this)
-            }
-        }
     }
 }
 

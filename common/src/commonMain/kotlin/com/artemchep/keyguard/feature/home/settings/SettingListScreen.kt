@@ -1,12 +1,17 @@
 package com.artemchep.keyguard.feature.home.settings
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBox
@@ -92,6 +97,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.selectedContainer
@@ -113,7 +119,7 @@ data class SettingsItem(
     val shapeState: Int = 0,
     val leading: (@Composable RowScope.() -> Unit)? = null,
     val trailing: (@Composable RowScope.() -> Unit)? = null,
-    val content: (@Composable RowScope.() -> Unit)? = null,
+    val footer: (@Composable ColumnScope.() -> Unit)? = null,
     val route: Route,
 ) : SettingsItem2
 
@@ -187,19 +193,26 @@ fun SettingListScreen() {
                         tint = tint,
                     )
                 },
-                content = {
-                    onboardingItemsPremium.forEach { item ->
-                        SmallOnboardingCard(
-                            modifier = Modifier,
-                            title = stringResource(item.title),
-                            text = stringResource(item.text),
-                            imageVector = item.icon,
-                        )
-                    }
-                    Spacer(
+                footer = {
+                    Row(
                         modifier = Modifier
-                            .height(16.dp),
-                    )
+                            .padding(vertical = 4.dp)
+                            .horizontalScroll(rememberScrollState())
+                            .padding(
+                                start = Dimens.contentPadding + 42.dp,
+                                end = Dimens.contentPadding,
+                            ),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        onboardingItemsPremium.forEach { item ->
+                            SmallOnboardingCard(
+                                modifier = Modifier,
+                                title = stringResource(item.title),
+                                text = stringResource(item.text),
+                                imageVector = item.icon,
+                            )
+                        }
+                    }
                 },
                 route = SubscriptionsSettingsRoute,
             ).takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
@@ -268,23 +281,13 @@ fun SettingListScreen() {
             .mapIndexed { index, item ->
                 when (item) {
                     is SettingsItem -> {
-                        val shapeConstraints = if (item.content != null) {
-                            ShapeState.END
-                        } else {
-                            ShapeState.CENTER
-                        }
                         val shapeState = getShapeState(
                             list = items,
                             index = index,
                             predicate = { el, offset ->
-                                if (offset < 0) {
-                                    el is SettingsItem &&
-                                            el.content == null
-                                } else {
-                                    el is SettingsItem
-                                }
+                                el is SettingsItem
                             },
-                        ) or shapeConstraints
+                        )
                         item.copy(
                             shapeState = shapeState,
                         )

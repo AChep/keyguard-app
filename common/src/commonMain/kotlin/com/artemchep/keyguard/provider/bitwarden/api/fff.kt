@@ -5,9 +5,11 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.handleErrorTap
+import com.artemchep.keyguard.common.io.handleErrorWith
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
@@ -301,7 +303,23 @@ suspend fun <
                     lastRemote = remote
                 }
             }
-            ioEffect { remotePut(scope, localDecoded) }
+            ioEffect {
+                val newRemote = remotePut(scope, localDecoded)
+                val msg = run {
+                    val params = listOf(
+                        "local_id" to localLens.getLocalId(local),
+                        "local_local_rev_date" to localLens.getLocalRevisionDate(local),
+                        // Last known remote revision date of the locally
+                        // available service.
+                        "local_remote_rev_date" to local.service.remote?.revisionDate,
+                    ).joinToString { (key, value) ->
+                        "$key=$value"
+                    }
+                    "[remote] Put successful... $params"
+                }
+                onLog(msg, LogLevel.DEBUG)
+                newRemote
+            }
                 .handleErrorTap { e ->
                     handleFailedToPut(
                         local = local,
@@ -354,8 +372,19 @@ suspend fun <
                             .bind()
                     }
 
-                val msg = "[local] Merging ${remoteLens.getId(remote)} $name entry " +
-                        "with ${localLens.getLocalId(local)}..."
+                val msg = run {
+                    val params = listOf(
+                        "remote_rev_date" to remoteLens.getRevisionDate(remote),
+                        "local_local_rev_date" to localLens.getLocalRevisionDate(local),
+                        // Last known remote revision date of the locally
+                        // available service.
+                        "local_remote_rev_date" to local.service.remote?.revisionDate,
+                    ).joinToString { (key, value) ->
+                        "$key=$value"
+                    }
+                    "[local] Merging ${remoteLens.getId(remote)} $name entry " +
+                            "with ${localLens.getLocalId(local)}... $params"
+                }
                 onLog(msg, LogLevel.DEBUG)
 
                 val remoteDecodedResult = getLocalPutRemoteDecodedModelIo(local, remote)

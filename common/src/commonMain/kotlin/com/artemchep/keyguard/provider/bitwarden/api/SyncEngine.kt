@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -734,6 +735,22 @@ class SyncEngine(
                             .merge(base, local, remoteDecoded)
                     } as BitwardenCipher?
                 }
+
+                val msg = kotlin.run {
+                    val params = listOf(
+                        "remote_id" to remoteDecoded.cipherId,
+                        "remote_rev_date" to remoteDecoded.revisionDate,
+                        "local_id" to local.cipherId,
+                        "local_local_rev_date" to local.revisionDate,
+                        "local_remote_rev_date" to local.service.remote?.revisionDate,
+                        "local_base_id" to local.remoteEntity.cipherId,
+                        "local_base_rev_date" to local.remoteEntity.revisionDate,
+                    ).joinToString { (key, value) ->
+                        "$key=$value"
+                    }
+                    "Merged local with remote correctly! $params"
+                }
+                logRepository.add(TAG, msg, LogLevel.DEBUG)
                 merged?.copy(
                     revisionDate = now,
                 )

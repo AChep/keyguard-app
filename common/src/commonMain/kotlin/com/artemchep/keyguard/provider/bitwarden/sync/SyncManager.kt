@@ -147,6 +147,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                     )
                     date.roundToMillis()
                 }
+                val localRevDate = getDate(localItem).roundToMillis()
                 // If the local item has outdated remote revision, then it must
                 // be updated and any of its changes are going to be discarded
                 // or merged.
@@ -156,7 +157,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                 // on multiple devices simultaneously.
                 val remoteRevDate = getDate(remoteItem).roundToMillis()
                 if (remoteRevDate != localRemoteRevDate) {
-                    if (local.getMergeable(localItem)) {
+                    if (localRemoteRevDate != localRevDate && local.getMergeable(localItem)) {
                         mergeCipher += Df.Ite(localItem, remoteItem)
                     } else {
                         localPutCipher += Df.Ite(localItem, remoteItem)
@@ -164,10 +165,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                     return@forEach
                 }
 
-                val diff = kotlin.run {
-                    val localRevDate = getDate(localItem).roundToMillis()
-                    localRevDate.compareTo(remoteRevDate)
-                }
+                val diff = localRevDate.compareTo(remoteRevDate)
                 when {
                     diff < 0 -> {
                         localPutCipher += Df.Ite(localItem, remoteItem)

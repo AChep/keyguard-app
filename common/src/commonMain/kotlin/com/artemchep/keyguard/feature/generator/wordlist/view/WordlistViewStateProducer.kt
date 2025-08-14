@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
@@ -158,6 +159,22 @@ fun produceWordlistViewState(
             // Replace the origin text with the one with
             // search decor applied to it.
             item.copy(name = result.highlightedText)
+        }
+        .map { (items, rev) ->
+            val shapedItems = items
+                .mapIndexed { index, item ->
+                    val shapeState = getShapeState(
+                        list = items,
+                        index = index,
+                        predicate = { el, offset ->
+                            el is WordlistViewState.Item
+                        },
+                    )
+                    item.copy(
+                        shapeState = shapeState,
+                    )
+                }
+            shapedItems to rev
         }
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->

@@ -3,7 +3,9 @@ package com.artemchep.keyguard.feature.equivalentdomains
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DEquivalentDomains
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
+import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,9 +64,23 @@ fun produceEquivalentDomainsScreenState(
                         onClick = null,
                     )
                 }
+                .toList()
+            val itemsReShaped = items
+                .mapIndexed { index, item ->
+                    val shapeState = getShapeState(
+                        list = items,
+                        index = index,
+                        predicate = { el, offset ->
+                            el is EquivalentDomainsState.Content.Item.Content
+                        },
+                    )
+                    item.copy(
+                        shapeState = shapeState,
+                    )
+                }
                 .toImmutableList()
             EquivalentDomainsState.Content(
-                items = items,
+                items = itemsReShaped,
             )
         }
     contentFlow

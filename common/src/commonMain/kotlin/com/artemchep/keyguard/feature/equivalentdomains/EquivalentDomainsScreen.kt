@@ -21,6 +21,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -58,6 +59,7 @@ fun EquivalentDomainsContent(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -168,8 +170,9 @@ private fun EquivalentDomainsContentItem(
     modifier: Modifier = Modifier,
     item: EquivalentDomainsState.Content.Item.Content,
 ) {
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         content = {
             FlatItemTextContent(
                 title = {

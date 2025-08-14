@@ -856,17 +856,10 @@ fun FlatItemLayoutExpressive(
     }
     val clickable = run {
         val onClickState = rememberUpdatedState(onClick)
-        val onLongClickState = rememberUpdatedState(onLongClick)
         Modifier
             .combinedClickable(
                 enabled = onClick != null,
-                onLongClick = {
-                    val lambda = onLongClickState.value
-                    if (lambda != null) {
-                        lambda.invoke()
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
-                },
+                onLongClick = onLongClick,
             ) {
                 onClickState.value?.invoke()
             }

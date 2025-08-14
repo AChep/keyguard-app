@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorHistory
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
@@ -25,6 +26,7 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -365,7 +367,28 @@ fun produceGeneratorHistoryState(
             ) { item ->
                 out += item
             }
-            out.toPersistentList()
+
+            val itemsReShaped = out
+                .mapIndexed { index, item ->
+                    when (item) {
+                        is GeneratorHistoryItem.Value -> {
+                            val shapeState = getShapeState(
+                                list = out,
+                                index = index,
+                                predicate = { el, offset ->
+                                    el is GeneratorHistoryItem.Value
+                                },
+                            )
+                            item.copy(
+                                shapeState = shapeState,
+                            )
+                        }
+
+                        else -> item
+                    }
+                }
+                .toPersistentList()
+            itemsReShaped
         }
     val optionsFlow = itemsRawFlow
         .map { items ->

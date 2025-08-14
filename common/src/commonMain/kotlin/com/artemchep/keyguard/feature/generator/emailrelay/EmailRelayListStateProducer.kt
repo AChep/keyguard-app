@@ -11,6 +11,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
@@ -23,6 +24,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -270,7 +272,7 @@ fun produceEmailRelayListState(
         }
     val itemsFlow = itemsRawFlow
         .map { list ->
-            list
+            val items = list
                 .map {
                     val relay = emailRelays
                         .firstOrNull { r -> r.type == it.type }
@@ -353,7 +355,22 @@ fun produceEmailRelayListState(
                         selectableState = selectableStateFlow,
                     )
                 }
-                .toPersistentList()
+                .toList()
+            val itemsReShaped = items
+                .mapIndexed { index, item ->
+                    val shapeState = getShapeState(
+                        list = items,
+                        index = index,
+                        predicate = { el, offset ->
+                            el is EmailRelayListState.Item
+                        },
+                    )
+                    item.copy(
+                        shapeState = shapeState,
+                    )
+                }
+                .toImmutableList()
+            itemsReShaped
         }
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the email relay list!"

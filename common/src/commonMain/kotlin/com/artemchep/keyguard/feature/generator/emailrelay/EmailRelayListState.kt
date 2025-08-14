@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import arrow.core.Either
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.ui.ContextItem
@@ -34,6 +35,7 @@ data class EmailRelayListState(
         val icon: VaultItemIcon,
         val accentLight: Color,
         val accentDark: Color,
+        val shapeState: Int = ShapeState.ALL,
         val dropdown: ImmutableList<ContextItem>,
         val selectableState: StateFlow<SelectableItemState>,
     )

@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.Either
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -37,6 +38,7 @@ data class LocalizationContributorsListState(
         val name: AnnotatedString,
         val score: Int,
         val index: Int,
+        val shapeState: Int = ShapeState.ALL,
         val data: LocalizationContributor,
         val onClick: (() -> Unit)? = null,
     )

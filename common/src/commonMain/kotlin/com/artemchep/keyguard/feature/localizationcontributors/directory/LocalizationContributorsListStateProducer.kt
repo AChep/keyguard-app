@@ -10,9 +10,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewState
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -119,6 +121,22 @@ fun produceJustDeleteMeServiceListState(
             // Replace the origin text with the one with
             // search decor applied to it.
             item.copy(name = result.highlightedText)
+        }
+        .map { (items, rev) ->
+            val shapedItems = items
+                .mapIndexed { index, item ->
+                    val shapeState = getShapeState(
+                        list = items,
+                        index = index,
+                        predicate = { el, offset ->
+                            el is LocalizationContributorsListState.Item
+                        },
+                    )
+                    item.copy(
+                        shapeState = shapeState,
+                    )
+                }
+            shapedItems to rev
         }
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->

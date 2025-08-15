@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoDelete
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.expiredFlow
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -245,6 +247,7 @@ private fun SendScreenContent(
         modifier = modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -386,14 +389,20 @@ private fun SendScreenContent(
                         NoItemsPlaceholder()
                     }
                 }
-                items(
+                itemsIndexed(
                     items = list,
-                    key = { model -> model.id },
-                ) { model ->
+                    key = { _, model -> model.id },
+                ) { index, model ->
+                    val shapeState = getShapeState(
+                        list = list,
+                        index = index,
+                        predicate = { el, _ -> el is SendItem.Item },
+                    )
                     VaultSendItemText(
                         modifier = Modifier
                             .animateItem(),
                         item = model,
+                        shapeState = shapeState,
                     )
                 }
             }
@@ -462,10 +471,12 @@ private fun SendListSortButton(
 fun VaultSendItemText(
     modifier: Modifier = Modifier,
     item: SendItem,
+    shapeState: Int,
 ) = when (item) {
     is SendItem.Item -> VaultSendItemText(
         modifier = modifier,
         item = item,
+        shapeState = shapeState,
     )
 
     is SendItem.Section -> {
@@ -481,6 +492,7 @@ fun VaultSendItemText(
 fun VaultSendItemText(
     modifier: Modifier = Modifier,
     item: SendItem.Item,
+    shapeState: Int,
 ) {
     val localState by item.localStateFlow.collectAsState()
     val expiredState = remember(item.source) {
@@ -506,6 +518,7 @@ fun VaultSendItemText(
     FlatItemLayoutExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = shapeState,
         content = {
             FlatItemTextContent(
                 title = {
@@ -681,7 +694,7 @@ fun VaultSendItemText(
                         .fillMaxSize(),
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (showCheckbox) {
+                    if (it) {
                         Checkbox(
                             checked = localState.selectableItemState.selected,
                             onCheckedChange = null,

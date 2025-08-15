@@ -349,10 +349,10 @@ private fun SettingGroupLayout(
 ) {
     GridLayout(
         modifier = modifier
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = Dimens.contentPadding),
         columns = 2,
-        mainAxisSpacing = 8.dp,
-        crossAxisSpacing = 8.dp,
+        mainAxisSpacing = Dimens.contentPadding,
+        crossAxisSpacing = Dimens.contentPadding,
     ) {
         content()
     }
@@ -379,7 +379,7 @@ private fun SettingItemLayout(
     } else Modifier
     Box(
         modifier = modifier
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.large)
             .then(backgroundModifier)
             .then(borderModifier),
         propagateMinConstraints = true,
@@ -403,7 +403,7 @@ private fun SettingItemLayout(
                 .clickable(role = Role.Button) {
                     updatedOnClick()
                 }
-                .padding(8.dp),
+                .padding(Dimens.contentPadding),
         ) {
             val localEmphasis = DefaultEmphasisAlpha
             val localTitleTextStyle = TextStyle(

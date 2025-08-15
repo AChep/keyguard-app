@@ -53,6 +53,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -479,7 +480,7 @@ fun HomeScreenContent(
                     visible = bottomNavBarVisible,
                 ) {
                     val updatedDensity by rememberUpdatedState(LocalDensity.current)
-                    Box(
+                    Column(
                         modifier = Modifier
                             .padding(bottomInsets.asPaddingValues())
                             .onSizeChanged {
@@ -488,55 +489,6 @@ fun HomeScreenContent(
                                     .coerceAtLeast(64.dp)
                             },
                     ) {
-                        Column(
-                            modifier = Modifier,
-                        ) {
-                            BannerStatusBadge(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                statusState = accountStatusState,
-                            )
-                            val iconPosition = if (maxWidth <= 680.dp) {
-                                NavigationItemIconPosition.Top
-                            } else {
-                                NavigationItemIconPosition.Start
-                            }
-                            ShortNavigationBar(
-                                containerColor = Color.Unspecified,
-                            ) {
-                                routes.forEach { r ->
-                                    key(r.key) {
-                                        val counterState = r.counterFlow.collectAsState(null)
-                                        BottomNavigationControllerItem(
-                                            modifier = Modifier
-                                                .testTag(r.testTag),
-                                            backStack = backStack,
-                                            route = r.route,
-                                            icon = r.icon,
-                                            iconSelected = r.iconSelected,
-                                            iconPosition = iconPosition,
-                                            count = counterState.value,
-                                            label = if (navLabelState.value) {
-                                                // composable
-                                                {
-                                                    Text(
-                                                        text = textResource(r.label),
-                                                        maxLines = 1,
-                                                        textAlign = TextAlign.Center,
-                                                        // Default style does not fit on devices with small
-                                                        // screens.
-                                                        fontSize = 10.sp,
-                                                    )
-                                                }
-                                            } else {
-                                                null
-                                            },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
                         val isSyncingState = remember(
                             accountStatusState,
                         ) {
@@ -552,6 +504,51 @@ fun HomeScreenContent(
                                 modifier = Modifier
                                     .fillMaxWidth(),
                             )
+                        }
+
+                        BannerStatusBadge(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            statusState = accountStatusState,
+                        )
+                        val iconPosition = if (maxWidth <= 680.dp) {
+                            NavigationItemIconPosition.Top
+                        } else {
+                            NavigationItemIconPosition.Start
+                        }
+                        ShortNavigationBar(
+                            containerColor = Color.Unspecified,
+                        ) {
+                            routes.forEach { r ->
+                                key(r.key) {
+                                    val counterState = r.counterFlow.collectAsState(null)
+                                    BottomNavigationControllerItem(
+                                        modifier = Modifier
+                                            .testTag(r.testTag),
+                                        backStack = backStack,
+                                        route = r.route,
+                                        icon = r.icon,
+                                        iconSelected = r.iconSelected,
+                                        iconPosition = iconPosition,
+                                        count = counterState.value,
+                                        label = if (navLabelState.value) {
+                                            // composable
+                                            {
+                                                Text(
+                                                    text = textResource(r.label),
+                                                    maxLines = 1,
+                                                    textAlign = TextAlign.Center,
+                                                    // Default style does not fit on devices with small
+                                                    // screens.
+                                                    fontSize = 10.sp,
+                                                )
+                                            }
+                                        } else {
+                                            null
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }

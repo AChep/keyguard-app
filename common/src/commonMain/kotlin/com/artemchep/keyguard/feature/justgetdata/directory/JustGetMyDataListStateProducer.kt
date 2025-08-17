@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.platform.recordException
@@ -185,28 +186,7 @@ fun produceJustGetMyDataListState(
             }
             out to rev
         }
-        .map { (items, rev) ->
-            val shapedItems = items
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is JustGetMyDataListState.Item.Content -> {
-                            val shapeState = getShapeState(
-                                list = items,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is JustGetMyDataListState.Item.Content
-                                },
-                            )
-                            item.copy(
-                                shapeState = shapeState,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
-            shapedItems to rev
-        }
+        .mapShape()
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the just-get-my-data list!"

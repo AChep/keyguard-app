@@ -708,16 +708,16 @@ fun RowScope.FlatItemActionContent(
 }
 
 @Composable
+fun defaultAvatarColor() = LocalContentColor.current
+    .copy(alpha = 0.05f * LocalContentColor.current.alpha)
+
+@Composable
 fun Avatar(
     modifier: Modifier = Modifier,
-    color: Color = LocalContentColor.current
-        .let {
-            it.copy(alpha = 0.05f * LocalContentColor.current.alpha)
-        },
+    color: Color = defaultAvatarColor(),
     shape: Shape = MaterialTheme.shapes.medium,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val contentColor = LocalContentColor.current.copy(alpha = DisabledEmphasisAlpha)
     Box(
         modifier = modifier
             .size(36.dp)
@@ -733,21 +733,29 @@ fun Avatar(
 fun AvatarBuilder(
     modifier: Modifier = Modifier,
     icon: VaultItemIcon,
-    accent: Color,
+    accent: Color = Color.Unspecified,
     active: Boolean,
     badge: @Composable () -> Unit,
 ) = Box(
     modifier = modifier,
 ) {
     val avatarColor = accent
-        .takeIf {
+        .takeIf { color ->
             val fits = icon is VaultItemIcon.VectorIcon ||
                     icon is VaultItemIcon.TextIcon
-            fits && active
+            fits && active && color.isSpecified
         }
-        ?: MaterialTheme.colorScheme.surfaceColorAtElevationSemi(
-            LocalAbsoluteTonalElevation.current + 8.dp,
-        )
+        ?.let { color ->
+            MaterialTheme.colorScheme.background
+                .combineAlpha(0.25f)
+                .compositeOver(
+                    background = color,
+                )
+        }
+        ?: MaterialTheme.colorScheme
+            .surfaceColorAtElevationSemi(
+                elevation = LocalAbsoluteTonalElevation.current + 8.dp,
+            )
     Avatar(
         color = avatarColor,
     ) {

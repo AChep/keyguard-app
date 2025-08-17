@@ -84,6 +84,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import org.jetbrains.compose.resources.stringResource
@@ -354,6 +355,7 @@ fun VaultHomeScreenListPane(
         modifier = modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -561,7 +563,7 @@ fun VaultHomeScreenListPane(
                                 FlowRow(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 8.dp),
+                                        .padding(horizontal = Dimens.contentPadding),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {

@@ -113,6 +113,8 @@ expect fun AttachmentIconImpl(
     modifier: Modifier = Modifier,
 )
 
+const val DEFAULT_HUE = 0.8f
+
 @Immutable
 data class AccentColors(
     val light: Color,
@@ -123,12 +125,12 @@ fun generateAccentColorsByAccountId(
     accountId: String,
 ) = generateAccentColors(
     seed = accountId,
-    saturation = 0.7f,
+    saturation = 0.7f, // similar to what Bitwarden has
 )
 
 fun generateAccentColors(
     seed: String,
-    saturation: Float = 0.5f,
+    saturation: Float = DEFAULT_HUE,
 ): AccentColors {
     val hue = run {
         val r = FNV.fnv1_32(seed).rem(60)
@@ -142,7 +144,7 @@ fun generateAccentColors(
 
 fun generateAccentColors(
     hue: Float,
-    saturation: Float = 0.5f,
+    saturation: Float = DEFAULT_HUE,
 ): AccentColors {
     val accentLight = Color.hsv(
         hue = hue,
@@ -152,7 +154,7 @@ fun generateAccentColors(
     val accentDark = Color.hsv(
         hue = hue,
         saturation = saturation,
-        value = 0.7f,
+        value = 0.8f,
     )
     return AccentColors(
         light = accentLight,

@@ -528,6 +528,7 @@ fun VaultSendItemText(
                         Text(
                             text = title,
                             overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium,
                             maxLines = 1,
                         )
                     } else {

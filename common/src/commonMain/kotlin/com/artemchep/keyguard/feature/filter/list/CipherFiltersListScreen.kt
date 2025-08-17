@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.filter.view.CipherFilterViewFullRoute
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -50,12 +51,14 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasDynamicShortcuts
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.defaultAvatarColor
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -142,6 +145,7 @@ fun CipherFiltersListScreen(
         modifier = Modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             CustomToolbar(
@@ -321,17 +325,14 @@ private fun FilterItem(
             Color.Unspecified
         }
     }
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         backgroundColor = backgroundColor,
         leading = {
-            val accent = rememberSecretAccentColor(
-                accentLight = item.accentLight,
-                accentDark = item.accentDark,
-            )
             AvatarBuilder(
                 icon = item.icon,
-                accent = accent,
+                accent = defaultAvatarColor(),
                 active = true,
                 badge = {
                     // Do nothing.

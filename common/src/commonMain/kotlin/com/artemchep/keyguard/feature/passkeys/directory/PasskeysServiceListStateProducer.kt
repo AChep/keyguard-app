@@ -22,11 +22,13 @@ import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
+import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorsListState
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceListState
@@ -187,28 +189,7 @@ fun producePasskeysListState(
             }
             out to rev
         }
-        .map { (items, rev) ->
-            val shapedItems = items
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is PasskeysServiceListState.Item.Content -> {
-                            val shapeState = getShapeState(
-                                list = items,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is PasskeysServiceListState.Item.Content
-                                },
-                            )
-                            item.copy(
-                                shapeState = shapeState,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
-            shapedItems to rev
-        }
+        .mapShape()
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the passkeys list!"

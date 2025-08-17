@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -53,6 +54,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.PlainTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.pluralStringResource
@@ -97,7 +99,7 @@ fun SearchTextField(
                 // the Material 3 top bar.
                 .height(64.dp)
                 .padding(
-                    horizontal = 8.dp,
+                    horizontal = Dimens.contentPadding,
                     vertical = 8.dp,
                 )
                 .searchTextFieldBackground(

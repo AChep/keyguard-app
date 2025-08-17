@@ -64,6 +64,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -96,6 +97,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.defaultAvatarColor
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
@@ -174,7 +176,7 @@ fun VaultListItemButton(
     item: VaultItem2.Button,
 ) {
     val contentColor = MaterialTheme.colorScheme.primary
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
         leading = {
             CompositionLocalProvider(
@@ -336,6 +338,7 @@ fun VaultListItemText(
                             text = title,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     } else {
                         Text(
@@ -1031,6 +1034,7 @@ fun ColorScheme.surfaceColorAtElevationSemi(
 fun BoxScope.VaultItemIcon2(
     icon: VaultItemIcon,
     modifier: Modifier = Modifier,
+    color: Color = LocalContentColor.current,
 ) {
     when (icon) {
         is VaultItemIcon.VectorIcon -> {
@@ -1039,21 +1043,30 @@ fun BoxScope.VaultItemIcon2(
                     .align(Alignment.Center),
                 imageVector = icon.imageVector,
                 contentDescription = null,
-                tint = Color.Black
-                    .combineAlpha(MediumEmphasisAlpha),
+                tint = color,
             )
         }
 
         is VaultItemIcon.TextIcon -> {
-            Text(
+            val circleColor = Color.White
+                .combineAlpha(0.1f)
+            Box(
                 modifier = modifier
-                    .align(Alignment.Center),
-                text = icon.text,
-                color = Color.Black
-                    .combineAlpha(MediumEmphasisAlpha),
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-            )
+                    .fillMaxSize()
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .background(circleColor),
+            ) {
+                Text(
+                    modifier = modifier
+                        .align(Alignment.Center),
+                    text = icon.text,
+                    textAlign = TextAlign.Center,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                )
+            }
         }
 
         is VaultItemIcon.ImageIcon -> {

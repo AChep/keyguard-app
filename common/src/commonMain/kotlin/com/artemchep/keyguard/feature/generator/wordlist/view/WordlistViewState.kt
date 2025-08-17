@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.Either
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -41,5 +42,7 @@ data class WordlistViewState(
         val name: AnnotatedString,
         val shapeState: Int = ShapeState.ALL,
         val onClick: (() -> Unit)? = null,
-    )
+    ) : GroupableShapeItem<Item> {
+        override fun withShape(shape: Int) = copy(shapeState = shape)
+    }
 }

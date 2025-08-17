@@ -32,6 +32,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevation
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -134,6 +135,7 @@ fun ChangePasswordScreen(
         modifier = Modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             CustomToolbar(
@@ -277,8 +279,9 @@ private fun AppItem(
     modifier: Modifier,
     item: AppPickerState.Item,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
             FaviconImage(
                 modifier = Modifier

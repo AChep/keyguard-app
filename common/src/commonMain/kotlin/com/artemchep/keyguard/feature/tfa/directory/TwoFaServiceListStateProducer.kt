@@ -24,9 +24,11 @@ import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSi
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListState
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceListState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.platform.recordException
@@ -185,28 +187,7 @@ fun produceTwoFaServiceListState(
             }
             out to rev
         }
-        .map { (items, rev) ->
-            val shapedItems = items
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is TwoFaServiceListState.Item.Content -> {
-                            val shapeState = getShapeState(
-                                list = items,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is TwoFaServiceListState.Item.Content
-                                },
-                            )
-                            item.copy(
-                                shapeState = shapeState,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
-            shapedItems to rev
-        }
+        .mapShape()
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the just-delete-me list!"

@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.util.DividerColor
@@ -65,11 +66,10 @@ fun FilterItemComposable(
                 ),
             checked = checked,
             enabled = enabled,
-            colors = ToggleButtonDefaults.toggleButtonColors()
-                .copy(
-                    containerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                ),
+            colors = ToggleButtonDefaults.toggleButtonColors(
+                containerColor = LocalSurfaceColor.current,
+                disabledContainerColor = LocalSurfaceColor.current,
+            ),
             contentPadding = PaddingValues(
                 horizontal = 12.dp,
                 vertical = 4.dp,

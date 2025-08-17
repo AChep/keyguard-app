@@ -18,6 +18,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
+import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewState
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
@@ -26,6 +27,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.platform.recordException
@@ -184,28 +186,7 @@ fun produceJustDeleteMeServiceListState(
             }
             out to rev
         }
-        .map { (items, rev) ->
-            val shapedItems = items
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is JustDeleteMeServiceListState.Item.Content -> {
-                            val shapeState = getShapeState(
-                                list = items,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is JustDeleteMeServiceListState.Item.Content
-                                },
-                            )
-                            item.copy(
-                                shapeState = shapeState,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
-            shapedItems to rev
-        }
+        .mapShape()
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the just-delete-me list!"

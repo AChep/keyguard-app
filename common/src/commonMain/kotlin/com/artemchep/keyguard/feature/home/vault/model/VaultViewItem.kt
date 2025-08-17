@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.getShapeState
@@ -31,9 +32,7 @@ sealed interface VaultViewItem {
 
     val id: String
 
-    interface Groupable<T> {
-        fun withShape(shape: Int): T
-    }
+    interface Groupable<T> : GroupableShapeItem<T>
 
     data class Card(
         override val id: String,

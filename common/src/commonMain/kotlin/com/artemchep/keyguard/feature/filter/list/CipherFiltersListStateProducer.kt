@@ -31,6 +31,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
 import com.artemchep.keyguard.feature.search.search.mapSearch
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.res.Res
@@ -185,6 +186,7 @@ fun produceCipherFiltersListState(
             // search decor applied to it.
             item.copy(name = result.highlightedText)
         }
+        .mapShape()
     // Automatically de-select items
     // that do not exist.
     combine(

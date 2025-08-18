@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.DropdownMenu
@@ -84,6 +85,7 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.ContextItem
@@ -167,6 +169,7 @@ fun VaultListItemSection(
         modifier = modifier,
         text = text,
         caps = item.caps,
+        expressive = true,
     )
 }
 
@@ -175,29 +178,20 @@ fun VaultListItemButton(
     modifier: Modifier = Modifier,
     item: VaultItem2.Button,
 ) {
-    val contentColor = MaterialTheme.colorScheme.primary
     FlatItemSimpleExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         leading = {
-            CompositionLocalProvider(
-                LocalContentColor provides contentColor,
-            ) {
-                val leading = item.leading
-                if (leading != null) {
-                    Row(
-                        modifier = Modifier
-                            .widthIn(min = 36.dp),
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        leading.invoke()
-                    }
+            val leading = item.leading
+            if (leading != null) {
+                Avatar {
+                    leading.invoke()
                 }
             }
         },
         title = {
             Text(
                 text = item.title,
-                color = contentColor,
             )
         },
         onClick = item.onClick,

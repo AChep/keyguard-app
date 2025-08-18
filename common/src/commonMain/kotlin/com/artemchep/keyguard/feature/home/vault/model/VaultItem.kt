@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.TotpToken
@@ -50,10 +51,13 @@ sealed interface VaultItem2 {
     data class Button(
         override val id: String,
         val title: String,
+        val shapeState: Int = ShapeState.ALL,
         val leading: (@Composable () -> Unit)? = null,
         val onClick: (() -> Unit)? = null,
-    ) : VaultItem2 {
+    ) : VaultItem2, GroupableShapeItem<Button> {
         companion object;
+
+        override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 
     @Immutable
@@ -104,12 +108,14 @@ sealed interface VaultItem2 {
         val text: String?,
         val favourite: Boolean,
         val attachments: Boolean,
-        val shapeState: Int = 0,
+        val shapeState: Int = ShapeState.ALL,
         //
         val action: Action,
         val localStateFlow: StateFlow<LocalState>,
-    ) : VaultItem2 {
+    ) : VaultItem2, GroupableShapeItem<Item> {
         companion object;
+
+        override fun withShape(shape: Int) = copy(shapeState = shape)
 
         @Immutable
         data class LocalState(

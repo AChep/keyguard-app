@@ -723,6 +723,7 @@ fun Avatar(
             .size(36.dp)
             .clip(shape)
             .background(color),
+        contentAlignment = Alignment.Center,
     ) {
         content()
     }

@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
+import com.artemchep.keyguard.platform.util.isRelease
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.math.absoluteValue
@@ -109,6 +110,7 @@ class CipherDuplicatesCheckImpl(
                 val src = pCiphersGroup.toMutableList()
                 for (i in src.lastIndex downTo 0) {
                     var avg: MutableList<Float>? = null
+                    var summary: MutableList<String>? = null
                     var group: MutableList<ProcessedSecret>? = null
                     val target = src.removeLastOrNull()
                         ?: continue
@@ -117,15 +119,21 @@ class CipherDuplicatesCheckImpl(
                     for (j in src.lastIndex downTo 0) {
                         val candidate = src.getOrNull(j)
                             ?: continue
-                        val accuracy = compare2(
+                        val eval = compare2(
                             a = target,
                             b = candidate,
                         ).eval()
-                        if (accuracy > sensitivity.threshold) {
+                        if (eval.value > sensitivity.threshold) {
                             if (avg == null) {
                                 avg = mutableListOf<Float>()
                             }
-                            avg.add(accuracy)
+                            avg.add(eval.value)
+                            if (!isRelease) {
+                                if (summary == null) {
+                                    summary = mutableListOf<String>()
+                                }
+                                summary.add(eval.summary)
+                            }
                             if (group == null) {
                                 group = mutableListOf()
                                 group.add(target)
@@ -157,6 +165,8 @@ class CipherDuplicatesCheckImpl(
                         out += DSecretDuplicateGroup(
                             id = finalGroupId,
                             accuracy = finalAccuracy,
+                            summary = summary
+                                ?.joinToString(separator = System.lineSeparator()),
                             ciphers = group
                                 .map { it.source },
                         )
@@ -172,25 +182,65 @@ class CipherDuplicatesCheckImpl(
         timedValue.value
     }
 
-    private fun Sequence<Float>.eval() = average().toFloat()
+    private fun Sequence<FuzzyComparisonEvent>.eval() = kotlin.run {
+        val summary = StringBuilder()
+
+        var sum = 0.0f
+        var count = 0
+        for (element in this) {
+            if (!isRelease) {
+                summary.append("${element.type}=${element.value}, ")
+            }
+
+            sum += element.value
+            count += 1
+        }
+
+        val value = if (count == 0) Float.NaN else sum / count
+        FuzzyComparisonResult(
+            summary = summary.toString(),
+            value = value,
+        )
+    }
+
+    private data class FuzzyComparisonResult(
+        val summary: String,
+        val value: Float,
+    )
+
+    private data class FuzzyComparisonEvent(
+        val type: String,
+        val value: Float,
+    )
 
     private fun compare2(
         a: ProcessedSecret,
         b: ProcessedSecret,
-    ): Sequence<Float> = sequence {
+    ): Sequence<FuzzyComparisonEvent> = sequence {
+        suspend fun SequenceScope<FuzzyComparisonEvent>.yieldEvent(
+            value: Float,
+            type: String,
+        ) {
+            val event = FuzzyComparisonEvent(
+                type = type,
+                value = value,
+            )
+            yield(event)
+        }
+
         compareStringsFuzzy(
             a = a.processed.name,
             b = b.processed.name,
             strategy = ComparisonStrategy.Fuzzy.TH,
             weight = 1f,
-        ).let { yield(it) }
+        ).let { yieldEvent(it, type = "name") }
         compareStringsFuzzy(
             a = a.processed.notes,
             b = b.processed.notes,
             strategy = ComparisonStrategy.Fuzzy.TH,
             weight = if (a.processed.type == DSecret.Type.SecureNote) 2f else 0.6f,
             ifOneEmpty = if (a.processed.type == DSecret.Type.SecureNote) -2f else -0.2f,
-        ).let { yield(it) }
+        ).let { yieldEvent(it, type = "notes") }
 
         // Urls
         compareListsFuzzy(
@@ -217,7 +267,7 @@ class CipherDuplicatesCheckImpl(
                     }
                 }
             }
-        }.times(3f).let { yield(it) }
+        }.times(3f).let { yieldEvent(it, type = "uris") }
 
         // Fields
         compareListsFuzzy(
@@ -225,7 +275,7 @@ class CipherDuplicatesCheckImpl(
             b = b.processed.fields,
         ) { a, b ->
             if (a == b) 1f else -1f
-        }.times(3f).let { yield(it) }
+        }.times(3f).let { yieldEvent(it, type = "fields") }
 
         // Attachments
         compareListsFuzzy(
@@ -237,7 +287,9 @@ class CipherDuplicatesCheckImpl(
             val aFileSize = a.fileSize()
             val bFileSize = b.fileSize()
             if (aFileName == bFileName && aFileSize == bFileSize) 1f else -1f
-        }.times(2f).let { yield(it) }
+        }.times(2f).let {
+            yieldEvent(it, type = "attachments")
+        }
 
         // Login
         if (
@@ -255,28 +307,28 @@ class CipherDuplicatesCheckImpl(
                 min = -6f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.5f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "username") }
             compareStringsFuzzy(
                 a = aLogin.password,
                 b = bLogin.password,
                 min = -3f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 1f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "password") }
             compareStringsFuzzy(
                 a = aLogin.totp?.raw,
                 b = bLogin.totp?.raw,
                 min = -4f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "totp") }
             // Passkeys
             compareListsFuzzy(
                 a = aLogin.fido2Credentials.map { it.credentialId },
                 b = bLogin.fido2Credentials.map { it.credentialId },
             ) { a, b ->
                 if (a == b) 1f else -3f
-            }.times(3f).let { yield(it) }
+            }.times(3f).let { yieldEvent(it, type = "passkeys") }
             return@sequence
         }
 
@@ -293,7 +345,7 @@ class CipherDuplicatesCheckImpl(
                 b = bCard.number,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "number") }
             return@sequence
         }
 
@@ -310,43 +362,43 @@ class CipherDuplicatesCheckImpl(
                 b = bIdentity.title,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, "title") }
             compareStringsFuzzy(
                 a = aIdentity.firstName,
                 b = bIdentity.firstName,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, "first_name") }
             compareStringsFuzzy(
                 a = aIdentity.middleName,
                 b = bIdentity.middleName,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "middle_name") }
             compareStringsFuzzy(
                 a = aIdentity.lastName,
                 b = bIdentity.lastName,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "last_name") }
             compareStringsFuzzy(
                 a = aIdentity.email,
                 b = bIdentity.email,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "email") }
             compareStringsFuzzy(
                 a = aIdentity.phone,
                 b = bIdentity.phone,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "phone") }
             compareStringsFuzzy(
                 a = aIdentity.username,
                 b = bIdentity.username,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "username") }
             return@sequence
         }
 
@@ -363,19 +415,19 @@ class CipherDuplicatesCheckImpl(
                 b = bSshKey.privateKey,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "private_key") }
             compareStringsFuzzy(
                 a = aSshKey.publicKey,
                 b = bSshKey.publicKey,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "public_key") }
             compareStringsFuzzy(
                 a = aSshKey.fingerprint,
                 b = bSshKey.fingerprint,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yield(it) }
+            ).let { yieldEvent(it, type = "fingerprint") }
             return@sequence
         }
     }
@@ -429,7 +481,7 @@ class CipherDuplicatesCheckImpl(
                     null
                 }
             }
-            .average()
+            .sum()
             .toFloat()
         return sizeScore + contentScore
     }
@@ -445,7 +497,7 @@ class CipherDuplicatesCheckImpl(
         // but the other one is not.
         ifOneEmpty: Float = -0.2f,
         // If both of the arguments are empty.
-        ifBothEmpty: Float = 0.05f,
+        ifBothEmpty: Float = 0.01f,
         ifExactMatch: Float = max,
     ): Float {
         val score = when {

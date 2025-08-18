@@ -46,6 +46,9 @@ import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
+import com.artemchep.keyguard.ui.skeleton.SkeletonSection
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
@@ -191,17 +194,23 @@ fun TwoFaServiceListScreen(
                 pullRefreshState = pullRefreshState,
             )
         },
+        provideContentUserScrollEnabled = {
+            loadableState !is Loadable.Loading
+        },
         listState = listState,
     ) {
         val contentState = loadableState
             .flatMap { it.content }
         when (contentState) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
+                item("skeleton.section") {
+                    SkeletonSection()
                 }
+                skeletonItems(
+                    avatar = SkeletonItemAvatar.SMALL,
+                    textWidthFraction = null,
+                    count = 20,
+                )
             }
 
             is Loadable.Ok -> {

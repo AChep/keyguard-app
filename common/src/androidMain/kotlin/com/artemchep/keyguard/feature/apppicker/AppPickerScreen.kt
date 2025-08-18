@@ -47,6 +47,7 @@ import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
 import org.jetbrains.compose.resources.stringResource
@@ -202,11 +203,7 @@ fun ChangePasswordScreen(
             .flatMap { it.content }
         when (contentState) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems()
             }
 
             is Loadable.Ok -> {

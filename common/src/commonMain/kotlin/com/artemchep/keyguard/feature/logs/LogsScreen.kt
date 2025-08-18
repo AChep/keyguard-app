@@ -42,6 +42,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.infoContainer
@@ -100,9 +101,7 @@ private fun LogsScreenSkeleton(
             )
         },
     ) {
-        item("skeleton") {
-            SkeletonItem()
-        }
+        skeletonItems()
     }
 }
 

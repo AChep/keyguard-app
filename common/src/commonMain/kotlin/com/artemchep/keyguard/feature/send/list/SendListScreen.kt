@@ -98,6 +98,9 @@ import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
+import com.artemchep.keyguard.ui.skeleton.SkeletonSection
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
@@ -364,15 +367,14 @@ private fun SendScreenContent(
     ) {
         when (state.content) {
             is SendListState.Content.Skeleton -> {
+                item("skeleton.header") {
+                    SkeletonSection()
+                }
                 // Show a bunch of skeleton items, so it makes an impression of a
                 // fully loaded screen.
-                for (i in 0..3) {
-                    item(i) {
-                        SkeletonItem(
-                            avatar = true,
-                        )
-                    }
-                }
+                skeletonItems(
+                    avatar = SkeletonItemAvatar.LARGE,
+                )
             }
 
             else -> {

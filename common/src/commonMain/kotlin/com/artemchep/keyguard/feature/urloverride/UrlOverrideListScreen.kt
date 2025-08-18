@@ -60,6 +60,8 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
@@ -173,11 +175,10 @@ fun EmailRelayListScreen(
             .flatMap { it.content }
         when (contentState) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems(
+                    avatar = SkeletonItemAvatar.LARGE,
+                    count = 1, // usually there's only one -- the default
+                )
             }
 
             is Loadable.Ok -> {

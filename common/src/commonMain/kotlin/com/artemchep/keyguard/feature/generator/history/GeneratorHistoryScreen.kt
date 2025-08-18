@@ -46,6 +46,8 @@ import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonSection
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -102,6 +104,9 @@ private fun GeneratorPaneMaster(
                 state = selectionOrNull,
             )
         },
+        provideContentUserScrollEnabled = {
+            loadableState !is Loadable.Loading
+        },
     ) {
         loadableState.fold(
             ifLoading = {
@@ -117,9 +122,12 @@ private fun GeneratorPaneMaster(
 }
 
 private fun LazyListScope.populateGeneratorPaneMasterSkeleton() {
-    item("skeleton") {
-        SkeletonItem()
+    item("skeleton.section") {
+        SkeletonSection()
     }
+    skeletonItems(
+        count = 20,
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)

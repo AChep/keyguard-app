@@ -84,6 +84,8 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
@@ -498,6 +500,9 @@ fun VaultHomeScreenListPane(
                 pullRefreshState = pullRefreshState,
             )
         },
+        provideContentUserScrollEnabled = {
+            state.content !is VaultListState.Content.Skeleton
+        },
         listState = listState,
     ) {
         when (state.content) {
@@ -522,13 +527,10 @@ fun VaultHomeScreenListPane(
                 }
                 // Show a bunch of skeleton items, so it makes an impression of a
                 // fully loaded screen.
-                for (i in 0..3) {
-                    item(i) {
-                        SkeletonItem(
-                            avatar = true,
-                        )
-                    }
-                }
+                skeletonItems(
+                    avatar = SkeletonItemAvatar.LARGE,
+                    count = 20,
+                )
             }
 
             else -> {

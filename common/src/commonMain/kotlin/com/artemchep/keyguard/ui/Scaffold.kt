@@ -104,6 +104,7 @@ fun ScaffoldLazyColumn(
     pullRefreshState: PullRefreshState? = null,
     expressive: Boolean = LocalExpressive.current,
     containerColor: Color = LocalSurfaceColor.current,
+    provideContentUserScrollEnabled: () -> Boolean = { true },
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
@@ -170,6 +171,7 @@ fun ScaffoldLazyColumn(
                     verticalArrangement = listVerticalArrangement,
                     contentPadding = contentPaddingWithFab,
                     state = listState,
+                    userScrollEnabled = provideContentUserScrollEnabled(),
                 ) {
                     listContent()
                 }
@@ -197,6 +199,7 @@ fun ScaffoldColumn(
     floatingActionButtonPosition: FabPosition = FabPosition.End,
     expressive: Boolean = LocalExpressive.current,
     containerColor: Color = LocalSurfaceColor.current,
+    provideContentUserScrollEnabled: () -> Boolean = { true },
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
@@ -247,7 +250,7 @@ fun ScaffoldColumn(
                 Box(
                     modifier = columnModifier
                         .fillMaxSize()
-                        .verticalScroll(columnScrollState)
+                        .verticalScroll(columnScrollState, enabled = provideContentUserScrollEnabled())
                         .padding(contentPaddingWithFab),
                 ) {
                     Column(

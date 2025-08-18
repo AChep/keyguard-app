@@ -70,6 +70,7 @@ import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
@@ -226,11 +227,7 @@ fun WordlistViewScreen(
             .flatMap { it.content }
         when (contentState) {
             is Loadable.Loading -> {
-                for (i in 1..3) {
-                    item("skeleton.$i") {
-                        SkeletonItem()
-                    }
-                }
+                skeletonItems()
             }
 
             is Loadable.Ok -> {

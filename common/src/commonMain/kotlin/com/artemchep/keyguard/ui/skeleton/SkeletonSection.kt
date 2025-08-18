@@ -18,8 +18,9 @@ fun SkeletonSection(
         modifier = modifier
             .fillMaxWidth(widthFraction)
             .padding(
-                vertical = 16.dp,
-                horizontal = Dimens.horizontalPadding,
+                vertical = Dimens.contentPadding
+                    .coerceAtLeast(16.dp),
+                horizontal = Dimens.contentPadding * 2,
             ),
         style = MaterialTheme.typography.labelLarge
             .copy(fontSize = 12.sp),

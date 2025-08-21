@@ -1407,7 +1407,7 @@ private fun FlatTextFieldSurface(
         isError || isFocused -> borderColorTargetBaseColor
         else ->
             MaterialTheme.colorScheme.tertiary
-                .combineAlpha(0.25f)
+                .combineAlpha(0.1f)
                 .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
     }
     val borderColor by animateColorAsState(targetValue = borderColorTarget)

@@ -3,7 +3,6 @@ package com.artemchep.keyguard.feature.auth.login
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,10 +20,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -50,7 +49,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.GroupableShapeItem
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.auth.login.otp.LoginTwofaRoute
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -73,7 +75,6 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItem
-import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -81,17 +82,20 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.UrlFlatTextField
-import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.IconBox
+import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
+import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
+import kotlin.collections.firstOrNull
 
 @Composable
 fun LoginScreen(
@@ -173,19 +177,19 @@ fun LoginContentSkeleton() {
     ) {
         SkeletonText(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .fillMaxWidth(0.8f),
             style = MaterialTheme.typography.bodyMedium,
         )
         SkeletonText(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .fillMaxWidth(0.88f),
             style = MaterialTheme.typography.bodyMedium,
         )
         SkeletonText(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .fillMaxWidth(0.3f),
             style = MaterialTheme.typography.bodyMedium,
         )
@@ -193,13 +197,13 @@ fun LoginContentSkeleton() {
         SkeletonTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
         )
         Spacer(Modifier.height(8.dp))
         SkeletonTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
         )
     }
 }
@@ -220,6 +224,7 @@ fun LoginContent(
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -291,14 +296,30 @@ fun LoginContent(
 
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.addaccount_disclaimer_bitwarden_label),
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(16.dp))
+        val tabState = rememberUpdatedState(
+            newValue = loginState.regionItems
+                .firstOrNull { it.checked },
+        )
+        SegmentedButtonGroup(
+            modifier = Modifier
+                .padding(
+                    horizontal = Dimens.buttonHorizontalPadding,
+                ),
+            tabState = tabState,
+            tabs = loginState.regionItems,
+            onClick = { tab ->
+                tab.onClick?.invoke()
+            },
+        )
+        Spacer(Modifier.height(16.dp))
         EmailFlatTextField(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.fieldHorizontalPadding)
                 .focusRequester(focusRequester),
             fieldModifier = Modifier
                 .autofill(
@@ -309,6 +330,7 @@ fun LoginContent(
                     onFill = loginState.email.onChange,
                 ),
             value = loginState.email,
+            shapeState = ShapeState.START,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
             ),
@@ -316,11 +338,11 @@ fun LoginContent(
                 onNext = keyboardOnNext,
             ),
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(3.dp))
         val passwordIsLastField = loginState.clientSecret == null && !isEnvironmentVisible
         PasswordFlatTextField(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.fieldHorizontalPadding),
             fieldModifier = Modifier
                 .autofill(
                     value = loginState.password.state.value,
@@ -330,6 +352,7 @@ fun LoginContent(
                     onFill = loginState.password.onChange,
                 ),
             value = loginState.password,
+            shapeState = ShapeState.END,
             keyboardOptions = KeyboardOptions(
                 imeAction = when {
                     !passwordIsLastField -> ImeAction.Next
@@ -349,7 +372,7 @@ fun LoginContent(
                 Box(Modifier.height(32.dp))
                 Text(
                     modifier = Modifier
-                        .padding(horizontal = Dimens.horizontalPadding),
+                        .padding(horizontal = Dimens.textHorizontalPadding),
                     text = stringResource(Res.string.addaccount_captcha_need_client_secret_note),
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -357,7 +380,7 @@ fun LoginContent(
                 val clientSecretIsLastField = !isEnvironmentVisible
                 ConcealedFlatTextField(
                     modifier = Modifier
-                        .padding(horizontal = Dimens.horizontalPadding),
+                        .padding(horizontal = Dimens.fieldHorizontalPadding),
                     label = stringResource(Res.string.addaccount_captcha_need_client_secret_label),
                     value = clientSecret,
                     keyboardOptions = KeyboardOptions(
@@ -380,41 +403,41 @@ fun LoginContent(
                 )
             }
         }
-        Spacer(Modifier.height(8.dp))
-        LoginItems(
-            items = loginState.regionItems,
-        )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
         ExpandedIfNotEmpty(
             valueOrNull = Unit.takeIf { loginState.showCustomEnv },
         ) {
             LoginItems(
+                modifier = Modifier
+                    .padding(
+                        top = 16.dp,
+                        bottom = 16.dp,
+                    ),
                 items = loginState.items,
             )
         }
         loginState.onRegisterClick?.let { onClick ->
-            HorizontalDivider(
+            Button(
                 modifier = Modifier
-                    .padding(
-                        top = 32.dp,
-                        bottom = 8.dp,
-                    ),
-            )
-            FlatItemLayout(
-                content = {
-                    FlatItemTextContent(
-                        title = {
-                            Text(
-                                text = stringResource(Res.string.addaccount_create_an_account_title),
-                            )
-                        },
-                    )
-                },
-                trailing = {
-                    ChevronIcon()
-                },
+                    .padding(horizontal = Dimens.buttonHorizontalPadding),
                 onClick = onClick,
-            )
+                colors = ButtonDefaults.filledTonalButtonColors(),
+                elevation = ButtonDefaults.filledTonalButtonElevation(),
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(ButtonDefaults.IconSize),
+                    imageVector = Icons.Outlined.KeyguardWebsite,
+                    contentDescription = null,
+                )
+                Spacer(
+                    modifier = Modifier
+                        .width(ButtonDefaults.IconSpacing),
+                )
+                Text(
+                    text = stringResource(Res.string.addaccount_create_an_account_title),
+                )
+            }
         }
     }
 }
@@ -427,13 +450,26 @@ private fun LoginItems(
     Column(
         modifier = modifier
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items.forEach { item ->
+        HorizontalDivider()
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
+        items.forEachIndexed { index, item ->
             key(item.id) {
+                val shapeState = getShapeState(
+                    list = items,
+                    index = index,
+                    predicate = { el, _ ->
+                        el is LoginStateItem.Url ||
+                                el is LoginStateItem.HttpHeader
+                    },
+                )
                 LoginItem(
                     modifier = Modifier,
                     item = item,
+                    shapeState = shapeState,
                 )
             }
         }
@@ -444,78 +480,37 @@ private fun LoginItems(
 private fun LoginItem(
     modifier: Modifier = Modifier,
     item: LoginStateItem,
+    shapeState: Int,
 ) = when (item) {
-    is LoginStateItem.Dropdown -> LoginItemDropdown(modifier = modifier, item = item)
-    is LoginStateItem.Url -> LoginItemUrl(modifier = modifier, item = item)
-    is LoginStateItem.HttpHeader -> LoginItemField(modifier = modifier, item = item)
+    is LoginStateItem.Url -> LoginItemUrl(modifier = modifier, item = item, shapeState = shapeState)
+    is LoginStateItem.HttpHeader -> LoginItemField(
+        modifier = modifier,
+        item = item,
+        shapeState = shapeState,
+    )
+
     is LoginStateItem.Section -> LoginItemSection(modifier = modifier, item = item)
     is LoginStateItem.Label -> LoginItemLabel(modifier = modifier, item = item)
     is LoginStateItem.Add -> LoginItemAdd(modifier = modifier, item = item)
 }
 
 @Composable
-private fun LoginItemDropdown(
-    modifier: Modifier = Modifier,
-    item: LoginStateItem.Dropdown,
-) {
-    val field by item.state.flow.collectAsState()
-    FlatDropdown(
-        modifier = modifier,
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .weight(1f, fill = false),
-                        ) {
-                            Text(
-                                modifier = Modifier
-                                    .animateContentSize(),
-                                text = field.title,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                            ExpandedIfNotEmpty(field.text) { text ->
-                                Text(
-                                    text = text,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                        .combineAlpha(LocalContentColor.current.alpha),
-                                )
-                            }
-                        }
-                        Spacer(
-                            modifier = Modifier
-                                .width(8.dp),
-                        )
-                        DropdownIcon()
-                    }
-                },
-            )
-        },
-        dropdown = field.options,
-    )
-}
-
-@Composable
 private fun LoginItemUrl(
     modifier: Modifier = Modifier,
     item: LoginStateItem.Url,
+    shapeState: Int,
 ) {
     val field by item.state.flow.collectAsState()
     UrlFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(
+                top = 1.dp,
+                bottom = 2.dp,
+            )
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         value = field.text,
         label = field.label,
-//        keyboardOptions = KeyboardOptions(
-//            imeAction = ImeAction.Next,
-//        ),
-//        keyboardActions = KeyboardActions(
-//            onNext = keyboardOnNext,
-//        ),
+        shapeState = shapeState,
     )
 }
 
@@ -523,6 +518,7 @@ private fun LoginItemUrl(
 private fun LoginItemField(
     modifier: Modifier = Modifier,
     item: LoginStateItem.HttpHeader,
+    shapeState: Int,
 ) {
     val field by item.state.flow.collectAsState()
     val localState by remember(item.state.flow) {
@@ -533,9 +529,14 @@ private fun LoginItemField(
     }.collectAsState(null)
     BiFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(
+                top = 1.dp,
+                bottom = 2.dp,
+            )
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = field.label,
         value = field.text,
+        shapeState = shapeState,
         trailing = {
             OptionsButton(
                 actions = localState.orEmpty(),
@@ -562,7 +563,8 @@ private fun LoginItemLabel(
 ) {
     Text(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(top = 8.dp)
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = item.text,
         style = MaterialTheme.typography.bodyMedium,
         color = LocalContentColor.current
@@ -575,57 +577,63 @@ private fun LoginItemAdd(
     modifier: Modifier = Modifier,
     item: LoginStateItem.Add,
 ) {
-    Column(
-        modifier = modifier,
-    ) {
-        val dropdownShownState = remember { mutableStateOf(false) }
-        if (item.actions.isEmpty()) {
+    val dropdownShownState = remember { mutableStateOf(false) }
+    if (item.actions.isEmpty()) {
+        dropdownShownState.value = false
+    }
+
+    // Inject the dropdown popup to the bottom of the
+    // content.
+    val onDismissRequest = remember(dropdownShownState) {
+        // lambda
+        {
             dropdownShownState.value = false
         }
+    }
 
-        // Inject the dropdown popup to the bottom of the
-        // content.
-        val onDismissRequest = remember(dropdownShownState) {
-            // lambda
-            {
-                dropdownShownState.value = false
+    Button(
+        modifier = modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        onClick = {
+            if (item.actions.size == 1) {
+                item.actions.first()
+                    .onClick?.invoke()
+            } else {
+                dropdownShownState.value = true
+            }
+        },
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(ButtonDefaults.IconSize),
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(ButtonDefaults.IconSpacing),
+        )
+        Text(
+            text = item.text,
+        )
+
+        DropdownMenu(
+            modifier = Modifier
+                .widthIn(min = DropdownMinWidth),
+            expanded = dropdownShownState.value,
+            onDismissRequest = onDismissRequest,
+        ) {
+            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
+            with(scope) {
+                item.actions.forEachIndexed { index, action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
+                }
             }
         }
-        val contentColor = MaterialTheme.colorScheme.primary
-        FlatItem(
-            leading = {
-                Icon(Icons.Outlined.Add, null, tint = contentColor)
-            },
-            title = {
-                Text(
-                    text = item.text,
-                    color = contentColor,
-                )
-
-                DropdownMenu(
-                    modifier = Modifier
-                        .widthIn(min = DropdownMinWidth),
-                    expanded = dropdownShownState.value,
-                    onDismissRequest = onDismissRequest,
-                ) {
-                    val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                    with(scope) {
-                        item.actions.forEachIndexed { index, action ->
-                            DropdownMenuItemFlat(
-                                action = action,
-                            )
-                        }
-                    }
-                }
-            },
-            onClick = {
-                if (item.actions.size == 1) {
-                    item.actions.first()
-                        .onClick?.invoke()
-                } else {
-                    dropdownShownState.value = true
-                }
-            },
-        )
     }
 }

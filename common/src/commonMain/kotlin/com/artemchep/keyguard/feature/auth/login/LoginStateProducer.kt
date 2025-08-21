@@ -11,7 +11,9 @@ import arrow.core.widen
 import com.artemchep.keyguard.common.exception.ApiException
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.handleErrorTap
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
@@ -43,6 +45,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineScope
@@ -199,13 +202,14 @@ fun produceLoginScreenState(
                 ?: regionDefault
         }
 
-    val regionItems = if (args.envEditable) {
+    val regionItemsRaw = if (args.envEditable) {
         LoginRegion.values
             .asSequence()
             .map { region ->
-                FlatItemAction(
-                    id = region.key,
+                LoginRegionItem(
+                    key = region.key,
                     title = region.title.wrap(),
+                    checked = false,
                     onClick = {
                         regionSink.value = region.key
                     },
@@ -215,6 +219,16 @@ fun produceLoginScreenState(
     } else {
         persistentListOf()
     }
+
+    val regionItemsFlow = regionFlow
+        .map { region ->
+            regionItemsRaw
+                .map { regionItem ->
+                    val checked = regionItem.key == region.key
+                    regionItem.copy(checked = checked)
+                }
+                .toImmutableList()
+        }
 
     //
     //
@@ -288,33 +302,6 @@ fun produceLoginScreenState(
             ),
         )
     }
-
-    val globalItems = listOf(
-        LoginStateItem.Section(
-            id = KEY_SERVER_REGION_SECTION,
-            text = translate(Res.string.addaccount_region_section),
-        ),
-        LoginStateItem.Dropdown(
-            id = KEY_SERVER_REGION,
-            state = LocalStateItem(
-                flow = regionFlow
-                    .map { region ->
-                        LoginStateItem.Dropdown.State(
-                            value = region,
-                            title = translate(region.title),
-                            text = region.text,
-                            options = regionItems,
-                        )
-                    }
-                    .persistingStateIn(screenScope, SharingStarted.Lazily),
-                populator = { state ->
-                    copy(
-                        region = state.value,
-                    )
-                },
-            ),
-        ),
-    )
 
     val envServerBaseUrlItem =
         createEnvUrlItem(
@@ -509,8 +496,16 @@ fun produceLoginScreenState(
 
     val outputFlow = combine(
         stetify(envHeadersFlow),
-        stetify(flowOf(globalItems)),
         stetify(flowOf(envServerItems)),
+        regionSink
+            .map { region ->
+                val transform = fun(oldState: CreateRequest): CreateRequest {
+                    return oldState.copy(
+                        region = LoginRegion.ofOrNull(region),
+                    )
+                }
+                listOf(flowOf(transform))
+            },
         clientCredentialFlow
             .map { credentials ->
                 val transform = fun(oldState: CreateRequest): CreateRequest {
@@ -559,9 +554,12 @@ fun produceLoginScreenState(
         clientCredentialFlow,
         regionFlow.map { it is LoginRegion.Custom }.distinctUntilChanged(),
         outputFlow,
-        envHeadersFlow,
+        combine(
+            envHeadersFlow,
+            regionItemsFlow,
+        ) { a, b -> a to b },
         actionExecutor.isExecutingFlow,
-    ) { (validatedEmail, validatedPassword, clientSecret), showCustomEnv, output, items, taskIsExecuting ->
+    ) { (validatedEmail, validatedPassword, clientSecret), showCustomEnv, output, (items, regionItems), taskIsExecuting ->
         val canLogin = validatedEmail is Validated.Success &&
                 validatedPassword is Validated.Success &&
                 !output.error &&
@@ -573,6 +571,7 @@ fun produceLoginScreenState(
                     ServerEnv.Region.US -> "https://vault.bitwarden.com/#/register"
                     ServerEnv.Region.EU -> "https://vault.bitwarden.eu/#/register"
                 }
+
                 else -> null
             }
             registerUrl?.let {
@@ -613,7 +612,7 @@ fun produceLoginScreenState(
             password = passwordField,
             clientSecret = clientSecretField,
             showCustomEnv = showCustomEnv,
-            regionItems = globalItems,
+            regionItems = regionItems,
             items = envServerItems + items,
             isLoading = taskIsExecuting,
             onRegisterClick = onRegister,

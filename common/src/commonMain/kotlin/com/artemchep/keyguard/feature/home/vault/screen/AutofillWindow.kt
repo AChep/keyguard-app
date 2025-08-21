@@ -39,6 +39,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
 import com.artemchep.keyguard.ui.skeleton.SkeletonSegmented
 import com.artemchep.keyguard.ui.skeleton.skeletonItemsPlacer
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
+import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.compose.resources.stringResource
@@ -213,8 +214,8 @@ fun ColumnScope.RecentsWindowOk(
                     updatedOnSelectTab?.invoke(tab)
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = Dimens.contentPadding),
+                weight = 1f,
             )
 
             Spacer(

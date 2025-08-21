@@ -2,9 +2,13 @@ package com.artemchep.keyguard.feature.auth.login
 
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
+import com.artemchep.keyguard.common.model.GroupableShapeItem
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.login.otp.TwoFactorProviderItem
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.ui.FlatItemAction
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +23,7 @@ data class LoginState(
     val clientSecret: TextFieldModel2? = null,
     val effects: SideEffect = SideEffect(),
     val showCustomEnv: Boolean = false,
-    val regionItems: List<LoginStateItem> = emptyList(),
+    val regionItems: ImmutableList<LoginRegionItem> = persistentListOf(),
     val items: List<LoginStateItem> = emptyList(),
     val isLoading: Boolean = false,
     val onRegisterClick: (() -> Unit)? = null,
@@ -54,18 +58,6 @@ sealed interface LoginStateItem {
 
     interface HasState<T> {
         val state: LocalStateItem<T>
-    }
-
-    data class Dropdown(
-        override val id: String,
-        override val state: LocalStateItem<State>,
-    ) : LoginStateItem, HasState<Dropdown.State> {
-        data class State(
-            val value: LoginRegion,
-            val title: String,
-            val text: String?,
-            val options: List<FlatItemAction> = emptyList(),
-        )
     }
 
     data class Url(

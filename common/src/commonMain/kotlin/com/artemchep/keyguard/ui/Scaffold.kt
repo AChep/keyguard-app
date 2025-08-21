@@ -47,7 +47,6 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -294,14 +293,18 @@ private fun calculateDimens(
     expressive: Boolean = LocalExpressive.current,
 ): Dimen {
     val dimens = remember(expressive) {
-        val contentPadding: Dp
+        val surfaceHorizontalPadding: Dp
+        val contentHorizontalPadding: Dp
         if (expressive) {
-            contentPadding = 16.dp
+            surfaceHorizontalPadding = 16.dp
+            contentHorizontalPadding = 24.dp
         } else {
-            contentPadding = 8.dp
+            surfaceHorizontalPadding = 8.dp
+            contentHorizontalPadding = 16.dp
         }
         Dimen.normal().copy(
-            contentPadding = contentPadding,
+            contentPadding = surfaceHorizontalPadding,
+            textHorizontalPadding = contentHorizontalPadding,
         )
     }
     return dimens

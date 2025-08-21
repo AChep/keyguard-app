@@ -1,7 +1,8 @@
 package com.artemchep.keyguard.ui.tabs
 
-import org.jetbrains.compose.resources.StringResource
+import com.artemchep.keyguard.feature.localization.TextHolder
 
 interface TabItem {
-    val title: StringResource
+    val key: String
+    val title: TextHolder
 }

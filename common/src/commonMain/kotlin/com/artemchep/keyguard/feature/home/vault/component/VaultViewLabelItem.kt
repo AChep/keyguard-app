@@ -25,7 +25,7 @@ fun VaultViewLabelItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                horizontal = Dimens.horizontalPadding,
+                horizontal = Dimens.textHorizontalPadding,
                 vertical = 8.dp,
             ),
         horizontalArrangement = item.horizontalArrangement,

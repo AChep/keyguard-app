@@ -98,7 +98,7 @@ fun VaultViewNoteItemLayout(
             .padding(
                 vertical = Dimens.contentPadding
                     .coerceAtLeast(16.dp),
-                horizontal = Dimens.contentPadding,
+                horizontal = Dimens.textHorizontalPadding,
             ),
     ) {
         content()

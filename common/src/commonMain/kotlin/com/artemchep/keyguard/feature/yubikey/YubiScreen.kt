@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -68,6 +70,7 @@ fun YubiScreen() {
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -86,26 +89,22 @@ fun YubiScreen() {
                 // Do nothing.
             },
         )
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
+        Section(
+            expressive = true,
         )
-        HorizontalDivider()
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
+        FlatItemLayoutExpressive(
+            content = {
+                SimpleGridLayout {
+                    YubiKeyUsbCard(
+                        state = yubiKey.usbState,
+                    )
+                    YubiKeyNfcCard(
+                        state = yubiKey.nfcState,
+                    )
+                }
+            },
+            enabled = true,
         )
-        SimpleGridLayout(
-            modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPaddingHalf),
-        ) {
-            YubiKeyUsbCard(
-                state = yubiKey.usbState,
-            )
-            YubiKeyNfcCard(
-                state = yubiKey.nfcState,
-            )
-        }
     }
 }
 
@@ -131,7 +130,7 @@ fun YubiKeyManual(
 
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.addaccount2fa_yubikey_manual_text),
             style = MaterialTheme.typography.bodyMedium,
         )
@@ -141,7 +140,9 @@ fun YubiKeyManual(
         )
         FlatTextField(
             modifier = Modifier
-                .padding(horizontal = 16.dp),
+                .padding(
+                    horizontal = Dimens.fieldHorizontalPadding,
+                ),
             label = stringResource(Res.string.verification_code),
             value = fieldState.value,
             keyboardOptions = KeyboardOptions(
@@ -161,7 +162,9 @@ fun YubiKeyManual(
         val updatedOnSend by rememberUpdatedState(onSend)
         Button(
             modifier = Modifier
-                .padding(horizontal = 16.dp),
+                .padding(
+                    horizontal = Dimens.buttonHorizontalPadding,
+                ),
             enabled = enabled.value,
             onClick = {
                 updatedOnSend(textState.value)

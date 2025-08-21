@@ -24,6 +24,8 @@ import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Construction
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +57,9 @@ import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -84,6 +89,8 @@ import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.shimmer.shimmer
+import com.artemchep.keyguard.ui.skeleton.SkeletonSegmented
+import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
@@ -91,6 +98,7 @@ import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
+import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -119,6 +127,7 @@ fun LoginTwofaScreenContent(
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -242,43 +251,22 @@ class LoginOtpScreenScope(
 
 @Composable
 private fun TwoFactorProviderSelector(
-    items: List<TwoFactorProviderItem>,
+    items: ImmutableList<TwoFactorProviderItem>,
 ) {
-    val dropdown = remember(items) {
-        items
-            .map { type ->
-                FlatItemAction(
-                    id = type.key,
-                    title = TextHolder.Value(type.title),
-                    onClick = type.onClick,
-                )
-            }
-    }
-    FlatDropdown(
-        content = {
-            FlatItemTextContent(
-                title = {
-                    val selectedTitle = remember(items) {
-                        val type = items.firstOrNull { it.checked }
-                        type?.title.orEmpty()
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = selectedTitle,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .width(Dimens.buttonIconPadding),
-                        )
-                        DropdownIcon()
-                    }
-                },
-            )
+    val tabState = rememberUpdatedState(
+        newValue = items
+            .firstOrNull { it.checked },
+    )
+    SegmentedButtonGroup(
+        modifier = Modifier
+            .padding(
+                horizontal = Dimens.buttonHorizontalPadding,
+            ),
+        tabState = tabState,
+        tabs = items,
+        onClick = { tab ->
+            tab.onClick?.invoke()
         },
-        dropdown = dropdown,
     )
 }
 
@@ -293,7 +281,7 @@ private fun ColumnScope.LoginOtpScreenContentSkeleton(
             .height(13.dp)
             .fillMaxWidth(0.70f)
             .shimmer()
-            .padding(horizontal = Dimens.horizontalPadding)
+            .padding(horizontal = Dimens.textHorizontalPadding)
             .clip(MaterialTheme.shapes.medium)
             .background(contentColor.copy(alpha = 0.28f)),
     )
@@ -303,7 +291,7 @@ private fun ColumnScope.LoginOtpScreenContentSkeleton(
             .height(56.dp)
             .fillMaxWidth()
             .shimmer()
-            .padding(horizontal = Dimens.horizontalPadding)
+            .padding(horizontal = Dimens.textHorizontalPadding)
             .clip(MaterialTheme.shapes.medium)
             .background(contentColor),
     )
@@ -312,7 +300,7 @@ private fun ColumnScope.LoginOtpScreenContentSkeleton(
     Row(
         modifier = Modifier
             .height(height)
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
     ) {
         Box(
             modifier = Modifier
@@ -341,9 +329,10 @@ private fun ColumnScope.LoginOtpScreenContentUnsupported(
 ) {
     val contentColor = LocalContentColor.current
         .combineAlpha(alpha = MediumEmphasisAlpha)
+    Spacer(Modifier.height(16.dp))
     Icon(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         imageVector = Icons.Outlined.Construction,
         contentDescription = null,
         tint = contentColor,
@@ -351,7 +340,7 @@ private fun ColumnScope.LoginOtpScreenContentUnsupported(
     Spacer(Modifier.height(16.dp))
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(Res.string.addaccount2fa_unsupported_note),
         style = MaterialTheme.typography.bodyMedium,
         color = contentColor,
@@ -360,13 +349,14 @@ private fun ColumnScope.LoginOtpScreenContentUnsupported(
     ExpandedIfNotEmpty(
         valueOrNull = Unit.takeIf { state.onLaunchWebVault != null },
     ) {
-        TextButton(
+        Button(
             modifier = Modifier
                 .padding(top = 16.dp)
                 .padding(
-                    vertical = 4.dp,
-                    horizontal = 4.dp,
+                    horizontal = Dimens.buttonHorizontalPadding,
                 ),
+            colors = ButtonDefaults.filledTonalButtonColors(),
+            elevation = ButtonDefaults.filledTonalButtonElevation(),
             onClick = {
                 updatedOnLaunchWebVault?.invoke()
             },
@@ -398,14 +388,14 @@ private fun ColumnScope.LoginOtpScreenContentAuthenticator(
 
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(Res.string.addaccount2fa_otp_note),
         style = MaterialTheme.typography.bodyMedium,
     )
     Spacer(Modifier.height(16.dp))
     FlatTextField(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         // TODO: Should be Authenticator code, when compose autofill
         //  adds a support for that.
         fieldModifier = Modifier
@@ -432,7 +422,8 @@ private fun ColumnScope.LoginOtpScreenContentAuthenticator(
         },
     )
     Spacer(Modifier.height(8.dp))
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
+        expressive = false,
         leading = {
             Checkbox(
                 checked = state.rememberMe.checked,
@@ -470,14 +461,14 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
 
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(Res.string.addaccount2fa_email_note, state.email.orEmpty()),
         style = MaterialTheme.typography.bodyMedium,
     )
     Spacer(Modifier.height(16.dp))
     FlatTextField(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         // TODO: Should be Email code, when compose autofill
         //  adds a support for that.
         fieldModifier = Modifier
@@ -507,7 +498,8 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
     AnimatedVisibility(
         visible = state.emailResend != null,
     ) {
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
+            expressive = false,
             leading = {
                 Box {
                     Icon(Icons.Outlined.MailOutline, null)
@@ -535,7 +527,8 @@ private fun ColumnScope.LoginOtpScreenContentEmail(
             onClick = state.emailResend,
         )
     }
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
+        expressive = false,
         leading = {
             Checkbox(
                 checked = state.rememberMe.checked,
@@ -573,14 +566,14 @@ private fun ColumnScope.LoginOtpScreenContentEmailNewDevice(
 
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(Res.string.addaccount2fa_email_note, state.email.orEmpty()),
         style = MaterialTheme.typography.bodyMedium,
     )
     Spacer(Modifier.height(16.dp))
     FlatTextField(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         // TODO: Should be Email code, when compose autofill
         //  adds a support for that.
         fieldModifier = Modifier
@@ -610,7 +603,8 @@ private fun ColumnScope.LoginOtpScreenContentEmailNewDevice(
     AnimatedVisibility(
         visible = state.emailResend != null,
     ) {
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
+            expressive = false,
             leading = {
                 Box {
                     Icon(Icons.Outlined.MailOutline, null)
@@ -697,29 +691,28 @@ private fun ColumnScope.LoginOtpScreenContentYubiKey(
                     updatedSend?.invoke(result)
                 },
             )
-            Spacer(
-                modifier = Modifier
-                    .height(16.dp),
-            )
-            HorizontalDivider()
-            Spacer(
-                modifier = Modifier
-                    .height(16.dp),
+            Section(
+                expressive = true,
             )
         }
     }
-    SimpleGridLayout(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
-    ) {
-        YubiKeyUsbCard(
-            state = yubi.usbState,
-        )
-        YubiKeyNfcCard(
-            state = yubi.nfcState,
-        )
-    }
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
+        content = {
+            SimpleGridLayout {
+                YubiKeyUsbCard(
+                    state = yubi.usbState,
+                )
+                YubiKeyNfcCard(
+                    state = yubi.nfcState,
+                )
+            }
+        },
+    )
+    Section(
+        expressive = true,
+    )
+    FlatItemLayoutExpressive(
+        expressive = false,
         leading = {
             Checkbox(
                 checked = state.rememberMe.checked,

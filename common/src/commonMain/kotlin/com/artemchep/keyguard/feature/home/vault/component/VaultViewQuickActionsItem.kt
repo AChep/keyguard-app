@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -136,7 +137,7 @@ private fun RowScope.HorizontalFlatActionContent(
         if ((action.icon != null && action.icon != Icons.Stub) || action.leading != null) {
             Box(
                 modifier = Modifier
-                    .size(18.dp),
+                    .size(ButtonDefaults.IconSize),
             ) {
                 if (action.icon != null) {
                     Icon(
@@ -148,7 +149,7 @@ private fun RowScope.HorizontalFlatActionContent(
             }
             Spacer(
                 modifier = Modifier
-                    .width(16.dp),
+                    .width(ButtonDefaults.IconSpacing),
             )
         }
         Column(

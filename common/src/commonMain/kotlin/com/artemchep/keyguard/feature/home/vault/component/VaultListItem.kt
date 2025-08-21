@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -31,11 +29,9 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SearchOff
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -62,7 +58,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,7 +73,6 @@ import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.textResource
@@ -94,20 +88,14 @@ import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScope
 import com.artemchep.keyguard.ui.DropdownScopeImpl
-import com.artemchep.keyguard.ui.FlatItem
-import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
-import com.artemchep.keyguard.ui.defaultAvatarColor
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardFavourite
 import com.artemchep.keyguard.ui.rightClickable
-import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.surface.LocalSurfaceElevation
-import com.artemchep.keyguard.ui.surface.surfaceElevationColor
 import com.artemchep.keyguard.ui.surface.surfaceNextGroupColorToElevationColor
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.LocalExpressive
@@ -211,7 +199,7 @@ fun Section(
                 .padding(
                     vertical = Dimens.contentPadding
                         .coerceAtLeast(16.dp),
-                    horizontal = Dimens.contentPadding * 2,
+                    horizontal = Dimens.textHorizontalPadding,
                 ),
             text = if (caps) text.uppercase() else text,
             style = MaterialTheme.typography.labelLarge,
@@ -229,7 +217,7 @@ fun Section(
         HorizontalDivider(
             modifier = modifier
                 .padding(
-                    vertical = Dimens.contentPadding / 2,
+                    vertical = Dimens.contentPadding,
                 ),
         )
     }
@@ -863,41 +851,17 @@ fun FlatItemLayoutExpressive(
             .rightClickable(onLongClick)
     }
 
-    val shape: Shape
+    val shape: Shape = surfaceShape(
+        shapeState = shapeState,
+        expressive = expressive,
+    )
     val dimens = Dimens
     val outerHorizontalPadding: Dp = dimens.contentPadding
     val innerHorizontalPadding: Dp = dimens.contentPadding
     val innerVerticalPadding: Dp
     if (expressive) {
-        val shapeSrc = MaterialTheme.shapes.large
-        shape = when (shapeState) {
-            ShapeState.START -> shapeSrc
-                .copy(
-                    bottomStart = expressiveInnerCornerSize,
-                    bottomEnd = expressiveInnerCornerSize,
-                )
-
-            ShapeState.CENTER -> shapeSrc
-                .copy(
-                    topStart = expressiveInnerCornerSize,
-                    topEnd = expressiveInnerCornerSize,
-                    bottomStart = expressiveInnerCornerSize,
-                    bottomEnd = expressiveInnerCornerSize,
-                )
-
-            ShapeState.END -> shapeSrc
-                .copy(
-                    topStart = expressiveInnerCornerSize,
-                    topEnd = expressiveInnerCornerSize,
-                )
-
-            ShapeState.ALL -> shapeSrc
-            else -> shapeSrc
-        }
-
         innerVerticalPadding = 10.dp
     } else {
-        shape = MaterialTheme.shapes.medium
         innerVerticalPadding = 8.dp
     }
     Column(
@@ -967,6 +931,41 @@ fun rememberSecretAccentColor(
     val color = LocalContentColor.current
     val accent = if (color.luminance() > 0.5f) accentDark else accentLight
     return accent.combineAlpha(alpha = color.alpha)
+}
+
+@Composable
+fun surfaceShape(shapeState: Int, expressive: Boolean): Shape {
+    val shape: Shape
+    if (expressive) {
+        val shapeSrc = MaterialTheme.shapes.large
+        shape = when (shapeState) {
+            ShapeState.START -> shapeSrc
+                .copy(
+                    bottomStart = expressiveInnerCornerSize,
+                    bottomEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.CENTER -> shapeSrc
+                .copy(
+                    topStart = expressiveInnerCornerSize,
+                    topEnd = expressiveInnerCornerSize,
+                    bottomStart = expressiveInnerCornerSize,
+                    bottomEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.END -> shapeSrc
+                .copy(
+                    topStart = expressiveInnerCornerSize,
+                    topEnd = expressiveInnerCornerSize,
+                )
+
+            ShapeState.ALL -> shapeSrc
+            else -> shapeSrc
+        }
+    } else {
+        shape = MaterialTheme.shapes.large
+    }
+    return shape
 }
 
 @Composable

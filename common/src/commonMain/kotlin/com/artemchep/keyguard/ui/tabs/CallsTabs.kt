@@ -1,17 +1,20 @@
 package com.artemchep.keyguard.ui.tabs
 
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.StringResource
 
 enum class CallsTabs(
-    override val title: StringResource,
+    override val key: String,
+    override val title: TextHolder,
 ) : TabItem {
     RECENTS(
-        title = Res.string.ciphers_recently_opened,
+        key = "recents",
+        title = TextHolder.Res(Res.string.ciphers_recently_opened),
     ),
     FAVORITES(
-        title = Res.string.ciphers_often_opened,
+        key = "favorites",
+        title = TextHolder.Res(Res.string.ciphers_often_opened),
     );
 
     companion object {

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.yubikey
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -199,9 +200,8 @@ private fun YubiKeyCard(
     text: String,
     content: (@Composable () -> Unit)? = null,
 ) {
-    Surface(
+    Box(
         modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
     ) {
         Column(
             modifier = Modifier

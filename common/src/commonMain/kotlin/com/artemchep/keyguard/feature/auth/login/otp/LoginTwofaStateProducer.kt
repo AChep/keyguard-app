@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.loading.LoadingTask
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -30,6 +31,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.URLParserException
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -114,13 +116,13 @@ fun produceLoginTwofaScreenState(
                 val checked = provider.type == selectedProviderType
                 TwoFactorProviderItem(
                     key = provider.type.name,
-                    title = translate(provider.name),
+                    title = TextHolder.Res(provider.name),
                     checked = checked,
                     onClick = {
                         providerTypeSink.value = provider.type
                     },
                 )
-            }
+            }.toImmutableList()
         }
     val providerCache = mutableMapOf<TwoFactorProviderType?, Flow<LoginTwofaState>>()
     val providerStateFlow = providerTypeSink

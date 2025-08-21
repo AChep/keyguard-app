@@ -38,6 +38,8 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -80,6 +82,10 @@ import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownLayoutExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemTextContent2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge2
@@ -872,7 +878,7 @@ private fun TextTextField(
     val field = state.value
     FlatTextField(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         leading = item.leading,
         label = state.label,
         value = field,
@@ -883,7 +889,7 @@ private fun TextTextField(
     if (item.note != null) {
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .padding(
                     top = Dimens.topPaddingCaption,
                     bottom = Dimens.topPaddingCaption,
@@ -952,7 +958,7 @@ private fun FieldTextField(
     }
     BiFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = state.label,
         value = state.text,
         valueVisualTransformation = if (visibilityState.isVisible || !state.hidden) {
@@ -984,7 +990,7 @@ private fun FieldSwitchField(
 ) {
     FlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         value = state.label,
         trailing = {
             Checkbox(
@@ -1046,7 +1052,7 @@ private fun FieldLinkedIdField(
 
     BiFlatContainer(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding)
+            .padding(horizontal = Dimens.fieldHorizontalPadding)
             .onFocusChanged { state ->
                 hasFocusState.value = state.hasFocus
             },
@@ -1134,9 +1140,8 @@ private fun SwitchField(
             field.onChange?.invoke(!field.checked)
         }
     }
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
-        paddingValues = paddingValues,
         leading = {
             Checkbox(
                 checked = state.checked,
@@ -1184,7 +1189,7 @@ private fun DateMonthYearField(
     }
     FakeFlatTextField(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = item.label,
         value = {
             Row(
@@ -1221,10 +1226,9 @@ private fun DateTimeField(
     Row(
         modifier = Modifier,
     ) {
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
             modifier = Modifier
                 .weight(1.5f),
-            paddingValues = paddingValues,
             content = {
                 FlatItemTextContent2(
                     title = {
@@ -1246,10 +1250,9 @@ private fun DateTimeField(
             },
             onClick = state.onSelectDate,
         )
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
             modifier = Modifier
                 .weight(1f),
-            paddingValues = paddingValues,
             content = {
                 FlatItemTextContent2(
                     title = {
@@ -1286,9 +1289,8 @@ private fun EnumItem(
     item: AddStateItem.Enum<*>,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
-        paddingValues = paddingValues,
         leading = item.leading,
         content = {
             FlatItemTextContent2(
@@ -1313,6 +1315,7 @@ private fun SectionItem(
     Section(
         modifier = modifier,
         text = item.text,
+        expressive = true,
     )
 }
 
@@ -1326,7 +1329,7 @@ private fun SuggestionItem(
     val state by item.state.flow.collectAsState()
     FlowRow(
         modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.contentPadding),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -1417,45 +1420,53 @@ private fun AddItem(
             dropdownShownState.value = false
         }
     }
-    val contentColor = MaterialTheme.colorScheme.primary
-    FlatItem(
-        paddingValues = paddingValues,
-        leading = {
-            Icon(Icons.Outlined.Add, null, tint = contentColor)
-        },
-        title = {
-            Text(
-                text = item.text,
-                color = contentColor,
-            )
-
-            DropdownMenu(
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
-                expanded = dropdownShownState.value,
-                onDismissRequest = onDismissRequest,
-            ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                with(scope) {
-                    item.actions.forEachIndexed { index, action ->
-                        DropdownMenuItemFlat(
-                            action = action,
-                        )
-                    }
-                }
-            }
-        },
+    Button(
+        modifier = modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
         onClick = {
             if (item.actions.size == 1) run {
                 val action = item.actions
                     .firstNotNullOfOrNull { it as? FlatItemAction }
                 action?.onClick?.invoke()
-                return@FlatItem
+                return@Button
             }
 
             dropdownShownState.value = true
         },
-    )
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(ButtonDefaults.IconSize),
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(ButtonDefaults.IconSpacing),
+        )
+        Text(
+            text = item.text,
+        )
+
+        DropdownMenu(
+            modifier = Modifier
+                .widthIn(min = DropdownMinWidth),
+            expanded = dropdownShownState.value,
+            onDismissRequest = onDismissRequest,
+        ) {
+            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
+            with(scope) {
+                item.actions.forEachIndexed { index, action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
+                }
+            }
+        }
+    }
 }
 
 //

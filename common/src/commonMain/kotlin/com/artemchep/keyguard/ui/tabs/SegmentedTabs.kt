@@ -62,6 +62,7 @@ fun <T : TabItem> SegmentedButtonGroup(
                 )
             }
         },
+        expandedRatio = 0.05f,
         modifier = modifier,
     ) {
         tabs.forEachIndexed { index, tab ->

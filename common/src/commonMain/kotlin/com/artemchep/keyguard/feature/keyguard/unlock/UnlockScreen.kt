@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.keyguard.unlock
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -16,9 +17,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +38,8 @@ import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.fold
@@ -52,13 +59,14 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.util.DividerColor
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 
-val unlockScreenTitlePadding = 48.dp
+val unlockScreenTitlePadding = 24.dp
 val unlockScreenActionPadding = 8.dp
 
 @Composable
@@ -110,7 +118,7 @@ private fun UnlockScreenSkeleton() {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun UnlockScreen(
     unlockState: UnlockState,
@@ -190,14 +198,18 @@ private fun UnlockScreen(
                     modifier = Modifier
                         .testTag("btn:go")
                         .fillMaxWidth(),
+                    shapes = ButtonDefaults.shapes(),
                     enabled = unlockState.unlockVaultByMasterPassword != null,
+                    contentPadding = ButtonDefaults.contentPaddingFor(
+                        buttonHeight = ButtonDefaults.MinHeight,
+                    ),
                     onClick = {
                         onUnlockButtonClick?.invoke()
                     },
                 ) {
                     Crossfade(
                         modifier = Modifier
-                            .size(24.dp),
+                            .size(ButtonDefaults.IconSize),
                         targetState = unlockState.isLoading,
                     ) { isLoading ->
                         if (isLoading) {
@@ -211,7 +223,7 @@ private fun UnlockScreen(
                     }
                     Spacer(
                         modifier = Modifier
-                            .width(Dimens.buttonIconPadding),
+                            .width(ButtonDefaults.IconSpacing),
                     )
                     Text(
                         text = stringResource(Res.string.unlock_button_unlock),
@@ -221,10 +233,14 @@ private fun UnlockScreen(
                 ExpandedIfNotEmpty(
                     valueOrNull = unlockState.biometric,
                 ) { b ->
-                    ElevatedButton(
+                    Button(
                         modifier = Modifier
                             .padding(top = 32.dp),
                         enabled = b.onClick != null,
+                        shapes = ButtonDefaults.shapes(),
+                        colors = ButtonDefaults.outlinedButtonColors(),
+                        elevation = null,
+                        border = ButtonDefaults.outlinedButtonBorder(),
                         onClick = {
                             onBiometricButtonClick?.invoke()
                         },

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.confirmation.elevatedaccess
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,8 +13,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -131,6 +132,7 @@ private fun ColumnScope.ElevatedAccessSkeleton() {
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ColumnScope.ElevatedAccessContent(
     content: ElevatedAccessState.Content,
@@ -174,16 +176,18 @@ private fun ColumnScope.ElevatedAccessContent(
             .align(Alignment.CenterHorizontally),
         valueOrNull = content.biometric,
     ) { b ->
-        OutlinedButton(
+        Button(
             modifier = Modifier
                 .padding(
                     top = 24.dp,
-                    bottom = 16.dp, // fix shadow clipping
+                    bottom = 8.dp, // fix shadow clipping
                 ),
             enabled = b.onClick != null,
-            border = BorderStroke(
-                width = Dp.Hairline,
-                color = DividerColor,
+            shapes = ButtonDefaults.shapes(),
+            colors = ButtonDefaults.outlinedButtonColors(),
+            elevation = null,
+            border = ButtonDefaults.outlinedButtonBorder(
+                enabled = b.onClick != null,
             ),
             onClick = {
                 onBiometricButtonClick?.invoke()

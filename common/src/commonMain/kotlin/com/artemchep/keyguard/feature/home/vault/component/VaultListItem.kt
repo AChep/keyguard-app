@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -233,7 +234,7 @@ fun LargeSection(
         modifier = modifier
             .padding(
                 vertical = 16.dp,
-                horizontal = Dimens.horizontalPadding,
+                horizontal = Dimens.textHorizontalPadding,
             ),
     ) {
         val textStyle = MaterialTheme.typography.labelLarge
@@ -815,6 +816,7 @@ fun FlatItemLayoutExpressive(
         ?: LocalContentColor.current,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
+    padding: PaddingValues? = null,
     content: @Composable ColumnScope.() -> Unit,
     footer: (@Composable ColumnScope.() -> Unit)? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
@@ -867,11 +869,17 @@ fun FlatItemLayoutExpressive(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(
-                start = outerHorizontalPadding,
-                end = outerHorizontalPadding,
-                top = 1.dp,
-                bottom = 2.dp, // in Android notifications the margin is 3 dp
+            .then(
+                if (padding != null) {
+                    Modifier
+                        .padding(padding)
+                } else Modifier
+                    .padding(
+                        start = outerHorizontalPadding,
+                        end = outerHorizontalPadding,
+                        top = 1.dp,
+                        bottom = 2.dp, // in Android notifications the margin is 3 dp
+                    )
             )
             .clip(shape)
             .then(background),

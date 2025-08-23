@@ -234,7 +234,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
         modifier = Modifier
             .padding(
                 vertical = 4.dp,
-                horizontal = 4.dp,
+                horizontal = Dimens.buttonHorizontalPadding,
             ),
         onClick = {
             val intent = NavigationIntent.NavigateToBrowser(

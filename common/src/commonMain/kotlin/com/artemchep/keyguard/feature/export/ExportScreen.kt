@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.SaveAlt
@@ -16,6 +18,8 @@ import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -36,7 +40,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.permission.PermissionState
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.search.filter.FilterButton
@@ -272,6 +280,7 @@ private fun ExportScreen(
     ScaffoldColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -356,7 +365,7 @@ private fun ExportScreen(
         )
         Icon(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             imageVector = Icons.Outlined.Info,
             contentDescription = null,
             tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
@@ -367,7 +376,7 @@ private fun ExportScreen(
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.exportaccount_format_note),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
@@ -383,7 +392,7 @@ private fun ExportScreen(
                 )
                 Text(
                     modifier = Modifier
-                        .padding(horizontal = Dimens.horizontalPadding),
+                        .padding(horizontal = Dimens.textHorizontalPadding),
                     text = stringResource(Res.string.exportaccount_attachments_note),
                     style = MaterialTheme.typography.bodyMedium,
                     color = LocalContentColor.current
@@ -400,7 +409,7 @@ private fun ColumnScope.ExportContentSkeleton(
     SkeletonTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
     )
 }
 
@@ -418,14 +427,10 @@ private fun ColumnScope.ExportContentOk(
         CompositionLocalProvider(
             LocalContentColor provides MaterialTheme.colorScheme.onWarningContainer,
         ) {
-            FlatItem(
+            FlatItemSimpleExpressive(
                 modifier = Modifier
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = 24.dp),
                 backgroundColor = MaterialTheme.colorScheme.warningContainer,
-                paddingValues = PaddingValues(
-                    horizontal = 16.dp,
-                    vertical = 0.dp,
-                ),
                 leading = icon<RowScope>(Icons.Outlined.Storage, Icons.Outlined.Warning),
                 title = {
                     Text(
@@ -441,9 +446,10 @@ private fun ColumnScope.ExportContentOk(
     PasswordFlatTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
         label = stringResource(Res.string.exportaccount_password_label),
         value = password.model,
+        shapeState = if (attachments.onToggle != null) ShapeState.START else ShapeState.ALL,
         trailing = {
             AutofillButton(
                 key = "password",
@@ -454,41 +460,13 @@ private fun ColumnScope.ExportContentOk(
             )
         },
     )
-    Spacer(
-        modifier = Modifier
-            .height(16.dp),
-    )
-    FlatItem(
-        leading = {
-            BadgedBox(
-                badge = {
-                    Badge(
-                        containerColor = MaterialTheme.colorScheme.badgeContainer,
-                    ) {
-                        val size = items.count
-                        Text(text = size.toString())
-                    }
-                },
-            ) {
-                Icon(Icons.Outlined.KeyguardCipher, null)
-            }
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.items),
-            )
-        },
-        trailing = {
-            ChevronIcon()
-        },
-        onClick = items.onView,
-    )
     if (attachments.onToggle != null) {
-        HorizontalDivider(
+        Spacer(
             modifier = Modifier
-                .padding(vertical = 8.dp),
+                .height(2.dp),
         )
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
+            shapeState = ShapeState.END,
             leading = {
                 Icon(Icons.Outlined.KeyguardAttachment, null)
             },
@@ -513,6 +491,47 @@ private fun ColumnScope.ExportContentOk(
                 )
             },
             onClick = attachments.onToggle,
+        )
+    }
+    Section(
+        expressive = true,
+    )
+
+    val updateOnClickView by rememberUpdatedState(items.onView)
+    Button(
+        modifier = Modifier
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        onClick = {
+            updateOnClickView
+                ?.invoke()
+        },
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+        enabled = updateOnClickView != null,
+    ) {
+        BadgedBox(
+            badge = {
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.badgeContainer,
+                ) {
+                    val size = items.count
+                    Text(text = size.toString())
+                }
+            },
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(ButtonDefaults.IconSize),
+                imageVector = Icons.Outlined.KeyguardCipher,
+                contentDescription = null,
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .width(24.dp),
+        )
+        Text(
+            text = stringResource(Res.string.items),
         )
     }
 }

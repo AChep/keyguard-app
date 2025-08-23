@@ -48,6 +48,7 @@ fun DataSafetyScreen() {
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -82,7 +83,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
     )
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(Res.string.datasafety_local_text),
     )
     Spacer(
@@ -95,7 +96,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
     TwoColumnRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         title = stringResource(Res.string.encryption),
         value = stringResource(Res.string.none),
     )
@@ -109,7 +110,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
     TwoColumnRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         title = stringResource(Res.string.encryption),
         value = "256-bit AES",
     )
@@ -123,7 +124,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
         Column {
             Text(
                 modifier = Modifier
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 text = stringResource(Res.string.datasafety_local_settings_note),
             )
         }
@@ -138,7 +139,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
     TwoColumnRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         title = stringResource(Res.string.encryption),
         value = stringResource(Res.string.encryption_algorithm_256bit_aes),
     )
@@ -156,7 +157,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
             val labelKey = stringResource(Res.string.encryption_key)
             Text(
                 modifier = Modifier
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 text = stringResource(
                     Res.string.datasafety_local_encryption_algorithm_intro,
                 ),
@@ -168,31 +169,31 @@ private fun ColumnScope.DataSafetyScreenContent() {
             TwoColumnRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 title = labelSalt,
                 value = stringResource(Res.string.encryption_random_bits_data, 64),
             )
             HorizontalDivider(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
             )
             TwoColumnRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 title = labelHash,
                 value = "PBKDF2($labelAppPassword, $labelSalt)",
             )
             HorizontalDivider(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
             )
             TwoColumnRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 title = labelKey,
                 value = "PBKDF2($labelAppPassword, $labelHash)",
             )
@@ -202,7 +203,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
             )
             Text(
                 modifier = Modifier
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 text = stringResource(
                     Res.string.datasafety_local_encryption_algorithm_outro,
                 ),
@@ -215,7 +216,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
     )
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(
             Res.string.datasafety_local_unlocking_vault,
             stringResource(Res.string.encryption_key),
@@ -226,7 +227,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
     )
     Text(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.textHorizontalPadding),
         text = stringResource(Res.string.datasafety_remote_text),
     )
     TextButton(

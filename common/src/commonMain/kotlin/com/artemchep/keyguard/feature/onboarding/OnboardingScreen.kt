@@ -261,6 +261,7 @@ private fun OnboardingContainer(
 @Composable
 fun OnboardingCard(
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     title: String,
     text: String? = null,
     premium: Boolean = false,
@@ -283,8 +284,7 @@ fun OnboardingCard(
             )
         }
         Column(
-            modifier = Modifier
-                .padding(8.dp)
+            modifier = contentModifier
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

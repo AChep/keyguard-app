@@ -15,8 +15,8 @@ val preferredGridWidth = 220.dp
 @Composable
 fun SimpleGridLayout(
     modifier: Modifier = Modifier,
-    mainAxisSpacing: Dp = Dimens.horizontalPaddingHalf,
-    crossAxisSpacing: Dp = Dimens.horizontalPaddingHalf,
+    mainAxisSpacing: Dp = Dimens.contentPadding,
+    crossAxisSpacing: Dp = Dimens.contentPadding,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(

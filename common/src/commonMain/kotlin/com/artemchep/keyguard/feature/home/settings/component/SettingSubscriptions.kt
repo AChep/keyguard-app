@@ -129,27 +129,28 @@ private fun SettingSubscriptions(
             stringResource(Res.string.pref_item_premium_membership_title),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
         )
         Text(
             stringResource(Res.string.pref_item_premium_membership_text),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
                 .padding(top = 4.dp)
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
         )
         Spacer(Modifier.height(8.dp))
         Row(
             modifier = Modifier
                 .padding(top = 8.dp, bottom = 16.dp)
                 .horizontalScroll(rememberScrollState())
-                .padding(start = 8.dp, end = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = Dimens.textHorizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             onboardingItemsPremium.forEach { item ->
                 OnboardingCard(
                     modifier = Modifier
                         .widthIn(max = 156.dp),
+                    contentModifier = Modifier,
                     title = stringResource(item.title),
                     text = stringResource(item.text),
                     imageVector = item.icon,
@@ -189,7 +190,7 @@ private fun SettingSubscriptions(
             stringResource(Res.string.pref_item_premium_membership_section_subscriptions_note),
             modifier = Modifier
                 .padding(top = 16.dp)
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),
@@ -367,6 +368,7 @@ private fun SettingItemLayout(
     price: @Composable ColumnScope.() -> Unit,
     content: (@Composable FlowRowScope.() -> Unit)? = null,
 ) {
+    val backgroundShape = MaterialTheme.shapes.large
     val backgroundModifier = run {
         val tintColor = MaterialTheme.colorScheme
             .surfaceColorAtElevationSemi(1.dp)
@@ -375,11 +377,11 @@ private fun SettingItemLayout(
     }
     val borderModifier = if (isActive) {
         Modifier
-            .border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
+            .border(1.dp, MaterialTheme.colorScheme.primary, backgroundShape)
     } else Modifier
     Box(
         modifier = modifier
-            .clip(MaterialTheme.shapes.large)
+            .clip(backgroundShape)
             .then(backgroundModifier)
             .then(borderModifier),
         propagateMinConstraints = true,

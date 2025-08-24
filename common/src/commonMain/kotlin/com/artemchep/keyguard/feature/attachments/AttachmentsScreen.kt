@@ -87,6 +87,7 @@ fun AttachmentsScreen(
     ScaffoldLazyColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -174,6 +175,7 @@ private fun Item(
         ItemAttachment(
             modifier = modifier,
             item = item.item,
+            shapeState = item.shapeState,
         )
 }
 

@@ -27,6 +27,28 @@ fun <T> Flow<Pair<List<T>, Int>>.mapShape(
         shapedItems to rev
     }
 
+fun <T> Flow<List<T>>.mapShape(
+) = this
+    .map { items ->
+        val shapedItems = items
+            .mapIndexed { index, item ->
+                val p = item as? GroupableShapeItem<T>
+                if (p != null) {
+                    val shapeState = getShapeState(
+                        list = items,
+                        index = index,
+                        predicate = { el, offset ->
+                            el is GroupableShapeItem<*>
+                        },
+                    )
+                    p.withShape(shapeState)
+                } else {
+                    item
+                }
+            }
+        shapedItems
+    }
+
 inline fun <T, R : T> Flow<Pair<List<T>, Int>>.mapShape(
     crossinline cast: (T) -> R?,
     crossinline transform: (R, Int) -> R,

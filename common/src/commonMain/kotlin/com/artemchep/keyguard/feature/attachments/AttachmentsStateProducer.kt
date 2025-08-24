@@ -49,6 +49,7 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.recordException
@@ -495,6 +496,7 @@ fun produceAttachmentsScreenState(
         .map {
             it.list
         }
+        .mapShape()
 
     val state = combine(
         itemsFlow,

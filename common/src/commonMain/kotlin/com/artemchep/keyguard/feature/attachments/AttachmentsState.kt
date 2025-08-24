@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.feature.attachments
 
 import androidx.compose.runtime.Immutable
+import com.artemchep.keyguard.common.model.GroupableShapeItem
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.ui.Selection
@@ -33,7 +35,10 @@ data class AttachmentsState(
         data class Attachment(
             override val key: String,
             val item: AttachmentItem,
-        ) : Item
+            val shapeState: Int = ShapeState.ALL,
+        ) : Item, GroupableShapeItem<Attachment> {
+            override fun withShape(shape: Int) = copy(shapeState = shape)
+        }
     }
 }
 

@@ -66,6 +66,7 @@ import com.artemchep.keyguard.ui.theme.infoContainer
 fun ItemAttachment(
     modifier: Modifier,
     item: AttachmentItem,
+    shapeState: Int,
 ) {
     val downloadStatusState = item.statusState.collectAsState()
     val selectableState = item.selectableState.collectAsState()
@@ -74,6 +75,7 @@ fun ItemAttachment(
         modifier = modifier,
         name = item.name,
         size = item.size,
+        shapeState = shapeState,
         dropdown = actionsState.value,
         previewUrlProvider = { downloadStatusState.value.previewUrl },
         downloadedProvider = {
@@ -237,6 +239,7 @@ private fun ItemAttachmentLayout(
     modifier: Modifier,
     name: String,
     size: String? = null,
+    shapeState: Int,
     dropdown: List<ContextItem>,
     previewUrlProvider: @Composable () -> String?,
     downloadedProvider: @Composable () -> Boolean,
@@ -254,6 +257,7 @@ private fun ItemAttachmentLayout(
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = shapeState,
         content = {
             FlatItemTextContent(
                 title = {

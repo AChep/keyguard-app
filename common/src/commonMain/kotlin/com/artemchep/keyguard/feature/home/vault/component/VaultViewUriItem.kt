@@ -45,6 +45,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -191,11 +192,9 @@ fun VaultViewUriItem(
             val onDismissRequest = {
                 selectedDropdown = emptyList()
             }
-            DropdownMenu(
+            KeyguardDropdownMenu(
                 expanded = selectedDropdown.isNotEmpty(),
                 onDismissRequest = onDismissRequest,
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
             ) {
                 val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
                 selectedDropdown.forEach { action ->

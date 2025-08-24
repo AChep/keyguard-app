@@ -65,6 +65,7 @@ import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -162,7 +163,8 @@ fun WordlistListScreen(
             )
         },
         floatingActionState = run {
-            val actions = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions.orEmpty()
+            val actions = loadableState.getOrNull()?.content?.getOrNull()
+                ?.getOrNull()?.primaryActions.orEmpty()
             val onClick = if (actions.isNotEmpty()) {
                 // lambda
                 {
@@ -190,20 +192,16 @@ fun WordlistListScreen(
                             primaryActionsDropdownVisibleState.value = false
                         }
                     }
-                    DropdownMenu(
-                        modifier = Modifier
-                            .widthIn(min = DropdownMinWidth),
+                    KeyguardDropdownMenu(
                         expanded = primaryActionsDropdownVisibleState.value,
                         onDismissRequest = onDismissRequest,
                     ) {
-                        val actions = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.primaryActions.orEmpty()
-                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                        with(scope) {
-                            actions.forEachIndexed { index, action ->
-                                DropdownMenuItemFlat(
-                                    action = action,
-                                )
-                            }
+                        val actions = loadableState.getOrNull()?.content?.getOrNull()
+                            ?.getOrNull()?.primaryActions.orEmpty()
+                        actions.forEachIndexed { index, action ->
+                            DropdownMenuItemFlat(
+                                action = action,
+                            )
                         }
                     }
                 },

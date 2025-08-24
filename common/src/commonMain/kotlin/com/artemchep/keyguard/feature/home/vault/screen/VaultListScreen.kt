@@ -73,6 +73,7 @@ import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.SmallFab
@@ -455,18 +456,15 @@ fun VaultHomeScreenListPane(
                                 dp.value = false
                             }
                         }
-                        DropdownMenu(
-                            modifier = Modifier
-                                .widthIn(min = DropdownMinWidth),
+                        KeyguardDropdownMenu(
                             expanded = dp.value,
                             onDismissRequest = onDismissRequest,
                         ) {
-                            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
                             DropdownMenuExpandableContainer(
-                                dropdownScope = scope,
+                                dropdownScope = this,
                                 list = state.primaryActions,
                             ) { action ->
-                                scope.DropdownMenuItemFlat(
+                                DropdownMenuItemFlat(
                                     action = action,
                                 )
                             }

@@ -90,6 +90,7 @@ import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScope
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconSmallBox
@@ -218,7 +219,7 @@ fun Section(
         HorizontalDivider(
             modifier = modifier
                 .padding(
-                    vertical = Dimens.contentPadding,
+                    vertical = 4.dp,
                 ),
         )
     }
@@ -408,19 +409,14 @@ fun VaultListItemText(
             val onDismissRequest = {
                 dropdownExpandedState.value = false
             }
-            DropdownMenu(
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
+            KeyguardDropdownMenu(
                 expanded = dropdownExpandedState.value,
                 onDismissRequest = onDismissRequest,
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                with(scope) {
-                    dropdownActions.forEach { action ->
-                        DropdownMenuItemFlat(
-                            action = action,
-                        )
-                    }
+                dropdownActions.forEach { action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
                 }
             }
         },
@@ -736,14 +732,11 @@ fun FlatDropdownLayoutExpressive(
             val onDismissRequest = {
                 isContentDropdownExpanded = false
             }
-            DropdownMenu(
+            KeyguardDropdownMenu(
                 expanded = isContentDropdownExpanded,
                 onDismissRequest = onDismissRequest,
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                dropdown?.invoke(scope)
+                dropdown?.invoke(this)
             }
         },
         footer = footer,
@@ -879,7 +872,7 @@ fun FlatItemLayoutExpressive(
                         end = outerHorizontalPadding,
                         top = 1.dp,
                         bottom = 2.dp, // in Android notifications the margin is 3 dp
-                    )
+                    ),
             )
             .clip(shape)
             .then(background),

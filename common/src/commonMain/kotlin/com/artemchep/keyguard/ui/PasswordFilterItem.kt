@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -301,14 +302,11 @@ fun FlatDropdownLayout(
             val onDismissRequest = {
                 isContentDropdownExpanded = false
             }
-            DropdownMenu(
+            KeyguardDropdownMenu(
                 expanded = isContentDropdownExpanded,
                 onDismissRequest = onDismissRequest,
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                dropdown?.invoke(scope)
+                dropdown?.invoke(this)
             }
         },
         actions = actions,

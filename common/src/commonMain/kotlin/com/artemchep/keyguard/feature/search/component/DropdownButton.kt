@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.theme.badgeContainer
 
 @Composable
@@ -97,10 +98,9 @@ fun <T> DropdownButton(
 
         // Inject the dropdown popup to the bottom of the
         // content.
-        DropdownMenu(
+        KeyguardDropdownMenu(
             modifier = Modifier
                 .widthIn(
-                    min = DropdownMinWidth,
                     max = 320.dp,
                 )
                 .fillMaxWidth(),

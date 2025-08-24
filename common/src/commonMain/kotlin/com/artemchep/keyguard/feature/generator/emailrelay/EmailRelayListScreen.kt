@@ -46,6 +46,7 @@ import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
@@ -160,19 +161,14 @@ fun EmailRelayListScreen(
                             dp.value = false
                         }
                     }
-                    DropdownMenu(
-                        modifier = Modifier
-                            .widthIn(min = DropdownMinWidth),
+                    KeyguardDropdownMenu(
                         expanded = dp.value,
                         onDismissRequest = onDismissRequest,
                     ) {
-                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                        with(scope) {
-                            pitems?.forEachIndexed { index, action ->
-                                DropdownMenuItemFlat(
-                                    action = action,
-                                )
-                            }
+                        pitems?.forEachIndexed { index, action ->
+                            DropdownMenuItemFlat(
+                                action = action,
+                            )
                         }
                     }
                 },

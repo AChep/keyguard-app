@@ -88,6 +88,7 @@ import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
@@ -327,19 +328,14 @@ private fun SendScreenContent(
                             dp.value = false
                         }
                     }
-                    DropdownMenu(
-                        modifier = Modifier
-                            .widthIn(min = DropdownMinWidth),
+                    KeyguardDropdownMenu(
                         expanded = dp.value,
                         onDismissRequest = onDismissRequest,
                     ) {
-                        val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                        with(scope) {
-                            state.primaryActions.forEachIndexed { index, action ->
-                                DropdownMenuItemFlat(
-                                    action = action,
-                                )
-                            }
+                        state.primaryActions.forEachIndexed { index, action ->
+                            DropdownMenuItemFlat(
+                                action = action,
+                            )
                         }
                     }
                 },

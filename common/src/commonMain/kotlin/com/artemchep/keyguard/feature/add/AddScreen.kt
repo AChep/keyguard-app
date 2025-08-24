@@ -113,6 +113,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.FlatTextFieldBadge
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
@@ -1200,19 +1201,14 @@ private fun FieldLinkedIdField(
                 )
             }
 
-            DropdownMenu(
-                modifier = Modifier
-                    .widthIn(min = DropdownMinWidth),
+            KeyguardDropdownMenu(
                 expanded = dropdownShownState.value,
                 onDismissRequest = onDismissRequest,
             ) {
-                val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-                with(scope) {
-                    state.actions.forEachIndexed { index, action ->
-                        DropdownMenuItemFlat(
-                            action = action,
-                        )
-                    }
+                state.actions.forEachIndexed { index, action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
                 }
             }
         },
@@ -1553,19 +1549,14 @@ private fun AddItem(
             text = item.text,
         )
 
-        DropdownMenu(
-            modifier = Modifier
-                .widthIn(min = DropdownMinWidth),
+        KeyguardDropdownMenu(
             expanded = dropdownShownState.value,
             onDismissRequest = onDismissRequest,
         ) {
-            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-            with(scope) {
-                item.actions.forEachIndexed { index, action ->
-                    DropdownMenuItemFlat(
-                        action = action,
-                    )
-                }
+            item.actions.forEachIndexed { index, action ->
+                DropdownMenuItemFlat(
+                    action = action,
+                )
             }
         }
     }

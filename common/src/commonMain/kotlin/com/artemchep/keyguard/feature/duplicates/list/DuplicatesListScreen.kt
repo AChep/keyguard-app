@@ -45,6 +45,7 @@ import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.DropdownIcon
@@ -168,16 +169,13 @@ fun DuplicatesListScreen(
                         val onDismissRequest = {
                             isAutofillWindowShowing = false
                         }
-                        DropdownMenu(
-                            modifier = Modifier
-                                .widthIn(min = DropdownMinWidth),
+                        KeyguardDropdownMenu(
                             expanded = isAutofillWindowShowing,
                             onDismissRequest = onDismissRequest,
                         ) {
-                            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
                             loadableState.getOrNull()?.sensitivities.orEmpty()
                                 .forEachIndexed { index, action ->
-                                    scope.DropdownMenuItemFlat(
+                                    DropdownMenuItemFlat(
                                         action = action,
                                     )
                                 }

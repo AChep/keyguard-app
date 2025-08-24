@@ -76,6 +76,7 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
@@ -620,19 +621,14 @@ private fun LoginItemAdd(
             text = item.text,
         )
 
-        DropdownMenu(
-            modifier = Modifier
-                .widthIn(min = DropdownMinWidth),
+        KeyguardDropdownMenu(
             expanded = dropdownShownState.value,
             onDismissRequest = onDismissRequest,
         ) {
-            val scope = DropdownScopeImpl(this, onDismissRequest = onDismissRequest)
-            with(scope) {
-                item.actions.forEachIndexed { index, action ->
-                    DropdownMenuItemFlat(
-                        action = action,
-                    )
-                }
+            item.actions.forEachIndexed { index, action ->
+                DropdownMenuItemFlat(
+                    action = action,
+                )
             }
         }
     }

@@ -175,7 +175,7 @@ fun AboutTeamScreen() {
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.team_artem_whoami_text),
         )
         Section(

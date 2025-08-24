@@ -100,7 +100,7 @@ fun EmptyView(
                 modifier = Modifier
                     .width(144.dp)
                     .height(144.dp)
-                    .border(5.dp, MaterialTheme.colorScheme.surfaceVariant, shape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, shape)
                     .padding(8.dp)
                     .clip(shape)
                     .graphicsLayer(

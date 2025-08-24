@@ -73,7 +73,7 @@ private fun SettingPermissionOther() {
                         modifier = Modifier
                             .padding(
                                 vertical = 4.dp,
-                                horizontal = Dimens.horizontalPadding,
+                                horizontal = Dimens.textHorizontalPadding,
                             ),
                     ) {
                         Text(

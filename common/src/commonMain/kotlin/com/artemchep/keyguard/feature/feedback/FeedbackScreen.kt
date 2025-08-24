@@ -56,6 +56,7 @@ private fun FeedbackContent(
     ScaffoldColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -97,7 +98,7 @@ private fun FeedbackContent(
     ) {
         val contentModifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding)
+            .padding(horizontal = Dimens.fieldHorizontalPadding)
         loadableState.fold(
             ifLoading = {
                 SkeletonTextField(
@@ -122,7 +123,7 @@ private fun FeedbackContent(
         )
         Icon(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             imageVector = Icons.Outlined.Info,
             contentDescription = null,
             tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
@@ -133,7 +134,7 @@ private fun FeedbackContent(
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.contactus_english_note),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
@@ -145,7 +146,7 @@ private fun FeedbackContent(
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = stringResource(Res.string.contactus_thanks_note),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),

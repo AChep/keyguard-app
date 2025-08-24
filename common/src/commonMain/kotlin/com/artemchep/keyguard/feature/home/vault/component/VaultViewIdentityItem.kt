@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -95,16 +97,20 @@ private fun RowScope.IdentityActionButton(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val updatedOnClick by rememberUpdatedState(action.onClick)
-        IconButton(
+        Button(
             onClick = {
                 updatedOnClick?.invoke()
             },
-            colors = IconButtonDefaults.filledIconButtonColors(),
-            shapes = IconButtonDefaults.shapes(),
+            colors = ButtonDefaults.buttonColors(),
+            shapes = ButtonDefaults.shapes(),
             enabled = updatedOnClick != null,
         ) {
             Box(
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(
+                        horizontal = 6.dp,
+                        vertical = 4.dp,
+                    ),
             ) {
                 if (action.leading != null) {
                     action.leading.invoke()

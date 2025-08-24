@@ -55,8 +55,8 @@ fun HorizontalContextItems(
     FlowRow(
         modifier = modifier
             .padding(
-                start = Dimens.contentPadding,
-                end = Dimens.contentPadding,
+                start = Dimens.buttonHorizontalPadding,
+                end = Dimens.buttonHorizontalPadding,
                 bottom = 24.dp,
             ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),

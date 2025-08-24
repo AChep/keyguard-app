@@ -30,6 +30,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import io.ktor.sse.SPACE
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -38,7 +39,8 @@ fun VaultViewIdentityItem(
     item: VaultViewItem.Identity,
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val title = item.data.title
@@ -119,6 +121,10 @@ private fun RowScope.IdentityActionButton(
                 }
             }
         }
+        Spacer(
+            modifier = Modifier
+                .height(4.dp),
+        )
         Text(
             text = textResource(action.title),
             style = MaterialTheme.typography.titleSmall,

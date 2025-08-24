@@ -33,7 +33,6 @@ import com.artemchep.keyguard.feature.search.search.mapSearch
 import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
-import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceListState
 import com.artemchep.keyguard.platform.parcelize.LeIgnoredOnParcel
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize

@@ -20,7 +20,6 @@ import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
 import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.filter.view.CipherFilterViewDialogRoute
 import com.artemchep.keyguard.feature.filter.view.CipherFilterViewFullRoute
-import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText

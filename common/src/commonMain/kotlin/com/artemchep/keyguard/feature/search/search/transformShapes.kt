@@ -27,7 +27,7 @@ fun <T> Flow<Pair<List<T>, Int>>.mapShape(
         shapedItems to rev
     }
 
-fun <T> Flow<List<T>>.mapShape(
+fun <T> Flow<List<T>>.mapListShape(
 ) = this
     .map { items ->
         val shapedItems = items

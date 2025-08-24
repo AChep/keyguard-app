@@ -44,12 +44,11 @@ import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
-import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.search.search.mapShape
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.recordException
@@ -496,7 +495,7 @@ fun produceAttachmentsScreenState(
         .map {
             it.list
         }
-        .mapShape()
+        .mapListShape()
 
     val state = combine(
         itemsFlow,

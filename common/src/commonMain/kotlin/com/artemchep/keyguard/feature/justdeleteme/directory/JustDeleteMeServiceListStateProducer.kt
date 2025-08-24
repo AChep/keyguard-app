@@ -9,7 +9,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
@@ -18,7 +17,6 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.favicon.FaviconImage
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
-import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewState
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize

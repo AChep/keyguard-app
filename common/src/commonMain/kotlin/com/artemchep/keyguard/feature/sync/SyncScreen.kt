@@ -29,6 +29,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
@@ -79,6 +80,7 @@ private fun SyncContent(
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -118,7 +120,7 @@ private fun TestK(
     Column(
         modifier = modifier,
     ) {
-        FlatItemLayout(
+        FlatItemLayoutExpressive(
             leading = {
                 when (item.status) {
                     is SyncState.Item.Status.Ok,

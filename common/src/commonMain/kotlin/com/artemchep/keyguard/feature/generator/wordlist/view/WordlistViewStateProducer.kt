@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists

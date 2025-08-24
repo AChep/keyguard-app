@@ -10,13 +10,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
-import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewState
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
-import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataListState
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts

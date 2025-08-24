@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
@@ -88,6 +89,7 @@ private fun LogsScreenSkeleton(
     ScaffoldLazyColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -119,6 +121,7 @@ private fun LogsScreenContent(
     ScaffoldLazyColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             LargeToolbar(
@@ -233,8 +236,9 @@ private fun LogItem(
     modifier: Modifier,
     item: LogsItem.Value,
 ) {
-    FlatItemLayout(
+    FlatItemLayoutExpressive(
         modifier = modifier,
+        shapeState = item.shapeState,
         content = {
             Row {
                 val levelContainerColor = when (item.level) {

@@ -73,6 +73,7 @@ fun SearchSettingsScreenContent(
         modifier = Modifier
             .pullRefresh(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             CustomToolbar(

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistory
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
@@ -15,6 +16,7 @@ import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
@@ -31,6 +33,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -253,7 +256,7 @@ fun vaultViewPasswordHistoryScreenState(
         }
         .combine(selectionHandle.idsFlow) { passwords, ids ->
             val selectionMode = ids.isNotEmpty()
-            passwords
+            val items = passwords
                 .asSequence()
                 .map { passwordWrapper ->
                     val password = passwordWrapper.src
@@ -273,6 +276,27 @@ fun vaultViewPasswordHistoryScreenState(
                     )
                 }
                 .toPersistentList()
+            val itemsReShaped = items
+                .mapIndexed { index, item ->
+                    when (item) {
+                        is VaultPasswordHistoryItem.Value -> {
+                            val shapeState = getShapeState(
+                                list = items,
+                                index = index,
+                                predicate = { el, offset ->
+                                    el is VaultPasswordHistoryItem.Value
+                                },
+                            )
+                            item.copy(
+                                shapeState = shapeState,
+                            )
+                        }
+
+                        else -> item
+                    }
+                }
+                .toImmutableList()
+            itemsReShaped
         }
 
     val actionsFlow = flowOf(

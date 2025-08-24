@@ -28,8 +28,9 @@ fun VaultPasswordHistoryValueItem(
         item.selected -> MaterialTheme.colorScheme.primaryContainer
         else -> Color.Unspecified
     }
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         leading = {
             val icon = Icons.Outlined.Password
             Icon(icon, null)

@@ -15,7 +15,7 @@ jobs:
     name: Synchronize Just get my data
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: pip install -r .github/update_justgetmydata.requirements.txt
       - name: "Update library"
         run: |

@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout main repo"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: "Checkout F-Droid repo"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: AChep/keyguard-repo-fdroid
           fetch-depth: 0

@@ -46,12 +46,12 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and large
 
 |        |        |        |
 | :----: | :----: | :----: |
-| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233006.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233040.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233118.png) | 
-| ![4](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233159.png) | ![5](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233236.png) | ![6](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20230928_233342.png) |
+| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174631.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174459.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174520.png) | 
+| ![4](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174547.png) | ![5](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174558.png) | ![6](https://github.com/AChep/keyguard-app/blob/master/screenshots/phone/Screenshot_20250825_174612.png) |
 
 |        |
 | :----: |
-| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20240306-111704.png) |
+| ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20250825_180106.png) |
 
 ## Localisation
 

@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canDelete
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.res.Res
@@ -504,24 +505,7 @@ fun foldersScreenState(
             }
             .toList()
         val itemsReShaped = items
-            .mapIndexed { index, item ->
-                when (item) {
-                    is FoldersState.Content.Item.Folder -> {
-                        val shapeState = getShapeState(
-                            list = items,
-                            index = index,
-                            predicate = { el, offset ->
-                                el is FoldersState.Content.Item.Folder
-                            },
-                        )
-                        item.copy(
-                            shapeState = shapeState,
-                        )
-                    }
-
-                    else -> item
-                }
-            }
+            .mapListShape()
             .toImmutableList()
         FoldersState.Content(
             items = itemsReShaped,

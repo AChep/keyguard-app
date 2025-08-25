@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import arrow.core.Either
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
@@ -41,5 +42,7 @@ data class UrlOverrideListState(
         val active: Boolean,
         val dropdown: ImmutableList<ContextItem>,
         val selectableState: StateFlow<SelectableItemState>,
-    )
+    ) : GroupableShapeItem<Item> {
+        override fun withShape(shape: Int) = copy(shapeState = shape)
+    }
 }

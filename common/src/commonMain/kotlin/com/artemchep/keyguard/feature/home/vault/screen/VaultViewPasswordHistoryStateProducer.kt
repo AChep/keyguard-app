@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
@@ -277,24 +278,7 @@ fun vaultViewPasswordHistoryScreenState(
                 }
                 .toPersistentList()
             val itemsReShaped = items
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is VaultPasswordHistoryItem.Value -> {
-                            val shapeState = getShapeState(
-                                list = items,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is VaultPasswordHistoryItem.Value
-                                },
-                            )
-                            item.copy(
-                                shapeState = shapeState,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
+                .mapListShape()
                 .toImmutableList()
             itemsReShaped
         }

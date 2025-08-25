@@ -11,7 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -23,18 +22,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Avatar
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -64,7 +63,9 @@ private data class SocialNetworkItem(
     val shapeState: Int = ShapeState.ALL,
     val leading: @Composable RowScope.() -> Unit,
     val onClick: () -> Unit,
-)
+) : GroupableShapeItem<SocialNetworkItem> {
+    override fun withShape(shape: Int) = copy(shapeState = shape)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -130,18 +131,7 @@ fun AboutTeamScreen() {
             )
         }
         items
-            .mapIndexed { index, item ->
-                val shapeState = getShapeState(
-                    list = items,
-                    index = index,
-                    predicate = { el, offset ->
-                        true
-                    },
-                )
-                item.copy(
-                    shapeState = shapeState,
-                )
-            }
+            .mapListShape()
             .toPersistentList()
     }
 
@@ -200,7 +190,7 @@ fun AboutTeamScreen() {
         )
         Text(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPadding),
+                .padding(horizontal = Dimens.textHorizontalPadding),
             text = "Thanks you my friends for supporting me and patiently testing the app.",
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current

@@ -32,6 +32,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -357,18 +358,7 @@ fun produceUrlOverrideListState(
                     )
                 }
                 items
-                    .mapIndexed { index, item ->
-                        val shapeState = getShapeState(
-                            list = items,
-                            index = index,
-                            predicate = { el, offset ->
-                                true
-                            },
-                        )
-                        item.copy(
-                            shapeState = shapeState,
-                        )
-                    }
+                    .mapListShape()
                     .toPersistentList()
         }
         .crashlyticsAttempt { e ->

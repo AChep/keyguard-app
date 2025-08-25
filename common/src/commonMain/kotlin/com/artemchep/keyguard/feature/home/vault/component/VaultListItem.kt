@@ -219,7 +219,7 @@ fun Section(
         HorizontalDivider(
             modifier = modifier
                 .padding(
-                    vertical = 4.dp,
+                    vertical = 8.dp,
                 ),
         )
     }

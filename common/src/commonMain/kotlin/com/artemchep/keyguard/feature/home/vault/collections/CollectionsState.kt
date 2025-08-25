@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.collections
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.model.DOrganization
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.ui.ContextItem
@@ -52,7 +53,9 @@ data class CollectionsState(
                 val actions: ImmutableList<ContextItem>,
                 val onClick: (() -> Unit)?,
                 val onLongClick: (() -> Unit)?,
-            ) : Item
+            ) : Item, GroupableShapeItem<Collection> {
+                override fun withShape(shape: Int) = copy(shapeState = shape)
+            }
         }
     }
 }

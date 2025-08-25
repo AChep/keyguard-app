@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -66,18 +67,7 @@ fun produceEquivalentDomainsScreenState(
                 }
                 .toList()
             val itemsReShaped = items
-                .mapIndexed { index, item ->
-                    val shapeState = getShapeState(
-                        list = items,
-                        index = index,
-                        predicate = { el, offset ->
-                            el is EquivalentDomainsState.Content.Item.Content
-                        },
-                    )
-                    item.copy(
-                        shapeState = shapeState,
-                    )
-                }
+                .mapListShape()
                 .toImmutableList()
             EquivalentDomainsState.Content(
                 items = itemsReShaped,

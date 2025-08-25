@@ -20,6 +20,7 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -320,24 +321,7 @@ fun collectionsScreenState(
             }
             .toList()
         val itemsReShaped = items
-            .mapIndexed { index, item ->
-                when (item) {
-                    is CollectionsState.Content.Item.Collection -> {
-                        val shapeState = getShapeState(
-                            list = items,
-                            index = index,
-                            predicate = { el, offset ->
-                                el is CollectionsState.Content.Item.Collection
-                            },
-                        )
-                        item.copy(
-                            shapeState = shapeState,
-                        )
-                    }
-
-                    else -> item
-                }
-            }
+            .mapListShape()
             .toImmutableList()
         CollectionsState.Content(
             title = CollectionsState.Content.Title(),

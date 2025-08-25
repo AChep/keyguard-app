@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -369,24 +370,7 @@ fun produceGeneratorHistoryState(
             }
 
             val itemsReShaped = out
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is GeneratorHistoryItem.Value -> {
-                            val shapeState = getShapeState(
-                                list = out,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is GeneratorHistoryItem.Value
-                                },
-                            )
-                            item.copy(
-                                shapeState = shapeState,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
+                .mapListShape()
                 .toPersistentList()
             itemsReShaped
         }

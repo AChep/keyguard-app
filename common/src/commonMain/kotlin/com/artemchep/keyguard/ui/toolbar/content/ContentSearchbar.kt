@@ -20,6 +20,7 @@ fun CustomSearchbarContent(
     focusRequester: FocusRequester2,
     title: String? = null,
     subtitle: String? = null,
+    playPromo: Boolean = false,
     icon: @Composable () -> Unit = {},
     actions: @Composable () -> Unit = {},
 ) {
@@ -43,6 +44,7 @@ fun CustomSearchbarContent(
             searchIcon = !hasTopBar,
             focusRequester = focusRequester,
             focusFlow = searchFieldModel.focusFlow,
+            playPromo = playPromo,
             leading = {
                 if (!hasTopBar) {
                     icon()

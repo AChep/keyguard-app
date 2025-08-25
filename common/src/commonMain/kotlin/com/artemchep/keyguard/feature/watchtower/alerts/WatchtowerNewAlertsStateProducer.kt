@@ -40,6 +40,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.feature.watchtower.DISMISS_NOTIFICATIONS_DELAY_MS
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
@@ -375,27 +376,7 @@ fun produceGeneratorHistoryState(
             }
 
             val itemsReShaped = out
-                .mapIndexed { index, item ->
-                    when (item) {
-                        is WatchtowerNewAlertsState.Item.Alert -> {
-                            val shapeState = getShapeState(
-                                list = out,
-                                index = index,
-                                predicate = { el, offset ->
-                                    el is WatchtowerNewAlertsState.Item.Alert
-                                },
-                            )
-                            val innerItem = item.item.copy(
-                                shapeState = shapeState,
-                            )
-                            item.copy(
-                                item = innerItem,
-                            )
-                        }
-
-                        else -> item
-                    }
-                }
+                .mapListShape()
                 .toImmutableList()
             itemsReShaped
         }

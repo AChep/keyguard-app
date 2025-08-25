@@ -1,14 +1,18 @@
 package com.artemchep.keyguard.feature.home.settings.search
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.home.settings.hub
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
+import com.artemchep.keyguard.feature.search.search.mapListShape
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
@@ -86,8 +90,10 @@ fun produceSearchSettingsState(
                 .sortedByDescending { it.score }
         }
         .map { items ->
+            val itemsReShaped = items
+                .mapListShape()
             SearchSettingsState(
-                items = items,
+                items = itemsReShaped,
             )
         }
     combine(

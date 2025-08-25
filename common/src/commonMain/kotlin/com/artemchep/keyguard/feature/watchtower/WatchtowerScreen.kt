@@ -101,6 +101,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.GridLayout
 import com.artemchep.keyguard.ui.OptionsButton
+import com.artemchep.keyguard.ui.ProvideScaffoldLocalValues
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -190,12 +191,16 @@ fun WatchtowerScreen(
             )
         },
     ) { modifier, tabletUi ->
-        WatchtowerScreen2(
-            modifier = modifier,
-            state = state,
-            tabletUi = tabletUi,
-            scrollBehavior = scrollBehavior,
-        )
+        ProvideScaffoldLocalValues(
+            expressive = true,
+        ) {
+            WatchtowerScreen2(
+                modifier = modifier,
+                state = state,
+                tabletUi = tabletUi,
+                scrollBehavior = scrollBehavior,
+            )
+        }
     }
 }
 
@@ -289,7 +294,7 @@ fun WatchtowerScreen2(
                     Column {
                         Spacer(
                             modifier = Modifier
-                                .height(8.dp),
+                                .height(Dimens.contentPadding),
                         )
                         FlatItemSimpleExpressive(
                             leading = {
@@ -524,11 +529,7 @@ private fun ColumnScope.DashboardContentData(
             .height(8.dp),
     )
     Column(
-        modifier = Modifier
-            .padding(
-                horizontal = Dimens.horizontalPaddingHalf,
-            )
-            .clip(MaterialTheme.shapes.medium),
+        modifier = Modifier,
     ) {
         Spacer(
             modifier = Modifier
@@ -539,7 +540,7 @@ private fun ColumnScope.DashboardContentData(
         ) {
             Text(
                 modifier = Modifier
-                    .padding(horizontal = Dimens.horizontalPaddingHalf),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 text = stringResource(Res.string.watchtower_section_password_strength_label),
             )
         }
@@ -553,7 +554,7 @@ private fun ColumnScope.DashboardContentData(
         Box(
             modifier = Modifier
                 .height(24.dp)
-                .padding(horizontal = Dimens.horizontalPaddingHalf)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .fillMaxWidth()
                 .drawBehind {
                     if (total == 0) {
@@ -614,7 +615,7 @@ private fun ColumnScope.DashboardContentData(
     )
     FlowRow(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
+            .padding(horizontal = Dimens.contentPadding),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -693,11 +694,7 @@ private fun ColumnScope.DashboardContentSkeleton() {
             .height(8.dp),
     )
     Column(
-        modifier = Modifier
-            .padding(
-                horizontal = Dimens.horizontalPaddingHalf,
-            )
-            .clip(MaterialTheme.shapes.medium),
+        modifier = Modifier,
     ) {
         Spacer(
             modifier = Modifier
@@ -705,7 +702,7 @@ private fun ColumnScope.DashboardContentSkeleton() {
         )
         SkeletonText(
             modifier = Modifier
-                .padding(horizontal = Dimens.horizontalPaddingHalf)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .fillMaxWidth(0.3f),
             style = MaterialTheme.typography.titleMedium,
         )
@@ -718,7 +715,7 @@ private fun ColumnScope.DashboardContentSkeleton() {
         Box(
             modifier = Modifier
                 .height(24.dp)
-                .padding(horizontal = Dimens.horizontalPaddingHalf)
+                .padding(horizontal = Dimens.textHorizontalPadding)
                 .fillMaxWidth()
                 .shimmer()
                 .clip(MaterialTheme.shapes.small)
@@ -735,7 +732,7 @@ private fun ColumnScope.DashboardContentSkeleton() {
     )
     FlowRow(
         modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPaddingHalf),
+            .padding(horizontal = Dimens.contentPadding),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -1212,12 +1209,14 @@ private fun ContentLayout(
                 Section(
                     text = stringResource(Res.string.watchtower_section_security_label),
                 )
+                val mainAxisSpacing = 8.dp
+                val crossAxisSpacing = 8.dp
                 GridLayout(
                     modifier = Modifier
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = Dimens.contentPadding),
                     columns = columns,
-                    mainAxisSpacing = 8.dp,
-                    crossAxisSpacing = 8.dp,
+                    mainAxisSpacing = mainAxisSpacing,
+                    crossAxisSpacing = crossAxisSpacing,
                 ) {
                     cardsContent()
                 }
@@ -1226,10 +1225,10 @@ private fun ContentLayout(
                 )
                 GridLayout(
                     modifier = Modifier
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = Dimens.contentPadding),
                     columns = columns,
-                    mainAxisSpacing = 8.dp,
-                    crossAxisSpacing = 8.dp,
+                    mainAxisSpacing = mainAxisSpacing,
+                    crossAxisSpacing = crossAxisSpacing,
                 ) {
                     cardsContent2()
                 }
@@ -1278,7 +1277,7 @@ fun Card(
     }
     Box(
         modifier = modifier
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.large)
             .then(backgroundModifier),
         propagateMinConstraints = true,
     ) {

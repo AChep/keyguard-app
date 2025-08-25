@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsState
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.toImmutableList
@@ -121,18 +122,7 @@ fun produceLogsState(
                 }
                 .toPersistentList()
             val itemsReShaped = items
-                .mapIndexed { index, item ->
-                    val shapeState = getShapeState(
-                        list = items,
-                        index = index,
-                        predicate = { el, offset ->
-                            el is LogsItem.Value
-                        },
-                    )
-                    item.copy(
-                        shapeState = shapeState,
-                    )
-                }
+                .mapListShape()
                 .toImmutableList()
             LogsState.Content(
                 items = itemsReShaped,

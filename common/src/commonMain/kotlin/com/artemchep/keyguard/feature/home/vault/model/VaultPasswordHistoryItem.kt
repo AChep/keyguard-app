@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.model
 
 import arrow.optics.optics
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.ui.ContextItem
 
@@ -25,7 +26,9 @@ sealed interface VaultPasswordHistoryItem {
         val dropdown: List<ContextItem> = emptyList(),
         val onClick: (() -> Unit)? = null,
         val onLongClick: (() -> Unit)? = null,
-    ) : VaultPasswordHistoryItem {
-        companion object
+    ) : VaultPasswordHistoryItem, GroupableShapeItem<Value> {
+        companion object;
+
+        override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 }

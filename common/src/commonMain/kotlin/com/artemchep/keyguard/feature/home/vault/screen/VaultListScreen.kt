@@ -174,6 +174,7 @@ fun VaultListScreen(
                 focusRequester = focusRequester,
                 title = args.appBar?.title,
                 subtitle = args.appBar?.subtitle,
+                playPromo = true,
                 icon = {
                     NavigationIcon()
                 },
@@ -376,6 +377,7 @@ fun VaultHomeScreenListPane(
                     focusRequester = focusRequester,
                     title = title,
                     subtitle = subtitle,
+                    playPromo = true,
                     icon = {
                         NavigationIcon()
                     },

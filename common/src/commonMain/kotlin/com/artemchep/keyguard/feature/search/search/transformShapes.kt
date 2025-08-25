@@ -31,23 +31,30 @@ fun <T> Flow<List<T>>.mapListShape(
 ) = this
     .map { items ->
         val shapedItems = items
-            .mapIndexed { index, item ->
-                val p = item as? GroupableShapeItem<T>
-                if (p != null) {
-                    val shapeState = getShapeState(
-                        list = items,
-                        index = index,
-                        predicate = { el, offset ->
-                            el is GroupableShapeItem<*>
-                        },
-                    )
-                    p.withShape(shapeState)
-                } else {
-                    item
-                }
-            }
+            .mapListShape()
         shapedItems
     }
+
+fun <T> List<T>.mapListShape(
+) = kotlin.run {
+    val shapedItems = this
+        .mapIndexed { index, item ->
+            val p = item as? GroupableShapeItem<T>
+            if (p != null) {
+                val shapeState = getShapeState(
+                    list = this,
+                    index = index,
+                    predicate = { el, offset ->
+                        el is GroupableShapeItem<*>
+                    },
+                )
+                p.withShape(shapeState)
+            } else {
+                item
+            }
+        }
+    shapedItems
+}
 
 inline fun <T, R : T> Flow<Pair<List<T>, Int>>.mapShape(
     crossinline cast: (T) -> R?,

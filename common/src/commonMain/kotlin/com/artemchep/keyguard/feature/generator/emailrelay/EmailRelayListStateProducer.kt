@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
+import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -357,18 +358,7 @@ fun produceEmailRelayListState(
                 }
                 .toList()
             val itemsReShaped = items
-                .mapIndexed { index, item ->
-                    val shapeState = getShapeState(
-                        list = items,
-                        index = index,
-                        predicate = { el, offset ->
-                            el is EmailRelayListState.Item
-                        },
-                    )
-                    item.copy(
-                        shapeState = shapeState,
-                    )
-                }
+                .mapListShape()
                 .toImmutableList()
             itemsReShaped
         }

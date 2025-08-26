@@ -818,6 +818,13 @@
     "notes": "Click on your profile icon, then \"Settings\", \"Privacy settings\", \"Download account data\" and \"Request data\"."
   },
   {
+    "name": "VirtCloud",
+    "domains": [],
+    "url": "https://virtcloud.net",
+    "difficulty": "hard",
+    "notes": "To request your account data, please send an email to info@virtcloud.net with the subject 'Account Data Request'. Include your full name and registered email address. Once verified, a copy of all data associated with your account will be sent to you within 48 hours."
+  },
+  {
     "name": "Walmart",
     "domains": [],
     "url": "https://cpa-ui.walmart.com/affirmation?brandCode=WMT",

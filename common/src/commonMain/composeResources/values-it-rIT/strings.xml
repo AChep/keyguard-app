@@ -484,7 +484,7 @@
     <string name="error_must_not_be_blank">Non può essere vuoto</string>
     <string name="error_must_be_custom_domain">Deve essere un dominio personalizzato</string>
     <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
     <string name="error_must_contain_only_us_ascii_chars">Deve contenere solo caratteri US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Deve avere almeno <xliff:g id="length" example="15">%1$d</xliff:g> simboli</string>
     <string name="error_must_have_exactly_n_symbols">Deve avere <xliff:g id="length" example="15">%1$d</xliff:g> simboli</string>
@@ -494,7 +494,7 @@
     <string name="error_invalid_uri">URI non valido</string>
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_incorrect_password">Password errata</string>
-    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
+    <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Creazione di una chiave non riuscita, memoria insufficiente. Controlla le impostazioni del server KDF.</string>
     <string name="error_failed_generate_otp_code">Impossibile generare il codice OTP</string>
     <string name="error_failed_create_passkey">Impossibile creare passkey</string>
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Licenze open source</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Account</string>
     <string name="pref_item_accounts_text">Aggiungi e visualizza account</string>
     <string name="pref_item_autofill_title">Riempimento automatico</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Colore Tinta</string>
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Usa tema scuro a contrasto</string>
+    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Apri link in browser esterno</string>
     <string name="pref_item_close_to_tray_title">Chiudi in area di notifica</string>
     <string name="pref_item_check_pwned_passwords_title">Controlla password pwned</string>

@@ -33,15 +33,15 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> días</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> semana</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> semanas</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> mes</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> meses</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> año</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> años</item>
     </plurals>
 </resources>

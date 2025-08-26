@@ -950,6 +950,8 @@
     <string name="settings_subscriptions_header_title">Keyguard 高级版</string>
     <string name="settings_watchtower_header_title">概况</string>
     <string name="settings_open_source_licenses_header_title">开放源代码许可</string>
+    <string name="pref_section_premium_title">高级版</string>
+    <string name="pref_section_options_title">选项</string>
     <string name="pref_item_accounts_title">账户</string>
     <string name="pref_item_accounts_text">添加和查看账户</string>
     <string name="pref_item_autofill_title">自动填充</string>
@@ -997,6 +999,7 @@
     <string name="pref_item_color_accent_title">主题颜色</string>
     <string name="pref_item_color_scheme_title">主题</string>
     <string name="pref_item_color_scheme_amoled_dark_title">使用纯黑主题</string>
+    <string name="pref_item_color_scheme_expressive_title">使用 Expressive 主题</string>
     <string name="pref_item_open_links_in_external_browser_title">在外部浏览器中打开链接</string>
     <string name="pref_item_close_to_tray_title">关闭至系统托盘</string>
     <string name="pref_item_check_pwned_passwords_title">查看被泄露的密码</string>

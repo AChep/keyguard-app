@@ -283,7 +283,7 @@
     <string name="ciphers_action_view_password_history_title">Zobacz historię haseł</string>
     <string name="ciphers_action_trash_title">Kosz</string>
     <string name="ciphers_action_trash_confirmation_title">Przenieść do Kosza?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash for more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Przywróć</string>
     <string name="ciphers_action_restore_confirmation_title">Przywrócić z kosza?</string>
     <string name="ciphers_action_delete_title">Trwale usuń</string>
@@ -484,7 +484,7 @@
     <string name="error_must_not_be_blank">Must not be blank</string>
     <string name="error_must_be_custom_domain">Must be custom domain</string>
     <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
     <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
     <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
@@ -494,7 +494,7 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
-    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
+    <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Accounts</string>
     <string name="pref_item_accounts_text">Add &amp; view accounts</string>
     <string name="pref_item_autofill_title">Autofill</string>
@@ -984,7 +986,7 @@
     <string name="pref_item_download_apk_title">Download APK file</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
     <string name="pref_item_load_website_icons_title">Load Website icons</string>
-    <string name="pref_item_load_website_icons_text">Queuing website icon might leak the website address to internet provider</string>
+    <string name="pref_item_load_website_icons_text">Queuing website icons might leak website addresses to your internet provider</string>
     <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rich text formatting</string>
     <string name="pref_item_markdown_text">Use Markdown to format notes</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Tint color</string>
     <string name="pref_item_color_scheme_title">Theme</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Use contrast black theme</string>
+    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
     <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
@@ -1066,7 +1069,7 @@
     <string name="pref_item_autofill_manual_selection_text">Displays an option to manually search a vault for an entry</string>
     <string name="pref_item_autofill_respect_autofill_disabled_title">Respect Autofill disabled flag</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Disables autofill for a browser field that has autofill disabled flag set</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are notorious for disabling autofill for a password field as well as some browsers are notorious for ignoring the autofill disabled flag</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are known for disabling autofill for password fields. Additionally, some browsers are known for ignoring the autofill-disabled flag.</string>
     <string name="pref_item_autofill_save_request_title">Ask to save data</string>
     <string name="pref_item_autofill_save_request_text">Asks for updating the vault when filling of a form has completed</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-save app or website info</string>
@@ -1078,7 +1081,7 @@
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Never</string>
     <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
     <string name="pref_item_premium_membership_title">About Keyguard membership</string>
-    <string name="pref_item_premium_membership_text">The Premium unlocks extra features and funds a development of the app. Thank you for supporting us! ❤️</string>
+    <string name="pref_item_premium_membership_text">The Premium unlocks extra features and funds the development of the app. Thank you for supporting us! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Subscriptions</string>
     <string name="pref_item_premium_membership_section_subscriptions_note">Your subscription will renew 24 hours before it expires and your Google Play account will be automatically charged at that time. You can turn auto-renewal on or off, and you can cancel your subscription at any time on Google Play. If you've never subscribed, you may be eligible for a free trial. You won't be charged if you cancel before the end of your free trial.</string>
     <string name="pref_item_premium_membership_section_products_title">Products</string>
@@ -1152,7 +1155,7 @@
     <string name="datasafety_local_settings_note">The User settings are encrypted using a device-specific key.</string>
     <string name="datasafety_local_vault_section">Sejf</string>
     <string name="datasafety_local_encryption_algorithm_intro">The Vault is encrypted using a Key, derived from the App password using following steps:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">The Salt and the Hash is then stored locally on a device, to later generate a master key to unlock the vault.</string>
+    <string name="datasafety_local_encryption_algorithm_outro">The Salt and Hash are then stored locally on a device, to later generate a master key to unlock the vault.</string>
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>

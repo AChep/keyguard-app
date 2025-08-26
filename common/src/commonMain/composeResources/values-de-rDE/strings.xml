@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Wachturm</string>
     <string name="settings_open_source_licenses_header_title">Open-Source-Lizenzen</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Konten</string>
     <string name="pref_item_accounts_text">Konten hinzufügen &amp; anzeigen</string>
     <string name="pref_item_autofill_title">Autofill</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Farbton</string>
     <string name="pref_item_color_scheme_title">Farbschema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Schwarzes Farbschema verwenden</string>
+    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Links in externem Browser öffnen</string>
     <string name="pref_item_close_to_tray_title">In die Taskleiste schließen</string>
     <string name="pref_item_check_pwned_passwords_title">Auf kompromittierte Passwörter prüfen</string>

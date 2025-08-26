@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 
-private const val PROMO_DURATION_MS = 500L
+private const val PROMO_DURATION_MS = 1500L
 
 enum class PromoViewStatus {
     PROMO,
@@ -54,33 +54,29 @@ fun PromoView(
     AnimatedContent(
         modifier = modifier,
         transitionSpec = {
-            val inAnimation = fadeIn(animationSpec = tween(180, delayMillis = 80)) +
+            val animationDurationMultiplier = 2
+
+            fun mul(duration: Int): Int = duration * animationDurationMultiplier
+
+            val inAnimation = fadeIn(animationSpec = tween(mul(180), delayMillis = mul(60))) +
                     slideIn(
-                        animationSpec = tween(180, delayMillis = 80),
+                        animationSpec = tween(mul(180), delayMillis = mul(60)),
                         initialOffset = {
                             IntOffset(
-                                x = (8 * density.density).toInt(),
+                                x = (4 * density.density).toInt(),
                                 y = 0,
                             )
                         },
-                    ) +
-                    scaleIn(
-                        initialScale = 0.97f,
-                        animationSpec = tween(80, delayMillis = 80),
                     )
-            val outAnimation = fadeOut(animationSpec = tween(180)) +
+            val outAnimation = fadeOut(animationSpec = tween(mul(180))) +
                     slideOut(
-                        animationSpec = tween(180),
+                        animationSpec = tween(mul(180)),
                         targetOffset = {
                             IntOffset(
-                                x = -(8 * density.density).toInt(),
+                                x = -(4 * density.density).toInt(),
                                 y = 0,
                             )
                         },
-                    ) +
-                    scaleOut(
-                        targetScale = 0.97f,
-                        animationSpec = tween(80),
                     )
             (inAnimation)
                 .togetherWith(outAnimation)

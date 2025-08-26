@@ -127,25 +127,10 @@ fun SearchTextField(
                 leading()
 
                 if (searchIcon) {
-                    PromoView(
-                        modifier = Modifier
-                            .size(24.dp),
-                        state = promoState,
-                        promo = {
-                            Icon(
-                                modifier = Modifier
-                                    .padding(top = 1.dp)
-                                    .padding(1.dp),
-                                imageVector = Icons.Outlined.Lock,
-                                contentDescription = null,
-                            )
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = null,
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null,
+                    )
                 } else {
                     Spacer(
                         modifier = Modifier

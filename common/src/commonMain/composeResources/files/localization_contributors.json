@@ -41,6 +41,10 @@
         "name": "English, United Kingdom"
       },
       {
+        "id": "fi",
+        "name": "Finnish"
+      },
+      {
         "id": "fr",
         "name": "French"
       },
@@ -105,8 +109,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 6774,
-    "target": 6397,
+    "translated": 8568,
+    "target": 7841,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -206,7 +210,7 @@
       "id": "12838049",
       "username": "OrStudio.tw",
       "fullName": "Jia-Bin (OrStudio.tw)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/12838049/medium/3dd4e5400007ef708b80956977ffbaa4_default.png",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/12838049/medium/32d4009e60740ab99b31eb9dabd3d3ae.jpg",
       "joined": "2024-09-24 14:58:01"
     },
     "languages": [
@@ -303,8 +307,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5514,
-    "target": 4745,
+    "translated": 5519,
+    "target": 4750,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -492,7 +496,7 @@
       "id": "13955413",
       "username": "rainloreley",
       "fullName": "Adrian Baumgart (rainloreley)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13955413/medium/361c7470bcdc53842d8df91d103e12ab.png",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13955413/medium/29afe6627f4e8cb188f686ddbe42efdf.jpg",
       "joined": "2024-06-21 14:21:42"
     },
     "languages": [
@@ -645,8 +649,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5519,
-    "target": 5526,
+    "translated": 5596,
+    "target": 5605,
     "approved": 3188,
     "voted": 0,
     "positiveVotes": 8,
@@ -667,8 +671,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2466,
-    "target": 3882,
+    "translated": 2471,
+    "target": 3892,
     "approved": 0,
     "voted": 11,
     "positiveVotes": 2,
@@ -865,13 +869,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5329,
-    "target": 4956,
-    "approved": 5556,
+    "translated": 5476,
+    "target": 5090,
+    "approved": 5703,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5286
+    "winning": 5433
   },
   {
     "user": {
@@ -961,7 +965,7 @@
     "target": 432,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 3,
+    "positiveVotes": 5,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1119,7 +1123,7 @@
     "target": 3960,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 3,
+    "positiveVotes": 4,
     "negativeVotes": 4,
     "winning": 0
   },
@@ -1170,9 +1174,9 @@
   {
     "user": {
       "id": "16155212",
-      "username": "Medzik",
-      "fullName": "Oskar (Medzik)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16155212/medium/44f5b83d4a4039b9f1f976627d4f6e7c.png",
+      "username": "OskarKarpinski",
+      "fullName": "Oskar Karpi\u0144ski (OskarKarpinski)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16155212/medium/1ef30f95766c646ce5e5f21317320371_default.png",
       "joined": "2025-02-18 05:13:09"
     },
     "languages": [
@@ -1405,7 +1409,7 @@
     "target": 141,
     "approved": 0,
     "voted": 3,
-    "positiveVotes": 4,
+    "positiveVotes": 5,
     "negativeVotes": 1,
     "winning": 0
   },
@@ -1459,6 +1463,28 @@
   },
   {
     "user": {
+      "id": "16486399",
+      "username": "TheRedCyclops",
+      "fullName": "TheRedCyclops",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16486399/medium/7f39226180120d5a9efcb8e13d8aec8e_default.png",
+      "joined": "2025-07-06 18:58:58"
+    },
+    "languages": [
+      {
+        "id": "es-ES",
+        "name": "Spanish"
+      }
+    ],
+    "translated": 254,
+    "target": 276,
+    "approved": 0,
+    "voted": 5,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "16498335",
       "username": "Aseel67",
       "fullName": "Aseel67",
@@ -1506,7 +1532,7 @@
       "id": "16517747",
       "username": "m335",
       "fullName": "m335",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16517747/medium/5c0c5d3fc9e655cb0b105e6f1cc47a58_default.png",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16517747/medium/55d2f35519159c50a3b12ed8ca8a355e.jpg",
       "joined": "2024-08-08 11:02:31"
     },
     "languages": [
@@ -1515,8 +1541,8 @@
         "name": "French"
       }
     ],
-    "translated": 162,
-    "target": 191,
+    "translated": 167,
+    "target": 197,
     "approved": 0,
     "voted": 14,
     "positiveVotes": 0,
@@ -1713,8 +1739,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5506,
-    "target": 6022,
+    "translated": 5511,
+    "target": 6028,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

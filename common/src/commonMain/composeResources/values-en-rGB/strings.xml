@@ -283,7 +283,7 @@
     <string name="ciphers_action_view_password_history_title">View password history</string>
     <string name="ciphers_action_trash_title">Bin</string>
     <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash for more than 30 days will be automatically deleted.</string>
     <string name="ciphers_action_restore_title">Restore</string>
     <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
@@ -484,7 +484,7 @@
     <string name="error_must_not_be_blank">Must not be blank</string>
     <string name="error_must_be_custom_domain">Must be custom domain</string>
     <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
     <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
     <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
@@ -494,7 +494,7 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
-    <string name="error_otp_key_must_not_be_empty">One time password's secret key must not be empty</string>
+    <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Open-source licences</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Accounts</string>
     <string name="pref_item_accounts_text">Add &amp; view accounts</string>
     <string name="pref_item_autofill_title">Autofill</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Tint colour</string>
     <string name="pref_item_color_scheme_title">Theme</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Use contrast black theme</string>
+    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
     <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>

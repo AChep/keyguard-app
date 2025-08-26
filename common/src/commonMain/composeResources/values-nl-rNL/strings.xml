@@ -138,7 +138,7 @@
     <string name="expiration_date_custom">Aangepast</string>
     <string name="expiration_date_never">Nooit</string>
     <string name="select_linked_type">Selecteer type</string>
-    <string name="select_file">Bestand selecteren</string>
+    <string name="select_file">Selecteer bestand</string>
     <string name="autofill">Automatisch aanvullen</string>
     <string name="autofill_and_save_uri">Automatisch aanvullen en opslaan van app of website informatie</string>
     <string name="passkey">Toegangssleutel</string>
@@ -775,9 +775,9 @@
     <string name="sortby_password_strength_reverse_mode">Sterkste eerst</string>
     <string name="relative_time_just_now_short">zojuist</string>
     <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m geleden</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g> uur geleden</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g> dag geleden</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g> week geleden</string>
     <string name="vault_main_search_placeholder">Kluis doorzoeken</string>
     <string name="vault_main_new_item_button">Nieuw item</string>
     <string name="vault_main_no_suggested_items">Er zijn geen voorgestelde artikelen beschikbaar voor deze context</string>
@@ -819,7 +819,7 @@
     <string name="generator_passphrase_number_title">Nummers</string>
     <string name="generator_passphrase_wordlist_title">Woordenlijst</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Bijna één op de 10 mensen gebruikt dezelfde viercijferige pincode. Genereer pincodes om veelvoorkomende varianten te voorkomen.</string>
     <string name="generator_username_type">Gebruikersnaam</string>
     <string name="generator_username_delimiter_title">Scheidingsteken</string>
     <string name="generator_username_custom_word_title">Aangepast woord</string>
@@ -894,8 +894,8 @@
     <string name="watchtower_item_expiring_items_text">Items die verlopen zijn of binnenkort verlopen.</string>
     <string name="watchtower_item_duplicate_websites_title">Dubbele URIs</string>
     <string name="watchtower_item_duplicate_websites_text">Items met een of meer URI's die dezelfde websites bevatten na het toepassen van de overeenkomst detectie.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">Brede URI overeenkomst detectie</string>
+    <string name="watchtower_item_broad_websites_text">Items die een of meer URI's hebben die overeenkomen met detectieregels zouden waarschijnlijk beperkt moeten worden.</string>
     <string name="watchtower_item_trashed_items_title">Weggegooide items</string>
     <string name="watchtower_item_trashed_items_text">Voorwerpen die naar de prullenbak zijn verplaatst. Te veel voorwerpen in de prullenbak kunnen de reactietijd van je kluis verlagen.</string>
     <string name="watchtower_item_empty_folders_title">Lege mappen</string>
@@ -904,7 +904,7 @@
     <string name="watchtower_item_duplicate_items_text">Helpt u dubbele items in uw kluis te identificeren en te verwijderen.</string>
     <string name="watchtower_item_compromised_accounts_title">Gecompromitteerde Accounts</string>
     <string name="watchtower_item_compromised_accounts_text">Controleer of je gebruikersnamen en wachtwoorden zijn gevonden in bekende datalekken.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Nieuwe Watchtower waarschuwingen</string>
     <string name="watchtower_alerts_header_title">Nieuwe watchtower waarschuwingen</string>
     <string name="watchtower_mark_all_as_read_title">Markeer alles als gelezen</string>
     <string name="changepassword_header_title">App-wachtwoord wijzigen</string>
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenties</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Opties</string>
     <string name="pref_item_accounts_title">Accounts</string>
     <string name="pref_item_accounts_text">Toon &amp; voeg accounts toe</string>
     <string name="pref_item_autofill_title">Automatisch aanvullen</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Tint kleur</string>
     <string name="pref_item_color_scheme_title">Thema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Gebruik zwart contrast thema</string>
+    <string name="pref_item_color_scheme_expressive_title">Gebruik expressief thema</string>
     <string name="pref_item_open_links_in_external_browser_title">Open links in externe browser</string>
     <string name="pref_item_close_to_tray_title">Sluiten naar systeemvak</string>
     <string name="pref_item_check_pwned_passwords_title">Controleer op gelekte wachtwoorden</string>

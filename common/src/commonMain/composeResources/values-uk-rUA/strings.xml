@@ -25,7 +25,7 @@
     <string name="email_visibility">Видимість електронної пошти</string>
     <string name="public_url">Загальнодоступна URL-адреса</string>
     <string name="url">URL-адреса</string>
-    <string name="conceal_value">Скрити значення</string>
+    <string name="conceal_value">Приховати значення</string>
     <string name="field_label">Підпис</string>
     <string name="field_value">Значення</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
@@ -174,7 +174,7 @@
     <string name="reused_password">Повторюваний пароль</string>
     <string name="reused_passwords">Повторювані паролі</string>
     <string name="one_time_password">Одноразовий пароль</string>
-    <string name="one_time_password_authenticator_key">Ключ автентифікатору</string>
+    <string name="one_time_password_authenticator_key">Ключ автентифікатора</string>
     <string name="passkey_use_short">Використати</string>
     <string name="passkey_save">Зберегти ключ доступу</string>
     <string name="passkey_available">Доступний ключ доступу</string>
@@ -231,7 +231,7 @@
     <string name="bitwarden_premium">Bitwarden преміум</string>
     <string name="bitwarden_premium_required">Необхідний Bitwarden преміум</string>
     <string name="bitwarden_unofficial_server">Неофіційний сервер Bitwarden</string>
-    <string name="pro_tip">Факт: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip">Порада: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Генеруй одноразові поштові адреси для кращої приватності.</string>
     <string name="account_last_synced_at">Останній раз синхронізовано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Змінити назву</string>
@@ -365,7 +365,7 @@
     <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з іменем власника карти</string>
     <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з місяцем закінченням терміну картки</string>
     <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з роком закінченням терміну картки</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язаний з кодом безпеки карти</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з кодом безпеки карти</string>
     <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з виробником картки</string>
     <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з номером картки</string>
     <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> зв'язано з титулом</string>
@@ -391,7 +391,7 @@
     <string name="text_action_share_with_title">Поділитися через…</string>
     <string name="text_action_send_title">Створити відправлення</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Зберегти незашифровані ключі</string>
-    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Ключі збережені в теку Завантаження</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Ключі збережено в теку Завантаження</string>
     <string name="ssh_key_action_save_public_key_title">Зберегти відкритий ключ</string>
     <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Відкритий ключ збережено в теку Завантаження</string>
     <string name="ssh_key_action_save_unencrypted_private_key_title">Зберегти незашифрований секретний ключ</string>
@@ -422,8 +422,8 @@
     <string name="copy_ssh_public_key">Скопіювати публічний ключ</string>
     <string name="copy_ssh_fingerprint">Скопіювати відбиток ключа</string>
     <string name="copied_value">Скопійовано значення</string>
-    <string name="copied_url">Скопійований URL</string>
-    <string name="copied_uri">Скопійований URI</string>
+    <string name="copied_url">Скопійовано URL</string>
+    <string name="copied_uri">Скопійовано URI</string>
     <string name="copied_package_name">Скопійовано назву пакету</string>
     <string name="copied_key">Скопійовано ключ</string>
     <string name="copied_fingerprint">Скопійовано відбиток</string>
@@ -472,7 +472,7 @@
     <string name="expiry_tips_card_line1">Термін дії картки закінчується <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Є кілька речей, які ви можете зробити, щоб забезпечити плавний перехід:</string>
     <string name="expiry_tips_card_line2">1. Отримайте нову картку: банк міг вже надіслати вам замінну картку з новим терміном дії. Якщо ні, то зверніться до емітента вашої картки, щоб спланувати отримання нової картки.</string>
     <string name="expiry_tips_card_line3">2. Оновіть автоматичні платежі: якщо ви маєте будь-які автоматичні платежі, такі як місячне членство в спортзалі або підписка Netflix, не забудьте оновити інформацію з новими даними картки.</string>
-    <string name="expiry_tips_card_line4">3. Знищить стару картку: як тільки ваша нова карта приїде і ви оновите всю необхідну інформацію, переконайтеся в тому, щоб надійно утилізувати прострочену картку, щоб запобігти крадіжці ідентичності.</string>
+    <string name="expiry_tips_card_line4">3. Знищить стару картку: щойно ваша нова картка надійде і ви оновите всю необхідну інформацію, переконайтеся в тому, щоб надійно утилізувати прострочену картку, щоб запобігти крадіжці ідентичності.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
@@ -513,7 +513,7 @@
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Штрих-код</string>
     <string name="barcodetype_action_show_in_barcode_title">Штрих-код</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Перенесіть автентифікатор на інший пристрій зчитав QR-код.</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Перенесіть автентифікатор на інший пристрій, зчитавши QR-код.</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">Вибір дати</string>
     <!-- Title of the 'Color picker' dialog -->
@@ -636,7 +636,7 @@
     <string name="additem_header_new_title">Новий запис</string>
     <string name="additem_header_edit_title">Редагувати запис</string>
     <string name="additem_header_merge_title">Об'єднати елементи</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Перемісти початкові записи до кошика</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Перемістити початкові записи до кошика</string>
     <string name="additem_merge_attachments_note">Об’єднання елементів не об'єднує їх вкладення! Створений новий елемент не буде мати доданих вкладень.</string>
     <string name="additem_note_placeholder">Додайте будь-які примітки про цей запис</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
@@ -652,7 +652,7 @@
     <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
     <string name="addsend_max_access_count_note">Якщо встановлено, користувачі більше не зможуть отримати доступ до цього відправлення після досягнення максимальної кількості відвідувань.</string>
     <string name="addaccount_header_title">Додати обліковий запис Bitwarden</string>
-    <string name="addaccount_disclaimer_bitwarden_label">Ми не асоційовані, авторизовані, схвалені, або будь-яким чином офіційно з'єднані з Bitwarden Inc., або будь-якими його дочірніми компаніями або партнерами.</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Ми не асоційовані, авторизовані, схвалені, або будь-яким чином офіційно пов'язані з Bitwarden Inc., або будь-якими його дочірніми компаніями або партнерами.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard преміум</string>
     <string name="settings_watchtower_header_title">Вартова вежа</string>
     <string name="settings_open_source_licenses_header_title">Ліцензії відкритого програмного забезпечення</string>
+    <string name="pref_section_premium_title">Преміум</string>
+    <string name="pref_section_options_title">Опції</string>
     <string name="pref_item_accounts_title">Облікові записи</string>
     <string name="pref_item_accounts_text">Додати та переглянути облікові записи</string>
     <string name="pref_item_autofill_title">Автозаповнення</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Колір відтінку</string>
     <string name="pref_item_color_scheme_title">Тема оформлення</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Використовувати контрастну чорну тему</string>
+    <string name="pref_item_color_scheme_expressive_title">Використовувати експресивну тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Відкривати посилання у зовнішньому браузері</string>
     <string name="pref_item_close_to_tray_title">При закритті згортати до системного трею</string>
     <string name="pref_item_check_pwned_passwords_title">Перевіряти викриті паролі</string>
@@ -1002,7 +1005,7 @@
     <string name="pref_item_check_inactive_2fa_title">Перевіряти неактивну двофакторну автентифікацію</string>
     <string name="pref_item_check_inactive_passkeys_title">Перевіряти неактивні ключі доступу</string>
     <string name="pref_item_conceal_fields_title">Скрити значення полів</string>
-    <string name="pref_item_conceal_fields_text">Приховувати конфіденційну інформацію, таку як паролі або номера кредитних карток</string>
+    <string name="pref_item_conceal_fields_text">Приховувати конфіденційну інформацію, таку як паролі або номери кредитних карток</string>
     <!--
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
@@ -1056,7 +1059,7 @@
     <string name="pref_item_autofill_service_chrome_native_autofill_title">Браузер Chrome додає підтримку сторонніх сервісів автозаповнення</string>
     <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Відкрийте налаштування Chrome та тицьніть Автозаповнення
 2. Оберіть Автозаповнення за допомогою іншого сервісу
-3. Підтвердите та перезавантажте Chrome</string>
+3. Підтвердьте та перезавантажте Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Автоматично копіювати одноразові паролі</string>
     <string name="pref_item_autofill_auto_copy_otp_text">Автоматично копіювати одноразові паролі при заповненні логіну</string>
     <string name="pref_item_autofill_default_match_detection_title">Виявлення збігів за замовчуванням</string>
@@ -1150,9 +1153,9 @@
     <string name="datasafety_local_downloads_section">Завантаження</string>
     <string name="datasafety_local_settings_section">Налаштування користувача</string>
     <string name="datasafety_local_settings_note">Налаштування користувача зашифровано за допомогою ключа пристрою.</string>
-    <string name="datasafety_local_vault_section">Налаштування користувача</string>
+    <string name="datasafety_local_vault_section">Сховище</string>
     <string name="datasafety_local_encryption_algorithm_intro">Сховище зашифровано за допомогою ключа, який було отримано з пароля застосунку таким алгоритмом:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">Після цього сіль та хеш записується локально на пристрій для подальшої генерації майстер ключа для розблокування сховища.</string>
+    <string name="datasafety_local_encryption_algorithm_outro">Після цього сіль та хеш записується локально на пристрій для подальшої генерації майстер-ключа для розблокування сховища.</string>
     <string name="datasafety_local_unlocking_vault">Розблокування сховища означає збереження коректного майстер-ключа в оперативній пам'яті пристрою, що дає можливість читати та редагувати зашифроване сховище.</string>
     <string name="datasafety_remote_section">Віддалені дані</string>
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>

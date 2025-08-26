@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard 프리미엄</string>
     <string name="settings_watchtower_header_title">감시탑</string>
     <string name="settings_open_source_licenses_header_title">오픈 소스 라이선스</string>
+    <string name="pref_section_premium_title">프리미엄</string>
+    <string name="pref_section_options_title">옵션</string>
     <string name="pref_item_accounts_title">계정</string>
     <string name="pref_item_accounts_text">계정 추가 및 확인</string>
     <string name="pref_item_autofill_title">자동 완성</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">강조 색상</string>
     <string name="pref_item_color_scheme_title">테마</string>
     <string name="pref_item_color_scheme_amoled_dark_title">다크 테마에 검정색 사용</string>
+    <string name="pref_item_color_scheme_expressive_title">익스프레시브 테마 사용</string>
     <string name="pref_item_open_links_in_external_browser_title">외부 브라우저에서 열기</string>
     <string name="pref_item_close_to_tray_title">시스템 트레이로 닫기</string>
     <string name="pref_item_check_pwned_passwords_title">유출된 비밀번호 확인</string>

@@ -251,7 +251,7 @@
     <string name="account_action_items_title">Öğeler</string>
     <string name="account_action_log_out_title">Oturumu kapat</string>
     <string name="account_log_out_confirmation_title">Oturum kapatılsın mı?</string>
-    <string name="account_log_out_confirmation_text">Senkronize edilmemiş tüm değişiklikler kaybolacak!</string>
+    <string name="account_log_out_confirmation_text">Tüm senkronize edilmemiş değişiklikler kaybolacak!</string>
     <string name="folder_action_change_name_title">Adı değiştir</string>
     <string name="folder_action_change_names_title">Adları değiştir</string>
     <string name="folder_action_merge_title">Şununla birleştir…</string>
@@ -259,7 +259,7 @@
     <string name="folder_action_create_title">Bir klasör oluştur</string>
     <string name="folder_delete_one_confirmation_title">Klasör silinsin mi?</string>
     <string name="folder_delete_many_confirmation_title">Klasörler silinsin mi?</string>
-    <string name="folder_delete_confirmation_text">Bu öğe(ler) derhal silinecektir. Bu işlemi geri alamazsınız.</string>
+    <string name="folder_delete_confirmation_text">Bu öğe(ler) hemen silinecek. Bu işlemi geri alamazsınız.</string>
     <string name="ciphers_recently_opened">Son açılanlar</string>
     <string name="ciphers_often_opened">Sık açılanlar</string>
     <string name="ciphers_history_empty">Henüz geçmiş yok</string>
@@ -283,7 +283,7 @@
     <string name="ciphers_action_view_password_history_title">Parola geçmişini görüntüle</string>
     <string name="ciphers_action_trash_title">Çöp Kutusuna Taşı</string>
     <string name="ciphers_action_trash_confirmation_title">Çöp kutusuna taşınsın mı?</string>
-    <string name="ciphers_action_trash_confirmation_text">30 günden uzun süredir Çöp Kutusu'nda bulunan öğeler otomatik olarak silinecektir.</string>
+    <string name="ciphers_action_trash_confirmation_text">Çöp kutusunda 30 günden fazla kalan öğeler otomatik olarak silinecektir.</string>
     <string name="ciphers_action_restore_title">Geri yükle</string>
     <string name="ciphers_action_restore_confirmation_title">Çöp kutusundan geri yüklensin mi?</string>
     <string name="ciphers_action_delete_title">Kalıcı olarak sil</string>
@@ -484,7 +484,7 @@
     <string name="error_must_not_be_blank">Boş olmamalıdır</string>
     <string name="error_must_be_custom_domain">Özel alan adı olmalıdır</string>
     <string name="error_must_be_number">Sayı olmalıdır</string>
-    <string name="error_must_be_less_than_days">Mevcut zamandan <xliff:g id="days" example="15">%1$d</xliff:g> günden az olmalıdır</string>
+    <string name="error_must_be_less_than_days">Bugünden itibaren <xliff:g id="days" example="15">%1$d</xliff:g> günden az olmalıdır</string>
     <string name="error_must_contain_only_us_ascii_chars">Yalnızca US-ASCII karakterleri içermelidir</string>
     <string name="error_must_have_at_least_n_symbols">En az <xliff:g id="length" example="15">%1$d</xliff:g> sembol uzunluğunda olmalıdır</string>
     <string name="error_must_have_exactly_n_symbols"><xliff:g id="length" example="15">%1$d</xliff:g> sembol uzunluğunda olmalıdır</string>
@@ -520,7 +520,7 @@
     <string name="colorpicker_title">Renk seçici</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justdeleteme_title">Bir hesap nasıl silinir?</string>
-    <string name="justdeleteme_subtitle">Web servislerinden hesabınızı nasıl sileceğinize dair bilgi koleksiyonu</string>
+    <string name="justdeleteme_subtitle">Web hizmetlerinden hesabınızı nasıl sileceğinize dair bilgilerin bir koleksiyonu</string>
     <!-- Simple process -->
     <string name="justdeleteme_difficulty_easy_label">Kolay</string>
     <!-- Some extra steps involved -->
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Gözcü Kulesi</string>
     <string name="settings_open_source_licenses_header_title">Açık kaynak lisansları</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Seçenekler</string>
     <string name="pref_item_accounts_title">Hesaplar</string>
     <string name="pref_item_accounts_text">Hesap ekle ve görüntüle</string>
     <string name="pref_item_autofill_title">Otomatik doldurma</string>
@@ -984,7 +986,7 @@
     <string name="pref_item_download_apk_title">APK dosyasını indir</string>
     <string name="pref_item_load_app_icons_title">Uygulama simgelerini yükle</string>
     <string name="pref_item_load_website_icons_title">Web sitesi simgelerini yükle</string>
-    <string name="pref_item_load_website_icons_text">Web sitesi simgesini sıraya almak, web sitesi adresini internet sağlayıcısına sızdırabilir</string>
+    <string name="pref_item_load_website_icons_text">Web sitesi simgelerinin sıraya alınması, web sitesi adreslerinin internet sağlayıcınıza sızmasına neden olabilir</string>
     <string name="pref_item_load_gravatar_icons_title">Gravatar simgelerini yükle</string>
     <string name="pref_item_markdown_title">Zengin metin biçimlendirme</string>
     <string name="pref_item_markdown_text">Notları biçimlendirmek için Markdown kullan</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Vurgu rengi</string>
     <string name="pref_item_color_scheme_title">Tema</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Kontrastlı siyah tema kullan</string>
+    <string name="pref_item_color_scheme_expressive_title">Duygulu temayı kullan</string>
     <string name="pref_item_open_links_in_external_browser_title">Bağlantıları harici tarayıcıda aç</string>
     <string name="pref_item_close_to_tray_title">Sistem tepsisine kapat</string>
     <string name="pref_item_check_pwned_passwords_title">Ele geçirilmiş parolaları kontrol et</string>
@@ -1066,7 +1069,7 @@
     <string name="pref_item_autofill_manual_selection_text">Bir giriş için kasayı manuel olarak arama seçeneği görüntüler</string>
     <string name="pref_item_autofill_respect_autofill_disabled_title">Otomatik doldurma devre dışı bırakma bayrağına saygı göster</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Otomatik doldurma devre dışı bırakma bayrağı ayarlanmış bir tarayıcı alanı için otomatik doldurmayı devre dışı bırakır</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_note">Bazı web sitelerinin bir parola alanı için otomatik doldurmayı devre dışı bırakmasıyla kötü bir üne sahip olduğunu ve bazı tarayıcıların da otomatik doldurma devre dışı bırakma bayrağını görmezden gelmesiyle kötü bir üne sahip olduğunu unutmayın</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Bazı web sitelerinin parola alanlarında otomatik doldurmayı devre dışı bıraktığı bilinmektedir. Ayrıca, bazı tarayıcıların otomatik doldurma devre dışı bırakılmış olsa bile bu durumu dikkate almadığı da bilinmektedir.</string>
     <string name="pref_item_autofill_save_request_title">Verileri kaydetmeyi sor</string>
     <string name="pref_item_autofill_save_request_text">Bir formun doldurulması tamamlandığında kasayı güncellemeyi sorar</string>
     <string name="pref_item_autofill_auto_save_source_title">Uygulama veya web sitesi bilgilerini otomatik kaydet</string>

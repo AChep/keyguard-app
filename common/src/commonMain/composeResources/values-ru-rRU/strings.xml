@@ -79,7 +79,7 @@
     <string name="time">Время</string>
     <string name="attachments">Вложения</string>
     <string name="attachments_empty_label">Без вложений</string>
-    <string name="deactivated">Выключено</string>
+    <string name="deactivated">Деактивировано</string>
     <string name="expired">Срок действия истёк</string>
     <string name="expiring_soon">Срок действия истекает</string>
     <string name="item_incomplete_title">Неполные данные</string>
@@ -163,7 +163,7 @@
     <string name="passkey_discoverable">Источник данных авторизации</string>
     <string name="passkey_user_username">Имя пользователя</string>
     <string name="passkey_user_display_name">Отображаемое имя</string>
-    <string name="ignored_alerts">Игнорированные оповещения</string>
+    <string name="ignored_alerts">Проигнорированные оповещения</string>
     <string name="api_key">Ключ API</string>
     <string name="domain">Домен</string>
     <string name="add_to_home_screen">Добавить на главный экран</string>
@@ -259,7 +259,7 @@
     <string name="folder_action_create_title">Создать папку</string>
     <string name="folder_delete_one_confirmation_title">Удалить папку?</string>
     <string name="folder_delete_many_confirmation_title">Удалить папки?</string>
-    <string name="folder_delete_confirmation_text">Эта запись(и) будет удалено. Вы не можете отменить это действие.</string>
+    <string name="folder_delete_confirmation_text">Эти записи будут удалены. Это действие отменить нельзя.</string>
     <string name="ciphers_recently_opened">Недавно открытые</string>
     <string name="ciphers_often_opened">Часто открытые</string>
     <string name="ciphers_history_empty">Истории пока нет</string>
@@ -381,9 +381,9 @@
     <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к электронной почте</string>
     <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру телефона</string>
     <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> призван к имени пользователя</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени пользователя</string>
     <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру паспорта</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> призван к номеру лицензии</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру лицензии</string>
     <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени</string>
     <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к фамилии</string>
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к полному имени</string>
@@ -466,7 +466,7 @@
     <string name="list_remove_confirmation_title">Удалить элемент?</string>
     <string name="list_add">Добавить ещё</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">Авторизация WebAutn</string>
+    <string name="fido2webauthn_action_go_title">Авторизация WebAuthn</string>
     <string name="fido2webauthn_action_return_title">Вернуться в приложение</string>
     <string name="expiry_tips_item_line1">Срок действия записи истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
     <string name="expiry_tips_card_line1">Срок действия карты истекает <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Для плавного перехода можно выполнить несколько действий:</string>
@@ -595,7 +595,7 @@
     <string name="emailrelay_base_env_server_url_label">URL сервера</string>
     <string name="emailrelay_base_env_note">Укажите URL-адрес сервера вашей установки.</string>
     <string name="wordlist_list_header_title">Список слов</string>
-    <string name="wordlist_list_section_title">Списки слова</string>
+    <string name="wordlist_list_section_title">Списки слов</string>
     <string name="wordlist_delete_one_confirmation_title">Удалить список?</string>
     <string name="wordlist_delete_many_confirmation_title">Удалить списки?</string>
     <string name="wordlist_edit_wordlist_title">Редактировать список слов</string>
@@ -610,7 +610,7 @@
     <string name="urloverride_regex_note">Переопределение будет применено к URL-адресам, соответствующим регулярному выражению.</string>
     <string name="urloverride_delete_one_confirmation_title">Удалить переопределение URL-адреса?</string>
     <string name="urloverride_delete_many_confirmation_title">Удалить переопределение URL-адреса?</string>
-    <string name="urloverride_empty_label">Нет переопределеных URL-адресов</string>
+    <string name="urloverride_empty_label">Нет переопределённых URL-адресов</string>
     <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
     <string name="setup_free_text">Продолжая вы подтверждаете, что купили Keyguard или имели активную лицензию.</string>
     <string name="setup_field_app_password_label">Пароль приложения</string>
@@ -708,7 +708,7 @@
     <string name="home_watchtower_label">Доз. башня</string>
     <string name="home_settings_label">Настройки</string>
     <string name="lock_reason_inactivity">Заблокировано из-за бездействия</string>
-    <string name="lock_reason_manually">Заблокирован вручную</string>
+    <string name="lock_reason_manually">Заблокировано вручную</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
     <string name="cipher_type_login">Логин</string>
@@ -785,7 +785,7 @@
     <string name="vault_view_card_cvv_label">Код безопасности</string>
     <string name="vault_view_saved_to_label">Сохранено в <xliff:g id="email" example="username@example.com">%1$s</xliff:g> на <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Пароль последний раз изменен <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Ключ доступа создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Ключ доступа создан <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Последний раз изменено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Удалено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -849,7 +849,7 @@
     <string name="generator_email_forward_alias_type">Псевдоним электронной почты для пересылки</string>
     <string name="generator_key_length_title">Длина</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-бит</string>
-    <string name="generator_key_rsa_note">Все клиенты SSH поддерживают этот алгоритм. Для RSA рекомендуется размер ключа не менее 2048 бит, лучше - 4096 бит. Вполне возможно, что в обозримом будущем алгоритм RSA станет практически неуязвимым.</string>
+    <string name="generator_key_rsa_note">Все клиенты SSH поддерживают этот алгоритм. Для RSA рекомендуется размер ключа не менее 2048 бит, лучше - 4096 бит. Вполне возможно, что в обозримом будущем алгоритм RSA станет уязвимым.</string>
     <string name="generator_key_rsa_text">Совместим со всеми SSH серверами</string>
     <string name="generator_key_ed25519_note">Это самый быстрый и самый современный стандарт. Поддержка в SSH клиентах пока еще не универсальна.</string>
     <string name="generator_key_ed25519_text">Быстрый и самый современный стандарт</string>
@@ -875,7 +875,7 @@
     <string name="watchtower_section_security_label">Безопасность</string>
     <string name="watchtower_section_maintenance_label">Инструменты</string>
     <string name="watchtower_item_new_alerts_title">Проверить новые оповещения</string>
-    <string name="watchtower_item_weak_passwords_title">Ненадёжный пароль</string>
+    <string name="watchtower_item_weak_passwords_title">Слабые пароли</string>
     <string name="watchtower_item_pwned_passwords_title">Скомпрометированные пароли</string>
     <string name="watchtower_item_pwned_passwords_text">Пароли, раскрытые в результате утечки данных. Такие пароли следует немедленно изменить.</string>
     <string name="watchtower_item_reused_passwords_title">Повторно использованные пароли</string>
@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard премиум</string>
     <string name="settings_watchtower_header_title">Дозорная башня</string>
     <string name="settings_open_source_licenses_header_title">Лицензии открытого программного обеспечения</string>
+    <string name="pref_section_premium_title">Премиум</string>
+    <string name="pref_section_options_title">Параметры</string>
     <string name="pref_item_accounts_title">Учетные записи</string>
     <string name="pref_item_accounts_text">Добавление и просмотр учётных записей</string>
     <string name="pref_item_autofill_title">Автозаполнение</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Цвет оттенка</string>
     <string name="pref_item_color_scheme_title">Тема</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Использовать черную контрастную тему</string>
+    <string name="pref_item_color_scheme_expressive_title">Использовать экспрессивную тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Открывать ссылки во внешнем браузере</string>
     <string name="pref_item_close_to_tray_title">Свернуть в трей</string>
     <string name="pref_item_check_pwned_passwords_title">Проверить на уязвимые пароли</string>
@@ -1080,7 +1083,7 @@
     <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
     <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания, средства за подписку будет снято с вашей учетной записи в Google Play. Ви можете настроить автоматическое продление и отменить подписку в любой момент. На первую подписку вам может быть предложен бесплатный пробный период, за который не будут сняты средства, если подписка будет отменена до её окончания.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания, средства за подписку будет сняты с вашей учетной записи в Google Play. Ви можете настроить автоматическое продление и отменить подписку в любой момент. На первую подписку вам может быть предложен бесплатный пробный период, за который не будут сняты средства, если подписка будет отменена до её окончания.</string>
     <string name="pref_item_premium_membership_section_products_title">Товары</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>
@@ -1095,8 +1098,8 @@
     <string name="pref_item_permission_write_external_storage_grant">Разрешить запись на общий накопитель</string>
     <string name="pref_item_permission_camera_title">Камера</string>
     <string name="pref_item_permission_camera_text">Используется для сканирования QR-кодов</string>
-    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Разрешить два панели в альбомном режиме</string>
-    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Разрешить два панели в портретном режиме</string>
+    <string name="pref_item_allow_two_panel_layout_in_landscape_title">Разрешить две панели в альбомном режиме</string>
+    <string name="pref_item_allow_two_panel_layout_in_portrait_title">Разрешить две панели в портретном режиме</string>
     <string name="theme_dark">Тёмная</string>
     <string name="theme_light">Светлая</string>
     <string name="nav_animation_disabled">Отключено</string>

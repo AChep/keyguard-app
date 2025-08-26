@@ -948,6 +948,8 @@
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Licences Open Source</string>
+    <string name="pref_section_premium_title">Premium</string>
+    <string name="pref_section_options_title">Options</string>
     <string name="pref_item_accounts_title">Comptes</string>
     <string name="pref_item_accounts_text">Ajouter &amp; voir les comptes</string>
     <string name="pref_item_autofill_title">Remplissage automatique</string>
@@ -995,6 +997,7 @@
     <string name="pref_item_color_accent_title">Couleur d'accentuation</string>
     <string name="pref_item_color_scheme_title">Thème</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Utiliser le thème noir contrasté</string>
+    <string name="pref_item_color_scheme_expressive_title">Utiliser le thème expressif</string>
     <string name="pref_item_open_links_in_external_browser_title">Ouvrir les liens dans un autre navigateur</string>
     <string name="pref_item_close_to_tray_title">Fermer dans la barre d'état système</string>
     <string name="pref_item_check_pwned_passwords_title">Chercher les mots de passe pwned</string>

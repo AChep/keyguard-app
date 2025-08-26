@@ -277,8 +277,8 @@ kotlin {
             dependsOn(jvmMain)
             dependencies {
                 api(project.dependencies.platform(libs.firebase.bom.get()))
-                api(libs.firebase.analytics.ktx)
-                api(libs.firebase.crashlytics.ktx)
+                api(libs.firebase.analytics)
+                api(libs.firebase.crashlytics)
                 api(libs.achep.bindin)
                 api(libs.androidx.activity.compose)
                 api(libs.androidx.appcompat)

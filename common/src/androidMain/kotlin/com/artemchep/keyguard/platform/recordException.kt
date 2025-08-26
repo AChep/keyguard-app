@@ -2,11 +2,11 @@ package com.artemchep.keyguard.platform
 
 import com.artemchep.keyguard.common.model.NoAnalytics
 import com.artemchep.keyguard.platform.util.isRelease
+import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.crashlytics.isEnabled
 import com.google.firebase.crashlytics.isEnabledFlow
-import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.crashlytics.setEnabled
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.Flow
 import java.net.SocketException
 import java.net.UnknownHostException

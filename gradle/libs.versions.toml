@@ -64,9 +64,9 @@ composeMultiplatform = "1.9.0-beta03"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 conscrypt = "2.5.2"
-crashlyticsPlugin = "3.0.5"
+crashlyticsPlugin = "3.0.6"
 dbusJava = "5.1.1"
-firebase = "33.16.0"
+firebase = "34.1.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
@@ -222,9 +222,9 @@ conscrypt-openjdk = { module = "org.conscrypt:conscrypt-openjdk-uber", version.r
 devsrsouza-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeOpenIcons" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport = { module = "com.github.hypfvieh:dbus-java-transport-jnr-unixsocket", version.ref = "dbusJava" }
-firebase-analytics-ktx = { module = "com.google.firebase:firebase-analytics-ktx" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
-firebase-crashlytics-ktx = { module = "com.google.firebase:firebase-crashlytics-ktx" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 fredporciuncula-flow-preferences = { module = "com.fredporciuncula:flow-preferences", version.ref = "flowPreferences" }
 glide-annotations = { module = "com.github.bumptech.glide:annotations", version.ref = "glide" }
 glide-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }

@@ -507,14 +507,14 @@ fun VaultHomeScreenListPane(
     ) {
         when (state.content) {
             is VaultListState.Content.Skeleton -> {
-                item {
+                if (!tabletUi) item {
                     Column(
                         modifier = Modifier,
                     ) {
                         FlowRow(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp),
+                                .padding(horizontal = Dimens.contentPadding),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {

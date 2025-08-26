@@ -19,7 +19,7 @@ fun AddAccountView(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)?,
 ) {
-    FlatItem(
+    FlatItemSimpleExpressive(
         modifier = modifier,
         elevation = 1.dp,
         title = {

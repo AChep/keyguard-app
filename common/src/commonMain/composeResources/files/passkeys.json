@@ -1666,6 +1666,18 @@
     "created_at": "2023-03-22T20:31:28.756285+00:00"
   },
   {
+    "id": "f326ce4c02f835ff55916db8dad8c903",
+    "name": "Lululemon",
+    "domain": "lululemon.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://shop.lululemon.com/account/profile",
+    "category": "eCommerce",
+    "created_at": "2025-06-19T14:53:19.754998+00:00",
+    "notes": "#### To set up a passkey on your lululemon account: \n\n1. Sign into your account\n2. Go to your profile\n3. In the security section, click \"+ Add a Passkey\"\n4. Follow the prompts from 1Password and save\n\n\n \n \n\n<p align=\"center\"><sup><sub>Updated on August 13, 2025</sub></sup></p>"
+  },
+  {
     "id": "5b9030218f1bee1e295009ad2a4fc6f9",
     "name": "Luno",
     "domain": "luno.com",

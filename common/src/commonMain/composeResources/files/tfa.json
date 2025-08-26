@@ -2021,6 +2021,14 @@
     "name": "BlockFi"
   },
   {
+    "domain": "blossom88.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.blossom88.com/docs/setup/two-factor/",
+    "name": "Blossom"
+  },
+  {
     "domain": "bluehost.com",
     "tfa": [
       "email",
@@ -3450,13 +3458,6 @@
     "name": "Cognito Forms"
   },
   {
-    "domain": "cohost.org",
-    "tfa": [
-      "totp"
-    ],
-    "name": "cohost"
-  },
-  {
     "domain": "coinbase.com",
     "tfa": [
       "sms",
@@ -3739,6 +3740,22 @@
     ],
     "documentation": "https://www.comed.com/MyAccount/CustomerSupport/pages/faqs.aspx#WebPartWPQ15",
     "name": "ComEd"
+  },
+  {
+    "domain": "commbank.com.au",
+    "additional-domains": [
+      "netbank.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "custom-software"
+    ],
+    "custom-software": [
+      "CommBank app"
+    ],
+    "documentation": "https://www.commbank.com.au/digital-banking/netbank/multi-factor-authentication.html",
+    "notes": "SMS is only available when setting up CommBank app.",
+    "name": "Commonwealth Bank of Australia"
   },
   {
     "domain": "commercial.metrobankonline.co.uk",
@@ -4121,6 +4138,16 @@
     ],
     "documentation": "https://support.cronometer.com/hc/en-us/articles/360042096672",
     "name": "Cronometer"
+  },
+  {
+    "domain": "crowdcube.com",
+    "additional-domains": [
+      "crowdcube.eu"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "name": "Crowdcube"
   },
   {
     "domain": "crowdin.com",
@@ -7236,6 +7263,15 @@
     "name": "Hatena"
   },
   {
+    "domain": "hbf.com.au",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.hbf.com.au/support/guides/how-to/2-step-verification",
+    "name": "HBF"
+  },
+  {
     "domain": "hcaptcha.com",
     "tfa": [
       "u2f"
@@ -9460,6 +9496,14 @@
     ],
     "documentation": "https://www.lowes.com/l/help/contact-us#Multi-FactorAuthentication",
     "name": "Lowes"
+  },
+  {
+    "domain": "lu.ma",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.lu.ma/p/two-factor-authentication",
+    "name": "Luma"
   },
   {
     "domain": "lunchmoney.app",
@@ -13910,6 +13954,18 @@
     "name": "Rockstar Games"
   },
   {
+    "domain": "rogers.com",
+    "additional-domains": [
+      "shaw.ca"
+    ],
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.rogers.com/support/billing-accounts/understanding-multi-factor-authentication",
+    "name": "Rogers"
+  },
+  {
     "domain": "roku.com",
     "tfa": [
       "email"
@@ -14566,15 +14622,6 @@
       "totp"
     ],
     "name": "Shareworks"
-  },
-  {
-    "domain": "shaw.ca",
-    "tfa": [
-      "sms",
-      "email"
-    ],
-    "documentation": "https://support.shaw.ca/t5/billing-account-articles/how-to-set-up-two-step-verification-for-shaw-id/ta-p/5564",
-    "name": "Shaw"
   },
   {
     "domain": "shift4shop.com",
@@ -16530,6 +16577,16 @@
     ],
     "documentation": "https://support.trionworlds.com/hc/en-us/articles/204183357",
     "name": "Trion Worlds"
+  },
+  {
+    "domain": "trovi.sk",
+    "tfa": [
+      "sms",
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.trovi.sk/en/getting-started/5cCNz3dpcdtETyEamRFVuE/two-factor-authentication-2fa-in-trovi/5mA49v715DG4XwfYbpfzW9",
+    "name": "Trovi"
   },
   {
     "domain": "trovo.live",

@@ -5,6 +5,7 @@ import arrow.core.partially1
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.PendingPurchasesParams
 import com.artemchep.keyguard.common.io.throttle
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -50,7 +51,12 @@ class BillingManagerImpl(
         val dataChangedEventFlow = EventFlow<Unit>()
         val billingClient = BillingClient
             .newBuilder(context)
-            .enablePendingPurchases()
+            .enableAutoServiceReconnection()
+            .enablePendingPurchases(
+                PendingPurchasesParams.newBuilder()
+                    .enableOneTimeProducts()
+                    .build()
+            )
             .setListener { _, _ ->
                 dataChangedEventFlow.emit(Unit)
             }

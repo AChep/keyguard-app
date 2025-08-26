@@ -177,6 +177,7 @@ private suspend fun BillingClient.querySkuDetailsSuspending(params: QueryProduct
         queryProductDetailsAsync(params) { billingResult, skuDetailsList ->
             kotlin.runCatching {
                 val r = getBillingResultOrException(billingResult, skuDetailsList)
+                    .map { it.productDetailsList }
                 continuation.resume(r)
             }
         }

@@ -16,12 +16,12 @@ jobs:
         with:
           lfs: true
           submodules: recursive
-      - name: "Set up JDK 17"
+      - name: "Set up JDK 21"
         id: setup-java
         uses: actions/setup-java@v5
         with:
           distribution: "liberica"
-          java-version: "17"
+          java-version: "21"
           architecture: arm64
       - name: "Decode signing certificate"
         run: |

@@ -185,7 +185,8 @@ class Main : BaseApp(), DIAware {
                     if (screenLock) {
                         getVaultSession()
                     } else {
-                        emptyFlow()
+                        val emptyVaultSession = MasterSession.Empty()
+                        flowOf(emptyVaultSession)
                     }
                 }
                 .map { session ->
@@ -212,7 +213,7 @@ class Main : BaseApp(), DIAware {
                 }
                 .filter { it is Screen.Off }
                 .onEach {
-                    val lockReason = TextHolder.Res(Res.string.lock_reason_inactivity)
+                    val lockReason = TextHolder.Res(Res.string.lock_reason_screen_off)
                     clearVaultSession(LockReason.TIMEOUT, lockReason)
                         .attempt()
                         .launchIn(this)

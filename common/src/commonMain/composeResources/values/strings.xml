@@ -758,6 +758,7 @@
     <string name="home_settings_label">Settings</string>
 
     <string name="lock_reason_inactivity">Locked due to inactivity</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Locked manually</string>
 
     <string name="send_type_text">Text</string>

@@ -71,6 +71,7 @@ fun EmptySearchView(
 @Composable
 fun EmptyView(
     modifier: Modifier = Modifier,
+    largeArtwork: Boolean = true,
     icon: (@Composable () -> Unit)? = null,
     text: @Composable () -> Unit = {
         DefaultEmptyViewText()
@@ -95,26 +96,28 @@ fun EmptyView(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            val shape = MaterialShapes.Pill.toShape()
-            Image(
-                modifier = Modifier
-                    .width(144.dp)
-                    .height(144.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, shape)
-                    .padding(8.dp)
-                    .clip(shape)
-                    .graphicsLayer(
-                        scaleX = 1.25f,
-                        scaleY = 1.25f,
-                    ),
-                painter = painterResource(Res.drawable.artwork_no_items),
-                contentScale = ContentScale.Crop,
-                contentDescription = null,
-            )
-            Spacer(
-                modifier = Modifier
-                    .height(Dimens.verticalPadding),
-            )
+            if (largeArtwork) {
+                val shape = MaterialShapes.Pill.toShape()
+                Image(
+                    modifier = Modifier
+                        .width(144.dp)
+                        .height(144.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, shape)
+                        .padding(8.dp)
+                        .clip(shape)
+                        .graphicsLayer(
+                            scaleX = 1.25f,
+                            scaleY = 1.25f,
+                        ),
+                    painter = painterResource(Res.drawable.artwork_no_items),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null,
+                )
+                Spacer(
+                    modifier = Modifier
+                        .height(Dimens.verticalPadding),
+                )
+            }
             Row(
                 modifier = Modifier,
                 verticalAlignment = Alignment.CenterVertically,

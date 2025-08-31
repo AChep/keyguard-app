@@ -120,6 +120,7 @@ fun VaultListItem(
 
     is VaultItem2.NoSuggestions -> {
         EmptyView(
+            largeArtwork = false,
             icon = {
                 Icon(Icons.Outlined.SearchOff, null)
             },

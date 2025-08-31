@@ -1263,8 +1263,8 @@
     "user": {
       "id": "16247856",
       "username": "lucasmz.dev",
-      "fullName": "LucasMZ (lucasmz.dev)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/bf1b720619c7668b7a6b7de148671438.jpg",
+      "fullName": "lucas (lucasmz.dev)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/440777ea838e66ebdba0dd6f02b9e2e2.jpg",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [
@@ -1675,6 +1675,28 @@
     ],
     "translated": 786,
     "target": 745,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17299188",
+      "username": "mkulik91",
+      "fullName": "mkulik91",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17299188/medium/2eb43cd48f8e9a8125269957e140d657_default.png",
+      "joined": "2025-08-30 08:30:49"
+    },
+    "languages": [
+      {
+        "id": "pl",
+        "name": "Polish"
+      }
+    ],
+    "translated": 487,
+    "target": 473,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

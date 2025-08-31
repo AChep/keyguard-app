@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Tháp canh</string>
     <string name="home_settings_label">Thiết đặt</string>
     <string name="lock_reason_inactivity">Bị khóa do không hoạt động</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Đã khóa thủ công</string>
     <string name="send_type_text">Văn bản</string>
     <string name="send_type_file">Tệp</string>

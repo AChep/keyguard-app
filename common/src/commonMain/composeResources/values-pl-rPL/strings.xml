@@ -72,24 +72,24 @@
     <string name="save">Zapisz</string>
     <string name="save_to">Zapisz do</string>
     <string name="uri">URI</string>
-    <string name="uris">URIs</string>
+    <string name="uris">Adresy URI</string>
     <string name="note">Notatka</string>
     <string name="notes">Notatki</string>
     <string name="date">Data</string>
     <string name="time">Czas</string>
     <string name="attachments">Załączniki</string>
     <string name="attachments_empty_label">Brak załączników</string>
-    <string name="deactivated"></string>
+    <string name="deactivated">Dezaktywowany</string>
     <string name="expired">Wygasły</string>
     <string name="expiring_soon">Wkrótce wygasa</string>
     <string name="item_incomplete_title">Niekompletne informacje</string>
-    <string name="item_incomplete_text">W tym punkcie brakuje pewnych ważnych informacji.</string>
+    <string name="item_incomplete_text">W tym elemencie brakuje pewnych ważnych informacji.</string>
     <string name="item">Element</string>
     <string name="items">Elementy</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
-    <string name="items_all">Wszystkie wpisy</string>
+    <string name="items_all">Wszystkie elementy</string>
     <string name="items_empty_label">Brak elementów</string>
-    <string name="sends">Wyślij</string>
+    <string name="sends">Wysyłki</string>
     <string name="folder_none">Bez folderu</string>
     <string name="folder_new">Nowy folder</string>
     <string name="folder">Folder</string>
@@ -105,7 +105,7 @@
     <string name="organizations_empty_label">Brak organizacji</string>
     <string name="equivalent_domains">Domeny równoważne</string>
     <string name="equivalent_domains_empty_label">Brak równorzędnych domen</string>
-    <string name="misc">Miscellaneous</string>
+    <string name="misc">Pozostałe</string>
     <string name="category">Kategoria</string>
     <string name="command">Polecenie</string>
     <string name="execute_command">Wykonaj</string>
@@ -283,7 +283,7 @@
     <string name="ciphers_action_view_password_history_title">Zobacz historię haseł</string>
     <string name="ciphers_action_trash_title">Kosz</string>
     <string name="ciphers_action_trash_confirmation_title">Przenieść do Kosza?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash for more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_trash_confirmation_text">Elementy znajdujące się w koszu ponad 30 dni zostaną automatycznie usunięte.</string>
     <string name="ciphers_action_restore_title">Przywróć</string>
     <string name="ciphers_action_restore_confirmation_title">Przywrócić z kosza?</string>
     <string name="ciphers_action_delete_title">Trwale usuń</string>
@@ -467,7 +467,7 @@
     <string name="list_add">Dodaj więcej</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">Authenticate WebAuthn</string>
-    <string name="fido2webauthn_action_return_title">Return to app</string>
+    <string name="fido2webauthn_action_return_title">Wróć do aplikacji</string>
     <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
     <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
     <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
@@ -476,35 +476,35 @@
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
-    <string name="error_must_not_be_empty">Must not be empty</string>
+    <string name="error_must_not_be_empty">Pole nie może być puste</string>
     <!--
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
-    <string name="error_must_not_be_blank">Must not be blank</string>
-    <string name="error_must_be_custom_domain">Must be custom domain</string>
-    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_not_be_blank">Pole nie może być puste</string>
+    <string name="error_must_be_custom_domain">Musi być domeną niestandardową</string>
+    <string name="error_must_be_number">Musi być liczbą</string>
     <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
     <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
     <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_invalid_domain">Invalid domain</string>
-    <string name="error_invalid_email">Invalid email</string>
-    <string name="error_invalid_url">Invalid URL</string>
-    <string name="error_invalid_uri">Invalid URI</string>
-    <string name="error_invalid_card_number">Invalid card number</string>
-    <string name="error_incorrect_password">Incorrect password</string>
+    <string name="error_invalid_domain">Nieprawidłowa domena</string>
+    <string name="error_invalid_email">Nieprawidłowy adres e-mail</string>
+    <string name="error_invalid_url">Nieprawidłowy adres URL</string>
+    <string name="error_invalid_uri">Nieprawidłowy URI</string>
+    <string name="error_invalid_card_number">Nieprawidłowy numer karty</string>
+    <string name="error_incorrect_password">Nieprawidłowe hasło</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
-    <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
+    <string name="error_failed_generate_otp_code">Nie udało się wygenerować kodu OTP</string>
+    <string name="error_failed_create_passkey">Nie udało się utworzyć passkey</string>
     <string name="error_failed_use_passkey">Failed to authorize a request</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
+    <string name="error_failed_open_uri">Nie udało się otworzyć URI</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
-    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
-    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
+    <string name="error_failed_unknown">Coś poszło nie tak</string>
+    <string name="error_failed_encrypt_biometric_key">Nie udało się zaszyfrować klucza biometrycznego</string>
+    <string name="error_failed_decrypt_biometric_key">Nie udało się odszyfrować klucza biometrycznego</string>
     <string name="scanqr_title">Skanuj kod QR</string>
     <string name="scanqr_load_from_image_note">Załaduj i analizuj kod QR z pliku obrazu.</string>
     <string name="scanqr_camera_permission_required_text">Wymagane jest uprawnienie aparatu do skanowania kodów QR.</string>
@@ -621,17 +621,17 @@
     <string name="setup_action_erase_data_title">Wyczyść dane aplikacji</string>
     <string name="setup_action_erase_data_text">Zamknij aplikację i usuń wszystkie lokalne dane aplikacji</string>
     <string name="unlock_header_text">The vault is locked. Enter your app password to continue.</string>
-    <string name="unlock_button_unlock">Unlock</string>
+    <string name="unlock_button_unlock">Odblokuj</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_title">Unlock a vault</string>
+    <string name="unlock_biometric_auth_confirm_title">Odblokuj sejf</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_text">Use biometric authentication to unlock the vault.</string>
-    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
-    <string name="userverification_button_go">Verify</string>
-    <string name="syncstatus_header_title">Sync status</string>
-    <string name="syncstatus_status_up_to_date">Up to date</string>
-    <string name="syncstatus_status_pending">Pending</string>
-    <string name="syncstatus_status_syncing">Syncing</string>
+    <string name="unlock_biometric_auth_confirm_text">Użyj uwierzytelniania biometrycznego, aby odblokować sejf.</string>
+    <string name="userverification_header_text">Weryfikacja użytkownika jest wymagana. Wprowadź hasło, aby kontynuować.</string>
+    <string name="userverification_button_go">Zweryfikuj</string>
+    <string name="syncstatus_header_title">Status synchronizacji</string>
+    <string name="syncstatus_status_up_to_date">Aktualny</string>
+    <string name="syncstatus_status_pending">Oczekujący</string>
+    <string name="syncstatus_status_syncing">Synchronizacja</string>
     <string name="syncstatus_status_failed">Synchronizacja nieudana</string>
     <string name="additem_header_new_title">Nowy element</string>
     <string name="additem_header_edit_title">Edytuj element</string>
@@ -640,18 +640,18 @@
     <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
     <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
-    <string name="additem_markdown_note_italic">italic</string>
-    <string name="additem_markdown_note_bold">bold</string>
+    <string name="additem_markdown_note_italic">Kursywa</string>
+    <string name="additem_markdown_note_bold">Pogrubienie</string>
     <string name="additem_markdown_render_preview">Render preview</string>
     <string name="additem_auth_reprompt_title">Auth re-prompt</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New send</string>
-    <string name="addsend_header_edit_title">Edit send</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
+    <string name="addsend_header_new_title">Nowa wysyłka</string>
+    <string name="addsend_header_edit_title">Edytuj wysyłkę</string>
+    <string name="addsend_text_hide_by_default_title">Podczas uzyskiwania dostępu do elementu, domyślnie ukryj tekst</string>
+    <string name="addsend_hide_text_by_default_title">Podczas uzyskiwania dostępu do elementu, domyślnie ukryj tekst</string>
+    <string name="addsend_hide_email_title">Ukryj adres e-mail</string>
     <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
-    <string name="addaccount_header_title">Add Bitwarden account</string>
+    <string name="addaccount_header_title">Dodaj konto Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
@@ -659,43 +659,43 @@
     <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
-    <string name="addaccount_create_an_account_title">Create an account</string>
-    <string name="addaccount_sign_in_button">Sign in</string>
+    <string name="addaccount_create_an_account_title">Utwórz konto</string>
+    <string name="addaccount_sign_in_button">Zaloguj się</string>
     <string name="addaccount_region_section">Region</string>
-    <string name="addaccount_region_us_type">United States</string>
-    <string name="addaccount_region_eu_type">Europe</string>
-    <string name="addaccount_region_custom_type">Custom (self-hosted)</string>
-    <string name="addaccount_http_header_section">HTTP headers</string>
-    <string name="addaccount_http_header_type">HTTP header</string>
-    <string name="addaccount_http_header_note">You can add custom HTTP headers that will be sent with every request to the server.</string>
-    <string name="addaccount_http_header_key_label">Key</string>
-    <string name="addaccount_http_header_value_label">Value</string>
-    <string name="addaccount_http_header_add_more_button">Add more</string>
-    <string name="addaccount_base_env_server_url_label">Server URL</string>
-    <string name="addaccount_base_env_note">Specify the base URL of your self-hosted Bitwarden installation.</string>
-    <string name="addaccount_custom_env_section">Custom environment</string>
-    <string name="addaccount_custom_env_note">You can specify the base URL of each service independently.</string>
-    <string name="addaccount_custom_env_web_vault_url_label">Web Vault Server URL</string>
-    <string name="addaccount_custom_env_api_url_label">API Server URL</string>
+    <string name="addaccount_region_us_type">Stany Zjednoczone</string>
+    <string name="addaccount_region_eu_type">Europa</string>
+    <string name="addaccount_region_custom_type">Własne (hostowane samodzielnie)</string>
+    <string name="addaccount_http_header_section">Nagłówki HTTP</string>
+    <string name="addaccount_http_header_type">Nagłówek HTTP</string>
+    <string name="addaccount_http_header_note">Możesz dodać niestandardowe nagłówki HTTP, które będą wysyłane z każdym żądaniem do serwera.</string>
+    <string name="addaccount_http_header_key_label">Klucz</string>
+    <string name="addaccount_http_header_value_label">Wartość</string>
+    <string name="addaccount_http_header_add_more_button">Dodaj więcej</string>
+    <string name="addaccount_base_env_server_url_label">Adres URL serwera</string>
+    <string name="addaccount_base_env_note">Określ adres URL dla twojej hostowanej samodzielnie instalacji Bitwarden.</string>
+    <string name="addaccount_custom_env_section">Niestandardowe środowisko</string>
+    <string name="addaccount_custom_env_note">Możesz określić bazowy adres URL każdej usługi niezależnie.</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Adres URL serwera sejfu internetowego</string>
+    <string name="addaccount_custom_env_api_url_label">Adres URL serwera interfejsu API</string>
     <string name="addaccount_custom_env_icons_url_label">Adres URL serwera ikon</string>
     <string name="addaccount_custom_env_identity_url_label">Adres URL serwera tożsamości</string>
     <string name="addaccount2fa_header_title">Weryfikacja</string>
     <string name="addaccount2fa_unsupported_note">Ta metoda uwierzytelniania nie jest jeszcze obsługiwana.</string>
     <string name="addaccount2fa_otp_note">Wprowadź kod weryfikacyjny z aplikacji uwierzytelniającej.</string>
     <string name="addaccount2fa_email_note">Wprowadź kod weryfikacyjny, który został wysłany do <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
-    <string name="addaccount2fa_yubikey_manual_text">Enter the YubiKey authentication code manually. Place the cursor on the field below and trigger the YubiKey.</string>
+    <string name="addaccount2fa_yubikey_manual_text">Wprowadź kod uwierzytelniający YubiKey ręcznie. Umieść kursor w polu poniżej i uruchom YubiKey.</string>
     <string name="provider_2fa_authenticator">Uwierzytelnianie</string>
-    <string name="provider_2fa_duo_organization">Duo (Organization)</string>
+    <string name="provider_2fa_duo_organization">Duo (Organizacja)</string>
     <string name="provider_2fa_fido2_webauthn">Uwierzytelnianie sieciowe FIDO2</string>
     <string name="provider_2fa_email">Adres e-mail</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
     <string name="yubikey_usb_title">Podłącz YubiKey przez USB</string>
     <string name="yubikey_usb_text">Wymaga wsparcia USB OTG.</string>
     <string name="yubikey_usb_touch_the_gold_sensor_note">Dotknij teraz złotego czujnika na swoim YubiKey.</string>
-    <string name="yubikey_nfc_title">Hold your YubiKey flat against the back of your device</string>
+    <string name="yubikey_nfc_title">Przytrzymaj swój klucz YubiKey płasko z tyłu urządzenia</string>
     <string name="yubikey_nfc_text">Wymaga obsługi NFC.</string>
     <string name="yubikey_error_failed_to_read">Nie udało się odczytać YubiKey</string>
-    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Using FIDO2 WebAuthn requires using the Bitwarden Web vault version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> or higher. On older versions the authentication result will incorrectly be forwarded to the official Bitwarden app.</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Używanie FIDO2 WebAuthn wymaga użycia sejfu internetowego Bitwarden w wersji <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> lub wyższej. W starszych wersjach wynik uwierzytelniania zostanie niepoprawnie przekazany do oficjalnej aplikacji Bitwarden.</string>
     <string name="elevatedaccess_header_title">Potwierdź dostęp</string>
     <string name="elevatedaccess_header_text">Te dane są chronione, aby kontynuować wprowadzanie hasła aplikacji.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Ustawienia</string>
     <string name="lock_reason_inactivity">Zablokowane z powodu braku aktywności</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Zablokowane ręcznie</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Plik</string>
@@ -738,54 +739,54 @@
     <string name="customfilters_header_title">Custom filters</string>
     <string name="customfilters_search_placeholder">Search filters</string>
     <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
-    <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
-    <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
-    <string name="customfilters_edit_filter_title">Edit a custom filter</string>
-    <string name="customfilters_add_filter_title">Add a custom filter</string>
-    <string name="filter_header_title">Filter</string>
-    <string name="filter_empty_label">No filters available</string>
-    <string name="sort_header_title">Sort by</string>
-    <string name="sort_empty_label">No sorting available</string>
-    <string name="sortby_title_title">Title</string>
-    <string name="sortby_title_normal_mode">Alphabetically</string>
-    <string name="sortby_title_reverse_mode">Reverse Alphabetically</string>
+    <string name="customfilters_delete_one_confirmation_title">Usunąć filtr?</string>
+    <string name="customfilters_delete_many_confirmation_title">Usunąć filtry?</string>
+    <string name="customfilters_edit_filter_title">Edytuj niestandardowy filtr</string>
+    <string name="customfilters_add_filter_title">Dodaj niestandardowy filtr</string>
+    <string name="filter_header_title">Filtr</string>
+    <string name="filter_empty_label">Brak dostępnych filtrów</string>
+    <string name="sort_header_title">Sortuj według</string>
+    <string name="sort_empty_label">Brak dostępnego sortowania</string>
+    <string name="sortby_title_title">Tytuł</string>
+    <string name="sortby_title_normal_mode">Alfabetycznie</string>
+    <string name="sortby_title_reverse_mode">Alfabetycznie w odwrotnej kolejności</string>
     <string name="sortby_access_count_title">Access count</string>
-    <string name="sortby_access_count_normal_mode">Largest First</string>
-    <string name="sortby_access_count_reverse_mode">Smallest First</string>
-    <string name="sortby_modification_date_title">Modification date</string>
-    <string name="sortby_modification_date_normal_mode">Newest First</string>
-    <string name="sortby_modification_date_reverse_mode">Oldest First</string>
-    <string name="sortby_installation_date_title">Installation date</string>
-    <string name="sortby_installation_date_normal_mode">Most Recent First</string>
-    <string name="sortby_installation_date_reverse_mode">Oldest First</string>
-    <string name="sortby_expiration_date_title">Expiration date</string>
-    <string name="sortby_expiration_date_normal_mode">Newest First</string>
-    <string name="sortby_expiration_date_reverse_mode">Oldest First</string>
-    <string name="sortby_deletion_date_title">Deletion date</string>
-    <string name="sortby_deletion_date_normal_mode">Newest First</string>
-    <string name="sortby_deletion_date_reverse_mode">Oldest First</string>
-    <string name="sortby_password_title">Password</string>
-    <string name="sortby_password_normal_mode">Alphabetically</string>
-    <string name="sortby_password_reverse_mode">Reverse Alphabetically</string>
-    <string name="sortby_password_modification_date_title">Password modification date</string>
-    <string name="sortby_password_modification_date_normal_mode">Newest First</string>
-    <string name="sortby_password_modification_date_reverse_mode">Oldest First</string>
-    <string name="sortby_password_strength_title">Password strength</string>
-    <string name="sortby_password_strength_normal_mode">Weakest First</string>
-    <string name="sortby_password_strength_reverse_mode">Strongest First</string>
+    <string name="sortby_access_count_normal_mode">Od największych</string>
+    <string name="sortby_access_count_reverse_mode">Od najmniejszych</string>
+    <string name="sortby_modification_date_title">Data modyfikacji</string>
+    <string name="sortby_modification_date_normal_mode">Od najnowszych</string>
+    <string name="sortby_modification_date_reverse_mode">Od najstarszych</string>
+    <string name="sortby_installation_date_title">Data instalacji</string>
+    <string name="sortby_installation_date_normal_mode">Od najnowszych</string>
+    <string name="sortby_installation_date_reverse_mode">Od najstarszych</string>
+    <string name="sortby_expiration_date_title">Data wygaśnięcia</string>
+    <string name="sortby_expiration_date_normal_mode">Od najnowszych</string>
+    <string name="sortby_expiration_date_reverse_mode">Od najstarszych</string>
+    <string name="sortby_deletion_date_title">Data usunięcia</string>
+    <string name="sortby_deletion_date_normal_mode">Od najnowszych</string>
+    <string name="sortby_deletion_date_reverse_mode">Od najstarszych</string>
+    <string name="sortby_password_title">Hasło</string>
+    <string name="sortby_password_normal_mode">Alfabetycznie</string>
+    <string name="sortby_password_reverse_mode">Alfabetycznie w odwrotnej kolejności</string>
+    <string name="sortby_password_modification_date_title">Data modyfikacji hasła</string>
+    <string name="sortby_password_modification_date_normal_mode">Od najnowszych</string>
+    <string name="sortby_password_modification_date_reverse_mode">Od najstarszych</string>
+    <string name="sortby_password_strength_title">Siła hasła</string>
+    <string name="sortby_password_strength_normal_mode">Od najsłabszych</string>
+    <string name="sortby_password_strength_reverse_mode">Od najsilniejszych</string>
     <string name="relative_time_just_now_short">teraz</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
-    <string name="vault_main_search_placeholder">Search vault</string>
-    <string name="vault_main_new_item_button">New item</string>
+    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>minut temu</string>
+    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>godzin temu</string>
+    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>dni temu</string>
+    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>tygodni temu</string>
+    <string name="vault_main_search_placeholder">Szukaj w sejfie</string>
+    <string name="vault_main_new_item_button">Nowy element</string>
     <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
     <!-- A label for the CVV code of the card -->
-    <string name="vault_view_card_cvv_label">Security code</string>
+    <string name="vault_view_card_cvv_label">Kod CVV</string>
     <string name="vault_view_saved_to_label">Saved to <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_password_revision_label">Password last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Passkey created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Hasło ostatnio zmienione w <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Passkey utworzony <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -800,26 +801,26 @@
     <string name="vault_view_email_action">Email</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Directions</string>
-    <string name="send_main_header_title">Sends</string>
-    <string name="send_main_search_placeholder">Search sends</string>
-    <string name="send_main_new_item_button">New item</string>
+    <string name="send_main_header_title">Wysyłki</string>
+    <string name="send_main_search_placeholder">Szukaj w wysyłkach</string>
+    <string name="send_main_new_item_button">Nowy element</string>
     <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
     <string name="generator_header_title">Generator</string>
-    <string name="generator_header_username_title">Username generator</string>
-    <string name="generator_header_password_title">Password generator</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
-    <string name="generator_generate_button">Generate</string>
-    <string name="generator_regenerate_button">Regenerate</string>
+    <string name="generator_header_username_title">Generator nazwy użytkownika</string>
+    <string name="generator_header_password_title">Generator hasła</string>
+    <string name="generator_header_ssh_key_title">Generator klucza SSH</string>
+    <string name="generator_generate_button">Wygeneruj</string>
+    <string name="generator_regenerate_button">Wygeneruj ponownie</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
-    <string name="generator_passphrase_type">Passphrase</string>
-    <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
-    <string name="generator_passphrase_delimiter_title">Delimiter</string>
-    <string name="generator_passphrase_capitalize_title">Capitalize</string>
-    <string name="generator_passphrase_number_title">Number</string>
+    <string name="generator_use_button">Użyj</string>
+    <string name="generator_passphrase_type">Hasło</string>
+    <string name="generator_passphrase_note">Losowe hasła stanowią najlepszą kombinację łatwości zapamiętania i bezpieczeństwa.</string>
+    <string name="generator_passphrase_delimiter_title">Separator</string>
+    <string name="generator_passphrase_capitalize_title">Wielkie litery</string>
+    <string name="generator_passphrase_number_title">Liczby</string>
     <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Prawie jedna na 10 osób używa tego samego czterocyfrowego kodu PIN. Wygeneruj kody PIN, aby uniknąć częstych kombinacji.</string>
     <string name="generator_username_type">Username</string>
     <string name="generator_username_delimiter_title">Delimiter</string>
     <string name="generator_username_custom_word_title">Custom word</string>

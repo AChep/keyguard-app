@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">감시탑</string>
     <string name="home_settings_label">설정</string>
     <string name="lock_reason_inactivity">일정 시간 미사용으로 잠김</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">사용자에 의해 잠김</string>
     <string name="send_type_text">텍스트</string>
     <string name="send_type_file">파일</string>

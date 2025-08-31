@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">概况</string>
     <string name="home_settings_label">设置</string>
     <string name="lock_reason_inactivity">因不活动而被锁定</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">手动锁定</string>
     <string name="send_type_text">文本</string>
     <string name="send_type_file">文件</string>

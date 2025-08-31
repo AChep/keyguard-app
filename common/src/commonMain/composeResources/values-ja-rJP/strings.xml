@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">監視</string>
     <string name="home_settings_label">設定</string>
     <string name="lock_reason_inactivity">ロックされています</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">テキスト</string>
     <string name="send_type_file">ファイル</string>

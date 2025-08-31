@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Instellingen</string>
     <string name="lock_reason_inactivity">Vergrendeld door inactiviteit</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Handmatig vergrendeld</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Bestand</string>

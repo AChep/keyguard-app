@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Gözcü Kulesi</string>
     <string name="home_settings_label">Ayarlar</string>
     <string name="lock_reason_inactivity">Hareketsizlik nedeniyle kilitlendi</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Manuel olarak kilitlendi</string>
     <string name="send_type_text">Metin</string>
     <string name="send_type_file">Dosya</string>

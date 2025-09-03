@@ -34,7 +34,7 @@ androidxCredentials = "1.5.0"
 # https://issuetracker.google.com/issues/413061399
 # has been fixed.
 androidxDatastore = "1.1.7"
-androidxLifecycle = "2.9.2"
+androidxLifecycle = "2.9.3"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.7.2"
 androidxSecurityCryptoKtx = "1.1.0"

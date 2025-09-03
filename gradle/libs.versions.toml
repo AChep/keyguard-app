@@ -70,7 +70,7 @@ firebase = "34.1.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 # https://github.com/bumptech/glide
-glide = "5.0.0-rc01"
+glide = "5.0.4"
 googleServicesPlugin = "4.4.3"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"

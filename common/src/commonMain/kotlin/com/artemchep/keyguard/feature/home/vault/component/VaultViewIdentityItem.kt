@@ -110,8 +110,8 @@ private fun RowScope.IdentityActionButton(
             Box(
                 modifier = Modifier
                     .padding(
-                        horizontal = 6.dp,
-                        vertical = 4.dp,
+                        horizontal = 8.dp,
+                        vertical = 6.dp,
                     ),
             ) {
                 if (action.leading != null) {
@@ -123,12 +123,11 @@ private fun RowScope.IdentityActionButton(
         }
         Spacer(
             modifier = Modifier
-                .height(4.dp),
+                .height(8.dp),
         )
         Text(
             text = textResource(action.title),
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
         )
     }
 }

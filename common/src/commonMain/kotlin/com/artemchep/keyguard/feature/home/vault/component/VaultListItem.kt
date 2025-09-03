@@ -32,7 +32,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -72,7 +71,7 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
@@ -86,9 +85,7 @@ import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
-import com.artemchep.keyguard.ui.DropdownMinWidth
 import com.artemchep.keyguard.ui.DropdownScope
-import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -1078,7 +1075,7 @@ fun BoxScope.VaultItemIcon2(
         is VaultItemIcon.WebsiteIcon,
         is VaultItemIcon.AppIcon,
             -> {
-            FaviconImage(
+            FaviconIcon(
                 modifier = modifier
                     .fillMaxSize()
                     .padding(3.dp)

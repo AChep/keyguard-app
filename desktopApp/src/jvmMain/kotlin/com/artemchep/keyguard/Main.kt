@@ -10,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.Tray
@@ -18,7 +17,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import androidx.compose.ui.window.rememberTrayState
+import coil3.SingletonImageLoader
 import com.artemchep.keyguard.common.AppWorker
+import com.artemchep.keyguard.common.di.imageLoaderModule
+import com.artemchep.keyguard.common.di.setFromDi
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
@@ -65,11 +67,6 @@ import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
-import io.kamel.core.config.KamelConfig
-import io.kamel.core.config.takeFrom
-import io.kamel.core.mapper.Mapper
-import io.kamel.image.config.Default
-import io.kamel.image.config.LocalKamelConfig
 import io.ktor.http.Url
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
@@ -95,7 +92,6 @@ import org.kodein.di.direct
 import org.kodein.di.instance
 import java.security.Security
 import java.util.Locale
-import kotlin.reflect.KClass
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -111,15 +107,11 @@ fun main() {
     // https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
     System.setProperty("java.net.useSystemProxies", "true")
 
-    val kamelConfig = KamelConfig {
-        this.takeFrom(KamelConfig.Default)
-        mapper(FaviconUrlMapper)
-    }
     val appDi = DI.invoke {
         import(diFingerprintRepositoryModule())
-        bindSingleton {
-            kamelConfig
+        val imageLoaderModule = imageLoaderModule {
         }
+        import(imageLoaderModule)
         bindSingleton {
             WindowStateManager(this)
         }
@@ -134,6 +126,10 @@ fun main() {
             )
         }
     }
+
+    // Construct the image loader singleton to match what
+    // we have set in the application's DI.
+    SingletonImageLoader.setFromDi(appDi)
 
     val processLifecycleProvider = LePlatformLifecycleProvider(
         scope = GlobalScope,
@@ -334,11 +330,9 @@ private fun ApplicationScope.KeyguardWindow(
                 color = containerColorAnimatedState.value,
                 contentColor = contentColor,
             ) {
-                val kamelConfig by rememberInstance<KamelConfig>()
                 CompositionLocalProvider(
                     LocalSurfaceColor provides containerColor,
                     LocalComposeWindow provides this.window,
-                    LocalKamelConfig provides kamelConfig,
                 ) {
                     Navigation(
                         exitApplication = ::exitApplication,
@@ -348,23 +342,6 @@ private fun ApplicationScope.KeyguardWindow(
                 }
             }
         }
-    }
-}
-
-internal val FaviconUrlMapper: Mapper<FaviconUrl, Url> = object : Mapper<FaviconUrl, Url> {
-    override val inputKClass: KClass<FaviconUrl>
-        get() = FaviconUrl::class
-    override val outputKClass: KClass<Url>
-        get() = Url::class
-
-    override fun map(input: FaviconUrl): Url = kotlin.run {
-        val siteUrl = input.url
-        val finalUrl = kotlin.run {
-            val server = Favicon.getServerOrNull(input.serverId)
-            server?.transform(siteUrl)
-        }
-        finalUrl?.let(::Url)
-            ?: Url("https://example.com")
     }
 }
 

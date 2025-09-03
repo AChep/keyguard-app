@@ -30,9 +30,6 @@ androidxCoreKtx = "1.17.0"
 androidxCoreSplash = "1.2.0-rc01"
 androidxCoreShortcuts = "1.1.0"
 androidxCredentials = "1.5.0"
-# Before updating the version, check if
-# https://issuetracker.google.com/issues/413061399
-# has been fixed.
 androidxDatastore = "1.1.7"
 androidxLifecycle = "2.9.3"
 androidxProfileInstaller = "1.4.1"
@@ -63,19 +60,17 @@ commonsLang3 = "3.18.0"
 composeMultiplatform = "1.9.0-rc01"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
+# https://github.com/coil-kt/coil
+coil3 = "3.3.0"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.6"
 dbusJava = "5.1.1"
 firebase = "34.2.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
-# https://github.com/bumptech/glide
-glide = "5.0.0-rc01"
 googleServicesPlugin = "4.4.3"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
-# https://github.com/Kamel-Media/Kamel
-kamel = "1.0.7"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
@@ -101,22 +96,17 @@ ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
 ktlintPlugin = "13.1.0"
 # https://github.com/ktorio/ktor
-# Keep in sync with https://github.com/Kamel-Media/Kamel/blob/main/gradle/libs.versions.toml#L24
 ktor = "3.2.3"
 # https://github.com/java-native-access/jna
 jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
-# https://github.com/skydoves/landscapist
-landscapist = "2.5.2"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.13.0"
 # https://github.com/tony19/logback-android
 logback = "3.0.0"
 # https://developers.google.com/android/guides/setup
 mlkitBarcodeScanning = "18.3.1"
-# https://github.com/WonderzGmbH/nativefiledialog-java
-nfd = "1.0.3"
 # https://square.github.io/okhttp/changelogs/changelog/
 okHttp = "5.1.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
@@ -219,6 +209,8 @@ cash-sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", 
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
 conscrypt-openjdk = { module = "org.conscrypt:conscrypt-openjdk-uber", version.ref = "conscrypt" }
+coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil3" }
+coil3-coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
 devsrsouza-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeOpenIcons" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport = { module = "com.github.hypfvieh:dbus-java-transport-jnr-unixsocket", version.ref = "dbusJava" }
@@ -226,9 +218,6 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 fredporciuncula-flow-preferences = { module = "com.fredporciuncula:flow-preferences", version.ref = "flowPreferences" }
-glide-annotations = { module = "com.github.bumptech.glide:annotations", version.ref = "glide" }
-glide-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-glide-ksp = { module = "com.github.bumptech.glide:ksp", version.ref = "glide" }
 google-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
 google-accompanist-navigation-material = { module = "com.google.accompanist:accompanist-navigation-material", version.ref = "accompanist" }
 google-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
@@ -243,7 +232,6 @@ halilibo-richtext-markdown = { module = "com.halilibo.compose-richtext:richtext-
 halilibo-richtext-ui-material3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
 html-text = { module = "de.charlex.compose.material3:material3-html-text", version.ref = "htmlText" }
-kamel-image = { module = "media.kamel:kamel-image-default", version.ref = "kamel" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }
 kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }
@@ -269,8 +257,6 @@ ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", versi
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
-landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "landscapist" }
-landscapist-placeholder = { module = "com.github.skydoves:landscapist-placeholder", version.ref = "landscapist" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }

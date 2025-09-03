@@ -1,23 +1,20 @@
 package com.artemchep.keyguard.android.downloader
 
-import android.app.Application
-import android.content.Context
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.copy.download.DownloadTaskJvm
 import okhttp3.OkHttpClient
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class DownloadTaskAndroid(
-    private val context: Context,
+    cacheDirProvider: CacheDirProvider,
     cryptoGenerator: CryptoGenerator,
     okHttpClient: OkHttpClient,
     fileEncryptor: FileEncryptor,
 ) : DownloadTaskJvm(
-    cacheDirProvider = {
-        context.cacheDir
-    },
+    cacheDirProvider = cacheDirProvider,
     cryptoGenerator = cryptoGenerator,
     okHttpClient = okHttpClient,
     fileEncryptor = fileEncryptor,
@@ -25,7 +22,7 @@ class DownloadTaskAndroid(
     constructor(
         directDI: DirectDI,
     ) : this(
-        context = directDI.instance<Application>(),
+        cacheDirProvider = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         okHttpClient = directDI.instance(),
         fileEncryptor = directDI.instance(),

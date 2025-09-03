@@ -29,12 +29,16 @@ class DataDirectory(
         appDirs.getUserConfigDir(APP_NAME, null, APP_AUTHOR, true)
     }
 
-    fun cache(): IO<String> = ioEffect(Dispatchers.IO) {
+    fun cache(): IO<String> = ioEffect(Dispatchers.IO) { cacheBlocking() }
+
+    fun cacheBlocking(): String = run {
         val appDirs = AppDirsFactory.getInstance()
         appDirs.getUserCacheDir(APP_NAME, null, APP_AUTHOR)
     }
 
-    fun downloads(): IO<String> = ioEffect(Dispatchers.IO) {
+    fun downloads(): IO<String> = ioEffect(Dispatchers.IO) { downloadsBlocking() }
+
+    fun downloadsBlocking(): String = kotlin.run {
         val appDirs = AppDirsFactory.getInstance()
         appDirs.getUserDownloadsDir(APP_NAME, null, APP_AUTHOR)
     }

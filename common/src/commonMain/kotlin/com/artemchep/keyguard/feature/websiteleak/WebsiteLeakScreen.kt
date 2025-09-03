@@ -33,7 +33,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -192,7 +192,7 @@ private fun BreachItem(
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FaviconImage(
+            FaviconIcon(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape),

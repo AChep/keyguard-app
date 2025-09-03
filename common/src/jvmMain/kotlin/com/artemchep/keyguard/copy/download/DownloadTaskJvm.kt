@@ -47,9 +47,8 @@ open class DownloadTaskJvm(
 
     constructor(
         directDI: DirectDI,
-        cacheDirProvider: CacheDirProvider,
     ) : this(
-        cacheDirProvider = cacheDirProvider,
+        cacheDirProvider = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         okHttpClient = directDI.instance(),
         fileEncryptor = directDI.instance(),

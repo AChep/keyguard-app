@@ -152,7 +152,7 @@ import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
@@ -2744,7 +2744,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
             return VaultViewItem.Uri(
                 id = id,
                 icon = {
-                    FaviconImage(
+                    FaviconIcon(
                         modifier = Modifier
                             .size(24.dp)
                             .clip(CircleShape),

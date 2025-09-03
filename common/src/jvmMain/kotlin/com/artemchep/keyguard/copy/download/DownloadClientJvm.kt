@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import io.ktor.http.HttpStatusCode
@@ -59,10 +60,6 @@ abstract class DownloadClientJvm(
         private const val DOWNLOAD_PROGRESS_POOLING_PERIOD_MS = 1000L
     }
 
-    fun interface CacheDirProvider {
-        suspend fun get(): File
-    }
-
     private data class PoolEntry(
         val subscribersCount: Int,
         val downloadId: String,
@@ -80,9 +77,8 @@ abstract class DownloadClientJvm(
 
     constructor(
         directDI: DirectDI,
-        cacheDirProvider: CacheDirProvider,
     ) : this(
-        cacheDirProvider = cacheDirProvider,
+        cacheDirProvider = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         windowCoroutineScope = directDI.instance(),
         okHttpClient = directDI.instance(),

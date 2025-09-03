@@ -213,6 +213,8 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
+                api(libs.coil3.coil.compose)
+                api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
                 api(libs.halilibo.richtext.ui.material3)
                 api(libs.halilibo.richtext.commonmark)
@@ -264,7 +266,6 @@ kotlin {
                 api(sqldelight) {
                     exclude(group = "org.xerial")
                 }
-                api(libs.kamel.image)
                 api(libs.mayakapps.window.styler)
                 api(libs.vinceglb.filekit.core)
                 api(libs.vinceglb.filekit.dialogs)
@@ -307,10 +308,6 @@ kotlin {
                 api(libs.androidx.profileinstaller)
                 api(libs.android.billing.ktx)
                 api(libs.android.billing)
-                api(libs.glide.annotations)
-                api(libs.glide.glide)
-                api(libs.landscapist.glide)
-                api(libs.landscapist.placeholder)
                 api(libs.google.accompanist.drawablepainter)
                 api(libs.google.accompanist.permissions)
                 api(libs.google.play.review.ktx)
@@ -423,7 +420,6 @@ dependencies {
     add("kspCommonMainMetadata", libs.arrow.arrow.optics.ksp.plugin)
 
     add("kspAndroid", libs.androidx.room.compiler)
-    add("kspAndroid", libs.glide.ksp)
     add("coreLibraryDesugaring", libs.android.desugarjdklibs)
 }
 

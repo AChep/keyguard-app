@@ -46,7 +46,7 @@ import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
@@ -769,7 +769,7 @@ private suspend fun RememberStateFlowScope.aaaa(
     return VaultViewItem.Uri(
         id = id,
         icon = {
-            FaviconImage(
+            FaviconIcon(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape),

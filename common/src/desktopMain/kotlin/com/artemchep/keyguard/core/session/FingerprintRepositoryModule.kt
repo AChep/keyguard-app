@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.keychain.KeychainIds
@@ -64,6 +65,7 @@ import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
+import com.artemchep.keyguard.core.session.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
@@ -241,6 +243,24 @@ class ClearDataAndroid(
     }
 }
 
+class CacheDirProviderJvm(
+    private val dataDirectory: DataDirectory,
+) : CacheDirProvider {
+    constructor(directDI: DirectDI) : this(
+        dataDirectory = directDI.instance(),
+    )
+
+    override suspend fun get(): File {
+        val path = dataDirectory.cache().bind()
+        return File(path)
+    }
+
+    override fun getBlocking(): File {
+        val path = dataDirectory.cacheBlocking()
+        return File(path)
+    }
+}
+
 fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
 ) {
@@ -261,6 +281,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<PermissionService> {
         PermissionServiceJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<CacheDirProvider> {
+        CacheDirProviderJvm(
             directDI = this,
         )
     }

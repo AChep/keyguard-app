@@ -60,9 +60,9 @@ fun AttachmentIcon(
             "webp",
             "heic",
             "heif",
-            -> {
+                -> {
                 // We can display a preview of a file.
-                AttachmentIconImpl(
+                AttachmentIconFilePreview(
                     modifier = Modifier
                         .size(24.dp)
                         .clip(CircleShape)
@@ -108,10 +108,17 @@ fun AttachmentIcon(
 }
 
 @Composable
-expect fun AttachmentIconImpl(
-    uri: String? = null,
+private fun AttachmentIconFilePreview(
     modifier: Modifier = Modifier,
-)
+    uri: String? = null,
+) {
+    AsyncIcon(
+        imageModel = { uri },
+        modifier = modifier,
+        contentDescription = "Attachment",
+        errorImageVector = Icons.Outlined.KeyguardAttachment,
+    )
+}
 
 const val DEFAULT_HUE = 0.8f
 

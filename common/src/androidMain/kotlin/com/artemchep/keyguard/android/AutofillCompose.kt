@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,7 +41,7 @@ import com.artemchep.keyguard.common.model.LinkInfoAndroid
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.navigation.NavigationNode
@@ -169,7 +168,7 @@ private fun AppInfoWeb(
         val data = AppInfoData(
             label = webDomain,
             icon = {
-                FaviconImage(
+                FaviconIcon(
                     modifier = Modifier
                         .clip(CircleShape),
                     imageModel = {

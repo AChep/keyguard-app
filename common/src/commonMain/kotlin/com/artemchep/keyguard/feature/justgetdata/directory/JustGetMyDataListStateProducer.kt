@@ -15,7 +15,7 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
-import com.artemchep.keyguard.feature.favicon.FaviconImage
+import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
@@ -105,7 +105,7 @@ fun produceJustGetMyDataListState(
                 JustGetMyDataListState.Item.Content(
                     key = key,
                     icon = {
-                        FaviconImage(
+                        FaviconIcon(
                             modifier = Modifier
                                 .size(24.dp)
                                 .clip(CircleShape),

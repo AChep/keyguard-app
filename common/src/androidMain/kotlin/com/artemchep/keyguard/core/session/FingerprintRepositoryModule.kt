@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
@@ -65,13 +66,31 @@ import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.kodein.di.DI
+import org.kodein.di.DirectDI
 import org.kodein.di.bind
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
+import java.io.File
+
+class CacheDirProviderAndroid(
+    private val context: Context,
+) : CacheDirProvider {
+    constructor(directDI: DirectDI) : this(
+        context = directDI.instance(),
+    )
+
+    override suspend fun get(): File = withContext(Dispatchers.IO) {
+        getBlocking()
+    }
+
+    override fun getBlocking(): File = context.cacheDir
+}
 
 fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
@@ -104,6 +123,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
 
 
+    bindSingleton<CacheDirProvider> {
+        CacheDirProviderAndroid(
+            directDI = this,
+        )
+    }
     bindSingleton<GetLocale> {
         GetLocaleAndroid(
             directDI = this,

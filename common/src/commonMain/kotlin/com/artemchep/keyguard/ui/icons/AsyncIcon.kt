@@ -1,31 +1,32 @@
 package com.artemchep.keyguard.ui.icons
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Email
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.feature.favicon.GravatarUrl
+import coil3.compose.SubcomposeAsyncImage
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.glide.GlideImage
-import com.skydoves.landscapist.placeholder.shimmer.Shimmer
-import com.skydoves.landscapist.placeholder.shimmer.ShimmerPlugin
 
 @Composable
-actual fun EmailIcon(
-    modifier: Modifier,
-    gravatarUrl: GravatarUrl?,
+fun <T> AsyncIcon(
+    imageModel: () -> T?,
+    modifier: Modifier = Modifier,
+    contentDescription: String?,
+    errorImageVector: ImageVector,
 ) {
     val surfaceColor = MaterialTheme.colorScheme
         .surfaceColorAtElevation(LocalAbsoluteTonalElevation.current + 16.dp)
@@ -33,24 +34,28 @@ actual fun EmailIcon(
     val highlightColor = contentColor
         .combineAlpha(MediumEmphasisAlpha)
         .compositeOver(surfaceColor)
-    GlideImage(
+
+    val painterData = remember(imageModel) {
+        imageModel()
+    }
+    SubcomposeAsyncImage(
         modifier = modifier,
-        imageModel = { gravatarUrl },
-        imageOptions = ImageOptions(contentScale = ContentScale.Crop),
-        component = rememberImageComponent {
-            // Shows a shimmering effect when loading an image
-            +ShimmerPlugin(
-                shimmer = Shimmer.Flash(
-                    baseColor = surfaceColor,
-                    highlightColor = highlightColor,
-                ),
+        model = painterData,
+        contentDescription = contentDescription,
+        contentScale = ContentScale.Crop,
+        loading = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .shimmer()
+                    .background(highlightColor),
             )
         },
-        failure = {
+        error = {
             Icon(
                 modifier = Modifier
                     .align(Alignment.Center),
-                imageVector = Icons.Outlined.Email,
+                imageVector = errorImageVector,
                 contentDescription = null,
                 tint = contentColor,
             )

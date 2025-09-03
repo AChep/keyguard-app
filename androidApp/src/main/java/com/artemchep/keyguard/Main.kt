@@ -5,8 +5,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import coil3.SingletonImageLoader
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.android.coil3.AppIconFetcher
+import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
 import com.artemchep.keyguard.android.passkeysModule
@@ -15,6 +18,8 @@ import com.artemchep.keyguard.android.util.ShortcutInfo
 import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
 import com.artemchep.keyguard.common.AppWorker
+import com.artemchep.keyguard.common.di.imageLoaderModule
+import com.artemchep.keyguard.common.di.setFromDi
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.Screen
@@ -29,6 +34,7 @@ import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
+import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
@@ -47,6 +53,14 @@ class Main : BaseApp(), DIAware {
         import(androidXModule(this@Main))
         import(diFingerprintRepositoryModule())
         import(passkeysModule())
+        val imageLoaderModule = kotlin.run {
+            val packageManager = packageManager
+            imageLoaderModule {
+                add(AppIconFetcher.Factory(packageManager))
+                add(AppIconKeyer())
+            }
+        }
+        import(imageLoaderModule)
         bind<BillingManager>() with singleton {
             BillingManagerImpl(
                 context = this@Main,
@@ -70,6 +84,10 @@ class Main : BaseApp(), DIAware {
 
     @OptIn(ExperimentalTime::class)
     override fun onCreate() {
+        // Construct the image loader singleton to match what
+        // we have set in the application's DI.
+        SingletonImageLoader.setFromDi(di)
+
         super.onCreate()
         val logRepository: LogRepository by instance()
         val getVaultSession: GetVaultSession by instance()

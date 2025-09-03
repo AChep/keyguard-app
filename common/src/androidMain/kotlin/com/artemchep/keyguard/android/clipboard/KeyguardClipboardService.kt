@@ -65,6 +65,7 @@ import org.kodein.di.android.closestDI
 import org.kodein.di.instance
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import androidx.core.net.toUri
 
 class KeyguardClipboardService : Service(), DIAware {
     companion object {
@@ -470,5 +471,6 @@ class KeyguardClipboardService : Service(), DIAware {
     }
 
     private fun getAudioUri() =
-        Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + applicationContext.packageName + "/" + R.raw.silence)
+        "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${applicationContext.packageName}/${R.raw.silence}"
+            .toUri()
 }

@@ -69,6 +69,7 @@ import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.instance
+import androidx.core.net.toUri
 
 abstract class BaseActivity : AppCompatActivity(), DIAware {
     override val di by closestDI()
@@ -342,7 +343,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         uri: String,
         fileName: String?,
     ) {
-        val file = Uri.parse(uri).toFile()
+        val file = uri.toUri().toFile()
         val type = fileName?.substringAfterLast('.')
             ?.lowercase()
             ?.let { ext ->
@@ -395,7 +396,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         }
         kotlin.runCatching {
             val launchIntent = Intent(Intent.ACTION_DIAL).apply {
-                data = Uri.parse("tel:${intent.phoneNumber}")
+                data = "tel:${intent.phoneNumber}".toUri()
             }
             startActivity(launchIntent)
         }.onFailure { e ->
@@ -412,7 +413,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         }
         kotlin.runCatching {
             val launchIntent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("sms:${intent.phoneNumber}")
+                data = "sms:${intent.phoneNumber}".toUri()
             }
             startActivity(launchIntent)
         }.onFailure { e ->
@@ -439,7 +440,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                 // Show only email clients in the list!
                 selector = kotlin.run {
                     Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:")
+                        data = "mailto:".toUri()
                     }
                 }
             }
@@ -457,7 +458,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             "Navigating to browser '${intent.url}'"
         }
         kotlin.runCatching {
-            val parsedUrl = Uri.parse(intent.url)
+            val parsedUrl = intent.url.toUri()
             try {
                 val customTabs = CustomTabsIntent.Builder()
                     .build()
@@ -480,7 +481,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             "Navigating to browser '${intent.url}'"
         }
         kotlin.runCatching {
-            val parsedUrl = Uri.parse(intent.url)
+            val parsedUrl = intent.url.toUri()
             Intent(Intent.ACTION_VIEW, parsedUrl)
                 // launch activity
                 .let(::startActivity)

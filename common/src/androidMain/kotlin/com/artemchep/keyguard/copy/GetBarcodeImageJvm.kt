@@ -11,6 +11,7 @@ import com.artemchep.keyguard.util.encode
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import kotlin.coroutines.CoroutineContext
+import androidx.core.graphics.createBitmap
 
 /**
  * @author Artem Chepurnyi
@@ -37,8 +38,7 @@ class GetBarcodeImageJvm(
                 pixels[y * width + x] = color
             }
         }
-        val bitmap = Bitmap
-            .createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(width, height)
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
         bitmap.asImageBitmap()
     }

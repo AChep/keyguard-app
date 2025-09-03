@@ -15,6 +15,6 @@ data class LeUriImpl(
     override fun toString(): String = uri.toString()
 }
 
-actual fun leParseUri(uri: String): LeUri = Uri.parse(uri).let(::LeUriImpl)
+actual fun leParseUri(uri: String): LeUri = uri.toUri().let(::LeUriImpl)
 
 actual fun leParseUri(file: File): LeUri = file.toUri().let(::LeUriImpl)

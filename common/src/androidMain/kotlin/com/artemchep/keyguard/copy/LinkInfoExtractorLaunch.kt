@@ -2,7 +2,6 @@ package com.artemchep.keyguard.copy
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.collection.LruCache
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
@@ -11,6 +10,7 @@ import com.artemchep.keyguard.common.model.LinkInfoLaunch
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.google.accompanist.drawablepainter.DrawablePainter
 import kotlin.reflect.KClass
+import androidx.core.net.toUri
 
 class LinkInfoExtractorLaunch(
     private val packageManager: PackageManager,
@@ -42,7 +42,7 @@ class LinkInfoExtractorLaunch(
         uri: String,
     ): LinkInfoLaunch = kotlin.run {
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse(uri)
+            data = uri.toUri()
         }
         val apps = packageManager
             .queryIntentActivities(intent, 0)

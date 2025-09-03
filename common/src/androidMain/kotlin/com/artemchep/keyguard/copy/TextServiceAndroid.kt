@@ -11,6 +11,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.InputStream
+import androidx.core.net.toUri
 
 class TextServiceAndroid(
     private val context: Context,
@@ -28,7 +29,7 @@ class TextServiceAndroid(
         .inputStream()
 
     override fun readFromFile(uri: String): InputStream {
-        val parsedUri = Uri.parse(uri)
+        val parsedUri = uri.toUri()
         return context.contentResolver.openInputStream(parsedUri)!!
     }
 }

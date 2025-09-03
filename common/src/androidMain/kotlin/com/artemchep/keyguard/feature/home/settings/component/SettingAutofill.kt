@@ -47,6 +47,7 @@ import org.kodein.di.instance
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import androidx.core.net.toUri
 
 actual fun settingAutofillProvider(
     directDI: DirectDI,
@@ -240,7 +241,7 @@ private sealed interface AutofillPlatformWarning {
             } catch (e: Exception) {
                 val genericIntent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:$packageName"),
+                    "package:$packageName".toUri(),
                 )
                 kotlin.runCatching {
                     context.startActivity(genericIntent)

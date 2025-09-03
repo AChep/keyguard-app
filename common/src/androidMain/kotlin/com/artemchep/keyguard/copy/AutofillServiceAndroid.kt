@@ -2,7 +2,6 @@ package com.artemchep.keyguard.copy
 
 import android.app.Application
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import android.view.autofill.AutofillManager
 import androidx.core.content.getSystemService
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import androidx.core.net.toUri
 
 class AutofillServiceAndroid(
     private val application: Application,
@@ -72,7 +72,7 @@ class AutofillServiceAndroid(
                     onEnable = { activity ->
                         val intent = Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE).apply {
                             val packageName = application.packageName
-                            data = Uri.parse("package:$packageName")
+                            data = "package:$packageName".toUri()
                         }
                         activity.startActivity(intent)
                     },

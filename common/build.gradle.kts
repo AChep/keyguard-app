@@ -187,7 +187,7 @@ kotlin {
                 implementation(compose.material)
                 implementation(compose.material3)
                 implementation(compose.materialIconsExtended)
-                implementation("org.jetbrains.compose.material3:material3:1.9.0-alpha04")
+                implementation("org.jetbrains.compose.material3:material3:1.10.0-alpha01")
                 api(compose.components.resources)
 
                 api(libs.kotlin.stdlib)

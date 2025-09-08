@@ -120,6 +120,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
+import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.icons.custom.FormatLetterCaseLower
@@ -751,15 +752,6 @@ fun produceGeneratorState(
         config: PasswordGeneratorConfigBuilder2.Passphrase,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
-            GeneratorState.Filter.Item.Text(
-                key = "$PREFIX_PASSPHRASE.delimiter",
-                title = translate(Res.string.generator_passphrase_delimiter_title),
-                model = TextFieldModel2(
-                    state = passphraseDelimiterState,
-                    text = config.delimiter,
-                    onChange = passphraseDelimiterState::value::set,
-                ),
-            ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSPHRASE.capitalize",
                 icon = KeyguardIcons.FormatLetterCaseUpper,
@@ -781,10 +773,23 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_PASSPHRASE.wordlist",
                 title = translate(Res.string.generator_passphrase_wordlist_title),
+                icon = Icons.Outlined.KeyguardWordlist,
                 model = wordlistFilterItem(
                     wordlistId = config.wordlistId,
                     wordlists = config.wordlists,
                     onSelect = passphraseWordlistIdSink::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Section(
+                key = "$PREFIX_PASSPHRASE.section1",
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_PASSPHRASE.delimiter",
+                title = translate(Res.string.generator_passphrase_delimiter_title),
+                model = TextFieldModel2(
+                    state = passphraseDelimiterState,
+                    text = config.delimiter,
+                    onChange = passphraseDelimiterState::value::set,
                 ),
             ),
         )
@@ -832,24 +837,6 @@ fun produceGeneratorState(
         config: PasswordGeneratorConfigBuilder2.Username,
     ): GeneratorState.Filter {
         val items = persistentListOf<GeneratorState.Filter.Item>(
-            GeneratorState.Filter.Item.Text(
-                key = "$PREFIX_PASSPHRASE.custom_word",
-                title = translate(Res.string.generator_username_custom_word_title),
-                model = TextFieldModel2(
-                    state = usernameCustomWordState,
-                    text = config.customWord,
-                    onChange = usernameCustomWordState::value::set,
-                ),
-            ),
-            GeneratorState.Filter.Item.Text(
-                key = "$PREFIX_PASSPHRASE.delimiter",
-                title = translate(Res.string.generator_username_delimiter_title),
-                model = TextFieldModel2(
-                    state = usernameDelimiterState,
-                    text = config.delimiter,
-                    onChange = usernameDelimiterState::value::set,
-                ),
-            ),
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_USERNAME.capitalize",
                 icon = KeyguardIcons.FormatLetterCaseUpper,
@@ -871,10 +858,32 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Enum(
                 key = "$PREFIX_USERNAME.wordlist",
                 title = translate(Res.string.generator_username_wordlist_title),
+                icon = Icons.Outlined.KeyguardWordlist,
                 model = wordlistFilterItem(
                     wordlistId = config.wordlistId,
                     wordlists = config.wordlists,
                     onSelect = usernameWordlistIdSink::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Section(
+                key = "$PREFIX_USERNAME.section1",
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_USERNAME.custom_word",
+                title = translate(Res.string.generator_username_custom_word_title),
+                model = TextFieldModel2(
+                    state = usernameCustomWordState,
+                    text = config.customWord,
+                    onChange = usernameCustomWordState::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_USERNAME.delimiter",
+                title = translate(Res.string.generator_username_delimiter_title),
+                model = TextFieldModel2(
+                    state = usernameDelimiterState,
+                    text = config.delimiter,
+                    onChange = usernameDelimiterState::value::set,
                 ),
             ),
         )
@@ -1607,24 +1616,22 @@ fun produceGeneratorState(
                                 value = password,
                                 type = CopyText.Type.PASSWORD,
                             )
-                        }
-                        val actions = kotlin.run {
-                            val list = mutableListOf<FlatItemAction>()
-                            if (canWrite && hasAccounts && type.username) {
-                                list += FlatItemAction(
-                                    leading = icon(Icons.Outlined.Add),
-                                    title = Res.string.generator_create_item_with_username_title.wrap(),
-                                    onClick = ::createLoginWithUsername.partially1(password),
-                                )
+                            section {
+                                if (canWrite && hasAccounts && type.username) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_username_title.wrap(),
+                                        onClick = ::createLoginWithUsername.partially1(password),
+                                    )
+                                }
+                                if (canWrite && hasAccounts && type.password) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_password_title.wrap(),
+                                        onClick = ::createLoginWithPassword.partially1(password),
+                                    )
+                                }
                             }
-                            if (canWrite && hasAccounts && type.password) {
-                                list += FlatItemAction(
-                                    leading = icon(Icons.Outlined.Add),
-                                    title = Res.string.generator_create_item_with_password_title.wrap(),
-                                    onClick = ::createLoginWithPassword.partially1(password),
-                                )
-                            }
-                            list.toPersistentList()
                         }
                         GeneratorState.Value(
                             title = null,
@@ -1637,11 +1644,7 @@ fun produceGeneratorState(
                             } else {
                                 persistentListOf()
                             },
-                            actions = if (password.isNotEmpty()) {
-                                actions
-                            } else {
-                                persistentListOf()
-                            },
+                            actions = persistentListOf(),
                             onCopy = if (password.isNotEmpty()) {
                                 copyItemFactory::copy
                                     .partially1(password)
@@ -1664,17 +1667,15 @@ fun produceGeneratorState(
                                 privateKeyExport = privateKeyExport,
                                 copyItemFactory = copyItemFactory,
                             )
-                        }
-                        val actions = kotlin.run {
-                            val list = mutableListOf<FlatItemAction>()
-                            if (canWrite && hasAccounts && type.sshKey) {
-                                list += FlatItemAction(
-                                    leading = icon(Icons.Outlined.Add),
-                                    title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
-                                    onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
-                                )
+                            section {
+                                if (canWrite && hasAccounts && type.sshKey) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
+                                        onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
+                                    )
+                                }
                             }
-                            list.toPersistentList()
                         }
                         GeneratorState.Value(
                             title = keyPair.type.title,
@@ -1682,7 +1683,7 @@ fun produceGeneratorState(
                             source = passwordw,
                             strength = false,
                             dropdown = dropdown,
-                            actions = actions,
+                            actions = persistentListOf(),
                             onCopy = null,
                             onRefresh = refreshValue,
                         )

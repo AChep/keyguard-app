@@ -923,6 +923,59 @@ fun FlatItemLayoutExpressive(
 }
 
 @Composable
+fun FlatSurfaceExpressive(
+    modifier: Modifier = Modifier,
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    shapeState: Int = ShapeState.ALL,
+    expressive: Boolean = LocalExpressive.current,
+    padding: PaddingValues? = null,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val background = run {
+        val color = if (backgroundColor.isSpecified || elevation.value > 0f || !expressive) {
+            val bg = backgroundColor.takeIf { it.isSpecified }
+                ?: Color.Transparent
+            val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
+            fg.compositeOver(bg)
+        } else {
+            val surfaceElevation = LocalSurfaceElevation.current
+            surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+        }
+        Modifier
+            .drawBehind {
+                drawRect(color)
+            }
+    }
+
+    val shape: Shape = surfaceShape(
+        shapeState = shapeState,
+        expressive = expressive,
+    )
+    val horizontalPadding: Dp = Dimens.contentPadding
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (padding != null) {
+                    Modifier
+                        .padding(padding)
+                } else Modifier
+                    .padding(
+                        start = horizontalPadding,
+                        end = horizontalPadding,
+                        top = 1.dp,
+                        bottom = 2.dp, // in Android notifications the margin is 3 dp
+                    ),
+            )
+            .clip(shape)
+            .then(background),
+    ) {
+        content()
+    }
+}
+
+@Composable
 fun rememberSecretAccentColor(
     accentLight: Color,
     accentDark: Color,

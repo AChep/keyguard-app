@@ -149,9 +149,10 @@ private fun LazyListScope.populateGeneratorPaneMasterContent(
 }
 
 @Composable
-private fun GeneratorHistoryItem(
+fun GeneratorHistoryItem(
     modifier: Modifier,
     item: GeneratorHistoryItem,
+    shapeMaskOr: Int = 0,
 ) = when (item) {
     is GeneratorHistoryItem.Section -> GeneratorHistoryItem(
         modifier = modifier,
@@ -161,6 +162,7 @@ private fun GeneratorHistoryItem(
     is GeneratorHistoryItem.Value -> GeneratorHistoryItem(
         modifier = modifier,
         item = item,
+        shapeMaskOr = shapeMaskOr,
     )
 }
 
@@ -180,6 +182,7 @@ private fun GeneratorHistoryItem(
 private fun GeneratorHistoryItem(
     modifier: Modifier,
     item: GeneratorHistoryItem.Value,
+    shapeMaskOr: Int,
 ) {
     val selectableState by item.selectableState.collectAsState()
     val backgroundColor = when {
@@ -189,7 +192,7 @@ private fun GeneratorHistoryItem(
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
-        shapeState = item.shapeState,
+        shapeState = item.shapeState or shapeMaskOr,
         leading = {
             Crossfade(targetState = item.type) { type ->
                 val primaryIcon = when (type) {

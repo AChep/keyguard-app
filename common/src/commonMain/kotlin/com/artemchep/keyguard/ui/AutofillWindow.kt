@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -51,7 +52,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.generator.AutoResizeText
 import com.artemchep.keyguard.feature.generator.DecoratedSlider
 import com.artemchep.keyguard.feature.generator.FilterItem
@@ -60,6 +63,9 @@ import com.artemchep.keyguard.feature.generator.GeneratorState
 import com.artemchep.keyguard.feature.generator.GeneratorType
 import com.artemchep.keyguard.feature.generator.colorizePasswordOrEmpty
 import com.artemchep.keyguard.feature.generator.produceGeneratorState
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.HorizontalContextItems
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.res.Res
@@ -67,8 +73,10 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.StateFlow
 
@@ -258,9 +266,15 @@ fun ColumnScope.AutofillWindowContent(
             .height(16.dp),
     )
 
-    filter.items.forEachIndexed { index, item ->
+    val items = filter.items
+    items.forEachIndexed { index, item ->
         key(item.key) {
-            FilterItem(item)
+            val shapeState = getShapeState(
+                list = items,
+                index = index,
+                predicate = { el, _ -> el is GroupableShapeItem<*> },
+            )
+            FilterItem(item, shapeState = shapeState)
         }
     }
 }
@@ -300,7 +314,7 @@ private fun ColumnScope.GeneratorValue2(
 
                 val valueExists = !valueState.value?.password.isNullOrEmpty()
                 if (valueExists) {
-                    listOf(
+                    persistentListOf(
                         FlatItemAction(
                             leading = leading,
                             title = Res.string.generator_regenerate_button.wrap(),
@@ -308,7 +322,7 @@ private fun ColumnScope.GeneratorValue2(
                         ),
                     )
                 } else {
-                    listOf(
+                    persistentListOf(
                         FlatItemAction(
                             leading = leading,
                             title = Res.string.generator_generate_button.wrap(),
@@ -319,94 +333,101 @@ private fun ColumnScope.GeneratorValue2(
             }
         }
 
-        val sliderInteractionSourceIsInteracted =
-            sliderInteractionSource.collectIsInteractedWith()
-        FlatDropdown(
-            elevation = 8.dp,
-            content = {
-                ExpandedIfNotEmpty(
-                    valueOrNull = value.title,
-                ) { title ->
-                    Text(
+        Column {
+            val sliderInteractionSourceIsInteracted =
+                sliderInteractionSource.collectIsInteractedWith()
+            FlatDropdownSimpleExpressive(
+                content = {
+                    ExpandedIfNotEmpty(
+                        valueOrNull = value.title,
+                    ) { title ->
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 4.dp),
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
+                    Crossfade(
+                        targetState = value.password,
                         modifier = Modifier
-                            .padding(bottom = 4.dp),
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-                Crossfade(
-                    targetState = value.password,
-                    modifier = Modifier
-                        .animateContentHeight(),
-                ) { password ->
-                    AutoResizeText(
-                        text = if (password.isEmpty()) {
-                            val color = LocalContentColor.current
-                                .combineAlpha(DisabledEmphasisAlpha)
-                            val text = stringResource(Res.string.empty_value)
-                            buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(color = color),
-                                ) {
-                                    append(text)
+                            .animateContentHeight(),
+                    ) { password ->
+                        AutoResizeText(
+                            text = if (password.isEmpty()) {
+                                val color = LocalContentColor.current
+                                    .combineAlpha(DisabledEmphasisAlpha)
+                                val text = stringResource(Res.string.empty_value)
+                                buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(color = color),
+                                    ) {
+                                        append(text)
+                                    }
                                 }
-                            }
-                        } else {
-                            colorizePassword(
-                                password = password,
-                                contentColor = LocalContentColor.current,
+                            } else {
+                                colorizePassword(
+                                    password = password,
+                                    contentColor = LocalContentColor.current,
+                                )
+                            },
+                        )
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .height(4.dp),
+                    )
+
+                    val visible = value.strength
+                    ExpandedIfNotEmpty(
+                        valueOrNull = value.password.takeIf { visible },
+                    ) { password ->
+                        PasswordStrengthBadge(
+                            password = password,
+                        )
+                    }
+                },
+                trailing = {
+                    val updatedPassword by rememberUpdatedState(value.password)
+                    val updatedSource by rememberUpdatedState(value.source)
+                    val updatedOnClick by rememberUpdatedState(onComplete)
+                    ExtendedFloatingActionButton(
+                        modifier = Modifier
+                            .then(
+                                if (updatedPassword.isNotEmpty()) {
+                                    Modifier
+                                } else {
+                                    Modifier.alpha(DisabledEmphasisAlpha)
+                                },
+                            ),
+                        onClick = {
+                            updatedOnClick.invoke(updatedSource)
+                        },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Check,
+                                contentDescription = null,
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = stringResource(Res.string.generator_use_button),
                             )
                         },
                     )
-                }
-                Spacer(
-                    modifier = Modifier
-                        .height(4.dp),
-                )
-
-                val visible = value.strength
-                ExpandedIfNotEmpty(
-                    valueOrNull = value.password.takeIf { visible },
-                ) { password ->
-                    PasswordStrengthBadge(
-                        password = password,
-                    )
-                }
-            },
-            trailing = {
-                val updatedPassword by rememberUpdatedState(value.password)
-                val updatedSource by rememberUpdatedState(value.source)
-                val updatedOnClick by rememberUpdatedState(onComplete)
-                ExtendedFloatingActionButton(
-                    modifier = Modifier
-                        .then(
-                            if (updatedPassword.isNotEmpty()) {
-                                Modifier
-                            } else {
-                                Modifier.alpha(DisabledEmphasisAlpha)
-                            },
-                        ),
-                    onClick = {
-                        updatedOnClick.invoke(updatedSource)
-                    },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Check,
-                            contentDescription = null,
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = stringResource(Res.string.generator_use_button),
-                        )
-                    },
-                )
-            },
-            dropdown = value.dropdown,
-            actions = actions,
-            enabled = !sliderInteractionSourceIsInteracted,
-        )
+                },
+                dropdown = value.dropdown,
+                enabled = !sliderInteractionSourceIsInteracted,
+            )
+            HorizontalContextItems(
+                modifier = Modifier,
+                items = actions,
+                colors = ButtonDefaults.outlinedButtonColors(),
+                elevation = null,
+                border = ButtonDefaults.outlinedButtonBorder(),
+            )
+        }
     }
 }
 
@@ -422,11 +443,11 @@ fun ColumnScope.GeneratorSuggestions(
     ) { value ->
         Row(
             modifier = Modifier
+                .padding(top = Dimens.contentPadding)
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             value.forEach { i ->
-                FlatItem(
+                FlatItemSimpleExpressive(
                     modifier = Modifier
                         .widthIn(max = DropdownMinWidth),
                     leading = if (i.length != null) {

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,10 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -42,7 +44,8 @@ fun VaultViewQuickActionsItem(
     item: VaultViewItem.QuickActions,
 ) {
     HorizontalContextItems(
-        modifier = modifier,
+        modifier = modifier
+            .padding(bottom = 24.dp),
         items = item.actions,
     )
 }
@@ -51,22 +54,26 @@ fun VaultViewQuickActionsItem(
 fun HorizontalContextItems(
     modifier: Modifier = Modifier,
     items: ImmutableList<ContextItem>,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
 ) {
     FlowRow(
         modifier = modifier
             .padding(
                 start = Dimens.buttonHorizontalPadding,
                 end = Dimens.buttonHorizontalPadding,
-                bottom = 24.dp,
             ),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items.forEach { i ->
             HorizontalContextItem(
-                modifier = Modifier
-                    .widthIn(max = DropdownMinWidth),
+                modifier = Modifier,
                 item = i,
+                colors = colors,
+                elevation = elevation,
+                border = border,
             )
         }
     }
@@ -76,6 +83,9 @@ fun HorizontalContextItems(
 private fun HorizontalContextItem(
     modifier: Modifier = Modifier,
     item: ContextItem,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
 ) = when (item) {
     is ContextItem.Section -> {
         Section(
@@ -96,6 +106,9 @@ private fun HorizontalContextItem(
         HorizontalFlatActionItem(
             modifier = modifier,
             item = item,
+            colors = colors,
+            elevation = elevation,
+            border = border,
         )
     }
 }
@@ -105,6 +118,9 @@ private fun HorizontalContextItem(
 private fun HorizontalFlatActionItem(
     modifier: Modifier = Modifier,
     item: FlatItemAction,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
 ) {
     val updatedOnClick by rememberUpdatedState(item.onClick)
     Button(
@@ -112,6 +128,10 @@ private fun HorizontalFlatActionItem(
         onClick = {
             updatedOnClick?.invoke()
         },
+        colors = colors,
+        shapes = ButtonDefaults.shapes(),
+        elevation = elevation,
+        border = border,
         enabled = updatedOnClick != null,
     ) {
         HorizontalFlatActionContent(

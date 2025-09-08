@@ -10,7 +10,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,24 +31,30 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -59,7 +64,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.movableContentOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -78,7 +83,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -86,10 +90,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.partially1
 import com.artemchep.keyguard.LocalAppMode
+import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
+import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryItem
+import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryState
+import com.artemchep.keyguard.feature.generator.history.produceGeneratorHistoryState
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatSurfaceExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
@@ -97,15 +110,13 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
-import com.artemchep.keyguard.ui.DropdownMinWidth
+import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatDropdown
-import com.artemchep.keyguard.ui.FlatItem
-import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
@@ -114,7 +125,6 @@ import com.artemchep.keyguard.ui.ScaffoldColumn
 import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.collectIsInteractedWith
 import com.artemchep.keyguard.ui.colorizePassword
-import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.minus
 import com.artemchep.keyguard.ui.shimmer.shimmer
@@ -123,14 +133,14 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.SkeletonSlider
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.horizontalPaddingHalf
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
-import com.artemchep.keyguard.ui.util.VerticalDivider
-import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -147,10 +157,11 @@ import kotlin.math.roundToLong
 fun GeneratorScreen(
     args: GeneratorRoute.Args,
 ) {
-    val loadableState = produceGeneratorState(
+    val loadableGeneratorState = produceGeneratorState(
         mode = LocalAppMode.current,
         args = args,
     )
+    val loadableHistoryState = produceGeneratorHistoryState()
 
     val scrollBehavior = ToolbarBehavior.behavior()
     val sliderInteractionSource = remember {
@@ -170,7 +181,7 @@ fun GeneratorScreen(
                     NavigationIcon()
                 },
                 actions = {
-                    loadableState.fold(
+                    loadableGeneratorState.fold(
                         ifLoading = {
                         },
                         ifOk = { state ->
@@ -201,7 +212,7 @@ fun GeneratorScreen(
         detail = { modifier ->
             GeneratorPaneDetail(
                 modifier = modifier,
-                loadableState = loadableState,
+                loadableState = loadableGeneratorState,
                 sliderInteractionSource = sliderInteractionSource,
             )
         },
@@ -209,7 +220,8 @@ fun GeneratorScreen(
         val stickyValueUi = maxHeight >= 480.dp
         GeneratorPaneMaster(
             modifier = modifier,
-            loadableState = loadableState,
+            loadableGeneratorState = loadableGeneratorState,
+            loadableHistoryState = loadableHistoryState,
             tabletUi = tabletUi,
             stickyValueUi = stickyValueUi,
             scrollBehavior = scrollBehavior,
@@ -229,6 +241,7 @@ private fun GeneratorPaneDetail(
     ScaffoldColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
     ) {
         loadableState.fold(
@@ -270,13 +283,14 @@ private fun ColumnScope.GeneratorPaneDetailContent(
 @Composable
 private fun GeneratorPaneMaster(
     modifier: Modifier,
-    loadableState: Loadable<GeneratorState>,
+    loadableGeneratorState: Loadable<GeneratorState>,
+    loadableHistoryState: Loadable<GeneratorHistoryState>,
     tabletUi: Boolean,
     stickyValueUi: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     sliderInteractionSource: MutableInteractionSource,
 ) {
-    val loadedState = loadableState.getOrNull()?.loadedState?.collectAsState()
+    val loadedState = loadableGeneratorState.getOrNull()?.loadedState?.collectAsState()
     val loaded by remember(loadedState) {
         derivedStateOf {
             loadedState?.value?.loaded == true
@@ -288,6 +302,7 @@ private fun GeneratorPaneMaster(
     ScaffoldColumn(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
+        expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         topBar = {
             if (tabletUi) {
@@ -302,7 +317,7 @@ private fun GeneratorPaneMaster(
                     NavigationIcon()
                 },
                 actions = {
-                    loadableState.fold(
+                    loadableGeneratorState.fold(
                         ifLoading = {
                         },
                         ifOk = { state ->
@@ -326,7 +341,7 @@ private fun GeneratorPaneMaster(
             )
         },
         floatingActionState = run {
-            val valueStateOrNull = loadableState.getOrNull()?.valueState
+            val valueStateOrNull = loadableGeneratorState.getOrNull()?.valueState
             val valueState = remember(valueStateOrNull) {
                 valueStateOrNull
                     ?: MutableStateFlow(null)
@@ -360,7 +375,7 @@ private fun GeneratorPaneMaster(
                     }
                 },
             ) {
-                val valueState = loadableState.getOrNull()?.valueState?.collectAsState()
+                val valueState = loadableGeneratorState.getOrNull()?.valueState?.collectAsState()
                 val valueExists by remember(valueState) {
                     derivedStateOf {
                         !valueState?.value?.password.isNullOrEmpty()
@@ -384,8 +399,8 @@ private fun GeneratorPaneMaster(
             val passwordState = remember {
                 mutableStateOf<String?>(null)
             }
-            LaunchedEffect(loadableState) {
-                val state = loadableState.getOrNull()
+            LaunchedEffect(loadableGeneratorState) {
+                val state = loadableGeneratorState.getOrNull()
                     ?: kotlin.run {
                         strengthState.value = false
                         passwordState.value = null
@@ -413,8 +428,8 @@ private fun GeneratorPaneMaster(
                     .padding(
                         contentPadding.value.minus(
                             PaddingValues(
-                                top = 8.dp,
-                                bottom = 8.dp,
+                                top = Dimens.contentPadding,
+                                bottom = Dimens.contentPadding,
                             ),
                         ),
                     )
@@ -459,13 +474,14 @@ private fun GeneratorPaneMaster(
         },
         columnScrollState = scrollState,
     ) {
-        loadableState.fold(
+        loadableGeneratorState.fold(
             ifLoading = {
                 SkeletonItem()
             },
             ifOk = { state ->
                 GeneratorPaneMasterContent(
                     state = state,
+                    loadableHistoryState = loadableHistoryState,
                     tabletUi = tabletUi,
                     sliderInteractionSource = sliderInteractionSource,
                 )
@@ -477,6 +493,7 @@ private fun GeneratorPaneMaster(
 @Composable
 private fun ColumnScope.GeneratorPaneMasterContent(
     state: GeneratorState,
+    loadableHistoryState: Loadable<GeneratorHistoryState>,
     tabletUi: Boolean,
     sliderInteractionSource: MutableInteractionSource,
 ) {
@@ -501,39 +518,98 @@ private fun ColumnScope.GeneratorPaneMasterContent(
             sliderInteractionSource = sliderInteractionSource,
         )
     }
+
+    if (tabletUi) {
+        val count = 10
+        val history = loadableHistoryState.getOrNull()?.items
+            ?: persistentListOf()
+        repeat(count) { i ->
+            val isLast = count == i + 1
+            val item = history.getOrNull(i)
+                ?: return@repeat
+            // We do no want to draw the section as a
+            // last element.
+            if (isLast && item is GeneratorHistoryItem.Section) {
+                return@repeat
+            }
+            key(item.id) {
+                val shapeMaskOr = if (isLast) {
+                    ShapeState.END
+                } else ShapeState.CENTER
+                GeneratorHistoryItem(
+                    modifier = Modifier,
+                    item = item,
+                    shapeMaskOr = shapeMaskOr,
+                )
+            }
+        }
+    }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColumnScope.GeneratorType(
     state: GeneratorState,
 ) {
+    var isContentDropdownExpanded by remember { mutableStateOf(false) }
+
     val type by state.typeState.collectAsState()
-    FlatDropdown(
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .weight(1f, fill = false),
-                            text = type.title,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .width(8.dp),
-                        )
-                        DropdownIcon()
-                    }
-                },
+    Row(
+        modifier = Modifier
+            .padding(horizontal = Dimens.contentPadding),
+        horizontalArrangement = ButtonGroupDefaults.HorizontalArrangement,
+    ) {
+        ToggleButton(
+            modifier = Modifier
+                .weight(1f, fill = false),
+            checked = true,
+            onCheckedChange = {
+                // Do nothing
+            },
+        ) {
+            Text(
+                modifier = Modifier
+                    .animateContentSize(),
+                text = type.title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-        },
-        dropdown = type.items,
+        }
+        FilledIconButton(
+            onClick = {
+                isContentDropdownExpanded = !isContentDropdownExpanded
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = null,
+            )
+
+            // Inject the dropdown popup to the bottom of the
+            // content.
+            val onDismissRequest = {
+                isContentDropdownExpanded = false
+            }
+            KeyguardDropdownMenu(
+                expanded = isContentDropdownExpanded,
+                onDismissRequest = onDismissRequest,
+            ) {
+                type.items.forEach { action ->
+                    DropdownMenuItemFlat(
+                        action = action,
+                    )
+                }
+            }
+        }
+    }
+
+    Spacer(
+        modifier = Modifier
+            .height(Dimens.contentPadding),
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColumnScope.GeneratorValue(
     valueFlow: StateFlow<GeneratorState.Value?>,
@@ -545,64 +621,66 @@ fun ColumnScope.GeneratorValue(
     ) { value ->
         val sliderInteractionSourceIsInteracted =
             sliderInteractionSource.collectIsInteractedWith()
-        FlatDropdown(
-            elevation = 1.dp,
-            content = {
-                ExpandedIfNotEmpty(
-                    valueOrNull = value.title,
-                ) { title ->
-                    Text(
-                        modifier = Modifier
-                            .padding(bottom = 4.dp),
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-                Crossfade(
-                    targetState = value.password,
-                    modifier = Modifier
-                        .animateContentHeight(),
-                ) { password ->
-                    AutoResizeText(
-                        text = colorizePasswordOrEmpty(password),
-                    )
-                }
-                Spacer(
-                    modifier = Modifier
-                        .height(4.dp),
-                )
-
-                val visible = value.strength
-                ExpandedIfNotEmpty(
-                    valueOrNull = value.password.takeIf { visible },
-                ) { password ->
-                    PasswordStrengthBadge(
-                        password = password,
-                    )
-                }
-            },
-            trailing = {
-                ExpandedIfNotEmptyForRow(
-                    valueOrNull = Unit.takeIf { value.onCopy != null },
-                ) {
-                    val updatedOnCopy by rememberUpdatedState(value.onCopy)
-                    IconButton(
-                        enabled = value.onCopy != null,
-                        onClick = {
-                            updatedOnCopy?.invoke()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.ContentCopy,
-                            contentDescription = null,
+        Column {
+            FlatDropdownSimpleExpressive(
+                elevation = 1.dp,
+                content = {
+                    ExpandedIfNotEmpty(
+                        valueOrNull = value.title,
+                    ) { title ->
+                        Text(
+                            modifier = Modifier
+                                .padding(bottom = 4.dp),
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
-                }
-            },
-            dropdown = value.dropdown,
-            actions = value.actions,
-            enabled = !sliderInteractionSourceIsInteracted,
-        )
+                    Crossfade(
+                        targetState = value.password,
+                        modifier = Modifier
+                            .animateContentHeight(),
+                    ) { password ->
+                        AutoResizeText(
+                            text = colorizePasswordOrEmpty(password),
+                        )
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .height(4.dp),
+                    )
+
+                    val visible = value.strength
+                    ExpandedIfNotEmpty(
+                        valueOrNull = value.password.takeIf { visible },
+                    ) { password ->
+                        PasswordStrengthBadge(
+                            password = password,
+                        )
+                    }
+                },
+                trailing = {
+                    ExpandedIfNotEmptyForRow(
+                        valueOrNull = Unit.takeIf { value.onCopy != null },
+                    ) {
+                        val updatedOnCopy by rememberUpdatedState(value.onCopy)
+                        IconButton(
+                            shapes = IconButtonDefaults.shapes(),
+                            enabled = value.onCopy != null,
+                            onClick = {
+                                updatedOnCopy?.invoke()
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ContentCopy,
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                },
+                dropdown = value.dropdown,
+                enabled = !sliderInteractionSourceIsInteracted,
+            )
+        }
     }
 }
 
@@ -653,7 +731,7 @@ private fun ColumnScope.GeneratorFilterTip(
             )
             Icon(
                 modifier = Modifier
-                    .padding(horizontal = Dimens.horizontalPadding),
+                    .padding(horizontal = Dimens.textHorizontalPadding),
                 imageVector = Icons.Outlined.Info,
                 contentDescription = null,
                 tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
@@ -667,7 +745,7 @@ private fun ColumnScope.GeneratorFilterTip(
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
             ) {
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(Dimens.textHorizontalPadding))
                 Text(
                     modifier = Modifier
                         .weight(1f),
@@ -715,23 +793,24 @@ private fun ColumnScope.GeneratorFilterItems(
     ExpandedIfNotEmpty(
         filter.length,
     ) {
-        Column {
-            DecoratedSlider(
-                filterLength = it,
-                interactionSource = sliderInteractionSource,
-            )
-        }
+        DecoratedSlider(
+            modifier = Modifier
+                .padding(bottom = 24.dp),
+            filterLength = it,
+            interactionSource = sliderInteractionSource,
+            shapeState = ShapeState.ALL,
+        )
     }
 
-    Spacer(
-        modifier = Modifier
-            .height(16.dp),
-    )
-
     val items = filter.items
-    items.forEach { item ->
+    items.forEachIndexed { index, item ->
         key(item.key) {
-            FilterItem(item)
+            val shapeState = getShapeState(
+                list = items,
+                index = index,
+                predicate = { el, _ -> el is GroupableShapeItem<*> },
+            )
+            FilterItem(item, shapeState = shapeState)
         }
     }
 }
@@ -739,84 +818,66 @@ private fun ColumnScope.GeneratorFilterItems(
 @Composable
 fun FilterItem(
     item: GeneratorState.Filter.Item,
+    shapeState: Int = ShapeState.ALL,
 ) = when (item) {
-    is GeneratorState.Filter.Item.Switch -> FilterSwitchItem(item)
-    is GeneratorState.Filter.Item.Text -> FilterTextItem(item)
-    is GeneratorState.Filter.Item.Enum -> FilterEnumItem(item)
+    is GeneratorState.Filter.Item.Switch -> FilterSwitchItem(item, shapeState)
+    is GeneratorState.Filter.Item.Text -> FilterTextItem(item, shapeState)
+    is GeneratorState.Filter.Item.Enum -> FilterEnumItem(item, shapeState)
     is GeneratorState.Filter.Item.Section -> FilterSectionItem(item)
 }
 
 @Composable
 private fun FilterSwitchItem(
     item: GeneratorState.Filter.Item.Switch,
+    shapeState: Int,
 ) {
     BoxWithConstraints {
-        val compact = maxWidth <= 356.dp && item.counter != null
         val horizontal = maxWidth >= 296.dp
 
         val updatedItemState = rememberUpdatedState(newValue = item)
-        val updatedCompactState = rememberUpdatedState(newValue = compact)
-        val movableSwitchContent = remember(updatedItemState, updatedCompactState) {
-            movableContentOf {
-                FilterSwitchItemMainContent(
-                    item = updatedItemState.value,
-                    compact = updatedCompactState.value,
-                )
-            }
-        }
-
         if (horizontal) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f),
-                ) {
-                    movableSwitchContent()
-                }
-                ExpandedIfNotEmptyForRow(
-                    valueOrNull = item.counter,
-                ) { counter ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        VerticalDivider(
-                            modifier = Modifier
-                                .height(20.dp),
-                        )
-                        Spacer(
-                            modifier = Modifier
-                                .width(Dimens.horizontalPadding),
-                        )
+            FilterSwitchItemMainContent(
+                item = updatedItemState.value,
+                shapeState = shapeState,
+                trailing = {
+                    ExpandedIfNotEmptyForRow(
+                        valueOrNull = item.counter,
+                    ) { counter ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Spacer(
+                                modifier = Modifier
+                                    .width(Dimens.buttonIconPadding),
+                            )
+                            FilterSwitchItemCounter(
+                                counter = counter,
+                            )
+                        }
+                    }
+                },
+            )
+        } else {
+            FilterSwitchItemMainContent(
+                item = updatedItemState.value,
+                shapeState = shapeState,
+                footer = {
+                    ExpandedIfNotEmpty(
+                        modifier = Modifier
+                            .padding(
+                                start = Dimens.horizontalPadding,
+                                end = Dimens.horizontalPadding,
+                                top = Dimens.horizontalPaddingHalf,
+                                bottom = Dimens.horizontalPaddingHalf,
+                            ),
+                        valueOrNull = item.counter,
+                    ) { counter ->
                         FilterSwitchItemCounter(
                             counter = counter,
                         )
-                        Spacer(
-                            modifier = Modifier
-                                .width(Dimens.horizontalPadding),
-                        )
                     }
-                }
-            }
-        } else {
-            Column {
-                movableSwitchContent()
-                ExpandedIfNotEmpty(
-                    modifier = Modifier
-                        .padding(
-                            start = Dimens.horizontalPadding,
-                            end = Dimens.horizontalPadding,
-                            top = Dimens.horizontalPaddingHalf,
-                            bottom = Dimens.horizontalPaddingHalf,
-                        ),
-                    valueOrNull = item.counter,
-                ) { counter ->
-                    FilterSwitchItemCounter(
-                        counter = counter,
-                    )
-                }
-            }
+                },
+            )
         }
     }
 }
@@ -824,13 +885,18 @@ private fun FilterSwitchItem(
 @Composable
 private fun FilterSwitchItemMainContent(
     item: GeneratorState.Filter.Item.Switch,
-    compact: Boolean,
+    shapeState: Int,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    footer: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
-    FlatItem(
-        leading = if (item.icon != null && !compact) {
-            icon<RowScope>(item.icon)
-        } else {
-            null
+    FlatItemSimpleExpressive(
+        shapeState = shapeState,
+        leading = {
+            Checkbox(
+                checked = item.model.checked,
+                enabled = item.model.onChange != null,
+                onCheckedChange = null,
+            )
         },
         title = {
             Text(
@@ -849,15 +915,8 @@ private fun FilterSwitchItemMainContent(
         } else {
             null
         },
-        trailing = {
-            Switch(
-                modifier = Modifier
-                    .height(20.dp),
-                checked = item.model.checked,
-                enabled = item.model.onChange != null,
-                onCheckedChange = null,
-            )
-        },
+        trailing = trailing,
+        footer = footer,
         onClick = item.model.onChange?.partially1(!item.model.checked),
     )
 }
@@ -994,6 +1053,7 @@ private fun FilterSwitchItemCounterButton(
 @Composable
 private fun FilterTextItem(
     item: GeneratorState.Filter.Item.Text,
+    shapeState: Int,
 ) {
     FlatTextField(
         modifier = Modifier
@@ -1004,6 +1064,8 @@ private fun FilterTextItem(
         } else {
             null
         },
+        expressive = true,
+        shapeState = shapeState,
         label = item.title,
         value = item.model,
         textStyle = LocalTextStyle.current.copy(
@@ -1015,8 +1077,10 @@ private fun FilterTextItem(
 @Composable
 private fun FilterEnumItem(
     item: GeneratorState.Filter.Item.Enum,
+    shapeState: Int,
 ) {
-    FlatDropdown(
+    FlatDropdownSimpleExpressive(
+        shapeState = shapeState,
         leading = if (item.icon != null) {
             icon<RowScope>(item.icon)
         } else {
@@ -1042,6 +1106,7 @@ private fun FilterSectionItem(
 ) {
     Section(
         text = item.text,
+        expressive = LocalExpressive.current,
     )
 }
 
@@ -1090,17 +1155,40 @@ private fun ColumnScope.DecoratedSliderLayout(
 }
 
 @Composable
-fun ColumnScope.DecoratedSlider(
+fun DecoratedSlider(
     filterLength: GeneratorState.Filter.Length,
     interactionSource: MutableInteractionSource,
     modifier: Modifier = Modifier,
+    shapeState: Int = ShapeState.ALL,
+) {
+    FlatSurfaceExpressive(
+        modifier = modifier,
+        shapeState = shapeState,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(vertical = 10.dp),
+        ) {
+            DecoratedSliderContent(
+                filterLength = filterLength,
+                interactionSource = interactionSource,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.DecoratedSliderContent(
+    filterLength: GeneratorState.Filter.Length,
+    interactionSource: MutableInteractionSource,
 ) {
     val onLengthChange = rememberUpdatedState(newValue = filterLength.onChange)
 
     var filterLengthTemp by kotlin.run {
         val length = filterLength.value
+            .toFloat()
         remember(filterLength) {
-            mutableStateOf(length.toFloat())
+            mutableFloatStateOf(value = length)
         }
     }
     val counter = remember(filterLengthTemp.roundToInt()) {
@@ -1117,7 +1205,7 @@ fun ColumnScope.DecoratedSlider(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.contentPadding),
     ) {
         Text(
             modifier = Modifier
@@ -1129,12 +1217,16 @@ fun ColumnScope.DecoratedSlider(
             counter = counter,
         )
     }
+    Spacer(
+        modifier = Modifier
+            .height(10.dp),
+    )
     val sliderValueRange = filterLength.run { min.toFloat()..max.toFloat() }
     val sliderSteps = filterLength.run { max - min } - 1
     Slider(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
+            .padding(horizontal = Dimens.contentPadding),
         value = filterLengthTemp,
         valueRange = sliderValueRange,
         steps = sliderSteps,

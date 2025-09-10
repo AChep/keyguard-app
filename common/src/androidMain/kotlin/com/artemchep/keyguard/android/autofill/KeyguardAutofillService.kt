@@ -693,6 +693,9 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         val spec = request.inlineSuggestionsRequest
             ?.inlinePresentationSpecs
             ?.getOrNull(index)
+            ?: request.inlineSuggestionsRequest
+                ?.inlinePresentationSpecs
+                ?.getOrNull(0) 
             ?: return null
         val imeStyle = spec.style
         if (UiVersions.getVersions(imeStyle).contains(UiVersions.INLINE_UI_VERSION_1)) {

@@ -163,7 +163,7 @@ jobs:
           lfs: true
           submodules: recursive
       - name: "Set up Python"
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: "Set up JDK 21"

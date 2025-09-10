@@ -130,7 +130,7 @@ sqldelight = "2.1.0"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.50.1.0"
 # https://github.com/vinceglb/FileKit
-filekit = "0.10.0"
+filekit = "0.11.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor

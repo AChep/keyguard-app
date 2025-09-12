@@ -1499,6 +1499,16 @@
     "name": "Boeing Employee Credit Union"
   },
   {
+    "domain": "beget.com",
+    "tfa": [
+      "sms",
+      "email",
+      "totp"
+    ],
+    "documentation": "https://beget.com/ru/kb/manual/nastrojki-akkaunta#security",
+    "name": "Beget"
+  },
+  {
     "domain": "belong.com.au",
     "tfa": [
       "sms",
@@ -7316,6 +7326,14 @@
     "documentation": "https://help.heap.io/heap-administration/secure-access/2fa/",
     "notes": "2FA is only available for users on the Business plan.",
     "name": "Heap"
+  },
+  {
+    "domain": "heathrow.com",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "name": "Heathrow Airport"
   },
   {
     "domain": "hello.vrchat.com",
@@ -14479,6 +14497,15 @@
     "documentation": "https://blog.sendsafely.com/authenticator-app",
     "notes": "TOTP 2FA requires SMS as a backup option",
     "name": "SendSafely"
+  },
+  {
+    "domain": "senko.digital",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://wiki.senko.digital/personal-area/two-factor-authentication",
+    "notes": "While both the main client area and game panel support 2FA, each system is separate and requires its own setup.",
+    "name": "Senko Digital"
   },
   {
     "domain": "sentry.io",

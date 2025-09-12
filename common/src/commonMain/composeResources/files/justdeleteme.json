@@ -42,11 +42,13 @@
   {
     "name": "1984 Hosting",
     "domains": [
-      "1984.hosting"
+      "1984.hosting",
+      "litigation.1984.hosting",
+      "kb.1984hosting.com"
     ],
-    "url": "https://1984.hosting/GDPR/",
+    "url": "https://1984.hosting/accounts/settings/",
     "difficulty": "easy",
-    "notes": "If you are logged in, you can use the automated deletion process. If that doesn't work, you can contact their support to do it.",
+    "notes": "Scroll down and click 'Forget all about me' and confirm.",
     "email": "gdpr@1984.is"
   },
   {
@@ -1367,6 +1369,15 @@
     "email": "home@ara.cat",
     "email_subject": "Delete ARA account",
     "email_body": "Please delete my ARA account which was registered under the e-mail:"
+  },
+  {
+    "name": "Arc",
+    "domains": [
+      "arc.net"
+    ],
+    "url": "https://resources.arc.net/hc/en-us/articles/22351623346327-Delete-My-Arc-Account",
+    "difficulty": "easy",
+    "notes": "Open the first tab of the settings inside the app, click the \"...\" button next to your email address, select \"Delete Account...\", then confirm deletion."
   },
   {
     "name": "Arc Games",
@@ -4913,6 +4924,15 @@
     "notes": "Go to My Account and select Edit Profile and then Delete Account. A confirmation e-mail will be sent to the address on file with a link you must visit."
   },
   {
+    "name": "Dell",
+    "domains": [
+      "dell.com"
+    ],
+    "url": "https://www.dell.com/preferences/pcrp/",
+    "difficulty": "easy",
+    "notes": "Submitting a privacy request allows you to request permanent deletion of your personal information, instead of simply deactivating your account, the default option in account settings."
+  },
+  {
     "name": "Delta Airlines (SkyMiles)",
     "domains": [
       "delta.com"
@@ -5018,6 +5038,15 @@
     "url": "https://www.dhl.de/de/privatkunden/kundenkonto/meine-daten.html",
     "difficulty": "easy",
     "notes": "Under 'Kundenkonto', click on 'Konto l\u00f6schen'."
+  },
+  {
+    "name": "Dia",
+    "domains": [
+      "diabrowser.com"
+    ],
+    "url": "https://diabrowser.com/help",
+    "difficulty": "easy",
+    "notes": "Open the first tab of the settings inside the app, click the \"...\" button in the bottom right corner, select \"Delete Account...\", then confirm deletion."
   },
   {
     "name": "DialLink",
@@ -8860,9 +8889,9 @@
     "domains": [
       "habitica.com"
     ],
-    "url": "https://habitica.com/user/settings/site",
+    "url": "https://habitica.com/user/settings/general",
     "difficulty": "easy",
-    "notes": "Log in to your account, click the User icon in the top-right corner, click Settings in the drop-down menu, and click the red Delete Account button at the bottom of the page. Alternatively, they delete accounts inactive for 5 years."
+    "notes": "Log into your account, click the User icon in the top-right corner, click Settings in the drop-down menu, and click the 'Learn More' next to Delete Account."
   },
   {
     "name": "Hack The Box",
@@ -12450,10 +12479,13 @@
   {
     "name": "McDonald's",
     "domains": [
-      "mcdonalds.com"
+      "mcdonalds.com",
+      "careers.mcdonalds.com",
+      "corporate.mcdonalds.com"
     ],
     "url": "https://www.mcdonalds.com/us/en-us/faq/how-do-i-delete-my-account.html",
-    "difficulty": "easy"
+    "difficulty": "medium",
+    "notes": "In the app, go to 'More', 'Profile', 'Delete account' and confirm."
   },
   {
     "name": "McVIP",
@@ -13749,8 +13781,8 @@
       "namecheap.com"
     ],
     "url": "https://www.namecheap.com/support/knowledgebase/article.aspx/303/44/how-do-i-cancel-or-close-my-account-with-you",
-    "difficulty": "hard",
-    "notes": "You have to contact Customer Support to delete your account, and provide your account username, support pin and reason why you would like to close your account."
+    "difficulty": "limited",
+    "notes": "You have to contact Customer Support to delete your account, and provide your account username, support PIN, and reason why you would like to close your account. Customers with suspended accounts must first have them reinstated (by providing full government ID) before they can be deleted. Customers who reside in sanctioned countries (such as Russia) cannot delete their accounts at all until they provide proof of residency in a non-sanctioned country."
   },
   {
     "name": "NameMC",
@@ -16585,6 +16617,15 @@
     "url": "https://qiwi.com/support/security/subject21/udalit-qiwi-koshelek",
     "difficulty": "medium",
     "notes": "If you want to delete the wallet, then log in to your QIWI Wallet and fill out the form below, which will be available after authorization."
+  },
+  {
+    "name": "Qoala",
+    "domains": [
+      "joinqoala.com"
+    ],
+    "url": "https://www.joinqoala.com/account",
+    "difficulty": "easy",
+    "notes": "Go to My Account, select the gear icon just by your name, select 'Delete account and all associated data'."
   },
   {
     "name": "Qobuz",
@@ -19655,6 +19696,15 @@
     "notes": "Scroll to the bottom of the page and click 'Delete Account'. Confirm the action by typing \"I understand\" in the text box."
   },
   {
+    "name": "Swift",
+    "domains": [
+      "swift.com.br"
+    ],
+    "url": " https://privacyportal.onetrust.com/webform/068883cc-1dae-4395-abfe-6eba2f29de47/d962e88c-edab-4c51-8428-9030bbaf552f",
+    "difficulty": "medium",
+    "notes": "The request to remove your account is made via a form, in which you need to fill in some information and provide a valid ID document. [Swift's privacy policy](https://www.swift.com.br/Institucional/politica-privacidade\" target=\"_blank)"
+  },
+  {
     "name": "Swiggy",
     "domains": [
       "swiggy.com",
@@ -20097,6 +20147,15 @@
     "email": "support@tenor.com",
     "email_subject": "Account Deletion Request",
     "email_body": "I would like to delete my account, with login XXXXXX and e-mail YYYYYY."
+  },
+  {
+    "name": "Tenso",
+    "domains": [
+      "tenso.com"
+    ],
+    "url": "https://www.tenso.com/en/inquiry",
+    "difficulty": "hard",
+    "notes": "While connected to you account you need to fill the contact form to request the deletion of the account and personal data."
   },
   {
     "name": "Termius",
@@ -21170,9 +21229,9 @@
     "domains": [
       "udemy.com"
     ],
-    "url": "https://www.udemy.com/user/edit-danger-zone/",
-    "difficulty": "medium",
-    "notes": "In order to delete your account, you need to first unsubscribe from all of your courses."
+    "url": "https://www.udemy.com/user/close-account/",
+    "difficulty": "easy",
+    "notes": "Click 'Close account' and confirm with the 6-digit code sent by email."
   },
   {
     "name": "UGC",

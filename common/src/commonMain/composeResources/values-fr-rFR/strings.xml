@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Paramètres</string>
     <string name="lock_reason_inactivity">Application verrouillée en raison de l’inactivité</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Verrouillé manuellement</string>
     <string name="send_type_text">Texte</string>
     <string name="send_type_file">Fichier</string>

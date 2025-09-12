@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Torre di Guardia</string>
     <string name="home_settings_label">Impostazioni</string>
     <string name="lock_reason_inactivity">Bloccato per inattività</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Bloccato manualmente</string>
     <string name="send_type_text">Testo</string>
     <string name="send_type_file">File</string>

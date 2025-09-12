@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Vigilància</string>
     <string name="home_settings_label">Configuració</string>
     <string name="lock_reason_inactivity">S'ha bloquejat per inactivitat</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Arxiu</string>

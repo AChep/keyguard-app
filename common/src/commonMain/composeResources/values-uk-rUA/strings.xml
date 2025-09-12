@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Варт. вежа</string>
     <string name="home_settings_label">Налашт.</string>
     <string name="lock_reason_inactivity">Заблоковано через неактивність</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Заблоковано вручну</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>

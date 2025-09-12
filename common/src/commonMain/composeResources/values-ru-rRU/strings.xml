@@ -708,6 +708,7 @@
     <string name="home_watchtower_label">Доз. башня</string>
     <string name="home_settings_label">Настройки</string>
     <string name="lock_reason_inactivity">Заблокировано из-за бездействия</string>
+    <string name="lock_reason_screen_off">Locked due to screen off</string>
     <string name="lock_reason_manually">Заблокировано вручную</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>

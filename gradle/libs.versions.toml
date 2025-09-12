@@ -96,7 +96,7 @@ ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
 ktlintPlugin = "13.1.0"
 # https://github.com/ktorio/ktor
-ktor = "3.2.3"
+ktor = "3.3.0"
 # https://github.com/java-native-access/jna
 jna = "5.17.0"
 # https://github.com/osipxd/encrypted-datastore

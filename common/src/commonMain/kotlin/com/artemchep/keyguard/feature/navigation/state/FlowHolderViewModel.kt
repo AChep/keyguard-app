@@ -13,6 +13,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -55,6 +56,10 @@ class FlowHolderViewModel(
                 scope = scope + vmCoroutineScopeJob + Dispatchers.Default,
                 showMessage = showMessage,
             )
+            val vmRestoredState = bundle[key]
+                ?.let { it as? LeBundle } // see: this.persistedState(...) for implementation
+                // Create an empty state
+                ?: leBundleOf()
             val vmScope = RememberStateFlowScopeImpl(
                 key = key,
                 scope = vmCoroutineScope,
@@ -66,7 +71,7 @@ class FlowHolderViewModel(
                 putScreenState = putScreenState,
                 windowCoroutineScope = windowCoroutineScope,
                 json = json,
-                bundle = bundle,
+                bundle = vmRestoredState,
                 screen = screen,
                 screenName = screenName,
                 colorSchemeState = colorSchemeState,

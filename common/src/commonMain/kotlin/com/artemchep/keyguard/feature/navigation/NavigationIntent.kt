@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.feature.navigation
 
-import kotlinx.collections.immutable.PersistentList
+typealias NavigationEntryFactory = (String?, Route) -> NavigationEntry
 
 sealed interface NavigationIntent {
     data class Composite(
@@ -97,6 +97,6 @@ sealed interface NavigationIntent {
     // manual
 
     data class Manual(
-        val handle: NavigationIntentScope.((Route) -> NavigationEntry) -> NavigationBackStack,
+        val handle: NavigationIntentScope.(NavigationEntryFactory) -> NavigationBackStack,
     ) : NavigationIntent
 }

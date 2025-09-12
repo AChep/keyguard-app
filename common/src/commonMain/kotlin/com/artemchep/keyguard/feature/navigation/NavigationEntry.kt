@@ -36,11 +36,22 @@ interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
     val scope: CoroutineScope
     val vm: FlowHolderViewModel
 
+    /**
+     * Returns `true` if navigation entry is destroyed. If so, it must not be used afterwards,
+     * as it will emit no data to the frontend user interface.
+     */
+    val isDestroyed: Boolean
+
     val activeBackPressInterceptorsStateFlow: StateFlow<ImmutableMap<String, BackPressInterceptorRegistration>>
 
     val activeKeyEventInterceptorsStateFlow: StateFlow<ImmutableMap<String, KeyEventInterceptorRegistration>>
 
-    fun getOrCreate(id: String, create: () -> NavigationStack): NavigationPile
+    val subStacks: Map<String, NavigationPile>
+
+    fun getOrCreate(
+        id: String,
+        create: () -> NavigationStack,
+    ): NavigationPile
 
     fun destroy()
 }
@@ -76,6 +87,8 @@ data class NavigationEntryImpl(
 
     override val activeKeyEventInterceptorsStateFlow: StateFlow<ImmutableMap<String, KeyEventInterceptorRegistration>>
         get() = activeKeyEventInterceptorsStateSink
+
+    override val isDestroyed get() = job.isCompleted || job.isCancelled
 
     init {
         require('/' !in id)
@@ -128,7 +141,7 @@ data class NavigationEntryImpl(
         }
     }
 
-    private val subStacks = mutableMapOf<String, NavigationPile>()
+    override val subStacks = mutableMapOf<String, NavigationPile>()
 
     override fun getOrCreate(
         id: String,
@@ -136,7 +149,7 @@ data class NavigationEntryImpl(
     ): NavigationPile = subStacks
         .getOrPut(id) {
             val navStack = create()
-            NavigationPile(navStack)
+            NavigationPile(id, navStack)
         }
 
     override fun destroy() {

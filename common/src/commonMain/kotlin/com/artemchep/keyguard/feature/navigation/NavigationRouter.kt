@@ -24,14 +24,28 @@ fun NavigationRouter(
     initial: Route,
     content: @Composable (PersistentList<NavigationEntry>) -> Unit,
 ) {
+    val store = LocalNavigationStore.current
+
     // Find the top-level router and link the entry's lifecycle
     // to it, so if the top level gets destroyed we also get
     // destroyed.
-    val f = LocalNavigationNodeLogicalStack.current.last()
+    val stack = LocalNavigationNodeLogicalStack.current
+    val f = stack.last()
     val parentScope = f.scope
 
     val navStackPrefix = id
-    val navPile = f.getOrCreate(id) {
+    val navStackFullId = navigationNodeStack(
+        logicalStack = stack,
+    ) + "," + navStackPrefix
+    val navPile = f.getOrCreate(navStackFullId) {
+        val savedPile = store.pop(navStackFullId)
+            ?.let { tryToRestore(it, parentScope) }
+        val savedStack = savedPile?.value
+            ?.lastOrNull()
+        if (savedStack != null) {
+            return@getOrCreate savedStack
+        }
+
         val entry = NavigationEntryImpl(
             source = "router root",
             id = id,
@@ -45,6 +59,28 @@ fun NavigationRouter(
             ),
             entry = entry,
         )
+    }
+
+    val navNodeParent = LocalNavigationRouterNode.current
+    val navNode = remember(navNodeParent) {
+        NavigationRouterNode(
+            id = navStackFullId,
+            parent = navNodeParent,
+        )
+    }
+    // Side effect:
+    // Update the navigation pile value.
+    navNode.entryState.value = f
+
+    DisposableEffect(navNode) {
+        // Add the router node to the graph of
+        // nodes. We will have to remove it when this
+        // composable is detached from the tree.
+        val parent = navNode.parent
+        parent?.childrenState?.add(navNode)
+        onDispose {
+            parent?.childrenState?.remove(navNode)
+        }
     }
 
     val keyboardShortcutsService by rememberInstance<KeyboardShortcutsServiceHost>()
@@ -193,13 +229,50 @@ fun NavigationRouter(
 
         CompositionLocalProvider(
             LocalNavigationRouter provides navStack,
+            LocalNavigationRouterNode provides navNode,
         ) {
             content(localBackStack)
         }
     }
 }
 
+private fun tryToRestore(
+    pile: NavigationPile,
+    scope: CoroutineScope,
+): NavigationPile {
+    val newNavPile = pile.value
+        .map { navStack ->
+            val newNavStack = navStack.value
+                .map { navEntry ->
+                    // If the navigation entry lifecycle scope is the
+                    // same as an old one then we can keep using.
+                    if (navEntry.scope === scope) {
+                        return@map navEntry
+                    }
+
+                    // Serialize all the data of the previous view models
+                    // and feed it back to the new one.
+                    val navEntryState = navEntry.vm.persistedState()
+                    NavigationEntryImpl(
+                        source = "router restored",
+                        parent = scope,
+                        id = navEntry.id,
+                        route = navEntry.route,
+                    ).apply {
+                        vm.bundle = navEntryState
+                    }
+                }
+                .toPersistentList()
+            navStack.value = newNavStack
+            navStack
+        }
+        .toPersistentList()
+    pile.value = newNavPile
+    return pile
+}
+
 class NavigationPile(
+    val id: String,
     stack: NavigationStack,
 ) {
     private val _state = kotlin.run {
@@ -212,20 +285,24 @@ class NavigationPile(
         set(value) {
             val oldValue = _state.value
 
-            val removedItems = mutableListOf<NavigationStack>()
-            oldValue.forEach { e ->
-                val exists = value.any { it.id === e.id }
-                if (!exists) {
-                    removedItems += e
+            // Destroy the old stacks to do not exist in the
+            // navigation pile of stacks anymore.
+            val removedStacks = oldValue
+                .filter { e ->
+                    value.none { it.id == e.id }
                 }
-            }
-            removedItems.forEach { stack ->
+            removedStacks.forEach { stack ->
+                // Remove each item from a stack.
                 stack.value.forEach { entry ->
                     entry.destroy()
                 }
             }
             _state.value = value
         }
+
+    override fun toString(): String {
+        return "NavigationPile(id=$id, value=$value)"
+    }
 }
 
 class NavigationStack(
@@ -248,14 +325,13 @@ class NavigationStack(
         set(value) {
             val oldValue = _state.value
 
-            val removedItems = mutableListOf<NavigationEntry>()
-            oldValue.forEach { e ->
-                val exists = value.any { it === e }
-                if (!exists) {
-                    removedItems += e
+            // Destroy the old stacks to do not exist in the
+            // navigation pile of stacks anymore.
+            val removedEntries = oldValue
+                .filter { e ->
+                    value.none { it.id == e.id }
                 }
-            }
-            removedItems.forEach { entry ->
+            removedEntries.forEach { entry ->
                 entry.destroy()
             }
             _state.value = value
@@ -273,6 +349,10 @@ class NavigationStack(
         id = id,
         entries = value,
     )
+
+    override fun toString(): String {
+        return "NavigationStack(id=$id, value=$value)"
+    }
 }
 
 private fun NavigationIntentScope.exec(
@@ -317,7 +397,7 @@ private fun NavigationIntentScope.exec(
         val r = intent.route
         val e = NavigationEntryImpl(
             source = "router",
-            id = Uuid.random().toString(),
+            id = generateRouteId(r),
             parent = scope,
             route = r,
         )
@@ -330,7 +410,7 @@ private fun NavigationIntentScope.exec(
         val r = intent.route
         val e = NavigationEntryImpl(
             source = "router",
-            id = Uuid.random().toString(),
+            id = generateRouteId(r),
             parent = scope,
             route = r,
         )
@@ -347,7 +427,7 @@ private fun NavigationIntentScope.exec(
 
     is NavigationIntent.Pop -> {
         val entries = backStack.entries
-        if (entries.size > 0) {
+        if (entries.isNotEmpty()) {
             val newEntries = entries.removeAt(entries.size - 1)
             backStack.copy(entries = newEntries)
         } else {
@@ -362,10 +442,11 @@ private fun NavigationIntentScope.exec(
     }
 
     is NavigationIntent.Manual -> {
-        val factory = fun(route: Route): NavigationEntry =
+        val factory = fun(routeId: String?, route: Route): NavigationEntry =
             NavigationEntryImpl(
                 source = "router",
-                id = Uuid.random().toString(),
+                id = routeId
+                    ?: generateRouteId(route),
                 parent = scope,
                 route = route,
             )
@@ -373,6 +454,10 @@ private fun NavigationIntentScope.exec(
     }
 
     else -> null
+}
+
+private fun generateRouteId(route: Route): String {
+    return Uuid.random().toString()
 }
 
 fun PersistentList<NavigationEntry>.popById(

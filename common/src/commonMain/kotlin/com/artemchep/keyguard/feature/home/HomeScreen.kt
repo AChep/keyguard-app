@@ -1018,7 +1018,7 @@ private fun navigateOnClick(
             id = NavigationStack.createIdSuffix(route),
         )
         val navEntries = navStack.entries.ifEmpty {
-            val entry = factory(route)
+            val entry = factory(ROUTE_NAME, route)
             persistentListOf(entry)
         }
         navStack.copy(entries = navEntries)

@@ -8,19 +8,8 @@ import com.artemchep.keyguard.feature.home.HomeScreen
 @OptIn(kotlin.time.ExperimentalTime::class)
 @Composable
 fun MainScreen() {
-    when (LocalAppMode.current) {
-        is AppMode.Main -> {
-            HomeScreen()
-        }
-
-        is AppMode.Save,
-        is AppMode.Pick,
-        is AppMode.PickPasskey,
-        is AppMode.SavePasskey,
-        -> {
-            HomeScreen(
-                navBarVisible = false,
-            )
-        }
-    }
+    val navBarVisible = LocalAppMode.current is AppMode.Main
+    HomeScreen(
+        navBarVisible = navBarVisible,
+    )
 }

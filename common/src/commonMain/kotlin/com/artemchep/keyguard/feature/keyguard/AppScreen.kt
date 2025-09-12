@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +27,12 @@ import com.artemchep.keyguard.feature.keyguard.main.MainRoute
 import com.artemchep.keyguard.feature.keyguard.setup.SetupRoute
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockRoute
 import com.artemchep.keyguard.feature.loading.LoadingScreen
+import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
+import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
+import com.artemchep.keyguard.feature.navigation.NavigationPile
+import com.artemchep.keyguard.feature.navigation.NavigationRouterNode
+import com.artemchep.keyguard.feature.navigation.NavigationStore
 import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.lifecycle.LocalLifecycleStateFlow
@@ -38,12 +44,77 @@ import org.kodein.di.compose.withDI
 @Composable
 fun AppScreen() {
     ManualAppScreen { vaultState ->
+        val updatedNavStore by rememberUpdatedState(LocalNavigationStore.current)
+        val updatedNavNode by rememberUpdatedState(LocalNavigationRouterNode.current)
+
+        val vaultStateClassIsMain = vaultState is VaultState.Main
+        remember(vaultStateClassIsMain) {
+            if (vaultStateClassIsMain) {
+                return@remember
+            }
+
+            saveNavigationRouter(
+                store = updatedNavStore,
+                node = updatedNavNode,
+            )
+        }
+
         when (vaultState) {
             is VaultState.Create -> ManualAppScreenOnCreate(vaultState)
             is VaultState.Unlock -> ManualAppScreenOnUnlock(vaultState)
             is VaultState.Loading -> ManualAppScreenOnLoading(vaultState)
             is VaultState.Main -> ManualAppScreenOnMain(vaultState)
         }
+    }
+}
+
+private fun saveNavigationRouter(
+    store: NavigationStore,
+    node: NavigationRouterNode,
+) {
+    val navPileSeq = generateNavigationRouterNodeSequence(node)
+        .flatMap { childNavNode ->
+            childNavNode.entryState
+                .value
+                ?.subStacks
+                ?.values
+                .orEmpty()
+        }
+        .flatMap { navPile ->
+            generateNavigationPileSequence(navPile)
+        }
+    navPileSeq.forEach { pile ->
+        store.save(pile.id, pile)
+    }
+}
+
+private fun generateNavigationPileSequence(
+    navPile: NavigationPile,
+): Sequence<NavigationPile> = sequence {
+    yield(navPile)
+
+    navPile.value.forEach { navStack ->
+        navStack.value.forEach { navEntry ->
+            val seq = navEntry.subStacks.values
+                .asSequence()
+                .flatMap { childNavPile ->
+                    generateNavigationPileSequence(childNavPile)
+                }
+            yieldAll(seq)
+        }
+    }
+}
+
+private fun generateNavigationRouterNodeSequence(
+    navNode: NavigationRouterNode,
+): Sequence<NavigationRouterNode> = sequence {
+    yield(navNode)
+
+    // Also emit all of the children of the
+    // router node.
+    navNode.childrenState.forEach { childNavNode ->
+        val seq = generateNavigationRouterNodeSequence(childNavNode)
+        yieldAll(seq)
     }
 }
 

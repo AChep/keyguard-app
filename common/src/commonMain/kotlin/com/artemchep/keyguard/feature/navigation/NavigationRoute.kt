@@ -11,3 +11,7 @@ interface Route {
 
 @Stable
 interface DialogRoute : Route
+
+interface SerializableRoute {
+    val name: String
+}

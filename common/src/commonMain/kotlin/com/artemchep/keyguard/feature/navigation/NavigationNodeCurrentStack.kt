@@ -11,8 +11,13 @@ fun navigationNodeStack(): String {
     val stack by rememberUpdatedState(LocalNavigationNodeLogicalStack.current)
     val value by remember {
         derivedStateOf {
-            stack.joinToString(separator = "/") { it.id }
+            navigationNodeStack(logicalStack = stack)
         }
     }
     return value
 }
+
+fun navigationNodeStack(
+    logicalStack: List<NavigationEntry>,
+): String = logicalStack
+    .joinToString(separator = "/") { it.id }

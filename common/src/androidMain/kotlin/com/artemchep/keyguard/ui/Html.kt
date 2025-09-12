@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.ui
 
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -14,7 +14,7 @@ actual fun HtmlText(
     de.charlex.compose.material3.HtmlText(
         modifier = modifier,
         urlSpanStyle = SpanStyle(
-            color = MaterialTheme.colors.primary,
+            color = MaterialTheme.colorScheme.primary,
             textDecoration = TextDecoration.Underline,
         ),
         text = html,

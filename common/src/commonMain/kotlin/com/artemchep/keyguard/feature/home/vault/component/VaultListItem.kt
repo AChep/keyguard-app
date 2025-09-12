@@ -818,14 +818,18 @@ fun FlatItemLayoutExpressive(
 ) {
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
-        val color = if (backgroundColor.isSpecified || elevation.value > 0f || !expressive) {
+        val color = if (backgroundColor.isSpecified || !expressive) {
             val bg = backgroundColor.takeIf { it.isSpecified }
                 ?: Color.Transparent
             val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
             fg.compositeOver(bg)
         } else {
-            val surfaceElevation = LocalSurfaceElevation.current
-            surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+            if (elevation.value > 0f) {
+                surfaceNextGroupColorToElevationColor(0f)
+            } else {
+                val surfaceElevation = LocalSurfaceElevation.current
+                surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+            }
         }
         Modifier
             .drawBehind {
@@ -933,14 +937,18 @@ fun FlatSurfaceExpressive(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val background = run {
-        val color = if (backgroundColor.isSpecified || elevation.value > 0f || !expressive) {
+        val color = if (backgroundColor.isSpecified || !expressive) {
             val bg = backgroundColor.takeIf { it.isSpecified }
                 ?: Color.Transparent
             val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
             fg.compositeOver(bg)
         } else {
-            val surfaceElevation = LocalSurfaceElevation.current
-            surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+            if (elevation.value > 0f) {
+                surfaceNextGroupColorToElevationColor(0f)
+            } else {
+                val surfaceElevation = LocalSurfaceElevation.current
+                surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+            }
         }
         Modifier
             .drawBehind {

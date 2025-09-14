@@ -2,6 +2,8 @@ package com.artemchep.keyguard.feature.home.vault.model
 
 import androidx.compose.runtime.Immutable
 import arrow.core.None
+import com.artemchep.keyguard.platform.parcelize.LeParcelable
+import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Instant
 
@@ -30,8 +32,9 @@ data class Visibility(
     )
 
     @Immutable
+    @LeParcelize
     data class Event(
         val value: Boolean,
         val timestamp: Instant,
-    )
+    ) : LeParcelable
 }

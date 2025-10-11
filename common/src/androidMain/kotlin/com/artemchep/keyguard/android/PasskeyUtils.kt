@@ -128,7 +128,19 @@ class PasskeyUtils(
         val privilegedAllowList = privilegedAppsService
             .get()
             .bind()
-        val origin = appInfo.getOrigin(privilegedAllowList)
+        val origin = kotlin.runCatching {
+            appInfo.getOrigin(privilegedAllowList)
+        }
+            .getOrElse { e ->
+                if (!appInfo.isOriginPopulated()) {
+                    throw e
+                }
+
+                val msg = "The calling app '${appInfo.packageName}' is not on the privileged list and cannot " +
+                        "request authentication on behalf of the other app. You can submit a request on GitHub for adding the app " +
+                        "to the privileged list, if you think that the app is a trustworthy known browser."
+                throw IllegalStateException(msg, e)
+            }
             ?: kotlin.run {
                 val cert = callingAppCertificate(appInfo)
                 cert.toOrigin(cryptoService)

@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.KeyPair
-import com.artemchep.keyguard.common.model.KeyPairRaw
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 
 interface KeyPairGenerator {
@@ -10,6 +9,7 @@ interface KeyPairGenerator {
     ) {
         B1024(1024),
         B2048(2048),
+        B3072(3072),
         B4096(4096);
 
         companion object {

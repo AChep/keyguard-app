@@ -10,6 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Назва</string>
     <string name="account_name">Назва облікового запису</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">Увімкнено</string>
     <string name="disabled">Вимкнено</string>
     <string name="wordlist">Список слів</string>
@@ -35,6 +36,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Макс. кількість відвідувань</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Дізнатися більше</string>
     <string name="phone_number">Номер телефону</string>
     <string name="passport_number">Номер паспорта</string>
@@ -95,6 +98,10 @@
     <string name="folder">Тека</string>
     <string name="folders">Теки</string>
     <string name="folders_empty_label">Теки відсутні</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">Без колекції</string>
     <string name="collection">Колекція</string>
     <string name="collections">Колекції</string>
@@ -141,6 +148,7 @@
     <string name="select_file">Виберіть файл</string>
     <string name="autofill">Автозаповнити</string>
     <string name="autofill_and_save_uri">Автоматично заповнити та зберегти інформацію про застосунок або вебсайт</string>
+    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Ключ доступу</string>
     <string name="passkey_create_header">Створити ключ доступу</string>
     <string name="passkey_unlock_header">Розблокувати Keyguard</string>
@@ -191,6 +199,7 @@
     <string name="requested_verification_email">Запит на електронний лист з кодом підтвердження відправлено</string>
     <string name="web_vault">Веб сховище</string>
     <string name="launch_web_vault">Відкрити вебсховище</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Запам'ятати мене</string>
     <!-- A Trash screen -->
@@ -211,9 +220,13 @@
     <string name="encryption_random_bits_data">Випадкові <xliff:g id="length" example="64">%1$d</xliff:g>-бітні дані</string>
     <string name="none">Нема</string>
     <string name="text">Текст</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">Зв'язані застосунки</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">Зв'язані URI</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">Користувацькі поля</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">Показати захищену нотатку</string>
     <string name="hide_secure_note">Приховати захищену нотатку</string>
     <string name="master_password_hint">Підказка для головного пароля</string>
@@ -231,6 +244,13 @@
     <string name="bitwarden_premium">Bitwarden преміум</string>
     <string name="bitwarden_premium_required">Необхідний Bitwarden преміум</string>
     <string name="bitwarden_unofficial_server">Неофіційний сервер Bitwarden</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Порада: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Генеруй одноразові поштові адреси для кращої приватності.</string>
     <string name="account_last_synced_at">Останній раз синхронізовано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -651,6 +671,8 @@
     <string name="addsend_hide_text_by_default_title">При доступі до відправлення приховувати текст</string>
     <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
     <string name="addsend_max_access_count_note">Якщо встановлено, користувачі більше не зможуть отримати доступ до цього відправлення після досягнення максимальної кількості відвідувань.</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Додати обліковий запис Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Ми не асоційовані, авторизовані, схвалені, або будь-яким чином офіційно пов'язані з Bitwarden Inc., або будь-якими його дочірніми компаніями або партнерами.</string>
     <!--
@@ -684,6 +706,8 @@
     <string name="addaccount2fa_otp_note">Введіть код підтвердження з програми для автентифікації.</string>
     <string name="addaccount2fa_email_note">Введіть код підтвердження, надісланий на <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Введіть код автентифікації YubiKey вручну. Помістіть курсор на поле нижче та активуйте YubiKey.</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Автентифікатор</string>
     <string name="provider_2fa_duo_organization">Duo (Організація)</string>
     <string name="provider_2fa_fido2_webauthn">Web-аутентифікація FIDO2</string>
@@ -708,7 +732,7 @@
     <string name="home_watchtower_label">Варт. вежа</string>
     <string name="home_settings_label">Налашт.</string>
     <string name="lock_reason_inactivity">Заблоковано через неактивність</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">Заблоковано через вимкнення екрану</string>
     <string name="lock_reason_manually">Заблоковано вручну</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
@@ -785,6 +809,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Захисний код</string>
     <string name="vault_view_saved_to_label">Збережено до <xliff:g id="email" example="username@example.com">%1$s</xliff:g> на <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Пароль останній раз змінено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Ключ доступу створено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Останній раз змінено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>

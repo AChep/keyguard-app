@@ -219,8 +219,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 4955,
-    "target": 8305,
+    "translated": 4965,
+    "target": 8323,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -307,8 +307,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5519,
-    "target": 4750,
+    "translated": 5524,
+    "target": 4754,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -671,8 +671,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2471,
-    "target": 3892,
+    "translated": 2476,
+    "target": 3900,
     "approved": 0,
     "voted": 11,
     "positiveVotes": 2,
@@ -803,8 +803,8 @@
         "name": "German"
       }
     ],
-    "translated": 1969,
-    "target": 1868,
+    "translated": 1979,
+    "target": 1877,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 1,
@@ -869,13 +869,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5476,
-    "target": 5090,
-    "approved": 5703,
+    "translated": 5481,
+    "target": 5095,
+    "approved": 5708,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5433
+    "winning": 5438
   },
   {
     "user": {
@@ -1761,8 +1761,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5511,
-    "target": 6028,
+    "translated": 5516,
+    "target": 6033,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

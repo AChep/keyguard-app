@@ -10,6 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Név</string>
     <string name="account_name">Fiók neve</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">Engedélyezve</string>
     <string name="disabled">Letiltva</string>
     <string name="wordlist">Szólista</string>
@@ -35,6 +36,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maximális hozzáférési szám</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">További információ</string>
     <string name="phone_number">Telefonszám</string>
     <string name="passport_number">Útlevélszám</string>
@@ -95,6 +98,10 @@
     <string name="folder">Mappa</string>
     <string name="folders">Mappák</string>
     <string name="folders_empty_label">Nincsenek mappák</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">Nincs gyűjtemény</string>
     <string name="collection">Gyűjtemény</string>
     <string name="collections">Gyűjtemények</string>
@@ -141,6 +148,7 @@
     <string name="select_file">Fájl kiválasztása</string>
     <string name="autofill">Automatikus kitöltés</string>
     <string name="autofill_and_save_uri">Kitöltés és app vagy weboldal infó mentése</string>
+    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Hozzáférési kulcs</string>
     <string name="passkey_create_header">Hozzáférési kulcs létrehozása</string>
     <string name="passkey_unlock_header">Keyguard feloldása</string>
@@ -191,6 +199,7 @@
     <string name="requested_verification_email">Ellenőrző e-mailt kért</string>
     <string name="web_vault">Webes széf</string>
     <string name="launch_web_vault">Webes széf indítása</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Emlékezzen rám</string>
     <!-- A Trash screen -->
@@ -211,9 +220,13 @@
     <string name="encryption_random_bits_data">Véletlenszerű <xliff:g id="length" example="64">%1$d</xliff:g> bites adat</string>
     <string name="none">Semmi</string>
     <string name="text">Szöveg</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">Kapcsolt alkalmazások</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">Kapcsolt URI-k</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">Egyéni mezők</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">Biztonságos jegyzet megjelenítése</string>
     <string name="hide_secure_note">Biztonságos jegyzet elrejtése</string>
     <string name="master_password_hint">Mesterjelszó emlékeztető</string>
@@ -231,6 +244,13 @@
     <string name="bitwarden_premium">Bitwarden prémium</string>
     <string name="bitwarden_premium_required">Bitwarden prémium szükséges</string>
     <string name="bitwarden_unofficial_server">Nem hivatalos Bitwarden szerver</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Profi tipp: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generáljon egyedi e-maileket a jobb adatvédelem érdekében.</string>
     <string name="account_last_synced_at">Utoljára szinkronizálva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -651,6 +671,8 @@
     <string name="addsend_hide_text_by_default_title">Az elem elérésekor alapértelmezés szerint rejtse el a szöveget</string>
     <string name="addsend_hide_email_title">Email cím elrejtése</string>
     <string name="addsend_max_access_count_note">Amennyiben be van állítva, az elem elérhetetlen lesz, amint eléri a meghatározott hozzáférések számát.</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Bitwarden fiók hozzáadása</string>
     <string name="addaccount_disclaimer_bitwarden_label">Nem állunk kapcsolatban, társulásban, nem rendelkezünk felhatalmazással, támogatással vagy semmilyen hivatalos kapcsolattal a Bitwarden, Inc.-vel, annak leányvállalataival vagy partnereivel.</string>
     <!--
@@ -684,6 +706,8 @@
     <string name="addaccount2fa_otp_note">Adja meg az ellenőrző kódot a hitelesítő alkalmazásából.</string>
     <string name="addaccount2fa_email_note">Írja be a <xliff:g id="email" example="username@example.com">%1$s</xliff:g> email címre elküldött ellenőrző kódot.</string>
     <string name="addaccount2fa_yubikey_manual_text">Adja meg a YubiKey hitelesítési kódot kézzel. Helyezze a kurzort az alábbi mezőre, és indítsa el a YubiKey-t.</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Hitelesítő</string>
     <string name="provider_2fa_duo_organization">Duo (Szervezet)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 webes hitelesítés</string>
@@ -785,6 +809,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Biztonsági kód</string>
     <string name="vault_view_saved_to_label">Elmentve ide: <xliff:g id="email" example="username@example.com">%1$s</xliff:g> ezen a helyen: <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Jelszó utoljára módosítva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Hozzáférési kulcs létrehozva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Utoljára módosítva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>

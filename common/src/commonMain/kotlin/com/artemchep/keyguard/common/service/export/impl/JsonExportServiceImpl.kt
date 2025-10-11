@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.export.entity.ItemLoginExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemLoginFido2CredentialsExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemLoginPasswordHistoryExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemLoginUriExportEntity
+import com.artemchep.keyguard.common.service.export.entity.ItemSshKeyExportEntity
 import com.artemchep.keyguard.common.service.export.entity.OrganizationExportEntity
 import com.artemchep.keyguard.common.service.export.entity.RootExportEntity
 import com.artemchep.keyguard.common.util.int
@@ -24,7 +25,6 @@ import com.artemchep.keyguard.provider.bitwarden.entity.UriMatchTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.of
 import kotlin.time.Instant
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
@@ -147,6 +147,15 @@ class JsonExportServiceImpl(
         put("deletedDate", deletedDate)
 
         run {
+            val key = "tags"
+            if (tags.isNotEmpty()) {
+                putJsonArray(key) {
+                    tags.forEach { tag -> add(tag) }
+                }
+            }
+        }
+
+        run {
             val key = "attachments"
             // TODO: Export local attachments with their
             //  local identifier.
@@ -229,92 +238,134 @@ class JsonExportServiceImpl(
             }
         }
 
-        when {
-            login != null -> {
-                val urisEntity = uris
-                    .map { uri ->
-                        val match = uri.match?.let(UriMatchTypeEntity::of)
-                        ItemLoginUriExportEntity(
-                            uri = uri.uri,
-                            match = match,
-                        )
-                    }
-                val credentialsEntity = login.fido2Credentials
-                    .map { credential ->
-                        ItemLoginFido2CredentialsExportEntity(
-                            credentialId = credential.credentialId,
-                            keyType = credential.keyType,
-                            keyAlgorithm = credential.keyAlgorithm,
-                            keyCurve = credential.keyCurve,
-                            keyValue = credential.keyValue,
-                            rpId = credential.rpId,
-                            rpName = credential.rpName,
-                            counter = credential.counter?.toString()
-                                ?: "0",
-                            userHandle = credential.userHandle,
-                            userName = credential.userName,
-                            userDisplayName = credential.userDisplayName,
-                            discoverable = credential.discoverable.toString(),
-                            creationDate = credential.creationDate,
-                        )
-                    }
-                val entity = ItemLoginExportEntity(
-                    uris = urisEntity,
-                    username = login.username,
-                    password = login.password,
-                    passwordRevisionDate = login.passwordRevisionDate,
-                    totp = login.totp?.raw,
-                    fido2Credentials = credentialsEntity,
+        val urisEntity = uris
+            .map { uri ->
+                val match = uri.match?.let(UriMatchTypeEntity::of)
+                ItemLoginUriExportEntity(
+                    uri = uri.uri,
+                    match = match,
                 )
-                val value = json.encodeToJsonElement(entity)
-                put("login", value)
             }
-
-            card != null -> {
-                val entity = ItemCardExportEntity(
-                    cardholderName = card.cardholderName,
-                    brand = card.brand,
-                    number = card.number,
-                    expMonth = card.expMonth,
-                    expYear = card.expYear,
-                    code = card.code,
-                )
-                val value = json.encodeToJsonElement(entity)
-                put("card", value)
-            }
-
-            identity != null -> {
-                val entity = ItemIdentityExportEntity(
-                    title = identity.title,
-                    firstName = identity.firstName,
-                    middleName = identity.middleName,
-                    lastName = identity.lastName,
-                    address1 = identity.address1,
-                    address2 = identity.address2,
-                    address3 = identity.address3,
-                    city = identity.city,
-                    state = identity.state,
-                    postalCode = identity.postalCode,
-                    country = identity.country,
-                    company = identity.company,
-                    email = identity.email,
-                    phone = identity.phone,
-                    ssn = identity.ssn,
-                    username = identity.username,
-                    passportNumber = identity.passportNumber,
-                    licenseNumber = identity.licenseNumber,
-                )
-                val value = json.encodeToJsonElement(entity)
-                put("identity", value)
-            }
-
-            // secure note
-            type == DSecret.Type.SecureNote -> {
-                val value = buildJsonObject {
-                    put("type", 0)
+        if (login != null) {
+            val credentialsEntity = login.fido2Credentials
+                .map { credential ->
+                    ItemLoginFido2CredentialsExportEntity(
+                        credentialId = credential.credentialId,
+                        keyType = credential.keyType,
+                        keyAlgorithm = credential.keyAlgorithm,
+                        keyCurve = credential.keyCurve,
+                        keyValue = credential.keyValue,
+                        rpId = credential.rpId,
+                        rpName = credential.rpName,
+                        counter = credential.counter?.toString()
+                            ?: "0",
+                        userHandle = credential.userHandle,
+                        userName = credential.userName,
+                        userDisplayName = credential.userDisplayName,
+                        discoverable = credential.discoverable.toString(),
+                        creationDate = credential.creationDate,
+                    )
                 }
-                put("secureNote", value)
+            val entity = ItemLoginExportEntity(
+                uris = urisEntity,
+                username = login.username,
+                password = login.password,
+                passwordRevisionDate = login.passwordRevisionDate,
+                totp = login.totp?.raw,
+                fido2Credentials = credentialsEntity,
+            )
+            val value = json.encodeToJsonElement(entity)
+            put("login", value)
+        } else if (urisEntity.isNotEmpty()) {
+            // We still want to support exporting the URIs for our alternative
+            // password services other than Bitwarden. We do this because in Keyguard
+            // the URIs are stored outside of the Login object.
+            val entity = ItemLoginExportEntity(
+                uris = urisEntity,
+            )
+            val value = json.encodeToJsonElement(entity)
+            put("login", value)
+        }
+
+        if (card != null) {
+            val entity = ItemCardExportEntity(
+                cardholderName = card.cardholderName,
+                brand = card.brand,
+                number = card.number,
+                expMonth = card.expMonth,
+                expYear = card.expYear,
+                code = card.code,
+            )
+            val value = json.encodeToJsonElement(entity)
+            put("card", value)
+        }
+
+        if (identity != null) {
+            val entity = ItemIdentityExportEntity(
+                title = identity.title,
+                firstName = identity.firstName,
+                middleName = identity.middleName,
+                lastName = identity.lastName,
+                address1 = identity.address1,
+                address2 = identity.address2,
+                address3 = identity.address3,
+                city = identity.city,
+                state = identity.state,
+                postalCode = identity.postalCode,
+                country = identity.country,
+                company = identity.company,
+                email = identity.email,
+                phone = identity.phone,
+                ssn = identity.ssn,
+                username = identity.username,
+                passportNumber = identity.passportNumber,
+                licenseNumber = identity.licenseNumber,
+            )
+            val value = json.encodeToJsonElement(entity)
+            put("identity", value)
+        }
+
+        if (identity != null) {
+            val entity = ItemIdentityExportEntity(
+                title = identity.title,
+                firstName = identity.firstName,
+                middleName = identity.middleName,
+                lastName = identity.lastName,
+                address1 = identity.address1,
+                address2 = identity.address2,
+                address3 = identity.address3,
+                city = identity.city,
+                state = identity.state,
+                postalCode = identity.postalCode,
+                country = identity.country,
+                company = identity.company,
+                email = identity.email,
+                phone = identity.phone,
+                ssn = identity.ssn,
+                username = identity.username,
+                passportNumber = identity.passportNumber,
+                licenseNumber = identity.licenseNumber,
+            )
+            val value = json.encodeToJsonElement(entity)
+            put("identity", value)
+        }
+
+        if (sshKey != null) {
+            val entity = ItemSshKeyExportEntity(
+                privateKey = sshKey.privateKey,
+                publicKey = sshKey.publicKey,
+                keyFingerprint = sshKey.fingerprint,
+            )
+            val value = json.encodeToJsonElement(entity)
+            put("sshKey", value)
+        }
+
+        // secure note
+        if (type == DSecret.Type.SecureNote) {
+            val value = buildJsonObject {
+                put("type", 0)
             }
+            put("secureNote", value)
         }
     }
 }

@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2025-09-10_07-23-07_UTC
-// COMMIT: c5d0e29d0d1b094ca1173497ff4e46b998d149c1
+// VERSION: 2025-10-13_13-22-32_UTC
+// COMMIT: c002d19a8ca969110dd8a3838d972ca293bdc48f
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -6796,7 +6796,7 @@ org.zw
 
 // newGTLDs
 
-// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2025-08-27T15:19:08Z
+// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2025-10-01T15:18:26Z
 // This list is auto-generated, don't edit it manually.
 // aaa : American Automobile Association, Inc.
 // https://www.iana.org/domains/root/db/aaa.html
@@ -10694,7 +10694,7 @@ watches
 // https://www.iana.org/domains/root/db/weather.html
 weather
 
-// weatherchannel : International Business Machines Corporation
+// weatherchannel : The Weather Company, LLC
 // https://www.iana.org/domains/root/db/weatherchannel.html
 weatherchannel
 
@@ -11319,12 +11319,6 @@ africa.com
 // Agnat sp. z o.o. : https://domena.pl
 // Submitted by Przemyslaw Plewa <it-admin@domena.pl>
 beep.pl
-
-// Airkit : https://www.airkit.com/
-// Submitted by Grant Cooksey <security@airkit.com>
-airkitapps.com
-airkitapps-au.com
-airkitapps.eu
 
 // Aiven : https://aiven.io/
 // Submitted by Aiven Security Team <security+appdomains@aiven.io>
@@ -12455,6 +12449,10 @@ cafjs.com
 canva-apps.cn
 my.canvasite.cn
 canva-apps.com
+canva-hosted-embed.com
+canvacode.com
+rice-labs.com
+canva.run
 my.canva.site
 
 // Carrd : https://carrd.co
@@ -12537,10 +12535,12 @@ cloudns.asia
 cloudns.be
 cloud-ip.biz
 cloudns.biz
+cloud-ip.cc
 cloudns.cc
 cloudns.ch
 cloudns.cl
 cloudns.club
+abrdns.com
 dnsabr.com
 ip-ddns.com
 cloudns.cx
@@ -12776,6 +12776,7 @@ icp1.io
 *.raw.icp1.io
 *.icp.net
 caffeine.site
+caffeine.xyz
 
 // dhosting.pl Sp. z o.o. : https://dhosting.pl/
 // Submitted by Michal Kokoszkiewicz <bok@dhosting.pl>
@@ -13994,10 +13995,6 @@ ir.md
 // Submitted by William Harrison <webmaster@is-a-good.dev>
 is-a-good.dev
 
-// is-a.dev : https://is-a.dev
-// Submitted by William Harrison <security@is-a.dev>
-is-a.dev
-
 // IServ GmbH : https://iserv.de
 // Submitted by Kim Brodowski <info@iserv.de>
 iservschule.de
@@ -14094,6 +14091,9 @@ myjino.ru
 // Submitted by Daniel Fariña <ingenieria@jotelulu.com>
 jote.cloud
 jotelulu.cloud
+eu1-plenit.com
+la1-plenit.com
+us1-plenit.com
 
 // JouwWeb B.V. : https://www.jouwweb.nl
 // Submitted by Camilo Sperberg <tech@webador.com>
@@ -14172,6 +14172,12 @@ leadpages.co
 lpages.co
 lpusercontent.com
 
+// Leapcell : https://leapcell.io/
+// Submitted by Leapcell Team <support@leapcell.io>
+leapcell.app
+leapcell.dev
+leapcell.online
+
 // Liara : https://liara.ir
 // Submitted by Amirhossein Badinloo <info@liara.ir>
 liara.run
@@ -14219,10 +14225,6 @@ ggff.net
 // Localcert : https://localcert.dev
 // Submitted by Lann Martin <security@localcert.dev>
 *.user.localcert.dev
-
-// LocalCert : https://localcert.net
-// Submitted by William Harrison <security@localcert.net>
-localcert.net
 
 // Localtonet : https://localtonet.com/
 // Submitted by Burak Isleyici <support@localtonet.com>
@@ -14848,6 +14850,10 @@ mypep.link
 // Submitted by Kenneth Van Alstyne <kvanalstyne@perspecta.com>
 perspecta.cloud
 
+// Plain : https://www.plain.com/
+// Submitted by Jesús Hernández <security@plain.com>
+support.site
+
 // Planet-Work : https://www.planet-work.com/
 // Submitted by Frédéric VANNIÈRE <f.vanniere@planet-work.com>
 on-web.fr
@@ -14913,6 +14919,10 @@ dev.project-study.com
 // Protonet GmbH : http://protonet.io
 // Submitted by Martin Meier <admin@protonet.io>
 protonet.io
+
+// PT Ekossistim Indo Digital : https://e.id
+// Submitted by Eid Team <support@corp.e.id>
+e.id
 
 // Publication Presse Communication SARL : https://ppcom.fr
 // Submitted by Yaacov Akiba Slama <admin@chirurgiens-dentistes-en-france.fr>
@@ -15436,10 +15446,11 @@ myspreadshop.se
 myspreadshop.co.uk
 
 // StackBlitz : https://stackblitz.com
-// Submitted by Dominic Elm <hello@stackblitz.com>
+// Submitted by Dominic Elm & Albert Pai <security@bolt.new>
 w-corp-staticblitz.com
 w-credentialless-staticblitz.com
 w-staticblitz.com
+bolt.host
 
 // Stackhero : https://www.stackhero.io
 // Submitted by Adrien Gillon <adrien+public-suffix-list@stackhero.io>
@@ -15609,6 +15620,10 @@ s3.teckids.org
 telebit.app
 telebit.io
 *.telebit.xyz
+
+// Teleport : https://goteleport.com
+// Submitted by Rob Picard <security@goteleport.com>
+teleport.sh
 
 // Thingdust AG : https://thingdust.com/
 // Submitted by Adrian Imboden <adi@thingdust.com>
@@ -15855,11 +15870,13 @@ beta.wmcloud.org
 wmflabs.org
 
 // William Harrison : https://wharrison.com.au
-// Submitted by William Harrison <security@wharrison.com.au>
+// Submitted by William Harrison <security@hrsn.net>
 wdh.app
 hrsn.au
 vps.hrsn.au
 hrsn.dev
+is-a.dev
+localcert.net
 
 // Windsurf : https://windsurf.com
 // Submitted by Douglas Chen <psl@windsurf.com>
@@ -15906,6 +15923,7 @@ js.wpenginepowered.com
 
 // XenonCloud GbR : https://xenoncloud.net
 // Submitted by Julian Uphoff <publicsuffixlist@xenoncloud.net>
+*.xenonconnect.de
 half.host
 
 // XnBay Technology : http://www.xnbay.com/

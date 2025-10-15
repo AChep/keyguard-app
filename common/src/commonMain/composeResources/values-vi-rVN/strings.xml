@@ -10,6 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Tên</string>
     <string name="account_name">Tên tài khoản</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">Đã bật</string>
     <string name="disabled">Đã tắt</string>
     <string name="wordlist">Danh sách từ</string>
@@ -35,6 +36,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Lượt truy cập tối đa</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Tìm hiểu thêm</string>
     <string name="phone_number">Số điện thoại</string>
     <string name="passport_number">Số hộ chiếu</string>
@@ -95,6 +98,10 @@
     <string name="folder">Thư mục</string>
     <string name="folders">Thư mục</string>
     <string name="folders_empty_label">Không có thư mục</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">Chưa có danh mục</string>
     <string name="collection">Danh mục</string>
     <string name="collections">Danh mục</string>
@@ -141,6 +148,7 @@
     <string name="select_file">Chọn một tệp</string>
     <string name="autofill">Tự động điền</string>
     <string name="autofill_and_save_uri">Tự động điền và lưu thông tin ứng dụng hoặc trang web</string>
+    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Khóa truy cập</string>
     <string name="passkey_create_header">Tạo một khóa truy cập</string>
     <string name="passkey_unlock_header">Mở khóa Keyguard</string>
@@ -191,6 +199,7 @@
     <string name="requested_verification_email">Đã gửi mail xác thực</string>
     <string name="web_vault">Kho trên trang web</string>
     <string name="launch_web_vault">Mở Web vault</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Không hỏi lại</string>
     <!-- A Trash screen -->
@@ -211,9 +220,13 @@
     <string name="encryption_random_bits_data">Ngẫu nhiên <xliff:g id="length" example="64">%1$d</xliff:g>-bits dữ liệu</string>
     <string name="none">Không có</string>
     <string name="text">Văn bản</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">Ứng dụng liên kết</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">Đường dẫn liên kết</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">Trường tùy chỉnh</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">Hiển thị ghi chú bảo mật</string>
     <string name="hide_secure_note">Ẩn ghi chú bảo mật</string>
     <string name="master_password_hint">Gợi ý mật khẩu chính</string>
@@ -231,6 +244,13 @@
     <string name="bitwarden_premium">Bitwarden cao cấp</string>
     <string name="bitwarden_premium_required">Yêu cầu Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Máy chủ Bitwarden không chính thức</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Mẹo xịn: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Tạo email duy nhất để bảo mật tốt hơn.</string>
     <string name="account_last_synced_at">Đồng bộ hóa lần cuối lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -651,6 +671,8 @@
     <string name="addsend_hide_text_by_default_title">Khi truy cập vào mục, mặc định ẩn văn bản</string>
     <string name="addsend_hide_email_title">Ẩn địa chỉ email</string>
     <string name="addsend_max_access_count_note">Nếu được đặt, người dùng sẽ không thể truy cập mục này nữa sau khi đạt đến số lượng truy cập tối đa.</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Thêm tài khoản Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Chúng tôi không được liên kết, liên kết, ủy quyền, xác nhận hoặc theo bất kỳ cách nào được kết nối chính thức với Bitwarden, Inc. hoặc bất kỳ công ty con hoặc chi nhánh nào của nó.</string>
     <!--
@@ -684,6 +706,8 @@
     <string name="addaccount2fa_otp_note">Nhập mã xác minh từ ứng dụng xác thực của bạn.</string>
     <string name="addaccount2fa_email_note">Nhập mã xác minh đã được gửi qua email tới <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Nhập mã xác thực YubiKey theo cách thủ công. Đặt con trỏ vào trường bên dưới và kích hoạt YubiKey.</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Trình xác thực</string>
     <string name="provider_2fa_duo_organization">Duo (Tổ chức)</string>
     <string name="provider_2fa_fido2_webauthn">Xác thực Web FIDO2</string>
@@ -785,6 +809,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Mã bảo mật</string>
     <string name="vault_view_saved_to_label">Đã lưu vào <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Mật khẩu được sửa đổi lần cuối vào lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Khóa truy cập được tạo lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Sửa đổi lần cuối lúc <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>

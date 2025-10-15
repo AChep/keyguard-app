@@ -109,8 +109,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 8568,
-    "target": 7841,
+    "translated": 8745,
+    "target": 8008,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -219,8 +219,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 4955,
-    "target": 8305,
+    "translated": 4965,
+    "target": 8323,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -307,8 +307,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5519,
-    "target": 4750,
+    "translated": 5524,
+    "target": 4754,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -671,8 +671,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2471,
-    "target": 3892,
+    "translated": 2476,
+    "target": 3900,
     "approved": 0,
     "voted": 11,
     "positiveVotes": 2,
@@ -803,8 +803,8 @@
         "name": "German"
       }
     ],
-    "translated": 1969,
-    "target": 1868,
+    "translated": 1979,
+    "target": 1877,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 1,
@@ -869,13 +869,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5476,
-    "target": 5090,
-    "approved": 5703,
+    "translated": 5481,
+    "target": 5095,
+    "approved": 5708,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5433
+    "winning": 5438
   },
   {
     "user": {
@@ -1263,8 +1263,8 @@
     "user": {
       "id": "16247856",
       "username": "lucasmz.dev",
-      "fullName": "lucas (lucasmz.dev)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/440777ea838e66ebdba0dd6f02b9e2e2.jpg",
+      "fullName": "Lucas (lucasmz.dev)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/7cbe7f91680f9cb4456ecbde5b1d92a5.jpg",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [
@@ -1339,8 +1339,8 @@
         "name": "Japanese"
       }
     ],
-    "translated": 85,
-    "target": 259,
+    "translated": 88,
+    "target": 271,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1761,8 +1761,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5511,
-    "target": 6028,
+    "translated": 5693,
+    "target": 6236,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

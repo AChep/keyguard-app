@@ -10,6 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名稱</string>
     <string name="account_name">帳號名</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">已啟用</string>
     <string name="disabled">已禁用</string>
     <string name="wordlist">詞表</string>
@@ -35,6 +36,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大存取次數</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">瞭解詳情</string>
     <string name="phone_number">電話號碼</string>
     <string name="passport_number">護照號碼</string>
@@ -95,6 +98,10 @@
     <string name="folder">資料夾</string>
     <string name="folders">資料夾</string>
     <string name="folders_empty_label">無資料夾</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">暫無收藏</string>
     <string name="collection">收藏</string>
     <string name="collections">收藏</string>
@@ -141,6 +148,7 @@
     <string name="select_file">選擇檔案</string>
     <string name="autofill">自動填充</string>
     <string name="autofill_and_save_uri">自動填充並儲存應用或網站資訊</string>
+    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">通行金鑰</string>
     <string name="passkey_create_header">建立通行金鑰</string>
     <string name="passkey_unlock_header">解鎖 Keyguard</string>
@@ -191,6 +199,7 @@
     <string name="requested_verification_email">已請求電子郵件驗證</string>
     <string name="web_vault">網頁密碼庫</string>
     <string name="launch_web_vault">開啟網頁密碼庫</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">記住登入狀態</string>
     <!-- A Trash screen -->
@@ -211,9 +220,13 @@
     <string name="encryption_random_bits_data">隨機的 <xliff:g id="length" example="64">%1$d</xliff:g> 位資料</string>
     <string name="none">無</string>
     <string name="text">文字</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">關聯的應用</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">關聯的 URI</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">自定義欄位</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">顯示安全筆記</string>
     <string name="hide_secure_note">隱藏安全筆記</string>
     <string name="master_password_hint">主密碼提示</string>
@@ -231,6 +244,13 @@
     <string name="bitwarden_premium">Bitwarden 高階版</string>
     <string name="bitwarden_premium_required">需要 Bitwarden 高階版</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 伺服器</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">專業提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">生成獨特的電子郵件地址以更好地保護隱私。</string>
     <string name="account_last_synced_at">上次同步於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -507,9 +527,9 @@
     <string name="error_failed_decrypt_biometric_key">解密生物識別金鑰失敗</string>
     <string name="scanqr_title">掃描 QR Code</string>
     <string name="scanqr_load_from_image_note">從影象檔案載入並解析 QR Code。</string>
-    <string name="scanqr_camera_permission_required_text">請授予相機許可權以掃描 QR Code。</string>
+    <string name="scanqr_camera_permission_required_text">請授予相機權限以掃描 QR Code。</string>
     <string name="post_notifications_permission_banner_title">通知已禁用</string>
-    <string name="post_notifications_permission_banner_text">授予通知許可權，允許 Keyguard 在自動填寫時顯示一次性密碼等。</string>
+    <string name="post_notifications_permission_banner_text">授予通知權限，允許 Keyguard 在自動填寫時顯示一次性密碼等。&amp; 更多...</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">條形碼</string>
     <string name="barcodetype_action_show_in_barcode_title">顯示為條形碼</string>
@@ -651,6 +671,8 @@
     <string name="addsend_hide_text_by_default_title">訪問條目時，將預設隱藏文字</string>
     <string name="addsend_hide_email_title">隱藏電子郵件地址</string>
     <string name="addsend_max_access_count_note">設定後，當達到最大訪問次數時使用者將不再能夠訪問此條目。</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">新增 Bitwarden 帳號</string>
     <string name="addaccount_disclaimer_bitwarden_label">我們與 Bitwarden, Inc. 和其任何子公司或附屬機構均無隸屬、關聯、授權、許可關係，或任何形式的官方聯絡。</string>
     <!--
@@ -684,6 +706,8 @@
     <string name="addaccount2fa_otp_note">請輸入您的身份驗證器應用中的驗證碼</string>
     <string name="addaccount2fa_email_note">輸入傳送給 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> 的驗證碼。</string>
     <string name="addaccount2fa_yubikey_manual_text">手動輸入 YubiKey 驗證碼，將游標放在下方輸入框並按下 YubiKey 的按鈕。</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">身份驗證器</string>
     <string name="provider_2fa_duo_organization">Duo（組織）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份驗證</string>
@@ -701,14 +725,14 @@
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_title">確認訪問</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_text">使用生物識別認證來確認您的訪問許可權並解鎖這些資料。</string>
+    <string name="elevatedaccess_biometric_auth_confirm_text">使用生物識別認證來確認您的訪問權限並解鎖這些資料。</string>
     <string name="home_vault_label">密碼庫</string>
     <string name="home_send_label">傳送</string>
     <string name="home_generator_label">生成器</string>
     <string name="home_watchtower_label">概況</string>
     <string name="home_settings_label">設定</string>
     <string name="lock_reason_inactivity">因不活動而被鎖定</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">因螢幕關閉而鎖定</string>
     <string name="lock_reason_manually">手動鎖定</string>
     <string name="send_type_text">文字</string>
     <string name="send_type_file">檔案</string>
@@ -785,6 +809,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">安全碼</string>
     <string name="vault_view_saved_to_label">儲存到 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">密碼最後修改於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">通行金鑰創建於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">最後修改於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -946,13 +971,13 @@
     <string name="settings_main_header_title">設定</string>
     <string name="settings_notifications_header_title">通知</string>
     <string name="settings_other_header_title">其它</string>
-    <string name="settings_permissions_header_title">許可權</string>
+    <string name="settings_permissions_header_title">權限</string>
     <string name="settings_security_header_title">安全</string>
     <string name="settings_subscriptions_header_title">Keyguard 高階版</string>
     <string name="settings_watchtower_header_title">概況</string>
     <string name="settings_open_source_licenses_header_title">開放原始碼許可</string>
-    <string name="pref_section_premium_title">Premium</string>
-    <string name="pref_section_options_title">Options</string>
+    <string name="pref_section_premium_title">進階版</string>
+    <string name="pref_section_options_title">設定</string>
     <string name="pref_item_accounts_title">帳號</string>
     <string name="pref_item_accounts_text">新增和檢視帳號</string>
     <string name="pref_item_autofill_title">自動填充</string>
@@ -1000,7 +1025,7 @@
     <string name="pref_item_color_accent_title">主題顏色</string>
     <string name="pref_item_color_scheme_title">主題</string>
     <string name="pref_item_color_scheme_amoled_dark_title">使用純黑主題</string>
-    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
+    <string name="pref_item_color_scheme_expressive_title">使用富有表現力的主題</string>
     <string name="pref_item_open_links_in_external_browser_title">在外部瀏覽器中開啟連結</string>
     <string name="pref_item_close_to_tray_title">關閉至系統托盤</string>
     <string name="pref_item_check_pwned_passwords_title">檢視被洩露的密碼</string>
@@ -1045,7 +1070,7 @@
     <string name="pref_item_persist_vault_key_text_on">密碼庫金鑰儲存在內部儲存器中</string>
     <string name="pref_item_persist_vault_key_text_off">密碼庫將在後臺被殺後鎖定</string>
     <string name="pref_item_persist_vault_key_note">在磁碟上儲存密碼庫金鑰存在安全風險。如果裝置的內部儲存被入侵，攻擊者就能訪問本地密碼庫資料。</string>
-    <string name="pref_item_permissions_title">許可權</string>
+    <string name="pref_item_permissions_title">權限</string>
     <string name="pref_item_features_overview_title">功能概述</string>
     <string name="pref_item_url_override_title">URL 覆寫</string>
     <string name="pref_item_biometric_unlock_title">生物識別解鎖</string>
@@ -1058,7 +1083,7 @@
     <string name="pref_item_keep_screen_on_title">檢視專案時保持螢幕開啟</string>
     <string name="pref_item_autofill_service_title">自動填充服務</string>
     <string name="pref_item_autofill_service_text">使用 Android 自動填充框架幫助將登入資訊填寫到裝置上的其他應用</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 裝置要求您手動允許“在後臺執行時顯示彈出視窗”許可權。 請開啟設定並確認它已被授予。</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 裝置要求您手動允許「在後臺執行時顯示彈出視窗」權限。 請開啟設定並確認它已被授予。</string>
     <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome 原生支援第三方自動填充服務</string>
     <string name="pref_item_autofill_service_chrome_native_autofill_text">1. 開啟 Chrome 設定，點選自動填充服務
 2. 選擇使用其他服務進行自動填充
@@ -1098,7 +1123,7 @@
     <string name="pref_item_permission_post_notifications_text">用於釋出下載通知</string>
     <string name="pref_item_permission_write_external_storage_title">寫入外部儲存</string>
     <string name="pref_item_permission_write_external_storage_text">用於將保險庫匯出儲存到下載目錄</string>
-    <string name="pref_item_permission_write_external_storage_grant">授予外部儲存許可權</string>
+    <string name="pref_item_permission_write_external_storage_grant">授予外部儲存權限</string>
     <string name="pref_item_permission_camera_title">攝像頭</string>
     <string name="pref_item_permission_camera_text">用於掃描 QR 碼</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">橫屏下啟用雙面板佈局</string>

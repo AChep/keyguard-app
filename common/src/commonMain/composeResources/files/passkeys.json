@@ -339,7 +339,8 @@
     "documentation": "https://www.arbeitsagentur.de/passkey",
     "setup": "https://web.arbeitsagentur.de/oiambk/oiambk-selfservice-ui/konto-verwalten/passkeys-verwalten",
     "category": "Government",
-    "created_at": "2024-03-23T12:22:56.548692+00:00"
+    "created_at": "2024-03-23T12:22:56.548692+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log in to your account\n2. Select \u201cSet up passkey\u201d\n3. Select \u201cCreate Passkey\u201d\n4. Create a new passkey on your device\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
   },
   {
     "id": "fa2a17946d65dc0b58cbd6e947adae4d",
@@ -754,6 +755,19 @@
     "setup": "https://app.datapacket.com/settings/security",
     "category": "Information Technology",
     "created_at": "2024-01-21T14:10:54.400022+00:00"
+  },
+  {
+    "id": "265238192337dec54659326628ef8949",
+    "name": "Dell",
+    "domain": "dell.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.dell.com/en-us/lp/protect-your-account-faq",
+    "setup": "https://www.dell.com/myaccount/en-us/account-settings/profile",
+    "category": "eCommerce",
+    "created_at": "2023-03-30T21:25:16.840357+00:00",
+    "notes": "#### To set up a passkey on your Dell.com account: \n\n1. Sign into Dell.com\n2. Select your account name at the top right\n3. **Profile Settings**\n4. **Edit Profile**\n5. **Security Settings**\n6. **Add Passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 Chrome 109+\n\n _There is a known issue on Windows devices where Windows Hello prompts alongside 1Password. Close (X) the Windows Hello prompt and click **Sign in** in the 1Password prompt as a temporary workaround._\n\n<p align=\"center\"><sup><sub>Updated on September 17, 2025</sub></sup></p>\n\n<p align=\"left\"><sup><sub>ref: AUTH-1413</sub></sup></p>"
   },
   {
     "id": "29000fd24c82c85fc045f8e5877d1b17",
@@ -1408,6 +1422,19 @@
     "created_at": "2024-05-13T12:46:24.529221+00:00"
   },
   {
+    "id": "d4f475a55e4040639ca646b5c89b811e",
+    "name": "WealthNavi",
+    "domain": "id.wealthnavi.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support-id.wealthnavi.com/hc/ja/articles/50103324913945-%E3%83%91%E3%82%B9%E3%82%AD%E3%83%BC%E3%82%92%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B%E3%81%AB%E3%81%AF%E3%81%A9%E3%81%86%E3%81%97%E3%81%9F%E3%82%89%E3%82%88%E3%81%84%E3%81%A7%E3%81%99%E3%81%8B",
+    "setup": "https://id.wealthnavi.com/customer/profile/",
+    "category": "Finance",
+    "created_at": "2025-09-22T17:34:04+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Enter your registered email address (WealthNavi ID) on the login screen and click \"Log in with ID and password.\"\n2. Enter your registered password and click \"Login.\"\n3. The screen will switch to the additional authentication code input screen, and the additional authentication code will be sent to your registered email address. Enter the additional authentication code you received in the authentication code field on the screen and press \"Authenticate.\"\n4. When the \"Passkey\" setting screen appears, press \"Set.\"\n\n<p align=\"center\" style=\"font-style: italic;\">This has been translated from Japanese.</p>\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "af06d6eada560bf0fc02dd4c31d21641",
     "name": "Indeed",
     "domain": "indeed.com",
@@ -1503,6 +1530,19 @@
     "category": "Information Technology",
     "created_at": "2023-12-17T12:30:56.187095+00:00",
     "notes": "To add to your account go to _\"Param\u00e8tres > S\u00e9curit\u00e9 > Ajouter une cl\u00e9 d'acc\u00e8s\"_.\n\nTo log in with a passkey, simply click _\"Utiliser une cl\u00e9 d'acc\u00e8s\"_ on the login screen."
+  },
+  {
+    "id": "71e3f551f0b410afb32e9be0c3adecd5",
+    "name": "Kraken",
+    "domain": "kraken.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "http://support.kraken.com/articles/how-to-enable-multiple-2fa",
+    "setup": "https://www.kraken.com/c/account-settings/security",
+    "category": "Finance",
+    "created_at": "2023-06-12T19:29:18.237395+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Click on your profile icon in the bottom left corner of the page and select **Security**\n2. Click **Add a Passkey** or a pop-up will appear.\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
   },
   {
     "id": "9b8b0a3dfa678e8f6641ee4939bfd9b3",
@@ -1676,6 +1716,18 @@
     "category": "eCommerce",
     "created_at": "2025-06-19T14:53:19.754998+00:00",
     "notes": "#### To set up a passkey on your lululemon account: \n\n1. Sign into your account\n2. Go to your profile\n3. In the security section, click \"+ Add a Passkey\"\n4. Follow the prompts from 1Password and save\n\n\n \n \n\n<p align=\"center\"><sup><sub>Updated on August 13, 2025</sub></sup></p>"
+  },
+  {
+    "id": "1efa796241c1bcb84ef30ec841865fc5",
+    "name": "Luma",
+    "domain": "luma.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.luma.com/p/passkeys",
+    "setup": "https://luma.com/settings",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2025-10-08T17:19:16.996702+00:00"
   },
   {
     "id": "5b9030218f1bee1e295009ad2a4fc6f9",
@@ -2749,6 +2801,19 @@
     "created_at": "2024-10-21T10:21:31.859732+00:00"
   },
   {
+    "id": "b74ebaf5e2117103a1c293a8a5f3eeac",
+    "name": "Ticketmaster",
+    "domain": "ticketmaster.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.ticketmaster.com/hc/en-us/articles/37580664256145-What-are-passkeys-and-how-do-they-work",
+    "setup": "https://my.ticketmaster.com/security",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-06-06T14:47:33.192825+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Sign into ticketmaster\n2. Navigate to **My Account** \u2192 **My Profile** \u2192 **Sign In & Security**\n3. Add a passkey \n4. Follow the prompts from 1Password\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n**Currently, passkeys are not available on the ticketmaster mobile app.**\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "612bd0e58e15286297be5e907f906288",
     "name": "TikTok",
     "domain": "tiktok.com",
@@ -2915,6 +2980,18 @@
     "created_at": "2023-04-03T16:02:31.413658+00:00"
   },
   {
+    "id": "bbce5f5b167601a14b77d53068a6990b",
+    "name": "VerifyThisSeal.com",
+    "domain": "verifythisseal.com",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://verifythisseal.com/my-account/passkeys",
+    "category": "Information Technology",
+    "created_at": "2025-09-22T17:46:01+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Sign into VerifyThisSeal.com\n2. Navigate to **Account Details** \u2192 **Security Settings** \u2192 **Passkeys**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on September 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "a3e7dc7f0332f633ea49d9abfe09a452",
     "name": "Virgin Media",
     "domain": "virginmedia.com",
@@ -3020,6 +3097,19 @@
     "category": "Information Technology",
     "created_at": "2023-04-09T07:00:20.568068+00:00",
     "notes": "Saving and signing in with a passkey on Whatsapp is currently limited to the iOS and Android apps. Signing in to the Mac desktop version or on the web browser version of Whatsapp still requires using the \"Linked Devices\" feature or scanning the QR code using your mobile device.\n\n#### To set up a passkey on your Whatsapp account:\n1. Go to your WhatsApp settings.\n2. Tap Passkeys > Create a passkey.\n3. Tap Continue.\n- You may be asked to tap Use screen lock to create your passkey."
+  },
+  {
+    "id": "9c97455a834cf176b8c398b3016475c2",
+    "name": "Wise",
+    "domain": "wise.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://wise.com/help/articles/4OTG2Z93XXyaurUviZRg5O/how-can-i-use-a-passkey",
+    "setup": "https://wise.com/your-account/security-and-privacy/2fa/passkey",
+    "category": "Finance",
+    "created_at": "2023-03-30T15:44:12.829599+00:00"
   },
   {
     "id": "f79b57de78dae66da5c6bb0ccbb46228",

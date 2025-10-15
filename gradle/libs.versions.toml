@@ -122,7 +122,7 @@ msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.17"
 # https://github.com/bcgit/bc-java
-bouncycastle = "1.81"
+bouncycastle = "1.82"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.10.0"
 # https://github.com/cashapp/sqldelight

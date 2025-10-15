@@ -10,6 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">이름</string>
     <string name="account_name">계정 이름</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">켜짐</string>
     <string name="disabled">꺼짐</string>
     <string name="wordlist">단어 목록</string>
@@ -35,6 +36,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">최대 접근 횟수</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">자세히 알아보기</string>
     <string name="phone_number">전화번호</string>
     <string name="passport_number">여권 번호</string>
@@ -95,6 +98,10 @@
     <string name="folder">폴더</string>
     <string name="folders">폴더</string>
     <string name="folders_empty_label">폴더 없음</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">컬렉션 없음</string>
     <string name="collection">컬렉션</string>
     <string name="collections">컬렉션</string>
@@ -141,6 +148,7 @@
     <string name="select_file">파일 선택</string>
     <string name="autofill">자동 완성</string>
     <string name="autofill_and_save_uri">자동 완성하고 앱 또는 웹사이트 정보 저장</string>
+    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">패스키</string>
     <string name="passkey_create_header">패스키 만들기</string>
     <string name="passkey_unlock_header">Keyguard 잠금 해제</string>
@@ -191,6 +199,7 @@
     <string name="requested_verification_email">인증 메일을 보냈습니다.</string>
     <string name="web_vault">웹 보관함</string>
     <string name="launch_web_vault">웹 보관함 열기</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">이 설정 기억</string>
     <!-- A Trash screen -->
@@ -211,9 +220,13 @@
     <string name="encryption_random_bits_data">무작위 데이터 <xliff:g id="length" example="64">%1$d</xliff:g>비트</string>
     <string name="none">없음</string>
     <string name="text">텍스트</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">연결된 앱</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">연결된 URI</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">사용자 지정 필드</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">보안 노트 보이기</string>
     <string name="hide_secure_note">보안 노트 숨기기</string>
     <string name="master_password_hint">마스터 비밀번호 힌트</string>
@@ -231,6 +244,13 @@
     <string name="bitwarden_premium">Bitwarden 프리미엄</string>
     <string name="bitwarden_premium_required">Bitwarden 프리미엄 필요</string>
     <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">팁: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
     <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
@@ -651,6 +671,8 @@
     <string name="addsend_hide_text_by_default_title">항목에 접근할 때 기본적으로 텍스트를 숨김</string>
     <string name="addsend_hide_email_title">이메일 주소 숨기기</string>
     <string name="addsend_max_access_count_note">이 값을 설정하면 최대 접근 횟수에 도달했을 때 이 항목에 접근할 수 없게 됩니다.</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Bitwarden 계정 추가</string>
     <string name="addaccount_disclaimer_bitwarden_label">Keyguard 팀은 Bitwarden, Inc. 또는 그 계열사와 제휴, 연관, 승인, 보증 또는 공식적으로 어떤 식으로든 연결되어 있지 않습니다.</string>
     <!--
@@ -684,6 +706,8 @@
     <string name="addaccount2fa_otp_note">인증 앱에서 인증 코드를 입력하세요.</string>
     <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> 이메일로 전송된 인증 코드를 입력하세요.</string>
     <string name="addaccount2fa_yubikey_manual_text">YubiKey 인증 코드를 직접 입력해 주세요. 아래 필드에 커서를 둔 뒤 YubiKey를 켜세요.</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">인증 앱</string>
     <string name="provider_2fa_duo_organization">Duo (조직)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 웹 인증</string>
@@ -708,7 +732,7 @@
     <string name="home_watchtower_label">감시탑</string>
     <string name="home_settings_label">설정</string>
     <string name="lock_reason_inactivity">일정 시간 미사용으로 잠김</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">화면 꺼짐으로 인해 잠김</string>
     <string name="lock_reason_manually">사용자에 의해 잠김</string>
     <string name="send_type_text">텍스트</string>
     <string name="send_type_file">파일</string>
@@ -785,6 +809,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">보안 코드(CVV)</string>
     <string name="vault_view_saved_to_label"><xliff:g id="email" example="username@example.com">%1$s</xliff:g>에 저장됨 (<xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g>)</string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">비밀번호를 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 변경함</string>
     <string name="vault_view_passkey_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만든 패스키</string>
     <string name="vault_view_revision_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 변경함</string>

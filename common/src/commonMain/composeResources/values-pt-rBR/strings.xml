@@ -10,6 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
     <string name="account_name">Nome da conta</string>
+    <string name="database_name">Database name</string>
     <string name="enabled">Ativado</string>
     <string name="disabled">Desativado</string>
     <string name="wordlist">Lista de Palavras</string>
@@ -35,6 +36,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Número máximo de acessos</string>
+    <string name="ready_status_beta">Beta</string>
+    <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Saiba mais</string>
     <string name="phone_number">Telefone</string>
     <string name="passport_number">Número do passaporte</string>
@@ -95,6 +98,10 @@
     <string name="folder">Pasta</string>
     <string name="folders">Pastas</string>
     <string name="folders_empty_label">Nenhuma pasta</string>
+    <string name="tag_none">No tag</string>
+    <string name="tag">Tag</string>
+    <string name="tags">Tags</string>
+    <string name="tags_empty_label">No tags</string>
     <string name="collection_none">Nenhuma coleção</string>
     <string name="collection">Coleção</string>
     <string name="collections">Coleções</string>
@@ -141,6 +148,7 @@
     <string name="select_file">Selecione um arquivo</string>
     <string name="autofill">Preenchimento Automático</string>
     <string name="autofill_and_save_uri">Autopreencher e salvar informações do aplicativo ou do site</string>
+    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Criar uma passkey</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
@@ -191,6 +199,7 @@
     <string name="requested_verification_email">Solicitou um e-mail de verificação</string>
     <string name="web_vault">Cofre Web</string>
     <string name="launch_web_vault">Iniciar Cofre Web</string>
+    <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Manter sessão iniciada</string>
     <!-- A Trash screen -->
@@ -211,9 +220,13 @@
     <string name="encryption_random_bits_data"><xliff:g id="length" example="64">%1$d</xliff:g>- bits de dados aleatórios</string>
     <string name="none">Nenhum</string>
     <string name="text">Texto</string>
+    <string name="linked_app">Linked app</string>
     <string name="linked_apps">Aplicativos vinculados</string>
+    <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">URIs vinculados</string>
+    <string name="custom_field">Custom field</string>
     <string name="custom_fields">Campos personalizados</string>
+    <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">Revelar uma nota segura</string>
     <string name="hide_secure_note">Esconder uma nota segura</string>
     <string name="master_password_hint">Dica da Senha Mestra</string>
@@ -231,6 +244,13 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Precisa do Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Servidor não oficial do Bitwarden</string>
+    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="replace_key_file">Replace a key file</string>
+    <string name="select_key_file">Select a key file</string>
+    <string name="select_database_file">Select a database file</string>
+    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Dica: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Gere e-mails exclusivos para melhor privacidade.</string>
     <string name="account_last_synced_at">Última sincronização em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -651,6 +671,8 @@
     <string name="addsend_hide_text_by_default_title">Ao acessar o item, ocultar o texto por padrão</string>
     <string name="addsend_hide_email_title">Ocultar endereço de e-mail</string>
     <string name="addsend_max_access_count_note">Se configurado, usuários não poderão mais acessar este item se o número máximo de acessos for atingido.</string>
+    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Não somos afiliados, associados, autorizados, endossados ou de qualquer forma oficialmente conectados à Bitwarden, Inc., nem a nenhuma de suas subsidiárias ou afiliadas.</string>
     <!--
@@ -684,6 +706,8 @@
     <string name="addaccount2fa_otp_note">Insira o código de verificação do seu aplicativo de autenticação.</string>
     <string name="addaccount2fa_email_note">Insira o código de verificação que foi enviado por e-mail para <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Digite o código de autenticação do YubiKey manualmente. Coloque o cursor no campo abaixo e acione o YubiKey.</string>
+    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Autenticador</string>
     <string name="provider_2fa_duo_organization">Duo (Organização)</string>
     <string name="provider_2fa_fido2_webauthn">Autenticação Web FIDO2</string>
@@ -785,6 +809,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Código de segurança</string>
     <string name="vault_view_saved_to_label">Salvo em <xliff:g id="email" example="username@example.com">%1$s</xliff:g> em <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Senha modificada pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Passkey criada em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Última modificação em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>

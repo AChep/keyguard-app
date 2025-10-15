@@ -172,6 +172,13 @@
     "notes": "Send an email requesting a copy of your data to [privacy@craigslist.org](mailto:privacy@craigslist.org)."
   },
   {
+    "name": "DeviantArt",
+    "domains": [],
+    "url": "https://www.deviantart.com/settings/gdpr/",
+    "difficulty": "impossible",
+    "notes": "The GDPR link is not shown publicly - you must know the URL directly. The data provided is very limited (no private messages, no comments on arts, only basic account information like username, email, and IP addresses). Account deactivation available at https://www.deviantart.com/settings/deactivation but no account deletion option found."
+  },
+  {
     "name": "Discord",
     "domains": [],
     "url": "https://discord.com",
@@ -436,6 +443,13 @@
     "notes": "Log in to your account -> Go to 'Settings'-> 'Account' -> 'Back-up'."
   },
   {
+    "name": "MEGA",
+    "domains": [],
+    "url": "https://mega.nz/fm/account/security",
+    "difficulty": "easy",
+    "notes": "Log in and navigate to Settings \u2192 Security. Under \"Download your personal data,\" click the \"Download\" button to receive a file with your account and metadata. Note: This does not include your stored files, only metadata and account info."
+  },
+  {
     "name": "Microsoft",
     "domains": [],
     "url": "https://microsoft.com/",
@@ -598,6 +612,16 @@
     "notes": "Go to the url provided above and click on the button 'Request a copy of my personal data', at the bottom of the page. They will send you an email to confirm the email address where they will send your data and another to verify your username and password. You will receive your data in about 24 hours."
   },
   {
+    "name": "Quaidesamours",
+    "domains": [],
+    "url": "https://www.quaidesamours.com/",
+    "difficulty": "easy",
+    "notes": "You can easily contact the team through the contact page or email listed in the site's footer. Data access or deletion requests are handled manually upon request.",
+    "email": "contact@quaidesamours.com",
+    "email_subject": "Personal Data Request",
+    "email_body": "Hello, I would like to request access to or deletion of my personal data associated with my account on your site. Please confirm receipt of this request. Thank you."
+  },
+  {
     "name": "Reddit",
     "domains": [],
     "url": "https://www.reddit.com/settings/data-request",
@@ -749,9 +773,9 @@
   {
     "name": "Twitch",
     "domains": [],
-    "url": "https://www.twitch.tv/p/legal/privacy-notice/",
-    "difficulty": "hard",
-    "notes": "Send an email to [privacy@twitch.tv](mailto:privacy@twitch.tv) and include your name, address, telephone number and all relevant background."
+    "url": "https://twitch.tv/settings/security",
+    "difficulty": "easy",
+    "notes": "In Security and Privacy tab on Settings, press \"Request a Copy of Your Data\" button, select categories and the date range of the data that you want, and submit a request. Request should be completed within 14 days. You will receive Twitch notification once your data is ready to download."
   },
   {
     "name": "Twitter",

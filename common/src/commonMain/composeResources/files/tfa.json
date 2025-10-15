@@ -5968,6 +5968,14 @@
     "name": "Fanatical"
   },
   {
+    "domain": "fanatics.com",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "name": "Fanatics"
+  },
+  {
     "domain": "fandom.com",
     "tfa": [
       "totp"
@@ -8277,6 +8285,13 @@
     "name": "Instant-Gaming"
   },
   {
+    "domain": "instantscripts.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "InstantScripts"
+  },
+  {
     "domain": "instructure.com",
     "tfa": [
       "sms",
@@ -10111,9 +10126,10 @@
     ],
     "url": "https://www.merrilledge.com/",
     "tfa": [
-      "sms"
+      "sms",
+      "u2f"
     ],
-    "documentation": "https://github.com/2factorauth/twofactorauth/issues/2275",
+    "documentation": "https://www.ml.com/privacy-and-security-center/usb-security-key.html",
     "name": "Merrill Edge"
   },
   {
@@ -10784,6 +10800,17 @@
     ],
     "documentation": "https://support.n26.com/en-eu/security/passwords-and-codes/how-to-log-in-with-two-factor-authentication",
     "name": "N26"
+  },
+  {
+    "domain": "n8n.io",
+    "additional-domains": [
+      "n8n.cloud"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://docs.n8n.io/user-management/two-factor-auth/",
+    "name": "n8n"
   },
   {
     "domain": "naga.com",
@@ -13900,6 +13927,16 @@
     "name": "River Financial"
   },
   {
+    "domain": "rivian.com",
+    "tfa": [
+      "sms",
+      "email",
+      "totp"
+    ],
+    "documentation": "https://rivian.com/support/article/what-is-two-factor-authentication",
+    "name": "Rivian"
+  },
+  {
     "domain": "rmit.edu.au",
     "tfa": [
       "sms",
@@ -14710,6 +14747,13 @@
     ],
     "documentation": "https://tech-shu-edu.refined.site/space/PUBLICKBA/2096431118/Guide%20to%20Enrolling%20a%20Device%20in%20Duo",
     "name": "Seton Hall University"
+  },
+  {
+    "domain": "shy.gg",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Shy"
   },
   {
     "domain": "sidequestvr.com",
@@ -17585,9 +17629,10 @@
   {
     "domain": "usps.com",
     "tfa": [
-      "sms"
+      "sms",
+      "email"
     ],
-    "documentation": "https://faq.usps.com/s/article/USPS-com-Account#Two-Factor_Authentication",
+    "documentation": "https://reg.usps.com/entreg/AccountRecoveryHelpAction_input",
     "name": "US Postal Service"
   },
   {

@@ -60,7 +60,7 @@ jobs:
           force: true
           target_branch: localization_action
       - name: Create pull request
-        uses: devops-infra/action-pull-request@v0.6.1
+        uses: devops-infra/action-pull-request@v1.0.2
         if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
         with:
           github_token: "${{ secrets.PERSONAL_TOKEN }}"

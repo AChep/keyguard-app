@@ -13,6 +13,6 @@ cipher to separate fields and trying to merge then separately:
 
 - If you edit the Username on one device and the Password on the other device, then it will handle the change just fine, merging both changes together.
 
-- If you edit the Username on one device and the same Username on the other device, then the latter (by time) change will win.
+- If you edit the Username on one device and the same Username on the other device, then the change from the server will win.
 
 - If you add a Custom field on one device and another Custom field on another device, then it will merge them correctly: you will now have both Custom fields.

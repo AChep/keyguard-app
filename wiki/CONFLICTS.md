@@ -8,3 +8,11 @@ cipher to separate fields and trying to merge then separately:
 - if the field is edited on both local and remote, then the remote field wins;
 - if the field is edited on either local but not on remote, then the local field wins;
 - if the item is added or removed from the list, then Keyguard will try to replicate the action on a new base cipher.
+
+## Example
+
+- If you edit the Username on one device and the Password on the other device, then it will handle the change just fine, merging both changes together.
+
+- If you edit the Username on one device and the same Username on the other device, then the latter (by time) change will win.
+
+- If you add a Custom field on one device and another Custom field on another device, then it will merge them correctly: you will now have both Custom fields.

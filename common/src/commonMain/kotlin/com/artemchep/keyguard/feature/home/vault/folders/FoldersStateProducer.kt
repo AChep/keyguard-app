@@ -356,7 +356,6 @@ fun foldersScreenState(
                             val folders = selectedFolders.values
                                 .map { it.folder }
                             val route = VaultRoute.by(
-                                translator = this@produceScreenState,
                                 folders = folders,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -445,7 +444,6 @@ fun foldersScreenState(
                                 },
                                 onClick = onClick {
                                     val route = VaultRoute.by(
-                                        translator = this@produceScreenState,
                                         folder = folder,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)

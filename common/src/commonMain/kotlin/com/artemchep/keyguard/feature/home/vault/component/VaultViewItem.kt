@@ -11,6 +11,7 @@ fun VaultViewItem(
 ) = when (item) {
     is VaultViewItem.Card -> VaultViewCardItem(modifier, item)
     is VaultViewItem.Folder -> VaultViewFolderItem(modifier, item)
+    is VaultViewItem.Tags -> VaultViewTagsItem(modifier, item)
     is VaultViewItem.Organization -> VaultViewOrganizationItem(modifier, item)
     is VaultViewItem.Collection -> VaultViewCollectionItem(modifier, item)
     is VaultViewItem.Error -> VaultViewErrorItem(modifier, item)
@@ -28,6 +29,7 @@ fun VaultViewItem(
     is VaultViewItem.Totp -> VaultViewTotpItem(modifier, item)
     is VaultViewItem.Passkey -> VaultViewPasskeyItem(modifier, item)
     is VaultViewItem.ReusedPassword -> VaultViewReusedPasswordItem(modifier, item)
+    is VaultViewItem.Qr -> VaultViewQrItem(modifier, item)
     is VaultViewItem.InactiveTotp -> VaultViewInactiveTotpItem(modifier, item)
     is VaultViewItem.InactivePasskey -> VaultViewInactivePasskeyItem(modifier, item)
     is VaultViewItem.Section -> VaultViewSectionItem(modifier, item)

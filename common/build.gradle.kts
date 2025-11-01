@@ -212,6 +212,7 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
+                api(libs.keemobile.kotpass)
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
@@ -219,6 +220,7 @@ kotlin {
                 api(libs.halilibo.richtext.commonmark)
                 api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
+                api(libs.mm2d.touchicon)
             }
         }
         commonTest.dependencies {
@@ -259,6 +261,7 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)
                 implementation(libs.harawata.appdirs)
+                implementation(libs.directory.watcher)
                 implementation(libs.commons.lang3)
                 val sqldelight = libs.cash.sqldelight.sqlite.driver.get()
                     .let { "${it.module}:${it.versionConstraint.requiredVersion}" }
@@ -316,8 +319,6 @@ kotlin {
                 api(libs.squareup.okhttp)
                 api(libs.squareup.logging.interceptor)
                 api(libs.ktor.ktor.client.okhttp)
-                api(libs.mm2d.touchicon.http.okhttp)
-                api(libs.mm2d.touchicon)
                 api(libs.sqlcipher.android)
                 api(libs.kotlinx.coroutines.android)
                 api(libs.kodein.kodein.di.framework.android.x.viewmodel.savedstate)

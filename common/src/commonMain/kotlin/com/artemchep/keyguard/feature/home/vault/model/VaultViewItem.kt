@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DTag
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.TotpToken
@@ -227,6 +228,14 @@ sealed interface VaultViewItem {
         companion object
     }
 
+    data class Tags(
+        override val id: String,
+        val tags: List<String>,
+        val onClick: (String) -> Unit,
+    ) : VaultViewItem {
+        companion object;
+    }
+
     data class Folder(
         override val id: String,
         val shapeState: Int = ShapeState.ALL,
@@ -321,7 +330,7 @@ sealed interface VaultViewItem {
         override val id: String,
         val shapeState: Int = ShapeState.ALL,
         val chevron: Boolean,
-        val onClick: () -> Unit,
+        val onClick: (() -> Unit)?,
     ) : VaultViewItem, Groupable<InactiveTotp> {
         companion object;
 
@@ -348,6 +357,13 @@ sealed interface VaultViewItem {
         companion object;
 
         override fun withShape(shape: Int) = copy(shapeState = shape)
+    }
+
+    data class Qr(
+        override val id: String,
+        val data: String,
+    ) : VaultViewItem {
+        companion object;
     }
 
     data class Section(

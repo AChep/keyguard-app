@@ -59,6 +59,11 @@ fun CipherRequest.Companion.of(
     model: BitwardenCipher,
     folders: Map<String, String?>,
 ) = kotlin.run {
+    if (model.tags.isNotEmpty()) {
+        val msg = "The tags were not transformed into the fields before forming the request!"
+        throw IllegalStateException(msg)
+    }
+
     val type = CipherTypeEntity.of(model.type)
     val reprompt = CipherRepromptTypeEntity.of(model.reprompt)
     val login = model.login

@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
@@ -28,11 +29,11 @@ data class VaultRoute(
         fun by(accounts: Collection<DAccount>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
-                    title = accounts.joinToString { it.username },
+                    title = accounts.joinToString { it.username ?: it.host },
                     subtitle = if (accounts.size > 1) {
-                        "Accounts"
+                        TextHolder.Res(Res.string.accounts)
                     } else {
-                        "Account"
+                        TextHolder.Res(Res.string.account)
                     },
                 ),
                 filter = DFilter.Or(
@@ -53,20 +54,19 @@ data class VaultRoute(
         // Organization
         //
 
-        suspend fun by(translator: TranslatorScope, organization: DOrganization) = by(
-            translator = translator,
+        fun by(organization: DOrganization) = by(
             organizations = listOf(organization),
         )
 
         @JvmName("byOrganizations")
-        suspend fun by(translator: TranslatorScope, organizations: Collection<DOrganization>) = VaultRoute(
+        fun by(organizations: Collection<DOrganization>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = organizations.joinToString { it.name },
                     subtitle = if (organizations.size > 1) {
-                        translator.translate(Res.string.organizations)
+                        TextHolder.Res(Res.string.organizations)
                     } else {
-                        translator.translate(Res.string.organization)
+                        TextHolder.Res(Res.string.organization)
                     },
                 ),
                 filter = DFilter.Or(
@@ -95,20 +95,19 @@ data class VaultRoute(
         // Collection
         //
 
-        suspend fun by(translator: TranslatorScope, collection: DCollection) = by(
-            translator = translator,
+        fun by(collection: DCollection) = by(
             collections = listOf(collection),
         )
 
         @JvmName("byCollections")
-        suspend fun by(translator: TranslatorScope, collections: Collection<DCollection>) = VaultRoute(
+        fun by(collections: Collection<DCollection>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = collections.joinToString { it.name },
                     subtitle = if (collections.size > 1) {
-                        translator.translate(Res.string.collections)
+                        TextHolder.Res(Res.string.collections)
                     } else {
-                        translator.translate(Res.string.collection)
+                        TextHolder.Res(Res.string.collection)
                     },
                 ),
                 filter = DFilter.Or(
@@ -137,20 +136,19 @@ data class VaultRoute(
         // Folder
         //
 
-        suspend fun by(translator: TranslatorScope, folder: DFolder) = by(
-            translator = translator,
+        fun by(folder: DFolder) = by(
             folders = listOf(folder),
         )
 
         @JvmName("byFolders")
-        suspend fun by(translator: TranslatorScope, folders: Collection<DFolder>) = VaultRoute(
+        fun by(folders: Collection<DFolder>) = VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = folders.joinToString { it.name },
                     subtitle = if (folders.size > 1) {
-                        translator.translate(Res.string.folders)
+                        TextHolder.Res(Res.string.folders)
                     } else {
-                        translator.translate(Res.string.folder)
+                        TextHolder.Res(Res.string.folder)
                     },
                 ),
                 filter = DFilter.Or(
@@ -176,6 +174,39 @@ data class VaultRoute(
         )
 
         //
+        // Tag
+        //
+
+        fun by(tag: String) = by(
+            tags = listOf(tag),
+        )
+
+        @JvmName("byTags")
+        fun by(tags: Collection<String>) = VaultRoute(
+            args = Args(
+                appBar = Args.AppBar(
+                    title = tags.joinToString { it },
+                    subtitle = if (tags.size > 1) {
+                        TextHolder.Res(Res.string.tags)
+                    } else {
+                        TextHolder.Res(Res.string.tag)
+                    },
+                ),
+                filter = DFilter.Or(
+                    filters = tags
+                        .map { tag ->
+                            DFilter.ById(
+                                id = tag,
+                                what = DFilter.ById.What.TAG,
+                            )
+                        },
+                ),
+                preselect = false,
+                canAddSecrets = false,
+            ),
+        )
+
+        //
         // Watchtower
         //
 
@@ -190,7 +221,8 @@ data class VaultRoute(
             args = Args(
                 appBar = Args.AppBar(
                     title = title,
-                    subtitle = subtitle ?: "Watchtower",
+                    subtitle = subtitle?.let(TextHolder::Value)
+                        ?: TextHolder.Res(Res.string.watchtower_header_title),
                 ),
                 filter = filter,
                 sort = sort,
@@ -227,7 +259,7 @@ data class VaultRoute(
 
         data class AppBar(
             val title: String? = null,
-            val subtitle: String? = null,
+            val subtitle: TextHolder? = null,
         )
     }
 

@@ -1,8 +1,8 @@
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken;
+import com.artemchep.keyguard.core.store.bitwarden.ServiceToken;
 
 CREATE TABLE account (
   accountId TEXT NOT NULL PRIMARY KEY,
-  data TEXT AS BitwardenToken NOT NULL
+  data TEXT AS ServiceToken NOT NULL
 );
 
 insert {

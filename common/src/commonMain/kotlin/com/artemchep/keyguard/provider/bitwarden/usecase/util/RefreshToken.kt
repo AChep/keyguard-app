@@ -130,7 +130,7 @@ suspend fun getAndUpdateUserToken(
             .getByAccountId(user.id)
             .executeAsOneOrNull()
     }.bind()
-    val newUserToken = newUser?.data_
+    val newUserToken = newUser?.data_ as BitwardenToken?
     if (newUserToken != null && newUserToken != user) {
         return newUserToken
     }

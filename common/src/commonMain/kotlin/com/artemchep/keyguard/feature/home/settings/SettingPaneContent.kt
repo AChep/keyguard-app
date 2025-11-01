@@ -29,6 +29,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamPr
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingApkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillInlineSuggestionsProvider
@@ -131,6 +132,7 @@ object Setting {
     const val AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill_respect_autofill_off"
     const val AUTOFILL_SAVE_REQUEST = "autofill_save_request"
     const val AUTOFILL_SAVE_URI = "autofill_save_uri"
+    const val AUTOFILL_BLOCK_URI = "autofill_block_uri"
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
     const val NAV_ANIMATION = "nav_animation"
     const val NAV_LABEL = "nav_label"
@@ -225,6 +227,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_RESPECT_AUTOFILL_OFF to ::settingAutofillRespectAutofillOffProvider,
     Setting.AUTOFILL_SAVE_REQUEST to ::settingAutofillSaveRequestProvider,
     Setting.AUTOFILL_SAVE_URI to ::settingAutofillSaveUriProvider,
+    Setting.AUTOFILL_BLOCK_URI to ::settingAutofillBlockUriProvider,
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,
     Setting.NAV_ANIMATION to ::settingNavAnimationProvider,
     Setting.NAV_LABEL to ::settingNavLabelProvider,

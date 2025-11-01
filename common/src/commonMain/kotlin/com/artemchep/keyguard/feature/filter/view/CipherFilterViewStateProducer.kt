@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import arrow.core.right
@@ -18,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
 import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
@@ -60,6 +62,7 @@ fun produceCipherFilterViewState(
         getProfiles = instance(),
         getOrganizations = instance(),
         getCollections = instance(),
+        getTags = instance(),
         getFolders = instance(),
         getCiphers = instance(),
     )
@@ -75,6 +78,7 @@ fun produceCipherFilterViewState(
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCollections: GetCollections,
+    getTags: GetTags,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
 ): Loadable<CipherFilterViewState> = produceScreenState(
@@ -113,6 +117,13 @@ fun produceCipherFilterViewState(
             folders
                 .associate {
                     it.id to it.name
+                }
+        }
+    val tagsMapFlow = getTags()
+        .map { tags ->
+            tags
+                .associate {
+                    it.name to it.name
                 }
         }
     val ciphersMapFlow = getCiphers()
@@ -207,6 +218,19 @@ fun produceCipherFilterViewState(
                                     }
 
                                     foldersMapFlow
+                                }
+
+                                DFilter.ById.What.TAG -> {
+                                    if (f.id == null) {
+                                        l += createFilterItem(
+                                            filter = f,
+                                            leading = iconSmall(Icons.Outlined.Tag),
+                                            title = translate(Res.string.tag_none),
+                                        ).let(::flowOf)
+                                        return@forEach
+                                    }
+
+                                    tagsMapFlow
                                 }
 
                                 DFilter.ById.What.COLLECTION -> {

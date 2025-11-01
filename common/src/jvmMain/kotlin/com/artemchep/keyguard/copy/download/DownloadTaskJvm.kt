@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
+import com.artemchep.keyguard.common.service.download.writeBytes
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.use
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,43 @@ open class DownloadTaskJvm(
         fileEncryptor = directDI.instance(),
     )
 
+    private suspend fun getCacheFile(): File {
+        val cacheFileName = cryptoGenerator.uuid() + ".download"
+        val cacheFileRelativePath = "download_cache/$cacheFileName"
+        return cacheDirProvider.get()
+            .resolve(cacheFileRelativePath)
+    }
+
+    override fun fileLoader(
+        data: ByteArray,
+        key: ByteArray?,
+        writer: DownloadWriter,
+    ): Flow<DownloadProgress> = flow {
+        // If we do not have to do any decryption, then we do not need
+        // to create a temporarily file for the download.
+        if (key == null) {
+            emit(DownloadProgress.Loading())
+            // 1. Save the data into the writer.
+            val result = kotlin.runCatching { writer.writeBytes(data) }
+                .fold(
+                    onFailure = { e ->
+                        e.printStackTrace()
+                        e.left()
+                    },
+                    onSuccess = {
+                        when (writer) {
+                            is DownloadWriter.FileWriter -> writer.file.right()
+                            is DownloadWriter.StreamWriter -> File(".").right()
+                        }
+                    },
+                )
+            emit(DownloadProgress.Complete(result))
+            return@flow
+        }
+
+        TODO()
+    }
+
     override fun fileLoader(
         url: String,
         key: ByteArray?,
@@ -64,9 +102,7 @@ open class DownloadTaskJvm(
             // we use this file to make the situation where the real file is
             // half loaded less likely.
             val cacheFile = kotlin.runCatching {
-                val cacheFileName = cryptoGenerator.uuid() + ".download"
-                val cacheFileRelativePath = "download_cache/$cacheFileName"
-                cacheDirProvider.get().resolve(cacheFileRelativePath)
+                getCacheFile()
             }.getOrElse { e ->
                 // Report the download as failed if we could not
                 // resolve a cache file.

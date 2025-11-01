@@ -36,7 +36,7 @@ import org.kodein.di.instance
 /**
  * @author Artem Chepurnyi
  */
-class SyncByTokenImpl(
+class SyncByBitwardenTokenImpl(
     private val logRepository: LogRepository,
     private val cipherEncryptor: CipherEncryptor,
     private val cryptoGenerator: CryptoGenerator,
@@ -47,7 +47,7 @@ class SyncByTokenImpl(
     private val db: DatabaseManager,
     private val dbSyncer: DatabaseSyncer,
     private val watchdog: Watchdog,
-) : SyncByToken {
+) : SyncByBitwardenToken {
     companion object {
         private const val TAG = "SyncById.bitwarden"
     }

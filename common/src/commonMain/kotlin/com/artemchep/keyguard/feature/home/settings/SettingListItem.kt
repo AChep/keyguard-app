@@ -38,6 +38,7 @@ import com.artemchep.keyguard.core.store.bitwarden.size
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.localization.textResource
@@ -282,7 +283,7 @@ fun SettingListAccountsItem(
         } else {
             ShapeState.ALL
         }
-        FlatItemLayoutExpressive(
+        FlatDropdownSimpleExpressive(
             shapeState = shapeState,
             leading = {
                 Avatar {
@@ -303,7 +304,7 @@ fun SettingListAccountsItem(
                     },
                 )
             },
-            onClick = data.onAddNewAccount,
+            dropdown = data.addNewAccountOptions,
         )
     }
 }

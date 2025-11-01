@@ -27,9 +27,11 @@ import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainIds
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -60,6 +62,8 @@ import com.artemchep.keyguard.copy.DownloadClientDesktop
 import com.artemchep.keyguard.copy.DownloadManagerDesktop
 import com.artemchep.keyguard.copy.DownloadRepositoryDesktop
 import com.artemchep.keyguard.copy.DownloadTaskDesktop
+import com.artemchep.keyguard.copy.FileServiceJvm
+import com.artemchep.keyguard.copy.FileWatcherServiceJvm
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
@@ -327,6 +331,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<ConnectivityService> {
         ConnectivityServiceJvm(this)
     }
+    bindSingleton<FileWatcherService> {
+        FileWatcherServiceJvm(this)
+    }
     bindSingleton<PowerService> {
         PowerServiceJvm(this)
     }
@@ -338,6 +345,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
 //    }
     bindSingleton<TextService> {
         TextServiceJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<FileService> {
+        FileServiceJvm(
             directDI = this,
         )
     }

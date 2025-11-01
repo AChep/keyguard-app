@@ -23,6 +23,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
@@ -305,7 +306,7 @@ private class BitwardenProfileToStringAdapter(
 
 private class BitwardenTokenToStringAdapter(
     private val json: Json,
-) : ColumnAdapter<BitwardenToken, String> by ObjectToStringAdapter(json)
+) : ColumnAdapter<ServiceToken, String> by ObjectToStringAdapter(json)
 
 private class HibpAccountBreachToStringAdapter(
     private val json: Json,

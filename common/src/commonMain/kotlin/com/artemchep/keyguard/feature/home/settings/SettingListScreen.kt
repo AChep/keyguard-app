@@ -7,18 +7,14 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ColorLens
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
@@ -34,10 +30,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,22 +39,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
-import com.artemchep.keyguard.common.model.ShapeState
-import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.getShapeState
-import com.artemchep.keyguard.common.usecase.GetAccountsHasError
 import com.artemchep.keyguard.common.usecase.GetPurchased
-import com.artemchep.keyguard.feature.auth.login.LoginRoute
+import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountListState
-import com.artemchep.keyguard.feature.home.settings.accounts.AccountListStateWrapper
-import com.artemchep.keyguard.feature.home.settings.accounts.AccountsRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountsSelection
 import com.artemchep.keyguard.feature.home.settings.accounts.accountListScreenState
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.settings.autofill.AutofillSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.debug.DebugSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.display.UiSettingsRoute
@@ -72,7 +61,6 @@ import com.artemchep.keyguard.feature.home.settings.security.SecuritySettingsRou
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.watchtower.WatchtowerSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.component.Section
-import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -91,15 +79,11 @@ import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.DefaultSelection
-import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.GlobalExpressive
-import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -137,7 +121,10 @@ data class SettingsAccountsItem(
 @Composable
 fun SettingListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val r = registerRouteResultReceiver(LoginRoute()) {
+    val r1 = registerRouteResultReceiver(BitwardenLoginRoute()) {
+        controller.queue(NavigationIntent.Pop)
+    }
+    val r2 = registerRouteResultReceiver(KeePassLoginRoute) {
         controller.queue(NavigationIntent.Pop)
     }
 
@@ -151,8 +138,12 @@ fun SettingListScreen() {
     )
     val accountListState = remember(accountListStateWrapper) {
         accountListStateWrapper.unwrap(
-            onAddAccount = {
-                controller.queue(NavigationIntent.NavigateToRoute(r))
+            onAddAccount = { accountType ->
+                val route = when (accountType) {
+                    AccountType.BITWARDEN -> r1
+                    AccountType.KEEPASS -> r2
+                }
+                controller.queue(NavigationIntent.NavigateToRoute(route))
             },
         )
     }

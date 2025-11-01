@@ -201,7 +201,7 @@ fun OnboardingScreen() {
 }
 
 @Composable
-private fun ColumnScope.OnboardingScreenContent() {
+fun ColumnScope.OnboardingScreenContent() {
     OnboardingContainer(
         modifier = Modifier
             .fillMaxWidth(),

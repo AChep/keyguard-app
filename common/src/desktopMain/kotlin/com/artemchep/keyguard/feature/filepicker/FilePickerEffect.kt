@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.filepicker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.desktop.util.showFilePicker
+import com.artemchep.keyguard.desktop.util.showFileSaver
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.ui.CollectedEffect
 import io.github.vinceglb.filekit.dialogs.FileKitType
@@ -21,6 +22,19 @@ actual fun FilePickerEffect(
         state.value = intent
 
         when (intent) {
+            is FilePickerIntent.NewDocument -> {
+                showFileSaver(
+                    suggestedName = intent.fileName,
+                    extension = null,
+                ) { file ->
+                    val info = FilePickerResult(
+                        uri = leParseUri(file),
+                        name = file.name,
+                        size = null,
+                    )
+                    intent.onResult(info)
+                }
+            }
             is FilePickerIntent.OpenDocument -> {
                 val mimeTypes = intent.mimeTypes
 
@@ -29,6 +43,10 @@ actual fun FilePickerEffect(
                         when (mimeType) {
                             "text/plain" -> "txt"
                             "text/wordlist" -> "wordlist"
+                            FilePickerMime.KEEPASS_KDBX,
+                            FilePickerMime.KEEPASS_GENERIC,
+                                -> "kdbx"
+
                             "image/png" -> "png"
                             "image/jpg" -> "jpg"
                             else -> null
@@ -40,7 +58,7 @@ actual fun FilePickerEffect(
                 showFilePicker(
                     type = type,
                 ) { file ->
-                    val info = FilePickerIntent.OpenDocument.Ifo(
+                    val info = FilePickerResult(
                         uri = leParseUri(file),
                         name = file.name,
                         size = file.length(),

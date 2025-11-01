@@ -49,10 +49,6 @@ class AddAccountImpl(
         private const val TAG = "AddAccount.bitwarden"
     }
 
-    private val needsPremiumToAddAccountIo = getAccounts()
-        .toIO()
-        .map { accounts -> accounts.size > 1 }
-
     constructor(directDI: DirectDI) : this(
         getPurchased = directDI.instance(),
         getAccounts = directDI.instance(),
@@ -125,7 +121,9 @@ class AddAccountImpl(
         // one account.
         .premium(
             getPurchased = getPurchased,
-            predicate = needsPremiumToAddAccountIo,
+            predicate = AddAccountUtils.getPremiumAddAccountPredicateIo(
+                getAccounts = getAccounts,
+            ),
         )
         .effectTap { finalAccountId ->
             queueSyncById(finalAccountId)

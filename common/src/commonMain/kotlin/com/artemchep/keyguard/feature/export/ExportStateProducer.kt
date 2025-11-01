@@ -15,13 +15,13 @@ import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.permission.PermissionState
-import com.artemchep.keyguard.common.usecase.ExportAccount
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
@@ -60,6 +60,7 @@ fun produceExportScreenState(
         getProfiles = instance(),
         getCiphers = instance(),
         getFolders = instance(),
+        getTags = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
         permissionService = instance(),
@@ -80,6 +81,7 @@ fun produceExportScreenState(
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
     getFolders: GetFolders,
+    getTags: GetTags,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     permissionService: PermissionService,
@@ -192,6 +194,8 @@ fun produceExportScreenState(
         cipherFlow = ciphersFlow,
         folderGetter = ::identity,
         folderFlow = getFolders(),
+        tagGetter = ::identity,
+        tagFlow = getTags(),
         collectionGetter = ::identity,
         collectionFlow = getCollections(),
         organizationGetter = ::identity,

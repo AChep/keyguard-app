@@ -13,7 +13,7 @@ fun List<DProfile>.findBestUserEmailOrNull(): String? {
         .map { profile ->
             val priority = kotlin.run {
                 var p = 0.0
-                if (profile.emailVerified) p += 10.0
+                if (profile.emailVerified == true) p += 10.0
                 p
             }
             Entry(

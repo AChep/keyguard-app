@@ -29,6 +29,7 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
@@ -91,6 +92,7 @@ fun produceAttachmentsScreenState() = with(localDI().direct) {
         getProfiles = instance(),
         getCiphers = instance(),
         getFolders = instance(),
+        getTags = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
         downloadRepository = instance(),
@@ -125,6 +127,7 @@ fun produceAttachmentsScreenState(
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
     getFolders: GetFolders,
+    getTags: GetTags,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     downloadRepository: DownloadRepository,
@@ -425,6 +428,8 @@ fun produceAttachmentsScreenState(
         cipherFlow = ciphersFlow,
         folderGetter = ::identity,
         folderFlow = getFolders(),
+        tagGetter = ::identity,
+        tagFlow = getTags(),
         collectionGetter = ::identity,
         collectionFlow = getCollections(),
         organizationGetter = ::identity,

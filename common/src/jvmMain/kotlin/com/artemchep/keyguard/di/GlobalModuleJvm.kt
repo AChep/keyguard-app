@@ -395,6 +395,9 @@ import com.artemchep.keyguard.copy.SimilarityServiceJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.core.store.DatabaseDispatcher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorImpl
@@ -1205,6 +1208,12 @@ fun globalModuleJvm() = DI.Module(
                     subclass(BitwardenCipher.Attachment.Local::class)
                     defaultDeserializer { BitwardenCipher.Attachment.Remote.serializer() }
                 }
+                // database
+                polymorphic(ServiceToken::class) {
+                    subclass(BitwardenToken::class)
+                    subclass(KeePassToken::class)
+                    defaultDeserializer { BitwardenToken.serializer() }
+                }
             }
         }
     }
@@ -1450,9 +1459,9 @@ fun globalModuleJvm() = DI.Module(
             engine {
                 preconfigured = okHttpClient
             }
-            install(Logging) {
-                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
-            }
+//            install(Logging) {
+//                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
+//            }
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, KotlinxSerializationConverter(json))
             }
@@ -1482,9 +1491,9 @@ fun globalModuleJvm() = DI.Module(
             engine {
                 preconfigured = okHttpClient
             }
-            install(Logging) {
-                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
-            }
+//            install(Logging) {
+//                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
+//            }
             install(ContentNegotiation) {
                 register(ContentType.Application.Json, KotlinxSerializationConverter(json))
             }
@@ -1513,10 +1522,10 @@ fun globalModuleJvm() = DI.Module(
                 if (!isRelease) {
                     val logRepository: LogRepository = instance()
                     val logger = HttpLoggingInterceptor.Logger { message ->
-                        logRepository.post(
-                            tag = "OkHttp",
-                            message = message,
-                        )
+//                        logRepository.post(
+//                            tag = "OkHttp",
+//                            message = message,
+//                        )
                     }
                     val logging = HttpLoggingInterceptor(logger).apply {
                         level = HttpLoggingInterceptor.Level.BODY

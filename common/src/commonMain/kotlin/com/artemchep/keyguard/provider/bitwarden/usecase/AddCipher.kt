@@ -21,14 +21,12 @@ import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.TrashCipherById
-import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherCryptoKeyMaterial
-import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlinx.collections.immutable.toPersistentList
 import kotlin.time.Clock
@@ -366,6 +364,13 @@ private suspend fun BitwardenCipher.Companion.of(
             )
         }
 
+    val tags = request.tags
+        .map { tag ->
+            BitwardenCipher.Tag(
+                name = tag,
+            )
+        }
+
     val attachments = kotlin.run {
         val existingAttachmentsMap = old?.attachments
             .orEmpty()
@@ -427,6 +432,7 @@ private suspend fun BitwardenCipher.Companion.of(
         notes = request.note?.takeIf { it.isNotEmpty() },
         favorite = favourite,
         fields = fields,
+        tags = tags,
         attachments = attachments,
         reprompt = reprompt,
         // types

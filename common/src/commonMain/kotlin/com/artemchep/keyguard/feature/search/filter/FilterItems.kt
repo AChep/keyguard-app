@@ -72,6 +72,7 @@ private fun FilterItemItem(
         leading = item.leading,
         title = item.title,
         text = item.text,
+        textMaxLines = item.textMaxLines,
         onClick = item.onClick,
     )
 }

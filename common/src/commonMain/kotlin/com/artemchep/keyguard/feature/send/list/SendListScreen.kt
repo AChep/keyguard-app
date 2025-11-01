@@ -58,6 +58,7 @@ import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpress
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
@@ -187,6 +188,7 @@ fun SendListScreen(
     val scrollBehavior = ToolbarBehavior.behavior()
     TwoPaneScreen(
         header = { modifier ->
+            val subtitle = textResource(args.appBar?.subtitle)
             CustomSearchbarContent(
                 modifier = modifier,
                 searchFieldModifier = Modifier,
@@ -195,7 +197,7 @@ fun SendListScreen(
                 focusRequester = focusRequester,
                 title = args.appBar?.title
                     ?: stringResource(Res.string.send_main_header_title),
-                subtitle = args.appBar?.subtitle,
+                subtitle = subtitle,
                 icon = {
                     NavigationIcon()
                 },
@@ -216,13 +218,14 @@ fun SendListScreen(
             )
         },
     ) { modifier, tabletUi ->
+        val subtitle = textResource(args.appBar?.subtitle)
         SendScreenContent(
             modifier = modifier,
             state = state,
             tabletUi = tabletUi,
             focusRequester = focusRequester,
             title = args.appBar?.title,
-            subtitle = args.appBar?.subtitle,
+            subtitle = subtitle,
             pullRefreshState = pullRefreshState,
             scrollBehavior = scrollBehavior,
         )

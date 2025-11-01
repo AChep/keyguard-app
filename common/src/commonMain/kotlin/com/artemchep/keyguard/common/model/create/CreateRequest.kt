@@ -20,6 +20,7 @@ data class CreateRequest(
     val uris: PersistentList<DSecret.Uri> = persistentListOf(),
     val fido2Credentials: PersistentList<DSecret.Login.Fido2Credentials> = persistentListOf(),
     val fields: PersistentList<DSecret.Field> = persistentListOf(),
+    val tags: PersistentList<String> = persistentListOf(),
     val attachments: PersistentList<Attachment> = persistentListOf(),
     // types
     val type: DSecret.Type? = null,

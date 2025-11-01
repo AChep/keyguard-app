@@ -50,6 +50,7 @@ fun FilterItemComposable(
     leading: (@Composable () -> Unit)?,
     title: String,
     text: String?,
+    textMaxLines: Int? = null,
     onClick: (() -> Unit)?,
     enabled: Boolean = onClick != null,
 ) {
@@ -109,7 +110,7 @@ fun FilterItemComposable(
                 ExpandedIfNotEmpty(valueOrNull = summaryOrNull) { summary ->
                     Text(
                         summary,
-                        maxLines = 2,
+                        maxLines = textMaxLines ?: 2,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall,
                         color = LocalContentColor.current

@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +26,8 @@ sealed interface UsernameVariation2 {
     data object Username : UsernameVariation2
 
     data object Phone : UsernameVariation2
+
+    data object Ssid : UsernameVariation2
 
     companion object {
         val default get() = Username
@@ -55,6 +58,7 @@ val UsernameVariation2.icon
         is UsernameVariation2.Email -> Icons.Outlined.Email
         is UsernameVariation2.Phone -> Icons.Outlined.Call
         is UsernameVariation2.Username -> Icons.Outlined.AlternateEmail
+        is UsernameVariation2.Ssid -> Icons.Outlined.Wifi
     }
 
 @Composable

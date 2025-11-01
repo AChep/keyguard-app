@@ -3,11 +3,15 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildHost
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
+import com.artemchep.keyguard.provider.bitwarden.mapper.getHostName
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,13 +26,13 @@ import kotlin.coroutines.CoroutineContext
  * @author Artem Chepurnyi
  */
 class GetProfilesImpl(
-    private val tokenRepository: BitwardenTokenRepository,
+    private val tokenRepository: ServiceTokenRepository,
     private val profileRepository: BitwardenProfileRepository,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val dispatcher: CoroutineContext = Dispatchers.Default,
 ) : GetProfiles {
     companion object {
-        private const val TAG = "GetProfiles.bitwarden"
+        private const val TAG = "GetProfiles"
     }
 
     constructor(directDI: DirectDI) : this(
@@ -45,11 +49,20 @@ class GetProfilesImpl(
             .mapNotNull { profile ->
                 val token = tokens.firstOrNull { it.id == profile.accountId }
                     ?: return@mapNotNull null
-                val env = token.env.back()
-                profile.toDomain(
-                    accountHost = env.buildHost(),
-                    accountUrl = env.buildWebVaultUrl(),
-                )
+                when (token) {
+                    is BitwardenToken -> {
+                        val env = token.env.back()
+                        profile.toDomain(
+                            accountHost = env.buildHost(),
+                        )
+                    }
+                    is KeePassToken -> {
+                        val host = token.getHostName()
+                        profile.toDomain(
+                            accountHost = host,
+                        )
+                    }
+                }
             }
             .sorted()
     }

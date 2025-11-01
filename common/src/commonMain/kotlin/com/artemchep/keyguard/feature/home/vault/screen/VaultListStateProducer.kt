@@ -20,11 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
 import arrow.core.identity
 import arrow.core.partially1
 import arrow.optics.Getter
@@ -41,11 +36,8 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
-import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.LockReason
-import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.formatH
-import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
@@ -66,6 +58,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSuggestions
+import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
@@ -80,7 +73,8 @@ import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
-import com.artemchep.keyguard.feature.auth.login.LoginRoute
+import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
@@ -90,6 +84,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.duplicates.list.createCipherSelectionFlow
 import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
@@ -223,6 +218,7 @@ fun vaultListScreenState(
         getCanWrite = instance(),
         getCiphers = instance(),
         getFolders = instance(),
+        getTags = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
         getTotpCode = instance(),
@@ -256,6 +252,7 @@ fun vaultListScreenState(
     getCanWrite: GetCanWrite,
     getCiphers: GetCiphers,
     getFolders: GetFolders,
+    getTags: GetTags,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     getTotpCode: GetTotpCode,
@@ -540,7 +537,7 @@ fun vaultListScreenState(
                 val newArgs = args.copy(
                     appBar = VaultRoute.Args.AppBar(
                         subtitle = args.appBar?.subtitle
-                            ?: translate(Res.string.home_vault_label),
+                            ?: TextHolder.Res(Res.string.home_vault_label),
                         title = translate(Res.string.trash),
                     ),
                     trash = true,
@@ -1470,6 +1467,8 @@ fun vaultListScreenState(
         cipherFlow = ciphersFlow,
         folderGetter = ::identity,
         folderFlow = getFolders(),
+        tagGetter = ::identity,
+        tagFlow = getTags(),
         collectionGetter = ::identity,
         collectionFlow = getCollections(),
         organizationGetter = ::identity,
@@ -1596,8 +1595,12 @@ fun vaultListScreenState(
                 ?: VaultListState.Content.Skeleton
         } else {
             VaultListState.Content.AddAccount(
-                onAddAccount = {
-                    val route = registerRouteResultReceiver(LoginRoute()) {
+                onAddAccount = { type ->
+                    val routeMain = when (type) {
+                        AccountType.BITWARDEN -> BitwardenLoginRoute()
+                        AccountType.KEEPASS -> KeePassLoginRoute
+                    }
+                    val route = registerRouteResultReceiver(routeMain) {
                         // Close the login screen.
                         navigate(NavigationIntent.Pop)
                     }

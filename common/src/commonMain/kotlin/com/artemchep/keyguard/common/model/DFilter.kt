@@ -379,6 +379,9 @@ sealed interface DFilter {
             @SerialName("folder")
             FOLDER,
 
+            @SerialName("tag")
+            TAG,
+
             @SerialName("collection")
             COLLECTION,
 
@@ -412,6 +415,15 @@ sealed interface DFilter {
                     return@run id in cipher.collectionIds
                 }
 
+                What.TAG -> {
+                    // Special case: check in the set of
+                    // tags.
+                    if (id == null) {
+                        return@run cipher.tags.isEmpty()
+                    }
+                    return@run id in cipher.tags
+                }
+
                 What.ACCOUNT -> cipher.accountId
                 What.FOLDER -> cipher.folderId
                 What.ORGANIZATION -> cipher.organizationId
@@ -425,6 +437,7 @@ sealed interface DFilter {
             when (what) {
                 What.FOLDER -> folder.id
                 What.ACCOUNT -> folder.accountId
+                What.TAG,
                 What.COLLECTION,
                 What.ORGANIZATION,
                 What.CIPHER,

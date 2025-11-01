@@ -4,7 +4,6 @@ import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
 import com.artemchep.keyguard.common.model.CipherHistoryType
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.core.store.DatabaseManager
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

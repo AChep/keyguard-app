@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
+import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -21,6 +22,7 @@ import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
+import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.zip.ZipConfig
 import com.artemchep.keyguard.common.service.zip.ZipEntry
 import com.artemchep.keyguard.common.service.zip.ZipService
@@ -332,11 +334,24 @@ open class ExportManagerBase(
             )
             val meta = downloadAttachmentMetadata(request)
                 .bind()
-            downloadTask.fileLoader(
-                url = meta.url,
-                key = meta.encryptionKey,
-                writer = writer,
-            )
+
+            val fileLoaderFlow = when (val source = meta.source) {
+                is DownloadAttachmentRequestData.DirectSource -> {
+                    downloadTask.fileLoader(
+                        data = source.data,
+                        key = meta.encryptionKey,
+                        writer = writer,
+                    )
+                }
+                is DownloadAttachmentRequestData.UrlSource -> {
+                    downloadTask.fileLoader(
+                        url = source.url,
+                        key = meta.encryptionKey,
+                        writer = writer,
+                    )
+                }
+            }
+            fileLoaderFlow
                 .onEach { progress ->
                     val downloaded = when (progress) {
                         is DownloadProgress.None -> {

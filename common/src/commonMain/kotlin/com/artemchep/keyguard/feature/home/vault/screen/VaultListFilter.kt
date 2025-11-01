@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,6 +29,7 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DTag
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
@@ -112,6 +114,10 @@ enum class FilterSection(
     TYPE(
         id = "type",
         title = TextHolder.Res(Res.string.type),
+    ),
+    TAG(
+        id = "tag",
+        title = TextHolder.Res(Res.string.tag),
     ),
     FOLDER(
         id = "folder",
@@ -240,6 +246,7 @@ suspend fun <
         Output : Any,
         Account,
         Secret,
+        Tag,
         Folder,
         Collection,
         Organization,
@@ -252,6 +259,8 @@ suspend fun <
     profileFlow: Flow<List<DProfile>>,
     cipherGetter: (Secret) -> DSecret,
     cipherFlow: Flow<List<Secret>>,
+    tagGetter: (Tag) -> DTag,
+    tagFlow: Flow<List<Tag>>,
     folderGetter: (Folder) -> DFolder,
     folderFlow: Flow<List<Folder>>,
     collectionGetter: (Collection) -> DCollection,
@@ -292,6 +301,19 @@ suspend fun <
     val filterFoldersWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).folderId }
     val filterAccountsWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).accountId }
     val filterOrganizationsWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).organizationId }
+    val filterTagsWithCiphers = cipherFlow
+        .map { ciphers ->
+            ciphers
+                .asSequence()
+                .flatMap {
+                    val cipher = cipherGetter(it)
+                    cipher.tags
+                        .takeUnless { it.isEmpty() }
+                        ?: listOf(null)
+                }
+                .toSet()
+        }
+        .distinctUntilChanged()
     val filterCollectionsWithCiphers = cipherFlow
         .map { ciphers ->
             ciphers
@@ -397,6 +419,7 @@ suspend fun <
         filterSectionId: String = sectionId,
         title: String,
         text: String? = null,
+        textMaxLines: Int? = null,
         tint: AccentColors? = null,
         icon: ImageVector? = null,
         fill: Boolean = false,
@@ -440,6 +463,7 @@ suspend fun <
         },
         title = title,
         text = text,
+        textMaxLines = textMaxLines,
         onClick = input.onToggle
             .partially1(filterSectionId)
             .partially1(filter),
@@ -467,6 +491,7 @@ suspend fun <
             .toSet(),
         title = title,
         text = text,
+        textMaxLines = 1,
         tint = tint,
         icon = icon,
     )
@@ -505,6 +530,25 @@ suspend fun <
         icon = icon,
         fill = fill,
         indent = indent,
+    )
+
+    fun createTagFilterAction(
+        tags: Set<String?>,
+        title: String,
+        icon: ImageVector? = null,
+    ) = createFilterAction(
+        sectionId = FilterSection.TAG.id,
+        filter = tags
+            .asSequence()
+            .map { tag ->
+                DFilter.ById(
+                    id = tag,
+                    what = DFilter.ById.What.TAG,
+                )
+            }
+            .toSet(),
+        title = title,
+        icon = icon,
     )
 
     fun createCollectionFilterAction(
@@ -679,6 +723,49 @@ suspend fun <
             sectionTitle = translate(FilterSection.FOLDER.title),
         )
         .filterSection(params.section.folder)
+
+    val filterTagListFlow = tagFlow
+        .map { tags ->
+            tags
+                .groupBy { tag ->
+                    val model = tagGetter(tag)
+                    model.name
+                }
+                .asSequence()
+                .map { (name, tags) ->
+                    createTagFilterAction(
+                        tags = tags
+                            .asSequence()
+                            .map(tagGetter)
+                            .map { it.name }
+                            .toSet(),
+                        title = name,
+                    )
+                }
+                .sortedWith(StringComparatorIgnoreCase { it.title })
+                .toList() +
+                    createTagFilterAction(
+                        tags = setOfNull,
+                        title = translate(Res.string.tag_none),
+                    )
+        }
+        .combine(filterTagsWithCiphers) { items, tags ->
+            items
+                .filter { filterItem ->
+                    val filterItemFilter = filterItem.filter as FilterItem.Item.Filter.Toggle
+                    filterItemFilter.filters
+                        .any { filter ->
+                            val filterFixed = filter as DFilter.ById
+                            require(filterFixed.what == DFilter.ById.What.TAG)
+                            filterFixed.id in tags
+                        }
+                }
+        }
+        .aaa(
+            sectionId = FilterSection.TAG.id,
+            sectionTitle = translate(FilterSection.TAG.title),
+        )
+        .filterSection(params.section.collection)
 
     val filterCollectionListFlow = collectionFlow
         .map { collections ->
@@ -895,6 +982,7 @@ suspend fun <
         filterAccountListFlow,
         filterOrganizationListFlow,
         filterTypeListFlow,
+        filterTagListFlow,
         filterFolderListFlow,
         filterCollectionListFlow,
         filterMiscListFlow,

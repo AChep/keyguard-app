@@ -575,15 +575,24 @@ private fun RememberStateFlowScope.oh(
     emit(s)
     val x = VaultViewItem.Label(
         id = "account",
-        text = annotate(
-            Res.string.vault_view_saved_to_label,
-            account.username to SpanStyle(
-                color = contentColor,
-            ),
-            account.host to SpanStyle(
-                color = contentColor,
-            ),
-        ),
+        text = if (account.username != null) {
+            annotate(
+                Res.string.vault_view_saved_to_label,
+                account.username to SpanStyle(
+                    color = contentColor,
+                ),
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        } else {
+            annotate(
+                Res.string.vault_view_saved_to_account_name_label,
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        },
     )
     emit(x)
     val createdDate = send.createdDate

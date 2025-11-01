@@ -15,6 +15,7 @@ data class AccountListState(
      */
     val itemsRevision: Int = 0,
     val items: List<AccountItem> = emptyList(),
+    val addNewAccountOptions: List<ContextItem> = emptyList(),
     val isLoading: Boolean = true,
     val onAddNewAccount: (() -> Unit)? = null,
 ) {

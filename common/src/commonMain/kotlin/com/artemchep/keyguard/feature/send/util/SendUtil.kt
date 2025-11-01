@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import arrow.core.some
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.PatchSendRequest
@@ -20,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
@@ -709,6 +711,7 @@ object SendUtil {
     //
 
     fun canEditFlow(
+        accountsFlow: Flow<List<DAccount>>,
         profilesFlow: Flow<List<DProfile>>,
         canWriteFlow: Flow<Boolean>,
     ) = kotlin.run {
@@ -721,10 +724,13 @@ object SendUtil {
                 // Here we might want to filter the accounts if
                 // Bitwarden Send becomes unavailable for non
                 // premium users.
-                profilesFlow
-                    .map { profiles ->
-                        profiles.any { true }
-                    }
+                combine(
+                    accountsFlow,
+                    profilesFlow,
+                ) { accounts, profiles ->
+                    accounts.any { it.type == AccountType.BITWARDEN } &&
+                            profiles.any { true }
+                }
             }
             .distinctUntilChanged()
     }

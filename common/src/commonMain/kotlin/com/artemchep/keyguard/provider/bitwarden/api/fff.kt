@@ -22,6 +22,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
+import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager.Companion.roundToMillis
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Clock
 import kotlin.Any
@@ -30,6 +31,7 @@ import kotlin.String
 import kotlin.Throwable
 import kotlin.Unit
 import kotlin.let
+import kotlin.time.Instant
 
 suspend fun merge(
     remote: BitwardenCipher,
@@ -114,7 +116,6 @@ interface RemotePutScope<Remote> {
     fun updateRemoteModel(remote: Remote)
 }
 
-context(SyncScope)
 suspend fun <
         Local : BitwardenService.Has<Local>,
         LocalDecoded : Any,
@@ -123,6 +124,7 @@ suspend fun <
         > syncX(
     sync: (String, IO<Any?>) -> IO<Any?> = { _, io -> io },
     name: String,
+    getDateMillis: (Instant) -> Long = ::roundToMillis,
     localItems: Collection<Local>,
     localLens: SyncManager.LensLocal<Local>,
     localReEncoder: (Local) -> RemoteDecoded,
@@ -152,6 +154,7 @@ suspend fun <
     val df = SyncManager(
         local = localLens,
         remote = remoteLens,
+        getDateMillis = getDateMillis,
     ).df(
         localItems = localItems,
         remoteItems = remoteItems,

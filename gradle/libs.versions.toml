@@ -4,11 +4,11 @@ androidMinSdk = "26"
 # @keep
 androidCompileSdk = "36"
 # @keep
-androidTargetSdk = "35"
+androidTargetSdk = "36"
 # @keep
 jdk = "21"
 # @keep
-appVersionName = "1.15.2"
+appVersionName = "2.0.0"
 # @keep
 appVersionCode = "7"
 # https://github.com/google/accompanist
@@ -17,23 +17,23 @@ androidBillingClient = "8.0.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.1.5"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "8.12.2"
+androidPlugin = "8.13.0"
 androidxActivity = "1.11.0"
 androidxAppCompat = "1.7.1"
 androidxAutofill = "1.3.0"
-androidxBaselineProfile = "1.4.0"
+androidxBaselineProfile = "1.4.1"
 androidxBenchmarkMacroJUnit4 = "1.4.1"
 androidxBiometric = "1.4.0-alpha04"
 androidxBrowser = "1.9.0"
-androidxCamera = "1.5.0"
+androidxCamera = "1.5.1"
 androidxCoreKtx = "1.17.0"
 androidxCoreSplash = "1.2.0-rc01"
 androidxCoreShortcuts = "1.1.0"
 androidxCredentials = "1.5.0"
 androidxDatastore = "1.1.7"
-androidxLifecycle = "2.9.3"
+androidxLifecycle = "2.9.4"
 androidxProfileInstaller = "1.4.1"
-androidxRoom = "2.8.0"
+androidxRoom = "2.8.3"
 androidxSecurityCryptoKtx = "1.1.0"
 androidxTestEspresso = "3.7.0"
 coreTestingVersion = "2.2.0"
@@ -43,9 +43,9 @@ androidxTestRunner = "1.7.0"
 androidxTestRule = "1.7.0"
 androidxTestJUnit = "1.3.0"
 androidxTestOrchestrator = "1.6.1"
-androidxWork = "2.10.4"
+androidxWork = "2.11.0"
 # https://github.com/harawata/appdirs
-appDirs = "1.4.0"
+appDirs = "1.5.0"
 # https://github.com/arrow-kt/arrow
 arrow = "2.1.2"
 # https://github.com/AChep/bindin
@@ -55,9 +55,9 @@ buildkonfigPlugin = "0.17.1"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
 commonsCodec = "1.19.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-commonsLang3 = "3.18.0"
+commonsLang3 = "3.19.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.10.0-alpha01"
+composeMultiplatform = "1.10.0-alpha03"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 # https://github.com/coil-kt/coil
@@ -65,10 +65,12 @@ coil3 = "3.3.0"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.6"
 dbusJava = "5.1.1"
-firebase = "34.2.0"
+# https://github.com/gmethvin/directory-watcher
+directoryWatcher = "0.19.1"
+firebase = "34.4.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
-googleServicesPlugin = "4.4.3"
+googleServicesPlugin = "4.4.4"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "2.0.0-beta01"
 # https://github.com/kdrag0n/colorkt
@@ -89,56 +91,58 @@ kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinSerialization = "1.9.0"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.2.10-2.0.2"
+kspPlugin = "2.3.0"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
 ktlintPlugin = "13.1.0"
 # https://github.com/ktorio/ktor
-ktor = "3.3.0"
+ktor = "3.3.1"
+# https://github.com/keemobile/kotpass
+kotpass = "0.13.0"
 # https://github.com/java-native-access/jna
-jna = "5.17.0"
+jna = "5.18.1"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
 # https://github.com/cashapp/licensee
-licenseCheckPlugin = "1.13.0"
+licenseCheckPlugin = "1.14.1"
 # https://github.com/tony19/logback-android
 logback = "3.0.0"
 # https://developers.google.com/android/guides/setup
 mlkitBarcodeScanning = "18.3.1"
 # https://square.github.io/okhttp/changelogs/changelog/
-okHttp = "5.1.0"
+okHttp = "5.3.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
-playServicesBase = "18.8.0"
+playServicesBase = "18.9.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha03"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "9.0.7"
+signalr = "9.0.10"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
 msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.17"
 # https://github.com/bcgit/bc-java
-bouncycastle = "1.81"
+bouncycastle = "1.82"
 # https://github.com/sqlcipher/sqlcipher-android
-sqlcipherAndroid = "4.10.0"
+sqlcipherAndroid = "4.11.0"
 # https://github.com/cashapp/sqldelight
 sqldelight = "2.1.0"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.50.1.0"
 # https://github.com/vinceglb/FileKit
-filekit = "0.11.0"
+filekit = "0.12.0"
 # https://github.com/rrice/java-string-similarity
 stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
-touchIcon = "0.9.10"
+touchIcon = "0.9.11"
 # https://github.com/littlerobots/version-catalog-update-plugin
-versionCatalogPlugin = "1.0.0"
+versionCatalogPlugin = "1.0.1"
 # https://github.com/ben-manes/gradle-versions-plugin
-versionsPlugin = "0.52.0"
+versionsPlugin = "0.53.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
@@ -214,6 +218,7 @@ coil3-coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", ver
 devsrsouza-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeOpenIcons" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport = { module = "com.github.hypfvieh:dbus-java-transport-jnr-unixsocket", version.ref = "dbusJava" }
+directory-watcher = { module = "io.methvin:directory-watcher", version.ref = "directoryWatcher" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
@@ -255,6 +260,7 @@ ktor-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref
 ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
+keemobile-kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }

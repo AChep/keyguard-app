@@ -1,11 +1,8 @@
 package com.artemchep.keyguard.copy
 
 import android.app.Application
-import android.content.Intent
-import android.provider.Settings
 import android.view.autofill.AutofillManager
 import androidx.core.content.getSystemService
-import androidx.credentials.CredentialManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -21,10 +18,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import androidx.core.net.toUri
+import com.artemchep.keyguard.android.util.launchAutofillSettingsOrThrow
+import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.usecase.ShowMessage
+import kotlinx.coroutines.FlowPreview
 
 class AutofillServiceAndroid(
     private val application: Application,
+    private val showMessage: ShowMessage,
 ) : AutofillService {
     private val autofillChangedSink = EventFlow<Unit>()
 
@@ -41,43 +42,51 @@ class AutofillServiceAndroid(
         directDI: DirectDI,
     ) : this(
         application = directDI.instance(),
+        showMessage = directDI.instance(),
     )
 
+    @OptIn(FlowPreview::class)
     override fun status(): Flow<AutofillServiceStatus> = merge(
         autofillChangedSink,
         autofillChangedFlow,
     )
         .debounce(100L)
         .map {
-            val am = application.getSystemService<AutofillManager>()
-                ?: return@map AutofillServiceStatus.Disabled(
-                    onEnable = null,
-                )
-            val cm = CredentialManager.create(application)
-            //.createSettingsPendingIntent()
-
-            val enabled = am.hasEnabledAutofillServices()
-            if (enabled) {
-                AutofillServiceStatus.Enabled(
-                    onDisable = {
-                        am.disableAutofillServices()
-                        // Refresh a status of the autofill services
-                        // after we disabled ourselves.
-                        autofillChangedSink.emit(Unit)
-                    },
-                )
-            } else {
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                AutofillServiceStatus.Disabled(
-                    onEnable = { activity ->
-                        val intent = Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE).apply {
-                            val packageName = application.packageName
-                            data = "package:$packageName".toUri()
-                        }
-                        activity.startActivity(intent)
-                    },
-                )
-            }
+            val status = getAutofillServiceStatus()
+            status
         }
         .flowOn(Dispatchers.Main)
+
+    private fun getAutofillServiceStatus(): AutofillServiceStatus {
+        val am = application.getSystemService<AutofillManager>()
+            ?: return AutofillServiceStatus.Disabled(
+                onEnable = null,
+            )
+        val enabled = am.hasEnabledAutofillServices()
+        return if (enabled) {
+            AutofillServiceStatus.Enabled(
+                onDisable = {
+                    am.disableAutofillServices()
+                    // Refresh a status of the autofill services
+                    // after we disabled ourselves.
+                    autofillChangedSink.emit(Unit)
+                },
+            )
+        } else {
+            AutofillServiceStatus.Disabled(
+                onEnable = { activity ->
+                    try {
+                        activity.launchAutofillSettingsOrThrow()
+                    } catch (e: Exception) {
+                        val msg = ToastMessage(
+                            type = ToastMessage.Type.ERROR,
+                            title = "Failed to launch the Autofill settings",
+                            text = e.message,
+                        )
+                        showMessage.copy(msg)
+                    }
+                },
+            )
+        }
+    }
 }

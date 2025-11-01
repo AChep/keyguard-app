@@ -2,7 +2,7 @@
 
 [![Crowdin](https://badges.crowdin.net/keyguard/localized.svg)](https://crowdin.com/project/keyguard)
 
-Keyguard is an alternative client for the [Bitwarden® platform](https://bitwarden.com/), created to provide the best user experience possible.
+Keyguard is a multi-client for the [Bitwarden® platform](https://bitwarden.com/) and [KeePass](https://keepass.info/) (KDBX), created to provide the best user experience possible.
 
 _Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc._
 
@@ -24,7 +24,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a support for creating & using **passkeys** - a modern alternative to passwords.
 - a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
-- add items 🌠 and sends 🌠, modify 🌠, and view your vault **offline**;
+- add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **offline**;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;
 - a generator with **SSH keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
@@ -32,7 +32,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a [smart conflict resolution](wiki/CONFLICTS.md);
 - and much more!
 
-🌠 _- on Android requires the Premium one-time or subscription license_. 
+🌠 _— requires a premium license: one-time or subscription._
 
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
@@ -41,6 +41,13 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and large
 - [Linux](#linux);
 - [Windows](#windows);
 - [macOS](#macos).
+
+#### Accounts
+Keyguard is focusing to provide a full support of the Bitwarden® platform, while the KeePass support is implemented through a prism of Bitwarden's features. 
+Read more about implementation details:
+
+- [Bitwarden](wiki/BITWARDEN.md);
+- [KeePass](wiki/KEEPASS.md);
 
 #### Looks
 

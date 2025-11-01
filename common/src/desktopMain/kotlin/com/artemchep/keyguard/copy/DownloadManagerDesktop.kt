@@ -160,6 +160,7 @@ class DownloadManagerDesktop(
         url: String,
         urlIsOneTime: Boolean,
         name: String,
+        data: ByteArray?,
         key: ByteArray?,
         attempt: Int,
         worker: Boolean,
@@ -190,6 +191,7 @@ class DownloadManagerDesktop(
             url = url,
             tag = tag,
             file = file,
+            fileData = data,
             fileKey = key,
             cancelFlow = downloadCancelFlow,
         )

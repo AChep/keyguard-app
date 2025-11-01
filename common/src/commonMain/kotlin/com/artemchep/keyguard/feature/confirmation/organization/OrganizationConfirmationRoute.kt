@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.confirmation.organization
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.navigation.DialogRouteForResult
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.ui.SimpleNote
@@ -14,6 +15,7 @@ class OrganizationConfirmationRoute(
         val flags: Int = 0,
         // selection
         val accountId: String? = null,
+        val accountType: AccountType? = null,
         val organizationId: String? = null,
         val folderId: FolderInfo = FolderInfo.None,
         val collectionsIds: Set<String> = emptySet(),

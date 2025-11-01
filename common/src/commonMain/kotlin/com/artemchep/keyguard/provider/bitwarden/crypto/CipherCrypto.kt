@@ -10,6 +10,7 @@ fun BitwardenCipher.transform(
     keyBase64 = keyBase64?.let(globalCrypto::transformBase64),
     name = itemCrypto.transformString(name),
     notes = itemCrypto.transformString(notes),
+    tags = tags.transform(itemCrypto),
     fields = fields.transform(itemCrypto),
     attachments = attachments.transform(itemCrypto),
     remoteEntity = remoteEntity
@@ -23,7 +24,36 @@ fun BitwardenCipher.transform(
     card = card?.transform(itemCrypto),
     identity = identity?.transform(itemCrypto),
     sshKey = sshKey?.transform(itemCrypto),
-)
+).let { transformedCipher ->
+    if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
+        return@let decodeEntity(transformedCipher)
+    }
+
+    transformedCipher
+}
+
+private fun decodeEntity(
+    cipher: BitwardenCipher,
+): BitwardenCipher {
+    fun isTag(field: BitwardenCipher.Field): Boolean {
+        return field.type == BitwardenCipher.Field.Type.Text &&
+                field.name == "Tag"
+    }
+
+    val fields = cipher.fields
+        .filter { !isTag(it) }
+    val tags = cipher.fields
+        .filter { isTag(it) }
+        .mapNotNull {
+            val name = it.value
+                ?: return@mapNotNull null
+            BitwardenCipher.Tag(name)
+        }
+    return cipher.copy(
+        fields = fields,
+        tags = tags,
+    )
+}
 
 @JvmName("encryptListOfBitwardenCipherAttachment")
 fun List<BitwardenCipher.Attachment>.transform(
@@ -41,12 +71,23 @@ fun BitwardenCipher.Attachment.Remote.transform(
     crypto: BitwardenCrCta,
 ) = copy(
     fileName = crypto.transformString(fileName),
-    keyBase64 = crypto.transformBase64(keyBase64),
+    keyBase64 = keyBase64?.let(crypto::transformBase64),
 )
 
 fun BitwardenCipher.Attachment.Local.transform(
     crypto: BitwardenCrCta,
 ) = this
+
+@JvmName("encryptListOfBitwardenTagField")
+fun List<BitwardenCipher.Tag>.transform(
+    crypto: BitwardenCrCta,
+) = map { item -> item.transform(crypto) }
+
+fun BitwardenCipher.Tag.transform(
+    crypto: BitwardenCrCta,
+) = copy(
+    name = crypto.transformString(name),
+)
 
 @JvmName("encryptListOfBitwardenCipherField")
 fun List<BitwardenCipher.Field>.transform(

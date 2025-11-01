@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
@@ -84,6 +85,7 @@ fun produceWatchtowerState(
         getAccounts = instance(),
         getProfiles = instance(),
         getFolders = instance(),
+        getTags = instance(),
         getCollections = instance(),
         getOrganizations = instance(),
         getCheckPwnedPasswords = instance(),
@@ -120,6 +122,7 @@ fun produceWatchtowerState(
     getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getFolders: GetFolders,
+    getTags: GetTags,
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     getCheckPwnedPasswords: GetCheckPwnedPasswords,
@@ -299,6 +302,8 @@ fun produceWatchtowerState(
         cipherFlow = ciphersFlow,
         folderGetter = ::identity,
         folderFlow = getFolders(),
+        tagGetter = ::identity,
+        tagFlow = getTags(),
         collectionGetter = ::identity,
         collectionFlow = getCollections(),
         organizationGetter = ::identity,

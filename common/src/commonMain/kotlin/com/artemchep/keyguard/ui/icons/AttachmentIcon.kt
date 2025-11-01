@@ -150,7 +150,7 @@ fun generateAccentColors(
 }
 
 fun generateAccentColors(
-    hue: Float,
+    hue: Float, // 0f..360f
     saturation: Float = DEFAULT_HUE,
 ): AccentColors {
     val accentLight = Color.hsv(

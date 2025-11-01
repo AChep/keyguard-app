@@ -9,7 +9,29 @@ import kotlin.math.roundToLong
 class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
     private val local: LensLocal<Local>,
     private val remote: Lens<Remote>,
+    private val getDateMillis: (Instant) -> Long = ::roundToMillis,
 ) {
+    companion object {
+        // FIXME: After we create something, the date is
+        //    --
+        //    2022-09-21T14:04:33.1819975Z
+        //    --
+        //  but after we get the same entry using the sync
+        //  API the revision date is some-why rounded to:
+        //    --
+        //    2022-09-21T14:04:33.1833333Z
+        //    --
+        //  for now we round the revision date to
+        //    --
+        //    2022-09-21T14:04:33.18
+        //    --
+        fun roundToMillis(instant: Instant) =
+            instant.millis.toDouble().div(100.0).roundToLong()
+
+        fun floorToSeconds(instant: Instant) =
+            instant.millis.toDouble().div(1000.0).roundToLong()
+    }
+
     data class Lens<T>(
         val getId: (T) -> String,
         val getRevisionDate: (T) -> Instant,
@@ -124,30 +146,16 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                     return@forEach
                 }
 
-                // FIXME: After we create something, the date is
-                //    --
-                //    2022-09-21T14:04:33.1819975Z
-                //    --
-                //  but after we get the same entry using the sync
-                //  API the revision date is some-why rounded to:
-                //    --
-                //    2022-09-21T14:04:33.1833333Z
-                //    --
-                //  for now we round the revision date to
-                //    --
-                //    2022-09-21T14:04:33.18
-                //    --
-                fun Instant.roundToMillis() = millis.toDouble().div(100.0).roundToLong()
-
                 val localRemoteRevDate = kotlin.run {
                     val date = getDate(
                         revisionDate = localItem.service.remote?.revisionDate
                             ?: Instant.DISTANT_PAST,
                         deletedDate = localItem.service.remote?.deletedDate,
                     )
-                    date.roundToMillis()
+                    getDateMillis(date)
                 }
-                val localRevDate = getDate(localItem).roundToMillis()
+                val localRevDate = getDate(localItem)
+                    .let(getDateMillis)
                 // If the local item has outdated remote revision, then it must
                 // be updated and any of its changes are going to be discarded
                 // or merged.
@@ -155,7 +163,8 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                 // Why:
                 // This is needed to resolve a conflict where you edit one item
                 // on multiple devices simultaneously.
-                val remoteRevDate = getDate(remoteItem).roundToMillis()
+                val remoteRevDate = getDate(remoteItem)
+                    .let(getDateMillis)
                 if (remoteRevDate != localRemoteRevDate) {
                     if (localRemoteRevDate != localRevDate && local.getMergeable(localItem)) {
                         mergeCipher += Df.Ite(localItem, remoteItem)
@@ -170,6 +179,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                     diff < 0 -> {
                         localPutCipher += Df.Ite(localItem, remoteItem)
                     }
+
                     diff > 0 -> {
                         if (localItem.service.deleted) {
                             remoteDeletedCipherIds += Df.Ite(localItem, remoteItem)

@@ -12,20 +12,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
-import arrow.core.identity
 import arrow.core.partially1
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.nullable
 import com.artemchep.keyguard.common.io.parallelSearch
 import com.artemchep.keyguard.common.model.AccountTask
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -33,7 +30,6 @@ import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
-import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.SendToolbox
@@ -44,15 +40,15 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
-import com.artemchep.keyguard.feature.home.settings.accounts.AccountsRoute
-import com.artemchep.keyguard.feature.home.vault.add.AddRoute
-import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
@@ -62,6 +58,7 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
+import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -79,14 +76,12 @@ import com.artemchep.keyguard.feature.send.search.ah
 import com.artemchep.keyguard.feature.send.search.createFilter
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.util.SendUtil
-import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.icons.SyncIcon
@@ -100,7 +95,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -110,7 +104,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.getString
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -269,7 +262,10 @@ fun sendListScreenState(
             isCtrlPressed = true,
         ) to combine(
             getAccounts()
-                .map { it.isNotEmpty() },
+                .map { accounts ->
+                    accounts
+                        .any { account -> account.type == AccountType.BITWARDEN }
+                },
             getCanWrite(),
         ) { hasAccounts, canWrite -> hasAccounts && canWrite }
             .map { enabled ->
@@ -312,6 +308,7 @@ fun sendListScreenState(
         .launchIn(this)
 
     val canEditFlow = SendUtil.canEditFlow(
+        accountsFlow = getAccounts(),
         profilesFlow = getProfiles(),
         canWriteFlow = getCanWrite(),
     )
@@ -904,8 +901,15 @@ fun sendListScreenState(
                 ?: SendListState.Content.Skeleton
         } else {
             SendListState.Content.AddAccount(
-                onAddAccount = {
-                    val route = AccountsRoute
+                onAddAccount = { type ->
+                    val routeMain = when (type) {
+                        AccountType.BITWARDEN -> BitwardenLoginRoute()
+                        AccountType.KEEPASS -> KeePassLoginRoute
+                    }
+                    val route = registerRouteResultReceiver(routeMain) {
+                        // Close the login screen.
+                        navigate(NavigationIntent.Pop)
+                    }
                     navigate(NavigationIntent.NavigateToRoute(route))
                 },
             )

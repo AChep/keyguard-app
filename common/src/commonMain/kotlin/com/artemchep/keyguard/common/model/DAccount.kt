@@ -1,16 +1,33 @@
 package com.artemchep.keyguard.common.model
 
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
+
 data class DAccount(
     val id: AccountId,
-    val username: String,
+    /**
+     * Username or `null` if the
+     * account is single-user.
+     */
+    val username: String?,
     val host: String,
-    val url: String,
-    val faviconServer: (String) -> String,
+    /**
+     * URL to the web vault, if it does exist,
+     * otherwise `null`.
+     */
+    val webVaultUrl: String?,
+    /**
+     * URL to the local vault, if it does exist,
+     * otherwise `null`.
+     */
+    val localVaultUrl: String?,
+    val type: AccountType,
+    val faviconServer: ((String) -> String)?,
 ) : HasAccountId, Comparable<DAccount> {
     private val comparator = compareBy<DAccount>(
         { host },
         { username },
-        { url },
+        { webVaultUrl },
+        { localVaultUrl },
         { id.id },
     )
 

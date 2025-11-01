@@ -48,7 +48,7 @@ class CheckUsernameLeakImpl(
         val user = tokenRepository.getById(request.accountId)
             .bind()
         requireNotNull(user) {
-            "Failed to find a token!"
+            "Failed to find a Bitwarden HIBP token!"
         }
 
         val username = request.username

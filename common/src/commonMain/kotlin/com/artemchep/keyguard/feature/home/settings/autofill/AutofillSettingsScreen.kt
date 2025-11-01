@@ -50,6 +50,12 @@ fun AutofillSettingsScreen() {
                     SettingPaneItem.Item(Setting.AUTOFILL_SAVE_URI),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "block",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.AUTOFILL_BLOCK_URI),
+                ),
+            ),
         )
     }
     SettingPaneContent(

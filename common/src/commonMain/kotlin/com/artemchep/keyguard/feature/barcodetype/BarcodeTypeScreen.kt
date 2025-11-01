@@ -161,7 +161,7 @@ private fun BarcodeTypeContent(
 }
 
 @Composable
-private fun BarcodeImage(
+fun BarcodeImage(
     imageModel: () -> BarcodeImageRequest?,
     modifier: Modifier,
 ) {

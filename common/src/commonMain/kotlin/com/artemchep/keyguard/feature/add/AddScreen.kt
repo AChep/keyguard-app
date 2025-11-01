@@ -120,6 +120,7 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.PasswordPwnedBadge
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
+import com.artemchep.keyguard.ui.TagFlatTextField
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -200,6 +201,7 @@ fun getAnyFieldShapeState(
         is AddStateItem.Attachment<*> -> ::getAnyFieldShapeStateAttachmentPredicate
         is AddStateItem.Url<*> -> ::getAnyFieldShapeStateUrlPredicate
         is AddStateItem.Field<*> -> ::getAnyFieldShapeStateFieldPredicate
+        is AddStateItem.Tag<*> -> ::getAnyFieldShapeStateTagPredicate
         else -> ::getAnyFieldShapeStateOtherPredicate
     }
     return getShapeState(
@@ -248,6 +250,11 @@ private fun getAnyFieldShapeStateFieldPredicate(
     item: AddStateItem,
     index: Int,
 ) = item is AddStateItem.Field<*>
+
+private fun getAnyFieldShapeStateTagPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Tag<*>
 
 private fun getAnyFieldShapeStateOtherPredicate(
     item: AddStateItem,
@@ -381,6 +388,14 @@ fun AnyField(
 
     is AddStateItem.Field<*> -> {
         FieldField(
+            modifier = modifier,
+            item = item,
+            shapeState = shapeState,
+        )
+    }
+
+    is AddStateItem.Tag<*> -> {
+        FieldTag(
             modifier = modifier,
             item = item,
             shapeState = shapeState,
@@ -747,7 +762,7 @@ private fun SshKeyField(
                         Text(
                             modifier = Modifier
                                 .alpha(DisabledEmphasisAlpha),
-                            text = stringResource(Res.string.empty_value),
+                            text = stringResource(Res.string.key_ssh_value_placeholder),
                         )
                     },
                 )
@@ -990,6 +1005,59 @@ private fun TextTextField(
         )
     }
 }
+
+
+context(AddScreenScope)
+@Composable
+private fun FieldTag(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.Tag<*>,
+    shapeState: Int,
+) = Column(modifier = modifier) {
+    val state by item.state.flow.collectAsState()
+    val actions = remember(
+        state.options,
+        item.options,
+    ) {
+        buildContextItems(
+            state.options,
+            item.options,
+        ) {
+            // Do nothing.
+        }
+    }
+    when (val s = state) {
+        is AddStateItem.Tag.State.Text -> {
+            FieldTextTag(
+                state = s,
+                actions = actions,
+                shapeState = shapeState,
+            )
+        }
+    }
+}
+
+context(AddScreenScope)
+@Composable
+private fun FieldTextTag(
+    modifier: Modifier = Modifier,
+    state: AddStateItem.Tag.State.Text,
+    actions: ImmutableList<ContextItem>,
+    shapeState: Int,
+) {
+    TagFlatTextField(
+        modifier = modifier
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
+        shapeState = shapeState,
+        value = state.text,
+        trailing = {
+            OptionsButton(
+                actions = actions,
+            )
+        },
+    )
+}
+
 
 context(AddScreenScope)
 @Composable

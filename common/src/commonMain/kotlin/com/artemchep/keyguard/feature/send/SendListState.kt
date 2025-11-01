@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.send.search.SendSortItem
 import com.artemchep.keyguard.feature.send.search.filter.SendFilterItem
 import com.artemchep.keyguard.ui.ContextItem
@@ -40,7 +41,7 @@ data class SendListState(
 
         @optics
         data class AddAccount(
-            val onAddAccount: (() -> Unit)? = null,
+            val onAddAccount: ((AccountType) -> Unit)? = null,
         ) : Content {
             companion object
         }

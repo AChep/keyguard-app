@@ -33,6 +33,7 @@ data class BitwardenCipher(
     val revisionDate: Instant,
     val createdDate: Instant? = null,
     val deletedDate: Instant? = null,
+    val expiredDate: Instant? = null,
     // service fields
     override val service: BitwardenService,
     /**
@@ -46,8 +47,10 @@ data class BitwardenCipher(
     val notes: String?,
     val favorite: Boolean,
     val ignoredAlerts: Map<IgnoreAlertType, IgnoreAlertData> = emptyMap(),
+    val tags: List<Tag> = emptyList(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
+    val mapping: Map<String, String> = emptyMap(),
     val reprompt: RepromptType,
     // types
     val type: Type,
@@ -61,13 +64,57 @@ data class BitwardenCipher(
 
     override fun withService(service: BitwardenService) = copy(service = service)
 
+    enum class Mapping(
+        val key: String,
+    ) {
+        LOGIN_USERNAME("login_username"),
+        LOGIN_PASSWORD("login_password"),
+        LOGIN_PASSWORD_REV_DATE("login_password_rev_date"),
+        LOGIN_OTP("login_otp"),
+
+        // Card
+        CARD_CARDHOLDER_NAME(key = "card_cardholder_name"),
+        CARD_BRAND(key = "card_brand"),
+        CARD_NUMBER(key = "card_number"),
+        CARD_EXP_MONTH(key = "card_exp_month"),
+        CARD_EXP_YEAR(key = "card_exp_year"),
+        CARD_CODE(key = "card_code"),
+
+        // Identity
+        IDENTITY_TITLE(key = "identity_title"),
+        IDENTITY_USERNAME(key = "identity_username"),
+        IDENTITY_FIRST_NAME(key = "identity_first_name"),
+        IDENTITY_MIDDLE_NAME(key = "identity_middle_name"),
+        IDENTITY_LAST_NAME(key = "identity_last_name"),
+        IDENTITY_ADDRESS1(key = "identity_address1"),
+        IDENTITY_ADDRESS2(key = "identity_address2"),
+        IDENTITY_ADDRESS3(key = "identity_address3"),
+        IDENTITY_CITY(key = "identity_city"),
+        IDENTITY_STATE(key = "identity_state"),
+        IDENTITY_POSTAL_CODE(key = "identity_postal_code"),
+        IDENTITY_COUNTRY(key = "identity_country"),
+        IDENTITY_COMPANY(key = "identity_company"),
+        IDENTITY_EMAIL(key = "identity_email"),
+        IDENTITY_PHONE(key = "identity_phone"),
+        IDENTITY_SSN(key = "identity_ssn"),
+        IDENTITY_PASSPORT_NUMBER(key = "identity_passport_number"),
+        IDENTITY_LICENSE_NUMBER(key = "identity_license_number"),
+
+        // SSH Key
+        SSH_PRIVATE_KEY(key = "ssh_private_key"),
+        SSH_PUBLIC_KEY(key = "ssh_public_key"),
+        SSH_FINGERPRINT(key = "ssh_fingerprint"),
+    }
+
     @Serializable
-    enum class Type {
-        Login,
-        SecureNote,
-        Card,
-        Identity,
-        SshKey,
+    enum class Type(
+        val verboseKey: String,
+    ) {
+        Login("Login"),
+        SecureNote("Note"),
+        Card("Card"),
+        Identity("Identity"),
+        SshKey("SSH Key"),
     }
 
     @Serializable
@@ -83,7 +130,7 @@ data class BitwardenCipher(
             override val id: String,
             override val url: String?,
             val fileName: String,
-            val keyBase64: String,
+            val keyBase64: String? = null,
             val size: Long,
         ) : Attachment {
             companion object
@@ -100,6 +147,11 @@ data class BitwardenCipher(
             companion object
         }
     }
+
+    @Serializable
+    data class Tag(
+        val name: String,
+    )
 
     @Serializable
     data class Field(
@@ -239,13 +291,15 @@ data class BitwardenCipher(
             companion object;
 
             @Serializable
-            enum class MatchType {
-                Domain,
-                Host,
-                StartsWith,
-                Exact,
-                RegularExpression,
-                Never,
+            enum class MatchType(
+                val verboseKey: String,
+            ) {
+                Domain(verboseKey = "Domain"),
+                Host(verboseKey = "Host"),
+                StartsWith(verboseKey = "Starts With"),
+                Exact(verboseKey = "Exact"),
+                RegularExpression(verboseKey = "Regular Expression"),
+                Never(verboseKey = "Never"),
             }
         }
 
@@ -345,6 +399,10 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
             DiffFinderNode.Leaf(BitwardenCipher.favorite),
             DiffFinderNode.Leaf(
                 lens = BitwardenCipher.fields,
+                finder = DiffApplierByListValue(),
+            ),
+            DiffFinderNode.Leaf(
+                lens = BitwardenCipher.tags,
                 finder = DiffApplierByListValue(),
             ),
             // Types

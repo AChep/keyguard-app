@@ -18,7 +18,7 @@ when done correctly, all URLs that use HTTP will have a button to open the same 
 Note that you should consider just replacing all URLs that use HTTP with their safer alternative when possible.
 
 #### FileZilla FTP Client
-Add a URL to the entry that we be overriden later: 
+Add a URL to the entry that we be overridden later: 
 ```
 ftp://{username}:{password}@example.com
 ``` 

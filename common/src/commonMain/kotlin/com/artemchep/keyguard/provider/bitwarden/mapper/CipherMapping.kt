@@ -37,6 +37,7 @@ suspend fun BitwardenCipher.toDomain(
         deletedDate = deletedDate,
         service = service,
         // common
+        keyBase64 = keyBase64,
         name = name.orEmpty(),
         notes = notes.orEmpty(),
         favorite = favorite,
@@ -46,6 +47,7 @@ suspend fun BitwardenCipher.toDomain(
                 deletedDate == service.remote.deletedDate,
         ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
+        tags = tags.map(BitwardenCipher.Tag::toDomain),
         fields = fields.map(BitwardenCipher.Field::toDomain),
         attachments = attachments
             .mapNotNull { attachment ->
@@ -95,6 +97,8 @@ fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {
     BitwardenCipher.Login.Uri.MatchType.RegularExpression -> DSecret.Uri.MatchType.RegularExpression
     BitwardenCipher.Login.Uri.MatchType.Never -> DSecret.Uri.MatchType.Never
 }
+
+fun BitwardenCipher.Tag.toDomain() = name
 
 fun BitwardenCipher.Field.toDomain() = DSecret.Field(
     name = name,

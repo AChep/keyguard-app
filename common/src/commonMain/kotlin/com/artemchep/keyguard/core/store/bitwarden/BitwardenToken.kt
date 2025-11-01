@@ -3,19 +3,34 @@ package com.artemchep.keyguard.core.store.bitwarden
 import arrow.optics.optics
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
+@JsonClassDiscriminator(DB_TYPE_CLASS_DISCRIMINATOR)
+sealed interface ServiceToken {
+    val id: String
+}
+
+/**
+ * Represents the authentication and configuration details
+ * for a Bitwarden account.
+ */
+@Serializable
+@SerialName("bitwarden")
 data class BitwardenToken(
-    val id: String = Uuid.random().toString(),
+    override val id: String = Uuid.random().toString(),
     val key: Key,
     val token: Token? = null,
     val user: User,
     /** Information about the Bitwarden server */
     val env: Environment,
-) {
+) : ServiceToken {
     fun formatUser() = "<" +
             "id=$id, " +
             "email=${user.email}" +
@@ -114,6 +129,39 @@ data class BitwardenToken(
     @Serializable
     data class User(
         val email: String,
+    )
+}
+
+/**
+ * Represents the authentication details
+ * for a Keepass database.
+ */
+@Serializable
+@SerialName("keepass")
+data class KeePassToken(
+    override val id: String = Uuid.random().toString(),
+    val key: Key,
+    val files: Files,
+) : ServiceToken {
+
+    @optics
+    @Serializable
+    data class Key(
+        val passwordBase64: String,
+        val keyBase64: String? = null,
+    ) {
+        companion object
+    }
+
+    @Serializable
+    data class Files(
+        val databaseUri: String,
+        val databaseFileName: String = kotlin.run {
+            val regex = ".*/(.+)\\??.*".toRegex()
+            val result = regex.matchEntire(databaseUri)
+            result?.groupValues?.getOrNull(1)
+                ?: databaseUri
+        },
     )
 }
 

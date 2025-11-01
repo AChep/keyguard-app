@@ -62,6 +62,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.add.createItem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -439,7 +440,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                     this
                         .map { profiles ->
                             profiles
-                                .filter { it.premium }
+                                .filter { it.premium == true }
                         }
                 } else this
             },
@@ -497,6 +498,7 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                                 ),
                                 flags = flags,
                                 accountId = account.value,
+                                accountType = AccountType.BITWARDEN,
                             ),
                         ),
                     ) { result ->

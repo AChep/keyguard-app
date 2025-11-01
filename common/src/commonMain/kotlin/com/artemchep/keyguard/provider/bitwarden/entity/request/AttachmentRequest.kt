@@ -17,9 +17,12 @@ data class AttachmentRequest(
 fun AttachmentRequest.Companion.of(
     model: BitwardenCipher.Attachment.Remote,
 ) = kotlin.run {
+    val key = requireNotNull(model.keyBase64) {
+        "An attachment requires encryption key!"
+    }
     AttachmentRequest(
         fileName = model.fileName,
-        key = model.keyBase64,
+        key = key,
 //        fileSize = model.size,
     )
 }

@@ -41,7 +41,6 @@ import com.artemchep.keyguard.common.model.DMeta
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.PutProfileHiddenRequest
 import com.artemchep.keyguard.common.model.firstOrNull
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -49,7 +48,7 @@ import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
-import com.artemchep.keyguard.common.usecase.GetFingerprint
+import com.artemchep.keyguard.common.usecase.GetFingerprintByAccount
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetMetas
@@ -64,7 +63,8 @@ import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.core.store.DatabaseManager
-import com.artemchep.keyguard.feature.auth.login.LoginRoute
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.colorpicker.ColorPickerRoute
 import com.artemchep.keyguard.feature.colorpicker.createColorPickerDialogIntent
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -73,14 +73,15 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
-import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
+import com.artemchep.keyguard.feature.home.vault.util.emitWithSection
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -168,7 +169,7 @@ fun accountState(
     clipboardService: ClipboardService,
     dateFormatter: DateFormatter,
     removeAccountById: RemoveAccountById,
-    getFingerprint: GetFingerprint,
+    getFingerprint: GetFingerprintByAccount,
     putAccountNameById: PutAccountNameById,
     putAccountColorById: PutAccountColorById,
     putAccountMasterPasswordHintById: PutAccountMasterPasswordHintById,
@@ -197,8 +198,8 @@ fun accountState(
         env: ServerEnv,
     ) {
         val route = registerRouteResultReceiver(
-            route = LoginRoute(
-                args = LoginRoute.Args(
+            route = BitwardenLoginRoute(
+                args = BitwardenLoginRoute.Args(
                     accountId = accountId.id,
                     email = email,
                     emailEditable = false,
@@ -324,7 +325,7 @@ fun accountState(
                             .getByAccountId(accountId.id)
                             .executeAsOne()
                             .data_
-                        info
+                        info as BitwardenToken
                     }
                     .attempt()
                     .bind()
@@ -399,18 +400,6 @@ fun accountState(
                         ::doSyncAccountById.partially1(accountOrNull.id)
                     },
                 )
-                this += ExportRoute.actionOrNull(
-                    translator = this@produceScreenState,
-                    accountId = accountId,
-                    individual = true,
-                    navigate = ::navigate,
-                )
-                this += ExportRoute.actionOrNull(
-                    translator = this@produceScreenState,
-                    accountId = accountId,
-                    individual = false,
-                    navigate = ::navigate,
-                )
             }
             section {
                 if (profileOrNull == null) {
@@ -468,15 +457,30 @@ fun accountState(
         if (accountOrNull == null) {
             return@combine AccountViewState.Content.NotFound
         }
+
+        val onOpenWebVault = accountOrNull.webVaultUrl
+            ?.let { webVaultUrl ->
+                // lambda
+                {
+                    val intent = NavigationIntent.NavigateToBrowser(webVaultUrl)
+                    navigate(intent)
+                }
+            }
+        val onOpenLocalVault = accountOrNull.localVaultUrl
+            ?.let { localVaultUrl ->
+                // lambda
+                {
+                    val intent = NavigationIntent.NavigateToPreviewInFileManager(localVaultUrl)
+                    navigate(intent)
+                }
+            }
         AccountViewState.Content.Data(
             data = accountOrNull,
             actions = actions,
             items = items,
             primaryAction = primaryAction,
-            onOpenWebVault = {
-                val intent = NavigationIntent.NavigateToBrowser(accountOrNull.url)
-                navigate(intent)
-            },
+            onOpenWebVault = onOpenWebVault,
+            onOpenLocalVault = onOpenLocalVault,
         )
     }
         .map { content ->
@@ -500,7 +504,7 @@ private fun buildItemsFlow(
     putAccountColorById: PutAccountColorById,
     putAccountMasterPasswordHintById: PutAccountMasterPasswordHintById,
     queueSyncById: QueueSyncById,
-    getFingerprint: GetFingerprint,
+    getFingerprint: GetFingerprintByAccount,
     dateFormatter: DateFormatter,
 ): Flow<VaultViewItem> = flow {
     if (meta != null) {
@@ -549,14 +553,20 @@ private fun buildItemsFlow(
             copyText = copyText,
         )
     }
-    if (account != null && profile != null && !profile.twoFactorEnabled) {
+    if (account != null && profile?.twoFactorEnabled == false) {
+        val onOpenWebVault = account.webVaultUrl
+            ?.let { webVaultUrl ->
+                // lambda
+                {
+                    val intent = NavigationIntent.NavigateToBrowser(webVaultUrl)
+                    scope.navigate(intent)
+                }
+            }
+
         val inactiveTfaItem = VaultViewItem.InactiveTotp(
             id = "inactive_tfa",
             chevron = true,
-            onClick = {
-                val intent = NavigationIntent.NavigateToBrowser(account.url)
-                scope.navigate(intent)
-            },
+            onClick = onOpenWebVault,
         )
         emit(inactiveTfaItem)
     }
@@ -573,26 +583,39 @@ private fun buildItemsFlow(
         }
     }
 
-    val quickActions = VaultViewItem.QuickActions(
-        id = "quick_actions",
-        actions = buildContextItems {
-            section {
-                this += ExportRoute.actionOrNull(
-                    translator = scope,
-                    accountId = accountId,
-                    individual = true,
-                    navigate = scope::navigate,
-                )
-                this += ExportRoute.actionOrNull(
-                    translator = scope,
-                    accountId = accountId,
-                    individual = false,
-                    navigate = scope::navigate,
-                )
-            }
-        },
-    )
-    emit(quickActions)
+    if (!profile?.description.isNullOrEmpty()) {
+        val descriptionText = profile.description
+        val descriptionItem = VaultViewItem.Note(
+            id = "description",
+            content = VaultViewItem.Note.Content.Text(descriptionText),
+        )
+        emit(descriptionItem)
+    }
+
+    if (counters.ciphers > 0) {
+        val quickActions = VaultViewItem.QuickActions(
+            id = "quick_actions",
+            actions = buildContextItems {
+                section {
+                    this += ExportRoute.actionOrNull(
+                        translator = scope,
+                        accountId = accountId,
+                        individual = true,
+                        navigate = scope::navigate,
+                    )
+                    if (counters.organizations > 0) {
+                        this += ExportRoute.actionOrNull(
+                            translator = scope,
+                            accountId = accountId,
+                            individual = false,
+                            navigate = scope::navigate,
+                        )
+                    }
+                }
+            },
+        )
+        emit(quickActions)
+    }
 
     if (account != null) {
         val ff0 = VaultViewItem.Action(
@@ -619,31 +642,33 @@ private fun buildItemsFlow(
             },
         )
         emit(ff0)
-        val sendsItem = VaultViewItem.Action(
-            id = "sends",
-            title = scope.translate(Res.string.sends),
-            leading = {
-                BadgedBox(
-                    badge = {
-                        val count = counters.sends
-                        AnimatedTotalCounterBadge(
-                            count = count,
-                        )
-                    },
-                ) {
-                    Icon(Icons.AutoMirrored.Outlined.Send, null)
-                }
-            },
-            trailing = {
-                ChevronIcon()
-            },
-            onClick = {
-                val route = SendRoute.by(account = account)
-                val intent = NavigationIntent.NavigateToRoute(route)
-                scope.navigate(intent)
-            },
-        )
-        emit(sendsItem)
+        if (account.type == AccountType.BITWARDEN) {
+            val sendsItem = VaultViewItem.Action(
+                id = "sends",
+                title = scope.translate(Res.string.sends),
+                leading = {
+                    BadgedBox(
+                        badge = {
+                            val count = counters.sends
+                            AnimatedTotalCounterBadge(
+                                count = count,
+                            )
+                        },
+                    ) {
+                        Icon(Icons.AutoMirrored.Outlined.Send, null)
+                    }
+                },
+                trailing = {
+                    ChevronIcon()
+                },
+                onClick = {
+                    val route = SendRoute.by(account = account)
+                    val intent = NavigationIntent.NavigateToRoute(route)
+                    scope.navigate(intent)
+                },
+            )
+            emit(sendsItem)
+        }
     }
     val ff = VaultViewItem.Action(
         id = "folders",
@@ -674,65 +699,67 @@ private fun buildItemsFlow(
         },
     )
     emit(ff)
-    val ff2 = VaultViewItem.Action(
-        id = "collections",
-        title = scope.translate(Res.string.collections),
-        leading = {
-            BadgedBox(
-                badge = {
-                    val count = counters.collections
-                    AnimatedTotalCounterBadge(
-                        count = count,
-                    )
-                },
-            ) {
-                Icon(Icons.Outlined.KeyguardCollection, null)
-            }
-        },
-        trailing = {
-            ChevronIcon()
-        },
-        onClick = {
-            val route = CollectionsRoute(
-                args = CollectionsRoute.Args(
-                    accountId = accountId,
-                    organizationId = null,
-                ),
-            )
-            val intent = NavigationIntent.NavigateToRoute(route)
-            scope.navigate(intent)
-        },
-    )
-    emit(ff2)
-    val ff3 = VaultViewItem.Action(
-        id = "organizations",
-        title = scope.translate(Res.string.organizations),
-        leading = {
-            BadgedBox(
-                badge = {
-                    val count = counters.organizations
-                    AnimatedTotalCounterBadge(
-                        count = count,
-                    )
-                },
-            ) {
-                Icon(Icons.Outlined.KeyguardOrganization, null)
-            }
-        },
-        trailing = {
-            ChevronIcon()
-        },
-        onClick = {
-            val route = OrganizationsRoute(
-                args = OrganizationsRoute.Args(
-                    accountId = accountId,
-                ),
-            )
-            val intent = NavigationIntent.NavigateToRoute(route)
-            scope.navigate(intent)
-        },
-    )
-    emit(ff3)
+    if (account?.type == AccountType.BITWARDEN) {
+        val ff2 = VaultViewItem.Action(
+            id = "collections",
+            title = scope.translate(Res.string.collections),
+            leading = {
+                BadgedBox(
+                    badge = {
+                        val count = counters.collections
+                        AnimatedTotalCounterBadge(
+                            count = count,
+                        )
+                    },
+                ) {
+                    Icon(Icons.Outlined.KeyguardCollection, null)
+                }
+            },
+            trailing = {
+                ChevronIcon()
+            },
+            onClick = {
+                val route = CollectionsRoute(
+                    args = CollectionsRoute.Args(
+                        accountId = accountId,
+                        organizationId = null,
+                    ),
+                )
+                val intent = NavigationIntent.NavigateToRoute(route)
+                scope.navigate(intent)
+            },
+        )
+        emit(ff2)
+        val ff3 = VaultViewItem.Action(
+            id = "organizations",
+            title = scope.translate(Res.string.organizations),
+            leading = {
+                BadgedBox(
+                    badge = {
+                        val count = counters.organizations
+                        AnimatedTotalCounterBadge(
+                            count = count,
+                        )
+                    },
+                ) {
+                    Icon(Icons.Outlined.KeyguardOrganization, null)
+                }
+            },
+            trailing = {
+                ChevronIcon()
+            },
+            onClick = {
+                val route = OrganizationsRoute(
+                    args = OrganizationsRoute.Args(
+                        accountId = accountId,
+                    ),
+                )
+                val intent = NavigationIntent.NavigateToRoute(route)
+                scope.navigate(intent)
+            },
+        )
+        emit(ff3)
+    }
     val watchtowerSectionItem = VaultViewItem.Section(
         id = "watchtower.section",
     )
@@ -760,12 +787,20 @@ private fun buildItemsFlow(
         },
     )
     emit(watchtowerItem)
-    val ff4 = VaultViewItem.Section(
-        id = "section",
-        text = scope.translate(Res.string.security),
-    )
-    emit(ff4)
-    if (profile != null) {
+
+    //
+    // Security
+    //
+
+    emitWithSection(
+        provideSection = {
+            VaultViewItem.Section(
+                id = "section.security",
+                text = scope.translate(Res.string.security),
+            )
+        },
+    ) {
+        if (profile == null) return@emitWithSection
         emitFingerprint(
             scope = scope,
             profile = profile,
@@ -778,67 +813,66 @@ private fun buildItemsFlow(
             copyText = copyText,
             putAccountMasterPasswordHintById = putAccountMasterPasswordHintById,
         )
-        val ff5 = VaultViewItem.Section(
-            id = "section2",
-            text = scope.translate(Res.string.info),
-        )
-        emit(ff5)
     }
 
-    if (account != null && profile != null) {
+    //
+    // Info
+    //
+
+    emitWithSection(
+        provideSection = {
+            VaultViewItem.Section(
+                id = "section.info",
+                text = scope.translate(Res.string.info),
+            )
+        },
+    ) {
+        if (account == null || profile == null) return@emitWithSection
         emitPremium(
             scope = scope,
             account = account,
             profile = profile,
         )
-        val unofficialServer = profile.unofficialServer
-        if (unofficialServer) {
-            val unofficialServerText = scope.translate(Res.string.bitwarden_unofficial_server)
-            val unofficialServerItem = VaultViewItem.Label(
-                id = "unofficial_server",
-                text = AnnotatedString(unofficialServerText),
-            )
-            emit(unofficialServerItem)
-        }
-//        emitMasterPasswordHint(
-//            profile = profile,
-//            copyText = copyText,
-//        )
     }
 
-    val equivalentDomainsSectionItem = VaultViewItem.Section(
-        id = "equivalent_domains.section",
-    )
-    emit(equivalentDomainsSectionItem)
-    val equivalentDomainsItem = VaultViewItem.Action(
-        id = "equivalent_domains",
-        title = scope.translate(Res.string.equivalent_domains),
-        leading = {
-            BadgedBox(
-                badge = {
-                    val count = counters.equivalentDomains
-                    AnimatedTotalCounterBadge(
-                        count = count,
-                    )
-                },
-            ) {
-                Icon(Icons.Outlined.Domain, null)
-            }
-        },
-        trailing = {
-            ChevronIcon()
-        },
-        onClick = {
-            val route = EquivalentDomainsRoute(
-                args = EquivalentDomainsRoute.Args(
-                    accountId = accountId,
-                ),
+    //
+    // Misc
+    //
+
+    emitWithSection(
+        provideSection = {
+            VaultViewItem.Section(
+                id = "section.misc",
             )
-            val intent = NavigationIntent.NavigateToRoute(route)
-            scope.navigate(intent)
         },
-    )
-    emit(equivalentDomainsItem)
+    ) {
+        if (account == null) return@emitWithSection
+        emitEquivalentDomains(
+            scope = scope,
+            account = account,
+            counters = counters,
+        )
+    }
+
+    val unofficialServer = profile?.unofficialServer == true
+    if (unofficialServer) {
+        val unofficialServerText = scope.translate(Res.string.bitwarden_unofficial_server)
+        val unofficialServerItem = VaultViewItem.Label(
+            id = "unofficial_server",
+            text = AnnotatedString(unofficialServerText),
+        )
+        emit(unofficialServerItem)
+    }
+
+    val serverVersion = profile?.serverVersion
+    if (!serverVersion.isNullOrBlank()) {
+        val versionText = scope.translate(Res.string.database_version, serverVersion)
+        val versionItem = VaultViewItem.Label(
+            id = "version_server",
+            text = AnnotatedString(versionText),
+        )
+        emit(versionItem)
+    }
 }
 
 private suspend fun FlowCollector<VaultViewItem>.emitName(
@@ -989,23 +1023,37 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
         val badges = kotlin.run {
             val list = mutableListOf<StateFlow<VaultViewItem.Value.Badge>>()
             // Account email verification badge
-            list += if (profile.emailVerified) {
-                VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.string.email_verified),
-                    score = 1f,
-                )
-            } else {
-                VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.string.email_not_verified),
-                    score = 0.5f,
-                )
-            }.let(::MutableStateFlow)
+            when (profile.emailVerified) {
+                true -> {
+                    list += VaultViewItem.Value.Badge(
+                        text = scope.translate(Res.string.email_verified),
+                        score = 1f,
+                    ).let(::MutableStateFlow)
+                }
+
+                false -> {
+                    list += VaultViewItem.Value.Badge(
+                        text = scope.translate(Res.string.email_not_verified),
+                        score = 0.5f,
+                    ).let(::MutableStateFlow)
+                }
+
+                null -> {
+                    // Do nothing
+                }
+            }
             // Account two-factor authentication badge
-            if (profile.twoFactorEnabled) {
-                list += VaultViewItem.Value.Badge(
-                    text = scope.translate(Res.string.account_action_tfa_title),
-                    score = 1f,
-                ).let(::MutableStateFlow)
+            when (profile.twoFactorEnabled) {
+                true -> {
+                    list += VaultViewItem.Value.Badge(
+                        text = scope.translate(Res.string.account_action_tfa_title),
+                        score = 1f,
+                    ).let(::MutableStateFlow)
+                }
+
+                false, null -> {
+                    // Do nothing
+                }
             }
             list
         }
@@ -1042,7 +1090,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
                         navigate = scope::navigate,
                     )
                 }
-                if (!profile.emailVerified) {
+                if (profile.emailVerified == false) {
                     section {
                         this += FlatItemAction(
                             leading = icon(Icons.Outlined.VerifiedUser),
@@ -1071,6 +1119,19 @@ private suspend fun FlowCollector<VaultViewItem>.emitPremium(
     account: DAccount,
     profile: DProfile,
 ) {
+    if (profile.premium == null) {
+        return
+    }
+
+    val onOpenWebVault = account.webVaultUrl
+        ?.let { webVaultUrl ->
+            // lambda
+            {
+                val intent = NavigationIntent.NavigateToBrowser(webVaultUrl)
+                scope.navigate(intent)
+            }
+        }
+
     val id = "premium"
     val premiumItem = if (profile.premium) {
         VaultViewItem.Action(
@@ -1086,10 +1147,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitPremium(
                 text = scope.translate(Res.string.pref_item_premium_status_active),
                 score = 1f,
             ),
-            onClick = {
-                val intent = NavigationIntent.NavigateToBrowser(account.url)
-                scope.navigate(intent)
-            },
+            onClick = onOpenWebVault,
         )
     } else {
         VaultViewItem.Action(
@@ -1102,10 +1160,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitPremium(
             trailing = {
                 ChevronIcon()
             },
-            onClick = {
-                val intent = NavigationIntent.NavigateToBrowser(account.url)
-                scope.navigate(intent)
-            },
+            onClick = onOpenWebVault,
         )
     }
     emit(premiumItem)
@@ -1118,6 +1173,10 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
     putAccountMasterPasswordHintById: PutAccountMasterPasswordHintById,
 ) {
     val hint = profile.masterPasswordHint
+    val enabled = profile.masterPasswordHintEnabled == true
+    if (!enabled) {
+        return
+    }
 
     suspend fun onClick() {
         val intent = scope.createConfirmationDialogIntent(
@@ -1180,8 +1239,12 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
     scope: RememberStateFlowScope,
     profile: DProfile,
     copyText: CopyText,
-    getFingerprint: GetFingerprint,
+    getFingerprint: GetFingerprintByAccount,
 ) {
+    if (profile.privateKeyBase64.isBlank()) {
+        return
+    }
+
     val fingerprintOrException = getFingerprint(AccountId(profile.accountId))
         .toIO()
         .crashlyticsTap()
@@ -1238,4 +1301,44 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
         )
         emit(item)
     }
+}
+
+private suspend fun FlowCollector<VaultViewItem>.emitEquivalentDomains(
+    scope: RememberStateFlowScope,
+    account: DAccount,
+    counters: AccountCounters,
+) {
+    if (counters.equivalentDomains <= 0) {
+        return
+    }
+
+    val equivalentDomainsItem = VaultViewItem.Action(
+        id = "equivalent_domains",
+        title = scope.translate(Res.string.equivalent_domains),
+        leading = {
+            BadgedBox(
+                badge = {
+                    val count = counters.equivalentDomains
+                    AnimatedTotalCounterBadge(
+                        count = count,
+                    )
+                },
+            ) {
+                Icon(Icons.Outlined.Domain, null)
+            }
+        },
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val route = EquivalentDomainsRoute(
+                args = EquivalentDomainsRoute.Args(
+                    accountId = account.id,
+                ),
+            )
+            val intent = NavigationIntent.NavigateToRoute(route)
+            scope.navigate(intent)
+        },
+    )
+    emit(equivalentDomainsItem)
 }

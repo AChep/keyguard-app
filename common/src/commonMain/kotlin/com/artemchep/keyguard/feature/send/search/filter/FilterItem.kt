@@ -33,6 +33,7 @@ sealed interface SendFilterItem : FilterItemModel {
         override val leading: (@Composable () -> Unit)?,
         override val title: String,
         override val text: String?,
+        override val textMaxLines: Int? = null,
         override val onClick: (() -> Unit)?,
         override val enabled: Boolean = onClick != null,
     ) : SendFilterItem, FilterItemModel.Item {

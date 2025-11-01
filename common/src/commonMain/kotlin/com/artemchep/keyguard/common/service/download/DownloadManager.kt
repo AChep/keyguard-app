@@ -22,6 +22,7 @@ interface DownloadManager {
         url: String,
         urlIsOneTime: Boolean,
         name: String,
+        data: ByteArray? = null,
         key: ByteArray? = null,
         attempt: Int = 0,
         worker: Boolean = false,

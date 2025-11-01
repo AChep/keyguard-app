@@ -818,19 +818,11 @@ fun FlatItemLayoutExpressive(
 ) {
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
-        val color = if (backgroundColor.isSpecified || !expressive) {
-            val bg = backgroundColor.takeIf { it.isSpecified }
-                ?: Color.Transparent
-            val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
-            fg.compositeOver(bg)
-        } else {
-            if (elevation.value > 0f) {
-                surfaceNextGroupColorToElevationColor(0f)
-            } else {
-                val surfaceElevation = LocalSurfaceElevation.current
-                surfaceNextGroupColorToElevationColor(surfaceElevation.to)
-            }
-        }
+        val color = rememberFlatSurfaceExpressiveColor(
+            elevation = elevation,
+            backgroundColor = backgroundColor,
+            expressive = expressive,
+        )
         Modifier
             .drawBehind {
                 drawRect(color)
@@ -927,6 +919,28 @@ fun FlatItemLayoutExpressive(
 }
 
 @Composable
+fun rememberFlatSurfaceExpressiveColor(
+    elevation: Dp = 0.dp,
+    backgroundColor: Color = Color.Unspecified,
+    expressive: Boolean = LocalExpressive.current,
+): Color {
+    val color = if (backgroundColor.isSpecified || !expressive) {
+        val bg = backgroundColor.takeIf { it.isSpecified }
+            ?: Color.Transparent
+        val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
+        fg.compositeOver(bg)
+    } else {
+        if (elevation.value > 0f) {
+            surfaceNextGroupColorToElevationColor(0f)
+        } else {
+            val surfaceElevation = LocalSurfaceElevation.current
+            surfaceNextGroupColorToElevationColor(surfaceElevation.to)
+        }
+    }
+    return color
+}
+
+@Composable
 fun FlatSurfaceExpressive(
     modifier: Modifier = Modifier,
     elevation: Dp = 0.dp,
@@ -937,19 +951,11 @@ fun FlatSurfaceExpressive(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val background = run {
-        val color = if (backgroundColor.isSpecified || !expressive) {
-            val bg = backgroundColor.takeIf { it.isSpecified }
-                ?: Color.Transparent
-            val fg = MaterialTheme.colorScheme.surfaceColorAtElevationSemi(elevation)
-            fg.compositeOver(bg)
-        } else {
-            if (elevation.value > 0f) {
-                surfaceNextGroupColorToElevationColor(0f)
-            } else {
-                val surfaceElevation = LocalSurfaceElevation.current
-                surfaceNextGroupColorToElevationColor(surfaceElevation.to)
-            }
-        }
+        val color = rememberFlatSurfaceExpressiveColor(
+            elevation = elevation,
+            backgroundColor = backgroundColor,
+            expressive = expressive,
+        )
         Modifier
             .drawBehind {
                 drawRect(color)

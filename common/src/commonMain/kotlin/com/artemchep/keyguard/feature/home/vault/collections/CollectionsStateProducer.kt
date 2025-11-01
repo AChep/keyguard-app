@@ -215,7 +215,6 @@ fun collectionsScreenState(
                     val collections = selectedCollections.values
                         .map { it.collection }
                     val route = VaultRoute.by(
-                        translator = this,
                         collections = collections,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -264,7 +263,6 @@ fun collectionsScreenState(
                                 title = Res.string.items.wrap(),
                                 onClick = onClick {
                                     val route = VaultRoute.by(
-                                        translator = this@produceScreenState,
                                         collection = collection,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)

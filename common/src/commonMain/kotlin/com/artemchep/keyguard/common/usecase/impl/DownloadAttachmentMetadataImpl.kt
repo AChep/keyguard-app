@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import app.keemobile.kotpass.database.modifiers.binaries
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
@@ -10,10 +11,17 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.service.keepass.KeePassUtil
+import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
+import com.artemchep.keyguard.common.service.keepass.parseAttachmentUrl
+import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.core.store.DatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.get
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
@@ -27,7 +35,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenOrganizationRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
-import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
@@ -39,14 +47,16 @@ import java.net.UnknownHostException
  * @author Artem Chepurnyi
  */
 class DownloadAttachmentMetadataImpl2(
-    private val tokenRepository: BitwardenTokenRepository,
+    private val tokenRepository: ServiceTokenRepository,
     private val cipherRepository: BitwardenCipherRepository,
     private val profileRepository: BitwardenProfileRepository,
     private val organizationRepository: BitwardenOrganizationRepository,
     private val databaseManager: DatabaseManager,
     private val cipherEncryptor: CipherEncryptor,
     private val cryptoGenerator: CryptoGenerator,
+    private val base32Service: Base32Service,
     private val base64Service: Base64Service,
+    private val fileService: FileService,
     private val json: Json,
     private val httpClient: HttpClient,
 ) : DownloadAttachmentMetadata {
@@ -58,7 +68,9 @@ class DownloadAttachmentMetadataImpl2(
         databaseManager = directDI.instance(),
         cipherEncryptor = directDI.instance(),
         cryptoGenerator = directDI.instance(),
+        base32Service = directDI.instance(),
         base64Service = directDI.instance(),
+        fileService = directDI.instance(),
         json = directDI.instance(),
         httpClient = directDI.instance(),
     )
@@ -83,18 +95,20 @@ class DownloadAttachmentMetadataImpl2(
                 remoteCipherId = remoteCipherId,
                 attachmentId = attachmentId,
                 // data
-                url = data.url,
-                urlIsOneTime = data.urlIsOneTime,
+                source = data.source,
                 name = data.name,
                 encryptionKey = data.encryptionKey,
             )
         }
 
     private class AttachmentData(
-        val url: String,
-        val urlIsOneTime: Boolean,
+        val source: DownloadAttachmentRequestData.Source,
         val name: String,
-        val encryptionKey: ByteArray,
+        /**
+         * Encryption key, if the attachment needs to be decrypted,,
+         * `null` otherwise.
+         */
+        val encryptionKey: ByteArray? = null,
     )
 
     private fun getLatestAttachmentData(
@@ -118,6 +132,77 @@ class DownloadAttachmentMetadataImpl2(
         val accountId = AccountId(cipher.accountId)
         val token = tokenRepository.getById(id = accountId).bind()
         requireNotNull(token)
+
+        when (token) {
+            is KeePassToken -> getLatestAttachmentDataKeePass(
+                localCipherId = localCipherId,
+                remoteCipherId = remoteCipherId,
+                attachmentId = attachmentId,
+                token = token,
+                attachment = attachment,
+            )
+
+            is BitwardenToken -> getLatestAttachmentDataBitwarden(
+                localCipherId = localCipherId,
+                remoteCipherId = remoteCipherId,
+                attachmentId = attachmentId,
+                token = token,
+                cipher = cipher,
+                attachment = attachment,
+            )
+        }.bind()
+    }
+
+    private fun getLatestAttachmentDataKeePass(
+        localCipherId: String,
+        remoteCipherId: String?,
+        attachmentId: String,
+        // pre-loaded
+        token: KeePassToken,
+        attachment: BitwardenCipher.Attachment.Remote,
+    ): IO<AttachmentData> = ioEffect {
+        val keePassDb = openKeePassDatabase(
+            token = token,
+            fileService = fileService,
+            base64Service = base64Service,
+        )
+
+        val hash = KeePassUtil.parseAttachmentUrl(
+            url = requireNotNull(attachment.url),
+            base32Service = base32Service,
+        )
+
+        val data = keePassDb.binaries
+            .entries
+            .firstNotNullOfOrNull { entry ->
+                val entryHash = entry.value.getContent()
+                    .let(cryptoGenerator::hashSha256)
+                entry.value.takeIf { entryHash.contentEquals(hash) }
+            }
+            // failed to find the attachment data
+            ?: kotlin.run {
+                val msg = "Could not requested attachment data!"
+                throw RuntimeException(msg)
+            }
+        val source = DownloadAttachmentRequestData.DirectSource(
+            data = data.rawContent,
+        )
+        AttachmentData(
+            source = source,
+            name = attachment.fileName,
+        )
+    }
+
+    private fun getLatestAttachmentDataBitwarden(
+        localCipherId: String,
+        remoteCipherId: String,
+        attachmentId: String,
+        // pre-loaded
+        token: BitwardenToken,
+        cipher: BitwardenCipher,
+        attachment: BitwardenCipher.Attachment.Remote,
+    ): IO<AttachmentData> = ioEffect {
+        val accountId = AccountId(token.id)
         val profile = profileRepository.getById(id = accountId).toIO().bind()
         requireNotNull(profile)
         val organizations = organizationRepository.getByAccountId(id = accountId).bind()
@@ -186,11 +271,14 @@ class DownloadAttachmentMetadataImpl2(
             val model = BitwardenCipher.Attachment
                 .encrypted(attachment = entity)
                 .transform(crypto = cta)
-            AttachmentData(
+            val source = DownloadAttachmentRequestData.UrlSource(
                 url = requireNotNull(model.url),
                 urlIsOneTime = true,
+            )
+            AttachmentData(
+                source = source,
                 name = model.fileName,
-                encryptionKey = base64Service.decode(model.keyBase64),
+                encryptionKey = model.keyBase64?.let(base64Service::decode),
             )
         }.getOrElse {
             // TODO: Throw properly!
@@ -198,11 +286,14 @@ class DownloadAttachmentMetadataImpl2(
                 throw it
             }
             it.printStackTrace()
-            AttachmentData(
+            val source = DownloadAttachmentRequestData.UrlSource(
                 url = requireNotNull(attachment.url),
                 urlIsOneTime = false,
+            )
+            AttachmentData(
+                source = source,
                 name = attachment.fileName,
-                encryptionKey = base64Service.decode(attachment.keyBase64),
+                encryptionKey = attachment.keyBase64?.let(base64Service::decode),
             )
         }
     }

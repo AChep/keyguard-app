@@ -47,6 +47,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.AccountId
@@ -72,6 +73,7 @@ import com.artemchep.keyguard.common.model.LinkInfoExecute
 import com.artemchep.keyguard.common.model.LinkInfoLaunch
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
+import com.artemchep.keyguard.common.model.UsernameVariation
 import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.alertScore
@@ -884,7 +886,7 @@ fun vaultViewScreenState(
                 shortcut@{
                     val visible = !visibilityGlobalSink.value.value
                     executeWithRePrompt(
-                        reprompt = visible && needsRePrompt
+                        reprompt = visible && needsRePrompt,
                     ) {
                         visibilityGlobalSink.value = Visibility.Event(
                             value = visible,
@@ -1259,6 +1261,68 @@ private fun RememberStateFlowScope.oh(
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
     verify: ((() -> Unit) -> Unit)?,
 ) = flow<VaultViewItem> {
+    val hasWiFi = kotlin.run {
+        val ssid = cipher.login?.username
+            ?: cipher.fields
+                .firstNotNullOfOrNull { field ->
+                    field.value?.takeIf { field.name == "WiFi SSID" }
+                        ?: field.value?.takeIf { field.name == "SSID" }
+                }
+        if (ssid.isNullOrBlank()) {
+            return@run false
+        }
+
+        val password = cipher.login?.password
+        val auth = cipher.fields
+            .firstNotNullOfOrNull { field ->
+                field.value
+                    ?.takeIf { field.name == "WiFi Authentication Type" }
+            }
+        val hidden = cipher.fields
+            .firstNotNullOfOrNull { field ->
+                field.value
+                    ?.takeIf { field.name == "WiFi Hidden" }
+            }
+        if (auth == null && hidden == null) {
+            return@run false
+        }
+
+        val specialChars = listOf(
+            '\\',
+            ';',
+            ',',
+            '"',
+            ':',
+        )
+        val payload = listOf(
+            "S" to ssid,
+            "T" to auth,
+            "P" to password,
+            "H" to hidden,
+        )
+            .mapNotNull { (key, value) ->
+                // Ignore empty value
+                if (value == null) {
+                    return@mapNotNull null
+                }
+
+                key to value
+            }
+            .joinToString(separator = ";") { (key, value) ->
+                val escapedValue = specialChars
+                    .fold(value) { v, char ->
+                        v.replace("$char", "\\$char")
+                    }
+                "$key:$escapedValue"
+            }
+        val qr = VaultViewItem.Qr(
+            id = "qr",
+            data = "WIFI:$payload;;",
+        )
+        emit(qr)
+        return@run true
+    }
+
     val cipherError = cipher.service.error
     if (cipherError != null && !cipherError.expired(cipher.revisionDate)) {
         val time = dateFormatter.formatDateTime(cipherError.revisionDate)
@@ -1537,21 +1601,28 @@ private fun RememberStateFlowScope.oh(
     if (cipherLogin != null) {
         val cipherLoginUsername = cipherLogin.username
         if (cipherLoginUsername != null) {
-            val usernameVariation = UsernameVariation2.of(
-                getGravatarUrl,
-                cipherLoginUsername,
-            )
+            val usernameVariation = if (hasWiFi) {
+                UsernameVariation2.Ssid
+            } else {
+                UsernameVariation2.of(
+                    getGravatarUrl,
+                    cipherLoginUsername,
+                )
+            }
+            val title = if (hasWiFi) {
+                translate(Res.string.ssid)
+            } else translate(Res.string.username)
             val model = create(
                 copy = copy,
                 id = "login.username",
                 accountId = account.id,
-                title = translate(Res.string.username),
+                title = title,
                 value = cipherLoginUsername,
                 shortcut = KeyShortcut(
                     Key.C,
                     isCtrlPressed = true,
                 ),
-                username = true,
+                username = !hasWiFi,
                 elevated = true,
                 leading = {
                     UsernameVariationIcon(usernameVariation = usernameVariation)
@@ -2110,9 +2181,12 @@ private fun RememberStateFlowScope.oh(
                 }
         }
     if (linkedApps.isNotEmpty()) {
+        val sectionText = if (linkedApps.size > 1) {
+            translate(Res.string.linked_apps)
+        } else translate(Res.string.linked_app)
         val section = VaultViewItem.Section(
             id = "link.app",
-            text = translate(Res.string.linked_apps),
+            text = sectionText,
         )
         emit(section)
         // items
@@ -2152,9 +2226,12 @@ private fun RememberStateFlowScope.oh(
                 }
         }
     if (linkedWebsites.isNotEmpty()) {
+        val sectionText = if (linkedWebsites.size > 1) {
+            translate(Res.string.linked_uris)
+        } else translate(Res.string.linked_uri)
         val section = VaultViewItem.Section(
             id = "link.website",
-            text = translate(Res.string.linked_uris),
+            text = sectionText,
         )
         emit(section)
         // items
@@ -2184,9 +2261,12 @@ private fun RememberStateFlowScope.oh(
             }
     }
     if (cipher.fields.isNotEmpty()) {
+        val sectionText = if (cipher.fields.size > 1) {
+            translate(Res.string.custom_fields)
+        } else translate(Res.string.custom_field)
         val section = VaultViewItem.Section(
             id = "custom",
-            text = translate(Res.string.custom_fields),
+            text = sectionText,
         )
         emit(section)
         // items
@@ -2195,7 +2275,7 @@ private fun RememberStateFlowScope.oh(
                 fun createAction(
                     value: Boolean,
                 ) = FlatItemAction(
-                    title = TextHolder.Value("Toggle value"),
+                    title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
                     trailing = {
                         Switch(
                             checked = !value,
@@ -2367,10 +2447,62 @@ private fun RememberStateFlowScope.oh(
                 }
 
                 is DSecret.Attachment.Local -> {
-                    // TODO: Show local attachments.
+                    val downloadIo = kotlin.run {
+                        ioUnit()
+                    }
+                    val removeIo = kotlin.run {
+                        ioUnit()
+                    }
+
+                    val actualItem = createAttachmentItem(
+                        tag = DownloadInfoEntity2.AttachmentDownloadTag(
+                            localCipherId = cipher.id,
+                            remoteCipherId = cipher.service.remote?.id,
+                            attachmentId = attachment.id,
+                        ),
+                        selectionHandle = selectionHandle,
+                        sharingScope = sharingScope,
+                        attachment = attachment,
+                        launchViewCipherData = null,
+                        downloadManager = downloadManager,
+                        downloadIo = downloadIo,
+                        removeIo = removeIo,
+                        verify = verify,
+                    )
+                    val wrapperItem = VaultViewItem.Attachment(
+                        id = actualItem.key,
+                        item = actualItem,
+                    )
+                    emit(wrapperItem)
                 }
             }
         }
+    }
+
+    if (cipher.tags.isNotEmpty()) {
+        val sectionText = if (cipher.tags.size > 1) {
+            translate(Res.string.tags)
+        } else translate(Res.string.tag)
+        val section = VaultViewItem.Section(
+            id = "tags",
+            text = sectionText,
+        )
+        emit(section)
+
+        val f = VaultViewItem.Tags(
+            id = "tag.0",
+            tags = cipher.tags,
+            onClick = { tag ->
+                action {
+                    val route = VaultRoute.by(
+                        tag = tag,
+                    )
+                    val intent = NavigationIntent.NavigateToRoute(route)
+                    navigate(intent)
+                }
+            },
+        )
+        emit(f)
     }
 
     if (folder != null) {
@@ -2388,7 +2520,6 @@ private fun RememberStateFlowScope.oh(
                         name = it.name,
                         onClick = onClick {
                             val route = VaultRoute.by(
-                                translator = this@oh,
                                 folder = it.folder,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -2398,7 +2529,6 @@ private fun RememberStateFlowScope.oh(
                 },
             onClick = onClick {
                 val route = VaultRoute.by(
-                    translator = this@oh,
                     folder = folder.folder,
                 )
                 val intent = NavigationIntent.NavigateToRoute(route)
@@ -2425,7 +2555,6 @@ private fun RememberStateFlowScope.oh(
                 title = collection.name,
                 onClick = onClick {
                     val route = VaultRoute.by(
-                        translator = this@oh,
                         collection = collection,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -2467,15 +2596,24 @@ private fun RememberStateFlowScope.oh(
     emit(s)
     val x = VaultViewItem.Label(
         id = "account",
-        text = annotate(
-            Res.string.vault_view_saved_to_label,
-            account.username to SpanStyle(
-                color = contentColor,
-            ),
-            account.host to SpanStyle(
-                color = contentColor,
-            ),
-        ),
+        text = if (account.username != null) {
+            annotate(
+                Res.string.vault_view_saved_to_label,
+                account.username to SpanStyle(
+                    color = contentColor,
+                ),
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        } else {
+            annotate(
+                Res.string.vault_view_saved_to_account_name_label,
+                account.host to SpanStyle(
+                    color = contentColor,
+                ),
+            )
+        },
     )
     emit(x)
     val createdDate = cipher.createdDate

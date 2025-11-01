@@ -14,10 +14,12 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -45,6 +47,8 @@ import com.artemchep.keyguard.copy.ConnectivityServiceAndroid
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
 import com.artemchep.keyguard.copy.DirsServiceAndroid
+import com.artemchep.keyguard.copy.FileServiceAndroid
+import com.artemchep.keyguard.copy.FileWatcherServiceAndroid
 import com.artemchep.keyguard.copy.LinkInfoExtractorLaunch
 import com.artemchep.keyguard.copy.LogRepositoryAndroid
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
@@ -169,6 +173,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<DirsService> {
         DirsServiceAndroid(this)
     }
+    bindSingleton<FileWatcherService> {
+        FileWatcherServiceAndroid(this)
+    }
     bindSingleton<PowerService> {
         PowerServiceAndroid(this)
     }
@@ -190,6 +197,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<TextService> {
         TextServiceAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<FileService> {
+        FileServiceAndroid(
             directDI = this,
         )
     }

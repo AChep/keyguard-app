@@ -1,12 +1,9 @@
 package com.artemchep.keyguard.feature
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.animation.togetherWith
@@ -16,11 +13,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 private const val PROMO_DURATION_MS = 1500L
@@ -33,11 +31,21 @@ enum class PromoViewStatus {
 @Composable
 fun rememberPromoViewStatus(
     playPromo: Boolean,
+    ready: Boolean = true,
 ): State<PromoViewStatus> {
+    val updatedReady by rememberUpdatedState(ready)
+
     val initialState = if (playPromo) PromoViewStatus.PROMO else PromoViewStatus.CONTENT
     return remember {
+        val readyFlow = snapshotFlow {
+            updatedReady
+        }
         flow {
             delay(PROMO_DURATION_MS)
+            // Wait for the input to be ready before starting to
+            // play the content state.
+            readyFlow
+                .first { ready -> ready }
             emit(PromoViewStatus.CONTENT)
         }
     }.collectAsState(initial = initialState)

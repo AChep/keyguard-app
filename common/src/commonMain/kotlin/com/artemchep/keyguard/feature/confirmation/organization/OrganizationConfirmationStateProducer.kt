@@ -14,8 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import arrow.core.andThen
 import arrow.core.partially1
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.displayName
+import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
@@ -27,6 +29,7 @@ import com.artemchep.keyguard.common.util.contains
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -57,6 +60,7 @@ fun organizationConfirmationState(
     organizationConfirmationState(
         args = args,
         transmitter = transmitter,
+        getAccounts = instance(),
         getProfiles = instance(),
         getOrganizations = instance(),
         getCollections = instance(),
@@ -123,6 +127,7 @@ private fun FooBar.withFolderId(folder: FolderVariant.FolderInfo): FooBar {
 
 private data class AccountVariant(
     val accountId: String,
+    val accountType: AccountType,
     val name: String,
     val text: String,
     val enabled: Boolean,
@@ -194,6 +199,7 @@ private data class FolderVariant(
 fun organizationConfirmationState(
     args: OrganizationConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<OrganizationConfirmationResult>,
+    getAccounts: GetAccounts,
     getProfiles: GetProfiles,
     getOrganizations: GetOrganizations,
     getCollections: GetCollections,
@@ -218,21 +224,30 @@ fun organizationConfirmationState(
 
     val premiumAccount = OrganizationConfirmationRoute.Args.PREMIUM_ACCOUNT in args.flags
 
-    val accountsFlow = getProfiles()
-        .map { profiles ->
-            profiles
-                .map { profile ->
-                    val enabled = profile.accountId() !in args.blacklistedAccountIds &&
-                            (!premiumAccount || profile.premium)
-                    AccountVariant(
-                        accountId = profile.accountId(),
-                        name = profile.displayName,
-                        text = profile.accountHost,
-                        enabled = enabled,
-                        accentColors = profile.accentColor,
-                    )
-                }
-        }
+    val accountsFlow = combine(
+        getAccounts(),
+        getProfiles(),
+    ) { accounts, profiles ->
+        profiles
+            .mapNotNull { profile ->
+                val account = accounts
+                    .firstOrNull(AccountId(profile.accountId))
+                    ?: return@mapNotNull null
+                val accountType = account.type
+
+                val enabled = profile.accountId() !in args.blacklistedAccountIds &&
+                        (!premiumAccount || profile.premium != false) &&
+                        (args.accountType == null || args.accountType == accountType)
+                AccountVariant(
+                    accountId = profile.accountId(),
+                    accountType = accountType,
+                    name = profile.displayName,
+                    text = profile.accountHost,
+                    enabled = enabled,
+                    accentColors = profile.accentColor,
+                )
+            }
+    }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
     val organizationsFlow = combine(
         getOrganizations(),
@@ -249,7 +264,14 @@ fun organizationConfirmationState(
                     enabled = enabled,
                 )
             } + accounts
-            .map { account ->
+            .mapNotNull { account ->
+                // KeePass doesn't have a concept of organizations,
+                // therefore we do not want to show any if such account
+                // is selected.
+                if (account.accountType == AccountType.KEEPASS) {
+                    return@mapNotNull null
+                }
+
                 val enabled = null !in args.blacklistedOrganizationIds &&
                         account.enabled
                 OrganizationVariant(

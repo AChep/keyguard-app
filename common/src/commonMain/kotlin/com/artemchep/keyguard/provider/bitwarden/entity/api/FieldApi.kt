@@ -36,3 +36,15 @@ fun FieldApi.Companion.of(
         linkedId = linkedId,
     )
 }
+
+fun FieldApi.Companion.of(
+    model: BitwardenCipher.Tag,
+) = kotlin.run {
+    val type = FieldTypeEntity.Text
+    FieldApi(
+        type = type,
+        name = "Tag",
+        value = model.name,
+        linkedId = null,
+    )
+}

@@ -21,8 +21,13 @@ object Favicon {
         getAccounts()
             .map { accounts ->
                 accounts
-                    .map {
-                        FaviconAccountServer(it)
+                    .mapNotNull { account ->
+                        val transformer = account.faviconServer
+                            ?: return@mapNotNull null
+                        FaviconAccountServer(
+                            id = account.accountId(),
+                            transformer = transformer,
+                        )
                     }
             }
             .onEach { servers ->

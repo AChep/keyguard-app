@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.SyncAll
-import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
@@ -18,11 +18,11 @@ import org.kodein.di.instance
  */
 class SyncAllImpl(
     private val logRepository: LogRepository,
-    private val tokenRepository: BitwardenTokenRepository,
+    private val tokenRepository: ServiceTokenRepository,
     private val syncByToken: SyncByToken,
 ) : SyncAll {
     companion object {
-        private const val TAG = "SyncAll.bitwarden"
+        private const val TAG = "SyncAll"
     }
 
     constructor(directDI: DirectDI) : this(

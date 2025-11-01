@@ -189,7 +189,6 @@ fun organizationsScreenState(
                                 },
                                 onClick = onClick {
                                     val route = VaultRoute.by(
-                                        translator = this@produceScreenState,
                                         organization = organization,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)

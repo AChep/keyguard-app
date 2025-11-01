@@ -16,6 +16,8 @@ fun Instant.to6DigitsNanosOfSecond(): Instant {
     return Instant.fromEpochSeconds(epochSeconds, nanos)
 }
 
+fun Instant.to0DigitsNanosOfSecond() = Instant.fromEpochSeconds(epochSeconds, 0)
+
 private fun convertNanosOfSecondTo6Digits(nanos: Int): Int {
     val multiplier = 1000
     return nanos

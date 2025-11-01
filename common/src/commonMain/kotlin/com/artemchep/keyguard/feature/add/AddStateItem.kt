@@ -224,6 +224,31 @@ sealed interface AddStateItem {
         }
     }
 
+    data class Tag<Request>(
+        override val id: String,
+        override val options: ImmutableList<ContextItem> = persistentListOf(),
+        override val state: LocalStateItem<State, Request>,
+    ) : AddStateItem, HasOptions<Tag<*>>, HasState<Tag.State, Request> {
+        override fun withOptions(
+            options: ImmutableList<ContextItem>,
+        ) = copy(
+            options = options,
+        )
+
+        sealed interface State : HasOptions<State> {
+            data class Text(
+                override val options: ImmutableList<ContextItem> = persistentListOf(),
+                val text: TextFieldModel2,
+            ) : State {
+                override fun withOptions(
+                    options: ImmutableList<ContextItem>,
+                ) = copy(
+                    options = options,
+                )
+            }
+        }
+    }
+
     data class Note<Request>(
         override val id: String,
         override val state: LocalStateItem<TextFieldModel2, Request>,

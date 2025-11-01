@@ -24,9 +24,11 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.fields
 import com.artemchep.keyguard.core.store.bitwarden.getMergeRules
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.core.store.bitwarden.login
+import com.artemchep.keyguard.core.store.bitwarden.tags
 import com.artemchep.keyguard.core.store.bitwarden.uris
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.platform.recordException
@@ -663,9 +665,10 @@ class SyncEngine(
                 model
             },
             localDecoder = { rawLocal, remote ->
+                var local = rawLocal
                 // Inject the URL checksums into the list of URLs before
                 // processing the entry.
-                val local = BitwardenCipher.login.notNull.uris.modify(rawLocal) { uris ->
+                local = BitwardenCipher.login.notNull.uris.modify(local) { uris ->
                     uris
                         .map { uri ->
                             if (uri.uriChecksumBase64 != null) return@map uri
@@ -679,6 +682,22 @@ class SyncEngine(
                             )
                         }
                 }
+                // Inject tags as custom fields and get rid of the
+                // tags parameters, so we never can accidentally
+                // duplicate them.
+                local = BitwardenCipher.fields.modify(local) { fields ->
+                    val tagFields = local
+                        .tags
+                        .map { tag ->
+                            BitwardenCipher.Field(
+                                name = "Tag",
+                                value = tag.name,
+                                type = BitwardenCipher.Field.Type.Text,
+                            )
+                        }
+                    fields + tagFields
+                }
+                local = BitwardenCipher.tags.set(local, emptyList())
 
                 val itemKey = local.keyBase64
                     ?.let(base64Service::decode)

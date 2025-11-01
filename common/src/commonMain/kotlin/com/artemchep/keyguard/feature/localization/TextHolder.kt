@@ -24,3 +24,10 @@ fun textResource(text: TextHolder): String = when (text) {
     is TextHolder.Value -> text.data
     is TextHolder.Res -> stringResource(text.data)
 }
+
+@JvmName("textResourceOrNull")
+@Composable
+fun textResource(text: TextHolder?) = when (text) {
+    null -> null
+    else -> textResource(text)
+}

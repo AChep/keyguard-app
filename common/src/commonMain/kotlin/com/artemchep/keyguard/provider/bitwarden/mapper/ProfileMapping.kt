@@ -9,7 +9,6 @@ import com.artemchep.keyguard.ui.icons.generateAccentColors
 
 fun BitwardenProfile.toDomain(
     accountHost: String,
-    accountUrl: String,
 ): DProfile {
     val accentColor = run {
         val avatarColor = runCatching {
@@ -44,13 +43,15 @@ fun BitwardenProfile.toDomain(
         privateKeyBase64 = privateKeyBase64,
         accentColor = accentColor,
         accountHost = accountHost,
-        accountUrl = accountUrl,
         name = name,
+        description = description.orEmpty(),
         premium = premium,
         hidden = hidden,
         securityStamp = securityStamp,
         twoFactorEnabled = twoFactorEnabled,
         masterPasswordHint = masterPasswordHint,
+        masterPasswordHintEnabled = masterPasswordHintEnabled,
         unofficialServer = unofficialServer,
+        serverVersion = serverVersion,
     )
 }

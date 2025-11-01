@@ -165,6 +165,7 @@ fun VaultListScreen(
     val focusRequester = remember { FocusRequester2() }
     TwoPaneScreen(
         header = { modifier ->
+            val subtitle = textResource(args.appBar?.subtitle)
             CustomSearchbarContent(
                 modifier = modifier,
                 searchFieldModifier = Modifier,
@@ -172,7 +173,7 @@ fun VaultListScreen(
                 searchFieldPlaceholder = stringResource(Res.string.vault_main_search_placeholder),
                 focusRequester = focusRequester,
                 title = args.appBar?.title,
-                subtitle = args.appBar?.subtitle,
+                subtitle = subtitle,
                 playPromo = true,
                 icon = {
                     NavigationIcon()
@@ -194,12 +195,13 @@ fun VaultListScreen(
             )
         },
     ) { modifier, tabletUi ->
+        val subtitle = textResource(args.appBar?.subtitle)
         VaultHomeScreenListPane(
             modifier = modifier,
             state = state,
             focusRequester = focusRequester,
             title = args.appBar?.title,
-            subtitle = args.appBar?.subtitle,
+            subtitle = subtitle,
             fab = args.canAddSecrets,
             tabletUi = tabletUi,
             preselect = args.preselect,

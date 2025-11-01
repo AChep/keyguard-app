@@ -1,11 +1,14 @@
 package com.artemchep.keyguard.feature.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -37,6 +41,8 @@ import com.artemchep.keyguard.feature.home.vault.component.VaultViewItem
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.Avatar
+import com.artemchep.keyguard.ui.BetaBadge
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FabState
@@ -49,6 +55,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -86,25 +93,19 @@ fun AccountViewScreen(
                     NavigationIcon()
                 },
                 actions = {
-                    val updatedOnOpenWebVault by rememberUpdatedState(
-                        newValue = AccountViewState.content.data.onOpenWebVault.getOrNull(state),
-                    )
-                    TextButton(
-                        enabled = updatedOnOpenWebVault != null,
-                        onClick = {
-                            updatedOnOpenWebVault?.invoke()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.Launch,
-                            contentDescription = null,
+                    val onOpenWebVault = AccountViewState.content.data.onOpenWebVault
+                        .getOrNull(state)
+                    if (onOpenWebVault != null) {
+                        LaunchWebVaultButton(
+                            onClick = onOpenWebVault,
                         )
-                        Spacer(
-                            modifier = Modifier
-                                .width(Dimens.buttonIconPadding),
-                        )
-                        Text(
-                            text = stringResource(Res.string.web_vault),
+                    }
+
+                    val onOpenLocalVault = AccountViewState.content.data.onOpenLocalVault
+                        .getOrNull(state)
+                    if (onOpenLocalVault != null) {
+                        LaunchLocalVaultButton(
+                            onClick = onOpenLocalVault,
                         )
                     }
 
@@ -158,71 +159,168 @@ fun AccountViewScreen(
     }
 }
 
+
+@Composable
+private fun LaunchWebVaultButton(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)?,
+) {
+    val updatedOnClick by rememberUpdatedState(onClick)
+    TextButton(
+        modifier = modifier,
+        enabled = updatedOnClick != null,
+        onClick = {
+            updatedOnClick?.invoke()
+        },
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.Launch,
+            contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(Dimens.buttonIconPadding),
+        )
+        Text(
+            text = stringResource(Res.string.web_vault),
+        )
+    }
+}
+
+
+@Composable
+private fun LaunchLocalVaultButton(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)?,
+) {
+    val updatedOnClick by rememberUpdatedState(onClick)
+    TextButton(
+        modifier = modifier,
+        enabled = updatedOnClick != null,
+        onClick = {
+            updatedOnClick?.invoke()
+        },
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.Launch,
+            contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(Dimens.buttonIconPadding),
+        )
+        Text(
+            text = stringResource(Res.string.local_vault),
+        )
+    }
+}
+
 @Composable
 private fun AccountViewTitle(
     state: AccountViewState,
-) = Column {
-    val isLoading = state.content is AccountViewState.Content.Skeleton
+) = Row(
+    verticalAlignment = Alignment.CenterVertically,
+) {
     val shimmerColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)
 
-    val host by derivedStateOf {
-        val data = AccountViewState.content.data.data.getOrNull(state)
-        data?.host.orEmpty()
+    val data = AccountViewState.content.data.data
+        .getOrNull(state)
+    Avatar {
+        val imageRes = data?.type?.logoImageRes
+        if (imageRes != null) {
+            Image(
+                modifier = Modifier
+                    .fillMaxSize(),
+                painter = painterResource(imageRes),
+                contentDescription = null,
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .shimmer()
+                    .fillMaxSize()
+                    .background(shimmerColor),
+            )
+        }
     }
-    if (isLoading) {
-        Box(
-            modifier = Modifier
-                .height(IntrinsicSize.Min),
-        ) {
+    Spacer(
+        modifier = Modifier
+            .width(16.dp),
+    )
+    Column {
+        val isLoading = state.content is AccountViewState.Content.Skeleton
+        if (isLoading) {
             Box(
                 modifier = Modifier
-                    .shimmer()
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.28f)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(shimmerColor),
-            )
-            // only needed to measure the text size
+                    .height(IntrinsicSize.Min),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .shimmer()
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.28f)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(shimmerColor),
+                )
+                // only needed to measure the text size
+                Text(
+                    "",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .height(IntrinsicSize.Min),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .shimmer()
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.45f)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(shimmerColor),
+                )
+                // only needed to measure the text size
+                Text(
+                    "",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+        } else {
+            val name = data?.type?.fullName
+                .orEmpty()
+            val host = data?.host
+                .orEmpty()
             Text(
-                "",
+                text = host,
                 style = MaterialTheme.typography.labelSmall,
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
             )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier
+                        .weight(1f, fill = false),
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+                if (data?.type?.beta == true) {
+                    Spacer(
+                        modifier = Modifier
+                            .width(8.dp),
+                    )
+                    BetaBadge()
+                }
+            }
         }
-        Box(
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .height(IntrinsicSize.Min),
-        ) {
-            Box(
-                modifier = Modifier
-                    .shimmer()
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.45f)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(shimmerColor),
-            )
-            // only needed to measure the text size
-            Text(
-                "",
-                style = MaterialTheme.typography.titleMedium,
-            )
-        }
-    } else {
-        Text(
-            text = host,
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalContentColor.current
-                .combineAlpha(MediumEmphasisAlpha),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 2,
-        )
-        Text(
-            text = "Bitwarden",
-            style = MaterialTheme.typography.titleMedium,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
     }
 }
 

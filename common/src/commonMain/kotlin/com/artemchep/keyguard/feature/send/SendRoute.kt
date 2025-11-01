@@ -5,8 +5,12 @@ import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSendFilter
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.send.search.SendSort
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.account
+import com.artemchep.keyguard.res.accounts
 
 data class SendRoute(
     val args: Args = Args(),
@@ -24,11 +28,11 @@ data class SendRoute(
         fun by(accounts: Collection<DAccount>) = SendRoute(
             args = Args(
                 appBar = Args.AppBar(
-                    title = accounts.joinToString { it.username },
+                    title = accounts.joinToString { it.username ?: it.host },
                     subtitle = if (accounts.size > 1) {
-                        "Accounts"
+                        TextHolder.Res(Res.string.accounts)
                     } else {
-                        "Account"
+                        TextHolder.Res(Res.string.account)
                     },
                 ),
                 filter = DSendFilter.Or(
@@ -71,7 +75,7 @@ data class SendRoute(
 
         data class AppBar(
             val title: String? = null,
-            val subtitle: String? = null,
+            val subtitle: TextHolder? = null,
         )
     }
 

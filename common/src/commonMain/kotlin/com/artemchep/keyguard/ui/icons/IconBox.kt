@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.ui.HighEmphasisAlpha
+import com.artemchep.keyguard.ui.theme.combineAlpha
 
 @Suppress("NOTHING_TO_INLINE")
 inline fun icon(
@@ -50,8 +51,9 @@ fun IconBox(
     Box {
         Icon(main, null)
         if (secondary != null) {
+            val alphaColor = LocalContentColor.current.alpha
             val backgroundColor = secondaryBackground()
-                .copy(alpha = HighEmphasisAlpha)
+                .copy(alpha = HighEmphasisAlpha * alphaColor)
             Box(
                 Modifier
                     .align(Alignment.BottomEnd)
@@ -63,7 +65,8 @@ fun IconBox(
                     Modifier
                         .padding(1.dp)
                         .size(12.dp),
-                    tint = secondaryTint(),
+                    tint = secondaryTint()
+                        .combineAlpha(alphaColor),
                 )
             }
         }

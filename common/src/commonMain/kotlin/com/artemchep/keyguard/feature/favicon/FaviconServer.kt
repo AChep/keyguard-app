@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.favicon
 
-import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.feature.auth.common.util.verifyIsLocalUrl
 import io.ktor.http.Url
 
@@ -11,12 +10,9 @@ interface FaviconServer {
 }
 
 class FaviconAccountServer(
-    account: DAccount,
+    override val id: String,
+    private val transformer: (String) -> String,
 ) : FaviconServer {
-    override val id: String = account.accountId()
-
-    private val transformer = account.faviconServer
-
     override fun transform(
         url: String,
     ): String? = kotlin.runCatching {

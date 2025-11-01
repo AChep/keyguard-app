@@ -78,7 +78,10 @@ fun SearchTextField(
     trailing: @Composable () -> Unit,
     onTextChange: ((String) -> Unit)?,
 ) {
-    val promoState = rememberPromoViewStatus(playPromo)
+    val promoState = rememberPromoViewStatus(
+        playPromo = playPromo,
+        ready = onTextChange != null,
+    )
 
     val interactionSource = remember {
         MutableInteractionSource()

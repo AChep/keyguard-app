@@ -19,6 +19,7 @@ import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
@@ -180,7 +181,7 @@ fun produceSyncState(
                                     args = VaultRoute.Args(
                                         appBar = VaultRoute.Args.AppBar(
                                             title = translate(Res.string.items),
-                                            subtitle = translate(Res.string.syncstatus_header_title),
+                                            subtitle = TextHolder.Res(Res.string.syncstatus_header_title),
                                         ),
                                         filter = filter,
                                         trash = null,

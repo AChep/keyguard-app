@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.usecase.SyncById
-import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -15,11 +15,11 @@ import org.kodein.di.instance
  * @author Artem Chepurnyi
  */
 class SyncByIdImpl(
-    private val tokenRepository: BitwardenTokenRepository,
+    private val tokenRepository: ServiceTokenRepository,
     private val syncByToken: SyncByToken,
 ) : SyncById {
     companion object {
-        private const val TAG = "SyncById.bitwarden"
+        private const val TAG = "SyncById"
     }
 
     constructor(directDI: DirectDI) : this(
@@ -30,8 +30,8 @@ class SyncByIdImpl(
     override fun invoke(accountId: AccountId): IO<Boolean> = tokenRepository.getSnapshot()
         // Find the correct account model
         // by its account id.
-        .map { accounts ->
-            accounts
+        .map { tokens ->
+            tokens
                 .firstOrNull { it.id == accountId.id }
         }
         .flatMap { token ->

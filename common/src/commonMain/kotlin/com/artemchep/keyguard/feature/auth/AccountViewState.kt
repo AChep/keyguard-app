@@ -29,6 +29,7 @@ data class AccountViewState(
             val actions: List<ContextItem>,
             val primaryAction: PrimaryAction? = null,
             val onOpenWebVault: (() -> Unit)? = null,
+            val onOpenLocalVault: (() -> Unit)? = null,
         ) : Content {
             companion object;
 

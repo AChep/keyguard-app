@@ -45,7 +45,7 @@ jobs:
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"
@@ -116,7 +116,7 @@ jobs:
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"
@@ -178,7 +178,7 @@ jobs:
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"
@@ -216,7 +216,7 @@ jobs:
         run: |
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"
@@ -256,7 +256,7 @@ jobs:
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"

@@ -671,8 +671,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2476,
-    "target": 3900,
+    "translated": 2653,
+    "target": 4202,
     "approved": 0,
     "voted": 11,
     "positiveVotes": 2,
@@ -869,13 +869,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5481,
-    "target": 5095,
-    "approved": 5708,
+    "translated": 5658,
+    "target": 5258,
+    "approved": 5885,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5438
+    "winning": 5615
   },
   {
     "user": {
@@ -1039,8 +1039,8 @@
     "user": {
       "id": "16075040",
       "username": "mctaylors",
-      "fullName": "Vlad Taylor (mctaylors)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16075040/medium/84072564a8bed162e87dd552ecd7232b.jpeg",
+      "fullName": "mctaylors",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16075040/medium/54dc43c6c4780edc9390b67aee71c4d6.jpg",
       "joined": "2025-07-04 06:47:47"
     },
     "languages": [

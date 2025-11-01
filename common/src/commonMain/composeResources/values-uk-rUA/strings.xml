@@ -29,6 +29,7 @@
     <string name="conceal_value">Приховати значення</string>
     <string name="field_label">Підпис</string>
     <string name="field_value">Значення</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Кількість відвідувань</string>
     <!--
@@ -148,7 +149,8 @@
     <string name="select_file">Виберіть файл</string>
     <string name="autofill">Автозаповнити</string>
     <string name="autofill_and_save_uri">Автоматично заповнити та зберегти інформацію про застосунок або вебсайт</string>
-    <string name="backup_disclaimer">Ваші дані — це ваша відповідальність. Щоб ніколи їх не втратити, дотримуйтесь правила резервного копіювання 3-2-1: зберігайте три копії вашого сховища на двох різних типах носіїв, а одну копію тримайте в окремому, безпечному місці.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Ключ доступу</string>
     <string name="passkey_create_header">Створити ключ доступу</string>
     <string name="passkey_unlock_header">Розблокувати Keyguard</string>
@@ -236,6 +238,7 @@
     <string name="key_type">Тип ключа</string>
     <string name="key_pair">Пара ключів</string>
     <string name="key_ssh">SSH-ключ</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">Фраза відбитку</string>
     <string name="fingerprint_phrase_help_title">Що таке фраза відбитку?</string>
     <string name="filter_auth_reprompt_items">Подвійна автентифікація</string>
@@ -246,9 +249,13 @@
     <string name="bitwarden_unofficial_server">Неофіційний сервер Bitwarden</string>
     <string name="server_version">Версія серверу <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Версія бази даних <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
     <string name="replace_key_file">Замінити файл ключа</string>
     <string name="select_key_file">Обрати файл ключа</string>
     <string name="select_database_file">Обрати файл бази даних</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
     <string name="qr_wifi_description_text">Проскануйте цей QR-код іншим пристроєм, щоб приєднатися до цієї мережі Wi-Fi.</string>
     <string name="qr_generate_button">Згенерувати QR-код</string>
     <string name="pro_tip">Порада: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">Скопійовано значення</string>
     <string name="copied_url">Скопійовано URL</string>
     <string name="copied_uri">Скопійовано URI</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Скопійовано назву пакету</string>
     <string name="copied_key">Скопійовано ключ</string>
     <string name="copied_fingerprint">Скопійовано відбиток</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
     <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
@@ -671,6 +680,8 @@
     <string name="addsend_hide_text_by_default_title">При доступі до відправлення приховувати текст</string>
     <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
     <string name="addsend_max_access_count_note">Якщо встановлено, користувачі більше не зможуть отримати доступ до цього відправлення після досягнення максимальної кількості відвідувань.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Зберігайте зашифроване сховище в хмарі.</string>
     <string name="addaccount_description_short_keepass_text">Зберігайте зашифроване сховище локально у форматі KDBX.</string>
     <string name="addaccount_header_title">Додати обліковий запис Bitwarden</string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Всі паролі з історії будуть видалені.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Видалити цей пароль з історії?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Видалити ці паролі з історії?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Вартова вежа</string>
     <string name="watchtower_section_password_strength_label">Надійність пароля</string>
     <string name="watchtower_section_security_label">Безпека</string>
@@ -1099,6 +1111,8 @@
     <string name="pref_item_autofill_save_request_title">Пропонувати зберігати дані</string>
     <string name="pref_item_autofill_save_request_text">Запитує, чи оновлювати сховище після заповнення форми</string>
     <string name="pref_item_autofill_auto_save_source_title">Автозбереження інформації про застосунок або сайт</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Автоматично очищати буфер обміну</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Негайно</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Ніколи</string>

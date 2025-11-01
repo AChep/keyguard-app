@@ -10,7 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名称</string>
     <string name="account_name">账户名</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">数据库名</string>
     <string name="enabled">已启用</string>
     <string name="disabled">已禁用</string>
     <string name="wordlist">词表</string>
@@ -29,6 +29,7 @@
     <string name="conceal_value">隐藏内容</string>
     <string name="field_label">标签</string>
     <string name="field_value">值</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">访问次数</string>
     <!--
@@ -36,8 +37,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大访问次数</string>
-    <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_beta">Beta 测试</string>
+    <string name="ready_status_alpha">Alpha 测试</string>
     <string name="learn_more">了解详情</string>
     <string name="phone_number">电话号码</string>
     <string name="passport_number">护照号码</string>
@@ -98,10 +99,10 @@
     <string name="folder">文件夹</string>
     <string name="folders">文件夹</string>
     <string name="folders_empty_label">无文件夹</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">无标签</string>
+    <string name="tag">标签</string>
+    <string name="tags">标签</string>
+    <string name="tags_empty_label">无标签</string>
     <string name="collection_none">暂无收藏</string>
     <string name="collection">收藏</string>
     <string name="collections">收藏</string>
@@ -148,7 +149,8 @@
     <string name="select_file">选择文件</string>
     <string name="autofill">自动填充</string>
     <string name="autofill_and_save_uri">自动填充并保存应用或网站信息</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">通行密钥</string>
     <string name="passkey_create_header">创建通行密钥</string>
     <string name="passkey_unlock_header">解锁 Keyguard</string>
@@ -199,7 +201,7 @@
     <string name="requested_verification_email">已请求电子邮件验证</string>
     <string name="web_vault">网页密码库</string>
     <string name="launch_web_vault">打开网页密码库</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">本地密码库</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">记住登录状态</string>
     <!-- A Trash screen -->
@@ -220,13 +222,13 @@
     <string name="encryption_random_bits_data">随机的 <xliff:g id="length" example="64">%1$d</xliff:g> 位数据</string>
     <string name="none">无</string>
     <string name="text">文本</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">关联的应用</string>
     <string name="linked_apps">关联的应用</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">关联的 URI</string>
     <string name="linked_uris">关联的 URI</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">自定义字段</string>
     <string name="custom_fields">自定义字段</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">切换值</string>
     <string name="reveal_secure_note">显示安全笔记</string>
     <string name="hide_secure_note">隐藏安全笔记</string>
     <string name="master_password_hint">主密码提示</string>
@@ -236,6 +238,7 @@
     <string name="key_type">密钥类型</string>
     <string name="key_pair">密钥对</string>
     <string name="key_ssh">SSH 密钥</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">指纹短语</string>
     <string name="fingerprint_phrase_help_title">什么是指纹？</string>
     <string name="filter_auth_reprompt_items">身份验证重新提示</string>
@@ -244,13 +247,17 @@
     <string name="bitwarden_premium">Bitwarden 高级版</string>
     <string name="bitwarden_premium_required">需要 Bitwarden 高级版</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 服务器</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">服务端版本 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">数据库版本 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
+    <string name="replace_key_file">替换密钥文件</string>
+    <string name="select_key_file">选择密钥文件</string>
+    <string name="select_database_file">选择数据库文件</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
+    <string name="qr_wifi_description_text">使用另一台设备扫描此二维码即可加入此 WiFi 网络。</string>
+    <string name="qr_generate_button">生成二维码</string>
     <string name="pro_tip">专业提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">生成独特的电子邮件地址以更好地保护隐私。</string>
     <string name="account_last_synced_at">上次同步于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">已复制值</string>
     <string name="copied_url">已复制 URL</string>
     <string name="copied_uri">已复制 URI</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">已复制包名</string>
     <string name="copied_key">已复制密钥</string>
     <string name="copied_fingerprint">已复制指纹</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
@@ -671,8 +680,10 @@
     <string name="addsend_hide_text_by_default_title">访问条目时，将默认隐藏文本</string>
     <string name="addsend_hide_email_title">隐藏电子邮件地址</string>
     <string name="addsend_max_access_count_note">设置后，当达到最大访问次数时用户将不再能够访问此条目。</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_description_short_bitwarden_text">将加密的密码库存储在云端。</string>
+    <string name="addaccount_description_short_keepass_text">使用 KDBX 文件格式在本地存储加密的密码库。</string>
     <string name="addaccount_header_title">添加 Bitwarden 账户</string>
     <string name="addaccount_disclaimer_bitwarden_label">我们与 Bitwarden, Inc. 和其任何子公司或附属机构均无隶属、关联、授权、许可关系，或任何形式的官方联系。</string>
     <!--
@@ -706,8 +717,8 @@
     <string name="addaccount2fa_otp_note">请输入您的身份验证器应用中的验证码</string>
     <string name="addaccount2fa_email_note">输入发送给 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> 的验证码。</string>
     <string name="addaccount2fa_yubikey_manual_text">手动输入 YubiKey 验证码，将光标放在下方输入框并按下 YubiKey 的按钮。</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_title">添加 KeePass 帐户</string>
+    <string name="addkeepass_header_body">将所有密码保存在一个高度加密的 KDBX 文件中，该文件直接存储在您的设备上。您可以完全掌控自己的数据。您可以将数据存储在电脑、U 盘上，或使用 Google Drive 或 Dropbox 等云服务自行同步。</string>
     <string name="provider_2fa_authenticator">身份验证器</string>
     <string name="provider_2fa_duo_organization">Duo（组织）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份验证</string>
@@ -809,7 +820,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">安全码</string>
     <string name="vault_view_saved_to_label">保存到 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">已保存至 <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">密码最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">通行密钥创建于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">这将从历史记录中删除所有密码。</string>
     <string name="passwordhistory_delete_one_confirmation_title">确定要从历史记录中删除密码吗？</string>
     <string name="passwordhistory_delete_many_confirmation_title">确定要从历史记录中删除这些密码吗？</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">概况</string>
     <string name="watchtower_section_password_strength_label">密码强度</string>
     <string name="watchtower_section_security_label">安全性</string>
@@ -1101,6 +1113,8 @@
     <string name="pref_item_autofill_save_request_title">请求保存数据</string>
     <string name="pref_item_autofill_save_request_text">填写表单时询问是否更新密码库</string>
     <string name="pref_item_autofill_auto_save_source_title">自动保存应用或网站信息</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">自动清除剪贴板</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">从不</string>

@@ -29,6 +29,7 @@
     <string name="conceal_value">값 숨기기</string>
     <string name="field_label">라벨</string>
     <string name="field_value">값</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">조회수</string>
     <!--
@@ -148,7 +149,8 @@
     <string name="select_file">파일 선택</string>
     <string name="autofill">자동 완성</string>
     <string name="autofill_and_save_uri">자동 완성하고 앱 또는 웹사이트 정보 저장</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">패스키</string>
     <string name="passkey_create_header">패스키 만들기</string>
     <string name="passkey_unlock_header">Keyguard 잠금 해제</string>
@@ -236,6 +238,7 @@
     <string name="key_type">키 유형</string>
     <string name="key_pair">키 쌍</string>
     <string name="key_ssh">SSH 키</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">핑거프린트 구문</string>
     <string name="fingerprint_phrase_help_title">핑거프린트가 뭔가요?</string>
     <string name="filter_auth_reprompt_items">인증 재요청</string>
@@ -246,9 +249,13 @@
     <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
     <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
     <string name="replace_key_file">Replace a key file</string>
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
     <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">팁: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">값을 복사했습니다.</string>
     <string name="copied_url">URL을 복사했습니다.</string>
     <string name="copied_uri">URI를 복사했습니다.</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">패키지 이름을 복사했습니다.</string>
     <string name="copied_key">키를 복사했습니다.</string>
     <string name="copied_fingerprint">핑거프린트를 복사했습니다.</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
     <string name="error_otp_key_must_not_be_empty">OTP 비밀 키는 비워둘 수 없습니다.</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
     <string name="error_failed_create_passkey">패스키를 생성하지 못했습니다.</string>
@@ -671,6 +680,8 @@
     <string name="addsend_hide_text_by_default_title">항목에 접근할 때 기본적으로 텍스트를 숨김</string>
     <string name="addsend_hide_email_title">이메일 주소 숨기기</string>
     <string name="addsend_max_access_count_note">이 값을 설정하면 최대 접근 횟수에 도달했을 때 이 항목에 접근할 수 없게 됩니다.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Bitwarden 계정 추가</string>
@@ -707,7 +718,7 @@
     <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> 이메일로 전송된 인증 코드를 입력하세요.</string>
     <string name="addaccount2fa_yubikey_manual_text">YubiKey 인증 코드를 직접 입력해 주세요. 아래 필드에 커서를 둔 뒤 YubiKey를 켜세요.</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">인증 앱</string>
     <string name="provider_2fa_duo_organization">Duo (조직)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 웹 인증</string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">모든 비밀번호 기록을 삭제합니다.</string>
     <string name="passwordhistory_delete_one_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
     <string name="passwordhistory_delete_many_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">감시탑</string>
     <string name="watchtower_section_password_strength_label">비밀번호 보안 강도</string>
     <string name="watchtower_section_security_label">보안</string>
@@ -1099,6 +1111,8 @@
     <string name="pref_item_autofill_save_request_title">데이터 저장 확인</string>
     <string name="pref_item_autofill_save_request_text">양식을 입력한 뒤에 보관함을 업데이트할 것인지 물어봅니다.</string>
     <string name="pref_item_autofill_auto_save_source_title">앱 또는 웹사이트 정보 자동 저장</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">클립보드 자동 비우기</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">즉시</string>
     <string name="pref_item_clipboard_auto_clear_never_text">비우지 않음</string>

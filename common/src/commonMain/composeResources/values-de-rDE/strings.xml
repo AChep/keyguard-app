@@ -29,6 +29,7 @@
     <string name="conceal_value">Verstecke den Wert</string>
     <string name="field_label">Bezeichnung</string>
     <string name="field_value">Wert</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Anzahl der Ansichten</string>
     <!--
@@ -148,7 +149,8 @@
     <string name="select_file">Datei wählen</string>
     <string name="autofill">Automatisches Ausfüllen</string>
     <string name="autofill_and_save_uri">Autofill und App- oder Website-Info speichern</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Passkey erstellen</string>
     <string name="passkey_unlock_header">Keyguard entsperren</string>
@@ -236,6 +238,7 @@
     <string name="key_type">Schlüssel-Typ</string>
     <string name="key_pair">Schlüsselpaar</string>
     <string name="key_ssh">SSH-Schlüssel</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">Fingerabdrucksatz</string>
     <string name="fingerprint_phrase_help_title">Was ist ein Fingerabdruck?</string>
     <string name="filter_auth_reprompt_items">Authentifizierung erneut anfordern</string>
@@ -246,9 +249,13 @@
     <string name="bitwarden_unofficial_server">Inoffizieller Bitwarden-Server</string>
     <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
     <string name="replace_key_file">Replace a key file</string>
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
     <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Profi-Tipp: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">Wert kopiert</string>
     <string name="copied_url">URL kopiert</string>
     <string name="copied_uri">URI kopiert</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Paketname kopiert</string>
     <string name="copied_key">Schlüssel kopiert</string>
     <string name="copied_fingerprint">Fingerabdruck kopiert</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
     <string name="error_otp_key_must_not_be_empty">Einmalkennwort darf nicht leer sein</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des Einmalpassworts</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
@@ -671,6 +680,8 @@
     <string name="addsend_hide_text_by_default_title">Beim Zugriff auf dieses Element, den Text standardmäßig ausblenden</string>
     <string name="addsend_hide_email_title">E-Mail-Adresse ausblenden</string>
     <string name="addsend_max_access_count_note">Wenn aktiviert, können Benutzer nach Erreichen der maximalen Zugriffsanzahl nicht mehr auf dieses Element zugreifen.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Bitwarden-Account hinzufügen</string>
@@ -707,7 +718,7 @@
     <string name="addaccount2fa_email_note">Geben Sie den Bestätigungscode ein, der an <xliff:g id="email" example="username@example.com">%1$s</xliff:g> gesendet wurde.</string>
     <string name="addaccount2fa_yubikey_manual_text">Geben Sie den YubiKey Authentifizierungscode manuell ein. Platzieren Sie den Cursor auf das Feld unten und lösen Sie den YubiKey aus.</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Authentifikator</string>
     <string name="provider_2fa_duo_organization">Duo (Organisation)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web-Authentifizierung</string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Dadurch werden alle Passwörter aus dem Verlauf entfernt.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Passwort aus dem Verlauf löschen?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Passwörter aus dem Verlauf löschen?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Wachturm</string>
     <string name="watchtower_section_password_strength_label">Passwortstärke</string>
     <string name="watchtower_section_security_label">Sicherheit</string>
@@ -1099,6 +1111,8 @@
     <string name="pref_item_autofill_save_request_title">Anfrage zum Speichern von Daten</string>
     <string name="pref_item_autofill_save_request_text">Fragt nach der Aktualisierung des Tresors, wenn das Ausfüllen eines Formulars abgeschlossen ist</string>
     <string name="pref_item_autofill_auto_save_source_title">App oder Website-Info automatisch speichern</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Zwischenablage automatisch löschen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Sofort</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nie</string>

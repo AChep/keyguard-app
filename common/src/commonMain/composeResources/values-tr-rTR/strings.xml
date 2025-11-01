@@ -10,7 +10,7 @@
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Ad</string>
     <string name="account_name">Hesap adı</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Veritabanı adı</string>
     <string name="enabled">Etkin</string>
     <string name="disabled">Devre dışı</string>
     <string name="wordlist">Kelime listesi</string>
@@ -29,6 +29,7 @@
     <string name="conceal_value">Değeri gizle</string>
     <string name="field_label">Etiket</string>
     <string name="field_value">Değer</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Erişim sayısı</string>
     <!--
@@ -98,10 +99,10 @@
     <string name="folder">Klasör</string>
     <string name="folders">Klasörler</string>
     <string name="folders_empty_label">Klasör yok</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">Etiket yok</string>
+    <string name="tag">Etiket</string>
+    <string name="tags">Etiketler</string>
+    <string name="tags_empty_label">Etiket yok</string>
     <string name="collection_none">Koleksiyon yok</string>
     <string name="collection">Koleksiyon</string>
     <string name="collections">Koleksiyonlar</string>
@@ -148,7 +149,8 @@
     <string name="select_file">Bir dosya seçin</string>
     <string name="autofill">Otomatik doldurma</string>
     <string name="autofill_and_save_uri">Uygulama veya web sitesi bilgilerini otomatik doldur ve kaydet</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Geçiş anahtarı</string>
     <string name="passkey_create_header">Geçiş anahtarı oluştur</string>
     <string name="passkey_unlock_header">Keyguard Kilidini Aç</string>
@@ -199,7 +201,7 @@
     <string name="requested_verification_email">Doğrulama e-postası talep edildi</string>
     <string name="web_vault">Web kasası</string>
     <string name="launch_web_vault">Web kasasını başlat</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Yerel kasa</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Beni hatırla</string>
     <!-- A Trash screen -->
@@ -220,13 +222,13 @@
     <string name="encryption_random_bits_data">Rastgele <xliff:g id="length" example="64">%1$d</xliff:g>-bit veri</string>
     <string name="none">Hiçbiri</string>
     <string name="text">Metin</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">Bağlı uygulama</string>
     <string name="linked_apps">Bağlı uygulamalar</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">Bağlı URI</string>
     <string name="linked_uris">Bağlı URI'ler</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Özel alan</string>
     <string name="custom_fields">Özel alanlar</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Değeri değiştir</string>
     <string name="reveal_secure_note">Güvenli notu göster</string>
     <string name="hide_secure_note">Güvenli notu gizle</string>
     <string name="master_password_hint">Ana parola ipucu</string>
@@ -236,6 +238,7 @@
     <string name="key_type">Anahtar türü</string>
     <string name="key_pair">Anahtar çifti</string>
     <string name="key_ssh">SSH Anahtarı</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">Parmak izi ifadesi</string>
     <string name="fingerprint_phrase_help_title">Parmak izi nedir?</string>
     <string name="filter_auth_reprompt_items">Kimlik doğrulama tekrarı</string>
@@ -244,13 +247,17 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Bitwarden premium gerektirir</string>
     <string name="bitwarden_unofficial_server">Resmi olmayan Bitwarden sunucusu</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">Sunucu sürümü <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Veritabanı sürümü <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
+    <string name="replace_key_file">Bir anahtar dosyasını değiştir</string>
+    <string name="select_key_file">Bir anahtar dosyası seç</string>
+    <string name="select_database_file">Bir veritabanı dosyası seç</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
+    <string name="qr_wifi_description_text">Bu WiFi ağına katılmak için bu QR kodunu başka bir cihazla tarayın.</string>
+    <string name="qr_generate_button">QR kodu oluştur</string>
     <string name="pro_tip">Profesyonel ipucu: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Daha iyi gizlilik için benzersiz e-postalar oluşturun.</string>
     <string name="account_last_synced_at">Son senkronizasyon: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">Değer kopyalandı</string>
     <string name="copied_url">URL kopyalandı</string>
     <string name="copied_uri">URI kopyalandı</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Paket adı kopyalandı</string>
     <string name="copied_key">Anahtar kopyalandı</string>
     <string name="copied_fingerprint">Parmak izi kopyalandı</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
     <string name="error_incorrect_password">Yanlış parola</string>
     <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olmamalıdır</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturulamadı, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">OTP kodu oluşturulamadı</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturulamadı</string>
@@ -671,8 +680,10 @@
     <string name="addsend_hide_text_by_default_title">Öğeye erişirken metni varsayılan olarak gizle</string>
     <string name="addsend_hide_email_title">E-posta adresini gizle</string>
     <string name="addsend_max_access_count_note">Ayarlanırsa, maksimum erişim sayısına ulaşıldıktan sonra kullanıcılar bu öğeye artık erişemez.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_description_short_bitwarden_text">Şifrelenmiş kasayı bir bulutta saklayın.</string>
+    <string name="addaccount_description_short_keepass_text">Şifrelenmiş kasayı KDBX dosya formatını kullanarak yerel olarak saklayın.</string>
     <string name="addaccount_header_title">Bitwarden hesabı ekle</string>
     <string name="addaccount_disclaimer_bitwarden_label">Bitwarden, Inc. veya yan kuruluşları veya iştirakleri ile herhangi bir şekilde bağlı, ilişkili, yetkili, onaylanmış veya resmi olarak bağlantılı değiliz.</string>
     <!--
@@ -706,8 +717,8 @@
     <string name="addaccount2fa_otp_note">Doğrulayıcı uygulamanızdan gelen doğrulama kodunu girin.</string>
     <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> adresine e-postayla gönderilen doğrulama kodunu girin.</string>
     <string name="addaccount2fa_yubikey_manual_text">YubiKey kimlik doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana yerleştirin ve YubiKey'i tetikleyin.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_title">KeePass hesabı ekle</string>
+    <string name="addkeepass_header_body">Tüm parolalarınızı doğrudan cihazınızda saklanan tek, yüksek düzeyde şifrelenmiş bir KDBX dosyasında kaydedin. Verileriniz üzerinde tam kontrole sahipsiniz. Bilgisayarınızda, bir USB sürücüde saklayın veya Google Drive veya Dropbox gibi bir bulut hizmeti kullanarak kendiniz senkronize edin.</string>
     <string name="provider_2fa_authenticator">Doğrulayıcı</string>
     <string name="provider_2fa_duo_organization">Duo (Kuruluş)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Kimlik Doğrulaması</string>
@@ -809,7 +820,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Güvenlik kodu</string>
     <string name="vault_view_saved_to_label"><xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g> adresindeki <xliff:g id="email" example="username@example.com">%1$s</xliff:g> hesabına kaydedildi</string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label"><xliff:g id="name" example="My KeePass database">%1$s</xliff:g> hesabına kaydedildi</string>
     <string name="vault_view_password_revision_label">Parola son değiştirilme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Geçiş anahtarı oluşturulma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Son değiştirilme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Bu, geçmişteki tüm parolaları kaldıracaktır.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Parola geçmişten silinsin mi?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Parolalar geçmişten silinsin mi?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Gözcü Kulesi</string>
     <string name="watchtower_section_password_strength_label">Parola gücü</string>
     <string name="watchtower_section_security_label">Güvenlik</string>
@@ -1099,6 +1111,8 @@
     <string name="pref_item_autofill_save_request_title">Verileri kaydetmeyi sor</string>
     <string name="pref_item_autofill_save_request_text">Bir formun doldurulması tamamlandığında kasayı güncellemeyi sorar</string>
     <string name="pref_item_autofill_auto_save_source_title">Uygulama veya web sitesi bilgilerini otomatik kaydet</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Panoyu otomatik olarak temizle</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Hemen</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Asla</string>

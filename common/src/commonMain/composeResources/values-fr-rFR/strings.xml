@@ -29,6 +29,7 @@
     <string name="conceal_value">Masquer la valeur</string>
     <string name="field_label">Label</string>
     <string name="field_value">Valeur</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Nombre d'accès</string>
     <!--
@@ -148,7 +149,8 @@
     <string name="select_file">Choisir un fichier</string>
     <string name="autofill">Remplissage automatique</string>
     <string name="autofill_and_save_uri">Remplissage automatique et sauvegarde des informations de l'application ou du site web</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Clé d'authentification (passkey)</string>
     <string name="passkey_create_header">Créer une clé d'authentification (passkey)</string>
     <string name="passkey_unlock_header">Déverrouiller Keyguard</string>
@@ -236,6 +238,7 @@
     <string name="key_type">Type de clé</string>
     <string name="key_pair">Paire de clés</string>
     <string name="key_ssh">Clé SSH</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">Phrase d'empreinte</string>
     <string name="fingerprint_phrase_help_title">Qu'est-ce qu'une empreinte ?</string>
     <string name="filter_auth_reprompt_items">Ré-invite automatique</string>
@@ -246,9 +249,13 @@
     <string name="bitwarden_unofficial_server">Serveur Bitwarden non-officiel</string>
     <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
     <string name="replace_key_file">Replace a key file</string>
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
     <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Astuce : <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">Valeur copiée</string>
     <string name="copied_url">URL copié</string>
     <string name="copied_uri">URI copié</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Nom du package copié</string>
     <string name="copied_key">La clé a été copiée</string>
     <string name="copied_fingerprint">L'empreinte a été copiée</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">Numéro de carte invalide</string>
     <string name="error_incorrect_password">Mot de passe incorrect</string>
     <string name="error_otp_key_must_not_be_empty">La clé secrète du mot de passe à usage unique ne doit pas être vide</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Impossible de créer une clé : il n'y a pas assez de mémoire, veuillez vérifier les paramètres de votre serveur KDF.</string>
     <string name="error_failed_generate_otp_code">Impossible de générer le code de mot de passe à usage unique (OTP)</string>
     <string name="error_failed_create_passkey">Impossible de créer une clé d'accès</string>
@@ -671,6 +680,8 @@
     <string name="addsend_hide_text_by_default_title">Lors de l'accès à cet élément, masque le texte par défaut</string>
     <string name="addsend_hide_email_title">Cacher l'adresse e-mail</string>
     <string name="addsend_max_access_count_note">Si défini, les utilisateurs ne seront plus en mesure d'accéder à cet élément une fois que le nombre maximum d'accès sera atteint.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Ajouter un compte Bitwarden</string>
@@ -707,7 +718,7 @@
     <string name="addaccount2fa_email_note">Entrez le code de vérification qui a été envoyé à <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Entrez le code d'authentification YubiKey manuellement. Placez le curseur sur le champ ci-dessous et déclenchez la YubiKey.</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Autentificateur</string>
     <string name="provider_2fa_duo_organization">Double (Organization)</string>
     <string name="provider_2fa_fido2_webauthn">Authentification Web FIDO2</string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Cela supprimera tous les mots de passe de l'historique.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Supprimer le mot de passe de l'historique ?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Supprimer les mots de passe de l'historique ?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Robustesse du mot de passe</string>
     <string name="watchtower_section_security_label">Sécurité</string>
@@ -1099,6 +1111,8 @@
     <string name="pref_item_autofill_save_request_title">Demander à sauvegarder les données</string>
     <string name="pref_item_autofill_save_request_text">Demande de mettre à jour du coffre-fort lorsque le formulaire est rempli</string>
     <string name="pref_item_autofill_auto_save_source_title">Sauvegarde automatique des informations de l'application ou du site web</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Effacer automatiquement le presse-papiers</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immédiatement</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Jamais</string>

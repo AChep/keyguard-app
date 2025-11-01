@@ -29,6 +29,7 @@
     <string name="conceal_value">隱藏內容</string>
     <string name="field_label">標籤</string>
     <string name="field_value">值</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">存取次數</string>
     <!--
@@ -148,7 +149,8 @@
     <string name="select_file">選擇檔案</string>
     <string name="autofill">自動填充</string>
     <string name="autofill_and_save_uri">自動填充並儲存應用或網站資訊</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">通行金鑰</string>
     <string name="passkey_create_header">建立通行金鑰</string>
     <string name="passkey_unlock_header">解鎖 Keyguard</string>
@@ -236,6 +238,7 @@
     <string name="key_type">金鑰型別</string>
     <string name="key_pair">金鑰對</string>
     <string name="key_ssh">SSH 金鑰</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">指紋短語</string>
     <string name="fingerprint_phrase_help_title">什麼是指紋？</string>
     <string name="filter_auth_reprompt_items">身份驗證重新提示</string>
@@ -246,9 +249,13 @@
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 伺服器</string>
     <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
     <string name="replace_key_file">Replace a key file</string>
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
     <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">專業提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">已複製值</string>
     <string name="copied_url">已複製網址</string>
     <string name="copied_uri">已複製 URI</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">已複製包名</string>
     <string name="copied_key">已複製金鑰</string>
     <string name="copied_fingerprint">已複製指紋</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">卡號無效</string>
     <string name="error_incorrect_password">密碼錯誤</string>
     <string name="error_otp_key_must_not_be_empty">一次性密碼的金鑰不能為空</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">建立金鑰失敗，記憶體不足。請檢查您的 KDF 伺服器設定。</string>
     <string name="error_failed_generate_otp_code">生成一次性驗證碼失敗</string>
     <string name="error_failed_create_passkey">建立通行金鑰失敗</string>
@@ -671,6 +680,8 @@
     <string name="addsend_hide_text_by_default_title">訪問條目時，將預設隱藏文字</string>
     <string name="addsend_hide_email_title">隱藏電子郵件地址</string>
     <string name="addsend_max_access_count_note">設定後，當達到最大訪問次數時使用者將不再能夠訪問此條目。</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">新增 Bitwarden 帳號</string>
@@ -707,7 +718,7 @@
     <string name="addaccount2fa_email_note">輸入傳送給 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> 的驗證碼。</string>
     <string name="addaccount2fa_yubikey_manual_text">手動輸入 YubiKey 驗證碼，將游標放在下方輸入框並按下 YubiKey 的按鈕。</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">身份驗證器</string>
     <string name="provider_2fa_duo_organization">Duo（組織）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份驗證</string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">這將從歷史記錄中刪除所有密碼。</string>
     <string name="passwordhistory_delete_one_confirmation_title">確定要從歷史記錄中刪除密碼嗎？</string>
     <string name="passwordhistory_delete_many_confirmation_title">確定要從歷史記錄中刪除這些密碼嗎？</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">概況</string>
     <string name="watchtower_section_password_strength_label">密碼強度</string>
     <string name="watchtower_section_security_label">安全性</string>
@@ -1101,6 +1113,8 @@
     <string name="pref_item_autofill_save_request_title">請求儲存資料</string>
     <string name="pref_item_autofill_save_request_text">填寫表單時詢問是否更新密碼庫</string>
     <string name="pref_item_autofill_auto_save_source_title">自動儲存應用或網站資訊</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">自動清除剪貼簿</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">從不</string>

@@ -29,6 +29,7 @@
     <string name="conceal_value">Piilota arvo</string>
     <string name="field_label">Otsikko</string>
     <string name="field_value">Arvo</string>
+    <string name="tag_value">Value</string>
     <!-- Access count increases every time someone opens a send and looks and the page -->
     <string name="access_count">Käyttökertojen määrä</string>
     <!--
@@ -148,7 +149,8 @@
     <string name="select_file">Select a file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="backup_disclaimer">Your data is your responsibility. To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Create a passkey</string>
     <string name="passkey_unlock_header">Unlock Keyguard</string>
@@ -236,6 +238,7 @@
     <string name="key_type">Key type</string>
     <string name="key_pair">Key pair</string>
     <string name="key_ssh">SSH Key</string>
+    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
     <string name="fingerprint_phrase">Fingerprint phrase</string>
     <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
     <string name="filter_auth_reprompt_items">Auth re-prompt</string>
@@ -246,9 +249,13 @@
     <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
     <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Clear</string>
     <string name="replace_key_file">Replace a key file</string>
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
+    <string name="replace_database_file">Replace a database file</string>
+    <string name="open_database">Open a database</string>
+    <string name="create_database">Create a database</string>
     <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -444,6 +451,7 @@
     <string name="copied_value">Copied a value</string>
     <string name="copied_url">Copied a URL</string>
     <string name="copied_uri">Copied a URI</string>
+    <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Copied a package name</string>
     <string name="copied_key">Copied a key</string>
     <string name="copied_fingerprint">Copied a fingerprint</string>
@@ -515,6 +523,7 @@
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
+    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
@@ -671,6 +680,8 @@
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_email_title">Hide email address</string>
     <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Add Bitwarden account</string>
@@ -707,7 +718,7 @@
     <string name="addaccount2fa_email_note">Enter the verification code that was emailed to <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Enter the YubiKey authentication code manually. Place the cursor on the field below and trigger the YubiKey.</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a cloud service like Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (Organization)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Authentication</string>
@@ -896,6 +907,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">This will remove all passwords from the history.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
+    <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Salasanan vahvuus</string>
     <string name="watchtower_section_security_label">Tietoturva</string>
@@ -1099,6 +1111,8 @@
     <string name="pref_item_autofill_save_request_title">Pyydä tallentamaan tietoja</string>
     <string name="pref_item_autofill_save_request_text">Kysyy holvin päivittämistä, kun lomakkeen täyttö on valmis</string>
     <string name="pref_item_autofill_auto_save_source_title">Tallenna automaattisesti sovelluksen tai verkkosivuston tiedot</string>
+    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Tyhjennä leikepöytä automaattisesti</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Välittömästi</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Ei koskaan</string>

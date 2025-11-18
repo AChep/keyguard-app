@@ -43,29 +43,7 @@ jobs:
       - name: "Update contributors"
         run: |
           python .github/update_localization_contributors.py ${{ secrets.CROWDIN_PERSONAL_TOKEN }} ${{ secrets.CROWDIN_PROJECT_ID }}
-      - name: "Check if any changes"
-        id: check-changes
-        run: |
-          has_changes=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)
-          echo "$has_changes"
-          echo "HAS_CHANGES=$has_changes" >> "$GITHUB_OUTPUT"
-      - name: Commit and push changes
-        uses: devops-infra/action-commit-push@v1.0.3
-        if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
+      - uses: ./.github/actions/github_submit_pr
         with:
-          github_token: "${{ secrets.PERSONAL_TOKEN }}"
-          add_timestamp: false
-          commit_prefix: "[AUTO]"
-          commit_message: "Update localization library"
-          force: true
-          target_branch: localization_action
-      - name: Create pull request
-        uses: devops-infra/action-pull-request@v1.0.2
-        if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
-        with:
-          github_token: "${{ secrets.PERSONAL_TOKEN }}"
-          source_branch: localization_action
-          target_branch: master
-          assignee: AChep
-          label: "robot,enhancement"
-          title: New Crowdin translations by GitHub Action
+          commit-message: "Update localization library"
+          commit-branch: localization_action

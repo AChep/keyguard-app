@@ -1,0 +1,13 @@
+name: "Build Android Licenses"
+inputs:
+  build-flavor:
+    description: 'Build Flavor'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Check and Build licenses"
+      run: ./gradlew :androidApp:licenseeAndroid${{ inputs.build-flavor }}Release
+    - name: "Move licenses"
+      run: |
+        mv -f androidApp/build/reports/licensee/android${{ inputs.build-flavor }}Release/artifacts.json common/src/commonMain/composeResources/files/licenses.json

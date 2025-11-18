@@ -1,0 +1,15 @@
+name: "Build Desktop Licenses"
+runs:
+  using: "composite"
+  steps:
+    - name: "Check and Build licenses"
+      run: |
+        ./gradlew desktopApp:licenseeJvm
+    - name: "Move licenses"
+      if: ${{ runner.os }} != 'Windows'
+      run: |
+        mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
+    - name: "Move licenses"
+      if: ${{ runner.os }} == 'Windows'
+      run: |
+        mv -Force desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json

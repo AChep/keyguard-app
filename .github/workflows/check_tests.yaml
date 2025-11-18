@@ -10,12 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+      - uses: ./.github/actions/setup_gradle
       - name: "Enable KVM group perms"
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -24,10 +19,6 @@ jobs:
       - name: "Prepare env"
         run: |
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"
         run: ./gradlew :androidApp:licenseeAndroidPlayStoreRelease
       - name: "Move licenses"
@@ -50,7 +41,7 @@ jobs:
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
             exit $RESULT
       - name: 'Upload screen recordings'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: baselineprofile-screen-recordings
@@ -58,7 +49,7 @@ jobs:
             artifactsScreenRecording/
           retention-days: 7
       - name: 'Upload logs'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: baselineprofile-logs

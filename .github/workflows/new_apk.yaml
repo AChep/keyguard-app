@@ -10,12 +10,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v5
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+      - uses: ./.github/actions/setup_gradle
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
@@ -24,10 +19,6 @@ jobs:
           echo "" >> gradle.properties
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       - name: "Check and Build licenses"
         run: ./gradlew :androidApp:licenseeAndroidNoneRelease
       - name: "Move licenses"
@@ -36,7 +27,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:assembleNoneRelease
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: app-android
           path: |

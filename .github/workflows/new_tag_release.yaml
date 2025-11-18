@@ -16,13 +16,10 @@ jobs:
         with:
           lfs: true
           submodules: recursive
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
+      - uses: ./.github/actions/setup_gradle
         with:
-          distribution: "liberica"
-          java-version: "21"
-          architecture: arm64
+          java-distribution: "liberica"
+      - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
         run: |
           echo ${{ secrets.CERT_B64 }} | base64 -d | zcat > desktopApp/macos-dev.cer
@@ -44,15 +41,6 @@ jobs:
           echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}" >> gradle.properties
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-      - name: "Check and Build licenses"
-        run: ./gradlew desktopApp:licenseeJvm
-      - name: "Move licenses"
-        run: |
-          mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: "Upload logs"
@@ -88,12 +76,8 @@ jobs:
         with:
           lfs: true
           submodules: recursive
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+      - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
         run: |
           echo ${{ secrets.CERT_B64 }} | base64 -d | zcat > desktopApp/macos-dev.cer
@@ -115,15 +99,6 @@ jobs:
           echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}" >> gradle.properties
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-      - name: "Check and Build licenses"
-        run: ./gradlew desktopApp:licenseeJvm
-      - name: "Move licenses"
-        run: |
-          mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: 'Upload logs'
@@ -162,30 +137,14 @@ jobs:
         with:
           lfs: true
           submodules: recursive
-      - name: "Set up Python"
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.10'
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '21'
+      - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/setup_python
+      - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         run: |
           pwd
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-      - name: "Check and Build licenses"
-        run: ./gradlew desktopApp:licenseeJvm
-      - name: "Move licenses"
-        run: |
-          mv -f desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:bundleFlatpak
       - name: 'Upload .flatpak'
@@ -204,26 +163,15 @@ jobs:
         with:
           lfs: true
           submodules: recursive
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
+      - uses: ./.github/actions/setup_gradle
         with:
-          distribution: 'temurin'
           java-version: |
             11
             21
+      - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         run: |
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-      - name: "Check and Build licenses"
-        run: ./gradlew desktopApp:licenseeJvm
-      - name: "Move licenses"
-        run: |
-          mv -Force desktopApp/build/reports/licensee/jvm/artifacts.json common/src/commonMain/composeResources/files/licenses.json
       - name: "Build"
         run: ./gradlew :desktopApp:packageMsi
       - name: 'Upload .msi'
@@ -237,68 +185,24 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v5
-      - name: "Set up JDK 21"
-        id: setup-java
-        uses: actions/setup-java@v5
+      - name: "Checkout"
+        uses: actions/checkout@v5
         with:
-          distribution: 'temurin'
-          java-version: '21'
-      - name: "Enable KVM group perms"
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          lfs: true
+          submodules: recursive
+      - uses: ./.github/actions/setup_gradle
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "Setup Gradle"
-        uses: gradle/actions/setup-gradle@v5
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-      - name: "Check and Build licenses"
-        run: ./gradlew androidApp:licenseeAndroidNoneRelease
-      - name: "Move licenses"
-        run: |
-          mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
-      - name: "Generate baseline profiles"
-        id: baseline-profiles
-        uses: reactivecircus/android-emulator-runner@v2
-        continue-on-error: true
+      - uses: ./.github/actions/build_android_licenses
         with:
-          api-level: 30
-          arch: x86_64
-          disable-animations: true
-          disk-size: 4G
-          script: |
-            adb root
-            ./gradlew :androidApp:generateNoneBaselineProfile ; RESULT=$?
-            mkdir -p artifacts/
-            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
-            exit $RESULT
-      - name: 'Upload baseline profile screen recordings'
-        uses: actions/upload-artifact@v5
-        if: always()
+          build-flavor: "None"
+      - uses: ./.github/actions/build_android_baseline_profiles
         with:
-          name: baselineprofile-android-screen-recordings
-          path: |
-            artifactsScreenRecording/
-          retention-days: 7
-      - name: 'Upload baseline profile logs'
-        uses: actions/upload-artifact@v5
-        if: always()
-        with:
-          name: baselineprofile-android-logs
-          path: |
-            androidBenchmark/build/outputs/androidTest-results/
-          retention-days: 7
-      - name: 'Remove baseline profile apks'
-        run: |
-          rm -rf androidApp/build/outputs/apk/ || true
-          rm -rf androidApp/build/outputs/mapping/ || true
+          build-flavor: "None"
       - name: "Build"
         run: ./gradlew androidApp:assembleNoneRelease
       - name: 'Upload .apk'

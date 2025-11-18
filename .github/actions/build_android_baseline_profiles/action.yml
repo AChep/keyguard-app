@@ -7,6 +7,7 @@ runs:
   using: "composite"
   steps:
     - name: "Enable KVM group perms"
+      shell: bash
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
         sudo udevadm control --reload-rules
@@ -42,6 +43,7 @@ runs:
           androidBenchmark/build/outputs/androidTest-results/
         retention-days: 7
     - name: 'Remove baseline profile apks'
+      shell: bash
       run: |
         rm -rf androidApp/build/outputs/apk/ || true
         rm -rf androidApp/build/outputs/mapping/ || true

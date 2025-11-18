@@ -26,7 +26,7 @@ fun AccountsSelection(
         SelectionBar(
             title = {
                 val text = stringResource(Res.string.selection_n_selected, selection.count)
-                Text(text)
+                Text(text, maxLines = 2)
             },
             trailing = {
                 val updatedOnSelectAll by rememberUpdatedState(selection.onSelectAll)

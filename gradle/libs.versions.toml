@@ -80,7 +80,7 @@ m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.2.10"
+kotlin = "2.2.21"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines

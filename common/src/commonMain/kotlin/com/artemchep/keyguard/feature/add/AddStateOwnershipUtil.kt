@@ -85,6 +85,9 @@ suspend fun <T : OwnershipState> RememberStateFlowScope.ownershipHandle(
                 // account id
                 ?.key
                 ?.takeIfAccountIdExists()
+                // Fallback to the first account ID we fetched in the
+                // case there are not ciphers in the vault yet.
+                ?: accountIds.firstOrNull()
         }.attempt().bind().getOrNull()
 
         factory(

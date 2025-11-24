@@ -17,7 +17,7 @@ jobs:
     name: Synchronize Crowdin Translations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: pip install -r .github/update_localization_contributors.requirements.txt
       - uses: crowdin/github-action@v2
         with:

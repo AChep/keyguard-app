@@ -15,7 +15,7 @@ jobs:
     name: Synchronize Passkeys
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: pip install -r .github/update_passkeys.requirements.txt
       - name: "Update library"
         run: |

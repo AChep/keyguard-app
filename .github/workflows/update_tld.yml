@@ -8,7 +8,7 @@ jobs:
     name: Synchronize TLD public suffix list
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: "Update data"
         run: |
           wget https://publicsuffix.org/list/public_suffix_list.dat

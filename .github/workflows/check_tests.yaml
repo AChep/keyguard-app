@@ -39,7 +39,7 @@ jobs:
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
             exit $RESULT
       - name: 'Upload screen recordings'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: baselineprofile-screen-recordings
@@ -47,7 +47,7 @@ jobs:
             artifactsScreenRecording/
           retention-days: 7
       - name: 'Upload logs'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: baselineprofile-logs

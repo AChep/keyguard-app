@@ -15,7 +15,7 @@ jobs:
     name: Synchronize GPM Credential Privileged Apps
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: pip install -r .github/update_gpm_passkeys_priv_apps.requirements.txt
       - name: "Update library"
         run: |

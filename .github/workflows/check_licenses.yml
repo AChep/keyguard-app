@@ -20,7 +20,7 @@ jobs:
     name: Check Licenses
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup_gradle
       - name: "Check licenses"
         run: ./gradlew licensee

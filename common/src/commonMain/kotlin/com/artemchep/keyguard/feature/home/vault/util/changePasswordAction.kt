@@ -484,9 +484,6 @@ fun RememberStateFlowScope.cipherSendAction(
                                 ?: return@mapNotNull null
                             value.takeIf { checked }
                         }
-                    if (selectedFields.isEmpty()) {
-                        return@registerRouteResultReceiver
-                    }
 
                     val sendTitle = ciphers
                         .joinToString { cipher -> cipher.name }

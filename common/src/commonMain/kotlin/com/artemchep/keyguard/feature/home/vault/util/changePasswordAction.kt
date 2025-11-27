@@ -426,6 +426,13 @@ fun RememberStateFlowScope.cipherSendAction(
             )
             yield(item)
         }
+
+        // Note
+        val noteItem = createSendItemOrNull(
+            name = TextHolder.Res(Res.string.notes),
+            value = cipher.notes,
+        )
+        yield(noteItem)
     }
     FlatItemAction(
         leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),

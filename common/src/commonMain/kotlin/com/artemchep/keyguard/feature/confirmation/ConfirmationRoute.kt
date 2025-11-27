@@ -32,6 +32,7 @@ class ConfirmationRoute(
                 override val key: String,
                 override val value: Boolean = false,
                 val title: String,
+                val text: String? = null,
             ) : Item<Boolean>
 
             data class StringItem(
@@ -49,6 +50,7 @@ class ConfirmationRoute(
             ) : Item<String> {
                 enum class Type {
                     Text,
+                    URI,
                     Token,
                     Regex,
                     Command,

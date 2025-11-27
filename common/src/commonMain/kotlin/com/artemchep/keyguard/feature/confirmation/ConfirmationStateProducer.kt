@@ -80,6 +80,7 @@ fun confirmationState(
                         is ConfirmationRoute.Args.Item.BooleanItem -> ConfirmationState.Item.BooleanItem(
                             key = item.key,
                             title = item.title,
+                            text = item.text,
                             value = value as Boolean,
                             onChange = sink::value::set,
                         )
@@ -106,6 +107,7 @@ fun confirmationState(
                                 ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
                                 ConfirmationRoute.Args.Item.StringItem.Type.Token,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Text,
+                                ConfirmationRoute.Args.Item.StringItem.Type.URI,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Regex,
                                 ConfirmationRoute.Args.Item.StringItem.Type.Command,
                                 -> null

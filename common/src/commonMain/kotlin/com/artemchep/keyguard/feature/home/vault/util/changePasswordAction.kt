@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.feature.home.vault.util
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Edit
@@ -14,23 +16,19 @@ import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material.icons.outlined.SaveAlt
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import com.artemchep.keyguard.common.io.biFlatTap
-import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
-import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
@@ -54,12 +52,14 @@ import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryRoute
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
+import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
@@ -67,7 +67,9 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.theme.badgeContainer
+import com.artemchep.keyguard.ui.icons.iconSmall
+import kotlinx.coroutines.delay
+import kotlin.uuid.Uuid
 
 fun RememberStateFlowScope.cipherEnableConfirmAccessAction(
     rePromptCipherById: RePromptCipherById,
@@ -237,6 +239,281 @@ fun RememberStateFlowScope.cipherExportAction(
     )
 }
 
+fun RememberStateFlowScope.cipherSendAction(
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    data class SendItem(
+        val name: TextHolder,
+        val value: String,
+    )
+
+    data class SendItemTranslated(
+        val name: String,
+        val value: String,
+    )
+
+    fun createSendItemOrNull(
+        name: TextHolder,
+        value: String?,
+    ): SendItem? {
+        if (value.isNullOrBlank()) {
+            return null
+        }
+        return SendItem(
+            name = name,
+            value = value,
+        )
+    }
+
+    suspend fun SequenceScope<SendItem?>.yieldCipherLoginItems(login: DSecret.Login?) {
+        if (login == null) return
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.username),
+            value = login.username,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.password),
+            value = login.password,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.one_time_password_authenticator_key),
+            value = login.totp?.raw.orEmpty(),
+        ).let { yield(it) }
+    }
+
+    suspend fun SequenceScope<SendItem?>.yieldCipherCardItems(card: DSecret.Card?) {
+        if (card == null) return
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.cardholder_name),
+            value = card.cardholderName,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.card_type),
+            value = card.brand,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.card_number),
+            value = card.number,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.card_expiry_month),
+            value = card.expMonth,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.card_expiry_year),
+            value = card.expYear,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.card_cvv),
+            value = card.code,
+        ).let { yield(it) }
+    }
+
+    suspend fun SequenceScope<SendItem?>.yieldCipherIdentityItems(identity: DSecret.Identity?) {
+        if (identity == null) return
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.identity_title),
+            value = identity.title,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.identity_first_name),
+            value = identity.firstName,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.identity_middle_name),
+            value = identity.middleName,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.identity_last_name),
+            value = identity.lastName,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.address1),
+            value = identity.address1,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.address2),
+            value = identity.address2,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.address3),
+            value = identity.address3,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.city),
+            value = identity.city,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.state),
+            value = identity.state,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.postal_code),
+            value = identity.postalCode,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.country),
+            value = identity.country,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.company),
+            value = identity.company,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.email),
+            value = identity.email,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.phone_number),
+            value = identity.phone,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.ssn),
+            value = identity.ssn,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.username),
+            value = identity.username,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.passport_number),
+            value = identity.passportNumber,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.license_number),
+            value = identity.licenseNumber,
+        ).let { yield(it) }
+    }
+
+    suspend fun SequenceScope<SendItem?>.yieldCipherSshKeyItems(sshKey: DSecret.SshKey?) {
+        if (sshKey == null) return
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.private_key),
+            value = sshKey.privateKey,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.public_key),
+            value = sshKey.publicKey,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.fingerprint),
+            value = sshKey.fingerprint,
+        ).let { yield(it) }
+    }
+
+    suspend fun SequenceScope<SendItem?>.yieldCipherItems(cipher: DSecret) {
+        yieldCipherLoginItems(cipher.login)
+        yieldCipherCardItems(cipher.card)
+        yieldCipherIdentityItems(cipher.identity)
+        yieldCipherSshKeyItems(cipher.sshKey)
+
+        // Urls
+        cipher.uris.forEach { uri ->
+            val item = SendItem(
+                name = TextHolder.Res(Res.string.uri),
+                value = uri.uri,
+            )
+            yield(item)
+        }
+
+        // Custom fields
+        cipher.fields.forEach { field ->
+            val item = createSendItemOrNull(
+                name = TextHolder.Value(field.name.orEmpty()),
+                value = field.value,
+            )
+            yield(item)
+        }
+    }
+    FlatItemAction(
+        leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
+        title = Res.string.text_action_send_title.wrap(),
+        onClick = onClick {
+            before?.invoke()
+
+            val fields = sequence {
+                // Add each of the cipher items to the
+                // cipher builder.
+                ciphers.forEach { cipher ->
+                    yieldCipherItems(cipher)
+                }
+            }
+                .filterNotNull()
+                .toList()
+                .map {
+                    SendItemTranslated(
+                        name = translate(it.name),
+                        value = it.value,
+                    )
+                }
+                .associateBy {
+                    Uuid.random().toString()
+                }
+            val items = fields
+                .map { (key, value) ->
+                    ConfirmationRoute.Args.Item.BooleanItem(
+                        key = key,
+                        title = value.name,
+                        text = value.value,
+                        value = false,
+                    )
+                }
+
+            val route = registerRouteResultReceiver(
+                route = ConfirmationRoute(
+                    args = ConfirmationRoute.Args(
+                        icon = icon(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
+                        title = translate(Res.string.text_action_send_title),
+                        items = items,
+                    ),
+                ),
+            ) { result ->
+                if (result is ConfirmationResult.Confirm) {
+                    val selectedFields = fields
+                        .mapNotNull { (key, value) ->
+                            val checked = result.data[key] as? Boolean
+                                ?: return@mapNotNull null
+                            value.takeIf { checked }
+                        }
+                    if (selectedFields.isEmpty()) {
+                        return@registerRouteResultReceiver
+                    }
+
+                    val sendTitle = ciphers
+                        .joinToString { cipher -> cipher.name }
+                    val sendText = selectedFields
+                        .flatMap { (name, value) ->
+                            sequence {
+                                yield("$name:")
+                                yield(value)
+                                yield("")
+                            }
+                        }
+                        .joinToString(separator = System.lineSeparator())
+                    val args = SendAddRoute.Args(
+                        type = DSend.Type.Text,
+                        name = sendTitle,
+                        text = sendText,
+                    )
+                    val route = SendAddRoute(args)
+                    val intent = NavigationIntent.NavigateToRoute(route)
+                    action {
+                        delay(500L) // wait for the dialog to close
+                        navigate(intent)
+                    }
+                }
+
+                val success = result is ConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+}
+
 fun RememberStateFlowScope.cipherCopyToAction(
     copyCipherById: CopyCipherById,
     ciphers: List<DSecret>,
@@ -336,7 +613,7 @@ fun RememberStateFlowScope.cipherMoveToFolderAction(
                     val cipherIds = when (val info = result.folderInfo) {
                         is FolderInfo.None,
                         is FolderInfo.Id,
-                        -> {
+                            -> {
                             val newFolderId = when (info) {
                                 is FolderInfo.None -> null
                                 is FolderInfo.Id -> info.id

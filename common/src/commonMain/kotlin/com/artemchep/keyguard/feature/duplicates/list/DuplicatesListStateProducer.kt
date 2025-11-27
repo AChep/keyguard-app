@@ -53,6 +53,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherMergeInto
 import com.artemchep.keyguard.feature.home.vault.util.cipherMergeIntoAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
@@ -537,6 +538,12 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
             cipherMerge = toolbox.cipherMerge,
             ciphers = selectedCiphers,
         ).verify(verify)
+    }
+
+    if (canWrite) {
+        actions += cipherSendAction(
+            ciphers = selectedCiphers,
+        )
     }
 
     if (canWrite) {

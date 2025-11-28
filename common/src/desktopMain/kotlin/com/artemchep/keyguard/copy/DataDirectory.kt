@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.Dispatchers
 import net.harawata.appdirs.AppDirsFactory
 import org.kodein.di.DirectDI
@@ -13,7 +14,7 @@ import java.io.OutputStream
 class DataDirectory(
 ) : DirsService {
     companion object {
-        private val APP_NAME = "keyguard"
+        private val APP_NAME = if (isRelease) "keyguard" else "keyguard-dev"
         private val APP_AUTHOR = "ArtemChepurnyi"
     }
 

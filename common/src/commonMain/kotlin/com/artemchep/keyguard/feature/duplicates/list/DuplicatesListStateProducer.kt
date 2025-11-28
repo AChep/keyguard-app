@@ -543,7 +543,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     if (canWrite) {
         actions += cipherSendAction(
             ciphers = selectedCiphers,
-        )
+        ).verify(verify)
     }
 
     if (canWrite) {

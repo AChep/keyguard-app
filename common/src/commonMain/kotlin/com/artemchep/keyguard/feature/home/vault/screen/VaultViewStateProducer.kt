@@ -1120,7 +1120,7 @@ fun vaultViewScreenState(
                             ?.verify(verify),
                         cipherSendAction(
                             ciphers = listOf(secretOrNull),
-                        ).takeIf { canAddSecret },
+                        ).takeIf { canAddSecret }?.verify(verify),
                         cipherCopyToAction(
                             copyCipherById = copyCipherById,
                             ciphers = listOf(secretOrNull),

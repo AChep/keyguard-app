@@ -216,17 +216,18 @@ fun confirmationState(
                 sideEffects = sideEffects,
                 items = Loadable.Ok(items),
                 onDeny = {
-                    transmitter(ConfirmationResult.Deny)
                     navigatePopSelf()
+                    transmitter(ConfirmationResult.Deny)
                 },
                 onConfirm = if (valid) {
                     // lambda
                     {
+                        navigatePopSelf()
+
                         val data = items
                             .associate { it.key to it.value }
                         val result = ConfirmationResult.Confirm(data)
                         transmitter(result)
-                        navigatePopSelf()
                     }
                 } else {
                     null

@@ -434,6 +434,9 @@ fun RememberStateFlowScope.cipherSendAction(
         )
         yield(noteItem)
     }
+
+    val sendTitle = ciphers
+        .joinToString { cipher -> cipher.name }
     FlatItemAction(
         leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
         title = Res.string.text_action_send_title.wrap(),
@@ -473,6 +476,7 @@ fun RememberStateFlowScope.cipherSendAction(
                     args = ConfirmationRoute.Args(
                         icon = icon(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
                         title = translate(Res.string.text_action_send_title),
+                        subtitle = sendTitle,
                         items = items,
                     ),
                 ),
@@ -485,8 +489,6 @@ fun RememberStateFlowScope.cipherSendAction(
                             value.takeIf { checked }
                         }
 
-                    val sendTitle = ciphers
-                        .joinToString { cipher -> cipher.name }
                     val sendText = selectedFields
                         .flatMap { (name, value) ->
                             sequence {
@@ -496,6 +498,7 @@ fun RememberStateFlowScope.cipherSendAction(
                             }
                         }
                         .joinToString(separator = System.lineSeparator())
+                        .trimEnd()
                     val args = SendAddRoute.Args(
                         type = DSend.Type.Text,
                         name = sendTitle,
@@ -503,10 +506,7 @@ fun RememberStateFlowScope.cipherSendAction(
                     )
                     val route = SendAddRoute(args)
                     val intent = NavigationIntent.NavigateToRoute(route)
-                    action {
-                        delay(500L) // wait for the dialog to close
-                        navigate(intent)
-                    }
+                    navigate(intent)
                 }
 
                 val success = result is ConfirmationResult.Confirm

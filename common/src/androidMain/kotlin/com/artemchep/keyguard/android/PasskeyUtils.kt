@@ -187,7 +187,7 @@ class PasskeyUtils(
         val detailMessage = it.localizedMessage
             ?: it.message
         val fullMessage =
-            "Failed to verify the relation with the Relaying Party. $detailMessage"
+            "Failed to verify the relation with the `$rpId` relaying party. $detailMessage"
         throw IllegalStateException(fullMessage)
     }
 
@@ -263,8 +263,8 @@ class PasskeyUtils(
             it.contentEquals(certBytes)
         }
         require(valid) {
-            "App signature is not associated with the " +
-                    "relying party!"
+            "App package name is associated with the relying party, " +
+                    "however none of the specified signatures do match the app!"
         }
     }
 
@@ -289,8 +289,8 @@ class PasskeyUtils(
         val url = "https://$rpId/.well-known/assetlinks.json"
         val response = httpClient.get(url)
         require(response.status.isSuccess()) {
-            "Failed to get asset links from relying party, " +
-                    "error code ${response.status.value}."
+            "Failed to get asset links from the relying party, " +
+                    "error code ${response.status.value} ${response.status.description}."
         }
         val result = response
             .body<JsonElement>()

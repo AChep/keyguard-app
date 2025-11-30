@@ -77,6 +77,10 @@ class PasskeyUtils(
         0x49.toByte(),
     )
 
+    private val httpClientNoRedirect = httpClient.config {
+        followRedirects = false
+    }
+
     data class CallingAppCertificate(
         val data: ByteArray,
     ) {
@@ -287,7 +291,8 @@ class PasskeyUtils(
         rpId: String,
     ): Map<AndroidAppRelation, Map<AndroidAppPackageName, AndroidAppTarget>> {
         val url = "https://$rpId/.well-known/assetlinks.json"
-        val response = httpClient.get(url)
+        val response = httpClientNoRedirect
+            .get(url)
         require(response.status.isSuccess()) {
             "Failed to get asset links from the relying party, " +
                     "error code ${response.status.value} ${response.status.description}."

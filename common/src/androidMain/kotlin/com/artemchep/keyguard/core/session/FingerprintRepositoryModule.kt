@@ -10,10 +10,13 @@ import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
@@ -62,8 +65,11 @@ import com.artemchep.keyguard.copy.SharedPreferencesTypes
 import com.artemchep.keyguard.copy.SubscriptionServiceAndroid
 import com.artemchep.keyguard.copy.TextServiceAndroid
 import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
+import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndroid
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
+import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.LeContext
 import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
@@ -139,11 +145,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<PutLocale> {
         PutLocaleAndroid(
-            directDI = this,
-        )
-    }
-    bindSingleton<GetSuggestions<Any?>> {
-        GetSuggestionsImpl(
             directDI = this,
         )
     }
@@ -296,6 +297,25 @@ fun diFingerprintRepositoryModule() = DI.Module(
             applicationContext = instance<Application>(),
             name = "download",
             deviceEncryptionKeyUseCase = instance(),
+        )
+    }
+    bindSingleton<ExposedDatabaseManager> {
+        val sqlManager = DatabaseSqlManagerInFileAndroid<DatabaseExposed>(
+            context = instance<Application>(),
+            fileName = "database_exposed",
+            onCreate = { database ->
+                ioUnit()
+            },
+        )
+        ExposedDatabaseManagerImpl(
+            logRepository = instance(),
+            cryptoGenerator = instance(),
+            settingsRepository = instance(),
+            generateMasterKeyUseCase = instance(),
+            generateMasterHashUseCase = instance(),
+            generateMasterSaltUseCase = instance(),
+            json = instance(),
+            sqlManager = sqlManager,
         )
     }
     bindSingleton<LogRepositoryAndroid> {

@@ -62,7 +62,7 @@ import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.SupervisorRead
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.colorpicker.ColorPickerRoute
@@ -183,7 +183,7 @@ fun accountState(
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     getMetas: GetMetas,
-    db: DatabaseManager,
+    db: VaultDatabaseManager,
     accountId: AccountId,
 ): AccountViewState = produceScreenState(
     initial = AccountViewState(),

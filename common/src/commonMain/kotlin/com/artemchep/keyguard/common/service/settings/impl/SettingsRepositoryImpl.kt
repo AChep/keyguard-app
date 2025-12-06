@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepositor
 import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
 import com.artemchep.keyguard.common.service.settings.entity.toDomain
+import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,6 +39,7 @@ import kotlin.time.Duration
 class SettingsRepositoryImpl(
     private val store: KeyValueStore,
     private val json: Json,
+    private val base64Service: Base64Service,
 ) : SettingsReadWriteRepository {
     companion object {
         private const val KEY_AUTOFILL_DEFAULT_MATCH_DETECTION = "autofill.default_match_detection"
@@ -84,6 +86,7 @@ class SettingsRepositoryImpl(
         private const val KEY_GRAVATAR = "gravatar"
         private const val KEY_COLORS = "colors"
         private const val KEY_LOCALE = "locale"
+        private const val KEY_DATABASE_EXPOSED_KEY = "database_exposed_key"
 
         private const val NONE_DURATION = -1L
     }
@@ -236,6 +239,21 @@ class SettingsRepositoryImpl(
             defaultValue = null,
         )
 
+    private val databaseExposedPref =
+        store.getObject<ByteArray?>(
+            KEY_DATABASE_EXPOSED_KEY,
+            defaultValue = null,
+            serialize = { keyRaw ->
+                keyRaw
+                    ?.let(base64Service::encodeToString)
+                    .orEmpty()
+            },
+            deserialize = { keyBase64 ->
+                if (keyBase64.isEmpty()) return@getObject null
+                keyBase64.let(base64Service::decode)
+            },
+        )
+
     private val internalPrefKeys = setOf(
         KEY_WRITE_ACCESS,
         KEY_DEBUG_PREMIUM,
@@ -243,6 +261,7 @@ class SettingsRepositoryImpl(
         KEY_CACHE_PREMIUM,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
+        KEY_DATABASE_EXPOSED_KEY,
     )
 
     private val allPrefs by lazy {
@@ -296,6 +315,7 @@ class SettingsRepositoryImpl(
     constructor(directDI: DirectDI) : this(
         store = directDI.instance<Files, KeyValueStore>(arg = Files.SETTINGS),
         json = directDI.instance(),
+        base64Service = directDI.instance(),
     )
 
     override fun getPrefs(
@@ -581,4 +601,9 @@ class SettingsRepositoryImpl(
         .map { locale ->
             locale.takeUnless { it.isEmpty() }
         }
+
+    override fun setExposedDatabaseKey(key: ByteArray?) = databaseExposedPref
+        .setAndCommit(key)
+
+    override fun getExposedDatabaseKey() = databaseExposedPref
 }

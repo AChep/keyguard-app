@@ -5,8 +5,8 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
 import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepository
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.GeneratorWordlistQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +16,7 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class GeneratorWordlistRepositoryImpl(
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : GeneratorWordlistRepository {
     constructor(

@@ -33,6 +33,7 @@ import com.artemchep.keyguard.res.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import org.jetbrains.compose.resources.StringResource
@@ -40,6 +41,7 @@ import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import kotlin.collections.take
 import kotlin.coroutines.CoroutineContext
 
 class KeyguardAutofillService : AutofillService(), DIAware {
@@ -60,39 +62,83 @@ class KeyguardAutofillService : AutofillService(), DIAware {
 
     override val di by closestDI { this }
 
-    private val ciphersFlow by lazy {
+    private sealed interface Vault {
+        class Open(
+            val ciphers: List<DSecret>,
+            val getSuggestions: GetSuggestions<DSecret>,
+            val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+        ) : Vault
+
+        data object Locked : Vault
+    }
+
+    private suspend fun Vault.Open.getSuggestions(
+        autofillTarget: AutofillTarget,
+    ): List<DSecret> {
+        return getSuggestions(
+            ciphers,
+            Getter { it },
+            autofillTarget,
+            equivalentDomainsBuilderFactory,
+        ).bind().take(SUGGESTIONS_MAX_COUNT)
+    }
+
+    private fun getVaultOpenFlow(
+        session: MasterSession.Key,
+    ): Flow<Vault.Open> {
+        val getCiphers = session.di.direct.instance<GetCiphers>()
+        val getProfiles = session.di.direct.instance<GetProfiles>()
+        val getSuggestions = kotlin.run {
+            val model = session.di.direct
+                .instance<GetSuggestions<Any?>>()
+            GetCipherSuggestions(model)
+        }
+
+        val equivalentDomainsBuilderFactory =
+            session.di.direct.instance<EquivalentDomainsBuilderFactory>()
+
+        val ciphersRawFlow = filterHiddenProfiles(
+            getProfiles = getProfiles,
+            getCiphers = getCiphers,
+            filter = null,
+        )
+        val ciphersFlow = ciphersRawFlow
+            .map { ciphers ->
+                val filteredCiphers = ciphers
+                    .filter { !it.deleted }
+                filteredCiphers
+            }
+        return ciphersFlow
+            .map { ciphers ->
+                Vault.Open(
+                    ciphers = ciphers,
+                    getSuggestions = getSuggestions,
+                    equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
+                )
+            }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val vaultFlow by lazy {
         val model: GetVaultSession by di.instance()
         model()
             .distinctUntilChanged()
             .flatMapLatest { session ->
                 when (session) {
-                    is MasterSession.Key -> {
-                        val getCiphers = session.di.direct.instance<GetCiphers>()
-                        val getProfiles = session.di.direct.instance<GetProfiles>()
-                        val equivalentDomainsBuilderFactory =
-                            session.di.direct.instance<EquivalentDomainsBuilderFactory>()
-                        val ciphersRawFlow = filterHiddenProfiles(
-                            getProfiles = getProfiles,
-                            getCiphers = getCiphers,
-                            filter = null,
-                        )
-                        ciphersRawFlow
-                            .map { ciphers ->
-                                val filteredCiphers = ciphers
-                                    .filter { !it.deleted }
-                                val result = filteredCiphers to equivalentDomainsBuilderFactory
-                                result.right()
-                            }
-                    }
+                    is MasterSession.Key -> getVaultOpenFlow(session)
 
                     is MasterSession.Empty -> {
-                        val m = Unit.left()
-                        flowOf(m)
+                        val v = Vault.Locked
+                        flowOf(v)
                     }
                 }
             }
             .flowOn(Dispatchers.Default)
-            .shareIn(scope, SharingStarted.WhileSubscribed(KEEP_CIPHERS_IN_MEMORY_FOR), replay = 1)
+            .shareIn(
+                scope,
+                started = SharingStarted.WhileSubscribed(KEEP_CIPHERS_IN_MEMORY_FOR),
+                replay = 1,
+            )
     }
 
     private val logRepository: LogRepository by lazy {
@@ -103,9 +149,13 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         di.direct.instance()
     }
 
-    private val getSuggestions by lazy {
-        val model: GetSuggestions<Any?> by di.instance()
-        GetCipherSuggestions(model)
+    private val blockedUrlCheck: BlockedUrlCheck by lazy {
+        di.direct.instance()
+    }
+
+    private val prefDefaultMatchDetectionFlow by lazy {
+        val model: GetAutofillDefaultMatchDetection by di.instance()
+        model()
     }
 
     private val prefInlineSuggestionsFlow by lazy {
@@ -128,8 +178,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         model()
     }
 
-    private val prefSaveUriFlow by lazy {
-        val model: GetAutofillSaveUri by di.instance()
+    private val prefBlockedUrisFlow by lazy {
+        val model: GetAutofillBlockedUrisExposed by di.instance()
         model()
     }
 
@@ -163,11 +213,55 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         callback: FillCallback,
     ) {
         getAutofillStructureIo(request)
-            .flatMap { autofillStructure ->
+            .effectMap { autofillStructure ->
                 if (autofillStructure.items.isEmpty()) {
                     throw AbortAutofillException("Nothing to autofill.")
                 }
 
+                autofillStructure
+            }
+            .effectMap { autofillStructure ->
+                val autofillTarget = autofillStructure.toAutofillTarget()
+                val autofillTargetUris = autofillTarget
+                    .links
+                    .mapNotNull { link ->
+                        when (link) {
+                            is LinkInfoPlatform.Android -> link.uri
+                            is LinkInfoPlatform.Web -> link.url
+                                .toString()
+                            else -> null
+                        }
+                    }
+                // Check if any of the target URIs match
+                // any of the blocked ones.
+                val shouldBlock = combineIo(
+                    prefBlockedUrisFlow
+                        .toIO(),
+                    prefDefaultMatchDetectionFlow
+                        .toIO(),
+                ) { blockedUris, defaultMatchDetection ->
+                    // Since the vault is locked, we can not get the equivalent domains
+                    // list. Later it will be nice to have it as a part of 'exposed' database
+                    // by for now we just ignore it.
+                    val equivalentDomains = EquivalentDomains(domains = emptyMap())
+                    blockedUris.any { blockedUri ->
+                        blockedUri.enabled && autofillTargetUris.any { targetUri ->
+                            blockedUrlCheck.invoke(
+                                blockedUri,
+                                targetUri,
+                                defaultMatchDetection,
+                                equivalentDomains,
+                            ).bind()
+                        }
+                    }
+                }.bind()
+                if (shouldBlock) {
+                    throw AbortAutofillException("Blocked autofill.")
+                }
+
+                autofillStructure
+            }
+            .flatMap { autofillStructure ->
                 getAutofillResponseIo(
                     request = request,
                     autofillStructure = autofillStructure,
@@ -232,17 +326,19 @@ class KeyguardAutofillService : AutofillService(), DIAware {
     private fun getAutofillResponseIo(
         request: FillRequest,
         autofillStructure: AutofillStructure2,
-    ) = ciphersFlow
+    ) = vaultFlow
         .toIO()
         .effectMap(Dispatchers.Default) { state ->
             val autofillTarget = autofillStructure.toAutofillTarget()
-            state.map { (secrets, equivalentDomainsBuilder) ->
-                getSuggestions(
-                    secrets,
-                    Getter { it },
-                    autofillTarget,
-                    equivalentDomainsBuilder,
-                ).bind().take(SUGGESTIONS_MAX_COUNT)
+            when (state) {
+                is Vault.Open -> {
+                    // Get the suggested items only
+                    val suggestedItems = state.getSuggestions(autofillTarget)
+                    suggestedItems.right()
+                }
+                is Vault.Locked -> {
+                    Unit.left()
+                }
             }
         }
         .effectMap { r ->
@@ -695,7 +791,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             ?.getOrNull(index)
             ?: request.inlineSuggestionsRequest
                 ?.inlinePresentationSpecs
-                ?.getOrNull(0) 
+                ?.getOrNull(0)
             ?: return null
         val imeStyle = spec.style
         if (UiVersions.getVersions(imeStyle).contains(UiVersions.INLINE_UI_VERSION_1)) {

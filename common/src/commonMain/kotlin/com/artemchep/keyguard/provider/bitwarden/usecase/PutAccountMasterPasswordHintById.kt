@@ -12,7 +12,7 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -39,7 +39,7 @@ class PutAccountMasterPasswordHintByIdImpl(
     private val base64Service: Base64Service,
     private val json: Json,
     private val httpClient: HttpClient,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : PutAccountMasterPasswordHintById {
     companion object {
         private const val TAG = "PutAccountMasterPasswordHintById"

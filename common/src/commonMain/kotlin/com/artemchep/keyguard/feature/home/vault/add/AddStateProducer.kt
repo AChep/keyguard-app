@@ -40,6 +40,7 @@ import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
+import com.artemchep.keyguard.common.model.buildDocs
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -1062,35 +1063,8 @@ class AddStateItemUriFactory(
                                 key = "name",
                                 value = selectedMatchType.name,
                                 items = items,
-                                docs = mapOf(
-                                    MatchDetection.Default.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_default_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#default-match-detection",
-                                    ),
-                                    MatchDetection.Domain.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_domain_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#base-domain",
-                                    ),
-                                    MatchDetection.Host.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_host_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#host",
-                                    ),
-                                    MatchDetection.StartsWith.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_startswith_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#starts-with",
-                                    ),
-                                    MatchDetection.Exact.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_exact_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
-                                    ),
-                                    MatchDetection.RegularExpression.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_regex_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#regular-expression",
-                                    ),
-                                    MatchDetection.Never.name to ConfirmationRoute.Args.Item.EnumItem.Doc(
-                                        text = translate(Res.string.uri_match_detection_never_note),
-                                        url = "https://bitwarden.com/help/uri-match-detection/#exact",
-                                    ),
+                                docs = MatchDetection.buildDocs(
+                                    translatorScope = this,
                                 ),
                             ),
                             title = translate(Res.string.uri_match_detection_title),

@@ -18,7 +18,7 @@ import com.artemchep.keyguard.common.service.keepass.parseAttachmentUrl
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -51,7 +51,7 @@ class DownloadAttachmentMetadataImpl2(
     private val cipherRepository: BitwardenCipherRepository,
     private val profileRepository: BitwardenProfileRepository,
     private val organizationRepository: BitwardenOrganizationRepository,
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val cipherEncryptor: CipherEncryptor,
     private val cryptoGenerator: CryptoGenerator,
     private val base32Service: Base32Service,

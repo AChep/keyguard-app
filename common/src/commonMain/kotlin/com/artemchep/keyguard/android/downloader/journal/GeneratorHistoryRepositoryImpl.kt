@@ -10,15 +10,14 @@ import com.artemchep.keyguard.common.model.KeyParameterRawZero
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.GeneratorHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -108,7 +107,7 @@ private fun KeyPairEntity.KeyParameter.toDomain(
 }
 
 class GeneratorHistoryRepositoryImpl(
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val base64Service: Base64Service,
     private val keyPairGenerator: KeyPairGenerator,
     private val json: Json,

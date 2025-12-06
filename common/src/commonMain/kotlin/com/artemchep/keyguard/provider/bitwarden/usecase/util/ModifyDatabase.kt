@@ -9,7 +9,7 @@ import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.premium
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.Database
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.combine
@@ -20,7 +20,7 @@ import org.kodein.di.instance
  * @author Artem Chepurnyi
  */
 class ModifyDatabase(
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
     private val getCanWrite: GetCanWrite,
     private val getWriteAccess: GetWriteAccess,
     private val queueSyncById: QueueSyncById,

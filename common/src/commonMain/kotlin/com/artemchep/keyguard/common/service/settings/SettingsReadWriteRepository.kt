@@ -197,4 +197,8 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     fun setLocale(
         locale: String?,
     ): IO<Unit>
+
+    fun setExposedDatabaseKey(
+        key: ByteArray?,
+    ): IO<Unit>
 }

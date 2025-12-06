@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.model
 
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import io.ktor.http.Url
 
 /**
@@ -17,6 +18,8 @@ sealed interface LinkInfoPlatform : LinkInfo {
          * the package name to a base Play Store url.
          */
         val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
+
+        val uri get() = PROTOCOL_ANDROID_APP + packageName
     }
 
     data class IOS(

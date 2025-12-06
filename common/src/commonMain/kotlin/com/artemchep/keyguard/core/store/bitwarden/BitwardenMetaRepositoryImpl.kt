@@ -4,8 +4,8 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.map
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenMetaRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.GlobalScope
@@ -19,7 +19,7 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class BitwardenMetaRepositoryImpl(
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : BitwardenMetaRepository {
     constructor(directDI: DirectDI) : this(

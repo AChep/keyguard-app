@@ -10,7 +10,7 @@ import com.artemchep.keyguard.common.model.DHibpC
 import com.artemchep.keyguard.common.model.UsernamePwnage
 import com.artemchep.keyguard.common.service.hibp.breaches.find.AccountPwnageDataSourceRemote
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.breach
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
@@ -31,7 +31,7 @@ class AccountPwnageDataSourceRemoteImpl(
     private val base64Service: Base64Service,
     private val json: Json,
     private val httpClient: HttpClient,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : AccountPwnageDataSourceRemote {
     companion object {
         private const val DEFAULT_RETRY_AFTER_MS = 1000L

@@ -30,6 +30,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -49,6 +50,7 @@ import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposab
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
+import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -120,7 +122,14 @@ fun ConfirmationScreen(
                     ) {
                         items.forEach { item ->
                             key(item.key) {
+                                val itemModifier = if (item.enabled) {
+                                    Modifier
+                                } else {
+                                    Modifier
+                                        .alpha(DisabledEmphasisAlpha)
+                                }
                                 ConfirmationItem(
+                                    modifier = itemModifier,
                                     item = item,
                                 )
                             }

@@ -9,6 +9,7 @@
     <string name="show_keyguard">Show Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
+    <string name="description">Description</string>
     <string name="account_name">Account name</string>
     <string name="database_name">Database name</string>
     <string name="enabled">Enabled</string>
@@ -30,10 +31,10 @@
     <string name="field_label">Label</string>
     <string name="field_value">Value</string>
     <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Access count</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Max access count</string>
@@ -259,11 +260,11 @@
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
 
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
 
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip_generate_email_relay_title">Generate unique emails for better privacy.</string>
 
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Change name</string>
@@ -624,13 +625,13 @@
     <string name="emailleak_breach_section">Breaches</string>
     <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
+    <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
     <string name="passwordleak_title">Data breach</string>
     <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
     <string name="passwordleak_occurrences_found_title">Password is compromised</string>
     <string name="passwordleak_occurrences_found_text">The password has been identified in known data breaches. Please change it immediately to protect your online security</string>
     <string name="passwordleak_occurrences_not_found_title">No breaches found</string>
-    <string name="passwordleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
+    <string name="passwordleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
     <!-- Title of the 'Show in Large Type' dialog -->
     <string name="largetype_title">Large Type</string>
     <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
@@ -678,8 +679,17 @@
     <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
     <string name="urloverride_empty_label">No URL overrides</string>
 
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased the Keyguard or have had an active license.</string>
+    <string name="setup_free_text">By continuing you confirm that you have purchased Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App password</string>
     <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>
@@ -1051,7 +1061,7 @@
     <string name="account_main_add_account_title">Add account</string>
 
     <string name="team_header_title">Team behind the app</string>
-    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize on app design and development.</string>
+    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize in app design and development.</string>
     <string name="team_follow_me_section">Follow me</string>
 
     <string name="settingssearch_header_title">Search</string>
@@ -1109,7 +1119,7 @@
     <string name="pref_item_download_apk_title">Download APK file</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
     <string name="pref_item_load_website_icons_title">Load Website icons</string>
-    <string name="pref_item_load_website_icons_text">Queuing website icons might leak website addresses to your internet provider</string>
+    <string name="pref_item_load_website_icons_text">Fetching website icons might leak website addresses to your internet provider</string>
     <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rich text formatting</string>
     <string name="pref_item_markdown_text">Use Markdown to format notes</string>
@@ -1269,7 +1279,7 @@
     <string name="feat_item_duplicate_items_text">Find and merge duplicate items.</string>
     <string name="feat_section_misc_title">Misc</string>
     <string name="feat_item_multi_selection_title">Multi-selection</string>
-    <string name="feat_item_multi_selection_text">Merge ciphers, fasten the refactoring with batch operations.</string>
+    <string name="feat_item_multi_selection_text">Merge ciphers, accelerate the refactoring with batch operations.</string>
     <string name="feat_item_show_barcode_title">Show as Barcode</string>
     <string name="feat_item_show_barcode_text">Encode a text as different barcodes.</string>
     <string name="feat_item_generator_title">Generator</string>

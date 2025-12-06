@@ -24,7 +24,7 @@ import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.common.util.toHex
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +42,7 @@ class AddKeePassAccountImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val fileService: FileService,
     private val base64Service: Base64Service,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : AddKeePassAccount {
     companion object {
         private const val TAG = "AddAccount.keepass"

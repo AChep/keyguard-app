@@ -11,11 +11,9 @@ import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.service.filter.entity.FilterEntity
 import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
 import com.artemchep.keyguard.common.service.filter.repo.CipherFilterRepository
-import com.artemchep.keyguard.common.service.state.impl.toJson
-import com.artemchep.keyguard.common.service.state.impl.toMap
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherFilterQueries
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
@@ -25,19 +23,16 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import org.jetbrains.compose.resources.StringResource
-import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class CipherFilterRepositoryImpl(
     private val context: LeContext,
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val json: Json,
     private val dispatcher: CoroutineDispatcher,
 ) : CipherFilterRepository {

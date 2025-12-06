@@ -82,6 +82,7 @@ fun confirmationState(
                             title = item.title,
                             text = item.text,
                             value = value as Boolean,
+                            enabled = item.enabled,
                             onChange = sink::value::set,
                         )
 
@@ -129,6 +130,7 @@ fun confirmationState(
                                 password = password,
                                 generator = generator,
                                 value = fixed,
+                                enabled = item.enabled,
                                 state = model,
                             )
                         }
@@ -138,6 +140,7 @@ fun confirmationState(
                             ConfirmationState.Item.EnumItem(
                                 key = item.key,
                                 value = fixed,
+                                enabled = item.enabled,
                                 items = item.items
                                     .map { el ->
                                         ConfirmationState.Item.EnumItem.Item(
@@ -176,6 +179,7 @@ fun confirmationState(
                                 key = item.key,
                                 title = item.title,
                                 value = fixed,
+                                enabled = item.enabled,
                                 error = error,
                                 onSelect = {
                                     val intent = FilePickerIntent.OpenDocument(

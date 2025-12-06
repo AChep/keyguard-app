@@ -19,11 +19,11 @@ class RemoveUrlOverrideByIdImpl(
 
     override fun invoke(
         urlOverrideIds: Set<String>,
-    ): IO<Unit> = performRemoveEmailRelay(
+    ): IO<Unit> = performRemoveUriOverride(
         urlOverrideIds = urlOverrideIds,
     ).map { Unit }
 
-    private fun performRemoveEmailRelay(
+    private fun performRemoveUriOverride(
         urlOverrideIds: Set<String>,
     ) = urlOverrideRepository
         .removeByIds(urlOverrideIds)

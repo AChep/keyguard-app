@@ -12,7 +12,7 @@ import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.util.isOver6DigitsNanosOfSecond
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
@@ -86,7 +86,7 @@ import kotlin.to
 
 class SyncEngine(
     private val httpClient: HttpClient,
-    private val dbManager: DatabaseManager,
+    private val dbManager: VaultDatabaseManager,
     private val json: Json,
     private val base64Service: Base64Service,
     private val cryptoGenerator: CryptoGenerator,

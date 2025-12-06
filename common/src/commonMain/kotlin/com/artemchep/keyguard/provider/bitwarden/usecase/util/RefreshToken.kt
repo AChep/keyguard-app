@@ -2,7 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase.util
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.api.refresh
@@ -64,7 +64,7 @@ internal suspend fun <T> withRefreshableAccessToken(
     base64Service: Base64Service,
     httpClient: HttpClient,
     json: Json,
-    db: DatabaseManager,
+    db: VaultDatabaseManager,
     user: BitwardenToken,
     block: suspend (BitwardenToken) -> T,
 ): T {
@@ -118,7 +118,7 @@ suspend fun getAndUpdateUserToken(
     base64Service: Base64Service,
     httpClient: HttpClient,
     json: Json,
-    db: DatabaseManager,
+    db: VaultDatabaseManager,
     user: BitwardenToken,
 ): BitwardenToken {
     if (user.token == null) {

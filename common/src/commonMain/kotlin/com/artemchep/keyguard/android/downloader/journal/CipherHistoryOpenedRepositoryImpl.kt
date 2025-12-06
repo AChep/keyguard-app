@@ -6,8 +6,8 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DCipherOpenedHistory
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.CipherUsageHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +19,7 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class CipherHistoryOpenedRepositoryImpl(
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
 ) : CipherHistoryOpenedRepository {
     constructor(

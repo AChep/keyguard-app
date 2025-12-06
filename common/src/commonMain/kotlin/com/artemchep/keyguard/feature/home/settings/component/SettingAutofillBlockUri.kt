@@ -5,9 +5,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.navigation.LocalNavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.urlblock.UrlBlockListRoute
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemTextContent
@@ -36,8 +41,14 @@ fun settingAutofillBlockUriProvider(
             ),
         ),
     ) {
+        val navigationController by rememberUpdatedState(LocalNavigationController.current)
         SettingAutofillBlockUri(
-            onClick = null,
+            onClick = {
+                val intent = NavigationIntent.NavigateToRoute(
+                    route = UrlBlockListRoute,
+                )
+                navigationController.queue(intent)
+            },
         )
     }
     flowOf(item)

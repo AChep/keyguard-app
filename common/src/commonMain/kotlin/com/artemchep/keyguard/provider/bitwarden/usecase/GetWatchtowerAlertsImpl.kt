@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +24,7 @@ import org.kodein.di.instance
  * @author Artem Chepurnyi
  */
 class GetWatchtowerAlertsImpl(
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
 ) : GetWatchtowerAlerts {
     constructor(directDI: DirectDI) : this(
         databaseManager = directDI.instance(),

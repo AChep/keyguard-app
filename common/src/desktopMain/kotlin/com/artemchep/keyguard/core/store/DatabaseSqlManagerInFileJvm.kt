@@ -3,26 +3,29 @@ package com.artemchep.keyguard.core.store
 import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.MasterKey
-import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
+import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import io.ktor.util.*
 import org.sqlite.mc.SQLiteMCSqlCipherConfig
 import java.io.File
 import java.sql.DriverManager
 import java.util.*
 
-class SqlManagerFile(
+class DatabaseSqlManagerInFileJvm<Database>(
     private val fileIo: IO<File>,
-) : SqlManager {
+) : DatabaseSqlManager<Database> {
     override fun create(
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,
+        databaseSchema: SqlSchema<QueryResult.Value<Unit>>,
         vararg callbacks: AfterVersion,
-    ): IO<SqlHelper> = ioEffect {
+    ): IO<DatabaseSqlHelper<Database>> = ioEffect {
         val file = fileIo
             .bind()
         try {
@@ -30,6 +33,7 @@ class SqlManagerFile(
                 file = file,
                 masterKey = masterKey,
                 databaseFactory = databaseFactory,
+                databaseSchema = databaseSchema,
                 callbacks = callbacks,
             )
         } catch (e: Exception) {
@@ -44,6 +48,7 @@ class SqlManagerFile(
                 file = file,
                 masterKey = masterKey,
                 databaseFactory = databaseFactory,
+                databaseSchema = databaseSchema,
                 callbacks = callbacks,
             )
         }
@@ -53,22 +58,23 @@ class SqlManagerFile(
         file: File,
         masterKey: MasterKey,
         databaseFactory: (SqlDriver) -> Database,
+        databaseSchema: SqlSchema<QueryResult.Value<Unit>>,
         vararg callbacks: AfterVersion,
-    ): SqlHelper {
+    ): DatabaseSqlHelper<Database> {
         val driver: SqlDriver = createSqlDriver(
             file = file,
             key = masterKey.byteArray,
         )
 
         // Create or migrate the database schema.
-        val targetVersion = Database.Schema.version
+        val targetVersion = databaseSchema.version
         val currentVersion = runCatching {
             driver.getCurrentVersion()
         }.getOrDefault(0L)
         if (currentVersion == 0L) {
-            Database.Schema.create(driver)
+            databaseSchema.create(driver)
         } else if (targetVersion > currentVersion) {
-            Database.Schema.migrate(
+            databaseSchema.migrate(
                 driver,
                 currentVersion,
                 targetVersion,
@@ -81,7 +87,7 @@ class SqlManagerFile(
         }
 
         val database = databaseFactory(driver)
-        return object : SqlHelper {
+        return object : DatabaseSqlHelper<Database> {
             override val driver: SqlDriver get() = driver
 
             override val database: Database get() = database
@@ -140,6 +146,7 @@ class SqlManagerFile(
             mapper = { cursor ->
                 val version = cursor.getLong(0)
                 requireNotNull(version)
+
                 QueryResult.Value(version)
             },
             parameters = 0,

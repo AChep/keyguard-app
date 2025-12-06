@@ -1,0 +1,9 @@
+CREATE TABLE urlBlock (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  uri TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  createdAt INTEGER NOT NULL,
+  enabled INTEGER NOT NULL
+);

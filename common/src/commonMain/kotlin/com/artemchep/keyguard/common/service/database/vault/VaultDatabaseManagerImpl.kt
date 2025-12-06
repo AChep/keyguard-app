@@ -1,10 +1,9 @@
-package com.artemchep.keyguard.core.store
+package com.artemchep.keyguard.common.service.database.vault
 
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
-import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.io
@@ -12,8 +11,11 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.retry
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.database.AfterVersionWithTransaction
+import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
+import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
+import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
 import com.artemchep.keyguard.common.service.logging.LogRepository
-import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenEquivalentDomain
@@ -22,7 +24,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
@@ -30,6 +31,7 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
+import com.artemchep.keyguard.data.UrlBlock
 import com.artemchep.keyguard.data.UrlOverride
 import com.artemchep.keyguard.data.WatchtowerThreat
 import com.artemchep.keyguard.data.bitwarden.Account
@@ -55,47 +57,12 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-interface DatabaseManager {
-    fun get(): IO<Database>
-
-    fun <T> mutate(
-        tag: String,
-        block: suspend (Database) -> T,
-    ): IO<T>
-
-    /**
-     * Changes the password of the database. After executing the function, you must create a
-     * new database manager with a new master key.
-     */
-    fun changePassword(newMasterKey: MasterKey): IO<Unit>
-}
-
-interface SqlManager {
-    fun create(
-        masterKey: MasterKey,
-        databaseFactory: (SqlDriver) -> Database,
-        vararg callbacks: AfterVersion,
-    ): IO<SqlHelper>
-}
-
-interface SqlHelper {
-    val driver: SqlDriver
-
-    val database: Database
-
-    /**
-     * Changes the password of the database. After executing the function, you should create a
-     * new database manager with a new master key.
-     */
-    fun changePassword(newMasterKey: MasterKey): IO<Unit>
-}
-
-class DatabaseManagerImpl(
+class VaultDatabaseManagerImpl(
     private val logRepository: LogRepository,
     private val json: Json,
-    private val sqlManager: SqlManager,
+    private val sqlManager: DatabaseSqlManager<Database>,
     masterKey: MasterKey,
-) : DatabaseManager {
+) : VaultDatabaseManager {
     companion object {
         private const val TAG = "DatabaseManager"
 
@@ -126,6 +93,7 @@ class DatabaseManagerImpl(
                     generatorHistoryAdapter = GeneratorHistory.Adapter(InstantToLongAdapter),
                     generatorWordlistAdapter = GeneratorWordlist.Adapter(InstantToLongAdapter),
                     generatorEmailRelayAdapter = GeneratorEmailRelay.Adapter(InstantToLongAdapter),
+                    urlBlockAdapter = UrlBlock.Adapter(InstantToLongAdapter),
                     urlOverrideAdapter = UrlOverride.Adapter(InstantToLongAdapter),
                     cipherAdapter = Cipher.Adapter(
                         updatedAtAdapter = InstantToLongAdapter,
@@ -188,7 +156,7 @@ class DatabaseManagerImpl(
                 },
             )
             val sqlHelper = sqlManager
-                .create(masterKey, databaseFactory, *callbacks)
+                .create(masterKey, databaseFactory, Database.Schema, *callbacks)
                 .bind()
             sqlHelper
         }
@@ -239,39 +207,6 @@ class DatabaseManagerImpl(
         }
 }
 
-@Suppress("FunctionName")
-private fun AfterVersionWithTransaction(
-    afterVersion: Long,
-    block: (SqlDriver) -> Unit,
-) = AfterVersion(
-    afterVersion = afterVersion,
-    block = AfterVersionWithTransactionBlock(block),
-)
-
-private class AfterVersionWithTransactionBlock(
-    private val block: (SqlDriver) -> Unit,
-) : (SqlDriver) -> Unit {
-    override fun invoke(
-        driver: SqlDriver,
-    ) {
-        // TODO: Would be nice to ensure that the block is running in the
-        //  transaction. Simple:
-        //
-        // BEGIN TRANSACTION
-        // ...
-        // COMMIT
-        //
-        // did not do the trick for me with 'cannot commit - no transaction is active'
-        block(driver)
-    }
-}
-
-private object InstantToLongAdapter : ColumnAdapter<Instant, Long> {
-    override fun decode(databaseValue: Long) = Instant.fromEpochMilliseconds(databaseValue)
-
-    override fun encode(value: Instant) = value.toEpochMilliseconds()
-}
-
 private class BitwardenCipherToStringAdapter(
     private val json: Json,
 ) : ColumnAdapter<BitwardenCipher, String> by ObjectToStringAdapter(json)
@@ -311,22 +246,3 @@ private class BitwardenTokenToStringAdapter(
 private class HibpAccountBreachToStringAdapter(
     private val json: Json,
 ) : ColumnAdapter<HibpBreachGroup, String> by ObjectToStringAdapter(json)
-
-private class ObjectToStringAdapter<T : Any>(
-    private val serializer: KSerializer<T>,
-    private val json: Json,
-) : ColumnAdapter<T, String> {
-    companion object {
-        @OptIn(InternalSerializationApi::class)
-        inline operator fun <reified T : Any> invoke(
-            json: Json,
-        ) = ObjectToStringAdapter(
-            serializer = T::class.serializer(),
-            json = json,
-        )
-    }
-
-    override fun decode(databaseValue: String) = json.decodeFromString(serializer, databaseValue)
-
-    override fun encode(value: T) = json.encodeToString(serializer, value)
-}

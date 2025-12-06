@@ -117,4 +117,6 @@ interface SettingsReadRepository {
     fun getColors(): Flow<AppColors?>
 
     fun getLocale(): Flow<String?>
+
+    fun getExposedDatabaseKey(): Flow<ByteArray?>
 }

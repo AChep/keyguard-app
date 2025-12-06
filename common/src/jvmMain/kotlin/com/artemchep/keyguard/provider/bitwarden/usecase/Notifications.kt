@@ -11,7 +11,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.platform.recordException
@@ -52,7 +52,7 @@ class NotificationsImpl(
     private val fileWatcherService: FileWatcherService,
     private val json: Json,
     private val httpClient: HttpClient,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
     private val queueSyncById: QueueSyncById,
     private val queueSyncAll: QueueSyncAll,
 ) : NotificationsWorker {

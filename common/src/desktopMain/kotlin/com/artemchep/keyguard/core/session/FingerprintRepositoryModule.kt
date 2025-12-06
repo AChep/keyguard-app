@@ -8,6 +8,7 @@ import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.bindBlocking
+import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
@@ -27,6 +28,8 @@ import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
+import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
@@ -70,6 +73,8 @@ import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
 import com.artemchep.keyguard.core.session.BiometricStatusUseCaseImpl
+import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
+import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
@@ -304,9 +309,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<GetSuggestions<Any?>> {
-        GetSuggestionsImpl()
-    }
     bindSingleton<GetPurchased> {
         GetPurchasedImpl()
     }
@@ -404,6 +406,27 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bind<KeyValueStore>("shared") with multiton { file: Files ->
         val m: KeyValueStore = instance(arg = file)
         m
+    }
+    bindSingleton<ExposedDatabaseManager> {
+        val dataDirectory: DataDirectory = instance()
+        val sqlManager = DatabaseSqlManagerInFileJvm<DatabaseExposed>(
+            fileIo = dataDirectory
+                .data()
+                .effectMap {
+                    File(it, "database_exposed.sqlite")
+                },
+        )
+
+        ExposedDatabaseManagerImpl(
+            logRepository = instance(),
+            cryptoGenerator = instance(),
+            settingsRepository = instance(),
+            generateMasterKeyUseCase = instance(),
+            generateMasterHashUseCase = instance(),
+            generateMasterSaltUseCase = instance(),
+            json = instance(),
+            sqlManager = sqlManager,
+        )
     }
     bindSingleton<LogRepositoryKotlin> {
         LogRepositoryKotlin()

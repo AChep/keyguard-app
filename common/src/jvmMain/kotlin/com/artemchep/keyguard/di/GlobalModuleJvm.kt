@@ -393,7 +393,11 @@ import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.copy.PasswordGeneratorDiceware
 import com.artemchep.keyguard.copy.SimilarityServiceJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
+import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
+import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -405,6 +409,7 @@ import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
+import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
@@ -415,8 +420,6 @@ import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -608,6 +611,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetAutofillCopyTotp> {
         GetAutofillCopyTotpImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetAutofillBlockedUrisExposed> {
+        GetAutofillBlockedUrisExposedImpl(
             directDI = this,
         )
     }
@@ -913,6 +921,9 @@ fun globalModuleJvm() = DI.Module(
         GetProductsImpl(
             directDI = this,
         )
+    }
+    bindSingleton<BlockedUrlCheck> {
+        BlockedUrlCheckImpl(this)
     }
     bindSingleton<CipherUrlCheck> {
         CipherUrlCheckImpl(this)
@@ -1540,6 +1551,7 @@ fun globalModuleJvm() = DI.Module(
     installSessionRepo()
     installSessionMetadataRepo()
     installSettingsRepo()
+    installExposedRepo()
 }
 
 private fun DI.Builder.installFingerprintRepo() {
@@ -1603,5 +1615,11 @@ private fun DI.Builder.installSettingsRepo() {
     }
     bindProvider<SettingsReadWriteRepository> {
         instance<SettingsRepositoryImpl>()
+    }
+}
+
+private fun DI.Builder.installExposedRepo() {
+    bindSingleton<UrlBlockRepositoryExposed> {
+        UrlBlockRepositoryExposed(this)
     }
 }

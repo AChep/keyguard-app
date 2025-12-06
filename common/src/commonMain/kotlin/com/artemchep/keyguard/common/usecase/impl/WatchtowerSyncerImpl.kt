@@ -55,8 +55,8 @@ import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.ShowNotification
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.common.util.int
-import com.artemchep.keyguard.core.store.DatabaseDispatcher
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.localization.textResource
@@ -245,7 +245,7 @@ private class WatchtowerNotifications(
 private class WatchtowerClient(
     private val getCiphers: GetCiphers,
     private val getBreaches: GetBreaches,
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
     private val logRepository: LogRepository,
     private val list: List<WatchtowerClientTyped>,
     private val dispatcher: CoroutineDispatcher,

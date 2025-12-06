@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.CipherId
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -12,7 +12,7 @@ import org.kodein.di.instance
  * @author Artem Chepurnyi
  */
 class MarkWatchtowerAlertAsReadImpl(
-    private val databaseManager: DatabaseManager,
+    private val databaseManager: VaultDatabaseManager,
 ) : MarkWatchtowerAlertAsRead {
     constructor(directDI: DirectDI) : this(
         databaseManager = directDI.instance(),

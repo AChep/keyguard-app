@@ -48,7 +48,7 @@ import com.artemchep.keyguard.common.util.catch
 import com.artemchep.keyguard.common.util.flow.measureTimeTillFirstEvent
 import com.artemchep.keyguard.common.util.memoize
 import com.artemchep.keyguard.core.session.usecase.createSubDi
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import kotlinx.coroutines.Dispatchers
@@ -352,7 +352,7 @@ class UnlockUseCaseImpl(
         masterKey: MasterKey,
         di: DI,
     ): VaultState {
-        val databaseManager by di.instance<DatabaseManager>()
+        val databaseManager by di.instance<VaultDatabaseManager>()
         val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
             .compose { password: String ->
                 MasterPassword.of(password)

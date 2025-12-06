@@ -40,7 +40,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.util.to0DigitsNanosOfSecond
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
@@ -54,7 +54,6 @@ import com.artemchep.keyguard.provider.bitwarden.api.syncX
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.json.Json
@@ -101,7 +100,7 @@ class SyncByKeePassTokenImpl(
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
     private val httpClient: HttpClient,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
     private val dbSyncer: DatabaseSyncer,
     private val watchdog: Watchdog,
 ) : SyncByKeePassToken {

@@ -3,12 +3,12 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.model.AddCipherOpenedHistoryRequest
 import com.artemchep.keyguard.common.model.CipherHistoryType
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class AddCipherOpenedHistoryImpl(
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : AddCipherOpenedHistory {
     companion object {
         private const val TAG = "AddCipherOpened"

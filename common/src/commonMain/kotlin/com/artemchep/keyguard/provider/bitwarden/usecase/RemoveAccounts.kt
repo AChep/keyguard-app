@@ -2,7 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.usecase.RemoveAccounts
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -10,7 +10,7 @@ import org.kodein.di.instance
  * @author Artem Chepurnyi
  */
 class RemoveAccountsImpl(
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : RemoveAccounts {
     companion object {
         private const val TAG = "RemoveAccounts.bitwarden"

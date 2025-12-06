@@ -5,9 +5,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -18,7 +16,7 @@ import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.premium
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
@@ -43,7 +41,7 @@ class AddAccountImpl(
     private val base64Service: Base64Service,
     private val httpClient: HttpClient,
     private val json: Json,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : AddAccount {
     companion object {
         private const val TAG = "AddAccount.bitwarden"

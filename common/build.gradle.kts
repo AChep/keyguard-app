@@ -188,7 +188,6 @@ kotlin {
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 api(libs.jetbrains.compose.components.resources)
-
                 api(libs.kotlin.stdlib)
                 api(libs.kdrag0n.colorkt)
                 api(libs.kyant0.m3color)
@@ -444,9 +443,18 @@ buildkonfig {
 }
 
 sqldelight {
+    val srcDirPrefix = "src/commonMain"
     databases {
         create("Database") {
             packageName.set("com.artemchep.keyguard.data")
+            srcDirs.setFrom("$srcDirPrefix/sqldelight")
+        }
+
+        // This is a database that we use to pull data from to offer autofill suggestions
+        // before a user has unlocked the vault.
+        create("DatabaseExposed") {
+            packageName.set("com.artemchep.keyguard.dataexposed")
+            srcDirs.setFrom("$srcDirPrefix/sqldelightExposed")
         }
     }
     linkSqlite.set(false)

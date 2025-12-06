@@ -1,0 +1,40 @@
+import kotlin.time.Instant;
+
+CREATE TABLE urlBlock (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  uri TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  createdAt INTEGER AS Instant NOT NULL,
+  enabled INTEGER NOT NULL
+);
+
+insert {
+  UPDATE urlBlock
+  SET
+    name = :name,
+    description = :description,
+    uri = :uri,
+    mode = :mode,
+    createdAt = :createdAt,
+    enabled = :enabled
+  WHERE
+    id = :id;
+
+  INSERT OR IGNORE INTO urlBlock(id, name, description, uri, mode, createdAt, enabled)
+  VALUES (:id, :name, :description, :uri, :mode, :createdAt, :enabled);
+}
+
+get:
+SELECT *
+FROM urlBlock
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+deleteAll:
+DELETE FROM urlBlock;
+
+deleteByIds:
+DELETE FROM urlBlock
+WHERE id IN (:ids);

@@ -20,10 +20,12 @@ data class ConfirmationState(
         val key: String
         val value: Any?
         val valid: Boolean
+        val enabled: Boolean
 
         data class BooleanItem(
             override val key: String,
             override val value: Boolean,
+            override val enabled: Boolean,
             val title: String,
             val text: String?,
             val onChange: (Boolean) -> Unit,
@@ -35,6 +37,7 @@ data class ConfirmationState(
         data class StringItem(
             override val key: String,
             override val value: String,
+            override val enabled: Boolean,
             val state: TextFieldModel2,
             val title: String,
             val description: String?,
@@ -55,6 +58,7 @@ data class ConfirmationState(
         data class EnumItem(
             override val key: String,
             override val value: String,
+            override val enabled: Boolean,
             val items: List<Item>,
             val doc: Doc? = null,
         ) : Item {
@@ -79,6 +83,7 @@ data class ConfirmationState(
         data class FileItem(
             override val key: String,
             override val value: ConfirmationRoute.Args.Item.FileItem.File?,
+            override val enabled: Boolean,
             val title: String,
             val error: String?,
             val onSelect: () -> Unit,

@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
@@ -23,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,7 +32,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,11 +55,9 @@ import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -245,6 +243,7 @@ private fun UrlOverrideItem(
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
+        shapeState = item.shapeState,
         leading = {
             val accent = rememberSecretAccentColor(
                 accentLight = item.accentLight,
@@ -266,57 +265,20 @@ private fun UrlOverrideItem(
                 },
                 text = {
                     Column {
-                        Spacer(
-                            modifier = Modifier
-                                .height(4.dp),
-                        )
-                        val codeModifier = Modifier
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
+                        if (item.regex.isNotEmpty()) {
+                            MiniRow(
                                 modifier = Modifier
-                                    .width(14.dp),
-                                imageVector = Icons.Outlined.Search,
-                                contentDescription = null,
-                                tint = LocalTextStyle.current.color,
-                            )
-                            Spacer(
-                                modifier = Modifier
-                                    .width(8.dp),
-                            )
-                            Text(
-                                modifier = codeModifier,
+                                    .padding(top = 4.dp),
+                                icon = Icons.Outlined.Search,
                                 text = item.regex,
-                                fontFamily = FontFamily.Monospace,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 2,
                             )
                         }
-                        Spacer(
-                            modifier = Modifier
-                                .height(4.dp),
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
+                        if (item.command.isNotEmpty()) {
+                            MiniRow(
                                 modifier = Modifier
-                                    .width(14.dp),
-                                imageVector = Icons.Outlined.Terminal,
-                                contentDescription = null,
-                                tint = LocalTextStyle.current.color,
-                            )
-                            Spacer(
-                                modifier = Modifier
-                                    .width(8.dp),
-                            )
-                            Text(
-                                modifier = codeModifier,
+                                    .padding(top = 4.dp),
+                                icon = Icons.Outlined.Terminal,
                                 text = item.command,
-                                fontFamily = FontFamily.Monospace,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 6,
                             )
                         }
                     }
@@ -340,4 +302,34 @@ private fun UrlOverrideItem(
         onLongClick = selectableState.onLongClick,
         enabled = true,
     )
+}
+
+@Composable
+fun MiniRow(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    text: AnnotatedString,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            modifier = Modifier
+                .width(14.dp),
+            imageVector = icon,
+            contentDescription = null,
+            tint = LocalTextStyle.current.color,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(8.dp),
+        )
+        Text(
+            text = text,
+            fontFamily = FontFamily.Monospace,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 6,
+        )
+    }
 }

@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.unit
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -15,7 +15,7 @@ import org.kodein.di.instance
  * @author Artem Chepurnyi
  */
 class RemoveAccountByIdImpl(
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
     private val watchdog: Watchdog,
 ) : RemoveAccountById {
     companion object {

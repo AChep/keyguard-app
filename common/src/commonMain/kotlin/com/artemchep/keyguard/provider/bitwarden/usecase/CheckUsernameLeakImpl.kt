@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.DHibp
 import com.artemchep.keyguard.common.model.DHibpC
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CheckUsernameLeak
-import com.artemchep.keyguard.core.store.DatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.breach
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
@@ -28,7 +28,7 @@ class CheckUsernameLeakImpl(
     private val base64Service: Base64Service,
     private val json: Json,
     private val httpClient: HttpClient,
-    private val db: DatabaseManager,
+    private val db: VaultDatabaseManager,
 ) : CheckUsernameLeak {
     companion object {
         private const val TAG = "CheckUsernameLeak.bitwarden"

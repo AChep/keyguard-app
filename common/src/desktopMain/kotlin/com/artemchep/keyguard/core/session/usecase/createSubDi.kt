@@ -1,20 +1,19 @@
 package com.artemchep.keyguard.core.session.usecase
 
 import com.artemchep.keyguard.common.NotificationsWorker
-import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.ioRaise
-import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.export.ExportManager
-import com.artemchep.keyguard.common.usecase.DownloadAttachment
+import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.copy.ExportManagerImpl
-import com.artemchep.keyguard.core.store.DatabaseManager
-import com.artemchep.keyguard.core.store.DatabaseManagerImpl
-import com.artemchep.keyguard.core.store.SqlManagerFile
+import com.artemchep.keyguard.core.session.GetSuggestionsImpl
+import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManagerImpl
+import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncAllImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncByIdImpl
@@ -43,19 +42,24 @@ actual fun DI.Builder.createSubDi(
     bindSingleton<NotificationsWorker> {
         NotificationsImpl(this)
     }
-    bindSingleton<DatabaseManager> {
+    bindSingleton<VaultDatabaseManager> {
         val dataDirectory: DataDirectory = instance()
-        DatabaseManagerImpl(
+        val sqlManager = DatabaseSqlManagerInFileJvm<Database>(
+            fileIo = dataDirectory
+                .data()
+                .effectMap {
+                    File(it, "database.sqlite")
+                },
+        )
+
+        VaultDatabaseManagerImpl(
             logRepository = instance(),
             json = instance(),
             masterKey = masterKey,
-            sqlManager = SqlManagerFile(
-                fileIo = dataDirectory
-                    .data()
-                    .effectMap {
-                        File(it, "database.sqlite")
-                    },
-            ),
+            sqlManager = sqlManager,
         )
+    }
+    bindSingleton<GetSuggestions<Any?>> {
+        GetSuggestionsImpl()
     }
 }

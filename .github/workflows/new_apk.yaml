@@ -27,7 +27,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:assembleNoneRelease
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: app-android
           path: |

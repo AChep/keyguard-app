@@ -68,7 +68,7 @@ class CipherUrlCheckImpl(
             .getDomainName(bHost)
             .bind()
         val bDomainEq = equivalentDomains.findEqDomains(bDomain)
-        bDomainEq.any { aHost.endsWith(it) }
+        bDomainEq.any { aHost.endsWith(it, ignoreCase = true) }
     }
 
     private fun checkUrlMatchByHost(
@@ -92,16 +92,16 @@ class CipherUrlCheckImpl(
             // If the CIPHER url doesn't have a port specified, then
             // match it with any port.
             if (aUrl.specifiedPort == DEFAULT_PORT) {
-                return@any aUrl.host == bHost
+                return@any compareIgnoreCase(aUrl.host, bHost)
             }
             // If the TEST url doesn't have a port specified, then
             // match it with any port. This is specifically needed
             // because on Android there's no way to pull a port number
             // from a browser.
             if (bUrl.specifiedPort == DEFAULT_PORT) {
-                return@any aUrl.host == bHost
+                return@any compareIgnoreCase(aUrl.host, bHost)
             }
-            aUrl.host == bHost && aUrl.port == bUrl.port
+            compareIgnoreCase(aUrl.host, bHost) && aUrl.port == bUrl.port
         }
     }
 
@@ -190,4 +190,6 @@ class CipherUrlCheckImpl(
             val newUrl = "https://$url"
             newUrl
         }
+
+    private fun compareIgnoreCase(a: String, b: String) = a.contentEquals(b, ignoreCase = true)
 }

@@ -14,12 +14,14 @@ import kotlinx.coroutines.sync.withLock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.lang.ref.WeakReference
+import java.util.Locale
 
 data class EquivalentDomains(
     val domains: Map<String, List<String>>,
 ) {
     fun findEqDomains(domain: String): List<String> {
-        return domains[domain] ?: listOf(domain)
+        val domainLowerCase = domain.lowercase(Locale.US)
+        return domains[domainLowerCase] ?: listOf(domain)
     }
 }
 

@@ -89,9 +89,16 @@ class CipherUrlCheckImpl(
         bDomainEq.any {
             val bHost = bPrefix + it
 
-            // If the url doesn't have a port specified, then
+            // If the CIPHER url doesn't have a port specified, then
             // match it with any port.
             if (aUrl.specifiedPort == DEFAULT_PORT) {
+                return@any aUrl.host == bHost
+            }
+            // If the TEST url doesn't have a port specified, then
+            // match it with any port. This is specifically needed
+            // because on Android there's no way to pull a port number
+            // from a browser.
+            if (bUrl.specifiedPort == DEFAULT_PORT) {
                 return@any aUrl.host == bHost
             }
             aUrl.host == bHost && aUrl.port == bUrl.port

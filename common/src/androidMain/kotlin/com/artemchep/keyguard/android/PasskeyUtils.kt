@@ -191,7 +191,8 @@ class PasskeyUtils(
         val detailMessage = it.localizedMessage
             ?: it.message
         val fullMessage =
-            "Failed to verify the relation with the `$rpId` relaying party. $detailMessage"
+            "Failed to verify the relation with the `$rpId` relaying party. $detailMessage" +
+                    "\n\n" + getGenericServiceFuckUpMessage(rpId)
         throw IllegalStateException(fullMessage)
     }
 
@@ -501,4 +502,7 @@ class PasskeyUtils(
         }
         return flags
     }
+
+    private fun getGenericServiceFuckUpMessage(rpId: String): String =
+        "This seems to be an issue with the service provider `$rpId`. Please reach out to their support team."
 }

@@ -133,7 +133,7 @@ bouncycastle = "1.82"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.11.0"
 # https://github.com/cashapp/sqldelight
-sqldelight = "2.1.0"
+sqldelight = "2.2.1"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.50.1.0"
 # https://github.com/vinceglb/FileKit

@@ -104,7 +104,7 @@ fun produceUrlBlockListState(
         val exposedKey = "exposed"
         val exposedItem = ConfirmationRoute.Args.Item.BooleanItem(
             key = exposedKey,
-            value = entity?.enabled ?: true,
+            value = entity?.exposed ?: true,
             title = translate(Res.string.urlblock_expose_title),
             text = translate(Res.string.urlblock_expose_text),
         )

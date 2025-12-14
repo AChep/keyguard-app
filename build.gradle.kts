@@ -118,7 +118,7 @@ subprojects {
             allowDependency("commons-logging", "commons-logging", "1.0.4") {
                 because("Apache License-2.0, but self-hosted copy of the license")
             }
-            allowDependency("com.github.spotbugs", "spotbugs-annotations", "4.8.6") {
+            allowDependency("com.github.spotbugs", "spotbugs-annotations", "4.9.8") {
                 because("Static code analysis")
             }
             allowDependency("com.github.jai-imageio", "jai-imageio-core", "1.4.0") {

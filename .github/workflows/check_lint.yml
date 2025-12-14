@@ -1,0 +1,28 @@
+name: "✔️ Check Lint"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  check-lint:
+    name: Check Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup_gradle
+      - name: "Check lint"
+        run: ./gradlew lint
+      - name: 'Report'
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: lint-reports
+          path: |
+            **/build/**/lint-results-*.txt
+          retention-days: 7

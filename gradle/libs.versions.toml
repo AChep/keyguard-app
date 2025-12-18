@@ -57,9 +57,9 @@ commonsCodec = "1.20.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.20.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.10.0-rc02"
+composeMultiplatform = "1.11.0-alpha01"
 # https://mvnrepository.com/artifact/org.jetbrains.compose.material3/material3
-composeMaterial3 = "1.10.0-alpha05"
+composeMaterial3 = "1.11.0-alpha01"
 composeMaterialIconsExtended = "1.7.3"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
@@ -83,7 +83,7 @@ m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines

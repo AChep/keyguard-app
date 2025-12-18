@@ -1294,7 +1294,7 @@ fun produceGeneratorState(
     val configBuilderFlow = typeFlow
         .flatMapLatest { type ->
             when (type) {
-                is GeneratorType2.Password -> combine(
+                is GeneratorType2.Password -> combine<Any?, PasswordGeneratorConfigBuilder2.Password>(
                     passwordLengthSink,
                     passwordIncludeUppercaseCharactersSink,
                     passwordIncludeLowercaseCharactersSink,

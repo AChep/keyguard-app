@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.BuildType
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import java.io.File
 import java.util.*
 
@@ -54,13 +55,6 @@ android {
 
         vectorDrawables {
             useSupportLibrary = true
-        }
-
-        kotlinOptions {
-            freeCompilerArgs += listOf(
-                "-opt-in=androidx.compose.material.ExperimentalMaterialApi",
-                "-Xexpect-actual-classes",
-            )
         }
     }
 
@@ -171,4 +165,12 @@ dependencies {
 
 kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
+
+    compilerOptions {
+        optIn.add("androidx.compose.material.ExperimentalMaterialApi")
+        val args = listOf(
+            "-Xexpect-actual-classes",
+        )
+        freeCompilerArgs.addAll(args)
+    }
 }

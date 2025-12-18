@@ -1,5 +1,6 @@
 import com.android.build.api.dsl.BuildType
-import java.io.FileInputStream
+import com.android.build.api.attributes.ProductFlavorAttr
+import java.io.File
 import java.util.*
 
 plugins {
@@ -13,21 +14,16 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.byebyejettifier)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.baseline.profile)
 }
 
 fun loadProps(fileName: String): Properties {
     val props = Properties()
-    val file = file(fileName)
-    if (file.exists()) {
-        var stream: FileInputStream? = null
-        try {
-            stream = file.inputStream()
-            props.load(stream)
-        } finally {
-            stream?.close()
-        }
+    val propsFile: File = file(fileName)
+    if (propsFile.isFile) {
+        propsFile.inputStream().use(props::load)
     }
     return props
 }
@@ -153,6 +149,19 @@ android {
             buildConfigField("boolean", "ANALYTICS", "false")
         }
     }
+
+    configurations.all {
+        if (name.contains("baselineProfile")) {
+            attributes {
+                // This resolves the ambiguity by explicitly selecting the "none" flavor
+                // for the baseline profile dependency.
+                attribute(
+                    Attribute.of("com.android.build.api.attributes.ProductFlavor:accountManagement", String::class.java),
+                    "none"
+                )
+            }
+        }
+    }
 }
 
 dependencies {
@@ -177,4 +186,10 @@ dependencies {
 
 kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
+}
+
+// Bye Bye Jetifier doesn't support Gradle Configuration Cache,
+// so disable it for its tasks:
+tasks.withType<com.dipien.byebyejetifier.task.CanISayByeByeJetifierTask>().configureEach {
+    notCompatibleWithConfigurationCache("Bye Bye Jetifier does not yet support the Gradle Configuration Cache")
 }

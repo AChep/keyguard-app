@@ -1,5 +1,4 @@
 import com.android.build.api.dsl.BuildType
-import com.android.build.api.attributes.ProductFlavorAttr
 import java.io.File
 import java.util.*
 
@@ -14,7 +13,6 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services)
-    alias(libs.plugins.byebyejettifier)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.baseline.profile)
 }
@@ -149,19 +147,6 @@ android {
             buildConfigField("boolean", "ANALYTICS", "false")
         }
     }
-
-    configurations.all {
-        if (name.contains("baselineProfile")) {
-            attributes {
-                // This resolves the ambiguity by explicitly selecting the "none" flavor
-                // for the baseline profile dependency.
-                attribute(
-                    Attribute.of("com.android.build.api.attributes.ProductFlavor:accountManagement", String::class.java),
-                    "none"
-                )
-            }
-        }
-    }
 }
 
 dependencies {
@@ -186,10 +171,4 @@ dependencies {
 
 kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
-}
-
-// Bye Bye Jetifier doesn't support Gradle Configuration Cache,
-// so disable it for its tasks:
-tasks.withType<com.dipien.byebyejetifier.task.CanISayByeByeJetifierTask>().configureEach {
-    notCompatibleWithConfigurationCache("Bye Bye Jetifier does not yet support the Gradle Configuration Cache")
 }

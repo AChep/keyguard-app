@@ -130,11 +130,7 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                     .toIO()
             }
             .flatten()
-            .flatMap { enabled ->
-                if (!enabled) {
-                    return@flatMap ioUnit()
-                }
-
+            .flatMap { autoCopy ->
                 args?.cipherTotpRaw
                     .toOption()
                     .toEither {
@@ -145,7 +141,12 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                     }
                     .toIO()
                     .effectMap(Dispatchers.Main) {
-                        val intent = KeyguardClipboardService.getIntent(this, args?.cipherName, it)
+                        val intent = KeyguardClipboardService.getIntent(
+                            this,
+                            cipherName = args?.cipherName,
+                            totpToken = it,
+                            autoCopy = autoCopy,
+                        )
                         startForegroundService(intent)
                     }
             }

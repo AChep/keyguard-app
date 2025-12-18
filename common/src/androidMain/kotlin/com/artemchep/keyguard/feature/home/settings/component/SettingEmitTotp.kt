@@ -36,6 +36,7 @@ fun settingEmitTotpProvider(
                     context = context,
                     cipherName = "Test cipher",
                     totpToken = totp,
+                    autoCopy = false,
                 )
                 context.startForegroundService(intent)
             },

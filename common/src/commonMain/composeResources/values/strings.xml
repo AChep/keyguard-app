@@ -489,6 +489,9 @@
     <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
 
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
+
     <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
     <string name="autofill_open_keyguard">Open Keyguard</string>
 
@@ -1211,7 +1214,7 @@
     <string name="pref_item_clipboard_auto_clear_title">Automatically clear clipboard</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediately</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Never</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">One-time password notification duration</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Auto-refresh one-time password notification duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">When you autofill a login item that has a one-time password, the notification with verification code will popup for at least the defined duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Never</string>
     <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>

@@ -16,6 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup_gradle
+      - name: "Prepare env"
+        run: |
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo "" >> gradle.properties
       - name: "Check lint"
         run: ./gradlew lint
       - name: "Create lint summary"

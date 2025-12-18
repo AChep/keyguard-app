@@ -18,11 +18,35 @@ jobs:
       - uses: ./.github/actions/setup_gradle
       - name: "Check lint"
         run: ./gradlew lint
-      - name: 'Report'
+      - name: "Create lint summary"
+        if: always()
+        shell: bash
+        run: |
+          ERRORS=$(python './scripts/reports/collect_reports.py' --type android_lint)
+          echo '### Android Lint report' >> $GITHUB_STEP_SUMMARY
+          if [ -z "$ERRORS" ]; then 
+            echo '✅ No Android Lint errors found.' >> $GITHUB_STEP_SUMMARY
+          else
+            echo '❌ Some Android Lint errors found:' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$ERRORS" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '---' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+      - name: "Read results glob pattern"
+        if: always()
+        id: read-glob
+        shell: bash
+        run: |
+          file_path="./scripts/reports/glob_android_lint.txt"
+          file_content="$(cat $file_path)"
+          echo "paths=$file_content" >> "$GITHUB_OUTPUT"
+      - name: "Upload results"
         uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: lint-reports
-          path: |
-            **/build/**/lint-results-*.txt
-          retention-days: 7
+          name: reports
+          path: "${{ steps.read-glob.outputs.paths }}"
+          retention-days: 21

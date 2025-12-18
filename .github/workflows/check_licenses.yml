@@ -24,3 +24,35 @@ jobs:
       - uses: ./.github/actions/setup_gradle
       - name: "Check licenses"
         run: ./gradlew licensee
+      - name: "Create licenses summary"
+        if: always()
+        shell: bash
+        run: |
+          ERRORS=$(python './scripts/reports/collect_reports.py' --type licensee)
+          echo '### Licensee report' >> $GITHUB_STEP_SUMMARY
+          if [ -z "$ERRORS" ]; then 
+            echo '✅ No Licensee errors found.' >> $GITHUB_STEP_SUMMARY
+          else
+            echo '❌ Some Licensee errors found:' >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$ERRORS" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '---' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+      - name: "Read results glob pattern"
+        if: always()
+        id: read-glob
+        shell: bash
+        run: |
+          file_path="./scripts/reports/glob_licensee.txt"
+          file_content="$(cat $file_path)"
+          echo "paths=$file_content" >> "$GITHUB_OUTPUT"
+      - name: "Upload results"
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: reports
+          path: "${{ steps.read-glob.outputs.paths }}"
+          retention-days: 21

@@ -1,0 +1,1 @@
+**/build/reports/ktlint/**/ktlint*Check.txt

@@ -1,0 +1,1 @@
+**/build/reports/lint-results-*.xml

@@ -14,7 +14,7 @@ on:
 jobs:
   sync-google-listing:
     name: Upload Google Play Store listing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
       - run: pip install -r .github/update_google_play_listing.requirements.txt

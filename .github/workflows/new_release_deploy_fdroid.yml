@@ -8,7 +8,7 @@ on:
 jobs:
   new-update:
     name: Deploy F-Droid
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: "Checkout main repo"
         uses: actions/checkout@v6

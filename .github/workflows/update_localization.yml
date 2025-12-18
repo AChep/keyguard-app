@@ -15,7 +15,7 @@ on:
 jobs:
   sync-localization:
     name: Synchronize Crowdin Translations
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
       - run: pip install -r .github/update_localization_contributors.requirements.txt

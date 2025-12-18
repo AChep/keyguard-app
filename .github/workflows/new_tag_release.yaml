@@ -44,14 +44,14 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: "Upload logs"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: logs-mac-silicon
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: binaries-mac-silicon
           path: desktopApp/build/compose/binaries/main/**
@@ -61,7 +61,7 @@ jobs:
           cd desktopApp/build/compose/binaries/main/dmg
           for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-apple\2/p')" ; done
       - name: "Upload .dmg"
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-mac-silicon
           path: desktopApp/build/compose/binaries/main/dmg/*.dmg
@@ -102,14 +102,14 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageDmg :desktopApp:notarizeDmg
       - name: 'Upload logs'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: logs-mac-intel
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: 'Upload binaries'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: binaries-mac-intel
           path: desktopApp/build/compose/binaries/main/**
@@ -119,7 +119,7 @@ jobs:
           cd desktopApp/build/compose/binaries/main/dmg
           for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-intel\2/p')" ; done
       - name: 'Upload .dmg'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-mac-intel
           path: desktopApp/build/compose/binaries/main/dmg/*.dmg
@@ -148,7 +148,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:bundleFlatpak
       - name: 'Upload .flatpak'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-linux-flatpak
           path: desktopApp/build/flatpak/Keyguard.flatpak
@@ -175,7 +175,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageMsi
       - name: 'Upload .msi'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-windows
           path: desktopApp/build/compose/binaries/main/msi/*.msi
@@ -206,7 +206,7 @@ jobs:
       - name: "Build"
         run: ./gradlew androidApp:assembleNoneRelease
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: app-android
           path: |

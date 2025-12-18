@@ -1,3 +1,5 @@
+import javax.inject.Inject
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
@@ -109,49 +111,70 @@ fun detectOs(): Os {
 
 val os = detectOs()
 
-tasks.register(Tasks.compileNativeUniversal) {
-    dependsOn(tasks.named(os.binTaskName))
+abstract class SignAndCopyBinary : DefaultTask() {
+    @get:Inject
+    abstract val execOperations: ExecOperations
 
-    inputs.files("src/")
-    val out = file("build/bin/")
-    outputs.dir(out)
+    @get:InputFile
+    abstract val sourceBinary: RegularFileProperty
 
-    doFirst {
-        val bin = file("build/bin/${os.binPath}")
-        require(bin.exists()) {
-            "Native binary must exist before universal " +
-                    "compile task is started!"
+    @get:OutputFile
+    abstract val destinationBinary: RegularFileProperty
+
+    @get:Input
+    @get:Optional
+    abstract val certIdentity: Property<String>
+
+    @get:Input
+    abstract val platformMacOs: Property<Boolean>
+
+    @TaskAction
+    fun action() {
+        val bin = sourceBinary.get().asFile
+        val identity = certIdentity.orNull
+
+        // Validation happens automatically via @InputFile, 
+        // but we can double check
+        require(bin.exists()) { 
+            "Native binary must exist before universal compile task is started!" 
         }
 
-        // On macOS we might additionally sign the desktop
-        // library binary, if the certificate's identity is specified.
-        // This must be done for release builds.
-        if (
-            os == Os.MAC_ARM64 ||
-            os == Os.MAC_X64
-        ) {
-            val certIdentity = findProperty("cert_identity") as String?
-            if (certIdentity != null) {
-                println("Signing native lib binary with identity ${certIdentity.take(2)}****")
-                exec {
-                    commandLine(
-                        "codesign",
-                        "--force",
-                        "--options",
-                        "runtime",
-                        "--sign",
-                        certIdentity,
-                        bin.absolutePath,
-                    )
-                    // The certificate should be added to the
-                    // keychain by this time.
-                }
+        // Sign the binary if the platform 
+        // requires it.
+        if (platformMacOs.get() && identity != null) {
+            logger.lifecycle("Signing native lib binary with identity ${identity.take(2)}****")
+            execOperations.exec {
+                commandLine(
+                    "codesign",
+                    "--force",
+                    "--options", "runtime",
+                    "--sign", identity,
+                    bin.absolutePath,
+                )
             }
         }
 
         bin.copyTo(
-            target = out.resolve("universal/libkeyguard"),
-            overwrite = true,
+            target = destinationBinary.get().asFile,
+            overwrite = true
         )
     }
+}
+
+tasks.register<SignAndCopyBinary>(Tasks.compileNativeUniversal) {
+    dependsOn(tasks.named(os.binTaskName))
+
+    // Set Inputs
+    // We use layout.buildDirectory to be Configuration Cache friendly
+    val sourcePath = "bin/${os.binPath}"
+    sourceBinary.set(layout.buildDirectory.file(sourcePath))
+    
+    // Set Outputs
+    destinationBinary.set(layout.buildDirectory.file("bin/universal/libkeyguard"))
+
+    // Set Properties
+    val macOsDetected = os == Os.MAC_ARM64 || os == Os.MAC_X64
+    platformMacOs.set(macOsDetected)
+    val macOsCertIdentity = findProperty("cert_identity") as String?
+    certIdentity.set(macOsCertIdentity)
 }

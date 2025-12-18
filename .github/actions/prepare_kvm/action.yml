@@ -1,0 +1,15 @@
+name: "Prepare KVM perms for running Android Emulator"
+runs:
+  using: "composite"
+  steps:
+    - name: "Enable KVM group perms"
+      if: ${{ env.ACTION_PREPARE_KVM_COMPLETE != '1' }}
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+    - name: "Skip next"
+      shell: bash
+      run: |
+        echo "ACTION_PREPARE_KVM_COMPLETE=1" >> $GITHUB_ENV

@@ -1092,6 +1092,14 @@
     "name": "Audiense"
   },
   {
+    "domain": "audiofanzine.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://fr.audiofanzine.com/login/a.faq2fa.html",
+    "name": "Audiofanzine"
+  },
+  {
     "domain": "aura.com",
     "tfa": [
       "sms",
@@ -4807,6 +4815,14 @@
     "name": "Digitec"
   },
   {
+    "domain": "dinahosting.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://dinahosting.com/ayuda/activar-autenticacion-dos-pasos-en-panel/",
+    "name": "dinahosting"
+  },
+  {
     "domain": "dinero.dk",
     "tfa": [
       "sms",
@@ -5220,16 +5236,6 @@
     ],
     "documentation": "https://www.dwolla.com/updates/introducing-two-factor-authentication-for-dwolla/",
     "name": "Dwolla"
-  },
-  {
-    "domain": "dyn.com",
-    "tfa": [
-      "sms",
-      "totp"
-    ],
-    "documentation": "https://help.dyn.com/2-factor-authentication/",
-    "notes": "Currently only supported for the Managed DNS & Email Delivery platforms (via DynID). Eventually DynID (and 2FA) will be rolled out to all platforms (no ETA).",
-    "name": "Dyn"
   },
   {
     "domain": "dynadot.com",
@@ -5853,6 +5859,23 @@
     ],
     "documentation": "https://support.exactonline.com/community/s/knowledge-base#All-All-HNO-Task-general-security-gen-auth-totpregphndsktpt",
     "name": "Exact Online"
+  },
+  {
+    "domain": "exeloncorp.com",
+    "additional-domains": [
+      "atlanticcityelectic.com",
+      "bge.com",
+      "comed.com",
+      "delmarva.com",
+      "peco.com",
+      "pepco.com"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "email"
+    ],
+    "name": "Exelon"
   },
   {
     "domain": "exmo.com",
@@ -6866,6 +6889,23 @@
     "name": "General Motors"
   },
   {
+    "domain": "gmu.edu",
+    "tfa": [
+      "sms",
+      "call",
+      "custom-software",
+      "custom-hardware"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "custom-hardware": [
+      "Yubico OTP"
+    ],
+    "documentation": "https://its.gmu.edu/knowledge-base/list-of-2fa-authentication-options/",
+    "name": "George Mason University"
+  },
+  {
     "domain": "gmx.com",
     "url": "https://www.gmx.com/",
     "tfa": [
@@ -7342,6 +7382,14 @@
       "totp"
     ],
     "name": "Heathrow Airport"
+  },
+  {
+    "domain": "heimdalsecurity.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.heimdalsecurity.com/hc/articles/212721589",
+    "name": "Heimdal"
   },
   {
     "domain": "hello.vrchat.com",
@@ -8268,7 +8316,9 @@
   {
     "domain": "instagram.com",
     "additional-domains": [
-      "threads.net"
+      "threads.com",
+      "threads.net",
+      "ig.me"
     ],
     "tfa": [
       "sms",
@@ -11736,8 +11786,8 @@
     "custom-software": [
       "Microsoft Authenticator"
     ],
-    "documentation": "https://support.microsoft.com/en-us/help/12408",
-    "notes": "2FA phone calls may not be available in all regions",
+    "documentation": "https://support.microsoft.com/help/12408",
+    "notes": "2FA phone calls may not be available in all regions.",
     "name": "OneDrive"
   },
   {
@@ -13511,6 +13561,13 @@
     "name": "Ravelin"
   },
   {
+    "domain": "raycast.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Raycast"
+  },
+  {
     "domain": "raygun.com",
     "tfa": [
       "sms",
@@ -14250,7 +14307,7 @@
     "tfa": [
       "totp"
     ],
-    "documentation": "https://www.scaleway.com/en/docs/how-to-activate-two-factor-authentication/",
+    "documentation": "https://www.scaleway.com/docs/account/how-to/use-2fa/",
     "name": "Scaleway"
   },
   {
@@ -14753,6 +14810,7 @@
     "tfa": [
       "totp"
     ],
+    "documentation": "https://docs.shy.gg/essentials/two-factor-auth",
     "name": "Shy"
   },
   {
@@ -14986,22 +15044,6 @@
     "documentation": "https://skrill.com/en-us/support#/path/1753623122",
     "notes": "Email method requires an additional PIN",
     "name": "Skrill"
-  },
-  {
-    "domain": "skype.com",
-    "url": "https://www.skype.com",
-    "tfa": [
-      "sms",
-      "email",
-      "custom-software",
-      "totp"
-    ],
-    "custom-software": [
-      "Microsoft Authenticator"
-    ],
-    "documentation": "https://support.microsoft.com/en-us/help/12408/",
-    "notes": "Must be associated with a Microsoft Account.",
-    "name": "Skype"
   },
   {
     "domain": "slack.com",
@@ -15677,6 +15719,17 @@
     "name": "SugarSync"
   },
   {
+    "domain": "summ.com",
+    "additional-domains": [
+      "cryptotaxcalculator.io"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.summ.com/articles/9126168",
+    "name": "Summ"
+  },
+  {
     "domain": "sumologic.com",
     "url": "https://www.sumologic.com",
     "tfa": [
@@ -16026,6 +16079,24 @@
     "name": "TD Bank"
   },
   {
+    "domain": "teams.live.com",
+    "additional-domains": [
+      "skype.com"
+    ],
+    "tfa": [
+      "sms",
+      "email",
+      "custom-software",
+      "totp"
+    ],
+    "custom-software": [
+      "Microsoft Authenticator"
+    ],
+    "documentation": "https://support.microsoft.com/help/12408",
+    "notes": "2FA phone calls may not be available in all regions.",
+    "name": "Microsoft Teams"
+  },
+  {
     "domain": "teamviewer.com",
     "url": "https://www.teamviewer.com",
     "tfa": [
@@ -16274,6 +16345,18 @@
     ],
     "documentation": "https://kb.threatconnect.com/customer/en/portal/articles/2214975",
     "name": "ThreatConnect"
+  },
+  {
+    "domain": "threatlocker.com",
+    "tfa": [
+      "totp",
+      "custom-software"
+    ],
+    "custom-software": [
+      "Duo"
+    ],
+    "documentation": "https://threatlocker.kb.help/login-settings/",
+    "name": "ThreatLocker"
   },
   {
     "domain": "threatx.com",

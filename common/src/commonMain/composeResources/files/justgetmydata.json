@@ -343,6 +343,13 @@
     "email": "dpo@hype.it"
   },
   {
+    "name": "Hypixel",
+    "domains": [],
+    "url": "https://hypixel.net/data-request",
+    "difficulty": "hard",
+    "notes": "Go to the URL above and submit a request. Image of government-issued ID is required."
+  },
+  {
     "name": "Infinibrowser",
     "domains": [],
     "url": "https://infinibrowser.wiki/profile/settings",
@@ -854,6 +861,13 @@
     "url": "https://cpa-ui.walmart.com/affirmation?brandCode=WMT",
     "difficulty": "hard",
     "notes": "They only accept requests from California and Virginia, but they only check the state selected from the dropdown at the beginning."
+  },
+  {
+    "name": "WeChat",
+    "domains": [],
+    "url": "https://help.wechat.com/cgi-bin/micromsg-bin/oshelpcenter?opcode=2&id=171213ezniaf1712137znmer",
+    "difficulty": "easy",
+    "notes": "Go to WeChat > Me > Settings > Privacy > My Information & Authorizations > View and Export Personal Data to request your data."
   },
   {
     "name": "WhatsApp",

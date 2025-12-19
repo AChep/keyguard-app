@@ -6,12 +6,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Enable KVM group perms"
-      shell: bash
-      run: |
-        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-        sudo udevadm control --reload-rules
-        sudo udevadm trigger --name-match=kvm
+    - uses: ./.github/actions/prepare_kvm
     - name: "Generate baseline profiles"
       id: baseline-profiles
       uses: reactivecircus/android-emulator-runner@v2

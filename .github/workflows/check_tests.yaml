@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   check-android-tests:
@@ -11,14 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup_gradle
-      - name: "Enable KVM group perms"
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+      - uses: ./.github/actions/prepare_kvm
       - name: "Prepare env"
         run: |
-          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: "PlayStore"

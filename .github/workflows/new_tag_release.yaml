@@ -272,3 +272,22 @@ jobs:
           files: |
             artifacts/*
             artifacts/**/*.apk
+  deploy:
+    name: Deploy ${{ matrix.wf-file }}
+    runs-on: ubuntu-slim
+    needs:
+      - dist
+    strategy:
+      fail-fast: false
+      matrix:
+        wf-file:
+          - new_release_deploy_fdroid.yml
+          - new_release_deploy_homebrew.yml
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+      - name: "Trigger Workflow"
+        uses: ./.github/actions/github_trigger_wf
+        with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
+          github-wf-file: ${{ matrix.wf-file }}

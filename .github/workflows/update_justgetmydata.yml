@@ -22,5 +22,6 @@ jobs:
           python .github/update_justgetmydata.py
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update justgetmydata library"
           commit-branch: justgetmydata_action

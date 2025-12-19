@@ -15,5 +15,6 @@ jobs:
           mv -f public_suffix_list.dat common/src/commonMain/composeResources/files/public_suffix_list.txt
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update Public suffix list"
           commit-branch: tld_public_suffix_list_action

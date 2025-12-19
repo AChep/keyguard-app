@@ -22,5 +22,6 @@ jobs:
           python .github/update_gpm_passkeys_priv_apps.py
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update GPM Credential Privileged Apps JSON"
           commit-branch: gpmpasskeysprivapps_action

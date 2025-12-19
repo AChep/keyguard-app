@@ -1,5 +1,8 @@
 name: "GitHub Submit PR"
 inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
   commit-message:
     description: 'Commit message'
     required: true
@@ -20,7 +23,7 @@ runs:
       uses: devops-infra/action-commit-push@v1.0.3
       if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
       with:
-        github_token: "${{ secrets.PERSONAL_TOKEN }}"
+        github_token: "${{ inputs.github-token }}"
         add_timestamp: false
         commit_prefix: "[AUTO] "
         commit_message: ${{ inputs.commit-message }}
@@ -30,7 +33,7 @@ runs:
       uses: devops-infra/action-pull-request@v1.0.2
       if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
       with:
-        github_token: "${{ secrets.PERSONAL_TOKEN }}"
+        github_token: "${{ inputs.github-token }}"
         source_branch: ${{ inputs.commit-branch }}
         target_branch: master
         assignee: AChep

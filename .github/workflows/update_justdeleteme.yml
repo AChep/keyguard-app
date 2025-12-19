@@ -22,5 +22,6 @@ jobs:
           python .github/update_justdeleteme.py
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update justdeleteme library"
           commit-branch: justdeleteme_action

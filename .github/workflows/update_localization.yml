@@ -45,5 +45,6 @@ jobs:
           python .github/update_localization_contributors.py ${{ secrets.CROWDIN_PERSONAL_TOKEN }} ${{ secrets.CROWDIN_PROJECT_ID }}
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update localization library"
           commit-branch: localization_action

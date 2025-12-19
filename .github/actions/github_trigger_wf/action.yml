@@ -1,0 +1,27 @@
+name: "GitHub Trigger WF"
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+  github-wf-repo:
+    description: 'GitHub Workflow Repo'
+    required: true
+    default: "AChep/keyguard-app"
+  github-wf-branch:
+    description: 'GitHub Workflow Branch'
+    required: true
+    default: "master"
+  github-wf-file:
+    description: 'GitHub Workflow File'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Trigger Workflow
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        gh workflow run ${{ inputs.github-wf-file }} \
+          --repo ${{ inputs.github-wf-repo }} \
+          --ref ${{ inputs.github-wf-branch }}

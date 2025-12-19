@@ -20,5 +20,6 @@ jobs:
           python .github/update_twofactorauth.py
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update two-factor auth library"
           commit-branch: tfa_2factorauth_action

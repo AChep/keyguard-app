@@ -22,5 +22,6 @@ jobs:
           python .github/update_passkeys.py "${{ secrets.PASSKEYS_API_KEY }}"
       - uses: ./.github/actions/github_submit_pr
         with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
           commit-message: "Update passkeys library"
           commit-branch: passkeys_action

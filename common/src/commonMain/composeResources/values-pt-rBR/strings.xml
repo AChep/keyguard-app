@@ -9,6 +9,7 @@
     <string name="show_keyguard">Mostrar Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
+    <string name="description">Description</string>
     <string name="account_name">Nome da conta</string>
     <string name="database_name">Database name</string>
     <string name="enabled">Ativado</string>
@@ -30,10 +31,10 @@
     <string name="field_label">Rótulo</string>
     <string name="field_value">Valor</string>
     <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Quantidade de acessos</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Número máximo de acessos</string>
@@ -78,7 +79,7 @@
     <string name="uri">URI</string>
     <string name="uris">URIs</string>
     <string name="note">Nota</string>
-    <string name="notes">Notas</string>
+    <string name="notes">Anotações</string>
     <string name="date">Data</string>
     <string name="time">Hora</string>
     <string name="attachments">Anexos</string>
@@ -94,7 +95,7 @@
     <string name="items_all">Todos os itens</string>
     <string name="items_empty_label">Nenhum item</string>
     <string name="sends">Sends</string>
-    <string name="folder_none">Nenhuma pasta</string>
+    <string name="folder_none">Sem pasta</string>
     <string name="folder_new">Nova pasta</string>
     <string name="folder">Pasta</string>
     <string name="folders">Pastas</string>
@@ -134,7 +135,7 @@
     <string name="identity_title">Título</string>
     <string name="identity_first_name">Primeiro nome</string>
     <string name="identity_middle_name">Nome do Meio</string>
-    <string name="identity_last_name">Último Nome</string>
+    <string name="identity_last_name">Sobrenome</string>
     <string name="identity_full_name">Nome completo</string>
     <string name="address1">Endereço 1</string>
     <string name="address2">Endereço 2</string>
@@ -151,8 +152,8 @@
     <string name="autofill_and_save_uri">Autopreencher e salvar informações do aplicativo ou do site</string>
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
     <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
-    <string name="passkey">Passkey</string>
-    <string name="passkey_create_header">Criar uma passkey</string>
+    <string name="passkey">Chave de acesso</string>
+    <string name="passkey_create_header">Criar uma chave de acesso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
     <string name="passkey_auth_via_header">Confirmando a solicitação de autenticação…</string>
     <string name="passkeys">Passkeys</string>
@@ -178,7 +179,7 @@
     <string name="domain">Domínio</string>
     <string name="add_to_home_screen">Adicionar à tela inicial</string>
     <string name="edit">Editar</string>
-    <string name="delete">Deletar</string>
+    <string name="delete">Apagar</string>
     <string name="remove">Remover</string>
     <string name="remove_from_history">Remover do histórico</string>
     <string name="reused_password">Senha reutilizada</string>
@@ -186,8 +187,8 @@
     <string name="one_time_password">Senha de uso único</string>
     <string name="one_time_password_authenticator_key">Chave de Autenticação</string>
     <string name="passkey_use_short">Usar</string>
-    <string name="passkey_save">Salvar Passkey</string>
-    <string name="passkey_available">Passkey disponível</string>
+    <string name="passkey_save">Salvar chave de acesso</string>
+    <string name="passkey_available">Chave de acesso disponível</string>
     <string name="twofa_available">Autenticação de dois fatores disponível</string>
     <string name="custom">Personalizado</string>
     <string name="grant_permission">Conceder permissão</string>
@@ -256,7 +257,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Dica: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Gere e-mails exclusivos para melhor privacidade.</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">Código de segurança copiado</string>
     <string name="copied_otp_code">Senha de uso único copiada</string>
     <string name="copied_otp_secret_code">Chave secreta copiada</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Desbloquear Keyguard</string>
     <string name="autofill_open_keyguard">Abrir Keyguard</string>
     <string name="january">Janeiro</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">Excluir a substituição de URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Excluir as substituições de URL?</string>
     <string name="urloverride_empty_label">Nenhuma substituição de URL</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">Crie um cofre criptografado onde os dados locais serão armazenados.</string>
     <string name="setup_free_text">Ao continuar você confirmará que comprou o Keyguard ou que recebeu uma licença ativa.</string>
     <string name="setup_field_app_password_label">Senha do aplicativo</string>

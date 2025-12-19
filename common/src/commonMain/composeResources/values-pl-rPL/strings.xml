@@ -9,6 +9,7 @@
     <string name="show_keyguard">Pokaż klawiaturę</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nazwa</string>
+    <string name="description">Description</string>
     <string name="account_name">Nazwa konta</string>
     <string name="database_name">Database name</string>
     <string name="enabled">Aktywne</string>
@@ -30,10 +31,10 @@
     <string name="field_label">Etykietka</string>
     <string name="field_value">Wartość</string>
     <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Ilość dostępów</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maksymalna liczba dostępów</string>
@@ -256,7 +257,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generuj unikalne e-maile dla lepszej prywatności.</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">Skopiowano kod bezpieczeństwa</string>
     <string name="copied_otp_code">Skopiowano jednorazowe hasło</string>
     <string name="copied_otp_secret_code">Skopiowano tajny klucz</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Odblokuj Keyguard</string>
     <string name="autofill_open_keyguard">Otwórz klawiaturę</string>
     <string name="january">Styczeń</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">Usunąć nadpisany URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Usunąć nadpisany URL?</string>
     <string name="urloverride_empty_label">Brak nadpisów URL</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">Utwórz zaszyfrowany sejf w którym będą przechowywane lokalne dane.</string>
     <string name="setup_free_text">Kontynuując, potwierdzasz, że zakupiłeś lub posiadałeś aktywną licencję.</string>
     <string name="setup_field_app_password_label">Hasło aplikacji</string>
@@ -969,7 +980,7 @@
     <string name="account_main_header_title">Accounts</string>
     <string name="account_main_add_account_title">Add account</string>
     <string name="team_header_title">Team behind the app</string>
-    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize on app design and development.</string>
+    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize in app design and development.</string>
     <string name="team_follow_me_section">Follow me</string>
     <string name="settingssearch_header_title">Search</string>
     <string name="settingssearch_header_subtitle">Settings</string>
@@ -1024,7 +1035,7 @@
     <string name="pref_item_download_apk_title">Download APK file</string>
     <string name="pref_item_load_app_icons_title">Load App icons</string>
     <string name="pref_item_load_website_icons_title">Load Website icons</string>
-    <string name="pref_item_load_website_icons_text">Queuing website icons might leak website addresses to your internet provider</string>
+    <string name="pref_item_load_website_icons_text">Fetching website icons might leak website addresses to your internet provider</string>
     <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
     <string name="pref_item_markdown_title">Rich text formatting</string>
     <string name="pref_item_markdown_text">Use Markdown to format notes</string>
@@ -1116,7 +1127,7 @@
     <string name="pref_item_clipboard_auto_clear_title">Automatically clear clipboard</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediately</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Never</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">One-time password notification duration</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Auto-refresh one-time password notification duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">When you autofill a login item that has a one-time password, the notification with verification code will popup for at least the defined duration</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Never</string>
     <string name="pref_item_clipboard_notification_settings_title">One-time password notification settings</string>
@@ -1180,7 +1191,7 @@
     <string name="feat_item_duplicate_items_text">Find and merge duplicate items.</string>
     <string name="feat_section_misc_title">Misc</string>
     <string name="feat_item_multi_selection_title">Multi-selection</string>
-    <string name="feat_item_multi_selection_text">Merge ciphers, fasten the refactoring with batch operations.</string>
+    <string name="feat_item_multi_selection_text">Merge ciphers, accelerate the refactoring with batch operations.</string>
     <string name="feat_item_show_barcode_title">Show as Barcode</string>
     <string name="feat_item_show_barcode_text">Encode a text as different barcodes.</string>
     <string name="feat_item_generator_title">Generator</string>

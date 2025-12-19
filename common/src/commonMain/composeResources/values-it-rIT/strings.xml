@@ -9,8 +9,9 @@
     <string name="show_keyguard">Mostra Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
+    <string name="description">Description</string>
     <string name="account_name">Nome account</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Nome del database</string>
     <string name="enabled">Attivato</string>
     <string name="disabled">Disattivato</string>
     <string name="wordlist">Wordlist</string>
@@ -26,14 +27,14 @@
     <string name="email_visibility">Visibilità email</string>
     <string name="public_url">URL pubblico</string>
     <string name="url">URL</string>
-    <string name="conceal_value">Conceal value</string>
+    <string name="conceal_value">Nascondi valore</string>
     <string name="field_label">Etichetta</string>
     <string name="field_value">Valore</string>
-    <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="tag_value">Valore</string>
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Conteggio accessi</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Numero massimo di accessi</string>
@@ -99,7 +100,7 @@
     <string name="folder">Cartella</string>
     <string name="folders">Cartelle</string>
     <string name="folders_empty_label">Nessuna cartella</string>
-    <string name="tag_none">No tag</string>
+    <string name="tag_none">Nessun tag</string>
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
     <string name="tags_empty_label">No tags</string>
@@ -201,7 +202,7 @@
     <string name="requested_verification_email">Codice di verifica richiesto</string>
     <string name="web_vault">Cassaforte web</string>
     <string name="launch_web_vault">Avvia cassaforte Web</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Cassaforte locale</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Resta collegato</string>
     <!-- A Trash screen -->
@@ -222,11 +223,11 @@
     <string name="encryption_random_bits_data"><xliff:g id="length" example="64">%1$d</xliff:g>-bits di dati casuali</string>
     <string name="none">Nessuno</string>
     <string name="text">Testo</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">App collegata</string>
     <string name="linked_apps">Applicazioni collegate</string>
     <string name="linked_uri">Linked URI</string>
     <string name="linked_uris">URI Collegati</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Campo personalizzato</string>
     <string name="custom_fields">Campi personalizzati</string>
     <string name="custom_field_toggle_boolean_value">Toggle value</string>
     <string name="reveal_secure_note">Rivela una nota sicura</string>
@@ -238,7 +239,7 @@
     <string name="key_type">Tipo di chiave</string>
     <string name="key_pair">Coppia di chiavi</string>
     <string name="key_ssh">Chiave SSH</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Sembra che qui sia vuoto. Genera una chiave SSH per iniziare!</string>
     <string name="fingerprint_phrase">Frase impronta</string>
     <string name="fingerprint_phrase_help_title">Che cos'è un'impronta digitale?</string>
     <string name="filter_auth_reprompt_items">Richiesta autorizzazione</string>
@@ -247,18 +248,18 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Richiede Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Server Bitwarden non ufficiale</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="server_version">Versione <xliff:g id="version" example="1.0.0">%1$s</xliff:g> del server</string>
+    <string name="database_version">Versione <xliff:g id="version" example="1.0.0">%1$s</xliff:g> del database</string>
     <string name="clear_file">Clear</string>
     <string name="replace_key_file"></string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="select_key_file">Seleziona una chiave</string>
+    <string name="select_database_file">Seleziona un database</string>
+    <string name="replace_database_file">Sostituisci un database</string>
+    <string name="open_database">Apri un database</string>
+    <string name="create_database">Crea un database</string>
+    <string name="qr_wifi_description_text">Scansiona questo codice QR con un altro dispositivo per accedere alla rete WIFI.</string>
+    <string name="qr_generate_button">Genera codice QR</string>
+    <string name="pro_tip">Suggerimento: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Genera email uniche per una migliore privacy.</string>
     <string name="account_last_synced_at">Ultima sincronizzazione il <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Modifica nome</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">Numero di sicurezza copiato</string>
     <string name="copied_otp_code">Password monouso copiata</string>
     <string name="copied_otp_secret_code">Chiave segreta copiata</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Sblocca Keyguard</string>
     <string name="autofill_open_keyguard">Apri Keyguard</string>
     <string name="january">Gennaio</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">Eliminare la sovrascrittura del URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Eliminare la sovrascrittura degli URL?</string>
     <string name="urloverride_empty_label">Nessuna sovrascrittura URL</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">Crea una cassaforte criptata dove verranno salvati i dati locali.</string>
     <string name="setup_free_text">Continuando confermi di aver acquistato Keyguard o di aver avuto una licenza attiva.</string>
     <string name="setup_field_app_password_label">Password app</string>

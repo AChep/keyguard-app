@@ -9,6 +9,7 @@
     <string name="show_keyguard">Keyguard 열기</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">이름</string>
+    <string name="description">Description</string>
     <string name="account_name">계정 이름</string>
     <string name="database_name">Database name</string>
     <string name="enabled">켜짐</string>
@@ -30,10 +31,10 @@
     <string name="field_label">라벨</string>
     <string name="field_value">값</string>
     <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">조회수</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">최대 접근 횟수</string>
@@ -256,10 +257,10 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">팁: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for the better privacy.</string>
+    <string name="pro_tip_generate_email_relay_title">Generate unique emails for better privacy.</string>
     <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
     <string name="account_action_change_name_title">이름 바꾸기</string>
     <string name="account_action_change_color_title">색상 바꾸기</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">보안 코드(CVV)를 복사했습니다.</string>
     <string name="copied_otp_code">OTP를 복사했습니다.</string>
     <string name="copied_otp_secret_code">비밀 키를 복사했습니다.</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Keyguard 잠금 해제</string>
     <string name="autofill_open_keyguard">Keyguard 열기</string>
     <string name="january">1월</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
     <string name="urloverride_delete_many_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
     <string name="urloverride_empty_label">URL 덮어쓰기 없음</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
     <string name="setup_free_text">계속 진행하면 사용 가능한 라이선스가 있거나 Keyguard를 구매했음을 의미합니다.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>

@@ -9,6 +9,7 @@
     <string name="show_keyguard">Afficher Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nom</string>
+    <string name="description">Description</string>
     <string name="account_name">Nom du compte</string>
     <string name="database_name">Database name</string>
     <string name="enabled">Activé</string>
@@ -30,10 +31,10 @@
     <string name="field_label">Label</string>
     <string name="field_value">Valeur</string>
     <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Nombre d'accès</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Nombre maximum d'accès</string>
@@ -256,7 +257,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Astuce : <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Générer des e-mails uniques pour une meilleure confidentialité.</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">Code de sécurité copié</string>
     <string name="copied_otp_code">Mot de passe unique copié</string>
     <string name="copied_otp_secret_code">Clé secrète copiée</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Déverrouiller Keyguard</string>
     <string name="autofill_open_keyguard">Ouvrir Keyguard</string>
     <string name="january">Janvier</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">Supprimer le remplacement d'URL ?</string>
     <string name="urloverride_delete_many_confirmation_title">Supprimer les remplacements d'URL ?</string>
     <string name="urloverride_empty_label">Aucun remplacement d'URL</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">Créez un coffre-fort chiffré où les données locales seront stockées.</string>
     <string name="setup_free_text">En continuant, vous confirmez que vous avez acheté le Keyguard ou que vous disposez d'une licence active.</string>
     <string name="setup_field_app_password_label">Mot de passe de l'application</string>

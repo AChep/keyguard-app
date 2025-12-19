@@ -9,6 +9,7 @@
     <string name="show_keyguard">回到 Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名稱</string>
+    <string name="description">Description</string>
     <string name="account_name">帳號名</string>
     <string name="database_name">Database name</string>
     <string name="enabled">已啟用</string>
@@ -30,10 +31,10 @@
     <string name="field_label">標籤</string>
     <string name="field_value">值</string>
     <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">存取次數</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大存取次數</string>
@@ -256,7 +257,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code wth another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">專業提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">生成獨特的電子郵件地址以更好地保護隱私。</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">已複製安全碼（CVV）</string>
     <string name="copied_otp_code">複製一次性密碼</string>
     <string name="copied_otp_secret_code">複製私鑰</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">解鎖 Keyguard</string>
     <string name="autofill_open_keyguard">開啟 Keyguard</string>
     <string name="january">一月</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">確定要刪除此 URL 覆寫嗎？</string>
     <string name="urloverride_delete_many_confirmation_title">確定要刪除這些 URL 覆寫嗎？</string>
     <string name="urloverride_empty_label">暫無 URL 覆寫</string>
+    <string name="urlblock_header_title">URI block</string>
+    <string name="urlblock_list_header_title">Blocked URIs</string>
+    <string name="urlblock_list_section_title">Blocked URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">建立加密密碼庫以儲存本地資料。</string>
     <string name="setup_free_text">繼續使用此應用意味著您確認您已購買 Keyguard 或有一個可用的 Keyguard 授權。</string>
     <string name="setup_field_app_password_label">應用專用密碼</string>

@@ -1,6 +1,13 @@
 name: "✔️ Check Tests"
 
 on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - master
@@ -14,6 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
       - uses: ./.github/actions/prepare_kvm
       - name: "Prepare env"
         run: |

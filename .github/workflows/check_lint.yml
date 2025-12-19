@@ -2,6 +2,12 @@ name: "✔️ Check Lint"
 
 on:
   workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - master
@@ -16,6 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
       - name: "Prepare env"
         run: |
           echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json

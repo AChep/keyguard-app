@@ -8,6 +8,10 @@ inputs:
     description: 'Java Version'
     required: true
     default: '21'
+  cache-write-only:
+    description: 'Cache Write Only'
+    required: true
+    default: 'false'
 runs:
   using: "composite"
   steps:
@@ -17,6 +21,7 @@ runs:
       with:
         distribution: ${{ inputs.java-distribution }}
         java-version: ${{ inputs.java-version }}
+        cache-write-only: ${{ inputs.cache-write-only }}
     - name: "Setup Gradle"
       uses: gradle/actions/setup-gradle@v5
       env:

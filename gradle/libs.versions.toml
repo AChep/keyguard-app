@@ -81,7 +81,7 @@ kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
 m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
-kodeinDi = "7.26.1"
+kodeinDi = "7.30.0"
 # https://github.com/JetBrains/kotlin
 kotlin = "2.3.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable

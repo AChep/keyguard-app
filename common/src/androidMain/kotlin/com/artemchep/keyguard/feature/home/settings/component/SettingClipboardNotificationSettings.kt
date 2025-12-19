@@ -8,9 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import com.artemchep.keyguard.android.clipboard.KeyguardClipboardService
 import com.artemchep.keyguard.android.util.launchNotificationChannelSettingsOrThrow
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
@@ -40,6 +42,8 @@ fun settingClipboardNotificationSettingsProvider(
 fun SettingClipboardNotificationSettings(
 ) {
     val showMessage by rememberInstance<ShowMessage>()
+    val clipboardService by rememberInstance<ClipboardService>()
+
     val updatedContext by rememberUpdatedState(LocalContext.current)
     FlatItemSimpleExpressive(
         shapeState = LocalSettingItemShape.current,
@@ -53,9 +57,16 @@ fun SettingClipboardNotificationSettings(
             ChevronIcon()
         },
         onClick = {
+            // Make sure that the notification channel is created before
+            // attempting to launch the notification channel settings.
+            val channelId = updatedContext
+                .getString(R.string.notification_clipboard_channel_id)
+            KeyguardClipboardService.createNotificationChannel(
+                context = updatedContext,
+                clipboardService = clipboardService,
+            )
+
             try {
-                val channelId = updatedContext
-                    .getString(R.string.notification_clipboard_channel_id)
                 updatedContext.launchNotificationChannelSettingsOrThrow(channelId)
             } catch (e: Exception) {
                 val msg = ToastMessage(

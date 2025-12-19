@@ -102,6 +102,40 @@ class KeyguardClipboardService : Service(), DIAware {
         ) = Intent(context, KeyguardClipboardService::class.java).apply {
             putExtra(KEY_ARGUMENTS, args)
         }
+
+        //
+        // Notification channel
+        //
+
+        fun createNotificationChannel(
+            context: Context,
+            clipboardService: ClipboardService,
+        ): String {
+            val channelImportance = if (clipboardService.hasCopyNotification()) {
+                NotificationManager.IMPORTANCE_DEFAULT
+            } else {
+                NotificationManager.IMPORTANCE_HIGH
+            }
+            val channel = kotlin.run {
+                val id = context.getString(R.string.notification_clipboard_channel_id)
+                val name = context.getString(R.string.notification_clipboard_channel_name)
+                NotificationChannel(id, name, channelImportance)
+            }
+            channel.enableVibration(false)
+            val audioUri = getAudioUri(context)
+            val audioAttributes = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build()
+            channel.setSound(audioUri, audioAttributes)
+            val nm = context.getSystemService<NotificationManager>()!!
+            nm.createNotificationChannel(channel)
+            return channel.id
+        }
+
+        private fun getAudioUri(context: Context) =
+            "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.silence}"
+                .toUri()
     }
 
     sealed interface Args : Parcelable {
@@ -394,7 +428,7 @@ class KeyguardClipboardService : Service(), DIAware {
             else -> R.drawable.ic_number_9_plus
         }
 
-        val contentTitle =  if (autoCopy) {
+        val contentTitle = if (autoCopy) {
             when (type) {
                 CopyValueEvent.Type.TOTP -> org.jetbrains.compose.resources.getString(Res.string.copied_otp_code)
                 CopyValueEvent.Type.VALUE -> org.jetbrains.compose.resources.getString(Res.string.copied_value)
@@ -452,7 +486,7 @@ class KeyguardClipboardService : Service(), DIAware {
         }
 
         val channelId = createNotificationChannel()
-        val audioUri = getAudioUri()
+        val audioUri = getAudioUri(this)
         return NotificationCompat.Builder(this, channelId)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentTitle(contentTitle)
@@ -468,30 +502,8 @@ class KeyguardClipboardService : Service(), DIAware {
             .build()
     }
 
-    private fun createNotificationChannel(): String {
-        val channelImportance = if (clipboardService.hasCopyNotification()) {
-            NotificationManager.IMPORTANCE_DEFAULT
-        } else {
-            NotificationManager.IMPORTANCE_HIGH
-        }
-        val channel = kotlin.run {
-            val id = getString(R.string.notification_clipboard_channel_id)
-            val name = getString(R.string.notification_clipboard_channel_name)
-            NotificationChannel(id, name, channelImportance)
-        }
-        channel.enableVibration(false)
-        val audioUri = getAudioUri()
-        val audioAttributes = AudioAttributes.Builder()
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-            .build()
-        channel.setSound(audioUri, audioAttributes)
-        val nm = getSystemService<NotificationManager>()!!
-        nm.createNotificationChannel(channel)
-        return channel.id
-    }
-
-    private fun getAudioUri() =
-        "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${applicationContext.packageName}/${R.raw.silence}"
-            .toUri()
+    private fun createNotificationChannel(): String = createNotificationChannel(
+        context = this,
+        clipboardService = clipboardService,
+    )
 }

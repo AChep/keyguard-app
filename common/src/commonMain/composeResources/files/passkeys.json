@@ -412,6 +412,20 @@
     "created_at": "2023-12-13T19:28:12.855946+00:00"
   },
   {
+    "id": "a2121157b3a743ad06d31f6685401588",
+    "name": "BattleNet",
+    "domain": "battle.net",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://us.support.blizzard.com/en/article/000380922",
+    "setup": "https://account.battle.net/security",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-05-06T10:36:42.005847+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Login to the Battle.net Security Settings\n2. Select **Security** from the left side of the screen\n3. Select **+Create a passkey** \u2192 **Continue**\n4. Select the device you wish to setup a passkey on\n5. Follow the prompts on your specific device to complete passkey setup\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "e911cc2dfd01290d4204754ce727df83",
     "name": "Best Buy",
     "domain": "bestbuy.com",
@@ -664,6 +678,33 @@
     "created_at": "2022-12-13T00:00:00+00:00"
   },
   {
+    "id": "0fb51a3b8a3c8d404dfa1a5c9912c0b9",
+    "name": "Costco Canada",
+    "domain": "costco.ca",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://customerservice.costco.com/app/answers/answer_view/a_id/1016137/~/passkey-login---general-faqs",
+    "category": "eCommerce",
+    "created_at": "2023-11-19T17:28:23.687777+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log into your Costco account\n2. Select Account at the top\n3. Choose **Introducing Passkeys** \u2192 **Create a passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
+    "id": "314f10be8365e0509ddc91729c4030c2",
+    "name": "Costco",
+    "domain": "costco.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://customerservice.costco.com/app/answers/answer_view/a_id/1016137/~/passkey-login---general-faqs",
+    "setup": "https://signin.costco.com/fido/auth/ManagePasskeys.html",
+    "category": "eCommerce",
+    "created_at": "2023-03-23T21:18:53.082672+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log into your Costco account\n2. Select **Account** at the top\n3. Choose **Introducing Passkeys** \u2192 **Create a passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "bf5e91b8d80c17557dc7dd4785b63523",
     "name": "Coveto Recruiting Software",
     "domain": "coveto.de",
@@ -813,7 +854,8 @@
     ],
     "documentation": "https://support.discord.com/hc/en-us/articles/25966860846231-Security-Keys-Passkeys-and-Passwordless-Login-on-Discord",
     "category": "Lifestyle & Leisure",
-    "created_at": "2024-09-17T20:22:32+00:00"
+    "created_at": "2024-09-17T20:22:32+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Sign into your Discord account\n2. Go to **Settings** \u2192 **My Account** \u2192 **Security**\n3. Select **Register a Security Key**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
   },
   {
     "id": "5ee16cc99b95276af3ed847f385e39ac",
@@ -865,6 +907,19 @@
     "notes": "Click the setup link and sign in with your email address and password, then follow the steps to set up passwordless login using biometrics to create a passkey. \n\nSign out, then sign back in with your email address and choose Log in Without Password to use your passkey."
   },
   {
+    "id": "a8c0208f1162459c3e561b82ff2412b5",
+    "name": "Dropbox",
+    "domain": "dropbox.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.dropbox.com/account-access/passkey-log-in",
+    "setup": "https://www.dropbox.com/account/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-29T16:49:34.600846+00:00"
+  },
+  {
     "id": "d6908e62451d80590bb572f3a4c0c4fa",
     "name": "Duke",
     "domain": "duke.edu",
@@ -913,6 +968,19 @@
     "created_at": "2025-02-06T19:58:12+00:00"
   },
   {
+    "id": "c8f09cde5687339e173e794ff615e359",
+    "name": "Ente",
+    "domain": "ente.io",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://ente.io/blog/introducing-passkeys-on-ente/",
+    "category": "Information Technology",
+    "created_at": "2024-05-16T21:44:33.863427+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log into ente.io\n2. Select the menu at the top left\n3. **Account** \u2192 **Passkeys**\n4. Create a name for your passkey \u2192 **Add passkey**\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on October 22, 2025</sub></sup></p>"
+  },
+  {
     "id": "7390a69ef1f382189612985ece21ad8a",
     "name": "Microsoft Entra ID",
     "domain": "entra.microsoft.com",
@@ -923,7 +991,7 @@
     "setup": "https://entra.microsoft.com",
     "category": "Information Technology",
     "created_at": "2023-09-30T10:34:07.960403+00:00",
-    "notes": "Microsoft Entra ID exclusively supports device-bound passkeys through FIDO2 security keys and the Microsoft Authenticator app. For more information: \n\nhttps://learn.microsoft.com/en-us/entra/identity/authentication/how-to-enable-passkey-fido2\n"
+    "notes": "#### To set up a passkey:\n\n1. [Sign in to your MyAccount Security Info.](mysignins.microsoft.com/security-info)\n2. Choose Add sign-in method.\n3. Select Passkey.\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<p align=\"center\"><sup><sub>Updated on December 3, 2025</sub></sup></p>"
   },
   {
     "id": "493e539072cc378649c3b2363ba03409",
@@ -936,6 +1004,18 @@
     "setup": "https://account.eslgaming.com/mfa",
     "created_at": "2024-05-20T10:53:54.047042+00:00",
     "notes": "Passkeys are available after successfully creating backup codes"
+  },
+  {
+    "id": "bb85245d26b9026095c02bd5d16c6cc8",
+    "name": "Facebook",
+    "domain": "facebook.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://www.facebook.com/help/1181045243159511",
+    "category": "Lifestyle & Leisure",
+    "created_at": "2023-03-22T20:08:01.573764+00:00",
+    "notes": "**For now, passkey is only supported on mobile devices. This means you will still need to enter your username and password to access Facebook or Messenger on a non-mobile device like your computer.**\n\n<br>\n\n#### To set up a passkey:\n\n1. On a mobile device, sign into the Facebook app\n2. Tap the **Menu icon** at the bottom right\n3. In the top section where it says **Meta Accounts Center** tap **See more in Accounts Center**\n4. Tap **Password and security** then **Passkey**\n5. Follow the prompts to save a passkey in 1Password\n\n#### Supported browsers and devices:\n\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\n\n\n<p align=\"center\"><sup><sub>Updated on December 9, 2025</sub></sup></p>"
   },
   {
     "id": "baf9c3bf35911171a96c31a7bb6cb78c",
@@ -1855,7 +1935,7 @@
     "setup": "https://go.microsoft.com/fwlink/?linkid=2250685",
     "category": "Information Technology",
     "created_at": "2024-05-02T13:41:20+00:00",
-    "notes": "### Creating a passkey\nTo create a passkey for your Microsoft account, follow these steps on the device for which you\u2019d like to create a passkey:\n\n\n1. [Sign in to your Microsoft account Advanced Security Options](https://go.microsoft.com/fwlink/?linkid=2250685) for personal accounts, or [MyAccount Security info](https://mysignins.microsoft.com/security-info) for work or school accounts.\n2. Choose Add a new way to sign in or verify.\n3. Select Face, fingerprint, PIN, or security key.\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<br>\n\n---\n\n<br>\n\n### Using your passkey to sign in\nTo sign into your Microsoft account with a passkey, follow these steps whenever you get a sign-in prompt. \n\n\n1. Choose Sign-in options, or Other ways to sign in.\n2. Select Face, Fingerprint, PIN, or security key.\n3. Select your passkey from the list available.\n\nYour device will open a security window where you can use your face, fingerprint, PIN, or security key.\n\n<br>\n\n---\n\n<br>\n\nYou can only create a device passkey for a work or school account if your organization supports it.\n\n<br>\n\nPasskeys cannot be added to Microsoft 365 Business accounts at this time."
+    "notes": "#### To set up a passkey:\n\n1. [Sign in to your Microsoft account Advanced Security Options](https://go.microsoft.com/fwlink/?linkid=2250685) for personal accounts, or [MyAccount Security info](https://mysignins.microsoft.com/security-info) for work or school accounts.\n2. Choose **Add a new way to sign in** or **Verify**\n3. Select **Face, fingerprint, PIN, or security key**\n4. Follow the instructions on your device.\n5. Provide a name for your passkey.\n\n<br>\n\n---\n\n<br>\n\n**You can only create a device passkey for a work or school account if your organization supports it.**\n\n<br>\n\n<p align=\"center\"><sup><sub>Updated on December 3, 2025</sub></sup></p>"
   },
   {
     "id": "bcf23f0c08c86391634890a1e9d8c18a",

@@ -19,23 +19,36 @@ runs:
         echo "$has_changes"
         echo "HAS_CHANGES=$has_changes" >> "$GITHUB_OUTPUT"
       shell: bash
-    - name: Commit and push changes
-      uses: devops-infra/action-commit-push@v1.0.3
-      if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
-      with:
-        github_token: "${{ inputs.github-token }}"
-        add_timestamp: false
-        commit_prefix: "[AUTO] "
-        commit_message: ${{ inputs.commit-message }}
-        force: true
-        target_branch: ${{ inputs.commit-branch }}
-    - name: Create pull request
-      uses: devops-infra/action-pull-request@v1.0.2
-      if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
-      with:
-        github_token: "${{ inputs.github-token }}"
-        source_branch: ${{ inputs.commit-branch }}
-        target_branch: master
-        assignee: AChep
-        label: "robot,enhancement"
-        title: ${{ inputs.commit-message }}
+    - name: Configure Git and Commit
+      if: ${{ steps.check-changes.outputs.HAS_CHANGES == 'true' }}
+      shell: bash
+      run: |
+        git config --global user.name "keyguard-bot"
+        git config --global user.email "keyguard-bot@artemchep.com"
+
+        # Checkout target branch (carrying over current changes)
+        # -B forces creation or reset of the branch
+        git checkout -B "${{ inputs.commit-branch }}"
+
+        # Commit
+        git add .
+        git commit -m "[AUTO] ${{ inputs.commit-message }}"
+
+        # Push
+        git push origin "${{ inputs.commit-branch }}" --force
+    - name: Create Pull Request
+      if: ${{ steps.check-changes.outputs.HAS_CHANGES == 'true' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # Create PR using GitHub CLI
+        # We use '|| true' or checks to prevent failure if PR already exists
+        gh pr create \
+          --base master \
+          --head "${{ inputs.commit-branch }}" \
+          --title "${{ inputs.commit-message }}" \
+          --body "Automated PR created by GitHub Action" \
+          --assignee "AChep" \
+          --label "robot,enhancement" \
+          || echo "PR likely already exists, skipping creation."

@@ -16,27 +16,41 @@ on:
       - master
 
 jobs:
-  check-android-tests:
+  check-desktop-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Run unit tests"
+        run: ./gradlew :common:desktopTest
+  check-android-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        api-level:
+          - 30
+          - 26
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
       - uses: ./.github/actions/prepare_kvm
+      - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
         run: |
           echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: "PlayStore"
-      - name: "Run unit tests"
-        run: ./gradlew :common:desktopTest
       - name: "Run integration tests"
         id: baseline-profiles
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
+          api-level: ${{ matrix.api-level }}
           arch: x86_64
           disable-animations: true
           disk-size: 4G
@@ -50,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: baselineprofile-screen-recordings
+          name: android-${{ matrix.api-level }}-screen-recordings
           path: |
             artifactsScreenRecording/
           retention-days: 7
@@ -58,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: baselineprofile-logs
+          name: android-${{ matrix.api-level }}-logs
           path: |
             androidApp/outputs/androidTest-results/
           retention-days: 7

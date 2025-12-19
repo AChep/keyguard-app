@@ -1,0 +1,19 @@
+name: "Prepare Disk space"
+runs:
+  using: "composite"
+  steps:
+    - name: "Delete unnecessary tools"
+      if: ${{ env.ACTION_PREPARE_DISK_SPACE_COMPLETE != '1' }}
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: false
+        android: false
+        dotnet: true
+        haskell: true
+        large-packages: false
+        docker-images: false
+        swap-storage: false
+    - name: "Skip next"
+      shell: bash
+      run: |
+        echo "ACTION_PREPARE_DISK_SPACE_COMPLETE=1" >> $GITHUB_ENV

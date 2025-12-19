@@ -269,8 +269,8 @@ kotlin {
 
 // Generate KSP code for the common code:
 // https://github.com/google/ksp/issues/567
-val compileKotlinRegex = "^compile.*Kotlin.*".toRegex()
-val kspKotlinRegex = "^ksp.*Kotlin.*".toRegex()
+val compileKotlinRegex = "^compile.*(Android|Kotlin).*".toRegex()
+val kspKotlinRegex = "^ksp.*(Android|Kotlin).*".toRegex()
 tasks.configureEach {
     val kspCommonTaskName = "kspCommonMainKotlinMetadata"
     if (kspCommonTaskName == name) {

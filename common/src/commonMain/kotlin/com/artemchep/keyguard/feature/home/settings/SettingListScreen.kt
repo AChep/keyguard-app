@@ -44,6 +44,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.common.service.build.FlavorConfig
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
@@ -73,7 +74,6 @@ import com.artemchep.keyguard.feature.onboarding.SmallOnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.isStandalone
 import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.isRelease
@@ -151,7 +151,8 @@ fun SettingListScreen() {
     // Feed the accounts state to the account item.
     accountsState.value = accountListState
 
-    val items = remember {
+    val config by rememberInstance<FlavorConfig>()
+    val items = remember(config) {
         val premiumShape = MaterialShapes.SoftBurst
         val optionsShape = MaterialShapes.Square
 
@@ -163,7 +164,7 @@ fun SettingListScreen() {
             SettingsSectionItem(
                 id = "section.premium",
                 title = TextHolder.Res(Res.string.pref_section_premium_title),
-            ).takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
+            ).takeIf { CurrentPlatform.hasSubscription() && !config.isFreeAsBeer },
             SettingsItem(
                 id = "subscription",
                 title = TextHolder.Res(Res.string.pref_item_subscription_title),
@@ -206,7 +207,7 @@ fun SettingListScreen() {
                     }
                 },
                 route = SubscriptionsSettingsRoute,
-            ).takeIf { CurrentPlatform.hasSubscription() && !isStandalone },
+            ).takeIf { CurrentPlatform.hasSubscription() && !config.isFreeAsBeer },
             SettingsSectionItem(
                 id = "section.options",
                 title = TextHolder.Res(Res.string.pref_section_options_title),

@@ -13,6 +13,7 @@ import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
+import com.artemchep.keyguard.common.service.build.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager

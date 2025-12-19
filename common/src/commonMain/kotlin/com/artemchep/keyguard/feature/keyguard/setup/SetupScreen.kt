@@ -19,7 +19,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -48,12 +47,12 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.common.service.build.FlavorConfig
 import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenActionPadding
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
-import com.artemchep.keyguard.platform.isStandalone
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
@@ -66,9 +65,9 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonCheckbox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
-import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
+import org.kodein.di.compose.rememberInstance
 
 @Composable
 fun SetupScreen(
@@ -330,7 +329,9 @@ private fun ColumnScope.SetupScreenCreateVaultTitle() {
         text = stringResource(Res.string.setup_header_text),
         style = MaterialTheme.typography.bodyLarge,
     )
-    if (isStandalone) {
+
+    val config by rememberInstance<FlavorConfig>()
+    if (config.isFreeAsBeer) {
         Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(Res.string.setup_free_text),

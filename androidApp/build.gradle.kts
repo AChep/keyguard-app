@@ -5,8 +5,6 @@ import java.util.*
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
     alias(libs.plugins.kotlin.plugin.parcelize)
@@ -70,19 +68,6 @@ android {
         language {
             enableSplit = false
         }
-    }
-
-    // previous-compilation-data.bin is Gradle's internal machinery for the incremental compilation
-    // that seemed to be packed into the resulting artifact because the lib is depending directly
-    // on the compilation task's output for JPMS/Multi-Release JAR support.
-    //
-    // > A failure occurred while executing com.android.build.gradle.internal.tasks.MergeJavaResWorkAction
-    //   > 2 files found with path 'META-INF/versions/9/previous-compilation-data.bin' from inputs:
-    //     - /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-datetime-jvm/0.4.1/684eec210b21e2da7382a4aa85e56fb7b71f39b3/kotlinx-datetime-jvm-0.4.1.jar
-    //     - /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/atomicfu-jvm/0.22.0/c6a128a44ba52a18265e5ec816130cd341d80792/atomicfu-jvm-0.22.0.jar
-    packagingOptions {
-        resources.excludes.add("META-INF/versions/9/previous-compilation-data.bin")
-        resources.excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
     }
 
     buildFeatures {

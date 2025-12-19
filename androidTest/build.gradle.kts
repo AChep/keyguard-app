@@ -2,16 +2,15 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
 }
 
 android {
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
     namespace = "com.artemchep.test"
+    testOptions.targetSdk = libs.versions.androidTargetSdk.get().toInt()
 
     defaultConfig {
         minSdk = libs.versions.androidMinSdk.get().toInt()
-        targetSdk = libs.versions.androidTargetSdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

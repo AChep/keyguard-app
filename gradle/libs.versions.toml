@@ -17,12 +17,12 @@ androidBillingClient = "8.2.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.1.5"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "8.13.2"
+androidPlugin = "9.0.0-rc01"
 androidxActivity = "1.12.1"
 androidxAppCompat = "1.7.1"
 androidxAutofill = "1.3.0"
-androidxBaselineProfile = "1.4.1"
-androidxBenchmarkMacroJUnit4 = "1.4.1"
+androidxBaselineProfile = "1.5.0-alpha01"
+androidxBenchmarkMacroJUnit4 = "1.5.0-alpha01"
 androidxBiometric = "1.4.0-alpha04"
 androidxBrowser = "1.9.0"
 androidxCamera = "1.5.2"
@@ -94,7 +94,7 @@ kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinSerialization = "1.9.0"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.3.3"
+kspPlugin = "2.3.4"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"
@@ -300,6 +300,7 @@ yubico-yubikit-android = { module = "com.yubico.yubikit:android", version.ref = 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidPlugin" }
 android-library = { id = "com.android.library", version.ref = "androidPlugin" }
+android-kmp-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidPlugin" }
 android-test = { id = "com.android.test", version.ref = "androidPlugin" }
 baseline-profile = { id = "androidx.baselineprofile", version.ref = "androidxBaselineProfile" }
 buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfigPlugin" }

@@ -8,6 +8,7 @@ import android.service.autofill.Presentations
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AutofillHint
@@ -52,6 +53,7 @@ object DatasetBuilder {
         }
         .toMap()
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R, lambda = 0)
     inline fun create(
         menuPresentation: RemoteViews,
         fields: Map<AutofillId, FieldData?>,
@@ -102,6 +104,7 @@ object DatasetBuilder {
         }
     }
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R, lambda = 0)
     inline fun createSdkPreTiramisu(
         menuPresentation: RemoteViews,
         fields: Map<AutofillId, FieldData?>,

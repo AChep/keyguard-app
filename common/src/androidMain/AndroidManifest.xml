@@ -128,7 +128,8 @@
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity=":passkey"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
         <activity
             android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
@@ -136,7 +137,8 @@
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity=":passkey"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
         <activity
             android:name="com.artemchep.keyguard.android.PasskeyGetUnlockActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
@@ -144,7 +146,8 @@
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity=":passkey"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
         <activity
             android:name="com.artemchep.keyguard.android.AutofillSaveActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
@@ -209,7 +212,8 @@
             android:name="com.artemchep.keyguard.android.autofill.KeyguardCredentialService"
             android:enabled="true"
             android:exported="false"
-            android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE">
+            android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE"
+            tools:ignore="NewApi">
             <intent-filter>
                 <action android:name="android.service.credentials.CredentialProviderService" />
             </intent-filter>

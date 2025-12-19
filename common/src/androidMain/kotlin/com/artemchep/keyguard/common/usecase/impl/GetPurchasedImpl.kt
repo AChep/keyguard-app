@@ -8,13 +8,13 @@ import com.artemchep.keyguard.billing.isNotSupported
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.common.service.build.FlavorConfig
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetDebugPremium
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.PutCachePremium
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.platform.isStandalone
 import com.artemchep.keyguard.platform.util.isRelease
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -34,6 +34,7 @@ import org.kodein.di.instance
 
 class GetPurchasedImpl(
     private val context: Context,
+    private val config: FlavorConfig,
     private val subscriptionService: SubscriptionService,
     private val getDebugPremium: GetDebugPremium,
     private val getCachePremium: GetCachePremium,
@@ -42,6 +43,7 @@ class GetPurchasedImpl(
 ) : GetPurchased {
     constructor(directDI: DirectDI) : this(
         context = directDI.instance(),
+        config = directDI.instance(),
         subscriptionService = directDI.instance(),
         getDebugPremium = directDI.instance(),
         getCachePremium = directDI.instance(),
@@ -72,7 +74,7 @@ class GetPurchasedImpl(
         .distinctUntilChanged()
         .shareIn(windowCoroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    override fun invoke() = if (!isStandalone) sharedFlow else flowOf(true)
+    override fun invoke() = if (!config.isFreeAsBeer) sharedFlow else flowOf(true)
 
     private fun localStatusFlow() = getCachePremium()
         .map { isPremium ->

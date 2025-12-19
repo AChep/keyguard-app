@@ -1,12 +1,12 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import org.jetbrains.kotlin.daemon.common.toHexString
-import java.security.MessageDigest
-import java.util.*
+import tasks.GenerateResHashesTask
+import tasks.GenerateResLocaleConfigKtTask
+import tasks.GenerateResLocaleConfigResTask
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kmp.library)
     alias(libs.plugins.kotlin.plugin.parcelize)
     alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.ksp)
@@ -29,128 +29,32 @@ val versionInfo = createVersionInfo(
 // We want to know when the public data files
 // change. For example we might need to re-compute
 // watchtower alerts in that case.
-val generateResHashesKtTask = tasks.register("generateKeyguardResHashesKt") {
-    val packageName = "com.artemchep.keyguard.build"
-
-    val prefix = "src/commonMain/composeResources/files"
-    val src = files(
-        "$prefix/justdeleteme.json",
-        "$prefix/justgetmydata.json",
-        "$prefix/passkeys.json",
-        "$prefix/public_suffix_list.txt",
-        "$prefix/tfa.json",
+val generateResHashesKtTask = tasks.register<GenerateResHashesTask>("generateKeyguardResHashesKt") {
+    val prefix = layout.projectDirectory.dir("src/commonMain/composeResources/files")
+    inputFiles.from(
+        prefix.file("justdeleteme.json"),
+        prefix.file("justgetmydata.json"),
+        prefix.file("passkeys.json"),
+        prefix.file("public_suffix_list.txt"),
+        prefix.file("tfa.json")
     )
-    src.forEach { file ->
-        inputs.files(file)
-    }
-    val out = file("build/generated/keyguardResHashesKt/kotlin/")
-    outputs.dir(out)
-
-    fun File.md5(): String {
-        val md = MessageDigest.getInstance("MD5")
-        val bytes = readBytes()
-        return md
-            .digest(bytes)
-            .toHexString()
-    }
-
-    doFirst {
-        val payload = src
-            .map { file ->
-                val name = file.name
-                    .substringBefore('.')
-                val hash = file.md5()
-                name to hash
-            }
-            .map { (name, hash) ->
-                "const val $name = \"$hash\""
-            }
-            .joinToString(separator = "\n")
-        val content = """
-package $packageName
-
-data object FileHashes {
-$payload
-}
-        """.trimIndent()
-        out
-            .resolve("FileHashes.kt")
-            .writeText(content)
-    }
+    outputDir.set(layout.buildDirectory.dir("generated/keyguardResHashesKt/kotlin/"))
 }
 
-private fun collectLocalesFromComposeResources(): List<String> {
-    val locales = mutableListOf<String>()
-    locales += "en-US" // the default locale!
-
-    // Find all the locales that the
-    // app currently supports.
-    val regex = "^values-(([a-z]{2})(-r([A-Z]+))?)$".toRegex()
-    val root = file("src/commonMain/composeResources")
-    root.listFiles()?.forEach { dir ->
-        if (!dir.isDirectory) return@forEach
-        val dirName = dir.name
-
-        val match = regex.matchEntire(dirName)
-            ?: return@forEach
-        val language = match.groupValues.getOrNull(2)
-            ?: return@forEach
-        val region = match.groupValues.getOrNull(4)
-        locales += language + region?.let { "-$it" }
-    }
-    return locales
+val generateResLocaleConfigKtTask = tasks.register<GenerateResLocaleConfigKtTask>(
+    name = "generateResLocaleConfigKt",
+) {
+    val res = layout.projectDirectory.dir("src/commonMain/composeResources")
+    composeResourcesDir.set(res)
+    outputDir.set(layout.buildDirectory.dir("generated/keyguardResLocaleConfigKt/kotlin/"))
 }
 
-val generateResLocaleConfigKtTask = tasks.register("generateResLocaleConfigKt") {
-    val packageName = "com.artemchep.keyguard.build"
-
-    val locales = collectLocalesFromComposeResources()
-    val inputKey = locales
-        .joinToString { it }
-    inputs.property("locale_config", inputKey)
-
-    val out = file("build/generated/keyguardResLocaleConfigKt/kotlin/")
-    outputs.dir(out)
-
-    doFirst {
-        val payload = locales
-            .joinToString { "\"$it\"" }
-        val content = """
-package $packageName
-
-data object LocaleConfig {
-    val locales = listOf($payload)
-}
-        """.trimIndent()
-        out
-            .resolve("LocaleConfig.kt")
-            .writeText(content)
-    }
-}
-
-val generateResLocaleConfigResTask = tasks.register("generateResLocaleConfigRes") {
-    val locales = collectLocalesFromComposeResources()
-    val inputKey = locales
-        .joinToString { it }
-    inputs.property("locale_config", inputKey)
-
-    val out = file("build/generated/keyguardResLocaleConfigRes/res/")
-    outputs.dir(out)
-
-    doFirst {
-        val payload = locales
-            .joinToString(separator = System.lineSeparator()) { "<locale android:name=\"$it\" />" }
-        val content = """
-<?xml version="1.0" encoding="utf-8"?>
-<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
-$payload
-</locale-config>
-        """.trimIndent()
-        out
-            .resolve("xml/locale_config.xml")
-            .also { it.parentFile.mkdirs() }
-            .writeText(content)
-    }
+val generateResLocaleConfigResTask = tasks.register<GenerateResLocaleConfigResTask>(
+    name = "generateResLocaleConfigRes",
+) {
+    val res = layout.projectDirectory.dir("src/commonMain/composeResources")
+    composeResourcesDir.set(res)
+    outputDir.set(layout.buildDirectory.dir("generated/keyguardResLocaleConfigRes/res/"))
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
@@ -159,7 +63,17 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all 
 }
 
 kotlin {
-    androidTarget()
+    androidLibrary {
+        compileSdk = libs.versions.androidCompileSdk.get().toInt()
+        minSdk = libs.versions.androidMinSdk.get().toInt()
+        namespace = "com.artemchep.keyguard.common"
+
+        compilerOptions {
+            enableCoreLibraryDesugaring = true
+        }
+
+        androidResources.enable = true
+    }
     jvm("desktop")
 
     sourceSets {
@@ -174,8 +88,8 @@ kotlin {
             languageSettings.optIn("androidx.compose.material3.ExperimentalMaterial3Api")
         }
         commonMain {
-            kotlin.srcDir(generateResHashesKtTask.get().outputs.files)
-            kotlin.srcDir(generateResLocaleConfigKtTask.get().outputs.files)
+            kotlin.srcDir(generateResHashesKtTask)
+            kotlin.srcDir(generateResLocaleConfigKtTask)
         }
     }
 
@@ -337,47 +251,16 @@ compose.resources {
     generateResClass = always
 }
 
-android {
-    compileSdk = libs.versions.androidCompileSdk.get().toInt()
-    namespace = "com.artemchep.keyguard.common"
-
-    defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-    }
-
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-    }
-
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
-
-    buildFeatures {
-        buildConfig = true
-    }
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-
-    val accountManagementDimension = "accountManagement"
-    flavorDimensions += accountManagementDimension
-    productFlavors {
-        maybeCreate("playStore").apply {
-            dimension = accountManagementDimension
-            buildConfigField("boolean", "ANALYTICS", "false")
-        }
-        maybeCreate("none").apply {
-            dimension = accountManagementDimension
-            buildConfigField("boolean", "ANALYTICS", "false")
-        }
+androidComponents {
+    onVariants { variant ->
+        variant.sources.res?.addGeneratedSourceDirectory(
+            generateResLocaleConfigResTask,
+        ) { task -> task.outputDir }
     }
 }
 
-android.libraryVariants.configureEach {
-    registerGeneratedResFolders(
-        project.files(generateResLocaleConfigResTask.map { it.outputs.files }),
-    )
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 kotlin {
@@ -407,9 +290,6 @@ kotlin.compilerOptions.freeCompilerArgs.addAll(
 kotlin.sourceSets.commonMain {
     kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 }
-
-// TODO: Fix a problem with Moko+KtLint:
-//  https://github.com/icerockdev/moko-resources/issues/421
 
 // See:
 // https://kotlinlang.org/docs/ksp-multiplatform.html#compilation-and-processing

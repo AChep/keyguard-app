@@ -159,101 +159,95 @@ kotlin {
 // Flatpak
 //
 
-val flatpakDir = "$buildDir/flatpak"
-val resourcesDir = "$projectDir/src/jvmMain/resources"
+val flatpakBuildDirProvider = layout.buildDirectory.dir("flatpak")
+val resourcesDir = layout.projectDirectory.dir("src/jvmMain/resources")
 
-tasks.register("prepareFlatpak") {
+tasks.register<Sync>("prepareFlatpak") {
     dependsOn("packageAppImage")
-    doLast {
-        delete {
-            delete("$flatpakDir/bin/")
-            delete("$flatpakDir/lib/")
-        }
-        copy {
-            from("$buildDir/compose/binaries/main/app/Keyguard/")
-            into("$flatpakDir/")
-            exclude("$buildDir/compose/binaries/main/app/Keyguard/lib/runtime/legal")
-        }
-        copy {
-            from("$resourcesDir/icon.png")
-            into("$flatpakDir/")
-        }
-        copy {
-            from("$resourcesDir/flatpak/manifest.yml")
-            into("$flatpakDir/")
-            rename {
-                "$appId.yml"
-            }
-        }
-        copy {
-            from("$projectDir/src/jvmMain/resources/flatpak/icon.desktop")
-            into("$flatpakDir/")
-            rename {
-                "$appId.desktop"
-            }
-        }
+    into(flatpakBuildDirProvider)
+
+    // Preserve the 'build' directory used by flatpak-builder state
+    // This prevents wiping the incremental build cache of flatpak itself.
+    preserve {
+        include("build/**")
+        include(".flatpak-builder/**")
+    }
+
+    from(layout.buildDirectory.dir("compose/binaries/main/app/Keyguard")) {
+        exclude("lib/runtime/legal")
+    }
+    from(resourcesDir.file("icon.png"))
+    from(resourcesDir.file("flatpak/manifest.yml")) {
+        rename { "$appId.yml" }
+    }
+    from(resourcesDir.file("flatpak/icon.desktop")) {
+        rename { "$appId.desktop" }
     }
 }
 
-tasks.register("bundleFlatpak") {
+tasks.register<BundleFlatpakTask>("bundleFlatpak") {
     dependsOn("prepareFlatpak")
-    doLast {
-        exec {
-            workingDir(flatpakDir)
-            val buildCommand = listOf(
+
+    this.workingDir.set(flatpakBuildDirProvider)
+    this.applicationId.set(appId)
+}
+
+tasks.register<Exec>("installFlatpak") {
+    dependsOn("prepareFlatpak")
+
+    workingDir(flatpakBuildDirProvider)
+    commandLine(
+        "flatpak-builder",
+        "--install",
+        "--user",
+        "--force-clean",
+        "--state-dir=build/flatpak-builder",
+        "--repo=build/flatpak-repo",
+        "build/flatpak-target",
+        "$appId.yml"
+    )
+}
+
+tasks.register<Exec>("runFlatpak") {
+    dependsOn("installFlatpak")
+
+    commandLine("flatpak", "run", appId)
+}
+
+abstract class BundleFlatpakTask : DefaultTask() {
+    @get:Inject
+    abstract val execOps: ExecOperations
+
+    @get:InputDirectory
+    abstract val workingDir: DirectoryProperty
+
+    @get:Input
+    abstract val applicationId: Property<String>
+
+    @TaskAction
+    fun run() {
+        val dir = workingDir.get().asFile
+        val appId = applicationId.get()
+        execOps.exec {
+            workingDir(dir)
+            commandLine(
                 "flatpak-builder",
                 "--force-clean",
                 "--state-dir=build/flatpak-builder",
                 "--repo=build/flatpak-repo",
                 "build/flatpak-target",
-                "$appId.yml",
+                "$appId.yml"
             )
-            commandLine(buildCommand)
         }
-        exec {
-            workingDir(flatpakDir)
-            val bundleCommand = listOf(
+        execOps.exec {
+            workingDir(dir)
+            commandLine(
                 "flatpak",
                 "build-bundle",
                 "build/flatpak-repo",
                 "Keyguard.flatpak",
-                appId,
+                appId
             )
-            commandLine(bundleCommand)
-        }
-    }
-}
-
-tasks.register("installFlatpak") {
-    dependsOn("prepareFlatpak")
-    doLast {
-        exec {
-            workingDir(flatpakDir)
-            val installCommand = listOf(
-                "flatpak-builder",
-                "--install",
-                "--user",
-                "--force-clean",
-                "--state-dir=build/flatpak-builder",
-                "--repo=build/flatpak-repo",
-                "build/flatpak-target",
-                "$appId.yml",
-            )
-            commandLine(installCommand)
-        }
-    }
-}
-
-tasks.register("runFlatpak") {
-    dependsOn("installFlatpak")
-    doLast {
-        exec {
-            val runCommand = listOf(
-                "flatpak",
-                "run",
-                appId,
-            )
-            commandLine(runCommand)
         }
     }
 }

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.CancellationSignal
 import android.service.autofill.*
 import android.widget.RemoteViews
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
 import androidx.autofill.inline.UiVersions
 import androidx.autofill.inline.v1.InlineSuggestionUi
@@ -609,6 +610,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         }
     }
 
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.R, lambda = 0)
     private suspend fun tryBuildDataset(
         context: Context,
         secret: DSecret,

@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
+import com.artemchep.keyguard.common.service.build.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -277,6 +278,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
 
     bindProvider<LeContext>() {
         LeContext()
+    }
+    bindSingleton {
+        FlavorConfig(
+            isFreeAsBeer = false,
+        )
     }
     bindSingleton<BiometricStatusUseCase> {
         BiometricStatusUseCaseImpl(

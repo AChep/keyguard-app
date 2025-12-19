@@ -1,6 +1,7 @@
 package com.artemchep.keyguard
 
 import android.content.Context
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -31,10 +32,10 @@ import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.model.PersistedSession
+import com.artemchep.keyguard.common.service.build.FlavorConfig
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
-import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
@@ -52,7 +53,9 @@ class Main : BaseApp(), DIAware {
     override val di by DI.lazy {
         import(androidXModule(this@Main))
         import(diFingerprintRepositoryModule())
-        import(passkeysModule())
+        if (Build.VERSION.SDK_INT >= 34) {
+            import(passkeysModule())
+        }
         val imageLoaderModule = kotlin.run {
             val packageManager = packageManager
             imageLoaderModule {
@@ -61,9 +64,14 @@ class Main : BaseApp(), DIAware {
             }
         }
         import(imageLoaderModule)
-        bind<BillingManager>() with singleton {
+        bindSingleton<BillingManager> {
             BillingManagerImpl(
                 context = this@Main,
+            )
+        }
+        bindSingleton {
+            FlavorConfig(
+                isFreeAsBeer = BuildConfig.FLAVOR == "none",
             )
         }
     }

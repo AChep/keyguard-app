@@ -9,6 +9,7 @@
     <string name="show_keyguard">回到Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名称</string>
+    <string name="description">描述</string>
     <string name="account_name">账户名</string>
     <string name="database_name">数据库名</string>
     <string name="enabled">已启用</string>
@@ -29,11 +30,11 @@
     <string name="conceal_value">隐藏内容</string>
     <string name="field_label">标签</string>
     <string name="field_value">值</string>
-    <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="tag_value">值</string>
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">访问次数</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大访问次数</string>
@@ -149,8 +150,8 @@
     <string name="select_file">选择文件</string>
     <string name="autofill">自动填充</string>
     <string name="autofill_and_save_uri">自动填充并保存应用或网站信息</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">您的数据由您自己负责。</string>
+    <string name="backup_disclaimer_text">为了确保数据永不丢失，请遵循 3-2-1 备份规则：在两种不同的介质上保留三份数据保管库副本，并将一份副本存放在单独的安全位置。</string>
     <string name="passkey">通行密钥</string>
     <string name="passkey_create_header">创建通行密钥</string>
     <string name="passkey_unlock_header">解锁 Keyguard</string>
@@ -238,7 +239,7 @@
     <string name="key_type">密钥类型</string>
     <string name="key_pair">密钥对</string>
     <string name="key_ssh">SSH 密钥</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">这里什么都没有。生成一个 SSH 密钥即可开始！</string>
     <string name="fingerprint_phrase">指纹短语</string>
     <string name="fingerprint_phrase_help_title">什么是指纹？</string>
     <string name="filter_auth_reprompt_items">身份验证重新提示</string>
@@ -249,13 +250,13 @@
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 服务器</string>
     <string name="server_version">服务端版本 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">数据库版本 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
+    <string name="clear_file">清除</string>
     <string name="replace_key_file">替换密钥文件</string>
     <string name="select_key_file">选择密钥文件</string>
     <string name="select_database_file">选择数据库文件</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
+    <string name="replace_database_file">替换数据库文件</string>
+    <string name="open_database">打开数据库</string>
+    <string name="create_database">创建数据库</string>
     <string name="qr_wifi_description_text">使用另一台设备扫描此二维码即可加入此 WiFi 网络。</string>
     <string name="qr_generate_button">生成二维码</string>
     <string name="pro_tip">专业提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -451,7 +452,7 @@
     <string name="copied_value">已复制值</string>
     <string name="copied_url">已复制 URL</string>
     <string name="copied_uri">已复制 URI</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">已复制标签</string>
     <string name="copied_package_name">已复制包名</string>
     <string name="copied_key">已复制密钥</string>
     <string name="copied_fingerprint">已复制指纹</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">已复制安全码（CVV）</string>
     <string name="copied_otp_code">复制一次性密码</string>
     <string name="copied_otp_secret_code">复制私钥</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">解锁 Keyguard</string>
     <string name="autofill_open_keyguard">打开 Keyguard</string>
     <string name="january">一月</string>
@@ -523,7 +526,7 @@
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">无法创建文件。不允许替换现有文件</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">确定要删除此 URL 覆写吗？</string>
     <string name="urloverride_delete_many_confirmation_title">确定要删除这些 URL 覆写吗？</string>
     <string name="urloverride_empty_label">暂无 URL 覆写</string>
+    <string name="urlblock_header_title">URI 屏蔽</string>
+    <string name="urlblock_list_header_title">已屏蔽的 URI</string>
+    <string name="urlblock_list_section_title">已屏蔽的 URI</string>
+    <string name="urlblock_delete_one_confirmation_title">要删除已屏蔽的 URI 吗？</string>
+    <string name="urlblock_delete_many_confirmation_title">要删除已屏蔽的 URI 吗？</string>
+    <string name="urlblock_empty_label">未屏蔽的 URI</string>
+    <string name="urlblock_expose_title">在解锁密码库之前，将数据暴露给自动填充框架</string>
+    <string name="urlblock_expose_text">如果启用，该项目将存储在密码库之外，即使密码库被锁定，也可以完全隐藏自动填充建议</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
     <string name="setup_free_text">继续使用此应用意味着您确认您已购买 Keyguard 或有一个可用的 Keyguard 授权。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
@@ -680,8 +691,8 @@
     <string name="addsend_hide_text_by_default_title">访问条目时，将默认隐藏文本</string>
     <string name="addsend_hide_email_title">隐藏电子邮件地址</string>
     <string name="addsend_max_access_count_note">设置后，当达到最大访问次数时用户将不再能够访问此条目。</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_promo_title">您的密码库是空的。连接一个帐户以开始：</string>
+    <string name="addaccount_promo_features">想获得最佳体验？我们已在下方为您列出了该应用的所有主要功能。请查看以下内容，了解它如何为您服务。</string>
     <string name="addaccount_description_short_bitwarden_text">将加密的密码库存储在云端。</string>
     <string name="addaccount_description_short_keepass_text">使用 KDBX 文件格式在本地存储加密的密码库。</string>
     <string name="addaccount_header_title">添加 Bitwarden 账户</string>
@@ -907,7 +918,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">这将从历史记录中删除所有密码。</string>
     <string name="passwordhistory_delete_one_confirmation_title">确定要从历史记录中删除密码吗？</string>
     <string name="passwordhistory_delete_many_confirmation_title">确定要从历史记录中删除这些密码吗？</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">阻止自动填充</string>
     <string name="watchtower_header_title">概况</string>
     <string name="watchtower_section_password_strength_label">密码强度</string>
     <string name="watchtower_section_security_label">安全性</string>
@@ -1113,8 +1124,8 @@
     <string name="pref_item_autofill_save_request_title">请求保存数据</string>
     <string name="pref_item_autofill_save_request_text">填写表单时询问是否更新密码库</string>
     <string name="pref_item_autofill_auto_save_source_title">自动保存应用或网站信息</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_block_uri_title">阻止自动填充</string>
+    <string name="pref_item_autofill_block_uri_text">阻止为这些 URI 提供自动填充</string>
     <string name="pref_item_clipboard_auto_clear_title">自动清除剪贴板</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">从不</string>

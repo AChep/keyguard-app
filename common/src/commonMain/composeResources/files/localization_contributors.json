@@ -109,8 +109,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 8745,
-    "target": 8008,
+    "translated": 8870,
+    "target": 8112,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -671,8 +671,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2653,
-    "target": 4202,
+    "translated": 2829,
+    "target": 4504,
     "approved": 0,
     "voted": 11,
     "positiveVotes": 2,
@@ -869,13 +869,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5658,
-    "target": 5258,
-    "approved": 5885,
+    "translated": 5834,
+    "target": 5405,
+    "approved": 6144,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5615
+    "winning": 5861
   },
   {
     "user": {
@@ -1264,7 +1264,7 @@
       "id": "16247856",
       "username": "lucasmz.dev",
       "fullName": "Lucas (lucasmz.dev)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/7cbe7f91680f9cb4456ecbde5b1d92a5.jpg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/91482f0aaca365225b9cce1b2666483e.jpg",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [
@@ -1273,8 +1273,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 328,
-    "target": 345,
+    "translated": 342,
+    "target": 366,
     "approved": 0,
     "voted": 10,
     "positiveVotes": 0,
@@ -1705,6 +1705,28 @@
   },
   {
     "user": {
+      "id": "17452480",
+      "username": "Blu-Tiger",
+      "fullName": "BluTiger (Blu-Tiger)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17452480/medium/13d3f3f705a59fc555c6f5f03d2d4be0.png",
+      "joined": "2025-11-27 12:33:05"
+    },
+    "languages": [
+      {
+        "id": "it",
+        "name": "Italian"
+      }
+    ],
+    "translated": 96,
+    "target": 96,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "18711",
       "username": "NCAA",
       "fullName": "NCAA",
@@ -1761,8 +1783,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5693,
-    "target": 6236,
+    "translated": 5869,
+    "target": 6422,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

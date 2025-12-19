@@ -9,6 +9,7 @@
     <string name="show_keyguard">Mostrar Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
+    <string name="description">Descrição</string>
     <string name="account_name">Nome da conta</string>
     <string name="database_name">Nome da base de dados</string>
     <string name="enabled">Ativado</string>
@@ -29,11 +30,11 @@
     <string name="conceal_value">Ocultar o valor</string>
     <string name="field_label">Designação</string>
     <string name="field_value">Valor</string>
-    <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="tag_value">Valor</string>
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Contagem de acessos</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Número máximo de acessos</string>
@@ -149,8 +150,8 @@
     <string name="select_file">Selecionar ficheiro</string>
     <string name="autofill">Preenchimento automático</string>
     <string name="autofill_and_save_uri">Preencher automaticamente e guardar dados da app ou informações do site</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Os seus dados são da sua responsabilidade.</string>
+    <string name="backup_disclaimer_text">Para garantir que nunca se perde, adote a regra de cópia de segurança 3-2-1: guarde três cópias do seu cofre em dois tipos de suportes diferentes e guarde uma cópia num local separado e seguro.</string>
     <string name="passkey">Chave de acesso</string>
     <string name="passkey_create_header">Criar uma chave de acesso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
@@ -238,7 +239,7 @@
     <string name="key_type">Tipo de chave</string>
     <string name="key_pair">Par de chaves</string>
     <string name="key_ssh">Chave SSH</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Parece vazio aqui. Gere uma chave SSH para começar!</string>
     <string name="fingerprint_phrase">Frase de impressão digital</string>
     <string name="fingerprint_phrase_help_title">O que é uma impressão digital?</string>
     <string name="filter_auth_reprompt_items">Confirmação de autenticação</string>
@@ -249,13 +250,13 @@
     <string name="bitwarden_unofficial_server">Servidor não oficial Bitwarden</string>
     <string name="server_version">Servidor versão <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Base de dados versão <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
+    <string name="clear_file">Limpar</string>
     <string name="replace_key_file">Substituir um ficheiro de chave</string>
     <string name="select_key_file">Selecione um ficheiro de chave</string>
     <string name="select_database_file">Selecione um ficheiro de base de dados</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
+    <string name="replace_database_file">Substitua um ficheiro de base de dados</string>
+    <string name="open_database">Abra uma base de dados</string>
+    <string name="create_database">Criar uma base de dados</string>
     <string name="qr_wifi_description_text">Digitalize este código QR com outro dispositivo para se ligar a esta rede WiFi.</string>
     <string name="qr_generate_button">Gerar código QR</string>
     <string name="pro_tip">Dica top: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -451,7 +452,7 @@
     <string name="copied_value">Valor copiado</string>
     <string name="copied_url">URL copiado</string>
     <string name="copied_uri">URI copiado</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">Copiei uma etiqueta</string>
     <string name="copied_package_name">Nome do pacote copiado</string>
     <string name="copied_key">Chave copiada</string>
     <string name="copied_fingerprint">Impressão digital copiada</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">Código de segurança copiado</string>
     <string name="copied_otp_code">Senha única copiada</string>
     <string name="copied_otp_secret_code">Chave secreta copiada</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Desbloquear Keyguard</string>
     <string name="autofill_open_keyguard">Abrir Keyguard</string>
     <string name="january">Janeiro</string>
@@ -523,7 +526,7 @@
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
     <string name="error_otp_key_must_not_be_empty">A chave secreta da palavra-passe única não pode estar vazia</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">Falha ao criar o ficheiro. Não é permitido substituir um ficheiro existente</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar chave de acesso</string>
@@ -641,6 +644,14 @@
     <string name="urloverride_delete_one_confirmation_title">Apagar substituição de ligação URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Apagar substituições de ligação URL?</string>
     <string name="urloverride_empty_label">Nenhuma substituição de ligação URL</string>
+    <string name="urlblock_header_title">Bloquear URI</string>
+    <string name="urlblock_list_header_title">URIs bloqueados</string>
+    <string name="urlblock_list_section_title">URIs bloqueados</string>
+    <string name="urlblock_delete_one_confirmation_title">Excluir o URI bloqueado?</string>
+    <string name="urlblock_delete_many_confirmation_title">Excluir o URI bloqueado?</string>
+    <string name="urlblock_empty_label">Não existem URIs bloqueados</string>
+    <string name="urlblock_expose_title">Expor os dados à estrutura de preenchimento automático antes de desbloquear o cofre</string>
+    <string name="urlblock_expose_text">Se ativada, a opção permite armazenar o item fora do cofre, ocultando completamente as sugestões de preenchimento automático, mesmo que o cofre esteja trancado</string>
     <string name="setup_header_text">Criar um cofre criptografado onde os dados locais serão armazenados.</string>
     <string name="setup_free_text">Ao continuar você confirmará que comprou o Keyguard ou que recebeu uma licença ativa.</string>
     <string name="setup_field_app_password_label">Palavra-passe da aplicação</string>
@@ -681,8 +692,8 @@
     <string name="addsend_hide_text_by_default_title">Ao aceder à entrada, esconder o texto por padrão</string>
     <string name="addsend_hide_email_title">Ocultar endereços de e-mail</string>
     <string name="addsend_max_access_count_note">Se definido, os utilizadores deixarão de poder aceder a este envio quando a contagem máxima de acessos for atingida.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_promo_title">O seu cofre está vazio. Ligue uma conta para começar:</string>
+    <string name="addaccount_promo_features">Quer aproveitar ao máximo a sua experiência? Descrevemos abaixo todas as principais funcionalidades da aplicação. Verifique como pode ser útil para si.</string>
     <string name="addaccount_description_short_bitwarden_text">Armazene o cofre encriptado numa nuvem.</string>
     <string name="addaccount_description_short_keepass_text">Armazene o cofre encriptado localmente utilizando o formato de ficheiro KDBX.</string>
     <string name="addaccount_header_title">Adicionar conta Bitwarden</string>
@@ -908,7 +919,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Isto vai remover todas as palavras-passe do histórico.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Apagar a palavra-passe do histórico?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Apagar as palavras-passe do histórico?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">Bloquear preenchimento automático</string>
     <string name="watchtower_header_title">Guardião</string>
     <string name="watchtower_section_password_strength_label">Segurança das palavras-passe</string>
     <string name="watchtower_section_security_label">Segurança</string>
@@ -1112,8 +1123,8 @@
     <string name="pref_item_autofill_save_request_title">Pedir para salvar dados</string>
     <string name="pref_item_autofill_save_request_text">Pede para atualizar o cofre quando o preenchimento de um formulário tiver sido concluído</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvar automaticamente dados do aplicativo ou informações do site</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_block_uri_title">Bloquear preenchimento automático</string>
+    <string name="pref_item_autofill_block_uri_text">Impede o preenchimento automático para estes URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Limpar área de transferência automaticamente</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Imediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nunca</string>

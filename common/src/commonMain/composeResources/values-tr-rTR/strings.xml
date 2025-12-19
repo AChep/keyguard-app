@@ -9,6 +9,7 @@
     <string name="show_keyguard">Keyguard'ı Göster</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Ad</string>
+    <string name="description">Açıklama</string>
     <string name="account_name">Hesap adı</string>
     <string name="database_name">Veritabanı adı</string>
     <string name="enabled">Etkin</string>
@@ -29,11 +30,11 @@
     <string name="conceal_value">Değeri gizle</string>
     <string name="field_label">Etiket</string>
     <string name="field_value">Değer</string>
-    <string name="tag_value">Value</string>
-    <!-- Access count increases every time someone opens a send and looks and the page -->
+    <string name="tag_value">Değer</string>
+    <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Erişim sayısı</string>
     <!--
-        Access count increases every time someone opens a send and looks and the page. Maximum
+        Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maksimum erişim sayısı</string>
@@ -149,8 +150,8 @@
     <string name="select_file">Bir dosya seçin</string>
     <string name="autofill">Otomatik doldurma</string>
     <string name="autofill_and_save_uri">Uygulama veya web sitesi bilgilerini otomatik doldur ve kaydet</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Verileriniz sizin sorumluluğunuzdadır.</string>
+    <string name="backup_disclaimer_text">Verilerinizin asla kaybolmamasını sağlamak için 3-2-1 Yedekleme Kuralı'nı benimseyin: kasanızın üç kopyasını iki farklı medya türünde bulundurun ve bir kopyasını ayrı, güvenli bir yerde saklayın.</string>
     <string name="passkey">Geçiş anahtarı</string>
     <string name="passkey_create_header">Geçiş anahtarı oluştur</string>
     <string name="passkey_unlock_header">Keyguard Kilidini Aç</string>
@@ -238,7 +239,7 @@
     <string name="key_type">Anahtar türü</string>
     <string name="key_pair">Anahtar çifti</string>
     <string name="key_ssh">SSH Anahtarı</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Burası boş görünüyor. Başlamak için bir SSH anahtarı oluşturun!</string>
     <string name="fingerprint_phrase">Parmak izi ifadesi</string>
     <string name="fingerprint_phrase_help_title">Parmak izi nedir?</string>
     <string name="filter_auth_reprompt_items">Kimlik doğrulama tekrarı</string>
@@ -249,13 +250,13 @@
     <string name="bitwarden_unofficial_server">Resmi olmayan Bitwarden sunucusu</string>
     <string name="server_version">Sunucu sürümü <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Veritabanı sürümü <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
+    <string name="clear_file">Temizle</string>
     <string name="replace_key_file">Bir anahtar dosyasını değiştir</string>
     <string name="select_key_file">Bir anahtar dosyası seç</string>
     <string name="select_database_file">Bir veritabanı dosyası seç</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
+    <string name="replace_database_file">Bir veritabanı dosyasını değiştir</string>
+    <string name="open_database">Bir veritabanı aç</string>
+    <string name="create_database">Bir veritabanı oluştur</string>
     <string name="qr_wifi_description_text">Bu WiFi ağına katılmak için bu QR kodunu başka bir cihazla tarayın.</string>
     <string name="qr_generate_button">QR kodu oluştur</string>
     <string name="pro_tip">Profesyonel ipucu: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -451,7 +452,7 @@
     <string name="copied_value">Değer kopyalandı</string>
     <string name="copied_url">URL kopyalandı</string>
     <string name="copied_uri">URI kopyalandı</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">Etiket kopyalandı</string>
     <string name="copied_package_name">Paket adı kopyalandı</string>
     <string name="copied_key">Anahtar kopyalandı</string>
     <string name="copied_fingerprint">Parmak izi kopyalandı</string>
@@ -468,6 +469,8 @@
     <string name="copied_cvv_code">Güvenlik kodu kopyalandı</string>
     <string name="copied_otp_code">Tek kullanımlık parola kopyalandı</string>
     <string name="copied_otp_secret_code">Gizli anahtar kopyalandı</string>
+    <string name="found_otp_code">Found a one-time password</string>
+    <string name="found_value">Found a value</string>
     <string name="autofill_unlock_keyguard">Keyguard Kilidini Aç</string>
     <string name="autofill_open_keyguard">Keyguard'ı Aç</string>
     <string name="january">Ocak</string>
@@ -523,7 +526,7 @@
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
     <string name="error_incorrect_password">Yanlış parola</string>
     <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olmamalıdır</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın üzerine yazmaya izin verilmiyor</string>
     <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturulamadı, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">OTP kodu oluşturulamadı</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturulamadı</string>
@@ -640,6 +643,14 @@
     <string name="urloverride_delete_one_confirmation_title">URL geçersiz kılma silinsin mi?</string>
     <string name="urloverride_delete_many_confirmation_title">URL geçersiz kılmaları silinsin mi?</string>
     <string name="urloverride_empty_label">URL geçersiz kılma yok</string>
+    <string name="urlblock_header_title">URI engelleme</string>
+    <string name="urlblock_list_header_title">Engellenen URI'ler</string>
+    <string name="urlblock_list_section_title">Engellenen URI'ler</string>
+    <string name="urlblock_delete_one_confirmation_title">Engellenen URI silinsin mi?</string>
+    <string name="urlblock_delete_many_confirmation_title">Engellenen URI silinsin mi?</string>
+    <string name="urlblock_empty_label">Engellenen URI yok</string>
+    <string name="urlblock_expose_title">Kasayı açmadan önce verileri Otomatik Doldurma'ya sun</string>
+    <string name="urlblock_expose_text">Etkinleştirildiğinde, öğe kasanın dışında saklanır ve bu da kasa kilitli olsa bile Otomatik Doldurma önerilerinin tamamen gizlenmesine olanak tanır</string>
     <string name="setup_header_text">Yerel verilerin saklanacağı şifreli bir kasa oluşturun.</string>
     <string name="setup_free_text">Devam ederek Keyguard'ı satın aldığınızı veya aktif bir lisansınız olduğunu onaylamış olursunuz.</string>
     <string name="setup_field_app_password_label">Uygulama parolası</string>
@@ -680,8 +691,8 @@
     <string name="addsend_hide_text_by_default_title">Öğeye erişirken metni varsayılan olarak gizle</string>
     <string name="addsend_hide_email_title">E-posta adresini gizle</string>
     <string name="addsend_max_access_count_note">Ayarlanırsa, maksimum erişim sayısına ulaşıldıktan sonra kullanıcılar bu öğeye artık erişemez.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_promo_title">Kasanız boş. Başlamak için bir hesap bağlayın:</string>
+    <string name="addaccount_promo_features">Deneyiminizden en iyi şekilde yararlanmak ister misiniz? Uygulamanın tüm temel özelliklerini aşağıda sizin için özetledik. Sizin için nasıl çalışabileceğini görmek için bir göz atın.</string>
     <string name="addaccount_description_short_bitwarden_text">Şifrelenmiş kasayı bir bulutta saklayın.</string>
     <string name="addaccount_description_short_keepass_text">Şifrelenmiş kasayı KDBX dosya formatını kullanarak yerel olarak saklayın.</string>
     <string name="addaccount_header_title">Bitwarden hesabı ekle</string>
@@ -907,7 +918,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Bu, geçmişteki tüm parolaları kaldıracaktır.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Parola geçmişten silinsin mi?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Parolalar geçmişten silinsin mi?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">Otomatik doldurmayı engelle</string>
     <string name="watchtower_header_title">Gözcü Kulesi</string>
     <string name="watchtower_section_password_strength_label">Parola gücü</string>
     <string name="watchtower_section_security_label">Güvenlik</string>
@@ -1111,8 +1122,8 @@
     <string name="pref_item_autofill_save_request_title">Verileri kaydetmeyi sor</string>
     <string name="pref_item_autofill_save_request_text">Bir formun doldurulması tamamlandığında kasayı güncellemeyi sorar</string>
     <string name="pref_item_autofill_auto_save_source_title">Uygulama veya web sitesi bilgilerini otomatik kaydet</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_block_uri_title">Otomatik doldurmayı engelle</string>
+    <string name="pref_item_autofill_block_uri_text">Bu URI'ler için otomatik doldurma önerilmesini engeller</string>
     <string name="pref_item_clipboard_auto_clear_title">Panoyu otomatik olarak temizle</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Hemen</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Asla</string>

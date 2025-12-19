@@ -21,8 +21,9 @@ runs:
       with:
         distribution: ${{ inputs.java-distribution }}
         java-version: ${{ inputs.java-version }}
-        cache-write-only: ${{ inputs.cache-write-only }}
     - name: "Setup Gradle"
       uses: gradle/actions/setup-gradle@v5
       env:
         JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      with:
+        cache-write-only: ${{ inputs.cache-write-only }}

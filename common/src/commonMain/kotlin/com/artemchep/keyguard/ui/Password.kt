@@ -10,6 +10,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.feature.home.vault.component.ObscureChar
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -61,9 +62,12 @@ fun colorizePassword(
 
 fun colorizePasswordDigitColor(
     contentColor: Color,
-) = colorizePasswordDigitColor(onDark = contentColor.luminance() > 0.5f)
+) = colorizePasswordDigitColor(onDark = contentColor.luminance() > 0.5f, alpha = contentColor.alpha)
 
-private fun colorizePasswordDigitColor(onDark: Boolean) = run {
+private fun colorizePasswordDigitColor(
+    onDark: Boolean,
+    alpha: Float,
+) = run {
     val saturation: Float
     val lightness: Float
     if (onDark) {
@@ -77,14 +81,20 @@ private fun colorizePasswordDigitColor(onDark: Boolean) = run {
         hue = 210f,
         saturation = saturation,
         lightness = lightness,
-    )
+    ).combineAlpha(alpha)
 }
 
 fun colorizePasswordSymbolColor(
     contentColor: Color,
-) = colorizePasswordSymbolColor(onDark = contentColor.luminance() > 0.5f)
+) = colorizePasswordSymbolColor(
+    onDark = contentColor.luminance() > 0.5f,
+    alpha = contentColor.alpha,
+)
 
-private fun colorizePasswordSymbolColor(onDark: Boolean) = run {
+private fun colorizePasswordSymbolColor(
+    onDark: Boolean,
+    alpha: Float,
+) = run {
     val saturation: Float
     val lightness: Float
     if (onDark) {
@@ -98,7 +108,7 @@ private fun colorizePasswordSymbolColor(onDark: Boolean) = run {
         hue = 0f,
         saturation = saturation,
         lightness = lightness,
-    )
+    ).combineAlpha(alpha)
 }
 
 private fun colorizePassword(

@@ -1124,6 +1124,7 @@ fun BoxScope.VaultItemIcon2(
                     color = color,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }

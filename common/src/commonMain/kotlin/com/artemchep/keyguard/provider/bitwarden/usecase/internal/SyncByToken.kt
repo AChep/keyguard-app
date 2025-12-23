@@ -50,6 +50,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.provider.bitwarden.api.merge
 import com.artemchep.keyguard.provider.bitwarden.api.syncX
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import io.ktor.client.HttpClient
@@ -625,12 +626,18 @@ class SyncByKeePassTokenImpl(
                         accountId = user.id,
                     )
                     .executeAsOneOrNull()
-                val r = it.profileQueries.insert(
-                    data = profile,
-                    accountId = user.id,
-                    profileId = existingProfile?.profileId
-                        ?: user.id,
-                ).await()
+                // Insert updated profile.
+                val newMergedProfile = merge(
+                    remote = profile,
+                    local = existingProfile?.data_,
+                )
+                if (newMergedProfile != existingProfile?.data_) {
+                    it.profileQueries.insert(
+                        profileId = newMergedProfile.profileId,
+                        accountId = newMergedProfile.accountId,
+                        data = newMergedProfile,
+                    ).await()
+                }
             }.bind()
         }
         .biFlatTap(

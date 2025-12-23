@@ -19,11 +19,9 @@ jobs:
           echo "" >> gradle.properties
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
-      - name: "Check and Build licenses"
-        run: ./gradlew :androidApp:licenseeAndroidNoneRelease
-      - name: "Move licenses"
-        run: |
-          mv -f androidApp/build/reports/licensee/androidNoneRelease/artifacts.json common/src/commonMain/composeResources/files/licenses.json
+      - uses: ./.github/actions/build_android_licenses
+        with:
+          build-flavor: "None"
       - name: "Build"
         run: ./gradlew :androidApp:assembleNoneRelease
       - name: 'Upload .apk'

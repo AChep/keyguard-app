@@ -206,6 +206,9 @@ private suspend fun BitwardenSend.Companion.of(
             ?: request.now.plus(with(Duration) { 1.days })
         tmp
     }
+        // If the expiration date exists, then the expiration date
+        // must me less or equal to it.
+        ?.coerceAtMost(deletedDate)
 
     val passwordBase64 = request.password
         ?.takeIf { it.isNotBlank() }

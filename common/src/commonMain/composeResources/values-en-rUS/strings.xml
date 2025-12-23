@@ -118,6 +118,7 @@
     <string name="category">Category</string>
     <string name="command">Command</string>
     <string name="execute_command">Execute</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Add</string>
     <string name="add_integration">Add integration</string>

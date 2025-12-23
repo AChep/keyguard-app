@@ -9,9 +9,9 @@
     <string name="show_keyguard">Keyguard anzeigen</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Name</string>
-    <string name="description">Description</string>
+    <string name="description">Beschreibung</string>
     <string name="account_name">Kontoname</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Name der Datenbank</string>
     <string name="enabled">Aktiviert</string>
     <string name="disabled">Deaktiviert</string>
     <string name="wordlist">Wortliste</string>
@@ -30,7 +30,7 @@
     <string name="conceal_value">Verstecke den Wert</string>
     <string name="field_label">Bezeichnung</string>
     <string name="field_value">Wert</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">Wert</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Anzahl der Ansichten</string>
     <!--
@@ -100,10 +100,10 @@
     <string name="folder">Ordner</string>
     <string name="folders">Ordner</string>
     <string name="folders_empty_label">Keine Ordner vorhanden</string>
-    <string name="tag_none">No tag</string>
+    <string name="tag_none">Kein Tag</string>
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tags_empty_label">Keine Tags</string>
     <string name="collection_none">Keine Sammlung</string>
     <string name="collection">Sammlung</string>
     <string name="collections">Sammlungen</string>
@@ -118,6 +118,7 @@
     <string name="category">Kategorie</string>
     <string name="command">Aktion</string>
     <string name="execute_command">Ausführen</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Hinzufügen</string>
     <string name="add_integration">Integration hinzufügen</string>
@@ -150,8 +151,8 @@
     <string name="select_file">Datei wählen</string>
     <string name="autofill">Automatisches Ausfüllen</string>
     <string name="autofill_and_save_uri">Autofill und App- oder Website-Info speichern</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Du bist für deine Daten verantwortlich.</string>
+    <string name="backup_disclaimer_text">Um sicherzugehen, dass nicht verloren geht, nutze die 3-2-1 Backup Regel: behalte drei Kopien deines Vaults auf zwei verschiedenen Medien Typen, und behalte eine Kopie an einem anderen sicheren Ort.</string>
     <string name="passkey">Passkey</string>
     <string name="passkey_create_header">Passkey erstellen</string>
     <string name="passkey_unlock_header">Keyguard entsperren</string>
@@ -202,7 +203,7 @@
     <string name="requested_verification_email">Bestätigungs-E-Mail angefordert</string>
     <string name="web_vault">Web Tresor</string>
     <string name="launch_web_vault">Web Tresor starten</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Lokaler Vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Anmeldedaten speichern</string>
     <!-- A Trash screen -->
@@ -223,13 +224,13 @@
     <string name="encryption_random_bits_data">Zufällige <xliff:g id="length" example="64">%1$d</xliff:g> Bits von Daten</string>
     <string name="none">Keine</string>
     <string name="text">Text</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">App verbunden</string>
     <string name="linked_apps">Verknüpfte Apps</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">URI verbunden</string>
     <string name="linked_uris">Verknüpfte URIs</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Benutzerdefiniertes Feld</string>
     <string name="custom_fields">Benutzerdefinierte Felder</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Wert umschalten</string>
     <string name="reveal_secure_note">Sichere Notiz anzeigen</string>
     <string name="hide_secure_note">Sichere Notiz ausblenden</string>
     <string name="master_password_hint">Master-Passwort-Hinweis</string>
@@ -239,7 +240,7 @@
     <string name="key_type">Schlüssel-Typ</string>
     <string name="key_pair">Schlüsselpaar</string>
     <string name="key_ssh">SSH-Schlüssel</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Sieht leer aus hier drinnen. Generiere einen SSH Schlüssel um loszulegen!</string>
     <string name="fingerprint_phrase">Fingerabdrucksatz</string>
     <string name="fingerprint_phrase_help_title">Was ist ein Fingerabdruck?</string>
     <string name="filter_auth_reprompt_items">Authentifizierung erneut anfordern</string>
@@ -248,17 +249,17 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Benötigt Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Inoffizieller Bitwarden-Server</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">Server Version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Datenbank Version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Leeren</string>
+    <string name="replace_key_file">Ersetze eine Schlüssel-Datei</string>
+    <string name="select_key_file">Wähle eine Schlüssel-Datei</string>
+    <string name="select_database_file">Wähle eine Datenbank-Datei</string>
+    <string name="replace_database_file">Ersetze eine Datenbank-Datei</string>
+    <string name="open_database">Öffne eine Datenbank-Datei</string>
+    <string name="create_database">Erstelle eine Datenbank</string>
+    <string name="qr_wifi_description_text">Scanne diesen QR-Code mit einem anderen Gerät, um diesem WLAN beizutreten.</string>
+    <string name="qr_generate_button">QR-Code generieren</string>
     <string name="pro_tip">Profi-Tipp: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generiere Einweg-E-Mails für bessere Privatsphäre.</string>
     <string name="account_last_synced_at">Zuletzt synchronisiert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -452,7 +453,7 @@
     <string name="copied_value">Wert kopiert</string>
     <string name="copied_url">URL kopiert</string>
     <string name="copied_uri">URI kopiert</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">Tag kopiert</string>
     <string name="copied_package_name">Paketname kopiert</string>
     <string name="copied_key">Schlüssel kopiert</string>
     <string name="copied_fingerprint">Fingerabdruck kopiert</string>
@@ -469,8 +470,8 @@
     <string name="copied_cvv_code">Sicherheitscode kopiert</string>
     <string name="copied_otp_code">Einmalpasswort kopiert</string>
     <string name="copied_otp_secret_code">Geheimschlüssel kopiert</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Einmal Passwort gefunden</string>
+    <string name="found_value">Wert gefunden</string>
     <string name="autofill_unlock_keyguard">Keyguard entsperren</string>
     <string name="autofill_open_keyguard">Keyguard öffnen</string>
     <string name="january">Januar</string>
@@ -526,7 +527,7 @@
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
     <string name="error_otp_key_must_not_be_empty">Einmalkennwort darf nicht leer sein</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">Datei konnte nicht erstellt werden. Das Ersetzen der existierenden Datei ist nicht erlaubt</string>
     <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des Einmalpassworts</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
@@ -643,14 +644,14 @@
     <string name="urloverride_delete_one_confirmation_title">URL Überschreibung löschen?</string>
     <string name="urloverride_delete_many_confirmation_title">URL Überschreibung löschen?</string>
     <string name="urloverride_empty_label">Keine URL Überschreibungen</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="urlblock_header_title">URI-Block</string>
+    <string name="urlblock_list_header_title">Blockierte URIs</string>
+    <string name="urlblock_list_section_title">Blockierte URIs</string>
+    <string name="urlblock_delete_one_confirmation_title">Blockierte URI löschen?</string>
+    <string name="urlblock_delete_many_confirmation_title">Blockierte URIs löschen?</string>
+    <string name="urlblock_empty_label">Keine blockierten URIs</string>
+    <string name="urlblock_expose_title">Daten vor dem Entsperren des Vaults für das Autofill-Framework freigeben</string>
+    <string name="urlblock_expose_text">Wenn diese Option aktiviert ist, wird das Element außerhalb des Vaults gespeichert, sodass die Vorschläge für die automatische Ausfüllung vollständig ausgeblendet werden können, selbst wenn der Vault gesperrt ist</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in dem lokale Daten gespeichert werden.</string>
     <string name="setup_free_text">Indem Sie fortfahren bestätigen Sie, dass Sie den Keyguard gekauft haben oder eine aktive Lizenz besitzen.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
@@ -691,10 +692,10 @@
     <string name="addsend_hide_text_by_default_title">Beim Zugriff auf dieses Element, den Text standardmäßig ausblenden</string>
     <string name="addsend_hide_email_title">E-Mail-Adresse ausblenden</string>
     <string name="addsend_max_access_count_note">Wenn aktiviert, können Benutzer nach Erreichen der maximalen Zugriffsanzahl nicht mehr auf dieses Element zugreifen.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_promo_title">Dein Vault ist leer. Verbinde einen Account, um loszulegen:</string>
+    <string name="addaccount_promo_features">Möchtest du das Beste aus deiner Erfahrung herausholen? Nachfolgend haben wir alle wichtigen Funktionen der App für Sie zusammengefasst. Sieh sie dir an und schau wie sie dir helfen können.</string>
+    <string name="addaccount_description_short_bitwarden_text">Verschlüsselten Vault in der Cloud speichern.</string>
+    <string name="addaccount_description_short_keepass_text">Verschlüsselten Vault lokal mithilfe des KDBX Dateiformats speichern.</string>
     <string name="addaccount_header_title">Bitwarden-Account hinzufügen</string>
     <string name="addaccount_disclaimer_bitwarden_label">Wir sind nicht verbunden, verknüpft, autorisiert, unterstützt oder in irgendeiner Weise offiziell verbunden mit der Bitwarden, Inc. oder einer ihrer Tochtergesellschaften oder ihrer verbundenen Unternehmen.</string>
     <!--
@@ -728,8 +729,8 @@
     <string name="addaccount2fa_otp_note">Geben Sie den Bestätigungscode aus Ihrer Authentifizierungs-App ein.</string>
     <string name="addaccount2fa_email_note">Geben Sie den Bestätigungscode ein, der an <xliff:g id="email" example="username@example.com">%1$s</xliff:g> gesendet wurde.</string>
     <string name="addaccount2fa_yubikey_manual_text">Geben Sie den YubiKey Authentifizierungscode manuell ein. Platzieren Sie den Cursor auf das Feld unten und lösen Sie den YubiKey aus.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
+    <string name="addkeepass_header_title">KeePass Account hinzufügen</string>
+    <string name="addkeepass_header_body">Speichere all deine Passwörter in einer einzelnen, hoch-sicheren KDBX Datei direkt auf deinem Gerät. Du hast die komplette Kontrolle über deine Daten. Speichere sie auf deinem Computer, einem USB-Stick, oder synchronisiere sie selber mithilfe von Services wie Syncthing, Google Drive oder Dropbox.</string>
     <string name="provider_2fa_authenticator">Authentifikator</string>
     <string name="provider_2fa_duo_organization">Duo (Organisation)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web-Authentifizierung</string>
@@ -831,7 +832,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Sicherheitscode</string>
     <string name="vault_view_saved_to_label">In <xliff:g id="email" example="username@example.com">%1$s</xliff:g> auf <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g> gespeichert</string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">In <xliff:g id="name" example="My KeePass database">%1$s</xliff:g> gespeichert</string>
     <string name="vault_view_password_revision_label">Passwort zuletzt geändert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Passkey erstellt am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Zuletzt geändert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -918,7 +919,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Dadurch werden alle Passwörter aus dem Verlauf entfernt.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Passwort aus dem Verlauf löschen?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Passwörter aus dem Verlauf löschen?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">Autofill blockieren</string>
     <string name="watchtower_header_title">Wachturm</string>
     <string name="watchtower_section_password_strength_label">Passwortstärke</string>
     <string name="watchtower_section_security_label">Sicherheit</string>
@@ -1122,8 +1123,8 @@
     <string name="pref_item_autofill_save_request_title">Anfrage zum Speichern von Daten</string>
     <string name="pref_item_autofill_save_request_text">Fragt nach der Aktualisierung des Tresors, wenn das Ausfüllen eines Formulars abgeschlossen ist</string>
     <string name="pref_item_autofill_auto_save_source_title">App oder Website-Info automatisch speichern</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_block_uri_title">Autofill blockieren</string>
+    <string name="pref_item_autofill_block_uri_text">Verhindert das Anbieten eines Autofills für diese URIs</string>
     <string name="pref_item_clipboard_auto_clear_title">Zwischenablage automatisch löschen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Sofort</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nie</string>

@@ -109,8 +109,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 8870,
-    "target": 8112,
+    "translated": 8894,
+    "target": 8132,
     "approved": 911,
     "voted": 0,
     "positiveVotes": 62,
@@ -671,8 +671,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2829,
-    "target": 4504,
+    "translated": 2836,
+    "target": 4516,
     "approved": 0,
     "voted": 11,
     "positiveVotes": 2,
@@ -1683,6 +1683,28 @@
   },
   {
     "user": {
+      "id": "17216524",
+      "username": "unixkiwi",
+      "fullName": "unixkiwi",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17216524/medium/f9fe8be31fca1f7d86d9d74d1b0e9b55.jpeg",
+      "joined": "2025-12-22 05:10:29"
+    },
+    "languages": [
+      {
+        "id": "de",
+        "name": "German"
+      }
+    ],
+    "translated": 325,
+    "target": 320,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "17299188",
       "username": "mkulik91",
       "fullName": "mkulik91",
@@ -1783,8 +1805,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5869,
-    "target": 6422,
+    "translated": 5876,
+    "target": 6430,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

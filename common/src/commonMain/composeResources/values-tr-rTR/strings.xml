@@ -118,6 +118,7 @@
     <string name="category">Kategori</string>
     <string name="command">Komut</string>
     <string name="execute_command">Uygula</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Ekle</string>
     <string name="add_integration">Entegrasyon ekle</string>

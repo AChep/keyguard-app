@@ -118,6 +118,7 @@
     <string name="category">分类</string>
     <string name="command">命令</string>
     <string name="execute_command">执行</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">添加</string>
     <string name="add_integration">添加集成</string>
@@ -469,8 +470,8 @@
     <string name="copied_cvv_code">已复制安全码（CVV）</string>
     <string name="copied_otp_code">复制一次性密码</string>
     <string name="copied_otp_secret_code">复制私钥</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">已找到一次性密码</string>
+    <string name="found_value">已找到值</string>
     <string name="autofill_unlock_keyguard">解锁 Keyguard</string>
     <string name="autofill_open_keyguard">打开 Keyguard</string>
     <string name="january">一月</string>

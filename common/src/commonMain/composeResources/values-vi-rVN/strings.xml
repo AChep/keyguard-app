@@ -118,6 +118,7 @@
     <string name="category">Danh mục</string>
     <string name="command">Lệnh</string>
     <string name="execute_command">Thực hiện</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Thêm</string>
     <string name="add_integration">Thêm phần bổ trợ</string>

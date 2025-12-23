@@ -20,7 +20,7 @@ jobs:
           - update_twofactorauth.yml
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: "Trigger Workflow"
         uses: ./.github/actions/github_trigger_wf
         with:

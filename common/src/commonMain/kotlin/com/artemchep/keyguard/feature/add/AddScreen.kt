@@ -76,6 +76,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.getShapeState
@@ -145,6 +146,7 @@ import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
 
 private val paddingValues = PaddingValues(
     horizontal = 8.dp,
@@ -482,10 +484,42 @@ private fun UsernameTextField(
             AutofillButton(
                 key = "username",
                 username = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
                 onValueChange = field.onChange,
             )
         },
     )
+}
+
+private fun AddScreenScope.obtainUriContext(): ImmutableList<String> {
+    val screenItems = this@AddScreenScope.itemsState.value
+    return screenItems
+        .mapNotNull { item ->
+            if (item is AddStateItem.Url<*>) {
+                val state = item.state.flow.value
+
+                val discarded = when (state.matchType) {
+                    null,
+                    DSecret.Uri.MatchType.Domain,
+                    DSecret.Uri.MatchType.Host,
+                    DSecret.Uri.MatchType.StartsWith,
+                    DSecret.Uri.MatchType.Exact,
+                    DSecret.Uri.MatchType.Never -> false
+                    DSecret.Uri.MatchType.RegularExpression -> true
+                }
+                if (discarded) {
+                    return@mapNotNull null
+                }
+                val rawUrl = state.text.state.value
+                return@mapNotNull rawUrl
+            }
+
+            null
+        }
+        .toPersistentList()
 }
 
 context(AddScreenScope)
@@ -512,6 +546,10 @@ private fun PasswordTextField(
             AutofillButton(
                 key = "password",
                 password = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
                 onValueChange = field.onChange,
             )
         },
@@ -772,6 +810,10 @@ private fun SshKeyField(
             AutofillButton(
                 key = "sshKey",
                 sshKey = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
                 onResultChange = {
                     if (it is GetPasswordResult.AsyncKey) {
                         state.onChange(it.keyPair)

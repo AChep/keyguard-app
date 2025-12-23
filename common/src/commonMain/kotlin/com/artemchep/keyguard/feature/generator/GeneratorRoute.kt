@@ -7,10 +7,15 @@ data class GeneratorRoute(
     val args: Args = Args(),
 ) : Route {
     data class Args(
+        val context: Context = Context(),
         val username: Boolean = false,
         val password: Boolean = false,
         val sshKey: Boolean = false,
-    )
+    ) {
+        data class Context(
+            val uris: List<String> = emptyList(),
+        )
+    }
 
     @Composable
     override fun Content() {

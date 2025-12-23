@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.GroupableShapeItem
@@ -58,16 +59,20 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.generator.AutoResizeText
 import com.artemchep.keyguard.feature.generator.DecoratedSlider
 import com.artemchep.keyguard.feature.generator.FilterItem
+import com.artemchep.keyguard.feature.generator.GENERATOR_KEY_ARG_URIS
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.generator.GeneratorState
 import com.artemchep.keyguard.feature.generator.GeneratorType
 import com.artemchep.keyguard.feature.generator.colorizePasswordOrEmpty
 import com.artemchep.keyguard.feature.generator.produceGeneratorState
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemTextContent2
 import com.artemchep.keyguard.feature.home.vault.component.HorizontalContextItems
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.LaunchParameterEffect
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.animation.animateContentHeight
@@ -86,6 +91,7 @@ fun AutofillButton(
     username: Boolean = false,
     password: Boolean = false,
     sshKey: Boolean = false,
+    provideUris: () -> ImmutableList<String> = { persistentListOf() },
     onValueChange: ((String) -> Unit)? = null,
     onResultChange: ((GetPasswordResult) -> Unit)? = null,
 ) {
@@ -126,11 +132,15 @@ fun AutofillButton(
                 .verticalScroll(rememberScrollState())
                 .padding(contentPadding),
         ) {
+            val uris = remember(provideUris) {
+                provideUris()
+            }
             AutofillWindow(
                 key = key,
                 username = username,
                 password = password,
                 sshKey = sshKey,
+                uris = uris,
                 onComplete = { result ->
                     if (onValueChange != null && result != null && result is GetPasswordResult.Value) {
                         onValueChange(result.value)
@@ -160,10 +170,14 @@ fun ColumnScope.AutofillWindow(
     username: Boolean = false,
     password: Boolean = false,
     sshKey: Boolean = false,
+    uris: List<String> = emptyList(),
     onComplete: (GetPasswordResult?) -> Unit,
 ) {
-    val args = remember(username, password, sshKey) {
+    val args = remember(username, password, sshKey, uris) {
         GeneratorRoute.Args(
+            context = GeneratorRoute.Args.Context(
+                uris = uris,
+            ),
             username = username,
             password = password,
             sshKey = sshKey,
@@ -174,6 +188,12 @@ fun ColumnScope.AutofillWindow(
         args = args,
         key = key,
     )
+    LaunchParameterEffect(
+        key = "$key:autofill",
+        parameter = GENERATOR_KEY_ARG_URIS,
+        value = uris,
+    )
+
     loadableState.fold(
         ifLoading = {
             SkeletonItem()
@@ -421,7 +441,8 @@ private fun ColumnScope.GeneratorValue2(
                 enabled = !sliderInteractionSourceIsInteracted,
             )
             HorizontalContextItems(
-                modifier = Modifier,
+                modifier = Modifier
+                    .padding(top = 4.dp),
                 items = actions,
                 colors = ButtonDefaults.outlinedButtonColors(),
                 elevation = null,
@@ -439,53 +460,58 @@ fun ColumnScope.GeneratorSuggestions(
     val updatedOnComplete by rememberUpdatedState(onComplete)
     val valueState = suggestionsFlow.collectAsState()
     ExpandedIfNotEmpty(
-        valueOrNull = valueState.value,
+        valueOrNull = valueState.value
+            .takeIf { items ->
+                items.isNotEmpty()
+            },
     ) { value ->
-        Row(
-            modifier = Modifier
-                .padding(top = Dimens.contentPadding)
-                .horizontalScroll(rememberScrollState()),
+        Column(
+            modifier = Modifier,
         ) {
-            value.forEach { i ->
-                FlatItemSimpleExpressive(
-                    modifier = Modifier
-                        .widthIn(max = DropdownMinWidth),
-                    leading = if (i.length != null) {
-                        // composable
-                        {
-                            Box(
-                                modifier = Modifier
-                                    .widthIn(min = 24.dp)
-                                    .heightIn(min = 24.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceVariant,
-                                        CircleShape,
-                                    ),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = i.length.toString(),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    textAlign = TextAlign.Center,
-                                )
-                            }
-                        }
-                    } else {
-                        null
-                    },
-                    title = {
-                        Text(
-                            text = colorizePasswordOrEmpty(i.value),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontFamily = FontFamily.Monospace,
-                        )
-                    },
-                    onClick = {
-                        val result = GetPasswordResult.Value(i.value)
-                        updatedOnComplete(result)
-                    },
-                )
+            Section(
+                text = stringResource(Res.string.context_based_suggestions),
+                expressive = true,
+            )
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = Dimens.contentPadding),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.contentPadding)
+            ) {
+                value.forEach { i ->
+                    FlatItemLayoutExpressive(
+                        modifier = Modifier
+                            .widthIn(max = 220.dp),
+                        padding = PaddingValues(0.dp),
+                        content = {
+                            FlatItemTextContent2(
+                                title = if (i.context != null) {
+                                    // composable
+                                    {
+                                        Text(
+                                            text = i.context,
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                                text = {
+                                    Text(
+                                        text = colorizePasswordOrEmpty(i.value),
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 12.sp,
+                                    )
+                                },
+                            )
+                        },
+                        onClick = {
+                            val result = GetPasswordResult.Value(i.value)
+                            updatedOnComplete(result)
+                        },
+                    )
+                }
             }
         }
     }

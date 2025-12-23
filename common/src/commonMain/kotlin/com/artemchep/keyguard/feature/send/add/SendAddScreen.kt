@@ -70,6 +70,12 @@ fun SendAddScreen(
             initialFocusRequested = !addScreenBehavior.autoShowKeyboard,
         )
     }
+    // Provide all the items to the shared
+    // scope for every item to access.
+    run {
+        val items = loadableState.getOrNull()?.items.orEmpty()
+        addScreenScope.updateItems(items)
+    }
     SendAddScreen(
         addScreenScope = addScreenScope,
         loadableState = loadableState,

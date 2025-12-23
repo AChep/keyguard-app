@@ -1,6 +1,10 @@
 package com.artemchep.keyguard.common.model
 
 sealed interface PasswordGeneratorConfig {
+    data class Value(
+        val data: String,
+    ) : PasswordGeneratorConfig
+
     data class Passphrase(
         val length: Int,
         val delimiter: String,
@@ -44,6 +48,7 @@ sealed interface PasswordGeneratorConfig {
 }
 
 fun PasswordGeneratorConfig.isExpensive(): Boolean = when (this) {
+    is PasswordGeneratorConfig.Value -> false
     is PasswordGeneratorConfig.Passphrase -> false
     is PasswordGeneratorConfig.Password -> false
     is PasswordGeneratorConfig.PinCode -> false

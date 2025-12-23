@@ -36,6 +36,12 @@ class FlowHolderViewModel(
 
     private val scope get() = navigationEntry.scope
 
+    fun getScopeOrNull(
+        key: String,
+    ): RememberStateFlowScope? = synchronized(this) {
+        store[key]
+    }?.value?.scope
+
     fun <T> getOrPut(
         key: String,
         c: NavigationController,

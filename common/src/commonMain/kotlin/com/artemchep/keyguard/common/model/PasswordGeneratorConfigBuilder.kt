@@ -4,6 +4,10 @@ import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 
 sealed interface PasswordGeneratorConfigBuilder2 {
+    data class Value(
+        val data: String,
+    ) : PasswordGeneratorConfigBuilder2
+
     data class Passphrase(
         val length: Int,
         val delimiter: String,
@@ -45,19 +49,29 @@ sealed interface PasswordGeneratorConfigBuilder2 {
     ) : PasswordGeneratorConfigBuilder2
 
     data class EmailCatchAll(
-        val length: Int,
+        val payload: EmailPayload,
         val domain: String,
     ) : PasswordGeneratorConfigBuilder2
 
     data class EmailPlusAddressing(
-        val length: Int,
+        val payload: EmailPayload,
         val email: String,
     ) : PasswordGeneratorConfigBuilder2
 
     data class EmailSubdomainAddressing(
-        val length: Int,
+        val payload: EmailPayload,
         val email: String,
     ) : PasswordGeneratorConfigBuilder2
+
+    sealed interface EmailPayload {
+        data class RandomlyGenerated(
+            val length: Int,
+        ) : EmailPayload
+
+        data class Value(
+            val data: String,
+        ) : EmailPayload
+    }
 
     data class EmailRelay(
         val emailRelay: com.artemchep.keyguard.common.service.relays.api.EmailRelay,
@@ -70,6 +84,7 @@ sealed interface PasswordGeneratorConfigBuilder2 {
 }
 
 fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (this) {
+    is PasswordGeneratorConfigBuilder2.Value -> build()
     is PasswordGeneratorConfigBuilder2.Password -> build()
     is PasswordGeneratorConfigBuilder2.Passphrase -> build()
     is PasswordGeneratorConfigBuilder2.PinCode -> build()
@@ -79,6 +94,12 @@ fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (thi
     is PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing -> build()
     is PasswordGeneratorConfigBuilder2.EmailRelay -> build()
     is PasswordGeneratorConfigBuilder2.KeyPair -> build()
+}
+
+fun PasswordGeneratorConfigBuilder2.Value.build(): PasswordGeneratorConfig {
+    return PasswordGeneratorConfig.Value(
+        data = data,
+    )
 }
 
 fun PasswordGeneratorConfigBuilder2.Password.build(): PasswordGeneratorConfig {
@@ -160,7 +181,7 @@ fun PasswordGeneratorConfigBuilder2.Username.build() =
 
 fun PasswordGeneratorConfigBuilder2.EmailCatchAll.build(): PasswordGeneratorConfig {
     val config = buildEmailFriendlyGeneratorConfig(
-        length = length,
+        payload = payload,
     )
     val domain = domain
         .takeIf { REGEX_DOMAIN.matches(it) }
@@ -178,7 +199,7 @@ fun PasswordGeneratorConfigBuilder2.EmailCatchAll.build(): PasswordGeneratorConf
 
 fun PasswordGeneratorConfigBuilder2.EmailPlusAddressing.build(): PasswordGeneratorConfig {
     val config = buildEmailFriendlyGeneratorConfig(
-        length = length,
+        payload = payload,
     )
     val email = email
         .takeIf { REGEX_EMAIL.matches(it) }
@@ -197,7 +218,7 @@ fun PasswordGeneratorConfigBuilder2.EmailPlusAddressing.build(): PasswordGenerat
 
 fun PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing.build(): PasswordGeneratorConfig {
     val config = buildEmailFriendlyGeneratorConfig(
-        length = length,
+        payload = payload,
     )
     val email = email
         .takeIf { REGEX_EMAIL.matches(it) }
@@ -228,21 +249,30 @@ fun PasswordGeneratorConfigBuilder2.KeyPair.build(): PasswordGeneratorConfig {
 }
 
 private fun buildEmailFriendlyGeneratorConfig(
-    length: Int,
-) = PasswordGeneratorConfigBuilder2.Password(
-    length = length,
-    includeUppercaseCharacters = false,
-    includeLowercaseCharacters = true,
-    includeNumbers = true,
-    includeSymbols = false,
-    excludeSimilarCharacters = true,
-    excludeAmbiguousCharacters = true,
-).build()
+    payload: PasswordGeneratorConfigBuilder2.EmailPayload,
+) = when (payload) {
+    is PasswordGeneratorConfigBuilder2.EmailPayload.Value -> {
+        PasswordGeneratorConfigBuilder2.Value(
+            data = payload.data,
+        ).build()
+    }
+    is PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated -> {
+        PasswordGeneratorConfigBuilder2.Password(
+            length = payload.length,
+            includeUppercaseCharacters = false,
+            includeLowercaseCharacters = true,
+            includeNumbers = true,
+            includeSymbols = false,
+            excludeSimilarCharacters = true,
+            excludeAmbiguousCharacters = true,
+        ).build()
+    }
+}
 
 private fun parseEmail(email: String): ParsedEmail? {
     val index = email.indexOf("@")
     if (index != -1) {
-        val username = email.substring(startIndex = 0, endIndex = index)
+        val username = email.take(index)
         val domain = email.substring(startIndex = index + 1)
         return ParsedEmail(
             username = username,

@@ -46,6 +46,7 @@ data class GeneratorState(
          * important while email's is not.
          */
         val length: Int? = null,
+        val context: String? = null,
         val value: String,
         val onCopy: () -> Unit,
     )

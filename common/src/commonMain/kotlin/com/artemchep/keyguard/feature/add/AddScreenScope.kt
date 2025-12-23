@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.add
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,6 +13,10 @@ import kotlinx.coroutines.delay
 class AddScreenScope(
     initialFocusRequested: Boolean = false,
 ) {
+    private val itemsStateSink = mutableStateOf<List<AddStateItem>>(emptyList())
+
+    val itemsState: State<List<AddStateItem>> get() = itemsStateSink
+
     val initialFocusRequestedState = mutableStateOf(initialFocusRequested)
 
     @Composable
@@ -29,5 +34,9 @@ class AddScreenScope(
             }
         }
         return focusRequester
+    }
+
+    fun updateItems(items: List<AddStateItem>) {
+        itemsStateSink.value = items
     }
 }

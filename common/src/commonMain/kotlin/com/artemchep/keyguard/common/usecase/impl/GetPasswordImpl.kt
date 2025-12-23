@@ -41,6 +41,12 @@ class GetPasswordImpl(
         context: GeneratorContext,
         config: PasswordGeneratorConfig,
     ): IO<GetPasswordResult?> = when (config) {
+        is PasswordGeneratorConfig.Value -> ioEffect {
+            GetPasswordResult.Value(
+                value = config.data,
+            )
+        }
+
         is PasswordGeneratorConfig.Password -> ioEffect(Dispatchers.Default) {
             if (
                 config.length < 1 ||

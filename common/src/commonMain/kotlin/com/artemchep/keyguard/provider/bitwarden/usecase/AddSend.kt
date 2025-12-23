@@ -149,6 +149,7 @@ private suspend fun BitwardenSend.Companion.of(
         BitwardenSend.Type.File -> {
             file = BitwardenSend.File.of(
                 request = request,
+                old = old,
             )
         }
 
@@ -268,6 +269,9 @@ private suspend fun BitwardenSend.Text.Companion.of(
 
 private suspend fun BitwardenSend.File.Companion.of(
     request: CreateSendRequest,
+    old: BitwardenSend? = null,
 ): BitwardenSend.File {
-    TODO()
+    return requireNotNull(old?.file) {
+        "Creating a file send is not yet supported!"
+    }
 }

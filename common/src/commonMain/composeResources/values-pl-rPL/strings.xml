@@ -118,6 +118,7 @@
     <string name="category">Kategoria</string>
     <string name="command">Polecenie</string>
     <string name="execute_command">Wykonaj</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Dodaj</string>
     <string name="add_integration">Dodaj integrację</string>

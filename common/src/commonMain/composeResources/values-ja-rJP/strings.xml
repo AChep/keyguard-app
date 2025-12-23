@@ -118,6 +118,7 @@
     <string name="category">カテゴリー</string>
     <string name="command">コマンド</string>
     <string name="execute_command">実行</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">追加</string>
     <string name="add_integration">統合を追加</string>

@@ -118,6 +118,7 @@
     <string name="category">Категорія</string>
     <string name="command">Команда</string>
     <string name="execute_command">Виконати</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Додати</string>
     <string name="add_integration">Додати інтеграцію</string>
@@ -469,8 +470,8 @@
     <string name="copied_cvv_code">Скопійовано код безпеки</string>
     <string name="copied_otp_code">Скопійовано одноразовий пароль</string>
     <string name="copied_otp_secret_code">Скопійовано секретний ключ</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Знайдено одноразовий пароль</string>
+    <string name="found_value">Знайдено значення</string>
     <string name="autofill_unlock_keyguard">Розблокувати Keyguard</string>
     <string name="autofill_open_keyguard">Відкрити Keyguard</string>
     <string name="january">Січень</string>
@@ -643,12 +644,12 @@
     <string name="urloverride_delete_one_confirmation_title">Видалити перевизначення URL-адреси?</string>
     <string name="urloverride_delete_many_confirmation_title">Видалити перевизначення URL-адреси?</string>
     <string name="urloverride_empty_label">Немає перевизначених URL-адрес</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_header_title">Заблокувати URI</string>
+    <string name="urlblock_list_header_title">Заблоковані URI</string>
+    <string name="urlblock_list_section_title">Заблоковані URI</string>
+    <string name="urlblock_delete_one_confirmation_title">Видалити заблокований URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Видалити заблокований URI?</string>
+    <string name="urlblock_empty_label">Немає заблокованих URI</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">Створити зашифроване сховище локальних даних.</string>

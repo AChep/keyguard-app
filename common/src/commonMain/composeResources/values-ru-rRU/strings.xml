@@ -118,6 +118,7 @@
     <string name="category">Категория</string>
     <string name="command">Команда</string>
     <string name="execute_command">Выполнить</string>
+    <string name="context_based_suggestions">Context-based suggestions</string>
     <!-- Add (something) -->
     <string name="add">Добавить</string>
     <string name="add_integration">Добавить интеграцию</string>

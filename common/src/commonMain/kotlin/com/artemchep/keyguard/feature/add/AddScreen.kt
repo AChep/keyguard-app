@@ -1179,6 +1179,16 @@ private fun FieldTextField(
                     visibilityState = visibilityState,
                 )
             }
+            AutofillButton(
+                key = "field",
+                username = true,
+                password = true,
+                provideUris = {
+                    this@AddScreenScope
+                        .obtainUriContext()
+                },
+                onValueChange = state.text.onChange,
+            )
             OptionsButton(
                 actions = actions,
             )

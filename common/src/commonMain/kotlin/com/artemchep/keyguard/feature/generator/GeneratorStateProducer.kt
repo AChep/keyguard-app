@@ -2003,6 +2003,7 @@ fun produceGeneratorState(
                 .map { suggestionsNested ->
                     suggestionsNested
                         .flatten()
+                        .distinctBy { it.value }
                         .toPersistentList()
                 }
         }

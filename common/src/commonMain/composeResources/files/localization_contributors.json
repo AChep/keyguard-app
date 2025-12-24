@@ -109,13 +109,13 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 8894,
-    "target": 8132,
-    "approved": 911,
+    "translated": 8945,
+    "target": 8182,
+    "approved": 982,
     "voted": 0,
     "positiveVotes": 62,
     "negativeVotes": 1,
-    "winning": 420
+    "winning": 491
   },
   {
     "user": {
@@ -1695,8 +1695,8 @@
         "name": "German"
       }
     ],
-    "translated": 325,
-    "target": 320,
+    "translated": 351,
+    "target": 345,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1805,8 +1805,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5876,
-    "target": 6430,
+    "translated": 5878,
+    "target": 6434,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

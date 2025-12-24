@@ -1546,24 +1546,12 @@ class SyncByKeePassTokenImpl(
 
         return BitwardenCipher.Identity(
             title = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_TITLE.key),
-            firstName = scope.consumeFieldAndReturnContent(
-                TranslationField.IDENTITY_NAME.key,
-                mappingKey = BitwardenCipher.Mapping.IDENTITY_FIRST_NAME.key,
-            )
-                ?: scope.consumeFieldAndReturnContent(
-                    TranslationField.IDENTITY_FIRST_NAME.key,
-                    mappingKey = BitwardenCipher.Mapping.IDENTITY_FIRST_NAME.key,
-                ),
+            firstName = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_NAME.key)
+                ?: scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_FIRST_NAME.key),
             middleName = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_MIDDLE_NAME.key),
             lastName = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_LAST_NAME.key),
-            address1 = scope.consumeFieldAndReturnContent(
-                TranslationField.IDENTITY_ADDRESS.key,
-                mappingKey = BitwardenCipher.Mapping.IDENTITY_ADDRESS1.key,
-            )
-                ?: scope.consumeFieldAndReturnContent(
-                    TranslationField.IDENTITY_ADDRESS1.key,
-                    mappingKey = BitwardenCipher.Mapping.IDENTITY_ADDRESS1.key,
-                ),
+            address1 = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_ADDRESS.key)
+                ?: scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_ADDRESS1.key),
             address2 = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_ADDRESS2.key),
             address3 = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_ADDRESS3.key),
             city = scope.consumeFieldAndReturnContent(TranslationField.IDENTITY_CITY.key),

@@ -1,0 +1,37 @@
+name: "✔️ Check Translations"
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-file:
+        description: 'Path to source strings.xml'
+        required: true
+        default: 'common/src/commonMain/composeResources/values/strings.xml'
+      translated-file:
+        description: 'Path to translated strings.xml'
+        required: true
+      language:
+        description: 'Target language'
+        required: true
+
+jobs:
+  check-translations:
+    name: Check Translations
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+      - run: pip install -r .github/check_translations.requirements.txt
+      - name: "Check translations"
+        run: |
+          python .github/check_translations.py \
+            "${{ inputs.source-file }}" \
+            "${{ inputs.translated-file }}" \
+            "${{ inputs.language }}" \
+            --token "${{ secrets.GEMINI_API_TOKEN }}" \
+            --output proofread_report.json
+      - name: "Upload report"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proofread-report
+          path: proofread_report.json

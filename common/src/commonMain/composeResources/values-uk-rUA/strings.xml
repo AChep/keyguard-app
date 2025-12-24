@@ -118,7 +118,7 @@
     <string name="category">Категорія</string>
     <string name="command">Команда</string>
     <string name="execute_command">Виконати</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Контекстні пропозиції</string>
     <!-- Add (something) -->
     <string name="add">Додати</string>
     <string name="add_integration">Додати інтеграцію</string>
@@ -650,8 +650,8 @@
     <string name="urlblock_delete_one_confirmation_title">Видалити заблокований URI?</string>
     <string name="urlblock_delete_many_confirmation_title">Видалити заблокований URI?</string>
     <string name="urlblock_empty_label">Немає заблокованих URI</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="urlblock_expose_title">Включити дані для фреймворку автозаповнення до розблокування сховища</string>
+    <string name="urlblock_expose_text">Якщо увімкнено, запис зберігається поза сховищем, що дозволяє повністю приховати пропозиції автозаповнення, навіть якщо сховище заблоковано</string>
     <string name="setup_header_text">Створити зашифроване сховище локальних даних.</string>
     <string name="setup_free_text">Продовжуючи ви підтверджуєте, що придбали Keyguard або мали активну ліцензію.</string>
     <string name="setup_field_app_password_label">Пароль застосунку</string>
@@ -684,10 +684,10 @@
     <string name="additem_markdown_note_italic">курсив</string>
     <string name="additem_markdown_note_bold">жирний</string>
     <string name="additem_markdown_render_preview">Попередній перегляд</string>
-    <string name="additem_auth_reprompt_title">Подвійна автентифікація</string>
+    <string name="additem_auth_reprompt_title">Повторний запит автентифікації</string>
     <string name="additem_auth_reprompt_text">Перезапитувати аутентифікацію, коли ви переглядаєте або використовуєте запис</string>
     <string name="addsend_header_new_title">Нове відправлення</string>
-    <string name="addsend_header_edit_title">Редагувати запис</string>
+    <string name="addsend_header_edit_title">Редагувати відправлення</string>
     <string name="addsend_text_hide_by_default_title">При доступі до відправлення приховувати текст</string>
     <string name="addsend_hide_text_by_default_title">При доступі до відправлення приховувати текст</string>
     <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
@@ -803,7 +803,7 @@
     <string name="sortby_modification_date_title">Датою останньої зміни</string>
     <string name="sortby_modification_date_normal_mode">Спочатку нові</string>
     <string name="sortby_modification_date_reverse_mode">Спочатку старіші</string>
-    <string name="sortby_installation_date_title">Дата встановлення</string>
+    <string name="sortby_installation_date_title">Датою встановлення</string>
     <string name="sortby_installation_date_normal_mode">Спочатку новіші</string>
     <string name="sortby_installation_date_reverse_mode">Спочатку старіші</string>
     <string name="sortby_expiration_date_title">Датою закінчення дії</string>
@@ -848,7 +848,7 @@
     <!-- Compose an email. The text should be as short as possible! -->
     <string name="vault_view_email_action">Ел. пошта</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
-    <string name="vault_view_navigate_action">Напрямок</string>
+    <string name="vault_view_navigate_action">Маршрут</string>
     <string name="send_main_header_title">Відправлення</string>
     <string name="send_main_search_placeholder">Пошук відправлень</string>
     <string name="send_main_new_item_button">Нове відправлення</string>
@@ -982,7 +982,7 @@
     <string name="account_main_add_account_title">Додати обліковий запис</string>
     <string name="team_header_title">Команда Keyguard</string>
     <string name="team_artem_whoami_text">Я програмний інженер з України. Моя спеціалізація це дизайн та розробка застосунків.</string>
-    <string name="team_follow_me_section">Слідкуй за мною</string>
+    <string name="team_follow_me_section">Слідкуйте за мною</string>
     <string name="settingssearch_header_title">Пошук</string>
     <string name="settingssearch_header_subtitle">Налаштування</string>
     <string name="settingssearch_search_placeholder">Пошук налаштувань</string>
@@ -1003,7 +1003,7 @@
     <string name="pref_item_accounts_title">Облікові записи</string>
     <string name="pref_item_accounts_text">Додати та переглянути облікові записи</string>
     <string name="pref_item_autofill_title">Автозаповнення</string>
-    <string name="pref_item_autofill_text">Служба автозаповнення Android</string>
+    <string name="pref_item_autofill_text">Служби автозаповнення та облікових даних Android</string>
     <string name="pref_item_security_title">Безпека</string>
     <string name="pref_item_security_text">Біометрика, блокування сховища, зміна паролю</string>
     <string name="pref_item_subscription_title">Keyguard преміум</string>
@@ -1027,7 +1027,7 @@
         -->
     <string name="pref_item_app_build_ref_title">Посилання на коміт збірки застосунку</string>
     <string name="pref_item_app_changelog_title">Список змін у програмі</string>
-    <string name="pref_item_app_team_title">Команда Keyguard</string>
+    <string name="pref_item_app_team_title">Команда розробників застосунку</string>
     <string name="pref_item_reddit_community_title">Reddit спільнота</string>
     <string name="pref_item_github_title">Проєкт на GitHub</string>
     <string name="pref_item_crowdin_title">Проєкт на Crowdin</string>
@@ -1143,11 +1143,11 @@
     <string name="pref_item_premium_status_free_trial_n">Безплатний пробний період: <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Не буде продовжено</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Керувати на Play Store</string>
-    <string name="pref_item_permission_post_notifications_title">Публікувати сповіщення</string>
+    <string name="pref_item_permission_post_notifications_title">Надсилати сповіщення</string>
     <string name="pref_item_permission_post_notifications_text">Для показу сповіщень прогресу завантаження файлів</string>
     <string name="pref_item_permission_write_external_storage_title">Запис даних на зовнішній накопичувач</string>
     <string name="pref_item_permission_write_external_storage_text">Використовується для запису експорту сховища на диск</string>
-    <string name="pref_item_permission_write_external_storage_grant">Дозволити запис файлів на диск</string>
+    <string name="pref_item_permission_write_external_storage_grant">Надати дозвіл на запис файлів у зовнішнє сховище</string>
     <string name="pref_item_permission_camera_title">Камера</string>
     <string name="pref_item_permission_camera_text">Для сканування QR-кодів</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">Дозволити інтерфейс з двома панелями в ландшафтному режимі</string>
@@ -1175,11 +1175,11 @@
     <string name="feat_item_multiple_keywords_text">Введіть 'bitw test', щоб знайти запис 'Bitwarden Test Account'.</string>
     <string name="feat_section_watchtower_title">Вартова вежа</string>
     <string name="feat_item_pwned_passwords_title">Викриті паролі</string>
-    <string name="feat_item_pwned_passwords_text">Знайти викриті в витоках даних паролі.</string>
+    <string name="feat_item_pwned_passwords_text">Знайти записи з паролями, викритими у витоках даних.</string>
     <string name="feat_item_password_strength_title">Надійність пароля</string>
-    <string name="feat_item_password_strength_text">Знайти логіни зі слабкими паролями.</string>
+    <string name="feat_item_password_strength_text">Знайти записи зі слабкими паролями.</string>
     <string name="feat_item_reused_passwords_title">Повторювані паролі</string>
-    <string name="feat_item_reused_passwords_text">Знайти логіни з перевикористаними паролями.</string>
+    <string name="feat_item_reused_passwords_text">Знайти записи з перевикористаними паролями.</string>
     <string name="feat_item_inactive_totp_title">Неактивна двофакторна автентифікація</string>
     <string name="feat_item_inactive_totp_text">Знайти логіни з доступною двофакторною автентифікацією.</string>
     <string name="feat_item_unsecure_websites_title">Незахищені вебсайти</string>
@@ -1187,7 +1187,7 @@
     <string name="feat_item_incomplete_items_title">Незавершені записи</string>
     <string name="feat_item_incomplete_items_text">Знайти порожні записи, які можуть потребувати зміни.</string>
     <string name="feat_item_expiring_items_title">Закінчується термін дії</string>
-    <string name="feat_item_expiring_items_text">Знайти записи з вичерпаним терміном придатності.</string>
+    <string name="feat_item_expiring_items_text">Знайти записи, термін дії яких вичерпано або незабаром закінчиться.</string>
     <string name="feat_item_duplicate_items_title">Повторювані записи</string>
     <string name="feat_item_duplicate_items_text">Знайти й об'єднати повторювані записи.</string>
     <string name="feat_section_misc_title">Різне</string>
@@ -1207,7 +1207,7 @@
     <string name="datasafety_local_settings_note">Налаштування користувача зашифровано за допомогою ключа пристрою.</string>
     <string name="datasafety_local_vault_section">Сховище</string>
     <string name="datasafety_local_encryption_algorithm_intro">Сховище зашифровано за допомогою ключа, який було отримано з пароля застосунку таким алгоритмом:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">Після цього сіль та хеш записується локально на пристрій для подальшої генерації майстер-ключа для розблокування сховища.</string>
+    <string name="datasafety_local_encryption_algorithm_outro">Після цього сіль та хеш записуються локально на пристрій, щоб пізніше згенерувати майстер-ключ для розблокування сховища.</string>
     <string name="datasafety_local_unlocking_vault">Розблокування сховища означає збереження коректного майстер-ключа в оперативній пам'яті пристрою, що дає можливість читати та редагувати зашифроване сховище.</string>
     <string name="datasafety_remote_section">Віддалені дані</string>
     <string name="datasafety_remote_text">Віддалені дані зберігаються на серверах Bitwarden з шифруванням з нульовим знанням.</string>

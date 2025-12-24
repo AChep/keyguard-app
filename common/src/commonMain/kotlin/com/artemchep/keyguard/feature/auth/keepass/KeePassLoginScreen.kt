@@ -67,10 +67,12 @@ import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
+import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
@@ -285,7 +287,12 @@ fun LoginContent(
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(16.dp))
-
+        FlatSimpleNote(
+            modifier = Modifier,
+            type = SimpleNote.Type.WARNING,
+            text = stringResource(Res.string.addkeepass_use_at_your_own_risk_beta_text),
+        )
+        Spacer(Modifier.height(16.dp))
 
         val allTabs = tabsState.items
         val selectedTab = remember(tabsState.items) {

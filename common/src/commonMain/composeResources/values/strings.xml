@@ -779,6 +779,7 @@
 
     <string name="addkeepass_header_title">Add KeePass account</string>
     <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
 
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_yubikey" translatable="false">YubiKey</string>

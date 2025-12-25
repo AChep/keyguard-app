@@ -95,6 +95,14 @@ jobs:
           pwd
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+      - name: "Fix build env"
+        run: |
+          # We've seen a build failing with the
+          # > Cannot spawn a message bus without a machine-id
+          # error message. 
+          apt-get update && apt-get install -y dbus
+          dbus-uuidgen --ensure
+          dbus-daemon --session --print-address
       - name: "Build"
         run: ./gradlew :desktopApp:bundleFlatpak
       - name: 'Upload .flatpak'

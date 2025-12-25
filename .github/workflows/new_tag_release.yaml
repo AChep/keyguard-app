@@ -88,6 +88,7 @@ jobs:
       - uses: ./.github/actions/setup_python
       - name: "Setup Flatpak"
         run: |
+          sudo apt-get update
           sudo apt install flatpak flatpak-builder
           flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           flatpak install flathub runtime/org.gnome.Platform/x86_64/49

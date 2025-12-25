@@ -76,9 +76,6 @@ jobs:
           retention-days: 1
   build-linux-flatpak-app:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
-      options: --privileged
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -89,20 +86,18 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
+      - name: "Setup Flatpak"
+        run: |
+          sudo apt install flatpak flatpak-builder
+          flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install flathub runtime/org.gnome.Platform/x86_64/49
+          flatpak install flathub runtime/org.gnome.Sdk/x86_64/49
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         run: |
           pwd
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
-      - name: "Fix build env"
-        run: |
-          # We've seen a build failing with the
-          # > Cannot spawn a message bus without a machine-id
-          # error message. 
-          apt-get update && apt-get install -y dbus
-          dbus-uuidgen --ensure
-          dbus-daemon --session --print-address
       - name: "Build"
         run: ./gradlew :desktopApp:bundleFlatpak
       - name: 'Upload .flatpak'

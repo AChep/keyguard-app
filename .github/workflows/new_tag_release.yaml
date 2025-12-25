@@ -86,12 +86,16 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
+      - run: pip install -r .github/get_flatpak_runtime_version.requirements.txt
+      - name: "Get Flatpak runtime version"
+        id: get-flatpak-runtime-version
+        run: echo "version=$(python .github/get_flatpak_runtime_version.py desktopApp/src/jvmMain/resources/flatpak/manifest.yml)" >> $GITHUB_OUTPUT
       - name: "Setup Flatpak"
         run: |
           sudo apt-get update
           sudo apt install flatpak flatpak-builder
           flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install flathub org.gnome.Platform//49 org.gnome.Sdk//49 -y
+          flatpak install flathub org.gnome.Platform//${{ steps.get-flatpak-runtime-version.outputs.version }} org.gnome.Sdk//${{ steps.get-flatpak-runtime-version.outputs.version }} -y
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         run: |

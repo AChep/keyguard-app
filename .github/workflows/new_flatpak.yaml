@@ -22,11 +22,6 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/build_desktop_licenses
-      - name: "Setup build env"
-        run: |
-          pwd
-          git config --global --add safe.directory "$(pwd)"
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Build"
         run: ./gradlew :desktopApp:packageDistributable
       - name: 'Upload .tar'

@@ -162,7 +162,7 @@ jobs:
         working-directory: desktopApp/flatpak/
         run: |
           flatpak-builder --force-clean --state-dir=build/flatpak-builder --repo=build/flatpak-repo build/flatpak-target com.artemchep.keyguard.yml
-          flatpak build-bundle build/flatpak-repo "Keyguard-$(find . -type f -regex '\./desktopApp/build/distributions/.*\.tar.gz' | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')-${{ matrix.arch }}.flatpak" com.artemchep.keyguard
+          flatpak build-bundle build/flatpak-repo "Keyguard-$(find . -type f -regex '\.\./build/distributions/.*\.tar.gz' | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')-${{ matrix.arch }}.flatpak" com.artemchep.keyguard
       - name: 'Upload .flatpak'
         uses: actions/upload-artifact@v6
         with:

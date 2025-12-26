@@ -27,6 +27,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.contains
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
+import com.artemchep.keyguard.platform.util.isRelease
 import org.jetbrains.compose.resources.StringResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -296,7 +297,20 @@ class RememberStateFlowScopeImpl(
                     }
                 }
 
-                initialValue()
+                initialValue().also { value ->
+                    // On dev builds immediately try to serialize the
+                    // initial value to make sure that it is parcelable
+                    // and in other case crash during the dev process.
+                    if (!isRelease) {
+                        runCatching {
+                            val serializedValue = serialize(json, value)
+                            leBundleOf("_" to serializedValue)
+                        }.getOrElse { e ->
+                            val msg = "The provided as '$key' value must be Parcelable!"
+                            throw IllegalArgumentException(msg, e)
+                        }
+                    }
+                }
             }
 
             val sink = MutableStateFlow(value)

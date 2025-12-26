@@ -2,6 +2,7 @@ name: "New Flatpak"
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build-linux-app:

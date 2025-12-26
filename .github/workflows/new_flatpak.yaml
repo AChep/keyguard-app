@@ -5,8 +5,41 @@ on:
   push:
 
 jobs:
+  # This step can be skipped once the Kotlin Native compiler
+  # gains an ability to be run on a Linux ARM64 host:
+  # https://kotlinlang.org/docs/native-target-support.html#hosts
+  #
+  # After that is done you should be able to just run
+  # ./gradlew :desktopApp:packageDistributable
+  build-linux-lib-native:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: ./.github/actions/setup_gradle
+      - name: "Build"
+        run: ./gradlew :desktopLibNative:linkReleaseSharedLinuxX64 :desktopLibNative:linkReleaseSharedLinuxArm64
+      - name: 'Upload .so (x86_64)'
+        uses: actions/upload-artifact@v6
+        id: upload-artifact
+        with:
+          name: app-linux-lib-native-x86_64
+          path: |
+            desktopLibNative/build/bin/linuxX64/releaseShared/libkeyguard.so
+      - name: 'Upload .so (aarch64)'
+        uses: actions/upload-artifact@v6
+        id: upload-artifact
+        with:
+          name: app-linux-lib-native-aarch64
+          path: |
+            desktopLibNative/build/bin/linuxArm64/releaseShared/libkeyguard.so
   build-linux-app:
     runs-on: ${{ matrix.runner }}
+    needs:
+      - build-linux-lib-native
     strategy:
       matrix:
         include:
@@ -21,14 +54,25 @@ jobs:
           lfs: true
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
+      - name: "Download lib native"
+        uses: actions/download-artifact@v7
+        with:
+          name: app-linux-lib-native-${{ matrix.arch }}
+          path: libnative-${{ matrix.arch }}
+      - name: "Verify directory structure"
+        run: |
+          find libnative-${{ matrix.arch }}
+      - name: "Move binaries into the libnative directory"
+        run: |
+          install -D libnative-${{ matrix.arch }}/libkeyguard.so desktopLibNative/build/bin/universal/libkeyguard
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"
-        run: ./gradlew :desktopApp:packageDistributable
+        run: ./gradlew :desktopApp:packageDistributable -x :desktopLibNative:linkReleaseSharedUniversal
       - name: 'Upload .tar'
         uses: actions/upload-artifact@v6
         id: upload-artifact
         with:
-          name: app-linux-${{ matrix.os }}
+          name: app-linux-${{ matrix.arch }}
           path: |
             desktopApp/build/distributions/*.tar.gz
   flatpak:

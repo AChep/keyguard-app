@@ -289,7 +289,7 @@ fun produceGeneratorState(
         .map { uris ->
             getWebUriContextWords(
                 tldService = tldService,
-                uris = uris,
+                uris = uris.toList(),
             )
         }
 

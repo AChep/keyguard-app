@@ -134,6 +134,7 @@ fun AutofillButton(
         ) {
             val uris = remember(provideUris) {
                 provideUris()
+                    .toTypedArray()
             }
             AutofillWindow(
                 key = key,
@@ -170,7 +171,7 @@ fun ColumnScope.AutofillWindow(
     username: Boolean = false,
     password: Boolean = false,
     sshKey: Boolean = false,
-    uris: List<String> = emptyList(),
+    uris: Array<String> = emptyArray(),
     onComplete: (GetPasswordResult?) -> Unit,
 ) {
     val args = remember(username, password, sshKey, uris) {

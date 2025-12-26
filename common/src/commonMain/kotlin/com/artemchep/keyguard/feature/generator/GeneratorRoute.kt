@@ -13,8 +13,23 @@ data class GeneratorRoute(
         val sshKey: Boolean = false,
     ) {
         data class Context(
-            val uris: List<String> = emptyList(),
-        )
+            val uris: Array<String> = emptyArray(),
+        ) {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Context
+
+                if (!uris.contentEquals(other.uris)) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                return uris.contentHashCode()
+            }
+        }
     }
 
     @Composable

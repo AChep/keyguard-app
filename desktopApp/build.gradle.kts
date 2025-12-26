@@ -158,6 +158,7 @@ kotlin {
 tasks.register<Tar>("packageDistributable") {
     val appVersion = libs.versions.appVersionName.get()
     val osName = System.getProperty("os.name")
+        .lowercase()
     val osArch = System.getProperty("os.arch")
 
     from(tasks.named("createDistributable"))

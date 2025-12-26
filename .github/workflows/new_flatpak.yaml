@@ -84,6 +84,7 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+      - uses: ./.github/actions/setup_python
       - name: "Download artifacts (x86_64)"
         uses: actions/download-artifact@v7
         with:
@@ -128,4 +129,4 @@ jobs:
         with:
           name: app-flatpak
           path: |
-            desktopApp/flatpak/**/*.flatpak
+            desktopApp/flatpak/Keyguard.flatpak

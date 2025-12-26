@@ -24,14 +24,12 @@ jobs:
         run: ./gradlew :desktopLibNative:linkReleaseSharedLinuxX64 :desktopLibNative:linkReleaseSharedLinuxArm64
       - name: 'Upload .so (x86_64)'
         uses: actions/upload-artifact@v6
-        id: upload-artifact
         with:
           name: app-linux-lib-native-x86_64
           path: |
             desktopLibNative/build/bin/linuxX64/releaseShared/libkeyguard.so
       - name: 'Upload .so (aarch64)'
         uses: actions/upload-artifact@v6
-        id: upload-artifact
         with:
           name: app-linux-lib-native-aarch64
           path: |
@@ -70,7 +68,6 @@ jobs:
         run: ./gradlew :desktopApp:packageDistributable -x :desktopLibNative:linkReleaseSharedUniversal
       - name: 'Upload .tar'
         uses: actions/upload-artifact@v6
-        id: upload-artifact
         with:
           name: app-linux-${{ matrix.arch }}
           path: |

@@ -267,6 +267,18 @@
     "notes": "Select 'Buying on AbeBooks' then 'Closing your account' then 'Closing your buyer account' then 'Contact us' then fill out the form."
   },
   {
+    "name": "Ableton",
+    "domains": [
+      "ableton.com"
+    ],
+    "url": "https://www.ableton.com/en/contact-us/",
+    "difficulty": "hard",
+    "notes": "Account deletion requires contacting Customer Support.",
+    "email": "contact@support.ableton.com",
+    "email_subject": "Account Deletion Request",
+    "email_body": "Please delete my account, my username is XXXXXX"
+  },
+  {
     "name": "Abload",
     "domains": [
       "abload.de"
@@ -2935,6 +2947,18 @@
     "email": "datenschutz@bvb.de",
     "email_subject": "Datenl\u00f6schung gem\u00e4\u00df DSGVO",
     "email_body": "Guten Tag,\n\nBitte l\u00f6schen Sie gem\u00e4\u00df DSGVO den Account und die Daten f\u00fcr den Account mit der E-Mail Adresse: XXX\n\nVielen Dank und mit freundlichen Gr\u00fc\u00dfen."
+  },
+  {
+    "name": "Boulanger",
+    "domains": [
+      "boulanger.com"
+    ],
+    "url": "https://www.boulanger.com/evenement/infos-legales#ong-private",
+    "difficulty": "hard",
+    "notes": "Account deletion requires contacting Customer Support.",
+    "email": "cil@boulanger.com",
+    "email_subject": "Account deletion request",
+    "email_body": "Please delete the account associated with my e-mail, YOUR_EMAIL, and all its associated data."
   },
   {
     "name": "Bountysource",
@@ -7602,6 +7626,15 @@
     "notes": "Enter your document number then a deletion code received by e-mail to delete your account."
   },
   {
+    "name": "France TV",
+    "domains": [
+      "france.tv"
+    ],
+    "url": "https://www.france.tv/votre-compte/supprimer-mon-compte/",
+    "difficulty": "easy",
+    "notes": "Account, Account settings, Delete my account, Delete my account"
+  },
+  {
     "name": "Franz",
     "domains": [
       "meetfranz.com"
@@ -9101,6 +9134,14 @@
     "notes": "Select \"Delete all my data\" and verify your identity."
   },
   {
+    "name": "Groups.io",
+    "domains": [
+      "groups.io"
+    ],
+    "url": "https://groups.io/deleteaccount",
+    "difficulty": "easy"
+  },
+  {
     "name": "Grover",
     "domains": [
       "grover.com"
@@ -10002,9 +10043,9 @@
       "status.hypixel.net",
       "support.hypixel.net"
     ],
-    "url": "https://hypixel.net/data-request",
-    "difficulty": "hard",
-    "notes": "Complete the form on the linked page. They require some PII such as name, address, and a government-issued ID."
+    "url": "https://hypixel.net/account/delete",
+    "difficulty": "easy",
+    "notes": "Profile \u2b95 Delete my account"
   },
   {
     "name": "IBM Watson Media",
@@ -11290,6 +11331,15 @@
     "notes": "Account is deleted instantly, though username might be kept to keep service functioning properly and avoiding impersonation."
   },
   {
+    "name": "KGames",
+    "domains": [
+      "kgames.fr"
+    ],
+    "url": "https://kgames.fr/profil",
+    "difficulty": "easy",
+    "notes": "Profile in the top right corner \u2b95 Delete account"
+  },
+  {
     "name": "Khan Academy",
     "domains": [
       "khanacademy.org"
@@ -11754,6 +11804,15 @@
     "url": "https://app.leavemealone.com/profile",
     "difficulty": "easy",
     "notes": "Go to the linked page, scroll down to \"Danger Zone\" section and find \"Deactivate account\" button"
+  },
+  {
+    "name": "Leboncoin",
+    "domains": [
+      "leboncoin.fr"
+    ],
+    "url": "https://www.leboncoin.fr/account/settings",
+    "difficulty": "easy",
+    "notes": "Profile \u2b95 Delete my account in the bottom \u2b95 confirm by clicking a link sent by email"
   },
   {
     "name": "LeetCode",
@@ -12822,6 +12881,15 @@
     "url": "https://en.mapstr.com/faq",
     "difficulty": "easy",
     "notes": "Log in to your account in the app, then got to the \"Profile\" tab and open settings. After that, find the \"Data Management\" section and click \"Delete my account\"."
+  },
+  {
+    "name": "MarineTraffic",
+    "domains": [
+      "marinetraffic.com"
+    ],
+    "url": "https://www.marinetraffic.com/en/users/my_account/users/delete",
+    "difficulty": "easy",
+    "notes": "My account \u2b95 Delete account (in the bottom) \u2b95 Select a reason to quit \u2b95 submit"
   },
   {
     "name": "Markdown Converter",
@@ -15813,6 +15881,16 @@
     "email": "contato@pagbet.com"
   },
   {
+    "name": "Palia",
+    "domains": [
+      "palia.com",
+      "accounts.palia.com",
+      "support.palia.com"
+    ],
+    "url": "https://support.palia.com/hc/en-us/articles/37965096889620--Understanding-the-Difference-Between-Account-Deletion-Character-Deletion-and-Device-Unlinking#h_01JWF9WW8ZB24FJS5PZFZ9KS9R",
+    "difficulty": "hard"
+  },
+  {
     "name": "Panda-Plush",
     "domains": [
       "panda-plush.com"
@@ -16460,6 +16538,18 @@
     "url": "https://support.pix.org/en/support/tickets/new",
     "difficulty": "hard",
     "notes": "You can request that your account be deleted by making a request through their contact form"
+  },
+  {
+    "name": "Pix fr",
+    "domains": [
+      "pix.fr"
+    ],
+    "url": "https://pix.fr/politique-protection-donnees-personnelles-app#:~:text=Exercice%20des%20droits",
+    "difficulty": "hard",
+    "notes": "Contact support via email and request your account to be deleted.",
+    "email": "dpd@pix.fr",
+    "email_subject": "Demande de suppression de compte",
+    "email_body": "Bonjour, Je souhaiterai faire valoir mes droits et faire supprimer mon compte XXX"
   },
   {
     "name": "Pixabay",
@@ -20899,9 +20989,12 @@
       "ted.com",
       "support.ted.com"
     ],
-    "url": "https://support.ted.com/hc/en-us/articles/360005310614-TED-Ed-Accounts-and-managing-students",
+    "url": "https://help.ted.com/hc/en-us/articles/360005310614-How-do-I-create-TED-Ed-Accounts#:~:text=How%20can%20I%20delete%20my%20TED%2DEd%20account",
     "difficulty": "hard",
-    "notes": "Contact the TED support team [via their online contact form](https://support.ted.com/customer/portal/emails/new) for account deletion requests"
+    "notes": "Account deletion requires contacting Customer Support.",
+    "email": "contact@ted.com",
+    "email_subject": "Account deletion request",
+    "email_body": "Please delete the account associated with my e-mail, YOUR_EMAIL, and all its associated data."
   },
   {
     "name": "Teespring",
@@ -21417,6 +21510,15 @@
     "url": "https://help.tomtom.com/hc/en-gb/requests/new?ticket_form_id=360000697820",
     "difficulty": "hard",
     "notes": "Fill in the form to automatically open a support ticket."
+  },
+  {
+    "name": "Tonton Outdoor",
+    "domains": [
+      "tonton-outdoor.com"
+    ],
+    "url": "https://www.tonton-outdoor.com/fr_FR/supprimer-mon-compte",
+    "difficulty": "easy",
+    "notes": "Service client (at the bottom of the website), Supprimer mon compte, Supprimer mon compte"
   },
   {
     "name": "Too Good To Go",
@@ -22386,7 +22488,7 @@
     "domains": [
       "vans.com"
     ],
-    "url": "https://www.vans.com/utility/contact-us.html",
+    "url": "https://www.vans.com/en-us/help/contact-us",
     "difficulty": "hard",
     "notes": "Email customer service through the link and tell them you want your account deleted."
   },

@@ -62,17 +62,17 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: binaries-mac-${{ matrix.arch }}
-          path: desktopApp/build/compose/binaries/main/**
+          path: desktopApp/build/compose/binaries/main-release/**
           retention-days: 1
       - name: "Add a suffix to the artifacts"
         run: |
-          cd desktopApp/build/compose/binaries/main/dmg
+          cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
       - name: "Upload .dmg"
         uses: actions/upload-artifact@v6
         with:
           name: app-mac-${{ matrix.arch }}
-          path: desktopApp/build/compose/binaries/main/dmg/*.dmg
+          path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
           retention-days: 1
   # This step can be skipped once the Kotlin Native compiler
   # gains an ability to be run on a Linux ARM64 host:
@@ -194,7 +194,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: app-windows
-          path: desktopApp/build/compose/binaries/main/msi/*.msi
+          path: desktopApp/build/compose/binaries/main-release/msi/*.msi
           retention-days: 1
   build-android-app:
     runs-on: ubuntu-latest

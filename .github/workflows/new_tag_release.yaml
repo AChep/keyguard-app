@@ -239,6 +239,7 @@ jobs:
         wf-file:
           - new_release_deploy_fdroid.yml
           - new_release_deploy_homebrew.yml
+          - new_release_deploy_scoop.yml
     steps:
       - name: "Checkout"
         uses: actions/checkout@v6

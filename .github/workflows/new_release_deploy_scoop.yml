@@ -1,0 +1,20 @@
+name: "⬆️ GitHub release -> Scoop deployment"
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  new-update:
+    name: Deploy Scoop
+    runs-on: ubuntu-slim
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+      - name: "Trigger Workflow"
+        uses: ./.github/actions/github_trigger_wf
+        with:
+          github-token: ${{ secrets.PERSONAL_TOKEN }}
+          github-wf-repo: AChep/keyguard-repo-scoop
+          github-wf-file: excavator.yml

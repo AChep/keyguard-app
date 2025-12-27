@@ -26,6 +26,7 @@ modules:
       - install -Dm 644 -t /app/share/applications com.artemchep.keyguard.desktop
       - install -Dm 644 -t /app/share/metainfo com.artemchep.keyguard.metainfo.xml
       - install -Dm 644 icon.png /app/share/icons/hicolor/512x512/apps/com.artemchep.keyguard.png
+      - chmod +x /app/bin/Keyguard
     sources:
       # Pre-built x86_64 binaries of the app
       - type: dir

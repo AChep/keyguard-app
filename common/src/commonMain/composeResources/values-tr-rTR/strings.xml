@@ -731,6 +731,7 @@
     <string name="addaccount2fa_yubikey_manual_text">YubiKey kimlik doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana yerleştirin ve YubiKey'i tetikleyin.</string>
     <string name="addkeepass_header_title">KeePass hesabı ekle</string>
     <string name="addkeepass_header_body">Tüm parolalarınızı doğrudan cihazınızda saklanan tek, yüksek düzeyde şifrelenmiş bir KDBX dosyasında kaydedin. Verileriniz üzerinde tam kontrole sahipsiniz. Bilgisayarınızda, bir USB sürücüde saklayın veya Google Drive veya Dropbox gibi bir bulut hizmeti kullanarak kendiniz senkronize edin.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
     <string name="provider_2fa_authenticator">Doğrulayıcı</string>
     <string name="provider_2fa_duo_organization">Duo (Kuruluş)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Kimlik Doğrulaması</string>

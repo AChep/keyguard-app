@@ -731,6 +731,7 @@
     <string name="addaccount2fa_yubikey_manual_text">手动输入 YubiKey 验证码，将光标放在下方输入框并按下 YubiKey 的按钮。</string>
     <string name="addkeepass_header_title">添加 KeePass 帐户</string>
     <string name="addkeepass_header_body">将所有密码保存在一个高度加密的 KDBX 文件中，该文件直接存储在您的设备上。您可以完全掌控自己的数据。您可以将数据存储在电脑、U 盘上，或使用 Google Drive 或 Dropbox 等云服务自行同步。</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
     <string name="provider_2fa_authenticator">身份验证器</string>
     <string name="provider_2fa_duo_organization">Duo（组织）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份验证</string>

@@ -731,6 +731,7 @@
     <string name="addaccount2fa_yubikey_manual_text">Geben Sie den YubiKey Authentifizierungscode manuell ein. Platzieren Sie den Cursor auf das Feld unten und lösen Sie den YubiKey aus.</string>
     <string name="addkeepass_header_title">KeePass Account hinzufügen</string>
     <string name="addkeepass_header_body">Speichere all deine Passwörter in einer einzelnen, hoch-sicheren KDBX Datei direkt auf deinem Gerät. Du hast die komplette Kontrolle über deine Daten. Speichere sie auf deinem Computer, einem USB-Stick, oder synchronisiere sie selber mithilfe von Services wie Syncthing, Google Drive oder Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
     <string name="provider_2fa_authenticator">Authentifikator</string>
     <string name="provider_2fa_duo_organization">Duo (Organisation)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web-Authentifizierung</string>

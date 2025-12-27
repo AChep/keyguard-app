@@ -9,9 +9,9 @@
     <string name="show_keyguard">Keyguard 열기</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">이름</string>
-    <string name="description">Description</string>
+    <string name="description">설명</string>
     <string name="account_name">계정 이름</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">데이터베이스 이름</string>
     <string name="enabled">켜짐</string>
     <string name="disabled">꺼짐</string>
     <string name="wordlist">단어 목록</string>
@@ -30,7 +30,7 @@
     <string name="conceal_value">값 숨기기</string>
     <string name="field_label">라벨</string>
     <string name="field_value">값</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">값</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">조회수</string>
     <!--
@@ -38,8 +38,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">최대 접근 횟수</string>
-    <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_beta">베타</string>
+    <string name="ready_status_alpha">알파</string>
     <string name="learn_more">자세히 알아보기</string>
     <string name="phone_number">전화번호</string>
     <string name="passport_number">여권 번호</string>
@@ -100,10 +100,10 @@
     <string name="folder">폴더</string>
     <string name="folders">폴더</string>
     <string name="folders_empty_label">폴더 없음</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">태그 없음</string>
+    <string name="tag">태그</string>
+    <string name="tags">태그</string>
+    <string name="tags_empty_label">태그 없음</string>
     <string name="collection_none">컬렉션 없음</string>
     <string name="collection">컬렉션</string>
     <string name="collections">컬렉션</string>
@@ -118,7 +118,7 @@
     <string name="category">카테고리</string>
     <string name="command">명령어</string>
     <string name="execute_command">실행</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">문맥 기반 제안</string>
     <!-- Add (something) -->
     <string name="add">추가</string>
     <string name="add_integration">통합 기능 추가</string>
@@ -203,7 +203,7 @@
     <string name="requested_verification_email">인증 메일을 보냈습니다.</string>
     <string name="web_vault">웹 보관함</string>
     <string name="launch_web_vault">웹 보관함 열기</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">로컬 보관함</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">이 설정 기억</string>
     <!-- A Trash screen -->
@@ -224,13 +224,13 @@
     <string name="encryption_random_bits_data">무작위 데이터 <xliff:g id="length" example="64">%1$d</xliff:g>비트</string>
     <string name="none">없음</string>
     <string name="text">텍스트</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">연결된 앱</string>
     <string name="linked_apps">연결된 앱</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">연결된 URI</string>
     <string name="linked_uris">연결된 URI</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">사용자 지정 필드</string>
     <string name="custom_fields">사용자 지정 필드</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">값 변경</string>
     <string name="reveal_secure_note">보안 노트 보이기</string>
     <string name="hide_secure_note">보안 노트 숨기기</string>
     <string name="master_password_hint">마스터 비밀번호 힌트</string>
@@ -240,7 +240,7 @@
     <string name="key_type">키 유형</string>
     <string name="key_pair">키 쌍</string>
     <string name="key_ssh">SSH 키</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">비어 있습니다. 시작SSH 키를 생성해서 시작해 보세요!</string>
     <string name="fingerprint_phrase">핑거프린트 구문</string>
     <string name="fingerprint_phrase_help_title">핑거프린트가 뭔가요?</string>
     <string name="filter_auth_reprompt_items">인증 재요청</string>
@@ -249,17 +249,17 @@
     <string name="bitwarden_premium">Bitwarden 프리미엄</string>
     <string name="bitwarden_premium_required">Bitwarden 프리미엄 필요</string>
     <string name="bitwarden_unofficial_server">비공식 Bitwarden 서버</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
+    <string name="server_version">서버 버전 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">데이터베이스 버전 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">삭제</string>
+    <string name="replace_key_file">키 파일 교체</string>
+    <string name="select_key_file">키 파일 선택</string>
+    <string name="select_database_file">데이터베이스 파일 선택</string>
+    <string name="replace_database_file">데이터베이스 파일 교체</string>
+    <string name="open_database">데이터베이스 파일 열기</string>
+    <string name="create_database">데이터베이스 만들기</string>
     <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="qr_generate_button">QR 코드 생성</string>
     <string name="pro_tip">팁: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generate unique emails for better privacy.</string>
     <string name="account_last_synced_at"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 동기화함</string>
@@ -279,15 +279,15 @@
     <string name="account_action_tfa_active_status">사용 중</string>
     <string name="account_action_items_title">항목</string>
     <string name="account_action_log_out_title">로그아웃</string>
-    <string name="account_log_out_confirmation_title">로그아웃하시겠습니까?</string>
+    <string name="account_log_out_confirmation_title">로그아웃할까요?</string>
     <string name="account_log_out_confirmation_text">동기화하지 않은 변경 사항이 모두 사라집니다!</string>
     <string name="folder_action_change_name_title">이름 바꾸기</string>
     <string name="folder_action_change_names_title">이름 바꾸기</string>
     <string name="folder_action_merge_title">…에 병합</string>
-    <string name="folder_action_merge_confirmation_title">정말 이 폴더를 병합하시겠습니까?</string>
+    <string name="folder_action_merge_confirmation_title">정말 이 폴더를 병합할까요?</string>
     <string name="folder_action_create_title">폴더 만들기</string>
-    <string name="folder_delete_one_confirmation_title">폴더를 삭제하시겠습니까?</string>
-    <string name="folder_delete_many_confirmation_title">폴더를 삭제하시겠습니까?</string>
+    <string name="folder_delete_one_confirmation_title">폴더를 삭제할까요?</string>
+    <string name="folder_delete_many_confirmation_title">폴더를 삭제할까요?</string>
     <string name="folder_delete_confirmation_text">항목이 즉시 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</string>
     <string name="ciphers_recently_opened">최근에 연 항목</string>
     <string name="ciphers_often_opened">자주 연 항목</string>
@@ -311,12 +311,12 @@
     <string name="ciphers_action_change_passwords_title">비밀번호 변경</string>
     <string name="ciphers_action_view_password_history_title">비밀번호 생성 기록</string>
     <string name="ciphers_action_trash_title">휴지통</string>
-    <string name="ciphers_action_trash_confirmation_title">휴지통으로 보내시겠습니까?</string>
+    <string name="ciphers_action_trash_confirmation_title">휴지통으로 보낼까요?</string>
     <string name="ciphers_action_trash_confirmation_text">휴지통으로 간 항목은 30일 이후 자동으로 삭제됩니다.</string>
     <string name="ciphers_action_restore_title">복원</string>
-    <string name="ciphers_action_restore_confirmation_title">휴지통에서 복원하시겠습니까?</string>
+    <string name="ciphers_action_restore_confirmation_title">휴지통에서 복원할까요?</string>
     <string name="ciphers_action_delete_title">완전히 삭제</string>
-    <string name="ciphers_action_delete_confirmation_title">완전히 삭제하시겠습니까?</string>
+    <string name="ciphers_action_delete_confirmation_title">완전히 삭제할까요?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">감시탑 경고 설정</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">연관 항목을 휴지통으로 이동</string>
     <string name="sends_action_change_name_title">이름 바꾸기</string>
@@ -330,20 +330,20 @@
     <string name="sends_action_change_passwords_title">비밀번호 변경</string>
     <string name="sends_action_remove_password_title">비밀번호 제거</string>
     <string name="sends_action_remove_passwords_title">비밀번호 제거</string>
-    <string name="sends_action_remove_password_confirmation_title">비밀번호를 제거하시겠습니까?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">비밀번호를 제거하시겠습니까?</string>
+    <string name="sends_action_remove_password_confirmation_title">비밀번호를 제거할까요?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">비밀번호를 제거할까요?</string>
     <string name="sends_action_remove_password_confirmation_message">이 항목에 접근하기 전에 비밀번호를 요청하지 않음</string>
     <string name="sends_action_hide_email_title">이메일 숨기기</string>
     <string name="sends_action_show_email_title">이메일 표시</string>
     <string name="sends_action_enable_title">활성화</string>
     <string name="sends_action_enable_text">활성화된 Send는 공개 URL로 접근할 수 있음</string>
-    <string name="sends_action_enable_confirmation_title">활성화하시겠습니까?</string>
+    <string name="sends_action_enable_confirmation_title">활성화할까요?</string>
     <string name="sends_action_disable_title">비활성화</string>
     <string name="sends_action_disable_text">비활성화된 Send는 공개 URL로 접근할 수 없음</string>
-    <string name="sends_action_disable_confirmation_title">비활성화하시겠습니까?</string>
+    <string name="sends_action_disable_confirmation_title">비활성화할까요?</string>
     <string name="sends_action_disabled_note">이 Send는 비활성화되었습니다. 아무도 볼 수 없습니다.</string>
     <string name="sends_action_delete_title">완전히 삭제</string>
-    <string name="sends_action_delete_confirmation_title">완전히 삭제하시겠습니까?</string>
+    <string name="sends_action_delete_confirmation_title">완전히 삭제할까요?</string>
     <string name="file_action_open_with_title">다른 앱으로 열기…</string>
     <string name="file_action_send_with_title">다른 앱으로 전송…</string>
     <string name="file_action_open_in_file_manager_title">파일 관리자에서 열기</string>
@@ -453,7 +453,7 @@
     <string name="copied_value">값을 복사했습니다.</string>
     <string name="copied_url">URL을 복사했습니다.</string>
     <string name="copied_uri">URI를 복사했습니다.</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">태그를 복사했습니다.</string>
     <string name="copied_package_name">패키지 이름을 복사했습니다.</string>
     <string name="copied_key">키를 복사했습니다.</string>
     <string name="copied_fingerprint">핑거프린트를 복사했습니다.</string>
@@ -470,8 +470,8 @@
     <string name="copied_cvv_code">보안 코드(CVV)를 복사했습니다.</string>
     <string name="copied_otp_code">OTP를 복사했습니다.</string>
     <string name="copied_otp_secret_code">비밀 키를 복사했습니다.</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">OTP를 찾았습니다.</string>
+    <string name="found_value">값을 찾았습니다.</string>
     <string name="autofill_unlock_keyguard">Keyguard 잠금 해제</string>
     <string name="autofill_open_keyguard">Keyguard 열기</string>
     <string name="january">1월</string>
@@ -495,7 +495,7 @@
     <string name="list_move_up">위로 이동</string>
     <string name="list_move_down">아래로 이동</string>
     <string name="list_remove">제거</string>
-    <string name="list_remove_confirmation_title">항목을 제거하시겠습니까?</string>
+    <string name="list_remove_confirmation_title">항목을 제거할까요?</string>
     <string name="list_add">더 추가</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">WebAuthn 인증</string>
@@ -621,16 +621,16 @@
     <string name="destinationpicker_organization_ownership_note">이 조직은 사본에 대한 소유권을 가집니다. 원본의 소유자는 될 수 없습니다.</string>
     <string name="emailrelay_list_header_title">이메일 포워딩 서비스</string>
     <string name="emailrelay_list_section_title">이메일 포워딩 서비스</string>
-    <string name="emailrelay_delete_one_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
-    <string name="emailrelay_delete_many_confirmation_title">이메일 포워딩 서비스를 삭제하시겠습니까?</string>
+    <string name="emailrelay_delete_one_confirmation_title">이메일 포워딩 서비스를 삭제할까요?</string>
+    <string name="emailrelay_delete_many_confirmation_title">이메일 포워딩 서비스를 삭제할까요?</string>
     <string name="emailrelay_integration_title">이메일 포워딩 서비스 통합</string>
     <string name="emailrelay_empty_label">이메일 포워딩 서비스 없음</string>
     <string name="emailrelay_base_env_server_url_label">서버 URL</string>
     <string name="emailrelay_base_env_note">직접 호스팅 중인 서버의 기본 URL을 입력하세요.</string>
     <string name="wordlist_list_header_title">단어 목록</string>
     <string name="wordlist_list_section_title">단어 목록</string>
-    <string name="wordlist_delete_one_confirmation_title">단어 목록을 삭제하시겠습니까?</string>
-    <string name="wordlist_delete_many_confirmation_title">단어 목록을 삭제하시겠습니까?</string>
+    <string name="wordlist_delete_one_confirmation_title">단어 목록을 삭제할까요?</string>
+    <string name="wordlist_delete_many_confirmation_title">단어 목록을 삭제할까요?</string>
     <string name="wordlist_edit_wordlist_title">단어 목록 편집</string>
     <string name="wordlist_add_wordlist_title">단어 목록 추가</string>
     <string name="wordlist_add_wordlist_via_file_title">파일에서 불러오기</string>
@@ -641,15 +641,15 @@
     <string name="urloverride_list_header_title">URL 덮어쓰기</string>
     <string name="urloverride_list_section_title">URL 덮어쓰기</string>
     <string name="urloverride_regex_note">정규 표현식과 일치하는 URL을 덮어씁니다.</string>
-    <string name="urloverride_delete_one_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
-    <string name="urloverride_delete_many_confirmation_title">URL 덮어쓰기를 삭제하시겠습니까?</string>
+    <string name="urloverride_delete_one_confirmation_title">URL 덮어쓰기를 삭제할까요?</string>
+    <string name="urloverride_delete_many_confirmation_title">URL 덮어쓰기를 삭제할까요?</string>
     <string name="urloverride_empty_label">URL 덮어쓰기 없음</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_header_title">URI 차단</string>
+    <string name="urlblock_list_header_title">차단한 URI</string>
+    <string name="urlblock_list_section_title">차단한 URI</string>
+    <string name="urlblock_delete_one_confirmation_title">차단한 URI를 삭제할까요?</string>
+    <string name="urlblock_delete_many_confirmation_title">차단한 URI를 삭제할까요?</string>
+    <string name="urlblock_empty_label">차단한 URI 없음</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
@@ -729,8 +729,9 @@
     <string name="addaccount2fa_otp_note">인증 앱에서 인증 코드를 입력하세요.</string>
     <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> 이메일로 전송된 인증 코드를 입력하세요.</string>
     <string name="addaccount2fa_yubikey_manual_text">YubiKey 인증 코드를 직접 입력해 주세요. 아래 필드에 커서를 둔 뒤 YubiKey를 켜세요.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_title">KeePass 계정 추가</string>
     <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass 구현은 베타 버전이며 일반 KeePass 클라이언트와 완벽히 호환되지 않습니다. 위험을 감수하여 사용하세요. 계속 진행하기 전에 데이터베이스를 잘 백업했는지 확인하세요.</string>
     <string name="provider_2fa_authenticator">인증 앱</string>
     <string name="provider_2fa_duo_organization">Duo (조직)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 웹 인증</string>
@@ -786,8 +787,8 @@
     <string name="customfilters_header_title">사용자 정의 필터</string>
     <string name="customfilters_search_placeholder">필터 검색</string>
     <string name="customfilters_dynamic_shortcut_tip">홈 화면에 바로가기를 추가하면 간편하게 필터를 적용할 수 있습니다.</string>
-    <string name="customfilters_delete_one_confirmation_title">필터를 삭제하시겠습니까?</string>
-    <string name="customfilters_delete_many_confirmation_title">필터를 삭제하시겠습니까?</string>
+    <string name="customfilters_delete_one_confirmation_title">필터를 삭제할까요?</string>
+    <string name="customfilters_delete_many_confirmation_title">필터를 삭제할까요?</string>
     <string name="customfilters_edit_filter_title">사용자 정의 필터 편집</string>
     <string name="customfilters_add_filter_title">사용자 정의 필터 추가</string>
     <string name="filter_header_title">필터</string>
@@ -909,17 +910,17 @@
     <string name="generator_show_tips_title">팁 보이기</string>
     <string name="generatorhistory_header_title">생성기 기록</string>
     <string name="generatorhistory_clear_history_title">기록 삭제</string>
-    <string name="generatorhistory_clear_history_confirmation_title">생성기 기록을 삭제하시겠습니까?</string>
+    <string name="generatorhistory_clear_history_confirmation_title">생성기 기록을 삭제할까요?</string>
     <string name="generatorhistory_clear_history_confirmation_text">모든 생성기 기록을 삭제합니다.</string>
-    <string name="generatorhistory_delete_one_confirmation_title">항목을 기록에서 삭제하시겠습니까?</string>
-    <string name="generatorhistory_delete_many_confirmation_title">항목을 기록에서 삭제하시겠습니까?</string>
+    <string name="generatorhistory_delete_one_confirmation_title">항목을 기록에서 삭제할까요?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">항목을 기록에서 삭제할까요?</string>
     <string name="passwordhistory_header_title">비밀번호 생성 기록</string>
     <string name="passwordhistory_clear_history_title">기록 삭제</string>
-    <string name="passwordhistory_clear_history_confirmation_title">비밀번호 기록을 삭제하시겠습니까?</string>
+    <string name="passwordhistory_clear_history_confirmation_title">비밀번호 기록을 삭제할까요?</string>
     <string name="passwordhistory_clear_history_confirmation_text">모든 비밀번호 기록을 삭제합니다.</string>
-    <string name="passwordhistory_delete_one_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
-    <string name="passwordhistory_delete_many_confirmation_title">비밀번호를 기록에서 삭제하시겠습니까?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="passwordhistory_delete_one_confirmation_title">비밀번호를 기록에서 삭제할까요?</string>
+    <string name="passwordhistory_delete_many_confirmation_title">비밀번호를 기록에서 삭제할까요?</string>
+    <string name="block_autofill_header_title">자동 완성 차단</string>
     <string name="watchtower_header_title">감시탑</string>
     <string name="watchtower_section_password_strength_label">비밀번호 보안 강도</string>
     <string name="watchtower_section_security_label">보안</string>
@@ -1123,8 +1124,8 @@
     <string name="pref_item_autofill_save_request_title">데이터 저장 확인</string>
     <string name="pref_item_autofill_save_request_text">양식을 입력한 뒤에 보관함을 업데이트할 것인지 물어봅니다.</string>
     <string name="pref_item_autofill_auto_save_source_title">앱 또는 웹사이트 정보 자동 저장</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_block_uri_title">자동 완성 차단</string>
+    <string name="pref_item_autofill_block_uri_text">설정한 URI에 대한 자동 완성을 차단합니다.</string>
     <string name="pref_item_clipboard_auto_clear_title">클립보드 자동 비우기</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">즉시</string>
     <string name="pref_item_clipboard_auto_clear_never_text">비우지 않음</string>

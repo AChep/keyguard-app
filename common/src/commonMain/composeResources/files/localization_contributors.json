@@ -109,13 +109,13 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 8945,
-    "target": 8182,
-    "approved": 982,
+    "translated": 9015,
+    "target": 8248,
+    "approved": 1049,
     "voted": 0,
     "positiveVotes": 62,
     "negativeVotes": 1,
-    "winning": 491
+    "winning": 558
   },
   {
     "user": {
@@ -159,6 +159,28 @@
     "voted": 26,
     "positiveVotes": 12,
     "negativeVotes": 1,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "12607851",
+      "username": "Havokdan",
+      "fullName": "Daniel Neves (Havokdan)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/12607851/medium/a1ec7e6a771c303892d82c92015a3641_default.png",
+      "joined": "2025-12-24 18:35:40"
+    },
+    "languages": [
+      {
+        "id": "pt-BR",
+        "name": "Portuguese, Brazilian"
+      }
+    ],
+    "translated": 419,
+    "target": 459,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
     "winning": 0
   },
   {
@@ -307,8 +329,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5524,
-    "target": 4754,
+    "translated": 5693,
+    "target": 4898,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1805,8 +1827,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5878,
-    "target": 6434,
+    "translated": 5910,
+    "target": 6476,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

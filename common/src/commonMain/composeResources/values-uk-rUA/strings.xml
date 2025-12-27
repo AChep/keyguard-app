@@ -82,7 +82,7 @@
     <string name="notes">Нотатки</string>
     <string name="date">Дата</string>
     <string name="time">Час</string>
-    <string name="attachments">Файли</string>
+    <string name="attachments">Вкладення</string>
     <string name="attachments_empty_label">Немає вкладень</string>
     <string name="deactivated">Деактивовано</string>
     <string name="expired">Термін дії закінчився</string>
@@ -133,7 +133,7 @@
     <string name="length">Довжина</string>
     <string name="security">Безпека</string>
     <string name="contact_info">Контактні дані</string>
-    <string name="identity_title">Титул</string>
+    <string name="identity_title">Звертання</string>
     <string name="identity_first_name">Ім'я</string>
     <string name="identity_middle_name">По батькові</string>
     <string name="identity_last_name">Прізвище</string>
@@ -243,7 +243,7 @@
     <string name="key_ssh_value_placeholder">Тут порожньо. Згенеруйте SSH-ключ, щоб розпочати!</string>
     <string name="fingerprint_phrase">Фраза відбитку</string>
     <string name="fingerprint_phrase_help_title">Що таке фраза відбитку?</string>
-    <string name="filter_auth_reprompt_items">Подвійна автентифікація</string>
+    <string name="filter_auth_reprompt_items">Повторний запит автентифікації</string>
     <string name="filter_pending_items">В очікуванні</string>
     <string name="filter_failed_items">Помилка синхронізації</string>
     <string name="bitwarden_premium">Bitwarden преміум</string>
@@ -592,7 +592,7 @@
     <!-- Title of the 'Email data breach' dialog -->
     <string name="emailleak_title">Витік даних</string>
     <string name="emailleak_note">Скомпрометовані облікові записи можуть надати зловмисникам доступ до ваших персональних та фінансових даних, що наражає вас на ризик крадіжки ідентичності, фінансового шахрайства та інших форм кіберзлочинності.</string>
-    <string name="emailleak_breach_not_found_title">Все добре</string>
+    <string name="emailleak_breach_not_found_title">Витоків не знайдено</string>
     <string name="emailleak_breach_found_title">Знайдено скомпрометовані облікові дані</string>
     <string name="emailleak_breach_section">Скомпрометовані сервіси</string>
     <string name="emailleak_breach_occurred_at">Відбулося <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -600,7 +600,7 @@
     <string name="emailleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з'єднання з інтернетом</string>
     <string name="passwordleak_title">Витік даних</string>
     <string name="passwordleak_note">Пароль, який зустрічається в витоках даних набагато легше підібрати. Такий пароль не рекомендується використовувати.</string>
-    <string name="passwordleak_occurrences_found_title">Знайдено скомпрометовані паролі</string>
+    <string name="passwordleak_occurrences_found_title">Пароль скомпрометовано</string>
     <string name="passwordleak_occurrences_found_text">Пароль ідентифіковано у відомих витоках даних. Будь ласка, негайно змініть його для захисту вашої онлайн-безпеки</string>
     <string name="passwordleak_occurrences_not_found_title">Все добре</string>
     <string name="passwordleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з'єднання з інтернетом</string>
@@ -639,10 +639,10 @@
     <string name="wordlist_word_search_placeholder">Пошук слів</string>
     <string name="urloverride_header_title">Перевизначення URL-адреси</string>
     <string name="urloverride_list_header_title">Перевизначення URL-адреси</string>
-    <string name="urloverride_list_section_title">Перевизначення URL-адреси</string>
+    <string name="urloverride_list_section_title">Перевизначення URL-адрес</string>
     <string name="urloverride_regex_note">Перевизначення буде застосовано до URL-адрес, які відповідають регулярному виразу.</string>
     <string name="urloverride_delete_one_confirmation_title">Видалити перевизначення URL-адреси?</string>
-    <string name="urloverride_delete_many_confirmation_title">Видалити перевизначення URL-адреси?</string>
+    <string name="urloverride_delete_many_confirmation_title">Видалити перевизначення URL-адрес?</string>
     <string name="urloverride_empty_label">Немає перевизначених URL-адрес</string>
     <string name="urlblock_header_title">Заблокувати URI</string>
     <string name="urlblock_list_header_title">Заблоковані URI</string>
@@ -659,7 +659,7 @@
     <string name="setup_biometric_auth_confirm_title">Створити сховище</string>
     <string name="setup_button_send_crash_reports">Надсилати звіти про збої</string>
     <string name="setup_button_create_vault">Створити сховище</string>
-    <string name="setup_action_erase_data_title">Стерти всі дані</string>
+    <string name="setup_action_erase_data_title">Стерти дані застосунку</string>
     <string name="setup_action_erase_data_text">Закрити застосунок і видалити всі його локальні дані</string>
     <string name="unlock_header_text">Сховище заблоковано. Введіть пароль застосунку, щоб продовжити.</string>
     <string name="unlock_button_unlock">Розблокувати</string>
@@ -678,7 +678,7 @@
     <string name="additem_header_edit_title">Редагувати запис</string>
     <string name="additem_header_merge_title">Об'єднати елементи</string>
     <string name="additem_merge_remove_origin_ciphers_title">Перемістити початкові записи до кошика</string>
-    <string name="additem_merge_attachments_note">Об’єднання елементів не об'єднує їх вкладення! Створений новий елемент не буде мати доданих вкладень.</string>
+    <string name="additem_merge_attachments_note">Об’єднання елементів не об'єднує їх вкладення! Створений запис не буде мати доданих вкладень.</string>
     <string name="additem_note_placeholder">Додайте будь-які примітки про цей запис</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
     <string name="additem_markdown_note_italic">курсив</string>
@@ -731,6 +731,7 @@
     <string name="addaccount2fa_yubikey_manual_text">Введіть код автентифікації YubiKey вручну. Помістіть курсор на поле нижче та активуйте YubiKey.</string>
     <string name="addkeepass_header_title">Додати обліковий запис KeePass</string>
     <string name="addkeepass_header_body">Зберігайте всі ваші паролі в єдиному, надійно зашифрованому KDBX-файлі безпосередньо на вашому пристрої. Ви маєте повний контроль над своїми даними. Зберігайте файл на комп'ютері, USB-накопичувачі або синхронізуйте його самостійно, використовуючи хмарний сервіс, як-от Google Drive чи Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">Реалізація KeePass перебуває на стадії бета-тестування і ще не повністю сумісна зі стандартними клієнтами KeePass. Використовуйте на власний ризик. Будь ласка, перед продовженням переконайтеся, що у вас є перевірена резервна копія вашої бази даних.</string>
     <string name="provider_2fa_authenticator">Автентифікатор</string>
     <string name="provider_2fa_duo_organization">Duo (Організація)</string>
     <string name="provider_2fa_fido2_webauthn">Web-аутентифікація FIDO2</string>
@@ -969,7 +970,7 @@
     <string name="exportaccount_password_label">Пароль архіву</string>
     <string name="exportaccount_format_note">Експортувати сховище як зашифрований ZIP-архів.</string>
     <string name="exportaccount_attachments_note">Сховище буде розблоковано поки експорт не завершиться. Дані сховища включають інформацію про експортовані файли. Файли в процесі експорту ніколи не зберігаються у не зашифрованому форматі.</string>
-    <string name="exportaccount_include_attachments_title">Експортувати файли</string>
+    <string name="exportaccount_include_attachments_title">Експортувати вкладення</string>
     <string name="exportaccount_export_button">Експортувати</string>
     <string name="exportaccount_export_started">Експорт розпочато</string>
     <string name="exportaccount_export_success">Експорт завершено</string>
@@ -1117,9 +1118,9 @@
     <string name="pref_item_autofill_inline_suggestions_text">Вбудовує пропозиції автозаповнення безпосередньо в сумісні клавіатури</string>
     <string name="pref_item_autofill_manual_selection_title">Ручний вибір</string>
     <string name="pref_item_autofill_manual_selection_text">Показувати опцію ручного пошуку запису в сховищі</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_title">Поважати вимкнення автозаповнення</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Поважати прапорець вимкнення автозаповнення</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Вимкнути автозаповнення в браузері для поля, яке має вимкнений прапорець автозаповнення</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_note">Зверніть увагу, що деякі вебсайти відключають автозаповнення паролів, та деякі веббраузери ігнорують відключення автозаповнення</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Зверніть увагу, що деякі вебсайти відключають автозаповнення паролів, а деякі веббраузери ігнорують прапорець відключення автозаповнення.</string>
     <string name="pref_item_autofill_save_request_title">Пропонувати зберігати дані</string>
     <string name="pref_item_autofill_save_request_text">Запитує, чи оновлювати сховище після заповнення форми</string>
     <string name="pref_item_autofill_auto_save_source_title">Автозбереження інформації про застосунок або сайт</string>
@@ -1128,7 +1129,7 @@
     <string name="pref_item_clipboard_auto_clear_title">Автоматично очищати буфер обміну</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Негайно</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Ніколи</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Тривалість сповіщення з OTP</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Тривалість автоматичного оновлення сповіщення з одноразовим паролем</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_note">При заповнюванні логіну з одноразовим паролем, сповіщення з кодом підтвердження зринає принаймні на задану тривалість</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Ніколи</string>
     <string name="pref_item_clipboard_notification_settings_title">Налаштування сповіщення з OTP</string>

@@ -17,22 +17,29 @@ finish-args:
   - --filesystem=xdg-desktop:ro
 modules:
   - name: keyguard
+    only-arches:
+      - x86_64
+      - aarch64
     buildsystem: simple
     build-commands:
-      - cp -r bin/ /app/bin/
-      - cp -r lib/ /app/lib/
-      - mkdir -p /app/share/applications
-      - install -D com.artemchep.keyguard.desktop /app/share/applications/com.artemchep.keyguard.desktop
-      - mkdir -p /app/share/icons/hicolor/scalable/apps/
-      - cp -r icon.png /app/share/icons/hicolor/scalable/apps/com.artemchep.keyguard.png
+      - cp -rf app/* /app/
+      - install -Dm 644 -t /app/share/applications com.artemchep.keyguard.desktop
+      - install -Dm 644 icon.png /app/share/icons/hicolor/128x128/apps/com.artemchep.keyguard.png
     sources:
+      # Pre-built x86_64 binaries of the app
+      - type: dir
+        only-arches:
+          - x86_64
+        path: "app-x86_64/"
+        dest: "app/"
+      # Pre-built aarch64 binaries of the app
+      - type: dir
+        only-arches:
+          - aarch64
+        path: "app-aarch64/"
+        dest: "app/"
+      # Common
       - type: file
         path: icon.png
-      - type: dir
-        path: "bin/"
-        dest: "bin/"
-      - type: dir
-        path: "lib/"
-        dest: "lib/"
       - type: file
         path: com.artemchep.keyguard.desktop

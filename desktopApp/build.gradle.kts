@@ -155,99 +155,15 @@ kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
 }
 
-//
-// Flatpak
-//
+tasks.register<Tar>("packageDistributable") {
+    val appVersion = libs.versions.appVersionName.get()
+    val osName = System.getProperty("os.name")
+        .lowercase()
+    val osArch = System.getProperty("os.arch")
 
-val flatpakBuildDirProvider = layout.buildDirectory.dir("flatpak")
-val resourcesDir = layout.projectDirectory.dir("src/jvmMain/resources")
-
-tasks.register<Sync>("prepareFlatpak") {
-    dependsOn("packageAppImage")
-    into(flatpakBuildDirProvider)
-
-    // Preserve the 'build' directory used by flatpak-builder state
-    // This prevents wiping the incremental build cache of flatpak itself.
-    preserve {
-        include("build/**")
-        include(".flatpak-builder/**")
-    }
-
-    from(layout.buildDirectory.dir("compose/binaries/main/app/Keyguard")) {
-        exclude("lib/runtime/legal")
-    }
-    from(resourcesDir.file("icon.png"))
-    from(resourcesDir.file("flatpak/manifest.yml")) {
-        rename { "$appId.yml" }
-    }
-    from(resourcesDir.file("flatpak/icon.desktop")) {
-        rename { "$appId.desktop" }
-    }
-}
-
-tasks.register<BundleFlatpakTask>("bundleFlatpak") {
-    dependsOn("prepareFlatpak")
-
-    this.workingDir.set(flatpakBuildDirProvider)
-    this.applicationId.set(appId)
-}
-
-tasks.register<Exec>("installFlatpak") {
-    dependsOn("prepareFlatpak")
-
-    workingDir(flatpakBuildDirProvider)
-    commandLine(
-        "flatpak-builder",
-        "--install",
-        "--user",
-        "--force-clean",
-        "--state-dir=build/flatpak-builder",
-        "--repo=build/flatpak-repo",
-        "build/flatpak-target",
-        "$appId.yml"
-    )
-}
-
-tasks.register<Exec>("runFlatpak") {
-    dependsOn("installFlatpak")
-
-    commandLine("flatpak", "run", appId)
-}
-
-abstract class BundleFlatpakTask : DefaultTask() {
-    @get:Inject
-    abstract val execOps: ExecOperations
-
-    @get:InputDirectory
-    abstract val workingDir: DirectoryProperty
-
-    @get:Input
-    abstract val applicationId: Property<String>
-
-    @TaskAction
-    fun run() {
-        val dir = workingDir.get().asFile
-        val appId = applicationId.get()
-        execOps.exec {
-            workingDir(dir)
-            commandLine(
-                "flatpak-builder",
-                "--force-clean",
-                "--state-dir=build/flatpak-builder",
-                "--repo=build/flatpak-repo",
-                "build/flatpak-target",
-                "$appId.yml"
-            )
-        }
-        execOps.exec {
-            workingDir(dir)
-            commandLine(
-                "flatpak",
-                "build-bundle",
-                "build/flatpak-repo",
-                "Keyguard.flatpak",
-                appId
-            )
-        }
-    }
+    from(tasks.named("createDistributable"))
+    archiveBaseName = "Keyguard"
+    archiveClassifier = "$appVersion-$osName-$osArch"
+    compression = Compression.GZIP
+    archiveExtension = "tar.gz"
 }

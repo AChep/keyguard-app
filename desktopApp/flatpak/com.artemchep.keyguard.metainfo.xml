@@ -1,48 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.artemchep.keyguard</id>
-  
-  <name>Keyguard</name>
-  <developer id="com.artemchep">
-    <name>Artem Chepurnyi</name>
-  </developer>
-  <summary>Keyguard is an alternative client for the Bitwarden® platform &amp; KeePass (KDBX), created to provide the best user experience possible. </summary>
-  
-  <metadata_license>FSFAP</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
-  
-  <supports>
-    <control>pointing</control>
-    <control>keyboard</control>
-    <control>touch</control>
-  </supports>
-  
-  <description>
-    <p>
-      Keyguard is a multi-client for the Bitwarden® platform and KeePass (KDBX), created to provide the best user experience possible.
-    </p>
-    <p>
-      Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.
-    </p>
-    <p>
-      <em>Highlights</em>
-      <ul>
-        <li>a beautiful rich and responsive <em>Material You</em> user interface</li>
-        <li>a <em>powerful</em> and <em>fast search</em></li>
-        <li>a watchtower that finds items with <em>Pwned passwords</em>, <em>Vulnerable accounts</em>, <em>Reused passwords</em>, <em>Inactive two factor authentication</em>, <em>Inactive passkeys</em>, <em>Unsecure Websites</em> as well as <em>Duplicate</em>, <em>Incomplete</em> and <em>Expiring</em> items, and other</li>
-        <li><em>multi-account support</em> with secure login and two-factor authentication support</li>
-        <li>add items and sends _(Bitwarden)_, modify, and view your vault <em>offline</em></li>
-        <li><em>export individual</em> or organization items, <em>including the attachments</em></li>
-        <li>beautiful <em>Light</em>/<em>Dark theme</em></li>
-        <li>a generator with <em>SSH keys</em></li>
-        <li><em>Email forwarders</em></li>
-        <li>a support for shortcuts, placeholders and URL overrides</li>
-        <li>a smart conflict resolution</li>
-        <li>and much more!</li>
-      </ul>
-    </p>
+    <id>com.artemchep.keyguard</id>
+    <name>Keyguard</name>
+    <developer id="com.artemchep">
+        <name>Artem Chepurnyi</name>
+    </developer>
+    <summary>Keyguard is an alternative client for the Bitwarden® platform &amp; KeePass (KDBX), created to provide the best user experience possible.</summary>
+    <metadata_license>FSFAP</metadata_license>
+    <project_license>LicenseRef-proprietary</project_license>
+    <supports>
+        <control>pointing</control>
+        <control>keyboard</control>
+        <control>touch</control>
+    </supports>
+    <description>
+        <p>
+            Keyguard is a multi-client for the Bitwarden® platform and KeePass (KDBX), created to provide the best user experience possible.
+        </p>
+        <p>
+            Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.
+        </p>
+        <p>
+            <em>Highlights</em>
+            <ul>
+                <li>a beautiful rich and responsive
+                    <em>Material You</em> user interface
+                </li>
+                <li>a
+                    <em>powerful</em> and
+                    <em>fast search</em>
+                </li>
+                <li>a watchtower that finds items with
+                    <em>Pwned passwords</em>,
+                    <em>Vulnerable accounts</em>,
+                    <em>Reused passwords</em>,
+                    <em>Inactive two factor authentication</em>,
+                    <em>Inactive passkeys</em>,
+                    <em>Unsecure Websites</em> as well as
+                    <em>Duplicate</em>,
+                    <em>Incomplete</em> and
+                    <em>Expiring</em> items, and other
+                </li>
+                <li>
+                    <em>multi-account support</em> with secure login and two-factor authentication support
+                </li>
+                <li>add items and sends _(Bitwarden)_, modify, and view your vault
+                    <em>offline</em>
+                </li>
+                <li>
+                    <em>export individual</em> or organization items,
+                    <em>including the attachments</em>
+                </li>
+                <li>beautiful
+                    <em>Light</em>/
+                    <em>Dark theme</em>
+                </li>
+                <li>a generator with
+                    <em>SSH keys</em>
+                </li>
+                <li>
+                    <em>Email forwarders</em>
+                </li>
+                <li>a support for shortcuts, placeholders and URL overrides</li>
+                <li>a smart conflict resolution</li>
+                <li>and much more!</li>
+            </ul>
+        </p>
     </description>
-    
     <launchable type="desktop-id">com.artemchep.keyguard.desktop</launchable>
     <url type="homepage">https://github.com/AChep/keyguard-app/</url>
     <url type="bugtracker">https://github.com/AChep/keyguard-app/issues/</url>
@@ -51,27 +75,25 @@
     <url type="vcs-browser">https://github.com/AChep/keyguard-app/</url>
     <url type="contribute">https://github.com/AChep/keyguard-app/</url>
     <provides>
-      <binary>Keyguard</binary>
+        <binary>Keyguard</binary>
     </provides>
     <categories>
-      <category>Utility</category>
+        <category>Utility</category>
     </categories>
     <keywords>
-      <keyword>password manager</keyword>
-      <keyword>password generator</keyword>
+        <keyword>password manager</keyword>
+        <keyword>password generator</keyword>
     </keywords>
-
     <screenshots>
-      <screenshot type="default">
-        <image>https://raw.githubusercontent.com/AChep/keyguard-app/refs/heads/master/screenshots/tablet10/Screenshot_20240306-111704.png</image>
-      </screenshot>
-      <screenshot>
-        <image>https://raw.githubusercontent.com/AChep/keyguard-app/refs/heads/master/screenshots/tablet10/Screenshot_20250825_175908.png</image>
-      </screenshot>
-      <screenshot>
-        <image>https://raw.githubusercontent.com/AChep/keyguard-app/refs/heads/master/screenshots/tablet10/Screenshot_20250825_180213.png</image>
-      </screenshot>
+        <screenshot type="default">
+            <image>https://raw.githubusercontent.com/AChep/keyguard-app/refs/heads/master/screenshots/tablet10/Screenshot_20240306-111704.png</image>
+        </screenshot>
+        <screenshot>
+            <image>https://raw.githubusercontent.com/AChep/keyguard-app/refs/heads/master/screenshots/tablet10/Screenshot_20250825_175908.png</image>
+        </screenshot>
+        <screenshot>
+            <image>https://raw.githubusercontent.com/AChep/keyguard-app/refs/heads/master/screenshots/tablet10/Screenshot_20250825_180213.png</image>
+        </screenshot>
     </screenshots>
-
     <content_rating type="oars-1.1" />
-  </component>
+</component>

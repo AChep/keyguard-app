@@ -320,6 +320,15 @@
     "name": "Adyen"
   },
   {
+    "domain": "aero.zip",
+    "tfa": [
+      "totp",
+      "u2f"
+    ],
+    "documentation": "https://aero.zip/faq/2fa-support",
+    "name": "aero.zip"
+  },
+  {
     "domain": "aeza.net",
     "tfa": [
       "totp"
@@ -5689,6 +5698,13 @@
     "name": "Epik"
   },
   {
+    "domain": "eqbank.ca",
+    "tfa": [
+      "sms"
+    ],
+    "name": "EQ Bank"
+  },
+  {
     "domain": "erau.edu",
     "tfa": [
       "sms",
@@ -9589,6 +9605,14 @@
     "name": "Luma"
   },
   {
+    "domain": "lufthansa.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.miles-and-more.com/row/en/general-information/help-and-contact/help/2-factor-authentication.html",
+    "name": "Lufthansa"
+  },
+  {
     "domain": "lunchmoney.app",
     "tfa": [
       "totp"
@@ -12046,7 +12070,8 @@
   {
     "domain": "osu.ppy.sh",
     "tfa": [
-      "email"
+      "email",
+      "totp"
     ],
     "name": "osu!"
   },
@@ -17997,6 +18022,14 @@
     ],
     "documentation": "https://www.versio.nl/nieuws/twofactor-authenticatie-nu-beschikbaar-voor-uw-klantenaccount-205",
     "name": "Versio"
+  },
+  {
+    "domain": "vgen.co",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.vgen.co/hc/articles/26006496658199",
+    "name": "VGen"
   },
   {
     "domain": "viabtc.com",

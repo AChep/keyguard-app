@@ -148,6 +148,19 @@ compose.desktop {
                 }
             }
         }
+
+        buildTypes {
+            release {
+                proguard {
+                    // Enabling the proguard would require us to grab the .jar of
+                    // the BouncyCastle library and strip out the signature due to this error:
+                    //
+                    // Exception in thread "main" java.lang.SecurityException:
+                    // SHA-256 digest error for org/bouncycastle/jce/provider/BouncyCastleProvider.class
+                    isEnabled = false
+                }
+            }
+        }
     }
 }
 
@@ -155,15 +168,25 @@ kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
 }
 
-tasks.register<Tar>("packageDistributable") {
+fun Tar.installPackageDistributable(
+    dependency: String,
+) {
     val appVersion = libs.versions.appVersionName.get()
     val osName = System.getProperty("os.name")
         .lowercase()
     val osArch = System.getProperty("os.arch")
 
-    from(tasks.named("createDistributable"))
+    from(tasks.named(dependency))
     archiveBaseName = "Keyguard"
     archiveClassifier = "$appVersion-$osName-$osArch"
     compression = Compression.GZIP
     archiveExtension = "tar.gz"
+}
+
+tasks.register<Tar>("packageDistributable") {
+    installPackageDistributable("createDistributable")
+}
+
+tasks.register<Tar>("packageReleaseDistributable") {
+    installPackageDistributable("createReleaseDistributable")
 }

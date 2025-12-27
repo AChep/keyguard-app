@@ -65,7 +65,7 @@ jobs:
           install -D libnative-${{ matrix.arch }}/libkeyguard.so desktopLibNative/build/bin/universal/libkeyguard
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"
-        run: ./gradlew :desktopApp:packageDistributable -x :desktopLibNative:linkReleaseSharedUniversal
+        run: ./gradlew :desktopApp:packageReleaseDistributable -x :desktopLibNative:linkReleaseSharedUniversal
       - name: 'Upload .tar'
         uses: actions/upload-artifact@v6
         with:

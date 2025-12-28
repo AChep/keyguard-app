@@ -9,14 +9,9 @@ finish-args:
   - --share=ipc
   - --socket=x11
   - --device=dri
-  - --talk-name=org.gtk.vfs.*
-  - --talk-name=org.freedesktop.Notifications
   - --filesystem=xdg-download
 modules:
   - name: keyguard
-    only-arches:
-      - x86_64
-      - aarch64
     buildsystem: simple
     build-commands:
       - cp -rf app/* /app/

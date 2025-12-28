@@ -175,7 +175,10 @@ fun Tar.installPackageDistributable(
     val osName = System.getProperty("os.name")
         .lowercase()
         .replace(" ", "")
-    val osArch = System.getProperty("os.arch")
+    val osArch = when (val prop = System.getProperty("os.arch")) {
+        "amd64" -> "x86_64"
+        else -> prop
+    }
 
     val flatpakSources = project.file("flatpak")
     from(tasks.named(dependency))

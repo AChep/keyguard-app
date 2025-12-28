@@ -7,3 +7,4 @@ Exec=Keyguard
 Terminal=false
 Type=Application
 Icon=com.artemchep.keyguard
+Categories=Utility;

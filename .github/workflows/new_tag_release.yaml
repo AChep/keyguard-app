@@ -157,7 +157,7 @@ jobs:
           sudo apt-get update
           sudo apt install flatpak flatpak-builder
           flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install flathub org.gnome.Platform//${{ steps.get-flatpak-runtime-version.outputs.version }} org.gnome.Sdk//${{ steps.get-flatpak-runtime-version.outputs.version }} -y
+          flatpak install flathub org.freedesktop.Platform//${{ steps.get-flatpak-runtime-version.outputs.version }} org.freedesktop.Sdk//${{ steps.get-flatpak-runtime-version.outputs.version }} -y
       - name: "Build"
         working-directory: desktopApp/flatpak/
         run: |

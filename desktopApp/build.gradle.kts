@@ -174,9 +174,26 @@ fun Tar.installPackageDistributable(
     val appVersion = libs.versions.appVersionName.get()
     val osName = System.getProperty("os.name")
         .lowercase()
+        .replace(" ", "")
     val osArch = System.getProperty("os.arch")
 
+    val flatpakSources = project.file("flatpak")
     from(tasks.named(dependency))
+    from(flatpakSources) {
+        include("com.artemchep.keyguard.desktop")
+        into("Keyguard/share/applications")
+    }
+    from(flatpakSources) {
+        include("com.artemchep.keyguard.metainfo.xml")
+        into("Keyguard/share/metainfo")
+    }
+    from(flatpakSources) {
+        include("icon.png")
+        // Rename happens on the fly during the copy
+        rename { "com.artemchep.keyguard.png" }
+        into("Keyguard/share/icons/hicolor/512x512/apps")
+    }
+
     archiveBaseName = "Keyguard"
     archiveClassifier = "$appVersion-$osName-$osArch"
     compression = Compression.GZIP

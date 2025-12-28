@@ -37,15 +37,19 @@
   <screenshots>
     <screenshot type="default" xml:lang="en">
       <caption>Home screen</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/78bf45d04ad60179564ae62937d6bbe1a47d21a2/screenshots/tablet10/Screenshot_20250825_175908.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_light.png</image>
     </screenshot>
     <screenshot xml:lang="en">
       <caption>Home screen, dark theme</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/78bf45d04ad60179564ae62937d6bbe1a47d21a2/screenshots/tablet10/Screenshot_20250825_180106.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_dark.png</image>
+    </screenshot>
+    <screenshot xml:lang="en">
+      <caption>Generator screen, dark theme</caption>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/generator_dark.png</image>
     </screenshot>
     <screenshot xml:lang="en">
       <caption>Watchtower screen, dark theme</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/78bf45d04ad60179564ae62937d6bbe1a47d21a2/screenshots/tablet10/Screenshot_20250825_180213.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/watchtower_dark.png</image>
     </screenshot>
   </screenshots>
   <releases>

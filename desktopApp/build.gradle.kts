@@ -180,21 +180,31 @@ fun Tar.installPackageDistributable(
         else -> prop
     }
 
-    val flatpakSources = project.file("flatpak")
     from(tasks.named(dependency))
-    from(flatpakSources) {
-        include("com.artemchep.keyguard.desktop")
-        into("Keyguard/share/applications")
-    }
-    from(flatpakSources) {
-        include("com.artemchep.keyguard.metainfo.xml")
-        into("Keyguard/share/metainfo")
-    }
-    from(flatpakSources) {
-        include("icon.png")
-        // Rename happens on the fly during the copy
-        rename { "com.artemchep.keyguard.png" }
-        into("Keyguard/share/icons/hicolor/512x512/apps")
+
+    // Pack additional platform-specific files. For example for
+    // Linux we want to include the Flatpak files.
+    when (osName) {
+        "linux" -> {
+            val flatpakSources = project.file("flatpak")
+            from(flatpakSources) {
+                include("com.artemchep.keyguard.desktop")
+                into("Keyguard/share/applications")
+            }
+            from(flatpakSources) {
+                include("com.artemchep.keyguard.metainfo.xml")
+                into("Keyguard/share/metainfo")
+            }
+            from(flatpakSources) {
+                include("icon.png")
+                // Rename happens on the fly during the copy
+                rename { "com.artemchep.keyguard.png" }
+                into("Keyguard/share/icons/hicolor/512x512/apps")
+            }
+        }
+        else -> {
+            // Do nothing
+        }
     }
 
     archiveBaseName = "Keyguard"

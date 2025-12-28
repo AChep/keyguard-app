@@ -9,18 +9,19 @@ import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import java.util.Locale
 import kotlin.uuid.Uuid
 
 @Composable
 fun annotatedResource(
     resource: StringResource,
     vararg args: Pair<Any, SpanStyle>,
-): AnnotatedString {
+): AnnotatedString = withHumanReadableException(resource) {
     // Generate a bunch of placeholders to use as
     // arguments. Later, we will replace those with
     // actual values.
     val placeholders = remember {
-        Array(args.size) { Uuid.random().toString() }
+        Array(args.size) { createPlaceholder() }
     }
     val value = stringResource(resource, *placeholders)
     return remember(value) {
@@ -35,12 +36,11 @@ fun annotatedResource(
 suspend fun TranslatorScope.annotate(
     resource: StringResource,
     vararg args: Pair<Any, SpanStyle>,
-): AnnotatedString {
+): AnnotatedString = withHumanReadableException(resource) {
     // Generate a bunch of placeholders to use as
     // arguments. Later, we will replace those with
     // actual values.
-    val placeholders =
-        Array(args.size) { Uuid.random().toString() }
+    val placeholders = Array(args.size) { createPlaceholder() }
     val value = translate(resource, *placeholders)
     return rebuild(
         value,
@@ -49,24 +49,82 @@ suspend fun TranslatorScope.annotate(
     )
 }
 
+private fun createPlaceholder(): String {
+    return "[" + Uuid.random() + "]"
+}
+
+private fun createPlaceholderRegex(): Regex {
+    return "\\[([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})]"
+        .toRegex()
+}
+
+private inline fun <T> withHumanReadableException(
+    resource: StringResource,
+    block: () -> T,
+) = runCatching {
+    block()
+}.getOrElse { e ->
+    val language = Locale.getDefault().isO3Language
+    val msg = "Failed to annotate ${resource.key}@$language resource!"
+    throw RuntimeException(msg, e)
+}
+
 private fun rebuild(
     source: String,
     placeholders: Array<String>,
     args: Array<out Pair<Any, SpanStyle>>,
 ) = buildAnnotatedString {
-    var from = 0
-    placeholders.forEachIndexed { pIndex, p ->
-        val i = source.indexOf(p)
-        if (i == -1) {
-            // Skip, should not happen.
-            return@forEachIndexed
+    val regex = createPlaceholderRegex()
+    val nodes = mutableListOf<Node>()
+
+    var lastEndIndex = 0
+    regex.findAll(source).forEach { matchResult ->
+        val text = source
+            .substring(
+                startIndex = lastEndIndex,
+                endIndex = matchResult.range.first,
+            )
+        if (text.isNotEmpty()) {
+            nodes += Node.Value(text)
         }
-        append(source.substring(from, i))
-        val entry = args[pIndex]
-        withStyle(style = entry.second) {
-            append(entry.first.toString())
-        }
-        from = i + p.length
+
+        val placeholder = matchResult.value
+        nodes += Node.Placeholder(placeholder)
+
+        lastEndIndex = matchResult.range.last + 1
     }
-    append(source.substring(from))
+    if (lastEndIndex < source.length) {
+        val text = source.substring(startIndex = lastEndIndex)
+        if (text.isNotEmpty()) {
+            nodes += Node.Value(text)
+        }
+    }
+
+    nodes.forEach { node ->
+        when (node) {
+            is Node.Value -> append(node.value)
+            is Node.Placeholder -> {
+                // Find the actual value and append it with the
+                // specified style.
+                val index = placeholders
+                    .indexOf(node.value)
+                if (index != -1) {
+                    val entry = args[index]
+                    withStyle(style = entry.second) {
+                        append(entry.first.toString())
+                    }
+                }
+            }
+        }
+    }
+}
+
+private sealed interface Node {
+    data class Value(
+        val value: String,
+    ) : Node
+
+    data class Placeholder(
+        val value: String,
+    ) : Node
 }

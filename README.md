@@ -19,7 +19,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 </a>
 
 <a href='https://flathub.org/apps/com.artemchep.keyguard'>
-    <img vspace="20" height="60" alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+    <img vspace="20" hspace="10" height="42" alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
 </a>
 
 #### Highlights

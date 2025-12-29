@@ -83,13 +83,6 @@ You can find the `.apk` binary on the [releases page](https://github.com/AChep/k
 You can find the `.flatpak` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 - [Flathub](https://flathub.org/apps/com.artemchep.keyguard).
 
-##### [AUR](https://aur.archlinux.org/) Keyguard [package](https://aur.archlinux.org/packages/keyguard)
-> [!NOTE]
-> The package is maintained by a volunteer
-```sh
-yay -S keyguard
-```
-
 ### macOS
 You can find the `.dmg` binaries for Apple and Intel processors on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 

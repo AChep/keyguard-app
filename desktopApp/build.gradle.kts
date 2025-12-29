@@ -196,10 +196,10 @@ fun Tar.installPackageDistributable(
                 into("Keyguard/share/metainfo")
             }
             from(flatpakSources) {
-                include("icon.png")
+                include("icon.svg")
                 // Rename happens on the fly during the copy
-                rename { "com.artemchep.keyguard.png" }
-                into("Keyguard/share/icons/hicolor/512x512/apps")
+                rename { "com.artemchep.keyguard.svg" }
+                into("Keyguard/share/icons/hicolor/scalable/apps")
             }
         }
         else -> {

@@ -31,7 +31,7 @@ jobs:
             --output proofread_report.json
       - name: "Upload report"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: proofread-report
           path: proofread_report.json

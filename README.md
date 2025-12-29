@@ -18,6 +18,10 @@ _Can be used with any Bitwarden® installation. This product is not associated w
        height="60" />
 </a>
 
+<a href='https://flathub.org/apps/com.artemchep.keyguard'>
+    <img vspace="20" height="60" alt='Get it on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+</a>
+
 #### Highlights
 - a beautiful rich and responsive **Material You** user interface;
 - a **powerful** and **fast search**;
@@ -77,6 +81,7 @@ You can find the `.apk` binary on the [releases page](https://github.com/AChep/k
 
 ### Linux
 You can find the `.flatpak` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
+- [Flathub](https://flathub.org/apps/com.artemchep.keyguard).
 
 ##### [AUR](https://aur.archlinux.org/) Keyguard [package](https://aur.archlinux.org/packages/keyguard)
 > [!NOTE]

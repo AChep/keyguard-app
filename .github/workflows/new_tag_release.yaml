@@ -457,6 +457,21 @@ jobs:
 
           # Push
           git push
+  deploy-flathub:
+    name: Deploy Flathub
+    runs-on: ubuntu-slim
+    needs:
+      - generate-versions
+      - dist
+    steps:
+      - name: "Trigger Workflow"
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+        run: |
+          gh workflow run ${{ inputs.github-wf-file }} \
+            --repo ${{ inputs.github-wf-repo }} \
+            --ref ${{ inputs.github-wf-branch }} \
+            -f version-semantic=${{ needs.generate-versions.outputs.version-semantic }}
   deploy:
     name: Deploy ${{ matrix.wf-file }}
     runs-on: ubuntu-slim

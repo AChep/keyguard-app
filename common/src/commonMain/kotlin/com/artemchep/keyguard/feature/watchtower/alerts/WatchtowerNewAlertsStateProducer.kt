@@ -335,6 +335,9 @@ fun produceGeneratorHistoryState(
                         onClickPasskey = {
                             null
                         },
+                        onClickPassword = {
+                            null
+                        },
                     ).copy(
                         passkeys = persistentListOf(),
                         attachments2 = persistentListOf(),

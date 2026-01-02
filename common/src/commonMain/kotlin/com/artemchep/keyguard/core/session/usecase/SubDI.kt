@@ -46,7 +46,7 @@ import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
-import com.artemchep.keyguard.common.usecase.AddPasskeyCipher
+import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.AddUrlBlock
@@ -199,7 +199,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherOpenedHistoryI
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherUsedAutofillHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherUsedPasskeyHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddFolderImpl
-import com.artemchep.keyguard.provider.bitwarden.usecase.AddPasskeyCipherImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSendImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddUriCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherNameByIdImpl
@@ -724,8 +724,8 @@ fun DI.Builder.createSubDi2(
     bindSingleton<AddUriCipher> {
         AddUriCipherImpl(this)
     }
-    bindSingleton<AddPasskeyCipher> {
-        AddPasskeyCipherImpl(this)
+    bindSingleton<AddCredentialCipher> {
+        AddCredentialCipherImpl(this)
     }
     bindSingleton<PatchWatchtowerAlertCipher> {
         PatchWatchtowerAlertCipherImpl(this)

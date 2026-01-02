@@ -5,14 +5,18 @@ import android.app.Application
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.credentials.CreateCredentialResponse
+import androidx.credentials.CreatePasswordRequest
+import androidx.credentials.CreatePasswordResponse
 import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CreatePublicKeyCredentialResponse
 import androidx.credentials.provider.ProviderCreateCredentialRequest
 import androidx.credentials.webauthn.Cbor
-import com.artemchep.keyguard.common.model.AddPasskeyCipherRequest
+import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
+import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
+import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.add
@@ -46,13 +50,64 @@ class PasskeyCreateRequest(
         passkeyGenerators = directDI.allInstances(),
     )
 
-    suspend fun processGetCredentialsRequest(
+    suspend fun processCreateCredentialsRequest(
         request: ProviderCreateCredentialRequest,
         userVerified: Boolean,
-    ): Pair<CreatePublicKeyCredentialResponse, AddPasskeyCipherRequest.Data> {
-        val request2 = request.callingRequest as CreatePublicKeyCredentialRequest
+    ): Pair<CreateCredentialResponse, AddCredentialCipherRequestData> =
+        when (val callingRequest = request.callingRequest) {
+            is CreatePublicKeyCredentialRequest -> {
+                val data = json.decodeFromString<CreatePasskey>(callingRequest.requestJson)
+                processCreatePublicKeyCredentialsRequest(
+                    request = request,
+                    data = data,
+                    userVerified = userVerified,
+                )
+            }
 
-        val data = json.decodeFromString<CreatePasskey>(request2.requestJson)
+            is CreatePasswordRequest -> {
+                processCreatePasswordRequest(
+                    request = request,
+                    data = callingRequest,
+                    userVerified = userVerified,
+                )
+            }
+
+            else -> {
+                val msg = "Unsupported create credential request!"
+                throw IllegalArgumentException(msg)
+            }
+        }
+
+    private suspend fun processCreatePasswordRequest(
+        request: ProviderCreateCredentialRequest,
+        data: CreatePasswordRequest,
+        userVerified: Boolean,
+    ): Pair<CreatePasswordResponse, AddCredentialCipherRequestPasswordData> {
+        val origin = passkeyUtils.callingAppOrigin(request.callingAppInfo)
+        val packageName = request.callingAppInfo.packageName
+
+        val local = AddCredentialCipherRequestPasswordData(
+            id = data.id,
+            password = data.password,
+            callingAppInfo = AddCredentialCipherRequestPasswordData.CallingAppInfo(
+                origin = origin,
+                packageName = packageName,
+            )
+        )
+        val response = CreatePasswordResponse().apply {
+            // Taken from
+            // androidx.credentials.PasswordCredential
+            this.data.putString("androidx.credentials.BUNDLE_KEY_ID", data.id)
+            this.data.putString("androidx.credentials.BUNDLE_KEY_PASSWORD", data.password)
+        }
+        return response to local
+    }
+
+    private suspend fun processCreatePublicKeyCredentialsRequest(
+        request: ProviderCreateCredentialRequest,
+        data: CreatePasskey,
+        userVerified: Boolean,
+    ): Pair<CreatePublicKeyCredentialResponse, AddCredentialCipherRequestPasskeyData> {
         val gen = passkeyGenerators.firstOrNull { generator ->
             val matchingCredentials = data.pubKeyCredParams
                 .firstOrNull(generator::handles)
@@ -114,7 +169,7 @@ class PasskeyCreateRequest(
         val discoverable = data.authenticatorSelection.requireResidentKey ||
                 data.authenticatorSelection.residentKey == "required" ||
                 data.authenticatorSelection.residentKey == "preferred"
-        val local = AddPasskeyCipherRequest.Data(
+        val local = AddCredentialCipherRequestPasskeyData(
             credentialId = credentialId,
             keyType = "public-key",
             keyAlgorithm = "ECDSA",

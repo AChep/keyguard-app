@@ -104,6 +104,8 @@ import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordStrengthSort
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
+import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
+import com.artemchep.keyguard.feature.largetype.LargeTypeRoute.Args
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -122,6 +124,7 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.ContextItemBuilder
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -417,6 +420,7 @@ fun vaultListScreenState(
                             is AppMode.Main -> null
                             is AppMode.SavePasskey -> null
                             is AppMode.PickPasskey -> null
+                            is AppMode.SavePassword -> null
                             is AppMode.Save -> {
                                 AddRoute.Args.Autofill.leof(mode.args)
                             }
@@ -854,6 +858,26 @@ fun vaultListScreenState(
                         organizationsById = organizationsById,
                         localStateFlow = localStateFlow,
                         onClick = { actions ->
+                            fun buildContextItemsForSaveAction(
+                                block: ContextItemBuilder.() -> Unit,
+                            ) = buildContextItems {
+                                section {
+                                    block()
+                                }
+                                section {
+                                    this += FlatItemAction(
+                                        icon = Icons.Outlined.Info,
+                                        title = Res.string.ciphers_view_details.wrap(),
+                                        trailing = {
+                                            ChevronIcon()
+                                        },
+                                        onClick = {
+                                            cipherSink.emit(secret)
+                                        },
+                                    )
+                                }
+                            }
+
                             val dropdown = when (mode) {
                                 is AppMode.Pick -> buildContextItems {
                                     section {
@@ -900,65 +924,49 @@ fun vaultListScreenState(
                                     }
                                 }
 
-                                is AppMode.Save -> buildContextItems {
-                                    section {
-                                        this += FlatItemAction(
-                                            icon = Icons.Outlined.Save,
-                                            title = Res.string.ciphers_save_to.wrap(),
-                                            onClick = {
-                                                val route = LeAddRoute(
-                                                    args = AddRoute.Args(
-                                                        behavior = AddRoute.Args.Behavior(
-                                                            // User wants to quickly check the updated
-                                                            // cipher data, not to fill the data :P
-                                                            autoShowKeyboard = false,
-                                                            launchEditedCipher = false,
-                                                        ),
-                                                        initialValue = secret,
-                                                        autofill = AddRoute.Args.Autofill.leof(mode.args),
+                                is AppMode.Save -> buildContextItemsForSaveAction {
+                                    this += FlatItemAction(
+                                        icon = Icons.Outlined.Save,
+                                        title = Res.string.ciphers_save_to.wrap(),
+                                        onClick = {
+                                            val route = LeAddRoute(
+                                                args = AddRoute.Args(
+                                                    behavior = AddRoute.Args.Behavior(
+                                                        // User wants to quickly check the updated
+                                                        // cipher data, not to fill the data :P
+                                                        autoShowKeyboard = false,
+                                                        launchEditedCipher = false,
                                                     ),
-                                                )
-                                                val intent = NavigationIntent.NavigateToRoute(route)
-                                                navigate(intent)
-                                            },
-                                        )
-                                    }
-                                    section {
-                                        this += FlatItemAction(
-                                            icon = Icons.Outlined.Info,
-                                            title = Res.string.ciphers_view_details.wrap(),
-                                            trailing = {
-                                                ChevronIcon()
-                                            },
-                                            onClick = {
-                                                cipherSink.emit(secret)
-                                            },
-                                        )
-                                    }
+                                                    initialValue = secret,
+                                                    autofill = AddRoute.Args.Autofill.leof(mode.args),
+                                                ),
+                                            )
+                                            val intent = NavigationIntent.NavigateToRoute(route)
+                                            navigate(intent)
+                                        },
+                                    )
                                 }
 
-                                is AppMode.SavePasskey -> buildContextItems {
-                                    section {
-                                        this += FlatItemAction(
-                                            icon = Icons.Outlined.Save,
-                                            title = Res.string.ciphers_save_to.wrap(),
-                                            onClick = {
-                                                mode.onComplete(secret)
-                                            },
-                                        )
-                                    }
-                                    section {
-                                        this += FlatItemAction(
-                                            icon = Icons.Outlined.Info,
-                                            title = Res.string.ciphers_view_details.wrap(),
-                                            trailing = {
-                                                ChevronIcon()
-                                            },
-                                            onClick = {
-                                                cipherSink.emit(secret)
-                                            },
-                                        )
-                                    }
+                                is AppMode.SavePasskey -> buildContextItemsForSaveAction {
+                                    this += FlatItemAction(
+                                        icon = Icons.Outlined.Save,
+                                        title = Res.string.ciphers_save_to.wrap(),
+                                        text = Res.string.ciphers_save_to_adds_credentials_passkey.wrap(),
+                                        onClick = {
+                                            mode.onComplete(secret)
+                                        },
+                                    )
+                                }
+
+                                is AppMode.SavePassword -> buildContextItemsForSaveAction {
+                                    this += FlatItemAction(
+                                        icon = Icons.Outlined.Save,
+                                        title = Res.string.ciphers_save_to.wrap(),
+                                        text = Res.string.ciphers_save_to_replaces_credentials_username_password.wrap(),
+                                        onClick = {
+                                            mode.onComplete(secret)
+                                        },
+                                    )
                                 }
 
                                 is AppMode.PickPasskey ->
@@ -1008,6 +1016,21 @@ fun vaultListScreenState(
                                     val intent = NavigationIntent.NavigateToRoute(route)
                                     navigate(intent)
                                 }
+                            }
+                        },
+                        onClickPassword = { credential ->
+                            // lambda
+                            {
+                                val password = credential.password
+                                    .orEmpty()
+                                val route = LargeTypeRoute(
+                                    args = Args(
+                                        phrases = listOf(password),
+                                        colorize = true,
+                                    ),
+                                )
+                                val intent = NavigationIntent.NavigateToRoute(route)
+                                navigate(intent)
                             }
                         },
                     )
@@ -1401,7 +1424,19 @@ fun vaultListScreenState(
                     // then we want to always show it in the items.
                     mode is AppMode.PickPasskey ||
                     mode is AppMode.SavePasskey
-            val l = if (keepOtp && keepPasskey) {
+            val keepPassword = it.orderConfig
+                ?.let {
+                    // Regular password sort is not included here intentionally,
+                    // because if that is selected then the password will be
+                    // previewed as a section.
+                    val sort = it.comparator
+                    sort is PasswordLastModifiedSort ||
+                            sort is PasswordStrengthSort
+                } != false ||
+                    // If a user is in the pick a password mode,
+                    // then we want to always show it in the items.
+                    mode is AppMode.SavePassword
+            val l = if (keepOtp && keepPasskey && keepPassword) {
                 it.list
             } else {
                 it.list
@@ -1416,6 +1451,8 @@ fun vaultListScreenState(
                                 item.copy(
                                     shapeState = shapeState,
                                     token = item.token.takeIf { keepOtp },
+                                    passwords = item.passwords.takeIf { keepPassword }
+                                        ?: persistentListOf(),
                                     passkeys = item.passkeys.takeIf { keepPasskey }
                                         ?: persistentListOf(),
                                     attachments2 = item.attachments2.takeIf { keepAttachment }
@@ -1633,6 +1670,7 @@ fun vaultListScreenState(
                     is AppMode.Main -> null
                     is AppMode.SavePasskey -> null
                     is AppMode.PickPasskey -> null
+                    is AppMode.SavePassword -> null
                     is AppMode.Save -> {
                         AddRoute.Args.Autofill.leof(mode.args)
                     }

@@ -31,8 +31,8 @@ import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
 import arrow.optics.optics
+import com.artemchep.keyguard.android.PasskeyCreateActivity.CreateCredentialData
 import com.artemchep.keyguard.android.util.getParcelableCompat
-import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
@@ -83,9 +83,6 @@ import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -133,12 +130,12 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
     private val getVaultSession by instance<GetVaultSession>()
 
-    private val passkeyBeginGetRequest by instance<PasskeyProviderGetRequest>()
+    private val getCredentialRequestUtils by instance<PasskeyProviderGetRequest>()
 
-    private val eheheState = mutableStateOf<Ahhehe>(Ahhehe.Loading)
+    private val uiStateSink = mutableStateOf<UiState>(UiState.Loading)
 
-    private sealed interface Ahhehe {
-        data object Loading : Ahhehe
+    private sealed interface UiState {
+        data object Loading : UiState
 
         /**
          * A screen that asks a user to
@@ -146,7 +143,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
          */
         class RequiresAuthentication(
             val onAuthenticated: () -> Unit,
-        ) : Ahhehe
+        ) : UiState
 
         /**
          * A screen that shows an error to a user and
@@ -156,7 +153,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
             val title: String? = null,
             val message: String,
             val onFinish: () -> Unit,
-        ) : Ahhehe
+        ) : UiState
     }
 
     @SuppressLint("RestrictedApi")
@@ -185,13 +182,13 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                 MutableStateFlow(initialValue)
             }
             if (!userVerifiedState.value && args.requiresUserVerification) {
-                eheheState.value = Ahhehe.RequiresAuthentication {
+                uiStateSink.value = UiState.RequiresAuthentication {
                     userVerifiedState.value = true
                 }
                 // Wait till the user passes verification process.
                 userVerifiedState.first { it }
             }
-            eheheState.value = Ahhehe.Loading
+            uiStateSink.value = UiState.Loading
 
             val response = runCatching {
                 PasskeyUtils.withProcessingMinTime {
@@ -217,7 +214,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                 setResult(Activity.RESULT_OK, intent)
 
                 // Show the error to a user
-                val uiState = Ahhehe.Error(
+                val uiState = UiState.Error(
                     title = org.jetbrains.compose.resources.getString(Res.string.error_failed_use_passkey),
                     message = it.localizedMessage
                         ?: it.message
@@ -226,7 +223,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                         finish()
                     },
                 )
-                eheheState.value = uiState
+                uiStateSink.value = uiState
                 return@launch // end
             }
 
@@ -255,68 +252,20 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
     @Composable
     override fun Content() {
-        ExtensionScaffold(
-            header = {
-                Row(
-                    modifier = Modifier
-                        .padding(
-                            start = Dimens.horizontalPadding,
-                            end = 8.dp,
-                            top = 8.dp,
-                            bottom = 8.dp,
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.passkey_auth_via_header),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = LocalContentColor.current
-                                .combineAlpha(MediumEmphasisAlpha),
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                        )
-                        Row {
-                            Text(
-                                text = args.credUserDisplayName,
-                                style = MaterialTheme.typography.titleSmall,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .weight(1f, fill = false),
-                                text = "@" + args.credRpId,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = LocalContentColor.current
-                                    .combineAlpha(MediumEmphasisAlpha),
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-
-                    val context by rememberUpdatedState(newValue = LocalContext.current)
-                    TextButton(
-                        onClick = {
-                            context.closestActivityOrNull?.finish()
-                        },
-                    ) {
-                        Icon(Icons.Outlined.Close, null)
-                        Spacer(
-                            modifier = Modifier
-                                .width(Dimens.buttonIconPadding),
-                        )
-                        Text(
-                            text = stringResource(Res.string.cancel),
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
+        val title = stringResource(Res.string.passkey_auth_via_header)
+        val context by rememberUpdatedState(newValue = LocalContext.current)
+        CredentialScaffold(
+            onCancel = {
+                context.closestActivityOrNull?.finish()
+            },
+            titleText = title,
+            // Render the subtitle basing on the create
+            // credential type.
+            subtitle = {
+                CredentialSubtitlePublicKey(
+                    username = args.credUserDisplayName,
+                    rpId = args.credRpId,
+                )
             },
         ) {
             // Instead of showing a vault to a user, we continue showing the
@@ -328,22 +277,21 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                     is VaultState.Unlock -> ManualAppScreenOnUnlock(vaultState)
                     is VaultState.Loading -> ManualAppScreenOnLoading(vaultState)
                     is VaultState.Main -> {
-                        val state = eheheState.value
-                        when (state) {
-                            is Ahhehe.Loading -> {
+                        when (val state = uiStateSink.value) {
+                            is UiState.Loading -> {
                                 val fakeLoadingState = VaultState.Loading
                                 ManualAppScreenOnLoading(fakeLoadingState)
                             }
 
-                            is Ahhehe.Error -> {
-                                PasskeyError(
+                            is UiState.Error -> {
+                                CredentialError(
                                     title = state.title,
                                     message = state.message,
                                     onFinish = state.onFinish,
                                 )
                             }
 
-                            is Ahhehe.RequiresAuthentication -> {
+                            is UiState.RequiresAuthentication -> {
                                 val updatedOnAuthenticated by rememberUpdatedState(state.onAuthenticated)
                                 val route = remember {
                                     UserVerificationRoute(
@@ -392,7 +340,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                     }
             }
         requireNotNull(credential)
-        return passkeyBeginGetRequest.processGetCredentialsRequest(
+        return getCredentialRequestUtils.processGetCredentialsRequest(
             request = request,
             credential = credential,
             userVerified = userVerified,

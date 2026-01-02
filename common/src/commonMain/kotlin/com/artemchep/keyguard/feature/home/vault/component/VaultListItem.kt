@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ColorScheme
@@ -89,6 +90,7 @@ import com.artemchep.keyguard.ui.DropdownScope
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.animatedConcealedText
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.icons.KeyguardAttachment
@@ -354,6 +356,33 @@ fun VaultListItemText(
                         .padding(top = 8.dp),
                     copyText = item.copyText,
                     totpToken = item.token,
+                )
+            }
+
+            SmartBadgeList(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                items = item.passwords,
+                key = { it.source.password.orEmpty() },
+            ) { pwItem ->
+                val password = remember(pwItem.conceal, pwItem.source.password) {
+                    val raw = pwItem.source.password
+                        ?: return@remember null
+                    if (pwItem.conceal) {
+                        obscurePassword(raw)
+                    } else raw
+                }
+                SmartBadge(
+                    modifier = Modifier,
+                    icon = {
+                        IconSmallBox(
+                            main = Icons.Outlined.Password,
+                        )
+                    },
+                    title = password,
+                    text = null,
+                    onClick = pwItem.onClick,
                 )
             }
 

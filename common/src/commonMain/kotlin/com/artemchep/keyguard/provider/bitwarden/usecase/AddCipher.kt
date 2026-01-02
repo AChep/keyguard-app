@@ -27,6 +27,7 @@ import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherCryptoKeyMaterial
+import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import kotlinx.collections.immutable.toPersistentList
 import kotlin.time.Clock
@@ -485,10 +486,44 @@ private suspend fun BitwardenCipher.Login.Companion.of(
     now: Instant,
     old: BitwardenCipher? = null,
 ): BitwardenCipher.Login {
+    return of(
+        cryptoGenerator = cryptoGenerator,
+        base64Service = base64Service,
+        getPasswordStrength = getPasswordStrength,
+        now = now,
+        old = old,
+        // new fields
+        _username = request.login.username,
+        _password = request.login.password,
+        _totp = request.login.totp,
+        _uris = request.uris,
+        _fido2Credentials = request.fido2Credentials,
+    )
+}
+
+internal suspend fun BitwardenCipher.Login.Companion.of(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+    getPasswordStrength: GetPasswordStrength,
+    now: Instant,
+    old: BitwardenCipher? = null,
+    // new fields
+    _username: String? = old?.login?.username,
+    _password: String? = old?.login?.password,
+    _totp: String? = old?.login?.totp,
+    _uris: List<DSecret.Uri>? = old?.login?.uris
+        ?.map { uri ->
+            uri.toDomain()
+        },
+    _fido2Credentials: List<DSecret.Login.Fido2Credentials>? = old?.login?.fido2Credentials
+        ?.map { credentials ->
+            credentials.toDomain()
+        },
+): BitwardenCipher.Login {
     val oldLogin = old?.login
 
-    val username = request.login.username?.takeIf { it.isNotEmpty() }
-    val password = request.login.password?.takeIf { it.isNotEmpty() }
+    val username = _username?.takeIf { it.isNotEmpty() }
+    val password = _password?.takeIf { it.isNotEmpty() }
 
     val passwordHistory = if (oldLogin != null) {
         val list = oldLogin.passwordHistory.toMutableList()
@@ -530,8 +565,8 @@ private suspend fun BitwardenCipher.Login.Companion.of(
                 }
         }?.attempt()?.bind()?.getOrNull()
 
-    val uris = request
-        .uris
+    val uris = _uris
+        .orEmpty()
         .mapNotNull { uri ->
             // Filter out urls that are empty
             if (uri.uri.isEmpty()) {
@@ -558,8 +593,8 @@ private suspend fun BitwardenCipher.Login.Companion.of(
                 match = match,
             )
         }
-    val fido2Credentials = request
-        .fido2Credentials
+    val fido2Credentials = _fido2Credentials
+        .orEmpty()
         .map {
             BitwardenCipher.Login.Fido2Credentials(
                 credentialId = it.credentialId,
@@ -578,7 +613,7 @@ private suspend fun BitwardenCipher.Login.Companion.of(
             )
         }
 
-    val totp = request.login.totp?.takeIf { it.isNotEmpty() }
+    val totp = _totp?.takeIf { it.isNotEmpty() }
     return BitwardenCipher.Login(
         username = username,
         password = password,

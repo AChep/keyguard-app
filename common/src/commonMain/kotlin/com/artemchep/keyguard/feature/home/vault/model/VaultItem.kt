@@ -99,6 +99,7 @@ sealed interface VaultItem2 {
         val feature: Feature,
         val copyText: CopyText,
         val token: TotpToken?,
+        val passwords: ImmutableList<Password>,
         val passkeys: ImmutableList<Passkey>,
         val attachments2: ImmutableList<Attachment>,
         /**
@@ -140,6 +141,13 @@ sealed interface VaultItem2 {
                 val onClick: () -> Unit,
             ) : Action
         }
+
+        @Immutable
+        data class Password(
+            val conceal: Boolean,
+            val source: DSecret.Login,
+            val onClick: (() -> Unit)?,
+        )
 
         @Immutable
         data class Passkey(

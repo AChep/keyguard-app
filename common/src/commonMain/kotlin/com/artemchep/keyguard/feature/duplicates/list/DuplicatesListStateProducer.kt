@@ -316,6 +316,9 @@ fun produceDuplicatesListState(
                                 onClickPasskey = {
                                     null
                                 },
+                                onClickPassword = {
+                                    null
+                                },
                             )
                             item
                         }

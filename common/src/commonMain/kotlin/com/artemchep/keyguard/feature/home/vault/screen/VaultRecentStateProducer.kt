@@ -225,6 +225,9 @@ fun vaultRecentScreenState(
                         onClickPasskey = {
                             null
                         },
+                        onClickPassword = {
+                            null
+                        },
                     )
                 }
             items

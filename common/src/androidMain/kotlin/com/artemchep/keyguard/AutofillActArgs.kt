@@ -86,6 +86,23 @@ actual val AppMode.autofillTarget: AutofillTarget?
                 null
             }
         }
+
+        is AppMode.SavePassword -> {
+            val id = id
+            if (id != null) {
+                AutofillTarget(
+                    username = id,
+                    links = listOfNotNull(
+                        // TODO: Use the caller to fill the URI
+                    ),
+                    hints = listOf(
+                        AutofillHint.EMAIL_ADDRESS,
+                    ),
+                )
+            } else {
+                null
+            }
+        }
     }
 
 actual val AppMode.generatorTarget: GeneratorContext
@@ -120,6 +137,12 @@ actual val AppMode.generatorTarget: GeneratorContext
             val host = rpId
             GeneratorContext(
                 host = host,
+            )
+        }
+
+        is AppMode.SavePassword -> {
+            GeneratorContext(
+                host = null,
             )
         }
     }

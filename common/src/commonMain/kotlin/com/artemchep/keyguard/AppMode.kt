@@ -62,6 +62,19 @@ sealed interface AppMode {
         // a user to see and create logins.
         override val type: DSecret.Type get() = DSecret.Type.Login
     }
+
+    @optics
+    data class SavePassword(
+        val id: String?,
+        val uri: String?,
+        val onComplete: (DSecret) -> Unit,
+    ) : AppMode, HasType {
+        companion object;
+
+        // When in the passkeys mode only allow
+        // a user to see and create logins.
+        override val type: DSecret.Type get() = DSecret.Type.Login
+    }
 }
 
 expect fun AddRoute.Args.Autofill.Companion.leof(

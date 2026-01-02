@@ -47,6 +47,7 @@ suspend fun DSecret.toVaultListItem(
     onClick: (List<FlatItemAction>) -> VaultItem2.Item.Action,
     onClickAttachment: suspend (DSecret.Attachment) -> (() -> Unit)?,
     onClickPasskey: suspend (DSecret.Login.Fido2Credentials) -> (() -> Unit)?,
+    onClickPassword: suspend (DSecret.Login) -> (() -> Unit)?,
     localStateFlow: StateFlow<VaultItem2.Item.LocalState>,
 ): VaultItem2.Item {
     val cf = concealFields || reprompt
@@ -125,6 +126,18 @@ suspend fun DSecret.toVaultListItem(
         },
         copyText = copy,
         token = login?.totp?.token,
+        passwords = listOfNotNull(login)
+            .mapNotNull {
+                val onClick = onClickPassword(it)
+                    ?: return@mapNotNull null
+                VaultItem2.Item.Password(
+                    conceal = cf,
+                    source = it,
+                    onClick = onClick
+                        .takeUnless { reprompt },
+                )
+            }
+            .toImmutableList(),
         passkeys = login?.fido2Credentials.orEmpty()
             .mapNotNull {
                 val onClick = onClickPasskey(it)

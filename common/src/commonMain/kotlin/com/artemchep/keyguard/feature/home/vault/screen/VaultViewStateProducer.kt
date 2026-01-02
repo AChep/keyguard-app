@@ -1066,6 +1066,16 @@ fun vaultViewScreenState(
                             },
                         )
                     }
+                    is AppMode.SavePassword -> {
+                        FlatItemAction(
+                            title = Res.string.password_save.wrap(),
+                            leading = icon(Icons.Outlined.Save),
+                            onClick = {
+                                val cipher = secretOrNull
+                                mode.onComplete(cipher)
+                            },
+                        )
+                    }
                 }
                 VaultViewState.Content.Cipher(
                     locked = bbb,

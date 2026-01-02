@@ -120,25 +120,18 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
         request: BeginCreateCredentialRequest,
     ): BeginCreateCredentialResponse {
         return when (request) {
-            is BeginCreatePublicKeyCredentialRequest -> {
-                val title = getString(R.string.app_name)
-                val pi = createCreatePasskeyPendingIntent()
+            is BeginCreatePublicKeyCredentialRequest,
+            is BeginCreatePasswordCredentialRequest -> {
+                val pendingIntent = createCreateCredentialPendingIntent()
                 val entries = listOf(
                     CreateEntry(
-                        accountName = title,
-                        pendingIntent = pi,
+                        accountName = getString(R.string.app_name),
+                        pendingIntent = pendingIntent,
                     ),
                 )
                 BeginCreateCredentialResponse(
                     createEntries = entries,
                 )
-            }
-
-            is BeginCreatePasswordCredentialRequest -> {
-                // TODO: Add a support for storing the passwords. This
-                //  requires implementing:
-                //  https://github.com/AChep/keyguard-app/issues/5
-                throw CreateCredentialUnknownException()
             }
 
             else -> {
@@ -243,7 +236,7 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
         return createPendingIntent(intent)
     }
 
-    private fun createCreatePasskeyPendingIntent(
+    private fun createCreateCredentialPendingIntent(
     ): PendingIntent {
         val intent = PasskeyCreateActivity.getIntent(
             context = this,

@@ -6,7 +6,6 @@ import android.text.InputType
 import android.view.View
 import android.view.autofill.AutofillId
 import androidx.autofill.HintConstants
-import com.artemchep.keyguard.android.autofill.AutofillStructureParser.AutofillStructure
 import com.artemchep.keyguard.common.model.AutofillHint
 import java.util.Locale
 
@@ -882,14 +881,22 @@ class AutofillStructureParser {
         // See:
         // https://github.com/AChep/keyguard-app/issues/31
         if (
-            node.idEntry.orEmpty().contains("url", ignoreCase = true) &&
             node.idType.orEmpty().equals("id", ignoreCase = true)
         ) {
-            out += AutofillStructureItemBuilder(
-                accuracy = AutofillStructureItem.Accuracy.HIGHEST,
-                hint = AutofillHint.OFF,
-            )
-            return out
+            val idEntry = node.idEntry.orEmpty()
+            if (
+                idEntry.contains("url", ignoreCase = true) || // chrome+
+                idEntry.contentEquals(
+                    other = "location_bar_edit_text",
+                    ignoreCase = true,
+                ) // samsung browser
+            ) {
+                out += AutofillStructureItemBuilder(
+                    accuracy = AutofillStructureItem.Accuracy.HIGHEST,
+                    hint = AutofillHint.OFF,
+                )
+                return out
+            }
         }
 
         val importance = if (Build.VERSION.SDK_INT >= 28) {

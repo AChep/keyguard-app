@@ -96,7 +96,7 @@ jobs:
         id: producer
         run: |
           VERSION_SEMANTIC=$(sed -nE 's/.*appVersionName *= *"(.*)".*/\1/p' keyguard-app/gradle/libs.versions.toml)
-          VERSION_TAG="${{ github.ref_name }})"
+          VERSION_TAG="${{ github.ref_name }}"
           VERSION_TAG_NO_PREFIX="${VERSION_TAG#r}"
           RELEASE_NAME="v${VERSION_SEMANTIC}-${VERSION_TAG_NO_PREFIX}"
           DATE=$(echo "$VERSION_TAG" | sed -E 's/^r([0-9]{4})([0-9]{2})([0-9]{2}).*$/\1-\2-\3/')
@@ -106,9 +106,9 @@ jobs:
           echo "date=$DATE" >> $GITHUB_OUTPUT
       - name: "Produce versions.json"
         run: |
-          python3 keyguard-app/.github/update_versions_json.py keyguard-version/versions.json \
+          python keyguard-app/.github/update_versions_json.py keyguard-version/versions.json \
             --date ${{ steps.producer.outputs.date }} \
-            --semantic_version ${{ steps.producer.outputs.version_semantic }} \ 
+            --semantic_version ${{ steps.producer.outputs.version_semantic }} \
             --tag_version ${{ steps.producer.outputs.version_tag }} \
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
             --changelog_raw_file artifacts-changelog/changelog-raw.md

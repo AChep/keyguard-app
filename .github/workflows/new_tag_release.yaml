@@ -432,7 +432,7 @@ jobs:
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
       - name: "Download versions.json"
         uses: actions/download-artifact@v7
         with:
@@ -472,9 +472,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
-          gh workflow run ${{ inputs.github-wf-file }} \
-            --repo ${{ inputs.github-wf-repo }} \
-            --ref ${{ inputs.github-wf-branch }} \
+          gh workflow run new_release_deploy_flathub.yml \
+            --repo AChep/keyguard-app \
+            --ref master \
             -f version-semantic=${{ needs.generate-versions.outputs.version-semantic }}
   deploy:
     name: Deploy ${{ matrix.wf-file }}

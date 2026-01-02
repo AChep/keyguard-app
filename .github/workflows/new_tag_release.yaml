@@ -6,7 +6,7 @@ on:
       - 'r*'
 
 jobs:
-  # Generates variantions of the changelog
+  # Generates variations of the changelog
   #   - changelog-raw.md: all git commits
   #   - changelog-summary.md: all git commits summarized using LLM
   #   - changelog-full.md: summary + raw
@@ -79,22 +79,23 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v6
         with:
+          path: keyguard-app
           submodules: recursive
       - name: "Checkout AChep/keyguard-version"
         uses: actions/checkout@v6
         with:
-          path: ../keyguard-version
+          path: keyguard-version
           repository: AChep/keyguard-version
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Download changelog"
         uses: actions/download-artifact@v7
         with:
           name: changelog
-          path: ../artifacts-changelog
+          path: artifacts-changelog
       - name: "Produce version variables"
         id: producer
         run: |
-          VERSION_SEMANTIC=$(sed -nE 's/.*appVersionName *= *"(.*)".*/\1/p' gradle/libs.versions.toml)
+          VERSION_SEMANTIC=$(sed -nE 's/.*appVersionName *= *"(.*)".*/\1/p' keyguard-app/gradle/libs.versions.toml)
           VERSION_TAG="${{ github.ref_name }})"
           VERSION_TAG_NO_PREFIX="${VERSION_TAG#r}"
           RELEASE_NAME="v${VERSION_SEMANTIC}-${VERSION_TAG_NO_PREFIX}"
@@ -105,17 +106,17 @@ jobs:
           echo "date=$DATE" >> $GITHUB_OUTPUT
       - name: "Produce versions.json"
         run: |
-          python3 .github/update_versions_json.py ../keyguard-version/versions.json \
+          python3 keyguard-app/.github/update_versions_json.py keyguard-version/versions.json \
             --date ${{ steps.producer.outputs.date }} \
             --semantic_version ${{ steps.producer.outputs.version_semantic }} \ 
             --tag_version ${{ steps.producer.outputs.version_tag }} \
-            --changelog_summary_file ../artifacts-changelog/changelog-summary.md \
-            --changelog_raw_file ../artifacts-changelog/changelog-raw.md
+            --changelog_summary_file artifacts-changelog/changelog-summary.md \
+            --changelog_raw_file artifacts-changelog/changelog-raw.md
       - name: "Upload versions.json"
         uses: actions/upload-artifact@v6
         with:
           name: versions
-          path: ../keyguard-version/versions.json
+          path: keyguard-version/versions.json
   build-macos-app:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -249,11 +250,11 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: versions
-          path: ../artifacts-changelog
+          path: artifacts-changelog
       - name: "Update Flathub listing"
         run: |
-          python .github/get_flathub_listing_releases.py ../artifacts-changelog/versions.json --output ../artifacts-changelog/versions-as-flathub-releases.xml
-          python .github/update_flathub_listing.py --releases-file ../artifacts-changelog/versions-as-flathub-releases.xml
+          python .github/get_flathub_listing_releases.py artifacts-changelog/versions.json --output artifacts-changelog/versions-as-flathub-releases.xml
+          python .github/update_flathub_listing.py --releases-file artifacts-changelog/versions-as-flathub-releases.xml
       - name: "Print Flathub listing"
         run: |
           cat desktopApp/flatpak/com.artemchep.keyguard.metainfo.xml
@@ -429,24 +430,27 @@ jobs:
       - name: "Checkout AChep/keyguard-version"
         uses: actions/checkout@v6
         with:
+          path: keyguard-version
           repository: AChep/keyguard-version
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Download versions.json"
         uses: actions/download-artifact@v7
         with:
           name: versions
-          path: ../artifacts-versions
+          path: artifacts-versions
       - name: "Replace versions.json"
         run: |
-          mv -f ../artifacts-versions/versions.json versions.json
+          mv -f artifacts-versions/versions.json keyguard-version/versions.json
       - name: "Check if any changes"
         id: check-changes
+        working-directory: ./keyguard-version
         run: |
           has_changes=$(if [ -n "$(git status --porcelain)" ]; then echo "true"; else echo "false"; fi)
           echo "$has_changes"
           echo "HAS_CHANGES=$has_changes" >> "$GITHUB_OUTPUT"
       - name: Configure Git and Commit
         if: ${{ steps.check-changes.outputs.HAS_CHANGES == 'true' }}
+        working-directory: ./keyguard-version
         run: |
           git config --global user.name "keyguard-bot"
           git config --global user.email "keyguard-bot@artemchep.com"

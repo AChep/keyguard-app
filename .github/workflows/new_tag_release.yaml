@@ -251,6 +251,7 @@ jobs:
         with:
           name: versions
           path: artifacts-changelog
+      - run: pip install -r .github/update_flathub_listing.requirements.txt
       - name: "Update Flathub listing"
         run: |
           python .github/get_flathub_listing_releases.py artifacts-changelog/versions.json --output artifacts-changelog/versions-as-flathub-releases.xml

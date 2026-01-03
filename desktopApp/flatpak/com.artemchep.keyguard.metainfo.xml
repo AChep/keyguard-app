@@ -5,7 +5,9 @@
   <developer id="com.artemchep">
     <name>Artem Chepurnyi</name>
   </developer>
-  <summary>Manage passwords and keys</summary>
+  <summary>
+    <keyguard_text_res token="listing_summary" />
+  </summary>
   <branding>
     <color type="primary" scheme_preference="light">#c4eff4</color>
     <color type="primary" scheme_preference="dark">#081f26</color>
@@ -18,21 +20,40 @@
     <control>touch</control>
   </supports>
   <description>
-    <p>Multi-client for the Bitwarden® platform and KeePass (KDBX), created to provide the best user experience possible.</p>
-    <p>Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</p>
-    <p>Highlights</p>
+    <p>
+      <keyguard_text_res token="listing_description_title" />
+    </p>
+    <p>
+      <keyguard_text_res token="listing_description_disclaimer_bitwarden_legal" />
+    </p>
+    <p>
+      <keyguard_text_res token="listing_description_highlights" />
+    </p>
     <ul>
-      <li>a beautiful rich and responsive <em>Material You</em> user interface;</li>
-      <li>a <em>powerful</em> and <em>fast search</em>;</li>
-      <li>a watchtower that finds items with <em>Pwned passwords</em>, <em>Vulnerable accounts</em>, <em>Reused passwords</em>, <em>Inactive two factor authentication</em>, <em>Inactive passkeys</em>, <em>Unsecure Websites</em> as well as <em>Duplicate</em>, <em>Incomplete</em> and <em>Expiring</em> items, and other;</li>
-      <li><em>multi-account support</em> with secure login and two-factor authentication support;</li>
-      <li>add items and sends (Bitwarden), modify, and view your vault <em>offline</em>;</li>
-      <li><em>export individual</em> or organization items, <em>including the attachments</em>;</li>
-      <li>beautiful <em>Light</em>/<em>Dark theme</em>;</li>
-      <li>a generator with <em>SSH keys</em>, <em>Email forwarders</em>, <em>Custom wordlists</em> support, and many other features; </li>
-      <li>a support for <em>shortcuts</em>, <em>placeholders</em> and <em>URL overrides</em>;</li>
-      <li>a <em>smart conflict resolution</em>;</li>
-      <li>and much more!</li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_design" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_search" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_watchtower" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_multiple_accounts" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_offline" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_export" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_generator" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_other" />
+      </li>
     </ul>
   </description>
   <launchable type="desktop-id">com.artemchep.keyguard.desktop</launchable>
@@ -54,22 +75,30 @@
   </keywords>
   <screenshots>
     <screenshot type="default">
-      <caption>Home screen</caption>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_home_default" />
+      </caption>
       <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_light.png</image>
     </screenshot>
     <screenshot>
-      <caption>Home screen, dark theme</caption>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_home_dark" />
+      </caption>
       <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_dark.png</image>
     </screenshot>
     <screenshot>
-      <caption>Generator screen, dark theme</caption>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_generator_default" />
+      </caption>
       <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/generator_dark.png</image>
     </screenshot>
     <screenshot>
-      <caption>Watchtower screen, dark theme</caption>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_watchtower_default" />
+      </caption>
       <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/watchtower_dark.png</image>
     </screenshot>
   </screenshots>
-  <!-- GENERATED RELEASES BLOCK -->
+  <keyguard_releases />
   <content_rating type="oars-1.1" />
 </component>

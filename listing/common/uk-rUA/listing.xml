@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="listing_summary">Керуйте паролями</string>
+    <string name="listing_summary_long">Легко керуйте паролями</string>
+    <string name="listing_description_title">Мультиклієнт для платформи Bitwarden® та KeePass (KDBX), створений для забезпечення найкращого користувацького досвіду.</string>
+    <string name="listing_description_disclaimer_bitwarden_legal">Може використовуватися з будь-якою інсталяцією Bitwarden®. Bitwarden® є зареєстрованою торговою маркою Bitwarden Inc. Цей продукт не пов’язаний ні з проєктом Bitwarden, ні з Bitwarden, Inc.</string>
+    <string name="listing_description_highlights">Основні можливості:</string>
+    <string name="listing_description_highlight_design">Гарний інтерфейс: багатий, адаптивний інтерфейс Material You зі світлою та темною темами.</string>
+    <string name="listing_description_highlight_search">Розширений пошук: Потужні та швидкі можливості пошуку.</string>
+    <string name="listing_description_highlight_watchtower">Вартова вежа: Виявляє скомпрометовані паролі, вразливі облікові записи, повторно використані паролі, неактивну двофакторну автентифікацію, небезпечні вебсайти, дубльовані записи або ті, термін дії яких закінчується, та багато іншого.</string>
+    <string name="listing_description_highlight_multiple_accounts">Підтримка декількох акаунтів: Одночасний вхід у кілька облікових записів.</string>
+    <string name="listing_description_highlight_offline">Автономний доступ: Додавайте записи та надсилання (Sends), змінюйте та переглядайте своє сховище офлайн.</string>
+    <string name="listing_description_highlight_export">Експорт даних: Експорт особистих записів або записів організації, включно з вкладеннями.</string>
+    <string name="listing_description_highlight_generator">Генератор: Створюйте паролі, SSH-ключі та пересилачі пошти (email forwarders), з підтримкою власних словників.</string>
+    <string name="listing_description_highlight_other">Розширені функції: Підтримка клавіатури, перевизначення URL-адрес та розумне вирішення конфліктів.</string>
+    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <string name="listing_screenshot_home_default">Головний екран</string>
+    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <string name="listing_screenshot_home_dark">Головний екран, темна тема</string>
+    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <string name="listing_screenshot_generator_default">Екран генератора</string>
+    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <string name="listing_screenshot_watchtower_default">Екран вартової вежі</string>
+</resources>

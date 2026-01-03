@@ -154,10 +154,12 @@
     <string name="backup_disclaimer_title">Seus dados são de sua responsabilidade.</string>
     <string name="backup_disclaimer_text">Para garantir que ele nunca seja perdido, adote a regra de backup 3-2-1: mantenha três cópias do seu cofre em dois tipos de mídia diferentes, e manter uma cópia em um local separado e seguro.</string>
     <string name="passkey">Chave de acesso</string>
+    <string name="credential_login_create_header">Criar um login</string>
+    <string name="credential_password_create_header">Criar uma senha</string>
     <string name="passkey_create_header">Criar uma chave de acesso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
     <string name="passkey_auth_via_header">Confirmando a solicitação de autenticação…</string>
-    <string name="passkeys">Passkeys</string>
+    <string name="passkeys">Chaves de acesso</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
@@ -188,6 +190,7 @@
     <string name="one_time_password">Senha de uso único</string>
     <string name="one_time_password_authenticator_key">Chave de Autenticação</string>
     <string name="passkey_use_short">Usar</string>
+    <string name="password_save">Salvar senha</string>
     <string name="passkey_save">Salvar chave de acesso</string>
     <string name="passkey_available">Chave de acesso disponível</string>
     <string name="twofa_available">Autenticação de dois fatores disponível</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">Sem histórico por enquanto</string>
     <string name="ciphers_view_details">Ver detalhes</string>
     <string name="ciphers_save_to">Salvar em</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adicionar uma chave de acesso</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Substituir o nome de usuário &amp; senha</string>
     <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
     <string name="ciphers_action_remove_from_favorites_title">Remover dos favoritos</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Habilitar resolicitação de autenticação</string>
@@ -530,7 +535,7 @@
     <string name="error_failed_file_already_exists">Falha ao criar o arquivo. Substituição do arquivo existente não é permitido</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar uma chave, memória insuficiente. Por favor, verifique as configurações do servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
-    <string name="error_failed_create_passkey">Falha ao criar uma passkey</string>
+    <string name="error_failed_create_passkey">Falha ao criar uma chave de acesso</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
     <string name="error_failed_open_uri">Falhou em abrir a URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
@@ -586,8 +591,8 @@
     <string name="tfa_directory_title">Autenticação de dois fatores</string>
     <string name="tfa_directory_text">Lista de sites com suporte a autenticação de dois fatores</string>
     <string name="tfa_directory_search_placeholder">Pesquisar sites</string>
-    <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">Lista de sites com suporte a passkeys</string>
+    <string name="passkeys_directory_title">Chaves de acesso</string>
+    <string name="passkeys_directory_text">Lista de sites com suporte a chaves de acesso</string>
     <string name="passkeys_directory_search_placeholder">Pesquisar sites</string>
     <!-- Title of the 'Email data breach' dialog -->
     <string name="emailleak_title">Vazamento de dados</string>
@@ -765,7 +770,7 @@
     <string name="cipher_type_identity">Identidade</string>
     <string name="cipher_type_note">Nota</string>
     <string name="cipher_type_ssh_key">Chave SSH</string>
-    <string name="cipher_type_passkey">Passkey</string>
+    <string name="cipher_type_passkey">Chave de acesso</string>
     <string name="field_type_text">Texto</string>
     <string name="field_type_text_concealed">Texto (oculto)</string>
     <string name="field_type_boolean">Booleano</string>
@@ -835,7 +840,7 @@
     <string name="vault_view_saved_to_label">Salvo em <xliff:g id="email" example="username@example.com">%1$s</xliff:g> em <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
     <string name="vault_view_saved_to_account_name_label">Salvo em <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Senha modificada pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Passkey criada em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Chave de acesso criada em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Última modificação em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Criado em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Excluído em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -937,8 +942,8 @@
     <string name="watchtower_item_unsecure_websites_text">Altere as URLs que utilizam o protocolo HTTP para usarem o protocolo HTTPS, pois este último utiliza a criptografia mais avançada disponível.</string>
     <string name="watchtower_item_inactive_2fa_title">Autenticação de dois fatores inativa</string>
     <string name="watchtower_item_inactive_2fa_text">Sites que têm autenticação de dois fatores disponíveis, mas você ainda não os configurou.</string>
-    <string name="watchtower_item_inactive_passkey_title">Passkeys Disponíveis</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites que têm passkey disponível, mas você ainda não configurou. É mais simples e mais seguro que uma senha.</string>
+    <string name="watchtower_item_inactive_passkey_title">Chaves de Acesso Disponíveis</string>
+    <string name="watchtower_item_inactive_passkey_text">Sites que têm chave de acesso disponível, mas você ainda não configurou. É mais simples e mais seguro que uma senha.</string>
     <string name="watchtower_item_incomplete_items_title">Itens Incompletos</string>
     <string name="watchtower_item_incomplete_items_text">Ajuda a identificar dados ausentes ou incompletos em seu cofre. Isso pode se referir a identificações com nomes ausentes ou logins sem nomes de usuário.</string>
     <string name="watchtower_item_expiring_items_title">Itens que estão expirando</string>
@@ -1062,7 +1067,7 @@
         regular users. -->
     <string name="pref_item_crash_title">Falha</string>
     <string name="pref_item_credential_provider_title">Provedor de credenciais</string>
-    <string name="pref_item_credential_provider_text">Passkeys, senhas e serviços de dados</string>
+    <string name="pref_item_credential_provider_text">Chaves de acesso, senhas e serviços de dados</string>
     <string name="pref_item_credential_provider_no_feature_note">O dispositivo não suporta a recuperação de credenciais do usuário através da integração com provedores de credenciais. Contate o fabricante para obter mais informações.</string>
     <string name="pref_item_privacy_policy_title">Política de privacidade</string>
     <string name="pref_item_contact_us_title">Contate-nos</string>

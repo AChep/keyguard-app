@@ -154,6 +154,8 @@
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
     <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Passkey</string>
+    <string name="credential_login_create_header">Create a login</string>
+    <string name="credential_password_create_header">Create a password</string>
     <string name="passkey_create_header">Utwórz passkey</string>
     <string name="passkey_unlock_header">Odblokuj Keyguard</string>
     <string name="passkey_auth_via_header">Potwierdzanie autoryzacji…</string>
@@ -188,6 +190,7 @@
     <string name="one_time_password">Hasło jednorazowe</string>
     <string name="one_time_password_authenticator_key">Klucz uwierzytelniający</string>
     <string name="passkey_use_short">Użyj</string>
+    <string name="password_save">Save password</string>
     <string name="passkey_save">Zapisz passkey</string>
     <string name="passkey_available">Passkey dostępny</string>
     <string name="twofa_available">Uwierzytelnianie dwuskładnikowe dostępne</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">Nie ma jeszcze historii</string>
     <string name="ciphers_view_details">Pokaż szczegóły</string>
     <string name="ciphers_save_to">Zapisz do</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
     <string name="ciphers_action_add_to_favorites_title">Dodaj do ulubionych</string>
     <string name="ciphers_action_remove_from_favorites_title">Usuń z ulubionych</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Włącz ponowny monit o autoryzację</string>

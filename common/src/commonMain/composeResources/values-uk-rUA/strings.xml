@@ -154,6 +154,8 @@
     <string name="backup_disclaimer_title">Ваші дані — це ваша відповідальність.</string>
     <string name="backup_disclaimer_text">Щоб ніколи їх не втратити, дотримуйтесь правила резервного копіювання 3-2-1: зберігайте три копії вашого сховища на двох різних типах носіїв, а одну копію тримайте в окремому, безпечному місці.</string>
     <string name="passkey">Ключ доступу</string>
+    <string name="credential_login_create_header">Створити логін</string>
+    <string name="credential_password_create_header">Створити пароль</string>
     <string name="passkey_create_header">Створити ключ доступу</string>
     <string name="passkey_unlock_header">Розблокувати Keyguard</string>
     <string name="passkey_auth_via_header">Підтвердження запиту авторизації…</string>
@@ -188,6 +190,7 @@
     <string name="one_time_password">Одноразовий пароль</string>
     <string name="one_time_password_authenticator_key">Ключ автентифікатора</string>
     <string name="passkey_use_short">Використати</string>
+    <string name="password_save">Зберегти пароль</string>
     <string name="passkey_save">Зберегти ключ доступу</string>
     <string name="passkey_available">Доступний ключ доступу</string>
     <string name="twofa_available">Доступна двофакторна автентифікація</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">Ще немає історії</string>
     <string name="ciphers_view_details">Переглянути деталі</string>
     <string name="ciphers_save_to">Зберегти в…</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Додає ключ пароль</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Замінює пароль користувача та пароль</string>
     <string name="ciphers_action_add_to_favorites_title">Додати до обраного</string>
     <string name="ciphers_action_remove_from_favorites_title">Видалити з обраного</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Ввімкнути подвійну автентифікацію</string>

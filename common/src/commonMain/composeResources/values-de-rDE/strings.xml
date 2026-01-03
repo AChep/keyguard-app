@@ -154,6 +154,8 @@
     <string name="backup_disclaimer_title">Du bist für deine Daten verantwortlich.</string>
     <string name="backup_disclaimer_text">Um sicherzugehen, dass nicht verloren geht, nutze die 3-2-1 Backup Regel: behalte drei Kopien deines Tresors auf zwei verschiedenen Medien Typen, und behalte eine Kopie an einem anderen sicheren Ort.</string>
     <string name="passkey">Passkey</string>
+    <string name="credential_login_create_header">Create a login</string>
+    <string name="credential_password_create_header">Create a password</string>
     <string name="passkey_create_header">Passkey erstellen</string>
     <string name="passkey_unlock_header">Keyguard entsperren</string>
     <string name="passkey_auth_via_header">Authentifizierungsanfrage bestätigen…</string>
@@ -188,6 +190,7 @@
     <string name="one_time_password">Einmalpasswort</string>
     <string name="one_time_password_authenticator_key">Authentifizierungsschlüssel</string>
     <string name="passkey_use_short">Nutzen</string>
+    <string name="password_save">Save password</string>
     <string name="passkey_save">Passkey speichern</string>
     <string name="passkey_available">Passkey verfügbar</string>
     <string name="twofa_available">Zwei-Faktor-Authentifizierung verfügbar</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">Noch kein Verlauf vorhanden</string>
     <string name="ciphers_view_details">Details anzeigen</string>
     <string name="ciphers_save_to">Speichern unter</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
     <string name="ciphers_action_add_to_favorites_title">Zu Favoriten hinzufügen</string>
     <string name="ciphers_action_remove_from_favorites_title">Aus Favoriten entfernen</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Aktiviere Authentifizierungs-Wiederholung</string>

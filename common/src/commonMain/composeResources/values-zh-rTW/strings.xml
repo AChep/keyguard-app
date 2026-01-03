@@ -154,6 +154,8 @@
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
     <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">通行金鑰</string>
+    <string name="credential_login_create_header">Create a login</string>
+    <string name="credential_password_create_header">Create a password</string>
     <string name="passkey_create_header">建立通行金鑰</string>
     <string name="passkey_unlock_header">解鎖 Keyguard</string>
     <string name="passkey_auth_via_header">正在確認認證請求…</string>
@@ -188,6 +190,7 @@
     <string name="one_time_password">一次性密碼（OTP）</string>
     <string name="one_time_password_authenticator_key">驗證器金鑰</string>
     <string name="passkey_use_short">使用</string>
+    <string name="password_save">Save password</string>
     <string name="passkey_save">儲存通行金鑰</string>
     <string name="passkey_available">通行金鑰可用</string>
     <string name="twofa_available">雙因素認證可用</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">暫無歷史記錄</string>
     <string name="ciphers_view_details">檢視詳情</string>
     <string name="ciphers_save_to">儲存至</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
     <string name="ciphers_action_add_to_favorites_title">新增到收藏夾</string>
     <string name="ciphers_action_remove_from_favorites_title">從收藏夾中刪除</string>
     <string name="ciphers_action_enable_auth_reprompt_title">啟用身份驗證二次確認</string>

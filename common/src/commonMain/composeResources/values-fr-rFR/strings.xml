@@ -154,6 +154,8 @@
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
     <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">Clé d'authentification (passkey)</string>
+    <string name="credential_login_create_header">Create a login</string>
+    <string name="credential_password_create_header">Create a password</string>
     <string name="passkey_create_header">Créer une clé d'authentification (passkey)</string>
     <string name="passkey_unlock_header">Déverrouiller Keyguard</string>
     <string name="passkey_auth_via_header">Confirmation de la demande d'authentification…</string>
@@ -188,6 +190,7 @@
     <string name="one_time_password">Mot de passe à usage unique (0TP)</string>
     <string name="one_time_password_authenticator_key">Clé d'authentification OTP</string>
     <string name="passkey_use_short">Utiliser</string>
+    <string name="password_save">Save password</string>
     <string name="passkey_save">Enregistrer la clé d'authentification (passkey)</string>
     <string name="passkey_available">Clé d'authentification disponible</string>
     <string name="twofa_available">Authentification à deux facteurs (2FA) disponible</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">L'historique est vide</string>
     <string name="ciphers_view_details">Voir les détails</string>
     <string name="ciphers_save_to">Sauvegarder dans</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
     <string name="ciphers_action_add_to_favorites_title">Ajouter aux favoris</string>
     <string name="ciphers_action_remove_from_favorites_title">Retirer des favoris</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Redemander la saisie du mot de passe</string>

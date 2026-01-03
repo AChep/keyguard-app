@@ -129,5 +129,43 @@ files: [
       # e.g. 0 or 1 (Default is 1)
       #
         "content_segmentation" : 0,
+    },
+    {
+      #
+      # Source files filter
+      # e.g. "/resources/en/*.json"
+      #
+        "source" : "/listing/common/base/*.xml",
+
+      #
+      # Where translations will be placed
+      # e.g. "/resources/%two_letters_code%/%original_file_name%"
+      #
+        "translation" : "/listing/common/%android_code%/%original_file_name%",
+
+      #
+      # File type
+      # e.g. "json"
+      #
+        "type" : "android",
+
+      #
+      # The parameter "update_option" is optional. If it is not set, after the files update the translations for changed
+      # strings will be removed. Use to fix typos and for minor changes in the source strings
+      # e.g. "update_as_unapproved" or "update_without_changes"
+      #
+        "update_option" : "update_as_unapproved",
+
+      #
+      # Defines whether to translate tags attributes.
+      # e.g. 0 or 1  (Default is 1)
+      #
+        "translate_attributes" : 0,
+
+      #
+      # Defines whether to split long texts into smaller text segments
+      # e.g. 0 or 1 (Default is 1)
+      #
+        "content_segmentation" : 0,
     }
 ]

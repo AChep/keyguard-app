@@ -154,6 +154,8 @@
     <string name="backup_disclaimer_title">Os seus dados são da sua responsabilidade.</string>
     <string name="backup_disclaimer_text">Para garantir que nunca se perde, adote a regra de cópia de segurança 3-2-1: guarde três cópias do seu cofre em dois tipos de suportes diferentes e guarde uma cópia num local separado e seguro.</string>
     <string name="passkey">Chave de acesso</string>
+    <string name="credential_login_create_header">Criar um início de sessão</string>
+    <string name="credential_password_create_header">Criar uma palavra-passe</string>
     <string name="passkey_create_header">Criar uma chave de acesso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
     <string name="passkey_auth_via_header">Confirmando solicitação de autenticação…</string>
@@ -188,6 +190,7 @@
     <string name="one_time_password">Código 2FA</string>
     <string name="one_time_password_authenticator_key">Chave de autenticação 2FA</string>
     <string name="passkey_use_short">Utilizar</string>
+    <string name="password_save">Guardar palavra-passe</string>
     <string name="passkey_save">Guardar a chave de acesso</string>
     <string name="passkey_available">Chave de acesso disponível</string>
     <string name="twofa_available">Autenticação com 2FA disponível</string>
@@ -294,6 +297,8 @@
     <string name="ciphers_history_empty">Ainda não há histórico</string>
     <string name="ciphers_view_details">Ver detalhes</string>
     <string name="ciphers_save_to">Guardar em</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adiciona uma chave de acesso</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Substitui o nome de utilizador e a palavra-passe de &amp;</string>
     <string name="ciphers_action_add_to_favorites_title">Adicionar aos favoritos</string>
     <string name="ciphers_action_remove_from_favorites_title">Remover dos favoritos</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Ativar aviso de autenticação</string>

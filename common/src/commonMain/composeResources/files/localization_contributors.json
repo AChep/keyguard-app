@@ -109,8 +109,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 9015,
-    "target": 8248,
+    "translated": 9184,
+    "target": 8421,
     "approved": 1049,
     "voted": 0,
     "positiveVotes": 62,
@@ -175,8 +175,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 419,
-    "target": 459,
+    "translated": 492,
+    "target": 555,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -329,8 +329,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5693,
-    "target": 4898,
+    "translated": 5705,
+    "target": 4910,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -879,6 +879,28 @@
   },
   {
     "user": {
+      "id": "15917181",
+      "username": "oscfdezdz",
+      "fullName": "\u00d3scar Fern\u00e1ndez D\u00edaz (oscfdezdz)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/15917181/medium/c20316e631f03143e956c1da49042290.png",
+      "joined": "2025-12-28 19:01:29"
+    },
+    "languages": [
+      {
+        "id": "es-ES",
+        "name": "Spanish"
+      }
+    ],
+    "translated": 1241,
+    "target": 1446,
+    "approved": 0,
+    "voted": 6,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "15972315",
       "username": "mikropsoft",
       "fullName": "\ud835\udddb\ud835\uddfc\ud835\uddf9\ud835\uddf6 (mikropsoft)",
@@ -1146,7 +1168,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 4,
-    "negativeVotes": 4,
+    "negativeVotes": 5,
     "winning": 0
   },
   {
@@ -1827,8 +1849,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5910,
-    "target": 6476,
+    "translated": 5926,
+    "target": 6501,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

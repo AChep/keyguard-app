@@ -5,7 +5,7 @@
   <developer id="com.artemchep">
     <name>Artem Chepurnyi</name>
   </developer>
-  <summary>Manage passwords: Bitwarden® &amp; KDBX</summary>
+  <summary>Manage passwords and keys</summary>
   <branding>
     <color type="primary" scheme_preference="light">#c4eff4</color>
     <color type="primary" scheme_preference="dark">#081f26</color>

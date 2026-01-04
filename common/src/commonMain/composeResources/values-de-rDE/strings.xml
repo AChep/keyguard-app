@@ -21,6 +21,7 @@
     <string name="current_password">Aktuelles Passwort</string>
     <string name="new_password">Neues Passwort</string>
     <string name="no_password">Kein Passwort</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">E-Mail</string>
     <string name="email_verified">Verifiziert</string>
     <string name="email_not_verified">Nicht verifiziert</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des Einmalpassworts</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Fehler beim Öffnen einer URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
     <string name="error_failed_open_app_for">Keine installierte App kann diese Anfrage bearbeiten</string>
     <string name="error_failed_unknown">Etwas ist schiefgelaufen</string>
     <string name="error_failed_encrypt_biometric_key">Fehler beim Verschlüsseln des biometrischen Schlüssels</string>
     <string name="error_failed_decrypt_biometric_key">Fehler beim Entschlüsseln des biometrischen Schlüssels</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">QR-Code scannen</string>
     <string name="scanqr_load_from_image_note">Laden und Analysieren eines QR-Codes aus einer Bilddatei.</string>
     <string name="scanqr_camera_permission_required_text">Kamera-Berechtigung wird benötigt, um die QR-Codes zu scannen.</string>
@@ -657,6 +670,12 @@
     <string name="urlblock_empty_label">Keine blockierten URIs</string>
     <string name="urlblock_expose_title">Daten vor dem Entsperren des Tresors für das Autofill-Framework freigeben</string>
     <string name="urlblock_expose_text">Wenn diese Option aktiviert ist, wird das Element außerhalb des Tresors gespeichert, sodass die Vorschläge für die automatische Ausfüllung vollständig ausgeblendet werden können, selbst wenn der Tresor gesperrt ist</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in den lokalen Daten gespeichert werden.</string>
     <string name="setup_free_text">Indem Sie fortfahren bestätigen Sie, dass Sie den Keyguard gekauft haben oder eine aktive Lizenz besitzen.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
@@ -1131,6 +1150,8 @@
     <string name="pref_item_autofill_auto_save_source_title">App oder Website-Info automatisch speichern</string>
     <string name="pref_item_autofill_block_uri_title">Autofill blockieren</string>
     <string name="pref_item_autofill_block_uri_text">Verhindert das Anbieten eines Autofills für diese URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Zwischenablage automatisch löschen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Sofort</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nie</string>

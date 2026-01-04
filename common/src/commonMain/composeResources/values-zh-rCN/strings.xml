@@ -21,6 +21,7 @@
     <string name="current_password">当前密码</string>
     <string name="new_password">新密码</string>
     <string name="no_password">暂无密码</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">电子邮件</string>
     <string name="email_verified">已验证</string>
     <string name="email_not_verified">未验证</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">授权请求失败</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">无法打开 URI</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
     <string name="error_failed_open_app_for">没有已安装的应用可以处理此请求</string>
     <string name="error_failed_unknown">出错了</string>
     <string name="error_failed_encrypt_biometric_key">加密生物识别密钥失败</string>
     <string name="error_failed_decrypt_biometric_key">解密生物识别密钥失败</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">扫描二维码</string>
     <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
     <string name="scanqr_camera_permission_required_text">请授予相机权限以扫描二维码。</string>
@@ -657,6 +670,12 @@
     <string name="urlblock_empty_label">未屏蔽的 URI</string>
     <string name="urlblock_expose_title">在解锁密码库之前，将数据暴露给自动填充框架</string>
     <string name="urlblock_expose_text">如果启用，该项目将存储在密码库之外，即使密码库被锁定，也可以完全隐藏自动填充建议</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
     <string name="setup_free_text">继续使用此应用意味着您确认您已购买 Keyguard 或有一个可用的 Keyguard 授权。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
@@ -1133,6 +1152,8 @@
     <string name="pref_item_autofill_auto_save_source_title">自动保存应用或网站信息</string>
     <string name="pref_item_autofill_block_uri_title">阻止自动填充</string>
     <string name="pref_item_autofill_block_uri_text">阻止为这些 URI 提供自动填充</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">自动清除剪贴板</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">从不</string>

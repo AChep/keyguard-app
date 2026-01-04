@@ -21,6 +21,7 @@
     <string name="current_password">Mật khẩu hiện tại</string>
     <string name="new_password">Mật khẩu mới</string>
     <string name="no_password">Không mật khẩu</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">Email</string>
     <string name="email_verified">Đã xác thực</string>
     <string name="email_not_verified">Chưa xác thực</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Không tạo được một chìa khóa, không đủ bộ nhớ. Vui lòng kiểm tra các thiết đặt máy chủ KDF của bạn.</string>
     <string name="error_failed_generate_otp_code">Không tạo được mã OTP</string>
     <string name="error_failed_create_passkey">Không thể tạo được khóa truy cập</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Không thể cấp phép cho yêu cầu</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Không mở được URI</string>
     <string name="error_failed_format_placeholder">Không thể định dạng phần thay thế</string>
     <string name="error_failed_open_app_for">Chưa cài ứng dụng nào có thể xử lý yêu cầu này</string>
     <string name="error_failed_unknown">Có gì đó không ổn</string>
     <string name="error_failed_encrypt_biometric_key">Không mã hóa được khóa sinh trắc học</string>
     <string name="error_failed_decrypt_biometric_key">Không giải mã được khóa sinh trắc học</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Quét mã QR</string>
     <string name="scanqr_load_from_image_note">Tải và phân tích mã QR từ tệp hình ảnh.</string>
     <string name="scanqr_camera_permission_required_text">Cần phải có quyền sử dụng máy ảnh để quét mã QR.</string>
@@ -653,10 +666,16 @@
     <string name="urlblock_list_header_title">Blocked URIs</string>
     <string name="urlblock_list_section_title">Blocked URIs</string>
     <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
     <string name="urlblock_empty_label">No blocked URIs</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">Tạo một kho được mã hóa nơi dữ liệu cục bộ sẽ được lưu trữ.</string>
     <string name="setup_free_text">Bằng cách tiếp tục, bạn xác nhận rằng bạn đã mua Keyguard hoặc có giấy phép đang hoạt động.</string>
     <string name="setup_field_app_password_label">Mật khẩu ứng dụng</string>
@@ -1131,6 +1150,8 @@
     <string name="pref_item_autofill_auto_save_source_title">Tự động lưu thông tin ứng dụng hoặc trang web</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Tự động dọn dẹp clipboard</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Ngay lập tức</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Không bao giờ</string>

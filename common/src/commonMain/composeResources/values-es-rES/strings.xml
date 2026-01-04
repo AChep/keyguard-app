@@ -21,6 +21,7 @@
     <string name="current_password">Contraseña actual</string>
     <string name="new_password">Nueva contraseña</string>
     <string name="no_password">Sin contraseña</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">Correo electrónico</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">No verificado</string>
@@ -154,8 +155,8 @@
     <string name="backup_disclaimer_title">Tus datos son tu responsabilidad.</string>
     <string name="backup_disclaimer_text">Para asegurar que nunca se pierdan, adopta la regla de copia de seguridad de 3-2-1: mantén tres copias de tu caja fuerte en dos tipos de medios diferentes, y guarda una copia en una ubicación segura y separada.</string>
     <string name="passkey">Llave de acceso</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Crear un inicio de sesión</string>
+    <string name="credential_password_create_header">Crear una contraseña</string>
     <string name="passkey_create_header">Crear una llave de acceso</string>
     <string name="passkey_unlock_header">Desbloquear Keyguard</string>
     <string name="passkey_auth_via_header">Confirmando solicitud de autenticación…</string>
@@ -190,7 +191,7 @@
     <string name="one_time_password">Contraseña de un solo uso</string>
     <string name="one_time_password_authenticator_key">Clave de autenticación</string>
     <string name="passkey_use_short">Usar</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Guardar contraseña</string>
     <string name="passkey_save">Guardar llave de acceso</string>
     <string name="passkey_available">Llave de acceso disponible</string>
     <string name="twofa_available">Autenticación en dos pasos disponible</string>
@@ -297,8 +298,8 @@
     <string name="ciphers_history_empty">Aún no hay historial</string>
     <string name="ciphers_view_details">Ver detalles</string>
     <string name="ciphers_save_to">Guardar en</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Añade una clave de acceso</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Reemplaza el nombre de usuario y la contraseña</string>
     <string name="ciphers_action_add_to_favorites_title">Añadir a favoritos</string>
     <string name="ciphers_action_remove_from_favorites_title">Eliminar de favoritos</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Activar la re-autenticación</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Error al crear una clave, no hay suficiente memoria. Por favor, compruebe la configuración del servidor de KDF.</string>
     <string name="error_failed_generate_otp_code">Error al generar el código OTP</string>
     <string name="error_failed_create_passkey">Error al crear una llave de acceso</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Error al autorizar una solicitud</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Error al abrir una URI</string>
     <string name="error_failed_format_placeholder">Error al formatear el marcador de posición</string>
     <string name="error_failed_open_app_for">Ninguna aplicación instalada puede manejar esta solicitud</string>
     <string name="error_failed_unknown">Algo salió mal</string>
     <string name="error_failed_encrypt_biometric_key">Error al cifrar la clave biométrica</string>
     <string name="error_failed_decrypt_biometric_key">Error al descifrar la clave biométrica</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Escanear código QR</string>
     <string name="scanqr_load_from_image_note">Carga y analiza un código QR desde un archivo de imagen.</string>
     <string name="scanqr_camera_permission_required_text">Se requiere permiso de la cámara para escanear códigos QR.</string>
@@ -657,6 +670,12 @@
     <string name="urlblock_empty_label">No hay URIs bloqueadas</string>
     <string name="urlblock_expose_title">Exponer los datos al marco de autocompletado antes de desbloquear la caja fuerte</string>
     <string name="urlblock_expose_text">Si está activado, el elemento se almacena fuera de la caja fuerte, permitiendo ocultar completamente las sugerencias de autocompletado incluso si la caja fuerte está bloqueada</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">Crear una bóveda cifrada donde se almacenarán los datos locales.</string>
     <string name="setup_free_text">Al continuar confirma que ha comprado Keyguard o que ha tenido una licencia activa.</string>
     <string name="setup_field_app_password_label">Contraseña de la app</string>
@@ -1060,8 +1079,8 @@
     <string name="pref_item_check_pwned_services_title">Comprobar si hay roturas de datos</string>
     <string name="pref_item_check_inactive_2fa_title">Comprobar autenticación de doble factor inactiva</string>
     <string name="pref_item_check_inactive_passkeys_title">Comprobar contraseñas inactivas</string>
-    <string name="pref_item_conceal_fields_title">Detener campos</string>
-    <string name="pref_item_conceal_fields_text">Detener información sensible, como contraseñas y números de tarjeta de crédito</string>
+    <string name="pref_item_conceal_fields_title">Ocultar campos</string>
+    <string name="pref_item_conceal_fields_text">Ocultar información sensible, como contraseñas y números de tarjeta de crédito</string>
     <!--
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
@@ -1131,6 +1150,8 @@
     <string name="pref_item_autofill_auto_save_source_title">Auto-guardar app o información de un sitio</string>
     <string name="pref_item_autofill_block_uri_title">Bloquear autocompletado</string>
     <string name="pref_item_autofill_block_uri_text">Evita ofrecer autocompletado para estas URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Borrar automáticamente el portapapeles</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Inmediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nunca</string>

@@ -21,6 +21,7 @@
     <string name="current_password">Contrasenya actual</string>
     <string name="new_password">Nova Contrasenya</string>
     <string name="no_password">Sense contrasenya</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">Correu electrònic</string>
     <string name="email_verified">Verificat</string>
     <string name="email_not_verified">No verificat</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">No s'ha pogut crear la clau, no hi ha prou memòria. Per favor, configura la configuració del teu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">No s'ha pogut generar el codi OTP</string>
     <string name="error_failed_create_passkey">No s'ha pogut crear la passkey</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">No s'ha pogut autoritzar la petició</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">No s'ha pogut obrir una URI</string>
     <string name="error_failed_format_placeholder">No s'ha pogut formatar el marcador</string>
     <string name="error_failed_open_app_for">Cap aplicació instal·lada pot gestionar aquesta sol·licitud</string>
     <string name="error_failed_unknown">Alguna cosa ha anat malament</string>
     <string name="error_failed_encrypt_biometric_key">No s'ha pogut encriptar la clau biomètrica</string>
     <string name="error_failed_decrypt_biometric_key">No s'ha pogut desencriptar la clau biomètrica</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Escaneja un codi QR</string>
     <string name="scanqr_load_from_image_note">Carrega i processa un codi QR des d'un fitxer d'imatge.</string>
     <string name="scanqr_camera_permission_required_text">Cal tenir accés a la càmera per a escanejar codis QR.</string>
@@ -653,10 +666,16 @@
     <string name="urlblock_list_header_title">Blocked URIs</string>
     <string name="urlblock_list_section_title">Blocked URIs</string>
     <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
     <string name="urlblock_empty_label">No blocked URIs</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">Crea una caixa forta encriptada on es desaran totes les dades locals.</string>
     <string name="setup_free_text">Continuant confirmes que has comprat Keyguard o tens una llicència activa.</string>
     <string name="setup_field_app_password_label">Contrasenya d'aplicació</string>
@@ -1131,6 +1150,8 @@
     <string name="pref_item_autofill_auto_save_source_title">Desa informació d'apps o pàgines web automàticament</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Buida el porta-retalls automàticament</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediatament</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Mai</string>

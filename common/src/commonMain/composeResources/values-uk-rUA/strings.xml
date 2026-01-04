@@ -21,6 +21,7 @@
     <string name="current_password">Поточний пароль</string>
     <string name="new_password">Новий пароль</string>
     <string name="no_password">Без пароля</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">Ел. пошта</string>
     <string name="email_verified">Підтверджено</string>
     <string name="email_not_verified">Не підтверджено</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
     <string name="error_failed_create_passkey">Не вдалося створити ключ доступу</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Не вдалося авторизувати запит</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Не вдалося відкрити посилання</string>
     <string name="error_failed_format_placeholder">Не вдалося відформатувати поле</string>
     <string name="error_failed_open_app_for">Немає встановленого застосунку, що може обробити цей запит</string>
     <string name="error_failed_unknown">Сталася помилка</string>
     <string name="error_failed_encrypt_biometric_key">Не вдалося зашифрувати біометричний ключ</string>
     <string name="error_failed_decrypt_biometric_key">Не вдалося розшифрувати біометричний ключ</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Сканувати QR-код</string>
     <string name="scanqr_load_from_image_note">Завантажте з файлу та проаналізуйте QR-код.</string>
     <string name="scanqr_camera_permission_required_text">Для сканування QR-кодів необхідний дозвіл на камеру.</string>
@@ -657,6 +670,12 @@
     <string name="urlblock_empty_label">Немає заблокованих URI</string>
     <string name="urlblock_expose_title">Включити дані для фреймворку автозаповнення до розблокування сховища</string>
     <string name="urlblock_expose_text">Якщо увімкнено, запис зберігається поза сховищем, що дозволяє повністю приховати пропозиції автозаповнення, навіть якщо сховище заблоковано</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">Створити зашифроване сховище локальних даних.</string>
     <string name="setup_free_text">Продовжуючи ви підтверджуєте, що придбали Keyguard або мали активну ліцензію.</string>
     <string name="setup_field_app_password_label">Пароль застосунку</string>
@@ -1131,6 +1150,8 @@
     <string name="pref_item_autofill_auto_save_source_title">Автозбереження інформації про застосунок або сайт</string>
     <string name="pref_item_autofill_block_uri_title">Блокувати автозаповнення</string>
     <string name="pref_item_autofill_block_uri_text">Запобігає показу пропозицій автозаповнення для цих URI</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Автоматично очищати буфер обміну</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Негайно</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Ніколи</string>

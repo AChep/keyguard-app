@@ -21,6 +21,7 @@
     <string name="current_password">Huidig wachtwoord</string>
     <string name="new_password">Nieuw wachtwoord</string>
     <string name="no_password">Geen wachtwoord</string>
+    <string name="advanced_options">Advanced</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Geverifieerd</string>
     <string name="email_not_verified">Niet geverifieerd</string>
@@ -536,13 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Het maken van een sleutel is mislukt, er is niet genoeg geheugen. Controleer de KDF server instellingen.</string>
     <string name="error_failed_generate_otp_code">Genereren van verificatie code mislukt</string>
     <string name="error_failed_create_passkey">Het maken van een toegangssleutel is mislukt</string>
+    <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Autoriseren van een aanvraag mislukt</string>
+    <string name="error_failed_use_password">Failed to authorize a request</string>
     <string name="error_failed_open_uri">Kan URI niet openen</string>
     <string name="error_failed_format_placeholder">Formatteren van de placeholder is mislukt</string>
     <string name="error_failed_open_app_for">Geen geïnstalleerde app gevonden die dit verzoek kan verwerken</string>
     <string name="error_failed_unknown">Oeps, er ging iets mis</string>
     <string name="error_failed_encrypt_biometric_key">Kan de biometrische sleutel niet versleutelen</string>
     <string name="error_failed_decrypt_biometric_key">Kan de biometrische sleutel niet ontsleutelen</string>
+    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Scan QR-code</string>
     <string name="scanqr_load_from_image_note">Laad een QR-code uit een afbeelding.</string>
     <string name="scanqr_camera_permission_required_text">Camera machtiging vereist voor het scannen van QR-codes.</string>
@@ -653,10 +666,16 @@
     <string name="urlblock_list_header_title">Blocked URIs</string>
     <string name="urlblock_list_section_title">Blocked URIs</string>
     <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
     <string name="urlblock_empty_label">No blocked URIs</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="privilegedapps_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_header_title">Privileged apps</string>
+    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="setup_header_text">Maak een versleutelde kluis aan waar de lokale gegevens worden opgeslagen.</string>
     <string name="setup_free_text">Door verder te gaan bevestigt u dat u Keyguard heeft gekocht of een actieve licentie heeft gehad.</string>
     <string name="setup_field_app_password_label">App-wachtwoord</string>
@@ -1131,6 +1150,8 @@
     <string name="pref_item_autofill_auto_save_source_title">App- of website-informatie automatisch opslaan</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Klembord automatisch wissen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Onmiddelijk</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nooit</string>

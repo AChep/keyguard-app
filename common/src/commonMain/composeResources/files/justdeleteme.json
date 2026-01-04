@@ -548,6 +548,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "AdsPower",
+    "domains": [
+      "adspower.com",
+      "app.adspower.com"
+    ],
+    "url": "https://app.adspower.com/personalSettings",
+    "difficulty": "medium",
+    "notes": "Into settings, on \"My Account\" scroll down to \"Security Support\" and click \"Cancel now\". You will receive a code by e-mail and will need to enter password before moving forward during cancellation process. Check all options in \"Confirm cancellation\" before finally deleting your account. Account deletion takes 3 days to finalize."
+  },
+  {
     "name": "AdvCash",
     "domains": [
       "advcash.com",
@@ -983,6 +993,15 @@
     "url": "https://www.alltrails.com/my/profile/delete",
     "difficulty": "easy",
     "notes": "Request account deletion via the provided link. They will then send an email with a confirmation link to complete the deletion process."
+  },
+  {
+    "name": "Alternative.me",
+    "domains": [
+      "https://alternative.me/"
+    ],
+    "url": "https://alternative.me/account/settings",
+    "difficulty": "easy",
+    "notes": "On your account page, click to delete then confirm with your password."
   },
   {
     "name": "AlternativeTo",
@@ -4779,8 +4798,8 @@
       "crunchyroll.com",
       "help.crunchyroll.com"
     ],
-    "url": "https://www.crunchyroll.com/nuke",
-    "difficulty": "easy"
+    "url": "https://privacyportal.onetrust.com/webform/d19e506f-1a64-463d-94e4-914dd635817d/35fb5149-8905-48f3-9cbf-8b651c427d0e",
+    "difficulty": "medium"
   },
   {
     "name": "CryEngine",
@@ -5984,6 +6003,18 @@
     "notes": "Log into your account. Click on your profile picture in the top right corner (bottom right on mobile), then on \"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438\". Select \"\u041e\u0441\u043d\u043e\u0432\u043d\u044b\u0435\". There click on the blue \"\u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0441\u0432\u043e\u0439 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\" link at the bottom. Type your deletion reason and press the red \"\u0423\u0434\u0430\u043b\u0438\u0442\u044c\" button, then the red \"\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c\" button."
   },
   {
+    "name": "Duet Night Abyss",
+    "domains": [
+      "duetnightabyss.dna-panstudio.com"
+    ],
+    "url": "https://duetnightabyss.dna-panstudio.com/#/home",
+    "difficulty": "hard",
+    "notes": "Requires contacting player support, with the request of deleting the account.",
+    "email": "dna_cs@dna-panstudio.com",
+    "email_subject": "ccount deletion request",
+    "email_body": "Hereby the request to delete my account associated with my email."
+  },
+  {
     "name": "Dunkindonuts",
     "domains": [
       "dunkindonuts.com"
@@ -6437,6 +6468,16 @@
     "url": "https://service.elsevier.com/app/answers/detail/a_id/30148/supporthub/ecommerce/~/how-do-i-request-deletion-of-my-elsevier.com-account",
     "difficulty": "hard",
     "notes": "Fill out the form with your Account name, Email and a reason for deletion request."
+  },
+  {
+    "name": "Ely.by",
+    "domains": [
+      "account.ely.by",
+      "ely.by"
+    ],
+    "url": "https://account.ely.by/profile/delete",
+    "difficulty": "easy",
+    "notes": "Log into the account, scroll down until the \"Delete Account\" button, click it and re-enter your password before continuing. Account deletion happens after a week."
   },
   {
     "name": "Embark Studios",
@@ -9392,6 +9433,16 @@
     "notes": "Enter your password twice, then click \"Delete account\"."
   },
   {
+    "name": "Hardware webwinkel",
+    "domains": [
+      "ardwarewebwinkel.nl"
+    ],
+    "url": "https://hardwarewebwinkel.nl/",
+    "difficulty": "hard",
+    "notes": "Requires sending a account deletion request per mail.",
+    "email": "info@hardwarewebwinkel.nl"
+  },
+  {
     "name": "Hark Audio",
     "domains": [
       "harkaudio.com"
@@ -10191,6 +10242,15 @@
     "notes": "Just go to your privacy settings and press Delete Account."
   },
   {
+    "name": "iGraal",
+    "domains": [
+      "fr.igraal.com"
+    ],
+    "url": "https://fr.igraal.com/?showSupportChat",
+    "difficulty": "medium",
+    "notes": "Menu, Discutez avec nous (or chatbot icon), select supprimer mon compte sevral times to send an account deletion request"
+  },
+  {
     "name": "iHeart",
     "domains": [
       "iheart.com",
@@ -10482,7 +10542,7 @@
     "domains": [
       "inoreader.com"
     ],
-    "url": "https://www.inoreader.com",
+    "url": "https://www.inoreader.com/preferences/profile/cancel_account",
     "difficulty": "easy",
     "notes": "Select 'Reset or cancel' under preferences and click on 'Cancel account'."
   },
@@ -11650,6 +11710,15 @@
     "notes": "On your account information page, click on \"Supprimer mon compte\", confirm your email address and your password, and click on \"Supprimer mon compte\"."
   },
   {
+    "name": "La Cam\u00e9ra Embarqu\u00e9e",
+    "domains": [
+      "lacameraembarquee.fr"
+    ],
+    "url": "https://www.lacameraembarquee.fr/en/contact-us",
+    "difficulty": "hard",
+    "notes": "Account deletion requires contacting Customer Support."
+  },
+  {
     "name": "La Poste",
     "domains": [
       "laposte.fr",
@@ -12537,9 +12606,10 @@
   {
     "name": "Lumosity",
     "domains": [
+      "app.lumosity.com",
       "lumosity.com"
     ],
-    "url": "https://www.lumosity.com/app/v4/settings/account_deletion/new",
+    "url": "https://app.lumosity.com/settings",
     "difficulty": "easy"
   },
   {
@@ -13176,6 +13246,15 @@
     "url": "https://melodics.com/support#form-header",
     "difficulty": "impossible",
     "notes": "It might be possible to delete your account via the contact form, but the support team is known to be unresponsive."
+  },
+  {
+    "name": "MemeFast.app",
+    "domains": [
+      "memefast.app"
+    ],
+    "url": "https://memefast.app",
+    "difficulty": "easy",
+    "notes": "Log in to the mobile app, click on options, then your username at the bottom navigation, select 'Delete Account' under 'Account Management'."
   },
   {
     "name": "Memrise",
@@ -13951,6 +14030,16 @@
     "difficulty": "hard",
     "notes": "Email them from the account you wish to delete.",
     "email": "support@mote.com"
+  },
+  {
+    "name": "MouseCTRL",
+    "domains": [
+      "mousectrl.com"
+    ],
+    "url": "https://mousectrl.com/",
+    "difficulty": "hard",
+    "notes": "Email the support team from the email address of the account you wish to delete.",
+    "email": "hello@mousectrl.com"
   },
   {
     "name": "Mouser",
@@ -14818,6 +14907,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "NicePage",
+    "domains": [
+      "nicepage.com"
+    ],
+    "url": "https://nicepage.com/",
+    "difficulty": "hard",
+    "notes": "Deletion requires submitting a forum post in the Contact page and waiting on a representative to email you back to confirm the deletion"
+  },
+  {
     "name": "Nicequest",
     "domains": [
       "nicequest.com"
@@ -15131,11 +15229,11 @@
     "email": "customercare@nutracheck.co.uk"
   },
   {
-    "name": "Nvidia",
+    "name": "NVIDIA",
     "domains": [
       "nvidia.com"
     ],
-    "url": "https://www.nvidia.com/en-us/privacy-center/delete-data/",
+    "url": "https://www.nvidia.com/en-us/account/privacy/delete-data/",
     "difficulty": "easy",
     "notes": "Open the link, sign in, click 'Delete my data', click the confirmation link sent to your email, type in DELETE and press ok."
   },
@@ -16611,6 +16709,16 @@
     "email": "service@pixum.com"
   },
   {
+    "name": "PixVerse",
+    "domains": [
+      "app.pixverse.ai",
+      "pixverse.ai"
+    ],
+    "url": "https://app.pixverse.ai/home",
+    "difficulty": "easy",
+    "notes": "Press account icon at top right \u2b95 \"UserInfo\" \u2b95 \"Delete Account\" \u2b95 Confirm \u2b95 Confirm. Account deletion finalizes after 5 days."
+  },
+  {
     "name": "Pizza Hut",
     "domains": [
       "pizzahut.com"
@@ -16711,6 +16819,18 @@
     "url": "https://plexus.techlore.tech/",
     "difficulty": "easy",
     "notes": "In the app, go into the menu, then under \"My account\", click on \"Delete account\"."
+  },
+  {
+    "name": "Ploonk (coquedetelephone.fr)",
+    "domains": [
+      "ploonk.fr"
+    ],
+    "url": "https://www.ploonk.fr/service/declaration-de-confidentialite/",
+    "difficulty": "hard",
+    "notes": "Contact support via email and request your account to be deleted.",
+    "email": "serviceclients@ploonk.fr",
+    "email_subject": "Demande de suppression de compte",
+    "email_body": "Bonjour, Je souhaiterai faire valoir mes droits et faire supprimer mon compte XXX"
   },
   {
     "name": "Plugin Boutique",
@@ -17025,6 +17145,17 @@
     "url": "https://www.premiumize.me/deleteaccount",
     "difficulty": "easy",
     "notes": "Log into your account \u2b95 Click the link \u2b95 Click on Send verification code \u2b95 Paste the code you got on your email and click Delete Account."
+  },
+  {
+    "name": "Presearch",
+    "domains": [
+      "presearch.com",
+      "account.presearch.com"
+    ],
+    "url": "https://account.presearch.com/privacy-policy",
+    "difficulty": "hard",
+    "notes": "Email Presearch's privacy team to request account deletion.",
+    "email": "privacy@presearch.io"
   },
   {
     "name": "PrestaShop",
@@ -18426,6 +18557,15 @@
     "notes": "The only way is to send a request but no one responds."
   },
   {
+    "name": "Sankaku",
+    "domains": [
+      "sankaku.app"
+    ],
+    "url": "https://sankaku.app/settings",
+    "difficulty": "easy",
+    "notes": "Settings \u2b95 DELETE ACCOUNT \u2b95 DELETE ACCOUNT. Account deletion happens after 6 months."
+  },
+  {
     "name": "Sapinet",
     "domains": [
       "sapinet.fr"
@@ -18711,6 +18851,15 @@
     "url": "https://www.semrush.com/kb/support/",
     "difficulty": "hard",
     "notes": "You can delete your free account anytime by sending a request to their support team via this link, as described in their Terms of Service (7.4 De-Registration). To have your account deleted from their system, you will get a separate email with a removal activation link. You must click this link before they can take action on the request. This is to guarantee that you intend to delete your account."
+  },
+  {
+    "name": "Send.now",
+    "domains": [
+      "send.now"
+    ],
+    "url": "https://send.now/?op=my_account",
+    "difficulty": "medium",
+    "notes": "Click on account icon at top right \u2b95 \"Account\" \u2b95 in \"Settings\" section and then \"Account tab\" \u2b95 \"UNREGISTER AND DELETE ALL MY DATA\". Additional password and e-mail confirmation is needed."
   },
   {
     "name": "SendGrid",
@@ -20428,6 +20577,15 @@
     "notes": "Login and navigate to Your Profile by clicking on your name in the header. Scroll down to the bottom of the page and click 'Remove My Profile'."
   },
   {
+    "name": "StudyClix",
+    "domains": [
+      "studyclix.ie"
+    ],
+    "url": "https://www.studyclix.ie/FAQs#Contact_Us",
+    "difficulty": "hard",
+    "notes": "You have to contact support in order to delete your account."
+  },
+  {
     "name": "StudyMode",
     "domains": [
       "studymode.com"
@@ -21362,6 +21520,15 @@
     "notes": "Select \"Support\" as the category and \"Developer Portal\" as the topic."
   },
   {
+    "name": "TikVPN",
+    "domains": [
+      "tikvpn.com"
+    ],
+    "url": "https://www.tikvpn.com/account",
+    "difficulty": "easy",
+    "notes": "Click on \"My Account\" at top right, then \"Delete account\" on the bottom left of the screen."
+  },
+  {
     "name": "Time and Date",
     "domains": [
       "timeanddate.com",
@@ -21426,8 +21593,8 @@
       "tlauncher.org"
     ],
     "url": "https://tlauncher.org/en/how-remove-tl-account.html",
-    "difficulty": "limited",
-    "notes": "They say they are working on it but planned to support it in March 2023. Sending an email leads to nothing. Contanting TLauncher administration regarding account deletion and possibly involving your country privacy laws through the Discord server is possible."
+    "difficulty": "easy",
+    "notes": "Account deletion takes place after 14 days. Additional Email confirmation needed before proceeding."
   },
   {
     "name": "Today's Wordle",
@@ -22644,6 +22811,17 @@
     "notes": "You have to cancel your Subscription before writing the Support (Bot)"
   },
   {
+    "name": "VidLii",
+    "domains": [
+      "vidlii.com",
+      "vidlii.net",
+      "vidlii.st"
+    ],
+    "url": "https://www.vidlii.com/delete_account",
+    "difficulty": "easy",
+    "notes": "You have to wait 50 seconds and enter your password"
+  },
+  {
     "name": "Vidyard",
     "domains": [
       "vidyard.com",
@@ -22769,6 +22947,17 @@
     "url": "https://visualping.io/account/profile/",
     "difficulty": "hard",
     "notes": "You can go to your profile and press 'Close Account', however, this will merely deactivate your account. To delete your account, you must contact them."
+  },
+  {
+    "name": "VitalSource",
+    "domains": [
+      "vitalsource.com",
+      "bookshelf.vitalsource.com",
+      "support.vitalsource.com"
+    ],
+    "url": "https://support.vitalsource.com/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "Select 'Account Deletion Request' from dropdown and fill out form. Wait for confirmation from customer support."
   },
   {
     "name": "Viva o Linux (VOL)",
@@ -23130,7 +23319,7 @@
     ],
     "url": "https://account.wbgames.com/account",
     "difficulty": "medium",
-    "notes": "Click the \"Delete my account\" button and enter a confirmation code sent yo your email."
+    "notes": "Click the \"Delete my account\" button and enter a confirmation code sent to your email."
   },
   {
     "name": "Wasabi Hosting",
@@ -23436,6 +23625,17 @@
     "url": "https://faq.whatsapp.com/2138577903196467/",
     "difficulty": "medium",
     "notes": "From the app: Settings \u2b95 Account \u2b95 Delete your account."
+  },
+  {
+    "name": "When I Work",
+    "domains": [
+      "wheniwork.com",
+      "login.wheniwork.com"
+    ],
+    "url": "https://help.wheniwork.com/articles/request-profile-deletion-ios/",
+    "difficulty": "hard",
+    "notes": "Profile can be deleted from iOS app according to the help article. Otherwise, the [Privacy Policy](https://wheniwork.com/privacy) states you may request to delete account information by contacting support.",
+    "email": "support@wheniwork.com"
   },
   {
     "name": "Where Am I?",
@@ -24571,6 +24771,16 @@
     "notes": "To terminate your account, simply send a message via their web contact form to Customer Care that contains your username and the email address associated with your account.  Once you've done so, a member of our Support Team will disable your account and remove any products, both public and private, and disable your store (if applicable).  The account will be deleted fully when our system processes the next batch of account removals."
   },
   {
+    "name": "ZDNet",
+    "domains": [
+      "zdnet.com",
+      "ziffdavis.com"
+    ],
+    "url": "https://dsar.ziffdavis.com/",
+    "difficulty": "easy",
+    "notes": "Needs an additional e-mail verification. Additionally, user can contact ZDNet for manual account deletion."
+  },
+  {
     "name": "Zeet",
     "domains": [
       "zeet.co"
@@ -24722,6 +24932,15 @@
     "url": "https://zombiesrungame.com/zombielink/account",
     "difficulty": "easy",
     "notes": "Scroll down to 'Delete and Reset Account' and click the red link: 'delete your account'"
+  },
+  {
+    "name": "ZoogVPN",
+    "domains": [
+      "zoogvpn.net",
+      "app.zoogvpn.net"
+    ],
+    "url": "https://app.zoogvpn.net/profile",
+    "difficulty": "easy"
   },
   {
     "name": "Zool\u00f3gico de S\u00e3o Paulo",

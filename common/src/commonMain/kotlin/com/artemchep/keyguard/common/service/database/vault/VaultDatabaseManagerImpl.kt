@@ -31,6 +31,7 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
+import com.artemchep.keyguard.data.PrivilegedApp
 import com.artemchep.keyguard.data.UrlBlock
 import com.artemchep.keyguard.data.UrlOverride
 import com.artemchep.keyguard.data.WatchtowerThreat
@@ -116,6 +117,9 @@ class VaultDatabaseManagerImpl(
                     ),
                     watchtowerThreatAdapter = WatchtowerThreat.Adapter(
                         reportedAtAdapter = InstantToLongAdapter,
+                    ),
+                    privilegedAppAdapter = PrivilegedApp.Adapter(
+                        createdAtAdapter = InstantToLongAdapter,
                     ),
                 )
             }

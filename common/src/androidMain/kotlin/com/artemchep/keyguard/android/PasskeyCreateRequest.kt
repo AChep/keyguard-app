@@ -15,6 +15,7 @@ import androidx.credentials.webauthn.Cbor
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
+import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import kotlinx.serialization.json.Json
@@ -53,6 +54,7 @@ class PasskeyCreateRequest(
     suspend fun processCreateCredentialsRequest(
         request: ProviderCreateCredentialRequest,
         userVerified: Boolean,
+        privilegedApps: List<DPrivilegedApp>,
     ): Pair<CreateCredentialResponse, AddCredentialCipherRequestData> =
         when (val callingRequest = request.callingRequest) {
             is CreatePublicKeyCredentialRequest -> {
@@ -61,6 +63,7 @@ class PasskeyCreateRequest(
                     request = request,
                     data = data,
                     userVerified = userVerified,
+                    privilegedApps = privilegedApps,
                 )
             }
 
@@ -69,6 +72,7 @@ class PasskeyCreateRequest(
                     request = request,
                     data = callingRequest,
                     userVerified = userVerified,
+                    privilegedApps = privilegedApps,
                 )
             }
 
@@ -82,8 +86,12 @@ class PasskeyCreateRequest(
         request: ProviderCreateCredentialRequest,
         data: CreatePasswordRequest,
         userVerified: Boolean,
+        privilegedApps: List<DPrivilegedApp>,
     ): Pair<CreatePasswordResponse, AddCredentialCipherRequestPasswordData> {
-        val origin = passkeyUtils.callingAppOrigin(request.callingAppInfo)
+        val origin = passkeyUtils.callingAppOrigin(
+            appInfo = request.callingAppInfo,
+            privilegedApps = privilegedApps,
+        )
         val packageName = request.callingAppInfo.packageName
 
         val local = AddCredentialCipherRequestPasswordData(
@@ -107,6 +115,7 @@ class PasskeyCreateRequest(
         request: ProviderCreateCredentialRequest,
         data: CreatePasskey,
         userVerified: Boolean,
+        privilegedApps: List<DPrivilegedApp>,
     ): Pair<CreatePublicKeyCredentialResponse, AddCredentialCipherRequestPasskeyData> {
         val gen = passkeyGenerators.firstOrNull { generator ->
             val matchingCredentials = data.pubKeyCredParams
@@ -128,7 +137,10 @@ class PasskeyCreateRequest(
         val challenge = data.challenge
         val rpId = data.rp.id!!
         val rpName = data.rp.name
-        val origin = passkeyUtils.callingAppOrigin(request.callingAppInfo)
+        val origin = passkeyUtils.callingAppOrigin(
+            request.callingAppInfo,
+            privilegedApps = privilegedApps,
+        )
         val packageName = request.callingAppInfo.packageName
         passkeyUtils.requireRpMatchesOrigin(
             rpId = rpId,

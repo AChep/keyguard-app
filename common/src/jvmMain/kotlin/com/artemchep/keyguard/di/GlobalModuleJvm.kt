@@ -394,6 +394,9 @@ import com.artemchep.keyguard.copy.PasswordGeneratorDiceware
 import com.artemchep.keyguard.copy.SimilarityServiceJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
+import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepository
+import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepositoryImpl
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
@@ -1224,6 +1227,12 @@ fun globalModuleJvm() = DI.Module(
                     subclass(BitwardenToken::class)
                     subclass(KeePassToken::class)
                     defaultDeserializer { BitwardenToken.serializer() }
+                }
+                // privileged apps
+                polymorphic(PrivilegedAppListEntity.App::class) {
+                    subclass(PrivilegedAppListEntity.App.AndroidApp::class)
+                    subclass(PrivilegedAppListEntity.App.Unknown::class)
+                    defaultDeserializer { PrivilegedAppListEntity.App.Unknown.serializer() }
                 }
             }
         }

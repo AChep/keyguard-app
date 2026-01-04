@@ -51,9 +51,10 @@ fun AutofillSettingsScreen() {
                 ),
             ),
             SettingPaneItem.Group(
-                key = "block",
+                key = "other",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.AUTOFILL_BLOCK_URI),
+                    SettingPaneItem.Item(Setting.AUTOFILL_PRIVILEGED_APPS),
                 ),
             ),
         )

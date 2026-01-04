@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.android
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -13,17 +12,14 @@ import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
@@ -31,7 +27,6 @@ import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
 import arrow.optics.optics
-import com.artemchep.keyguard.android.PasskeyCreateActivity.CreateCredentialData
 import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -54,6 +49,7 @@ import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -77,18 +73,18 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
-import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.combineAlpha
+import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -132,6 +128,13 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
     private val getCredentialRequestUtils by instance<PasskeyProviderGetRequest>()
 
+    private val getCredentialRequest by lazy {
+        val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
+        requireNotNull(request) {
+            "Get request from framework is empty."
+        }
+    }
+
     private val uiStateSink = mutableStateOf<UiState>(UiState.Loading)
 
     private sealed interface UiState {
@@ -150,9 +153,7 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
          * offers a button to close the app.
          */
         class Error(
-            val title: String? = null,
-            val message: String,
-            val onFinish: () -> Unit,
+            val data: UiStateError,
         ) : UiState
     }
 
@@ -190,64 +191,95 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
             }
             uiStateSink.value = UiState.Loading
 
-            val response = runCatching {
-                PasskeyUtils.withProcessingMinTime {
-                    val userVerified = userVerifiedState.value
-                    processUnlockedVault(
+            // An attempt of handling the cipher.
+            val retrySink = MutableStateFlow(0)
+            retrySink
+                .onEach { attempt ->
+                    handleCredentialRequest(
                         session = session,
-                        userVerified = userVerified,
+                        onRetry = {
+                            retrySink.value = attempt + 1
+                        },
                     )
                 }
-            }.getOrElse {
-                recordException(it)
-
-                // Something went wrong, finish with the
-                // exception.
-                val intent = Intent().apply {
-                    val e = it as? GetCredentialException
-                        ?: GetCredentialUnknownException()
-                    PendingIntentHandler.setGetCredentialException(
-                        intent = this,
-                        exception = e,
-                    )
-                }
-                setResult(Activity.RESULT_OK, intent)
-
-                // Show the error to a user
-                val uiState = UiState.Error(
-                    title = org.jetbrains.compose.resources.getString(Res.string.error_failed_use_passkey),
-                    message = it.localizedMessage
-                        ?: it.message
-                        ?: "Something went wrong",
-                    onFinish = {
-                        finish()
-                    },
-                )
-                uiStateSink.value = uiState
-                return@launch // end
-            }
-
-            // Log that a used has used the passkey. We only do
-            // it after a successful attempt.
-            val addCipherUsedPasskey = session.di.direct.instance<AddCipherUsedPasskeyHistory>()
-            val addCipherUsedPasskeyRequest = AddCipherUsedPasskeyHistoryRequest(
-                accountId = args.accountId,
-                cipherId = args.cipherId,
-                credentialId = args.credId,
-            )
-            addCipherUsedPasskey(addCipherUsedPasskeyRequest)
-                .attempt()
-                .bind()
-
-            val intent = Intent().apply {
-                PendingIntentHandler.setGetCredentialResponse(
-                    intent = this,
-                    response = response,
-                )
-            }
-            setResult(Activity.RESULT_OK, intent)
-            finish()
+                .collect()
         }
+    }
+
+    private suspend fun handleCredentialRequest(
+        session: MasterSession.Key,
+        onRetry: () -> Unit,
+    ) {
+        val response = runCatching {
+            PasskeyUtils.withProcessingMinTime {
+                processUnlockedVault(
+                    session = session,
+                    userVerified = true,
+                )
+            }
+        }.getOrElse {
+            recordException(it)
+
+            val uiState = getCredentialErrorUiState(
+                session = session,
+                exception = it,
+                onRetry = onRetry,
+            )
+            uiStateSink.value = uiState
+            return // end
+        }
+
+        // Log that a used has used the passkey. We only do
+        // it after a successful attempt.
+        val addCipherUsedPasskey = session.di.direct.instance<AddCipherUsedPasskeyHistory>()
+        val addCipherUsedPasskeyRequest = AddCipherUsedPasskeyHistoryRequest(
+            accountId = args.accountId,
+            cipherId = args.cipherId,
+            credentialId = args.credId,
+        )
+        addCipherUsedPasskey(addCipherUsedPasskeyRequest)
+            .attempt()
+            .bind()
+
+        val intent = Intent().apply {
+            PendingIntentHandler.setGetCredentialResponse(
+                intent = this,
+                response = response,
+            )
+        }
+        setResult(RESULT_OK, intent)
+        finish()
+    }
+
+    private suspend fun getCredentialErrorUiState(
+        session: MasterSession.Key,
+        exception: Throwable,
+        onRetry: () -> Unit,
+    ): UiState.Error {
+        val intent = Intent().apply {
+            val e = exception as? GetCredentialException
+                ?: GetCredentialUnknownException()
+            PendingIntentHandler.setGetCredentialException(
+                intent = this,
+                exception = e,
+            )
+        }
+        setResult(RESULT_OK, intent)
+
+        // Get the UI model of an error
+
+        val title = getComposeString(Res.string.error_failed_use_passkey)
+        val data = getCredentialErrorUiState(
+            session = session,
+            callingAppInfo = getCredentialRequest.callingAppInfo,
+            title = title,
+            exception = exception,
+            beforeRetry = {
+                uiStateSink.value = UiState.Loading
+            },
+            onRetry = onRetry,
+        )
+        return UiState.Error(data)
     }
 
     @Composable
@@ -284,10 +316,12 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                             }
 
                             is UiState.Error -> {
+                                val data = state.data
                                 CredentialError(
-                                    title = state.title,
-                                    message = state.message,
-                                    onFinish = state.onFinish,
+                                    title = data.title,
+                                    message = data.message,
+                                    advanced = data.advanced,
+                                    onFinish = data.onFinish,
                                 )
                             }
 
@@ -316,10 +350,6 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
         session: MasterSession.Key,
         userVerified: Boolean,
     ): GetCredentialResponse {
-        val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
-        requireNotNull(request) {
-            "Provider get request from framework is empty."
-        }
         val ciphers = kotlin.run {
             val getCiphers = session.di.direct.instance<GetCiphers>()
             getCiphers()
@@ -340,10 +370,17 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                     }
             }
         requireNotNull(credential)
+
+        val privilegedApps = kotlin.run {
+            val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
+            getPrivilegedApps()
+                .first()
+        }
         return getCredentialRequestUtils.processGetCredentialsRequest(
-            request = request,
+            request = getCredentialRequest,
             credential = credential,
             userVerified = userVerified,
+            privilegedApps = privilegedApps,
         )
     }
 }

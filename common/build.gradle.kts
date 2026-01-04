@@ -101,6 +101,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.material)
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.material.icons.extended)
+                implementation(libs.jetbrains.compose.ui.tooling.preview)
                 api(libs.jetbrains.compose.components.resources)
                 api(libs.kotlin.stdlib)
                 api(libs.kdrag0n.colorkt)

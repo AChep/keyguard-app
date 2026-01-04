@@ -8,15 +8,12 @@ import androidx.annotation.RequiresApi
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
-import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
-import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.service.text.Base64Service
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonObject
@@ -50,13 +47,17 @@ class PasskeyProviderGetRequest(
         request: ProviderGetCredentialRequest,
         credential: DSecret.Login.Fido2Credentials,
         userVerified: Boolean,
+        privilegedApps: List<DPrivilegedApp>,
     ): GetCredentialResponse {
         val opt = request.credentialOptions.first() as GetPublicKeyCredentialOption
         val js = PublicKeyCredentialRequestOptions(opt.requestJson)
 
         val challenge = PasskeyBase64.encodeToString(js.challenge)
         val rpId = js.rpId
-        val origin = passkeyUtils.callingAppOrigin(request.callingAppInfo)
+        val origin = passkeyUtils.callingAppOrigin(
+            appInfo = request.callingAppInfo,
+            privilegedApps = privilegedApps,
+        )
         val packageName = request.callingAppInfo.packageName
         passkeyUtils.requireRpMatchesOrigin(
             rpId = rpId,

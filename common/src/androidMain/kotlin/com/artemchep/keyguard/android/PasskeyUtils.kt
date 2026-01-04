@@ -3,7 +3,10 @@ package com.artemchep.keyguard.android
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.credentials.provider.CallingAppInfo
+import com.artemchep.keyguard.common.exception.credential.CallingAppNotPrivilegedException
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.AddPrivilegedAppRequest
+import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.usecase.impl.isSubdomain
@@ -22,6 +25,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import java.lang.IllegalStateException
 import java.nio.ByteBuffer
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
@@ -110,6 +114,18 @@ class PasskeyUtils(
             val certB64 = PasskeyBase64.encodeToString(certHash)
             return "android:apk-key-hash:$certB64"
         }
+
+        /**
+         * Converts a ByteArray to a colon-separated Hex string.
+         */
+        fun toHexFingerprint(
+            cryptoService: CryptoGenerator,
+        ): String {
+            val certHash = cryptoService.hashSha256(data)
+            return certHash.joinToString(separator = ":") { byte ->
+                "%02X".format(byte)
+            }
+        }
     }
 
     sealed interface RpValidation {
@@ -126,24 +142,35 @@ class PasskeyUtils(
     )
 
     @RequiresApi(Build.VERSION_CODES.P)
+    fun callingAppPrivilegedRequest(
+        appInfo: CallingAppInfo,
+    ): AddPrivilegedAppRequest {
+        val cert = kotlin.run {
+            val cert = callingAppCertificate(appInfo)
+            cert.toHexFingerprint(cryptoService)
+        }
+        return AddPrivilegedAppRequest(
+            packageName = appInfo.packageName,
+            certFingerprintSha256 = cert,
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
     suspend fun callingAppOrigin(
         appInfo: CallingAppInfo,
+        privilegedApps: List<DPrivilegedApp>,
     ): String {
-        val privilegedAllowList = privilegedAppsService
-            .get()
-            .bind()
         val origin = kotlin.runCatching {
-            appInfo.getOrigin(privilegedAllowList)
+            getOrigin(
+                appInfo = appInfo,
+                privilegedApps = privilegedApps,
+            )
         }
             .getOrElse { e ->
                 if (!appInfo.isOriginPopulated()) {
                     throw e
                 }
-
-                val msg = "The calling app '${appInfo.packageName}' is not on the privileged list and cannot " +
-                        "request authentication on behalf of the other app. You can submit a request on GitHub for adding the app " +
-                        "to the privileged list, if you think that the app is a trustworthy known browser."
-                throw IllegalStateException(msg, e)
+                throw CallingAppNotPrivilegedException()
             }
             ?: kotlin.run {
                 val cert = callingAppCertificate(appInfo)
@@ -437,7 +464,7 @@ class PasskeyUtils(
                 // unaltered, to the Relying Party.
                 CreatePasskeyAttestation.DIRECT,
                 CreatePasskeyAttestation.ENTERPRISE,
-                -> bitwardenAaguid
+                    -> bitwardenAaguid
                 // The client MAY replace the AAGUID and attestation statement with a more
                 // privacy-friendly and/or more easily verifiable version of the same data
                 // (for example, by employing an Anonymization CA).
@@ -450,7 +477,7 @@ class PasskeyUtils(
                 // credential data with 16 zero bytes.
                 null,
                 CreatePasskeyAttestation.NONE,
-                -> ByteArray(16)
+                    -> ByteArray(16)
             }
             out += aaguid
 
@@ -505,4 +532,17 @@ class PasskeyUtils(
 
     private fun getGenericServiceFuckUpMessage(rpId: String): String =
         "This seems to be an issue with the service provider `$rpId`. Please reach out to their support team."
+
+    //
+    // Privileged apps
+    //
+
+    private suspend fun getOrigin(
+        appInfo: CallingAppInfo,
+        privilegedApps: List<DPrivilegedApp>,
+    ): String? {
+        val privilegedAllowlist = privilegedAppsService.stringify(privilegedApps)
+            .bind()
+        return appInfo.getOrigin(privilegedAllowlist)
+    }
 }

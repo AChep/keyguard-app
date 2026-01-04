@@ -2,7 +2,6 @@ package com.artemchep.keyguard.android
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.WindowManager
@@ -88,7 +87,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
      */
     private var lastUseExternalBrowser: Boolean = false
 
-    protected val translatorScope by lazy {
+    val translatorScope by lazy {
         val context = LeContext(this)
         TranslatorScope.of(context)
     }

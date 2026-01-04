@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.android
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -37,17 +36,22 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
+import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlinx.serialization.json.Json
 import org.kodein.di.*
+import kotlin.String
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyCreateActivity : BaseActivity(), DIAware {
@@ -128,9 +132,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
          * offers a button to close the app.
          */
         class Error(
-            val title: String? = null,
-            val message: String,
-            val onFinish: () -> Unit,
+            val data: UiStateError,
         ) : UiState
     }
 
@@ -158,84 +160,112 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                 .first()
             uiStateSink.value = UiState.Loading
 
-            val (response, local) = runCatching {
-                PasskeyUtils.withProcessingMinTime {
-                    processUnlockedVault(
+            // An attempt of handling the cipher.
+            val retrySink = MutableStateFlow(0)
+            retrySink
+                .onEach { attempt ->
+                    handleCredentialRequest(
                         session = session,
-                        userVerified = true,
+                        cipher = cipher,
+                        onRetry = {
+                            retrySink.value = attempt + 1
+                        },
                     )
                 }
-            }.getOrElse {
-                recordException(it)
+                .collect()
+        }
+    }
 
-                val intent = Intent().apply {
-                    val e = it as? CreateCredentialException
-                        ?: CreateCredentialUnknownException()
-                    PendingIntentHandler.setCreateCredentialException(
-                        intent = this,
-                        exception = e,
-                    )
-                }
-                setResult(Activity.RESULT_OK, intent)
-
-                // Show the error to a user
-                val uiState = UiState.Error(
-                    title = org.jetbrains.compose.resources.getString(Res.string.error_failed_create_passkey),
-                    message = it.localizedMessage
-                        ?: it.message
-                        ?: "Something went wrong",
-                    onFinish = {
-                        finish()
-                    },
+    private suspend fun handleCredentialRequest(
+        session: MasterSession.Key,
+        cipher: DSecret,
+        onRetry: () -> Unit,
+    ) {
+        val (response, local) = runCatching {
+            PasskeyUtils.withProcessingMinTime {
+                processUnlockedVault(
+                    session = session,
+                    userVerified = true,
                 )
-                uiStateSink.value = uiState
-                return@launch // end
             }
+        }.getOrElse {
+            recordException(it)
 
+            val uiState = getCredentialErrorUiState(
+                session = session,
+                exception = it,
+                onRetry = onRetry,
+            )
+            uiStateSink.value = uiState
+            return // end
+        }
+
+        // Add the credential
+        val result = kotlin.run {
             val request = AddCredentialCipherRequest(
                 cipherId = cipher.id,
                 data = local,
             )
-            val addpasskey = session.di.direct.instance<AddCredentialCipher>()
-            val addpasskeyResult = addpasskey(request)
+            val addCredential = session.di.direct.instance<AddCredentialCipher>()
+            addCredential(request)
                 .attempt()
                 .bind()
-            addpasskeyResult.fold(
-                ifLeft = {
-                    val intent = Intent().apply {
-                        val e = it as? CreateCredentialException
-                            ?: CreateCredentialUnknownException("Failed to add the passkey to the vault.")
-                        PendingIntentHandler.setCreateCredentialException(
-                            intent = this,
-                            exception = e,
-                        )
-                    }
-                    setResult(Activity.RESULT_OK, intent)
-
-                    // Show the error to a user
-                    val uiState = UiState.Error(
-                        title = org.jetbrains.compose.resources.getString(Res.string.error_failed_create_passkey),
-                        message = it.localizedMessage
-                            ?: it.message
-                            ?: "Something went wrong",
-                        onFinish = {
-                            finish()
-                        },
+        }
+        result.fold(
+            ifLeft = {
+                val uiState = getCredentialErrorUiState(
+                    session = session,
+                    exception = it,
+                    onRetry = onRetry,
+                )
+                uiStateSink.value = uiState
+            },
+            ifRight = {
+                val intent = Intent().apply {
+                    PendingIntentHandler.setCreateCredentialResponse(
+                        intent = this,
+                        response = response,
                     )
-                    uiStateSink.value = uiState
-                },
-                ifRight = {
-                    val intent = Intent().apply {
-                        PendingIntentHandler.setCreateCredentialResponse(
-                            intent = this,
-                            response = response,
-                        )
-                    }
-                    setResult(Activity.RESULT_OK, intent)
-                    finish()
-                },
+                }
+                setResult(RESULT_OK, intent)
+                finish()
+            },
+        )
+    }
+
+    private suspend fun getCredentialErrorUiState(
+        session: MasterSession.Key,
+        exception: Throwable,
+        onRetry: () -> Unit,
+    ): UiState.Error {
+        val intent = Intent().apply {
+            val e = exception as? CreateCredentialException
+                ?: CreateCredentialUnknownException()
+            PendingIntentHandler.setCreateCredentialException(
+                intent = this,
+                exception = e,
             )
         }
+        setResult(RESULT_OK, intent)
+
+        // Get the UI model of an error
+
+        val title = when (createCredentialData) {
+            is CreateCredentialData.PublicKey -> getComposeString(Res.string.error_failed_create_passkey)
+            is CreateCredentialData.Password -> getComposeString(Res.string.error_failed_create_password)
+            null -> null
+        }
+        val data = getCredentialErrorUiState(
+            session = session,
+            callingAppInfo = createCredentialRequest.callingAppInfo,
+            title = title,
+            exception = exception,
+            beforeRetry = {
+                uiStateSink.value = UiState.Loading
+            },
+            onRetry = onRetry,
+        )
+        return UiState.Error(data)
     }
 
     @Composable
@@ -248,6 +278,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                 } else Res.string.credential_password_create_header
                 stringResource(res)
             }
+
             null -> ""
         }
         val context by rememberUpdatedState(newValue = LocalContext.current)
@@ -266,11 +297,13 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                             rpId = data.data.rp.id.orEmpty(),
                         )
                     }
+
                     is CreateCredentialData.Password -> {
                         CredentialSubtitlePassword(
                             username = data.id,
                         )
                     }
+
                     null -> {
                         Text(
                             text = "Failed to parse the create credential request data",
@@ -298,10 +331,12 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                             }
 
                             is UiState.Error -> {
+                                val data = state.data
                                 CredentialError(
-                                    title = state.title,
-                                    message = state.message,
-                                    onFinish = state.onFinish,
+                                    title = data.title,
+                                    message = data.message,
+                                    advanced = data.advanced,
+                                    onFinish = data.onFinish,
                                 )
                             }
 
@@ -316,6 +351,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                                                     updatedOnAuthenticated.invoke(cipher)
                                                 },
                                             )
+
                                         is CreateCredentialData.Password ->
                                             AppMode.SavePassword(
                                                 id = data.id,
@@ -324,6 +360,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                                                     updatedOnAuthenticated.invoke(cipher)
                                                 },
                                             )
+
                                         null -> AppMode.Main
                                     }
                                 }
@@ -344,14 +381,15 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
         session: MasterSession.Key,
         userVerified: Boolean,
     ): Pair<CreateCredentialResponse, AddCredentialCipherRequestData> {
-        val request = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent)
-        requireNotNull(request) {
-            "Create request from framework is empty."
+        val privilegedApps = kotlin.run {
+            val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
+            getPrivilegedApps()
+                .first()
         }
-
         return createCredentialRequestUtils.processCreateCredentialsRequest(
-            request = request,
+            request = createCredentialRequest,
             userVerified = userVerified,
+            privilegedApps = privilegedApps,
         )
     }
 }

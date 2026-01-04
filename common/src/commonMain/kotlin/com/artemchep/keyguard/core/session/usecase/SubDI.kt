@@ -16,6 +16,10 @@ import com.artemchep.keyguard.common.service.filter.impl.RemoveCipherFilterByIdI
 import com.artemchep.keyguard.common.service.filter.impl.RenameCipherFilterImpl
 import com.artemchep.keyguard.common.service.filter.repo.CipherFilterRepository
 import com.artemchep.keyguard.common.service.filter.repo.impl.CipherFilterRepositoryImpl
+import com.artemchep.keyguard.common.service.gpmprivapps.AppPrivilegedAppRepository
+import com.artemchep.keyguard.common.service.gpmprivapps.AppPrivilegedAppRepositoryImpl
+import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepository
+import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepository
 import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlistRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistWordRepository
@@ -47,6 +51,7 @@ import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
+import com.artemchep.keyguard.common.usecase.AddPrivilegedApp
 import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.AddUrlBlock
@@ -98,6 +103,7 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetMetas
 import com.artemchep.keyguard.common.usecase.GetOrganizations
+import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
@@ -128,6 +134,7 @@ import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
 import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
+import com.artemchep.keyguard.common.usecase.RemovePrivilegedAppById
 import com.artemchep.keyguard.common.usecase.RemoveSendById
 import com.artemchep.keyguard.common.usecase.RemoveUrlBlockById
 import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
@@ -200,6 +207,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherUsedAutofillHi
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherUsedPasskeyHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddFolderImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.AddPrivilegedAppImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSendImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddUriCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherNameByIdImpl
@@ -237,6 +245,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetFolderTreeImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetFoldersImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetMetasImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetOrganizationsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetPrivilegedAppsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetProfilesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSendsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetTagsImpl
@@ -264,6 +273,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveWordlistByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveEmailRelayByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveFolderByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RemovePrivilegedAppByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSendByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlBlockByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlOverrideByIdImpl
@@ -362,6 +372,9 @@ fun DI.Builder.createSubDi2(
     bindSingleton<RemoveUrlBlockById> {
         RemoveUrlBlockByIdImpl(this)
     }
+    bindSingleton<RemovePrivilegedAppById> {
+        RemovePrivilegedAppByIdImpl(this)
+    }
     bindSingleton<GetWatchtowerAlerts> {
         GetWatchtowerAlertsImpl(this)
     }
@@ -406,6 +419,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GetOrganizations> {
         GetOrganizationsImpl(this)
+    }
+    bindSingleton<GetPrivilegedApps> {
+        GetPrivilegedAppsImpl(this)
     }
     bindSingleton<GetFingerprint> {
         GetFingerprintImpl(this)
@@ -690,6 +706,12 @@ fun DI.Builder.createSubDi2(
     bindSingleton<UrlOverrideRepository> {
         UrlOverrideRepositoryImpl(this)
     }
+    bindSingleton<UserPrivilegedAppRepository> {
+        UserPrivilegedAppRepositoryImpl(this)
+    }
+    bindSingleton<AppPrivilegedAppRepository> {
+        AppPrivilegedAppRepositoryImpl(this)
+    }
     bindSingleton<UrlBlockRepository> {
         UrlBlockRepositoryImpl(this)
     }
@@ -726,6 +748,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<AddCredentialCipher> {
         AddCredentialCipherImpl(this)
+    }
+    bindSingleton<AddPrivilegedApp> {
+        AddPrivilegedAppImpl(this)
     }
     bindSingleton<PatchWatchtowerAlertCipher> {
         PatchWatchtowerAlertCipherImpl(this)

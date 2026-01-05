@@ -82,13 +82,13 @@ for target in soup.find_all('keyguard_text_res'):
     # the default language.
     new_base_el = copy.copy(parent)
     new_base_el.clear()
-    new_base_el.string = text_library_base[token]
+    new_base_el.string = text_library_base[token].strip()
 
     new_elements = [new_base_el]
     for language in text_libraries.keys():
         new_loc_el = copy.copy(parent)
         new_loc_el.clear()
-        new_loc_el.string = text_libraries[language][token]
+        new_loc_el.string = text_libraries[language][token].strip()
         if new_loc_el.string == new_base_el.string:
             continue
         new_loc_el['xml:lang'] = language
@@ -141,6 +141,6 @@ logger.info("…done!")
 # Write back to the file
 logger.info("Writing to the file:")
 with open(metadata_file, 'w', encoding='utf-8') as f:
-    f.write(soup.prettify())
+    f.write(soup.decode(formatter="minimal"))
     logger.info("  ✅")
 logger.info("…done!")

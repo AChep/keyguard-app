@@ -13,7 +13,7 @@
     <color type="primary" scheme_preference="dark">#081f26</color>
   </branding>
   <metadata_license>FSFAP</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>LicenseRef-proprietary=https://github.com/AChep/keyguard-app/blob/master/LICENSE</project_license>
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
@@ -78,25 +78,25 @@
       <caption>
         <keyguard_text_res token="listing_screenshot_home_default" />
       </caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_light.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/home_default.png</image>
     </screenshot>
     <screenshot>
       <caption>
         <keyguard_text_res token="listing_screenshot_home_dark" />
       </caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_dark.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/home_dark.png</image>
     </screenshot>
     <screenshot>
       <caption>
         <keyguard_text_res token="listing_screenshot_generator_default" />
       </caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/generator_dark.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/generator_default.png</image>
     </screenshot>
     <screenshot>
       <caption>
         <keyguard_text_res token="listing_screenshot_watchtower_default" />
       </caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/watchtower_dark.png</image>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/watchtower_default.png</image>
     </screenshot>
   </screenshots>
   <keyguard_releases />

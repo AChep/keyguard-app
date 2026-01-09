@@ -19,7 +19,6 @@ import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.time.Duration
 
-
 // Code largely based on the
 // https://github.com/marcelkliemannel/kotlin-onetimepassword
 class TotpServiceImpl(
@@ -40,24 +39,29 @@ class TotpServiceImpl(
     override fun generate(
         token: TotpToken,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode = when (token) {
         is TotpToken.TotpAuth -> generateTotpAuthCode(
             token = token,
             timestamp = timestamp,
+            offset = offset,
         )
 
         is TotpToken.HotpAuth -> generateHotpAuthCode(
             token = token,
+            offset = offset,
         )
 
         is TotpToken.SteamAuth -> generateSteamAuthCode(
             token = token,
             timestamp = timestamp,
+            offset = offset,
         )
 
         is TotpToken.MobileAuth -> generateMobileAuthCode(
             token = token,
             timestamp = timestamp,
+            offset = offset,
         )
     }
 
@@ -80,10 +84,11 @@ class TotpServiceImpl(
     private fun generateTotpAuthCode(
         token: TotpToken.TotpAuth,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode {
         val key = base32Service.decode(token.keyBase32)
         val period = token.period
-        val time = roundToPeriodInSeconds(timestamp, period)
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -117,9 +122,10 @@ class TotpServiceImpl(
      */
     private fun generateHotpAuthCode(
         token: TotpToken.HotpAuth,
+        offset: Int,
     ): TotpCode {
         val key = base32Service.decode(token.keyBase32)
-        val counter = token.counter
+        val counter = token.counter + offset
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -147,10 +153,11 @@ class TotpServiceImpl(
     private fun generateSteamAuthCode(
         token: TotpToken.SteamAuth,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode {
         val key = base32Service.decode(token.keyBase32)
         val period = token.period
-        val time = roundToPeriodInSeconds(timestamp, period)
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
 
         val binaryInt = genHotpBinaryInt(
             key = key,
@@ -225,6 +232,7 @@ class TotpServiceImpl(
     private fun generateMobileAuthCode(
         token: TotpToken.MobileAuth,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode {
         val period = token.period
         // As per the spec, the mOTP code should be generated each 10 seconds and
@@ -232,7 +240,7 @@ class TotpServiceImpl(
         // the latter.
         val actualPeriod = 10L
         val multiplier = period / actualPeriod // must be recoverable
-        val time = roundToPeriodInSeconds(timestamp, period) * multiplier
+        val time = (roundToPeriodInSeconds(timestamp, period) + offset) * multiplier
 
         // Generate a hash from the data.
         val data = buildString {

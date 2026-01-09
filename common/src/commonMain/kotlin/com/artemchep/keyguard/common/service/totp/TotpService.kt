@@ -8,5 +8,6 @@ interface TotpService {
     fun generate(
         token: TotpToken,
         timestamp: Instant,
+        offset: Int = 0,
     ): TotpCode
 }

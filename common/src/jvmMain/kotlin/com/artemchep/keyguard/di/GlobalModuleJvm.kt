@@ -400,7 +400,9 @@ import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppReposi
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
+import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
+import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -534,6 +536,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetTotpCode> {
         GetTotpCodeImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetTotpCodeWithOffset> {
+        GetTotpCodeWithOffsetImpl(
             directDI = this,
         )
     }

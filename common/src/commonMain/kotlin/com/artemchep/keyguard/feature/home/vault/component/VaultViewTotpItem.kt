@@ -11,12 +11,15 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -46,19 +50,17 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
-import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
-import com.artemchep.keyguard.ui.tooltip.Tooltip
 import com.artemchep.keyguard.ui.totp.formatCode2
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
@@ -116,24 +118,35 @@ fun VaultViewTotpItem(
                 title = {
                     Text(item.title)
                 },
-                text = {
-                    FlowRow {
-                        VaultViewTotpCodeContent(
-                            totp = item.totp,
-                            codes = state.codes,
-                        )
-                    }
-                },
             )
+            Spacer(
+                modifier = Modifier
+                    .height(8.dp),
+            )
+            FlowRow(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                VaultViewTotpBadge2(
+                    copyText = item.copy,
+                    totpToken = item.totp,
+                )
+                ProvideTextStyle(MaterialTheme.typography.titleSmall) {
+                    VaultViewTotpBadge2(
+                        modifier = Modifier
+                            .heightIn(min = 32.dp),
+                        copyText = item.copy,
+                        totpToken = item.totp,
+                        showTimeout = false,
+                        offset = 1,
+                    )
+                }
+            }
         },
         leading = {
             IconBox(main = Icons.Outlined.KeyguardTwoFa)
         },
         trailing = {
-            VaultViewTotpBadge(
-                totpToken = item.totp,
-            )
-
             val onCopyAction = remember(dropdown) {
                 dropdown
                     .firstNotNullOfOrNull {
@@ -183,9 +196,12 @@ fun VaultViewTotpBadge2(
     modifier: Modifier = Modifier,
     copyText: CopyText,
     totpToken: TotpToken,
+    showTimeout: Boolean = true,
+    offset: Int = 0,
 ) {
     val state by produceTotpCode(
         totpToken = totpToken,
+        offset = offset,
     )
 
     val tintColor = MaterialTheme.colorScheme
@@ -215,15 +231,27 @@ fun VaultViewTotpBadge2(
             codes = (state as? VaultViewTotpItemBadgeState.Success?)
                 ?.codes,
         )
-
-        Spacer(
-            modifier = Modifier
-                .width(16.dp),
-        )
-
-        VaultViewTotpRemainderBadge(
-            state = state,
-        )
+        ExpandedIfNotEmptyForRow(
+            Unit.takeIf { showTimeout },
+        ) {
+            Row {
+                Spacer(
+                    modifier = Modifier
+                        .width(16.dp),
+                )
+                VaultViewTotpRemainderBadge(
+                    state = state,
+                )
+            }
+        }
+        ExpandedIfNotEmptyForRow(
+            Unit.takeIf { !showTimeout },
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .width(4.dp),
+            )
+        }
     }
 }
 
@@ -385,10 +413,11 @@ private fun RowScope.VaultViewTotpRemainderBadgeContent(
 @Composable
 private fun produceTotpCode(
     totpToken: TotpToken,
+    offset: Int = 0,
 ): State<VaultViewTotpItemBadgeState?> {
-    val getTotpCode by rememberInstance<GetTotpCode>()
-    return remember(totpToken) {
-        getTotpCode(totpToken)
+    val getTotpCode by rememberInstance<GetTotpCodeWithOffset>()
+    return remember(totpToken, offset) {
+        getTotpCode(totpToken, offset)
             .flatMapLatest {
                 // Format the totp code, so it's easier to
                 // read for the user.

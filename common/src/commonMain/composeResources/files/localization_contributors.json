@@ -9,6 +9,10 @@
     },
     "languages": [
       {
+        "id": "af",
+        "name": "Afrikaans"
+      },
+      {
         "id": "ar",
         "name": "Arabic"
       },
@@ -69,6 +73,10 @@
         "name": "Korean"
       },
       {
+        "id": "no",
+        "name": "Norwegian"
+      },
+      {
         "id": "pl",
         "name": "Polish"
       },
@@ -87,6 +95,10 @@
       {
         "id": "ru",
         "name": "Russian"
+      },
+      {
+        "id": "sr",
+        "name": "Serbian (Cyrillic)"
       },
       {
         "id": "es-ES",
@@ -109,8 +121,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 9184,
-    "target": 8421,
+    "translated": 11561,
+    "target": 10815,
     "approved": 1049,
     "voted": 0,
     "positiveVotes": 62,
@@ -175,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 645,
-    "target": 737,
+    "translated": 750,
+    "target": 847,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -741,7 +753,7 @@
     "target": 1150,
     "approved": 0,
     "voted": 8,
-    "positiveVotes": 0,
+    "positiveVotes": 1,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -891,10 +903,10 @@
         "name": "Spanish"
       }
     ],
-    "translated": 1269,
-    "target": 1482,
+    "translated": 1359,
+    "target": 1574,
     "approved": 0,
-    "voted": 6,
+    "voted": 7,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -1849,8 +1861,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 6079,
-    "target": 6681,
+    "translated": 6184,
+    "target": 6799,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

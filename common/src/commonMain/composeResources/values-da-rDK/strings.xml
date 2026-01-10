@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Opret en krypteret boks, hvor de lokale data lages.</string>
     <string name="setup_free_text">Ved at fortsætte bekræfter man at have købt Keyguard eller at have haft en aktiv licens.</string>
     <string name="setup_field_app_password_label">App-adgangskode</string>
@@ -1147,6 +1149,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Bemærk, at nogle websteder er kendte for at deaktivere autofyld for adgangskodefelter, samt at nogle webbrowsere er kendte for at ignorere autofyld deaktiveret-flaget</string>
     <string name="pref_item_autofill_save_request_title">Spørg om at gemme data</string>
     <string name="pref_item_autofill_save_request_text">Spørger om opdatering af boksen, når udfyldelsen af en formular er afsluttet</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Autogem app- eller webstedsinfo</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>

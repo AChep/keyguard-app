@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Yerel verilerin saklanacağı şifreli bir kasa oluşturun.</string>
     <string name="setup_free_text">Devam ederek Keyguard'ı satın aldığınızı veya aktif bir lisansınız olduğunu onaylamış olursunuz.</string>
     <string name="setup_field_app_password_label">Uygulama parolası</string>
@@ -1147,6 +1149,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Bazı web sitelerinin parola alanlarında otomatik doldurmayı devre dışı bıraktığı bilinmektedir. Ayrıca, bazı tarayıcıların otomatik doldurma devre dışı bırakılmış olsa bile bu durumu dikkate almadığı da bilinmektedir.</string>
     <string name="pref_item_autofill_save_request_title">Verileri kaydetmeyi sor</string>
     <string name="pref_item_autofill_save_request_text">Bir formun doldurulması tamamlandığında kasayı güncellemeyi sorar</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Uygulama veya web sitesi bilgilerini otomatik kaydet</string>
     <string name="pref_item_autofill_block_uri_title">Otomatik doldurmayı engelle</string>
     <string name="pref_item_autofill_block_uri_text">Bu URI'ler için otomatik doldurma önerilmesini engeller</string>

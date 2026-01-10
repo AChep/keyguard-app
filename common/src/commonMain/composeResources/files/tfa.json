@@ -676,9 +676,14 @@
   {
     "domain": "ameriprise.com",
     "tfa": [
-      "sms"
+      "sms",
+      "totp",
+      "custom-software"
     ],
-    "documentation": "https://www.ameriprise.com/privacy-security-fraud/how-we-protect-information/#02",
+    "custom-software": [
+      "Ameriprise Financial app"
+    ],
+    "documentation": "https://www.ameriprise.com/customer-service/2-step-verification-faq",
     "name": "Ameriprise Financial"
   },
   {
@@ -3207,6 +3212,13 @@
     ],
     "documentation": "https://help.clio.com/hc/en-us/articles/9284706542619",
     "name": "Clio"
+  },
+  {
+    "domain": "clippercard.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "Clipper"
   },
   {
     "domain": "close.com",

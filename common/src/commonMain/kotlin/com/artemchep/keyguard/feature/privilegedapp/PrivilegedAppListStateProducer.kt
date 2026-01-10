@@ -66,6 +66,10 @@ fun producePrivilegedAppListState(
 ) {
     val selectionHandle = selectionHandle("selection")
 
+    // Translations
+    val sectionUserAppsText = translate(Res.string.privilegedapps_user_apps)
+    val sectionCommunityAppsText = translate(Res.string.privilegedapps_community_apps)
+
     suspend fun onDeleteByItems(
         items: List<DPrivilegedApp>,
     ) {
@@ -89,6 +93,72 @@ fun producePrivilegedAppListState(
         }
         navigate(intent)
     }
+
+    suspend fun DPrivilegedApp.toItem(): PrivilegedAppListState.Item.Content {
+        val app = this
+        val canEdit = app.source == DPrivilegedApp.Source.USER
+        val dropdown = buildContextItems {
+            section {
+                if (canEdit) this += FlatItemAction(
+                    icon = Icons.Outlined.Delete,
+                    title = Res.string.delete.wrap(),
+                    onClick = onClick {
+                        onDeleteByItems(
+                            items = listOf(app),
+                        )
+                    },
+                )
+            }
+        }
+
+        val selectableFlow = selectionHandle
+            .idsFlow
+            .map { selectedIds ->
+                SelectableItemStateRaw(
+                    selecting = selectedIds.isNotEmpty(),
+                    selected = app.id in selectedIds,
+                )
+            }
+            .distinctUntilChanged()
+            .map { raw ->
+                val onClick = if (raw.selecting) {
+                    // lambda
+                    selectionHandle::toggleSelection.partially1(app.id.orEmpty())
+                } else {
+                    null
+                }
+                val onLongClick = if (raw.selecting) {
+                    null
+                } else {
+                    // lambda
+                    selectionHandle::toggleSelection.partially1(app.id.orEmpty())
+                }
+                SelectableItemState(
+                    selecting = raw.selecting,
+                    selected = raw.selected,
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                )
+            }
+        val selectableStateFlow =
+            kotlin.run {
+                val sharing = SharingStarted.WhileSubscribed(1000L)
+                selectableFlow.persistingStateIn(this@produceScreenState, sharing)
+            }
+        return PrivilegedAppListState.Item.Content(
+            key = app.id.orEmpty(),
+            title = app.packageName,
+            cert = app.certFingerprintSha256,
+            dropdown = dropdown,
+            selectableState = selectableStateFlow,
+        )
+    }
+
+    suspend fun List<DPrivilegedApp>.toItems(
+    ): List<PrivilegedAppListState.Item.Content> = this
+        .map { app ->
+            app.toItem()
+        }
 
     val itemsRawFlow = getPrivilegedApps()
     // Automatically de-select items
@@ -155,72 +225,33 @@ fun producePrivilegedAppListState(
         }
     val itemsFlow = itemsRawFlow
         .map { list ->
-            val items = list
-                .map {
-                    val canEdit = it.source == DPrivilegedApp.Source.USER
-
-                    val dropdown = buildContextItems {
-                        section {
-                            if (canEdit) this += FlatItemAction(
-                                icon = Icons.Outlined.Delete,
-                                title = Res.string.delete.wrap(),
-                                onClick = onClick {
-                                    onDeleteByItems(
-                                        items = listOf(it),
-                                    )
-                                },
-                            )
-                        }
-                    }
-                    val icon = VaultItemIcon.TextIcon.short(it.packageName)
-
-                    val selectableFlow = selectionHandle
-                        .idsFlow
-                        .map { selectedIds ->
-                            SelectableItemStateRaw(
-                                selecting = selectedIds.isNotEmpty(),
-                                selected = it.id in selectedIds,
-                            )
-                        }
-                        .distinctUntilChanged()
-                        .map { raw ->
-                            val onClick = if (raw.selecting) {
-                                // lambda
-                                selectionHandle::toggleSelection.partially1(it.id.orEmpty())
-                            } else {
-                                null
-                            }
-                            val onLongClick = if (raw.selecting) {
-                                null
-                            } else {
-                                // lambda
-                                selectionHandle::toggleSelection.partially1(it.id.orEmpty())
-                            }
-                            SelectableItemState(
-                                selecting = raw.selecting,
-                                selected = raw.selected,
-                                onClick = onClick,
-                                onLongClick = onLongClick,
-                            )
-                        }
-                    val selectableStateFlow =
-                        if (list.size >= 100) {
-                            val sharing = SharingStarted.WhileSubscribed(1000L)
-                            selectableFlow.persistingStateIn(this, sharing)
-                        } else {
-                            selectableFlow.stateIn(this)
-                        }
-                    PrivilegedAppListState.Item(
-                        key = it.id.orEmpty(),
-                        title = it.packageName,
-                        cert = it.certFingerprintSha256,
-                        dropdown = dropdown,
-                        selectableState = selectableStateFlow,
-                    )
-                }
-            items
+            val userItems = list
+                .filter { it.source == DPrivilegedApp.Source.USER }
+                .toItems()
                 .mapListShape()
-                .toPersistentList()
+            val communityItems = list
+                .filter { it.source == DPrivilegedApp.Source.APP }
+                .toItems()
+                .mapListShape()
+            sequence {
+                if (userItems.isNotEmpty()) {
+                    val sectionItem = PrivilegedAppListState.Item.Section(
+                        key = "section.user",
+                        name = sectionUserAppsText,
+                    )
+                    yield(sectionItem)
+                }
+                yieldAll(userItems)
+
+                if (communityItems.isNotEmpty()) {
+                    val sectionItem = PrivilegedAppListState.Item.Section(
+                        key = "section.community",
+                        name = sectionCommunityAppsText,
+                    )
+                    yield(sectionItem)
+                }
+                yieldAll(communityItems)
+            }.toPersistentList()
         }
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the privileged app list!"

@@ -716,6 +716,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
 
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
     <string name="setup_free_text">By continuing you confirm that you have purchased Keyguard or have had an active license.</string>

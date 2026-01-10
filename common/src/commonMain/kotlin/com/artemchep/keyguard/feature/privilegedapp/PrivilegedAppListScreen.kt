@@ -31,6 +31,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.urloverride.MiniRow
 import com.artemchep.keyguard.res.Res
@@ -181,6 +182,27 @@ private fun NoItemsPlaceholder(
 private fun PrivilegedAppItem(
     modifier: Modifier,
     item: PrivilegedAppListState.Item,
+) {
+    when (item) {
+        is PrivilegedAppListState.Item.Section -> {
+            Section(
+                modifier = modifier,
+                text = item.name,
+            )
+        }
+        is PrivilegedAppListState.Item.Content -> {
+            PrivilegedAppItemContent(
+                modifier = modifier,
+                item = item,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PrivilegedAppItemContent(
+    modifier: Modifier,
+    item: PrivilegedAppListState.Item.Content,
 ) {
     val selectableState by item.selectableState.collectAsState()
     val backgroundColor = when {

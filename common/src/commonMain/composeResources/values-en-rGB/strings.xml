@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
     <string name="setup_free_text">By continuing you confirm that you have purchased Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App password</string>
@@ -1147,6 +1149,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are notorious for disabling autofill for a password field as well as some browsers are notorious for ignoring the autofill disabled flag</string>
     <string name="pref_item_autofill_save_request_title">Ask to save data</string>
     <string name="pref_item_autofill_save_request_text">Asks for updating the vault when filling of a form has completed</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-save app or website info</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>

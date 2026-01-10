@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Crea una cassaforte criptata dove verranno salvati i dati locali.</string>
     <string name="setup_free_text">Continuando confermi di aver acquistato Keyguard o di aver avuto una licenza attiva.</string>
     <string name="setup_field_app_password_label">Password app</string>
@@ -1147,6 +1149,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Si noti che alcuni siti web sono noti per la disabilitazione del riempimento automatico per un campo di password così come alcuni browser sono noti per ignorare il flag di riempimento automatico disabilitato</string>
     <string name="pref_item_autofill_save_request_title">Chiedi di salvare i dati</string>
     <string name="pref_item_autofill_save_request_text">Chiede di aggiornare la cassaforte quando il modulo è stato compilato</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvataggio automatico dell'app o informazioni del sito</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>

@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Crea una caixa forta encriptada on es desaran totes les dades locals.</string>
     <string name="setup_free_text">Continuant confirmes que has comprat Keyguard o tens una llicència activa.</string>
     <string name="setup_field_app_password_label">Contrasenya d'aplicació</string>
@@ -1147,6 +1149,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Tingues en compte que algunes pàgines web tendeixen a deshabilitar l'emplenament automàtic per a camps de contrasenya, i alguns navegadors ignoren la bandera</string>
     <string name="pref_item_autofill_save_request_title">Demana desar dades</string>
     <string name="pref_item_autofill_save_request_text">Demana actualitzar la caixa forta quan es completi un formulari</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Desa informació d'apps o pàgines web automàticament</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>

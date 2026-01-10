@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">建立加密密碼庫以儲存本地資料。</string>
     <string name="setup_free_text">繼續使用此應用意味著您確認您已購買 Keyguard 或有一個可用的 Keyguard 授權。</string>
     <string name="setup_field_app_password_label">應用專用密碼</string>
@@ -1149,6 +1151,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">請注意，有些網站會禁用密碼欄位的自動填寫功能，有些瀏覽器也會忽略禁用自動填寫功能的標記。</string>
     <string name="pref_item_autofill_save_request_title">請求儲存資料</string>
     <string name="pref_item_autofill_save_request_text">填寫表單時詢問是否更新密碼庫</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">自動儲存應用或網站資訊</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>

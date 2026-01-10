@@ -676,6 +676,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in den lokalen Daten gespeichert werden.</string>
     <string name="setup_free_text">Indem Sie fortfahren bestätigen Sie, dass Sie den Keyguard gekauft haben oder eine aktive Lizenz besitzen.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
@@ -1147,6 +1149,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Beachten Sie, dass einige Webseiten dafür berüchtigt sind, Autofill für ein Passwortfeld zu deaktivieren sowie einige Browser dafür berüchtigt sind, die Deaktiviert-Markierung für Autofill zu ignorieren</string>
     <string name="pref_item_autofill_save_request_title">Anfrage zum Speichern von Daten</string>
     <string name="pref_item_autofill_save_request_text">Fragt nach der Aktualisierung des Tresors, wenn das Ausfüllen eines Formulars abgeschlossen ist</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">App oder Website-Info automatisch speichern</string>
     <string name="pref_item_autofill_block_uri_title">Autofill blockieren</string>
     <string name="pref_item_autofill_block_uri_text">Verhindert das Anbieten eines Autofills für diese URIs</string>

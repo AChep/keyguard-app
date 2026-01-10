@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_summary">Manage passwords</string>
-    <string name="listing_summary_long">Manage passwords with ease</string>
-    <string name="listing_description_title">Multi-client for the Bitwarden® platform and KeePass (KDBX), designed to provide the best user experience possible.</string>
-    <string name="listing_description_disclaimer_bitwarden_legal">Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Highlights:</string>
-    <string name="listing_description_highlight_design">Beautiful Interface: a rich, responsive Material You UI with Light/Dark themes.</string>
-    <string name="listing_description_highlight_search">Advanced Search: Powerful and fast search capabilities.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Detects pwned passwords, vulnerable accounts, reused passwords, inactive two-factor authentication, insecure websites, duplicate or expiring items and more.</string>
-    <string name="listing_description_highlight_multiple_accounts">Multi-Account Support: Simultaneously have multiple accounts signed in.</string>
-    <string name="listing_description_highlight_offline">Offline Management: Add items and sends, modify, and view your vault offline.</string>
-    <string name="listing_description_highlight_export">Data Export: Export individual or organization items, including attachments.</string>
-    <string name="listing_description_highlight_generator">Generator: Create passwords, SSH keys and email forwarders, with support for custom wordlists.</string>
-    <string name="listing_description_highlight_other">Advanced Features: Support for shortcuts, Field placeholders, URL overrides, and smart conflict resolution.</string>
+    <string name="listing_summary">Gérer les mots de passe</string>
+    <string name="listing_summary_long">Gérez vos mots de passe facilement</string>
+    <string name="listing_description_title">Multi-client pour la plateforme Bitwarden® et KeePass (KDBX), conçu pour offrir la meilleure expérience utilisateur possible.</string>
+    <string name="listing_description_disclaimer_bitwarden_legal">Peut être utilisé avec n\'importe quelle installation Bitwarden®. Ce produit n\'est pas associé au projet Bitwarden ni à Bitwarden, Inc. Bitwarden® est une marque déposée de Bitwarden Inc.</string>
+    <string name="listing_description_highlights">Points forts :</string>
+    <string name="listing_description_highlight_design">Belle interface : Une interface utilisateur Material You riche et réactive avec des thèmes clair/sombre.</string>
+    <string name="listing_description_highlight_search">Recherche avancée : Des capacités de recherche puissantes et rapides.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower : Détecte les mots de passe compromis, les comptes vulnérables, les mots de passe réutilisés, l\'authentification à deux facteurs inactive, les sites non sécurisés, les éléments en double ou expirants et plus encore.</string>
+    <string name="listing_description_highlight_multiple_accounts">Support multi-comptes : Avoir plusieurs comptes connectés simultanément.</string>
+    <string name="listing_description_highlight_offline">Gestion hors ligne : Ajouter des éléments et des envois, modifier et consulter votre coffre hors ligne.</string>
+    <string name="listing_description_highlight_export">Export de données : Exporter des éléments individuels ou d\'organisation, y compris les pièces jointes.</string>
+    <string name="listing_description_highlight_generator">Générateur : Créer des mots de passe, des clés SSH et des redirections d\'e-mails, avec support des listes de mots personnalisées.</string>
+    <string name="listing_description_highlight_other">Fonctionnalités avancées : Support des raccourcis, espaces réservés de champs, substitutions d\'URL et résolution intelligente des conflits.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
-    <string name="listing_screenshot_home_default">Home screen</string>
+    <string name="listing_screenshot_home_default">Écran d\'accueil</string>
     <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
-    <string name="listing_screenshot_home_dark">Home screen, dark theme</string>
+    <string name="listing_screenshot_home_dark">Écran d\'accueil, thème sombre</string>
     <!-- A content description shown below the Generator screenshort, made with the default settings -->
-    <string name="listing_screenshot_generator_default">Generator screen</string>
+    <string name="listing_screenshot_generator_default">Écran du générateur</string>
     <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
-    <string name="listing_screenshot_watchtower_default">Watchtower screen</string>
+    <string name="listing_screenshot_watchtower_default">Écran Watchtower</string>
 </resources>

@@ -21,7 +21,7 @@
     <string name="current_password">Senha atual</string>
     <string name="new_password">Nova senha</string>
     <string name="no_password">Sem senha</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Avançado</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">Não verificado</string>
@@ -537,25 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar uma chave, memória insuficiente. Por favor, verifique as configurações do servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar uma chave de acesso</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">Falha ao criar uma senha</string>
     <string name="error_failed_use_passkey">Falha ao autorizar um pedido</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">Falha ao autorizar uma solicitação</string>
     <string name="error_failed_open_uri">Falhou em abrir a URI</string>
     <string name="error_failed_format_placeholder">Falha ao formatar o espaço reservado</string>
     <string name="error_failed_open_app_for">Nenhum aplicativo instalado pode realizar esta requisição</string>
     <string name="error_failed_unknown">Algo deu errado</string>
     <string name="error_failed_encrypt_biometric_key">Falha ao criptografar a chave biométrica</string>
     <string name="error_failed_decrypt_biometric_key">Falha ao descriptografar a chave biométrica</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_credential_calling_app_not_privileged">O aplicativo de chamada não está na lista de privilégios e não pode solicitar autenticação em nome de outros aplicativos.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Conceda o privilégio e continue</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Confiar em um aplicativo permite solicitar credenciais para qualquer serviço. Um aplicativo malicioso pode usar isso para tentar roubar suas credenciais.</string>
     <string name="scanqr_title">Escanear código QR</string>
     <string name="scanqr_load_from_image_note">Carregar e analisar um código QR a partir de um arquivo de imagem.</string>
     <string name="scanqr_camera_permission_required_text">É necessária a permissão da câmera para ler os códigos QR.</string>
@@ -670,12 +670,14 @@
     <string name="urlblock_empty_label">Nenhuma URIs bloqueadas</string>
     <string name="urlblock_expose_title">Expor dados para a estrutura de preenchimento automático antes de desbloquear o cofre</string>
     <string name="urlblock_expose_text">Se ativado, o item é armazenado fora do cofre, permitindo ocultar completamente as sugestões de preenchimento automático mesmo se o cofre estiver bloqueado</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_header_title">Aplicativos privilegiados</string>
+    <string name="privilegedapps_list_header_title">Aplicativos privilegiados</string>
+    <string name="privilegedapps_list_section_title">Aplicativos privilegiados</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Excluir o aplicativo privilegiado?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Excluir os aplicativos privilegiados?</string>
+    <string name="privilegedapps_empty_label">Nenhum aplicativo privilegiado</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Crie um cofre criptografado onde os dados locais serão armazenados.</string>
     <string name="setup_free_text">Ao continuar você confirmará que comprou o Keyguard ou que recebeu uma licença ativa.</string>
     <string name="setup_field_app_password_label">Senha do aplicativo</string>
@@ -1147,11 +1149,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Observe que alguns sites são conhecidos por desativar o preenchimento automático de um campo de senha, assim como alguns navegadores são conhecidos por ignorar o sinalizador de desativação do preenchimento automático</string>
     <string name="pref_item_autofill_save_request_title">Pedir para salvar dados</string>
     <string name="pref_item_autofill_save_request_text">Solicita a atualização do cofre quando o preenchimento de um formulário é concluído</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Suporte a chaves de acesso</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Anuncia suporte por chaves de acesso ao Gerenciador de Credenciais, permitindo que o aplicativo atenda a solicitações</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvar automaticamente as informações do aplicativo ou do site</string>
     <string name="pref_item_autofill_block_uri_title">Bloquear preenchimento automático</string>
     <string name="pref_item_autofill_block_uri_text">Prevenir oferecimento de preenchimento automático para essas URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_title">Aplicativos privilegiados</string>
+    <string name="pref_item_autofill_privileged_apps_text">Aplicativos privilegiados podem fazer solicitações de credenciais em nome de outros serviços</string>
     <string name="pref_item_clipboard_auto_clear_title">Limpar área de transferência automaticamente</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Imediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nunca</string>

@@ -21,7 +21,7 @@
     <string name="current_password">Contraseña actual</string>
     <string name="new_password">Nueva contraseña</string>
     <string name="no_password">Sin contraseña</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Avanzado</string>
     <string name="email">Correo electrónico</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">No verificado</string>
@@ -537,25 +537,25 @@
     <string name="error_failed_generate_kdf_hash_oom">Error al crear una clave, no hay suficiente memoria. Por favor, compruebe la configuración del servidor de KDF.</string>
     <string name="error_failed_generate_otp_code">Error al generar el código OTP</string>
     <string name="error_failed_create_passkey">Error al crear una llave de acceso</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">Error al crear una contraseña</string>
     <string name="error_failed_use_passkey">Error al autorizar una solicitud</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">Error al autorizar una solicitud</string>
     <string name="error_failed_open_uri">Error al abrir una URI</string>
     <string name="error_failed_format_placeholder">Error al formatear el marcador de posición</string>
     <string name="error_failed_open_app_for">Ninguna aplicación instalada puede manejar esta solicitud</string>
     <string name="error_failed_unknown">Algo salió mal</string>
     <string name="error_failed_encrypt_biometric_key">Error al cifrar la clave biométrica</string>
     <string name="error_failed_decrypt_biometric_key">Error al descifrar la clave biométrica</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_credential_calling_app_not_privileged">La aplicación que llama no está en la lista de privilegios y no puede solicitar autenticación en nombre de las otras aplicaciones.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Otorgar el privilegio y continuar</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Confiar en una aplicación le permite solicitar credenciales para cualquier servicio. Una aplicación maliciosa podría usarla para intentar robar sus credenciales.</string>
     <string name="scanqr_title">Escanear código QR</string>
     <string name="scanqr_load_from_image_note">Carga y analiza un código QR desde un archivo de imagen.</string>
     <string name="scanqr_camera_permission_required_text">Se requiere permiso de la cámara para escanear códigos QR.</string>
@@ -670,12 +670,14 @@
     <string name="urlblock_empty_label">No hay URIs bloqueadas</string>
     <string name="urlblock_expose_title">Exponer los datos al marco de autocompletado antes de desbloquear la caja fuerte</string>
     <string name="urlblock_expose_text">Si está activado, el elemento se almacena fuera de la caja fuerte, permitiendo ocultar completamente las sugerencias de autocompletado incluso si la caja fuerte está bloqueada</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
+    <string name="privilegedapps_header_title">Aplicaciones privilegiadas</string>
+    <string name="privilegedapps_list_header_title">Aplicaciones privilegiadas</string>
+    <string name="privilegedapps_list_section_title">Aplicaciones privilegiadas</string>
+    <string name="privilegedapps_delete_one_confirmation_title">¿Eliminar la aplicación privilegiada?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">¿Eliminar las aplicaciones privilegiadas?</string>
+    <string name="privilegedapps_empty_label">No hay aplicaciones privilegiadas</string>
+    <string name="privilegedapps_user_apps">User apps</string>
+    <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Crear una bóveda cifrada donde se almacenarán los datos locales.</string>
     <string name="setup_free_text">Al continuar confirma que ha comprado Keyguard o que ha tenido una licencia activa.</string>
     <string name="setup_field_app_password_label">Contraseña de la app</string>
@@ -1147,11 +1149,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Toma en cuenta que algunos sitios web es difícil desactivar el autorrellenado para un campo de contraseña, así como algunos navegadores son difíciles para ignorar la bandera se autorrellenado desactivado</string>
     <string name="pref_item_autofill_save_request_title">Preguntar para guardar datos</string>
     <string name="pref_item_autofill_save_request_text">Pregunta para actualizar la caja fuerte cuando se completa el llenado de un formulario</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-guardar app o información de un sitio</string>
     <string name="pref_item_autofill_block_uri_title">Bloquear autocompletado</string>
     <string name="pref_item_autofill_block_uri_text">Evita ofrecer autocompletado para estas URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_title">Aplicaciones privilegiadas</string>
+    <string name="pref_item_autofill_privileged_apps_text">Las aplicaciones privilegiadas pueden hacer peticiones de credenciales en nombre de otros servicios</string>
     <string name="pref_item_clipboard_auto_clear_title">Borrar automáticamente el portapapeles</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Inmediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nunca</string>

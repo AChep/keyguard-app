@@ -2956,6 +2956,14 @@
     "notes": "Remove all your backup repositories, then in the account tab click on profile and on the bottom of the page you'll find a button to remove your account."
   },
   {
+    "name": "Borrow My Doggy",
+    "domains": [
+      "borrowmydoggy.com"
+    ],
+    "url": "https://help.borrowmydoggy.com/hc/en-gb/articles/115003534709-How-do-I-close-delete-my-account",
+    "difficulty": "hard"
+  },
+  {
     "name": "Borussia Dortmund",
     "domains": [
       "bvb.de"
@@ -10803,6 +10811,15 @@
     "notes": "Sends a verification email with a confirmation button before submitting the deletion request."
   },
   {
+    "name": "IPGeolocation.io",
+    "domains": [
+      "ipgeolocation.io"
+    ],
+    "url": "https://ipgeolocation.io",
+    "difficulty": "easy",
+    "notes": "Sign in to your account, go to \"Profile\", then click \"Delete\". Confirm by clicking \"Delete account\"."
+  },
+  {
     "name": "ipinfo.io",
     "domains": [
       "ipinfo.io"
@@ -13044,6 +13061,15 @@
     "url": "https://help.match.com/hc/en-us/articles/5610035266075-Delete-My-Account",
     "difficulty": "medium",
     "notes": "Only possible within the mobile app, otherwise can only be done via [contacting support](https://help.match.com/hc/en-us/requests/new)."
+  },
+  {
+    "name": "MatGoat",
+    "domains": [
+      "matgoat.com"
+    ],
+    "url": "https://matgoat.com",
+    "difficulty": "easy",
+    "notes": "Sign in \u2b95 Go to your Account \u2b95 \"Delete My Account\". You'll receive an email once it's completed."
   },
   {
     "name": "Mathpix",
@@ -18439,9 +18465,9 @@
     "domains": [
       "rueducommerce.fr"
     ],
-    "url": "https://www.rueducommerce.fr",
-    "difficulty": "impossible",
-    "notes": "No online request possible."
+    "url": "https://secure.rueducommerce.fr/Identity",
+    "difficulty": "easy",
+    "notes": "At the bottom of the account page, press the button 'Supprimer mon compte'."
   },
   {
     "name": "Rumble",
@@ -23684,6 +23710,15 @@
     "difficulty": "hard",
     "notes": "Submit a request to delete your account using the contact form provided.",
     "email": "support@whizlabs.com"
+  },
+  {
+    "name": "Whoisfreaks",
+    "domains": [
+      "whoisfreaks.com"
+    ],
+    "url": "https://billing.whoisfreaks.com/profile",
+    "difficulty": "easy",
+    "notes": "You can delete your own account by navigating to the Profile and then clicking on the `delete account` button."
   },
   {
     "name": "WhoSay.com",

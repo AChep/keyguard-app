@@ -41,6 +41,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -56,9 +57,9 @@ import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.totp.formatCode2
@@ -135,6 +136,8 @@ fun VaultViewTotpItem(
                     VaultViewTotpBadge2(
                         modifier = Modifier
                             .heightIn(min = 32.dp),
+                        contentModifier = Modifier
+                            .alpha(MediumEmphasisAlpha),
                         copyText = item.copy,
                         totpToken = item.totp,
                         showTimeout = false,
@@ -142,9 +145,6 @@ fun VaultViewTotpItem(
                     )
                 }
             }
-        },
-        leading = {
-            IconBox(main = Icons.Outlined.KeyguardTwoFa)
         },
         trailing = {
             val onCopyAction = remember(dropdown) {
@@ -194,6 +194,7 @@ fun RowScope.VaultViewTotpBadge(
 @Composable
 fun VaultViewTotpBadge2(
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     copyText: CopyText,
     totpToken: TotpToken,
     showTimeout: Boolean = true,
@@ -224,7 +225,8 @@ fun VaultViewTotpBadge2(
                 end = 4.dp,
                 top = 4.dp,
                 bottom = 4.dp,
-            ),
+            )
+            .then(contentModifier),
     ) {
         VaultViewTotpCodeContent(
             totp = totpToken,
@@ -237,7 +239,7 @@ fun VaultViewTotpBadge2(
             Row {
                 Spacer(
                     modifier = Modifier
-                        .width(16.dp),
+                        .width(Dimens.buttonIconPadding),
                 )
                 VaultViewTotpRemainderBadge(
                     state = state,

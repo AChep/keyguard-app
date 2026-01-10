@@ -378,6 +378,30 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "51bb3299be9d7ec351746b218d0dcb08",
+    "name": "Atlassian",
+    "domain": "atlassian.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-05-05T06:17:16.807824+00:00"
+  },
+  {
+    "id": "a994505f565a3c1271b8c3a50ca7158f",
+    "name": "Atlassian",
+    "domain": "atlassian.net",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-09-15T10:02:19.411222+00:00"
+  },
+  {
     "id": "b91b373882b8442d694254959a6d7dcd",
     "name": "Authgear",
     "domain": "authgear.com",
@@ -1444,6 +1468,18 @@
     "created_at": "2023-07-14T13:16:30.051967+00:00"
   },
   {
+    "id": "c65948e8bcba4ad57511949de68c417a",
+    "name": "Atlassian",
+    "domain": "id.atlassian.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-30T21:26:54.14783+00:00"
+  },
+  {
     "id": "4db2a87f650fddc9dc3563ce117efabf",
     "name": "au",
     "domain": "id.auone.jp",
@@ -2454,6 +2490,18 @@
     "category": "Information Technology",
     "created_at": "2023-06-05T11:10:13.364756+00:00",
     "notes": "Powered by Passage by 1Password."
+  },
+  {
+    "id": "d58ba69bad8f845739c197eacb74601f",
+    "name": "Ramp",
+    "domain": "ramp.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.ramp.com/hc/en-us/articles/38214284722451-Logging-in-with-Passkeys",
+    "setup": "https://app.ramp.com/settings/personal-settings/security#/d/personal-settings/passkeys",
+    "category": "Finance",
+    "created_at": "2026-01-05T17:39:05.892118+00:00"
   },
   {
     "id": "36255c78c7acc899f15f0b992cce4d50",

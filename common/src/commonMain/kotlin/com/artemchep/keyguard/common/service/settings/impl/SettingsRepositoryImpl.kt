@@ -48,6 +48,7 @@ class SettingsRepositoryImpl(
         private const val KEY_AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill.respect_autofill_off"
         private const val KEY_AUTOFILL_SAVE_REQUEST = "autofill.save_request"
         private const val KEY_AUTOFILL_SAVE_URI = "autofill.save_uri"
+        private const val KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT = "autofill.advertise_passkeys_support"
         private const val KEY_AUTOFILL_COPY_TOTP = "autofill.copy_totp"
         private const val KEY_VAULT_PERSIST = "vault_persist"
         private const val KEY_VAULT_REBOOT = "vault_reboot"
@@ -108,6 +109,9 @@ class SettingsRepositoryImpl(
 
     private val autofillSaveUriPref =
         store.getBoolean(KEY_AUTOFILL_SAVE_URI, false)
+
+    private val advertisePasskeysSupportPref =
+        store.getBoolean(KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT, true)
 
     private val autofillCopyTotpPref =
         store.getBoolean(KEY_AUTOFILL_COPY_TOTP, true)
@@ -380,6 +384,11 @@ class SettingsRepositoryImpl(
 
     override fun setAutofillSaveUri(saveUri: Boolean) = autofillSaveUriPref
         .setAndCommit(saveUri)
+
+    override fun getAdvertisePasskeysSupport() = advertisePasskeysSupportPref
+
+    override fun setAdvertisePasskeysSupport(advertisePasskeysSupport: Boolean) = advertisePasskeysSupportPref
+        .setAndCommit(advertisePasskeysSupport)
 
     override fun getAutofillSaveUri() = autofillSaveUriPref
 

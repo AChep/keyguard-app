@@ -34,6 +34,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCop
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillInlineSuggestionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillManualSelectionProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPasskeysEnabledProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPrivilegedAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRespectAutofillOffProvider
@@ -133,6 +134,7 @@ object Setting {
     const val AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill_respect_autofill_off"
     const val AUTOFILL_SAVE_REQUEST = "autofill_save_request"
     const val AUTOFILL_SAVE_URI = "autofill_save_uri"
+    const val AUTOFILL_PASSKEYS = "autofill_passkeys"
     const val AUTOFILL_BLOCK_URI = "autofill_block_uri"
     const val AUTOFILL_PRIVILEGED_APPS = "autofill_privileged_apps"
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
@@ -229,6 +231,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_RESPECT_AUTOFILL_OFF to ::settingAutofillRespectAutofillOffProvider,
     Setting.AUTOFILL_SAVE_REQUEST to ::settingAutofillSaveRequestProvider,
     Setting.AUTOFILL_SAVE_URI to ::settingAutofillSaveUriProvider,
+    Setting.AUTOFILL_PASSKEYS to ::settingAutofillPasskeysEnabledProvider,
     Setting.AUTOFILL_BLOCK_URI to ::settingAutofillBlockUriProvider,
     Setting.AUTOFILL_PRIVILEGED_APPS to ::settingAutofillPrivilegedAppProvider,
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,

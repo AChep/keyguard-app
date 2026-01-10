@@ -400,9 +400,13 @@ import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppReposi
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
+import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
+import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -649,6 +653,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetAutofillPasskeysEnabled> {
+        GetAutofillPasskeysEnabledImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetAutofillSaveRequest> {
         GetAutofillSaveRequestImpl(
             directDI = this,
@@ -844,6 +853,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutAutofillRespectAutofillOff> {
         PutAutofillRespectAutofillOffImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutAutofillPasskeysEnabled> {
+        PutAutofillPasskeysEnabledImpl(
             directDI = this,
         )
     }

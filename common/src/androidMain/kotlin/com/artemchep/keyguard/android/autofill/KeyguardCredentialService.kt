@@ -29,10 +29,13 @@ import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepo
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.combineIo
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -69,6 +72,8 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
 
     private val getCanWrite by instance<GetCanWrite>()
 
+    private val getPasskeysEnabled by instance<GetAutofillPasskeysEnabled>()
+
     private val sessionFlow by lazy {
         val getVaultSession: GetVaultSession by di.instance()
         getVaultSession()
@@ -89,11 +94,8 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
     ) {
         ioEffect {
             recordLog("Got begin create credential request")
-            // Check if you can modify items in the vault, if
-            // no then ignore the passkeys request.
-            val canWrite = getCanWrite()
-                .first()
-            if (!canWrite) {
+            val shouldSkip = shouldSkipCreateRequest(request)
+            if (shouldSkip) {
                 val e = CreateCredentialUnknownException()
                 throw e
             }
@@ -147,6 +149,11 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
     ) {
         ioEffect {
             recordLog("Got begin get credential request")
+            val shouldSkip = shouldSkipGetRequest(request)
+            if (shouldSkip) {
+                val e = GetCredentialUnknownException()
+                throw e
+            }
 
             when (val session = sessionFlow.first()) {
                 is MasterSession.Key -> {
@@ -208,6 +215,28 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
             }
             .attempt()
             .launchIn(scope)
+    }
+
+    private suspend fun shouldSkipCreateRequest(request: BeginCreateCredentialRequest): Boolean {
+        if (request !is BeginCreatePublicKeyCredentialRequest) {
+            return !getCanWrite().toIO().bind()
+        }
+
+        val shouldSkip = combineIo(
+            getPasskeysEnabled().toIO(),
+            // Check if you can modify items in the vault, if
+            // no then ignore the passkeys request.
+            getCanWrite().toIO(),
+        ) { passkeysEnabled, canWrite ->
+            !passkeysEnabled ||
+                    !canWrite
+        }.bind()
+        return shouldSkip
+    }
+
+    private suspend fun shouldSkipGetRequest(request: BeginGetCredentialRequest): Boolean {
+        val shouldSkip = !getPasskeysEnabled().toIO().bind()
+        return shouldSkip
     }
 
     override fun onClearCredentialStateRequest(

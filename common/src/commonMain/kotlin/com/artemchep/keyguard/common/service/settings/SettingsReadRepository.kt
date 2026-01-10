@@ -42,6 +42,8 @@ interface SettingsReadRepository {
 
     fun getAutofillSaveUri(): Flow<Boolean>
 
+    fun getAdvertisePasskeysSupport(): Flow<Boolean>
+
     fun getAutofillCopyTotp(): Flow<Boolean>
 
     fun getVaultPersist(): Flow<Boolean>

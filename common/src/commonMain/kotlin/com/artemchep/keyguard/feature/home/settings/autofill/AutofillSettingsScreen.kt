@@ -55,6 +55,7 @@ fun AutofillSettingsScreen() {
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.AUTOFILL_BLOCK_URI),
                     SettingPaneItem.Item(Setting.AUTOFILL_PRIVILEGED_APPS),
+                    SettingPaneItem.Item(Setting.AUTOFILL_PASSKEYS),
                 ),
             ),
         )

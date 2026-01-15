@@ -357,6 +357,10 @@ fun <T> ColumnScope.DropdownMenuExpandableContainer(
                 dropdownScope.DropdownMenuItemFlatLayout(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(
+                            horizontal = 8.dp,
+                        )
+                        .clip(MaterialTheme.shapes.medium)
                         .clickable {
                             maximized = true
                         },

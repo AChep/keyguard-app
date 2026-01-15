@@ -213,7 +213,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         cancellationSignal: CancellationSignal,
         callback: FillCallback,
     ) {
-        getAutofillStructureIo(request)
+        val fillRequestJob = getAutofillStructureIo(request)
             .effectMap { autofillStructure ->
                 if (autofillStructure.items.isEmpty()) {
                     throw AbortAutofillException("Nothing to autofill.")
@@ -286,7 +286,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             .dispatchOn(Dispatchers.Main.immediate)
             .launchIn(scope)
         cancellationSignal.setOnCancelListener {
-            job.cancel()
+            fillRequestJob.cancel()
         }
     }
 

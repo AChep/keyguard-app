@@ -13,6 +13,9 @@ CREATE TABLE watchtowerThreat (
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_watchtowerThreat_threat_reportedAt ON watchtowerThreat(threat, reportedAt DESC);
+CREATE INDEX idx_watchtowerThreat_type_version ON watchtowerThreat(type, version);
+
 upsert {
   UPDATE watchtowerThreat
   SET
@@ -67,16 +70,16 @@ WHERE
 ORDER BY watchtowerThreat.reportedAt DESC;
 
 getPendingCipherIds:
-SELECT DISTINCT
+SELECT
   c.cipherId
 FROM
   cipher c
 LEFT JOIN (
-  SELECT *
+  SELECT cipherId, type, reportedAt
   FROM watchtowerThreat
   WHERE
-    watchtowerThreat.type = :type AND
-    watchtowerThreat.version = :version
+    type = :type AND
+    version = :version
 ) t ON c.cipherId = t.cipherId
 WHERE
   t.type IS NULL OR

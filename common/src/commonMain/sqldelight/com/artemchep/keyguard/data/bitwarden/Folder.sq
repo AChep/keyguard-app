@@ -7,6 +7,8 @@ CREATE TABLE folder (
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_folder_accountId ON folder(accountId);
+
 insert {
   UPDATE folder
   SET

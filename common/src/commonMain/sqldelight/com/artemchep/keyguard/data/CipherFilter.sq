@@ -10,6 +10,8 @@ CREATE TABLE cipherFilter (
   icon TEXT
 );
 
+CREATE INDEX idx_cipherFilter_createdAt ON cipherFilter(createdAt DESC);
+
 INSERT INTO cipherFilter(name, data, updatedAt, createdAt, type, icon)
 VALUES (
   '',

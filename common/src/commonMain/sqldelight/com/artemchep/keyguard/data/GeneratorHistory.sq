@@ -11,6 +11,8 @@ CREATE TABLE generatorHistory (
   isSshKey INTEGER AS Boolean
 );
 
+CREATE INDEX idx_generatorHistory_createdAt ON generatorHistory(createdAt DESC);
+
 insert:
 INSERT INTO generatorHistory(value, createdAt, isPassword, isUsername, isEmailRelay, isSshKey)
 VALUES (?, ?, ?, ?, ?, ?);

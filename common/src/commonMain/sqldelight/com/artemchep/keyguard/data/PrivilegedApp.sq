@@ -8,6 +8,8 @@ CREATE TABLE privilegedApp (
   createdAt INTEGER AS Instant NOT NULL
 );
 
+CREATE INDEX idx_privilegedApp_createdAt ON privilegedApp(createdAt DESC);
+
 update {
   UPDATE privilegedApp
   SET

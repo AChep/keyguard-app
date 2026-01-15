@@ -11,6 +11,8 @@ CREATE TABLE urlBlock (
   exposed INTEGER
 );
 
+CREATE INDEX idx_urlBlock_createdAt ON urlBlock(createdAt DESC);
+
 update {
   UPDATE urlBlock
   SET

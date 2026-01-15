@@ -5,6 +5,8 @@ CREATE TABLE generatorWordlistWord (
   FOREIGN KEY (wordlistId) REFERENCES generatorWordlist(id) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_generatorWordlistWord_wordlistId_word ON generatorWordlistWord(wordlistId, word);
+
 insert {
   INSERT OR IGNORE INTO generatorWordlistWord(wordlistId, word)
   VALUES (:wordlistId, :word);

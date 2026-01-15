@@ -1,0 +1,36 @@
+-- Cipher indexes
+CREATE INDEX IF NOT EXISTS idx_cipher_accountId ON cipher(accountId);
+CREATE INDEX IF NOT EXISTS idx_cipher_folderId ON cipher(folderId);
+CREATE INDEX IF NOT EXISTS idx_cipher_updatedAt ON cipher(updatedAt);
+
+-- CipherUsageHistory indexes
+CREATE INDEX IF NOT EXISTS idx_cipherUsageHistory_cipherId_createdAt ON cipherUsageHistory(cipherId, createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_cipherUsageHistory_type_cipherId_credentialId ON cipherUsageHistory(type, cipherId, credentialId);
+
+-- WatchtowerThreat indexes
+CREATE INDEX IF NOT EXISTS idx_watchtowerThreat_threat_reportedAt ON watchtowerThreat(threat, reportedAt DESC);
+CREATE INDEX IF NOT EXISTS idx_watchtowerThreat_type_version ON watchtowerThreat(type, version);
+
+-- Generator indexes
+CREATE INDEX IF NOT EXISTS idx_generatorWordlist_createdAt ON generatorWordlist(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_generatorWordlistWord_wordlistId_word ON generatorWordlistWord(wordlistId, word);
+CREATE INDEX IF NOT EXISTS idx_generatorHistory_createdAt ON generatorHistory(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_generatorEmailRelay_createdAt ON generatorEmailRelay(createdAt DESC);
+
+-- URL indexes
+CREATE INDEX IF NOT EXISTS idx_urlBlock_createdAt ON urlBlock(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_urlOverride_createdAt ON urlOverride(createdAt DESC);
+
+-- Other indexes
+CREATE INDEX IF NOT EXISTS idx_privilegedApp_createdAt ON privilegedApp(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_cipherFilter_createdAt ON cipherFilter(createdAt DESC);
+
+-- Foreign key indexes for accountId lookups
+CREATE INDEX IF NOT EXISTS idx_folder_accountId ON folder(accountId);
+CREATE INDEX IF NOT EXISTS idx_organization_accountId ON organization(accountId);
+CREATE INDEX IF NOT EXISTS idx_collection_accountId ON collection(accountId);
+CREATE INDEX IF NOT EXISTS idx_profile_accountId ON profile(accountId);
+CREATE INDEX IF NOT EXISTS idx_send_accountId ON send(accountId);
+CREATE INDEX IF NOT EXISTS idx_equivalentDomains_accountId ON equivalentDomains(accountId);
+
+ANALYZE;

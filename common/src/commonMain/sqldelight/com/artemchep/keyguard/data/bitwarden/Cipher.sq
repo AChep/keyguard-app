@@ -10,6 +10,10 @@ CREATE TABLE cipher (
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_cipher_accountId ON cipher(accountId);
+CREATE INDEX idx_cipher_folderId ON cipher(folderId);
+CREATE INDEX idx_cipher_updatedAt ON cipher(updatedAt);
+
 insert {
   UPDATE cipher
   SET

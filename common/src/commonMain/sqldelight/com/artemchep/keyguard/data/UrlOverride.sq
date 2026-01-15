@@ -9,6 +9,8 @@ CREATE TABLE urlOverride (
   enabled INTEGER NOT NULL
 );
 
+CREATE INDEX idx_urlOverride_createdAt ON urlOverride(createdAt DESC);
+
 INSERT INTO urlOverride(name, regex, command, createdAt, enabled)
 VALUES (
   'HTTPS-ify',

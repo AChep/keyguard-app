@@ -8,6 +8,8 @@ CREATE TABLE generatorEmailRelay (
   createdAt INTEGER AS Instant NOT NULL
 );
 
+CREATE INDEX idx_generatorEmailRelay_createdAt ON generatorEmailRelay(createdAt DESC);
+
 update {
   UPDATE generatorEmailRelay
   SET

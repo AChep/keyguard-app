@@ -1234,12 +1234,9 @@ private fun FieldLinkedIdField(
     val labelInteractionSource = remember { MutableInteractionSource() }
     val valueInteractionSource = remember { MutableInteractionSource() }
 
-    val isError = remember(
-        label.error,
-    ) {
-        derivedStateOf {
-            label.error != null
-        }
+    val isError = kotlin.run {
+        val error = label.error != null
+        rememberUpdatedState(error)
     }
 
     val hasFocusState = remember {
@@ -1392,11 +1389,8 @@ private fun DateMonthYearField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    val isEmpty by derivedStateOf {
-        val isEmpty = state.month.state.value.isEmpty() &&
-                state.year.state.value.isEmpty()
-        isEmpty
-    }
+    val isEmpty = state.month.state.value.isEmpty() &&
+            state.year.state.value.isEmpty()
     val onClear = remember {
         // lambda
         {

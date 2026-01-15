@@ -103,6 +103,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.PLACEHOLDER_EMAIL
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
@@ -1101,7 +1102,7 @@ fun produceGeneratorState(
                 model = TextFieldModel2(
                     state = emailPlusAddressingEmailState,
                     text = config.email,
-                    hint = "username@example.com",
+                    hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
@@ -1153,7 +1154,7 @@ fun produceGeneratorState(
                 model = TextFieldModel2(
                     state = emailSubdomainAddressingEmailState,
                     text = config.email,
-                    hint = "username@example.com",
+                    hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)

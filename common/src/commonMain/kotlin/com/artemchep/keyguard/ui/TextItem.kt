@@ -81,7 +81,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
@@ -120,11 +119,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlin.math.exp
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.math.max
 import kotlin.math.roundToInt
+
+const val PLACEHOLDER_EMAIL = "username@example.com"
 
 @Composable
 fun UrlFlatTextField(
@@ -219,7 +219,7 @@ fun EmailFlatTextField(
     boxModifier: Modifier = Modifier,
     testTag: String? = null,
     label: String? = null,
-    placeholder: String? = "username@example.com",
+    placeholder: String? = PLACEHOLDER_EMAIL,
     value: TextFieldModel2,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
@@ -1227,13 +1227,9 @@ fun BiFlatTextField(
     val labelInteractionSource = remember { MutableInteractionSource() }
     val valueInteractionSource = remember { MutableInteractionSource() }
 
-    val isError = remember(
-        value.error,
-        label.error,
-    ) {
-        derivedStateOf {
-            value.error != null || label.error != null
-        }
+    val isError = kotlin.run {
+        val error = value.error != null || label.error != null
+        rememberUpdatedState(error)
     }
     val hasFocusState = remember {
         mutableStateOf(false)

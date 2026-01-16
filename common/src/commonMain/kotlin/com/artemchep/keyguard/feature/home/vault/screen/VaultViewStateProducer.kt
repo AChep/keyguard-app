@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -73,7 +74,6 @@ import com.artemchep.keyguard.common.model.LinkInfoExecute
 import com.artemchep.keyguard.common.model.LinkInfoLaunch
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
-import com.artemchep.keyguard.common.model.UsernameVariation
 import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.alertScore
@@ -83,6 +83,9 @@ import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.formatH
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.model.titleH
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
+import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
@@ -161,6 +164,7 @@ import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.component.UrlAppStoreListings
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
@@ -318,6 +322,9 @@ fun vaultViewScreenState(
         windowCoroutineScope = instance(),
         placeholderFactories = allInstances(),
         linkInfoExtractors = allInstances(),
+        iosAppAppStoreParser = instance(),
+        androidAppGooglePlayParser = instance(),
+        androidAppFDroidParser = instance(),
         mode = mode,
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
@@ -405,6 +412,9 @@ fun vaultViewScreenState(
     addCipherOpenedHistory: AddCipherOpenedHistory,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     windowCoroutineScope: WindowCoroutineScope,
     placeholderFactories: List<Placeholder.Factory>,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
@@ -1214,6 +1224,9 @@ fun vaultViewScreenState(
                         cipherIncompleteCheck = cipherIncompleteCheck,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                        iosAppAppStoreParser = iosAppAppStoreParser,
+                        androidAppGooglePlayParser = androidAppGooglePlayParser,
+                        androidAppFDroidParser = androidAppFDroidParser,
                         verify = verify,
                     ).toList().transformShapes(),
                 )
@@ -1273,6 +1286,9 @@ private fun RememberStateFlowScope.oh(
     cipherIncompleteCheck: CipherIncompleteCheck,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     verify: ((() -> Unit) -> Unit)?,
 ) = flow<VaultViewItem> {
     val hasWiFi = kotlin.run {
@@ -2216,6 +2232,9 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                     getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                    iosAppAppStoreParser = iosAppAppStoreParser,
+                    androidAppGooglePlayParser = androidAppGooglePlayParser,
+                    androidAppFDroidParser = androidAppFDroidParser,
                     executeCommand = executeCommand,
                     holder = holder,
                     id = id,
@@ -2261,6 +2280,9 @@ private fun RememberStateFlowScope.oh(
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                     getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                     getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                    iosAppAppStoreParser = iosAppAppStoreParser,
+                    androidAppGooglePlayParser = androidAppGooglePlayParser,
+                    androidAppFDroidParser = androidAppFDroidParser,
                     executeCommand = executeCommand,
                     holder = holder,
                     id = id,
@@ -2721,6 +2743,9 @@ private suspend fun RememberStateFlowScope.createUriItem(
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     executeCommand: ExecuteCommand,
     holder: Holder,
     id: String,
@@ -2785,6 +2810,9 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
                         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
                         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+                        iosAppAppStoreParser = iosAppAppStoreParser,
+                        androidAppGooglePlayParser = androidAppGooglePlayParser,
+                        androidAppFDroidParser = androidAppFDroidParser,
                         executeCommand = executeCommand,
                         uri = content.uri,
                         info = content.info,
@@ -2815,6 +2843,9 @@ private suspend fun RememberStateFlowScope.createUriItem(
         cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
         getJustDeleteMeByUrl = getJustDeleteMeByUrl,
         getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+        iosAppAppStoreParser = iosAppAppStoreParser,
+        androidAppGooglePlayParser = androidAppGooglePlayParser,
+        androidAppFDroidParser = androidAppFDroidParser,
         executeCommand = executeCommand,
         uri = holder.uri.uri,
         info = holder.info,
@@ -3030,6 +3061,9 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
     getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
     getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
     executeCommand: ExecuteCommand,
     uri: String,
     info: List<LinkInfo>,
@@ -3072,17 +3106,10 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                                     navigate(intent)
                                 },
                             )
-                            this += FlatItemAction(
-                                icon = Icons.AutoMirrored.Outlined.Launch,
-                                title = Res.string.uri_action_launch_play_store_title.wrap(),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
-                                    navigate(intent)
-                                },
+                            this += createUriContextAppStoreListingAndroid(
+                                androidAppGooglePlayParser = androidAppGooglePlayParser,
+                                androidAppFDroidParser = androidAppFDroidParser,
+                                platformMarker = platformMarker,
                             )
                         }
                         section {
@@ -3111,17 +3138,10 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             )
                         }
                         section {
-                            this += FlatItemAction(
-                                icon = Icons.AutoMirrored.Outlined.Launch,
-                                title = Res.string.uri_action_launch_play_store_title.wrap(),
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = {
-                                    val intent =
-                                        NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
-                                    navigate(intent)
-                                },
+                            this += createUriContextAppStoreListingAndroid(
+                                androidAppGooglePlayParser = androidAppGooglePlayParser,
+                                androidAppFDroidParser = androidAppFDroidParser,
+                                platformMarker = platformMarker,
                             )
                         }
                         section {
@@ -3149,6 +3169,12 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     this += copy.FlatItemAction(
                         title = Res.string.copy_package_name.wrap(),
                         value = platformMarker.packageName,
+                    )
+                }
+                section {
+                    this += createUriContextAppStoreListingIOS(
+                        iosAppAppStoreParser = iosAppAppStoreParser,
+                        platformMarker = platformMarker,
                     )
                 }
             }
@@ -3359,6 +3385,80 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             }
             return dropdown
         }
+    }
+}
+
+private fun RememberStateFlowScope.createUriContextAppStoreListingAndroid(
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
+    platformMarker: LinkInfoPlatform.Android,
+): ContextItem {
+    val androidGooglePlayStoreListingFlow = flow {
+        val info = androidAppGooglePlayParser(platformMarker.packageName)
+            .attempt()
+            .bind()
+        emit(info)
+    }
+    val androidFDroidStoreListingFlow = flow {
+        val infoEither = androidAppFDroidParser(platformMarker.packageName)
+            .attempt()
+            .bind()
+        emit(infoEither)
+    }
+    val listings = listOf(
+        VaultViewItem.Uri.AppStoreListing(
+            store = "Google Play",
+            state = androidGooglePlayStoreListingFlow,
+            onClick = {
+                val intent =
+                    NavigationIntent.NavigateToBrowser(platformMarker.playStoreUrl)
+                navigate(intent)
+            },
+        ),
+        VaultViewItem.Uri.AppStoreListing(
+            store = "F-Droid",
+            state = androidFDroidStoreListingFlow,
+            onClick = {
+                val intent =
+                    NavigationIntent.NavigateToBrowser(platformMarker.fDroidUrl)
+                navigate(intent)
+            },
+        ),
+    )
+    return ContextItem.Custom {
+        UrlAppStoreListings(
+            modifier = Modifier
+                .fillMaxWidth(),
+            listings = listings,
+        )
+    }
+}
+
+private fun RememberStateFlowScope.createUriContextAppStoreListingIOS(
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    platformMarker: LinkInfoPlatform.IOS,
+): ContextItem {
+    val iosAppStoreListingFlow = flow {
+        val info = iosAppAppStoreParser(platformMarker.packageName)
+            .attempt()
+            .bind()
+        emit(info)
+    }
+    val listings = listOf(
+        VaultViewItem.Uri.AppStoreListing(
+            store = "App Store",
+            state = iosAppStoreListingFlow,
+            onClick = {
+                // Do nothing
+            },
+        ),
+    )
+    return ContextItem.Custom {
+        UrlAppStoreListings(
+            modifier = Modifier
+                .fillMaxWidth(),
+            listings = listings,
+        )
     }
 }
 

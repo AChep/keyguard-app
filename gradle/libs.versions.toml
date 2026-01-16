@@ -104,6 +104,8 @@ ktlintPlugin = "14.0.1"
 ktor = "3.3.3"
 # https://github.com/keemobile/kotpass
 kotpass = "0.13.0"
+# https://github.com/MohamedRejeb/Ksoup
+ksoup = "0.6.0"
 # https://github.com/java-native-access/jna
 jna = "5.18.1"
 # https://github.com/osipxd/encrypted-datastore
@@ -272,6 +274,7 @@ ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref =
 ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
 keemobile-kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
+ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }

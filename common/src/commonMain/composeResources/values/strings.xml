@@ -559,6 +559,7 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>

@@ -26,6 +26,8 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.app.AppIconFetcher
+import com.artemchep.keyguard.common.service.app.AppIconKeyer
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
@@ -109,7 +111,12 @@ fun main() {
 
     val appDi = DI.invoke {
         import(diFingerprintRepositoryModule())
-        val imageLoaderModule = imageLoaderModule {
+
+        val imageLoaderModule = imageLoaderModule { directDI ->
+            add(AppIconFetcher.Factory(
+                googlePlayParser = directDI.instance(),
+            ))
+            add(AppIconKeyer())
         }
         import(imageLoaderModule)
         bindSingleton {

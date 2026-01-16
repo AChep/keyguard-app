@@ -135,6 +135,7 @@ kotlin {
                 api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
                 api(libs.mm2d.touchicon)
+                api(libs.ksoup.html)
             }
         }
         commonTest.dependencies {

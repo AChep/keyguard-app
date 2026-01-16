@@ -3,6 +3,9 @@ package com.artemchep.keyguard.di
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.AppWorkerIm
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
+import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
@@ -395,8 +398,6 @@ import com.artemchep.keyguard.copy.SimilarityServiceJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
-import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepository
-import com.artemchep.keyguard.common.service.gpmprivapps.UserPrivilegedAppRepositoryImpl
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
@@ -1321,6 +1322,21 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<DeeplinkService> {
         DeeplinkServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<AndroidAppGooglePlayParser> {
+        AndroidAppGooglePlayParser(
+            directDI = this,
+        )
+    }
+    bindSingleton<AndroidAppFDroidParser> {
+        AndroidAppFDroidParser(
+            directDI = this,
+        )
+    }
+    bindSingleton<IosAppAppStoreParser> {
+        IosAppAppStoreParser(
             directDI = this,
         )
     }

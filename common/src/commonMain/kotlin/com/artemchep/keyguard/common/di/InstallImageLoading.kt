@@ -32,13 +32,14 @@ import net.mm2d.touchicon.TouchIconExtractor
 import net.mm2d.touchicon.http.HttpClientAdapter
 import net.mm2d.touchicon.http.HttpResponse
 import org.kodein.di.DI
+import org.kodein.di.DirectDI
 import org.kodein.di.bindMultiton
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.io.IOException
 
 fun imageLoaderModule(
-    builder: ComponentRegistry.Builder.() -> Unit,
+    builder: ComponentRegistry.Builder.(directDI: DirectDI) -> Unit,
 ) = DI.Module(
     name = "imageLoader",
 ) {
@@ -64,7 +65,7 @@ fun imageLoaderModule(
                 add(PictureUrlMapper())
 
                 // Platform specific
-                builder()
+                builder(directDI)
             }
             .diskCache {
                 // This is getting called from a default dispatcher, according

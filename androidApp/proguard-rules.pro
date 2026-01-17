@@ -104,6 +104,18 @@
 -keep class org.msgpack.core.buffer.** { *; }
 
 ##
+## ksoup
+##
+
+# Ksoup HTML Parser - Keep interface methods for Kotlin delegation pattern
+# The Builder pattern uses `object : Interface by delegate` which requires
+# all interface methods to be preserved.
+
+-keep,allowshrinking class * implements com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler {
+    <methods>;
+}
+
+##
 ## dont warn
 ##
 

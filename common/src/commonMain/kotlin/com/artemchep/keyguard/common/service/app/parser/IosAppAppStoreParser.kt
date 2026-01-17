@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -84,7 +85,12 @@ class IosAppAppStoreParser(
 
         // Check if we got any results
         if (response.resultCount == 0 || response.results.isEmpty()) {
-            return null
+            val notFoundStatusCode = HttpStatusCode.NotFound
+            throw HttpException(
+                statusCode = notFoundStatusCode,
+                notFoundStatusCode.description,
+                null,
+            )
         }
 
         val appResult = response.results.first()

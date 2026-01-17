@@ -47,6 +47,9 @@ import arrow.core.Either
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.app.parser.AppStoreListingInfo
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.error_failed_unknown
+import com.artemchep.keyguard.res.error_not_found
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
@@ -66,6 +69,7 @@ import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.util.DividerColor
 import io.ktor.http.HttpStatusCode
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun VaultViewUriItem(
@@ -303,8 +307,8 @@ fun UrlAppStoreListings(
             .padding(
                 top = 8.dp,
                 bottom = 8.dp,
-                end = Dimens.contentPadding,
-                start = Dimens.contentPadding,
+                end = 16.dp,
+                start = 16.dp,
             )
             .fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -319,9 +323,7 @@ fun UrlAppStoreListings(
                         .width(144.dp),
                     store = listing.store,
                     state = value,
-                    onClick = {
-                        // do nothing
-                    },
+                    onClick = listing.onClick,
                 )
             } else {
                 UrlAppStoreListingSkeletonItem(
@@ -368,11 +370,11 @@ private fun UrlAppStoreListingItem(
             val contentColor = LocalContentColor.current
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(
                     modifier = Modifier
-                        .size(16.dp),
+                        .size(12.dp),
                 ) {
                     FaviconIcon(
                         modifier = Modifier
@@ -398,17 +400,18 @@ private fun UrlAppStoreListingItem(
                 modifier = Modifier
                     .height(8.dp),
             )
+            val title = state.fold(
+                ifLeft = { e ->
+                    if (e is HttpException && e.statusCode == HttpStatusCode.NotFound) {
+                        stringResource(Res.string.error_not_found)
+                    } else e.message
+                },
+                ifRight = { it?.title },
+            ) ?: stringResource(Res.string.error_failed_unknown)
             Text(
                 modifier = Modifier
                     .widthIn(max = 196.dp),
-                text = state.fold(
-                    ifLeft = { e ->
-                        if (e is HttpException && e.statusCode == HttpStatusCode.NotFound) {
-                            "Not found"
-                        } else e.message
-                    },
-                    ifRight = { it?.title },
-                ) ?: "Not found",
+                text = title,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,

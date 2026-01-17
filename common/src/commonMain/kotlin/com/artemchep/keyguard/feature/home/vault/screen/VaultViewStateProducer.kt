@@ -2906,7 +2906,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                         contentDescription = null,
                     )
                 },
-                title = AnnotatedString(platformMarker.packageName),
+                title = AnnotatedString(platformMarker.bundleId),
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
                 overrides = overrides,
@@ -3167,8 +3167,8 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
-                        title = Res.string.copy_package_name.wrap(),
-                        value = platformMarker.packageName,
+                        title = Res.string.copy_bundle_id.wrap(),
+                        value = platformMarker.bundleId,
                     )
                 }
                 section {
@@ -3439,7 +3439,7 @@ private fun RememberStateFlowScope.createUriContextAppStoreListingIOS(
     platformMarker: LinkInfoPlatform.IOS,
 ): ContextItem {
     val iosAppStoreListingFlow = flow {
-        val info = iosAppAppStoreParser(platformMarker.packageName)
+        val info = iosAppAppStoreParser(platformMarker.bundleId)
             .attempt()
             .bind()
         emit(info)

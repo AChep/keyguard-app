@@ -28,7 +28,7 @@ sealed interface LinkInfoPlatform : LinkInfo {
     }
 
     data class IOS(
-        val packageName: String,
+        val bundleId: String,
     ) : LinkInfoPlatform
 
     data class Web(

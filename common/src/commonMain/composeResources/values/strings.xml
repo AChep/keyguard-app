@@ -458,6 +458,7 @@
     <string name="copy_uri">Copy URI</string>
     <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copy package name</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Copy password</string>
     <string name="copy_username">Copy username</string>
     <string name="copy_email">Copy email</string>

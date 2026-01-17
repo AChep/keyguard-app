@@ -52,7 +52,7 @@ class LinkInfoPlatformExtractor : LinkInfoExtractor<DSecret.Uri, LinkInfoPlatfor
         val packageName = uri.uri
             .substring(PROTOCOL_IOS_APP.length)
         return LinkInfoPlatform.IOS(
-            packageName = packageName,
+            bundleId = packageName,
         )
     }
 

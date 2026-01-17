@@ -113,9 +113,11 @@ fun main() {
         import(diFingerprintRepositoryModule())
 
         val imageLoaderModule = imageLoaderModule { directDI ->
-            add(AppIconFetcher.Factory(
+            val appIconFactory = AppIconFetcher.Factory(
                 googlePlayParser = directDI.instance(),
-            ))
+                getWebsiteIcons = directDI.instance(),
+            )
+            add(appIconFactory)
             add(AppIconKeyer())
         }
         import(imageLoaderModule)

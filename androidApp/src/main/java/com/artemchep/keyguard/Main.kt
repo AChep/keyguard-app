@@ -58,8 +58,13 @@ class Main : BaseApp(), DIAware {
         }
         val imageLoaderModule = kotlin.run {
             val packageManager = packageManager
-            imageLoaderModule {
-                add(AppIconFetcher.Factory(packageManager))
+            imageLoaderModule { directDI ->
+                val appIconFetcher = AppIconFetcher.Factory(
+                    googlePlayParser = directDI.instance(),
+                    packageManager = packageManager,
+                    getWebsiteIcons = directDI.instance(),
+                )
+                add(appIconFetcher)
                 add(AppIconKeyer())
             }
         }

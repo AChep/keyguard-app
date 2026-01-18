@@ -262,7 +262,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generate unique emails for better privacy.</string>
@@ -282,8 +282,8 @@
     <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
     <string name="account_action_tfa_active_status">Active</string>
     <string name="account_action_items_title">Items</string>
-    <string name="account_action_log_out_title">Log out</string>
-    <string name="account_log_out_confirmation_title">Log out?</string>
+    <string name="account_action_log_out_title">Sign out</string>
+    <string name="account_log_out_confirmation_title">Sign out?</string>
     <string name="account_log_out_confirmation_text">All unsynchronized changes will be lost!</string>
     <string name="folder_action_change_name_title">Change name</string>
     <string name="folder_action_change_names_title">Change names</string>
@@ -300,8 +300,8 @@
     <string name="ciphers_save_to">Save to</string>
     <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
     <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
-    <string name="ciphers_action_add_to_favorites_title">Add to favourites</string>
-    <string name="ciphers_action_remove_from_favorites_title">Remove from favourites</string>
+    <string name="ciphers_action_add_to_favorites_title">Add to favorites</string>
+    <string name="ciphers_action_remove_from_favorites_title">Remove from favorites</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
     <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
     <string name="ciphers_action_edit_title">Edit</string>
@@ -371,14 +371,14 @@
     <string name="uri_action_launch_docs_title">Launch docs</string>
     <string name="uri_action_launch_browser_title">Launch browser</string>
     <string name="uri_action_launch_browser_main_page_title">Launch main page</string>
-    <string name="uri_action_launch_play_store_title">Launch Play store</string>
+    <string name="uri_action_launch_play_store_title">Launch Play Store</string>
     <string name="uri_action_launch_in_app_title">Launch with <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Launch with…</string>
     <string name="uri_action_how_to_delete_account_title">How to delete an account?</string>
     <string name="uri_action_get_my_data_account_title">How to get my data?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix unsecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes a protocol to secure variant if it is available</string>
-    <string name="uri_unsecure">Unsecure</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-fix insecure URL</string>
+    <string name="uri_action_autofix_unsecure_text">Changes the protocol to a secure variant if it is available</string>
+    <string name="uri_unsecure">Insecure</string>
     <string name="uri_match_app_title">Match app</string>
     <string name="uri_match_detection_title">Match detection</string>
     <string name="uri_match_detection_default_title">Default</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">Copy URI</string>
     <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copy package name</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Copy password</string>
     <string name="copy_username">Copy username</string>
     <string name="copy_email">Copy email</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
@@ -582,12 +584,12 @@
     <string name="justdeleteme_difficulty_limited_availability_label">Limited availability</string>
     <!-- Cannot be deleted -->
     <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
-    <string name="justdeleteme_send_email_title">Send email</string>
+    <string name="justdeleteme_send_email_title">Send an email</string>
     <string name="justdeleteme_search_placeholder">Search websites</string>
     <string name="justdeleteme_empty_label">No instructions</string>
     <!-- Title of the 'How to delete an account?' dialog -->
     <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info of how to get the data from your account from web services</string>
+    <string name="justgetmydata_subtitle">A collection of info on how to get the data from your account from web services</string>
     <!-- Simple process -->
     <string name="justgetmydata_difficulty_easy_label">Easy</string>
     <!-- Some extra steps involved -->
@@ -867,7 +869,7 @@
     <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Expired at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deletion_scheduled_at_label">Deleting scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Deletion scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
     <string name="vault_view_call_phone_action">Call</string>
     <!-- Text the phone number (SMS). The text should be as short as possible! -->
@@ -959,12 +961,12 @@
     <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
-    <string name="watchtower_item_unsecure_websites_title">Unsecure Websites</string>
+    <string name="watchtower_item_unsecure_websites_title">Insecure Websites</string>
     <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
     <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites that have passkey available but you haven't set it up yet. It's simpler and more secure than a password.</string>
+    <string name="watchtower_item_inactive_passkey_text">Sites that have passkeys available but you haven't set it up yet. It's simpler and more secure than a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
     <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>
     <string name="watchtower_item_expiring_items_title">Expiring Items</string>
@@ -990,7 +992,7 @@
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
-    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
@@ -1138,7 +1140,7 @@
 2. Choose Autofill using another service
 3. Confirm and restart Chrome</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Auto-copy one-time passwords</string>
-    <string name="pref_item_autofill_auto_copy_otp_text">When filling a login information, automatically copy one-time passwords</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">When filling in login information, automatically copy one-time passwords</string>
     <string name="pref_item_autofill_default_match_detection_title">Default match detection</string>
     <string name="pref_item_autofill_inline_suggestions_title">Inline suggestions</string>
     <string name="pref_item_autofill_inline_suggestions_text">Embeds autofill suggestions directly into compatible keyboards</string>
@@ -1148,14 +1150,14 @@
     <string name="pref_item_autofill_respect_autofill_disabled_text">Disables autofill for a browser field that has autofill disabled flag set</string>
     <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are known for disabling autofill for password fields. Additionally, some browsers are known for ignoring the autofill-disabled flag.</string>
     <string name="pref_item_autofill_save_request_title">Ask to save data</string>
-    <string name="pref_item_autofill_save_request_text">Asks for updating the vault when filling of a form has completed</string>
+    <string name="pref_item_autofill_save_request_text">Asks for updating the vault when filling a form is completed</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-save app or website info</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Automatically clear clipboard</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediately</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Never</string>
@@ -1213,7 +1215,7 @@
     <string name="feat_item_reused_passwords_text">Find items with reused passwords.</string>
     <string name="feat_item_inactive_totp_title">Inactive 2FA</string>
     <string name="feat_item_inactive_totp_text">Find logins with available TOTP two-factor authentication.</string>
-    <string name="feat_item_unsecure_websites_title">Unsecure websites</string>
+    <string name="feat_item_unsecure_websites_title">Insecure websites</string>
     <string name="feat_item_unsecure_websites_text">Find websites that use HTTP protocol, auto-fix to HTTPS.</string>
     <string name="feat_item_incomplete_items_title">Incomplete items</string>
     <string name="feat_item_incomplete_items_text">Find empty items that might need updates.</string>

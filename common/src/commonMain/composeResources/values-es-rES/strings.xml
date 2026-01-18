@@ -440,6 +440,7 @@
     <string name="copy_uri">Copiar URI</string>
     <string name="copy_send">Copiar envío</string>
     <string name="copy_package_name">Copiar el nombre del paquete</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Copiar contraseña</string>
     <string name="copy_username">Copiar nombre de usuario</string>
     <string name="copy_email">Copiar correo electrónico</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">URI no válida</string>
     <string name="error_invalid_card_number">Número de tarjeta no válido</string>
     <string name="error_incorrect_password">Contraseña incorrecta</string>
+    <string name="error_not_found">No encontrado</string>
     <string name="error_otp_key_must_not_be_empty">La clave secreta de contraseñas de un solo uso debe no estar vacía</string>
     <string name="error_failed_file_already_exists">Error al crear un archivo. No se permite reemplazar el archivo existente</string>
     <string name="error_failed_generate_kdf_hash_oom">Error al crear una clave, no hay suficiente memoria. Por favor, compruebe la configuración del servidor de KDF.</string>
@@ -676,8 +678,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">¿Eliminar la aplicación privilegiada?</string>
     <string name="privilegedapps_delete_many_confirmation_title">¿Eliminar las aplicaciones privilegiadas?</string>
     <string name="privilegedapps_empty_label">No hay aplicaciones privilegiadas</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="privilegedapps_user_apps">Aplicaciones del usuario</string>
+    <string name="privilegedapps_community_apps">Aplicaciones de la comunidad</string>
     <string name="setup_header_text">Crear una bóveda cifrada donde se almacenarán los datos locales.</string>
     <string name="setup_free_text">Al continuar confirma que ha comprado Keyguard o que ha tenido una licencia activa.</string>
     <string name="setup_field_app_password_label">Contraseña de la app</string>
@@ -1149,8 +1151,8 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Toma en cuenta que algunos sitios web es difícil desactivar el autorrellenado para un campo de contraseña, así como algunos navegadores son difíciles para ignorar la bandera se autorrellenado desactivado</string>
     <string name="pref_item_autofill_save_request_title">Preguntar para guardar datos</string>
     <string name="pref_item_autofill_save_request_text">Pregunta para actualizar la caja fuerte cuando se completa el llenado de un formulario</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Soporte para claves de acceso</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Anuncia el soporte de claves de acceso al gestor de credenciales, permitiendo que la aplicación cumpla las solicitudes</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-guardar app o información de un sitio</string>
     <string name="pref_item_autofill_block_uri_title">Bloquear autocompletado</string>
     <string name="pref_item_autofill_block_uri_text">Evita ofrecer autocompletado para estas URIs</string>

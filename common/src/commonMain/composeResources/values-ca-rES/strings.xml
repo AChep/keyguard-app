@@ -262,7 +262,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Pista: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Genera correus electrònics únics per a una privadesa millor.</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">Copia l'URI</string>
     <string name="copy_send">Copia l'enviament</string>
     <string name="copy_package_name">Copia el nom de paquet</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Copia la contrasenya</string>
     <string name="copy_username">Copia el nom d'usuari</string>
     <string name="copy_email">Copia el correu electrònic</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">URI invàlida</string>
     <string name="error_invalid_card_number">Número de targeta no vàlid</string>
     <string name="error_incorrect_password">Contrasenya incorrecta</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">La clau secreta de la contrasenya d'un sol ús no pot estar buida</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">No s'ha pogut crear la clau, no hi ha prou memòria. Per favor, configura la configuració del teu servidor KDF.</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Buida el porta-retalls automàticament</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediatament</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Mai</string>

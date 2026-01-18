@@ -440,6 +440,7 @@
     <string name="copy_uri">URI 복사</string>
     <string name="copy_send">Send 복사</string>
     <string name="copy_package_name">패키지 이름 복사</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">비밀번호 복사</string>
     <string name="copy_username">사용자 이름 복사</string>
     <string name="copy_email">이메일 복사</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">잘못된 URI입니다.</string>
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">OTP 비밀 키는 비워둘 수 없습니다.</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">자동 완성 차단</string>
     <string name="pref_item_autofill_block_uri_text">설정한 URI에 대한 자동 완성을 차단합니다.</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">클립보드 자동 비우기</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">즉시</string>
     <string name="pref_item_clipboard_auto_clear_never_text">비우지 않음</string>

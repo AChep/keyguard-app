@@ -440,6 +440,7 @@
     <string name="copy_uri">URI kopieren</string>
     <string name="copy_send">Senden kopieren</string>
     <string name="copy_package_name">Paketname kopieren</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Passwort kopieren</string>
     <string name="copy_username">Benutzername kopieren</string>
     <string name="copy_email">E-Mail kopieren</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">Ungültige URI</string>
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">Einmalkennwort darf nicht leer sein</string>
     <string name="error_failed_file_already_exists">Datei konnte nicht erstellt werden. Das Ersetzen der existierenden Datei ist nicht erlaubt</string>
     <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">Autofill blockieren</string>
     <string name="pref_item_autofill_block_uri_text">Verhindert das Anbieten eines Autofills für diese URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Zwischenablage automatisch löschen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Sofort</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nie</string>

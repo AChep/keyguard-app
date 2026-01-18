@@ -440,6 +440,7 @@
     <string name="copy_uri">URI'yi kopyala</string>
     <string name="copy_send">Gönderiyi kopyala</string>
     <string name="copy_package_name">Paket adını kopyala</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Parolayı kopyala</string>
     <string name="copy_username">Kullanıcı adını kopyala</string>
     <string name="copy_email">E-postayı kopyala</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">Geçersiz URI</string>
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
     <string name="error_incorrect_password">Yanlış parola</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olmamalıdır</string>
     <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın üzerine yazmaya izin verilmiyor</string>
     <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturulamadı, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">Otomatik doldurmayı engelle</string>
     <string name="pref_item_autofill_block_uri_text">Bu URI'ler için otomatik doldurma önerilmesini engeller</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Panoyu otomatik olarak temizle</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Hemen</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Asla</string>

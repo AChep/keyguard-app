@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.LocalAbsoluteTonalElevation
@@ -27,8 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
@@ -122,6 +128,7 @@ fun LargeTypeContent(
                     groups.forEach { item ->
                         SymbolItem(
                             item = item,
+                            length = groups.size,
                             elevation = elevation,
                             selectedIndex = indexState,
                         )
@@ -149,6 +156,7 @@ fun LargeTypeContent(
 private fun SymbolItem(
     modifier: Modifier = Modifier,
     item: LargeTypeState.Item,
+    length: Int,
     selectedIndex: State<Int>,
     elevation: Dp,
 ) {
@@ -218,11 +226,42 @@ private fun SymbolItem(
             fontFamily = monoFontFamily,
             style = MaterialTheme.typography.headlineMedium,
         )
+
+        val indexTextStyle = MaterialTheme.typography.labelSmall
+        val indexTextWidth = kotlin.run {
+            val text = remember(length) {
+                val digits = length.toString().length
+                "".padStart(digits, '0')
+            }
+            rememberTextMeasuredWidthDp(
+                text = text,
+                style = indexTextStyle,
+            ) + 1.dp // just in case the measurement is slightly incorrect
+        }
         Text(
+            modifier = Modifier
+                .widthIn(min = indexTextWidth),
             text = index.plus(1).toString(),
             color = LocalContentColor.current
                 .combineAlpha(MediumEmphasisAlpha),
-            style = MaterialTheme.typography.labelSmall,
+            style = indexTextStyle,
+            textAlign = TextAlign.Center,
         )
+    }
+}
+
+@Composable
+private fun rememberTextMeasuredWidthDp(
+    text: String,
+    style: TextStyle,
+    measurer: TextMeasurer = rememberTextMeasurer(),
+): Dp {
+    val density = LocalDensity.current
+    return remember(measurer, density, text) {
+        val width = measurer.measure(
+            text = text,
+            style = style,
+        ).size.width / density.density
+        width.dp
     }
 }

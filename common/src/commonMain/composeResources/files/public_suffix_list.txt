@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2026-01-09_13-51-42_UTC
-// COMMIT: 6e5697a037da7d0a848e269cf9a9429b91817f22
+// VERSION: 2026-01-20_07-55-41_UTC
+// COMMIT: d372af084b07ad6f6d26b3d63abeee1738456c09
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -14305,6 +14305,11 @@ ae.kg
 // Submitted by Martin Dannehl <postmaster@keymachine.de>
 keymachine.de
 
+// Kilo Code, Inc. : https://kilo.ai
+// Submitted by Remon Oldenbeuving <security@kilocode.ai>
+kiloapps.ai
+kiloapps.io
+
 // KingHost : https://king.host
 // Submitted by Felipe Keller Braz <felipebraz@kinghost.com.br>
 kinghost.net
@@ -15623,6 +15628,10 @@ my.de
 *.nxa.eu
 nx.gw
 
+// Spawnbase : https://spawnbase.ai
+// Submitted by Alexander Zuev <security@spawnbase.ai>
+spawnbase.app
+
 // SpeedPartner GmbH : https://www.speedpartner.de/
 // Submitted by Stefan Neufeind <info@speedpartner.de>
 customer.speedpartner.de
@@ -16101,6 +16110,8 @@ daemon.panel.gg
 
 // Wix.com, Inc. : https://www.wix.com
 // Submitted by Shahar Talmi / Alon Kochba <publicsuffixlist@wix.com>
+base44.app
+base44-sandbox.com
 wixsite.com
 wixstudio.com
 editorx.io

@@ -175,7 +175,7 @@
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Видимий</string>
+    <string name="passkey_discoverable">Виявлюваний</string>
     <string name="passkey_user_username">Ім'я користувача</string>
     <string name="passkey_user_display_name">Видиме ім'я</string>
     <string name="ignored_alerts">Вимкнені оповіщення</string>
@@ -298,8 +298,8 @@
     <string name="ciphers_history_empty">Ще немає історії</string>
     <string name="ciphers_view_details">Переглянути деталі</string>
     <string name="ciphers_save_to">Зберегти в…</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Додає ключ пароль</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Замінює пароль користувача та пароль</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Додає ключ доступу</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Замінює ім'я користувача та пароль</string>
     <string name="ciphers_action_add_to_favorites_title">Додати до обраного</string>
     <string name="ciphers_action_remove_from_favorites_title">Видалити з обраного</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Ввімкнути подвійну автентифікацію</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">Скопіювати URI</string>
     <string name="copy_send">Скопіювати відправлення</string>
     <string name="copy_package_name">Скопіювати назву пакета</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Копіювати пароль</string>
     <string name="copy_username">Скопіювати ім'я користувача</string>
     <string name="copy_email">Скопіювати ел. пошту</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">Некоректний URI</string>
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
+    <string name="error_not_found">Не знайдено</string>
     <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
     <string name="error_failed_file_already_exists">Не вдалося створити файл. Заміна наявного файлу заборонена</string>
     <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
@@ -676,8 +678,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Видалити привілейований застосунок?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Видалити привілейовані застосунки?</string>
     <string name="privilegedapps_empty_label">Немає привілейованих застосунків</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="privilegedapps_user_apps">Застосунки користувача</string>
+    <string name="privilegedapps_community_apps">Застосунки спільноти</string>
     <string name="setup_header_text">Створити зашифроване сховище локальних даних.</string>
     <string name="setup_free_text">Продовжуючи ви підтверджуєте, що придбали Keyguard або мали активну ліцензію.</string>
     <string name="setup_field_app_password_label">Пароль застосунку</string>

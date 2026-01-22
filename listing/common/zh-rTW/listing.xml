@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_summary">Manage passwords</string>
-    <string name="listing_summary_long">Manage passwords with ease</string>
-    <string name="listing_description_title">Multi-client for the Bitwarden® platform and KeePass (KDBX), designed to provide the best user experience possible.</string>
-    <string name="listing_description_disclaimer_bitwarden_legal">Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Highlights:</string>
-    <string name="listing_description_highlight_design">Beautiful Interface: a rich, responsive Material You UI with Light/Dark themes.</string>
-    <string name="listing_description_highlight_search">Advanced Search: Powerful and fast search capabilities.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Detects pwned passwords, vulnerable accounts, reused passwords, inactive two-factor authentication, insecure websites, duplicate or expiring items and more.</string>
-    <string name="listing_description_highlight_multiple_accounts">Multi-Account Support: Simultaneously have multiple accounts signed in.</string>
-    <string name="listing_description_highlight_offline">Offline Management: Add items and sends, modify, and view your vault offline.</string>
-    <string name="listing_description_highlight_export">Data Export: Export individual or organization items, including attachments.</string>
-    <string name="listing_description_highlight_generator">Generator: Create passwords, SSH keys and email forwarders, with support for custom wordlists.</string>
-    <string name="listing_description_highlight_other">Advanced Features: Support for shortcuts, Field placeholders, URL overrides, and smart conflict resolution.</string>
+    <string name="listing_summary">管理密碼</string>
+    <string name="listing_summary_long">輕鬆管理密碼</string>
+    <string name="listing_description_title">Bitwarden® 平台和 KeePass (KDBX) 的多客戶端，設計提供最佳的使用者體驗。</string>
+    <string name="listing_description_disclaimer_bitwarden_legal">可與任何 Bitwarden® 安裝。本產品與 Bitwarden 項目和 Bitwarden 股份有限公司無關。Bitwarden® 是 Bitwarden 股份有限公司的註冊商標。</string>
+    <string name="listing_description_highlights">突顯：</string>
+    <string name="listing_description_highlight_design">漂亮的介面：一個豐富和帶有明暗主題反應靈敏的 Material You 介面。</string>
+    <string name="listing_description_highlight_search">進階搜尋：強大且快速的搜尋功能。</string>
+    <string name="listing_description_highlight_watchtower">瞭望塔：檢測失效密碼、易受攻擊的帳號、重複使用的密碼、不活躍的雙因素身份認證、不安全的網站、重複或是過期的項目等等。</string>
+    <string name="listing_description_highlight_multiple_accounts">多帳號支援：同時登入多個帳號。</string>
+    <string name="listing_description_highlight_offline">離線管理：新增項目並離線發送、修改和檢視您的保險庫。</string>
+    <string name="listing_description_highlight_export">資料匯出：匯出個人或是組織項目，包含附件。</string>
+    <string name="listing_description_highlight_generator">生成器：建立密碼、SSH 金鑰和電子郵件轉發器，支援自訂詞條。</string>
+    <string name="listing_description_highlight_other">進階功能：支援快捷方式、欄位提示文字、網址覆寫和智慧衝突解決。</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
-    <string name="listing_screenshot_home_default">Home screen</string>
+    <string name="listing_screenshot_home_default">首頁</string>
     <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
-    <string name="listing_screenshot_home_dark">Home screen, dark theme</string>
+    <string name="listing_screenshot_home_dark">首頁，暗色主題</string>
     <!-- A content description shown below the Generator screenshort, made with the default settings -->
-    <string name="listing_screenshot_generator_default">Generator screen</string>
+    <string name="listing_screenshot_generator_default">生成器畫面</string>
     <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
-    <string name="listing_screenshot_watchtower_default">Watchtower screen</string>
+    <string name="listing_screenshot_watchtower_default">瞭望塔畫面</string>
 </resources>

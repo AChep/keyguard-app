@@ -440,6 +440,7 @@
     <string name="copy_uri">Copiar URI</string>
     <string name="copy_send">Copiar envio</string>
     <string name="copy_package_name">Copiar nome do pacote</string>
+    <string name="copy_bundle_id">Copiar ID do pacote</string>
     <string name="copy_password">Copiar palavra-passe</string>
     <string name="copy_username">Copiar nome de utilizador</string>
     <string name="copy_email">Copiar e-mail</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">URI inválido</string>
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
+    <string name="error_not_found">Não encontrado</string>
     <string name="error_otp_key_must_not_be_empty">A chave secreta da palavra-passe única não pode estar vazia</string>
     <string name="error_failed_file_already_exists">Falha ao criar o ficheiro. Não é permitido substituir um ficheiro existente</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
@@ -677,8 +679,8 @@
     <string name="privilegedapps_delete_one_confirmation_title">Excluir o aplicativo privilegiado?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Excluir aplicativos privilegiados?</string>
     <string name="privilegedapps_empty_label">Nenhum aplicativo privilegiado</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="privilegedapps_user_apps">Aplicações do utilizador</string>
+    <string name="privilegedapps_community_apps">Aplicações da comunidade</string>
     <string name="setup_header_text">Criar um cofre criptografado onde os dados locais serão armazenados.</string>
     <string name="setup_free_text">Ao continuar você confirmará que comprou o Keyguard ou que recebeu uma licença ativa.</string>
     <string name="setup_field_app_password_label">Palavra-passe da aplicação</string>

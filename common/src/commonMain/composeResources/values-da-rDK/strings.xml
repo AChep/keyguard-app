@@ -262,7 +262,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generér unikke e-mails for bedre fortrolighed.</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">Kopiér URI</string>
     <string name="copy_send">Kopiér send</string>
     <string name="copy_package_name">Kopiér pakkenavn</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Kopiér adgangskode</string>
     <string name="copy_username">Kopiér brugernavn</string>
     <string name="copy_email">Kopiér e-mail</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">Ugyldig URI</string>
     <string name="error_invalid_card_number">Ugyldigt kortnummer</string>
     <string name="error_incorrect_password">Forkert adgangskode</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">Engangsadgangskodes hemmelige nøgle er obligatorisk</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Kunne ikke oprette en nøgle, ikke nok hukommelse. Tjek KDF-serverindstillingerne.</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Ryd automatisk udklipsholder</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Straks</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Aldrig</string>

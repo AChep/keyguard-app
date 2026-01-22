@@ -71,6 +71,19 @@
     "created_at": "2023-10-14T12:55:30.917158+00:00"
   },
   {
+    "id": "f5e2cc9c532975348d050b2d346176f9",
+    "name": "ahrefs",
+    "domain": "ahrefs.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://ahrefs.com/blog/new-features/",
+    "setup": "https://app.ahrefs.com/account/security",
+    "category": "Information Technology",
+    "created_at": "2026-01-14T18:48:20.684662+00:00",
+    "notes": "Added November 14th 2025"
+  },
+  {
     "id": "8a04c4bad707b7b785373f1b215dee13",
     "name": "Air New Zealand",
     "domain": "airnewzealand.co.nz",

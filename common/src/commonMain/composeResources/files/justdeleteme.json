@@ -9613,6 +9613,15 @@
     "notes": "You need to fill the form and submit it. There is a 30 days period in which you can reverse your decision. After that your account will be deleted."
   },
   {
+    "name": "Heroforge",
+    "domains": [
+      "heroforge.com"
+    ],
+    "url": "https://www.heroforge.com/account/profile",
+    "difficulty": "easy",
+    "notes": "Go to your profile (\"Personal Info\"), scroll down, and click on \"DELETE ACCOUNT\", then on \"Yes, delete my account\". There is a 24 hour period in which you can reverse your decision. After that your account will be deleted."
+  },
+  {
     "name": "Heroku",
     "domains": [
       "heroku.com",
@@ -12893,13 +12902,14 @@
     "notes": "Click 'DELETE ACCOUNT' at the bottom of the 'Account Settings' page, then click 'DELETE'. This will also delete your Thingiverse account."
   },
   {
-    "name": "Mangadex",
+    "name": "MangaDex",
     "domains": [
       "mangadex.org"
     ],
-    "url": "https://mangadex.org/settings#del",
-    "difficulty": "easy",
-    "notes": "Sign in \u2b95 Click the 'Delete' button \u2b95 You will receive an email with a confirm button \u2b95 Enter 'CONFIRM' in the text box."
+    "url": "https://forums.mangadex.org/threads/please-delete-my-account.1593021/#post-20156082",
+    "difficulty": "hard",
+    "notes": "Automatic account deletion has been \"Temporarily Unavailable\" since about 2023, you must send an email to the support email address from your registered email and request they delete your account. See [this reddit comment](https://www.reddit.com/r/mangadex/comments/167mfkg/comment/jyqkvk5/?context=3) for the reasons why.",
+    "email": "support@mangadex.org"
   },
   {
     "name": "Mangaupdates",
@@ -18224,15 +18234,6 @@
     "notes": "On your own, you can only disable your account in your profile settings. If you want to request its removal, you must contact support using the linked form, but they may ask you to confirm your identity."
   },
   {
-    "name": "Revolt",
-    "domains": [
-      "revolt.chat"
-    ],
-    "url": "https://revolt.chat/settings",
-    "difficulty": "easy",
-    "notes": "Go to your account options and click on 'Mark Account for Deletion'."
-  },
-  {
     "name": "Revolut",
     "domains": [
       "revolut.com",
@@ -18243,6 +18244,15 @@
     "url": "https://help.revolut.com/en-US/help/profile-and-plan/closing-account/",
     "difficulty": "medium",
     "notes": "Open the Revolut app on your phone, go to the profile icon, then press on \"Account\", \"Close account\", and follow the instructions.\nIn order to close your account you must meet the requirements written in the linked page."
+  },
+  {
+    "name": "Rexar Hosting",
+    "domains": [
+      "rexarhosting.nl"
+    ],
+    "url": "https://rexarhosting.nl/dashboard/profile/",
+    "difficulty": "medium",
+    "notes": "Log in to your account, go to profile and click on 'Delete Account'. Then you will get an email to confirm the deletion."
   },
   {
     "name": "Rhonexpress",
@@ -18835,6 +18845,16 @@
     "url": "https://www.seedr.cc/",
     "difficulty": "hard",
     "notes": "Scroll down to the bottom of the webpage and click on \"Contact Us\". Fill in the message as \"Please delete my seedr.cc account\", include your registered email in the contact email field, submit the form and wait for their confirmation email. Note that the chances of them actually replying is very very low."
+  },
+  {
+    "name": "Seesaw",
+    "domains": [
+      "app.seesaw.me",
+      "seesaw.com"
+    ],
+    "url": "https://help.seesaw.me/hc/en-us/articles/205271473-How-to-delete-your-account",
+    "difficulty": "easy",
+    "notes": "Sign in, tap on your profile (top left), then tap on the gear icon, then \"Account Settings\", then \"Delete Account\" (At the bottom). Not availiable for student accounts (see [How to Delete a Student Seesaw Account](https://help.seesaw.me/hc/en-us/articles/39801347594509-How-to-Delete-a-Student-Seesaw-Account))"
   },
   {
     "name": "Sega",
@@ -20274,6 +20294,15 @@
     "url": "https://stickk.zendesk.com/hc/en-us/requests/new",
     "difficulty": "hard",
     "notes": "From the dropdown select \"I'd like to request to end my account\" and then fill in and submit the form."
+  },
+  {
+    "name": "Stoat",
+    "domains": [
+      "stoat.chat"
+    ],
+    "url": "https://stoat.chat/settings",
+    "difficulty": "easy",
+    "notes": "Go to your account options and click on 'Mark Account for Deletion'."
   },
   {
     "name": "Stocard",
@@ -22262,6 +22291,15 @@
     ],
     "url": "https://www.twitch.tv/user/delete-account",
     "difficulty": "easy"
+  },
+  {
+    "name": "Twitch services (RPG...)",
+    "domains": [
+      "rpg.twitch.tv"
+    ],
+    "url": "https://legal.twitch.com/en/legal/privacy-notice/#data-subject-rights-and-your-choices",
+    "difficulty": "hard",
+    "notes": "Account deletion requires contacting Customer Support. ([Privacy notice](https://legal.twitch.com/en/legal/privacy-notice))"
   },
   {
     "name": "twoseven",

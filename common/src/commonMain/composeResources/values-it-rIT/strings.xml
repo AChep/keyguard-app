@@ -440,6 +440,7 @@
     <string name="copy_uri">Copia URI</string>
     <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copia nome pacchetto</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Copia password</string>
     <string name="copy_username">Copia nome utente</string>
     <string name="copy_email">Copia email</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">URI non valido</string>
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_incorrect_password">Password errata</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Creazione di una chiave non riuscita, memoria insufficiente. Controlla le impostazioni del server KDF.</string>
@@ -990,7 +992,7 @@
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Modifica password app</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
-    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover a malware on the device, there is no need to change the password if it is a strong, unique password.</string>
+    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Cancella automaticamente gli appunti</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediatamente</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Mai</string>

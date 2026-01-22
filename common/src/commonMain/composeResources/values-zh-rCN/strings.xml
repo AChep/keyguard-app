@@ -21,7 +21,7 @@
     <string name="current_password">当前密码</string>
     <string name="new_password">新密码</string>
     <string name="no_password">暂无密码</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">高级选项</string>
     <string name="email">电子邮件</string>
     <string name="email_verified">已验证</string>
     <string name="email_not_verified">未验证</string>
@@ -119,7 +119,7 @@
     <string name="category">分类</string>
     <string name="command">命令</string>
     <string name="execute_command">执行</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">基于上下文的建议</string>
     <!-- Add (something) -->
     <string name="add">添加</string>
     <string name="add_integration">添加集成</string>
@@ -155,8 +155,8 @@
     <string name="backup_disclaimer_title">您的数据由您自己负责。</string>
     <string name="backup_disclaimer_text">为了确保数据永不丢失，请遵循 3-2-1 备份规则：在两种不同的介质上保留三份数据保管库副本，并将一份副本存放在单独的安全位置。</string>
     <string name="passkey">通行密钥</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">创建登录</string>
+    <string name="credential_password_create_header">设置密码</string>
     <string name="passkey_create_header">创建通行密钥</string>
     <string name="passkey_unlock_header">解锁 Keyguard</string>
     <string name="passkey_auth_via_header">正在确认认证请求…</string>
@@ -191,7 +191,7 @@
     <string name="one_time_password">一次性密码（OTP）</string>
     <string name="one_time_password_authenticator_key">验证器密钥</string>
     <string name="passkey_use_short">使用</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">保存密码</string>
     <string name="passkey_save">保存通行密钥</string>
     <string name="passkey_available">通行密钥可用</string>
     <string name="twofa_available">双因素认证可用</string>
@@ -298,8 +298,8 @@
     <string name="ciphers_history_empty">暂无历史记录</string>
     <string name="ciphers_view_details">查看详情</string>
     <string name="ciphers_save_to">保存至</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">添加通行密钥</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">替换用户名 &amp; 密码</string>
     <string name="ciphers_action_add_to_favorites_title">添加到收藏夹</string>
     <string name="ciphers_action_remove_from_favorites_title">从收藏夹中删除</string>
     <string name="ciphers_action_enable_auth_reprompt_title">启用身份验证二次确认</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">复制 URI</string>
     <string name="copy_send">复制 Send</string>
     <string name="copy_package_name">复制包名</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">复制密码</string>
     <string name="copy_username">复制用户名</string>
     <string name="copy_email">复制电子邮件</string>
@@ -532,30 +533,31 @@
     <string name="error_invalid_uri">URI 无效</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
     <string name="error_failed_file_already_exists">无法创建文件。不允许替换现有文件</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
     <string name="error_failed_create_passkey">创建通行密钥失败</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">创建密码失败</string>
     <string name="error_failed_use_passkey">授权请求失败</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">授权请求失败</string>
     <string name="error_failed_open_uri">无法打开 URI</string>
     <string name="error_failed_format_placeholder">格式化占位符失败</string>
     <string name="error_failed_open_app_for">没有已安装的应用可以处理此请求</string>
     <string name="error_failed_unknown">出错了</string>
     <string name="error_failed_encrypt_biometric_key">加密生物识别密钥失败</string>
     <string name="error_failed_decrypt_biometric_key">解密生物识别密钥失败</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_credential_calling_app_not_privileged">调用应用程序不在特权列表中，无法代表其他应用程序请求身份验证。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">授予特权并继续</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">信任应用程序允许它请求任何服务的凭据。恶意应用程序可能会利用此漏洞试图窃取您的凭据。</string>
     <string name="scanqr_title">扫描二维码</string>
     <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
     <string name="scanqr_camera_permission_required_text">请授予相机权限以扫描二维码。</string>
@@ -670,14 +672,14 @@
     <string name="urlblock_empty_label">未屏蔽的 URI</string>
     <string name="urlblock_expose_title">在解锁密码库之前，将数据暴露给自动填充框架</string>
     <string name="urlblock_expose_text">如果启用，该项目将存储在密码库之外，即使密码库被锁定，也可以完全隐藏自动填充建议</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="privilegedapps_header_title">特权应用</string>
+    <string name="privilegedapps_list_header_title">特权应用</string>
+    <string name="privilegedapps_list_section_title">特权应用</string>
+    <string name="privilegedapps_delete_one_confirmation_title">删除特权应用程序？</string>
+    <string name="privilegedapps_delete_many_confirmation_title">删除特权应用程序？</string>
+    <string name="privilegedapps_empty_label">没有特权应用程序</string>
+    <string name="privilegedapps_user_apps">用户应用</string>
+    <string name="privilegedapps_community_apps">社区应用</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
     <string name="setup_free_text">继续使用此应用意味着您确认您已购买 Keyguard 或有一个可用的 Keyguard 授权。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
@@ -757,7 +759,7 @@
     <string name="addaccount2fa_yubikey_manual_text">手动输入 YubiKey 验证码，将光标放在下方输入框并按下 YubiKey 的按钮。</string>
     <string name="addkeepass_header_title">添加 KeePass 帐户</string>
     <string name="addkeepass_header_body">将所有密码保存在一个高度加密的 KDBX 文件中，该文件直接存储在您的设备上。您可以完全掌控自己的数据。您可以将数据存储在电脑、U 盘上，或使用 Google Drive 或 Dropbox 等云服务自行同步。</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass 实现处于测试阶段，尚未完全与 KeePass 客户端兼容。 使用风险自担。请确保您的数据库备份经过验证，然后继续。</string>
     <string name="provider_2fa_authenticator">身份验证器</string>
     <string name="provider_2fa_duo_organization">Duo（组织）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份验证</string>
@@ -1150,14 +1152,14 @@
     <string name="pref_item_autofill_respect_autofill_disabled_text">禁用存在禁止自动填充标签的浏览器字段</string>
     <string name="pref_item_autofill_respect_autofill_disabled_note">请注意，有些网站会禁用密码字段的自动填写功能，有些浏览器也会忽略禁用自动填写功能的标记。</string>
     <string name="pref_item_autofill_save_request_title">请求保存数据</string>
-    <string name="pref_item_autofill_save_request_text">填写表单时询问是否更新密码库</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_save_request_text">填写完成后提示更新保险库</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">密钥支持</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">向凭证管理器广播密钥支持，允许应用程序完成请求</string>
     <string name="pref_item_autofill_auto_save_source_title">自动保存应用或网站信息</string>
     <string name="pref_item_autofill_block_uri_title">阻止自动填充</string>
     <string name="pref_item_autofill_block_uri_text">阻止为这些 URI 提供自动填充</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_title">特权应用</string>
+    <string name="pref_item_autofill_privileged_apps_text">特权应用可以代表其他服务提出凭据请求</string>
     <string name="pref_item_clipboard_auto_clear_title">自动清除剪贴板</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">从不</string>

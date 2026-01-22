@@ -121,8 +121,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 11561,
-    "target": 10815,
+    "translated": 11567,
+    "target": 10821,
     "approved": 1049,
     "voted": 0,
     "positiveVotes": 62,
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 750,
-    "target": 847,
+    "translated": 759,
+    "target": 859,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -297,8 +297,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 533,
-    "target": 962,
+    "translated": 1174,
+    "target": 2100,
     "approved": 0,
     "voted": 5,
     "positiveVotes": 0,
@@ -521,7 +521,7 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 18,
+    "positiveVotes": 22,
     "negativeVotes": 3,
     "winning": 0
   },
@@ -653,7 +653,7 @@
     "target": 851,
     "approved": 0,
     "voted": 14,
-    "positiveVotes": 0,
+    "positiveVotes": 2,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -709,7 +709,7 @@
     "target": 4516,
     "approved": 0,
     "voted": 11,
-    "positiveVotes": 2,
+    "positiveVotes": 7,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -903,8 +903,8 @@
         "name": "Spanish"
       }
     ],
-    "translated": 1359,
-    "target": 1574,
+    "translated": 1380,
+    "target": 1606,
     "approved": 0,
     "voted": 7,
     "positiveVotes": 0,
@@ -1406,9 +1406,9 @@
   {
     "user": {
       "id": "16331116",
-      "username": "Freezlex",
-      "fullName": "Freezlex",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16331116/medium/83c245509a412ec3ddc80420dbc31b7d_default.png",
+      "username": "REMOVED_USER",
+      "fullName": "REMOVED_USER",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16331116/medium/96c171bea299e5b75d8f97819997fa7e_default.png",
       "joined": "2024-04-17 08:45:13"
     },
     "languages": [
@@ -1493,6 +1493,28 @@
   },
   {
     "user": {
+      "id": "16430154",
+      "username": "nmsglmg",
+      "fullName": "nmsglmg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16430154/medium/6e2a59a5be2b29563cb20488822e1697.png",
+      "joined": "2026-01-13 09:39:50"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 278,
+    "target": 497,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "16433923",
       "username": "UlinoyaPed",
       "fullName": "Cusset Gaunar (UlinoyaPed)",
@@ -1509,8 +1531,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 81,
-    "target": 128,
+    "translated": 116,
+    "target": 188,
     "approved": 0,
     "voted": 6,
     "positiveVotes": 0,
@@ -1861,8 +1883,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 6184,
-    "target": 6799,
+    "translated": 6193,
+    "target": 6811,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

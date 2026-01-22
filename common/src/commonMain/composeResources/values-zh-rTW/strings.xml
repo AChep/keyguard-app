@@ -9,9 +9,9 @@
     <string name="show_keyguard">回到 Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名稱</string>
-    <string name="description">Description</string>
+    <string name="description">描述</string>
     <string name="account_name">帳號名</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">資料庫名稱</string>
     <string name="enabled">已啟用</string>
     <string name="disabled">已禁用</string>
     <string name="wordlist">詞表</string>
@@ -21,7 +21,7 @@
     <string name="current_password">目前密碼</string>
     <string name="new_password">新密碼</string>
     <string name="no_password">暫無密碼</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">進階</string>
     <string name="email">電子郵件</string>
     <string name="email_verified">已驗證</string>
     <string name="email_not_verified">未驗證</string>
@@ -31,7 +31,7 @@
     <string name="conceal_value">隱藏內容</string>
     <string name="field_label">標籤</string>
     <string name="field_value">值</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">值</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">存取次數</string>
     <!--
@@ -39,8 +39,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大存取次數</string>
-    <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_beta">測試版</string>
+    <string name="ready_status_alpha">Alpha 版</string>
     <string name="learn_more">瞭解詳情</string>
     <string name="phone_number">電話號碼</string>
     <string name="passport_number">護照號碼</string>
@@ -101,10 +101,10 @@
     <string name="folder">資料夾</string>
     <string name="folders">資料夾</string>
     <string name="folders_empty_label">無資料夾</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">無標籤</string>
+    <string name="tag">標籤</string>
+    <string name="tags">標籤</string>
+    <string name="tags_empty_label">無標籤</string>
     <string name="collection_none">暫無收藏</string>
     <string name="collection">收藏</string>
     <string name="collections">收藏</string>
@@ -119,7 +119,7 @@
     <string name="category">分類</string>
     <string name="command">命令</string>
     <string name="execute_command">執行</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">以內文建議</string>
     <!-- Add (something) -->
     <string name="add">新增</string>
     <string name="add_integration">新增整合</string>
@@ -152,11 +152,11 @@
     <string name="select_file">選擇檔案</string>
     <string name="autofill">自動填充</string>
     <string name="autofill_and_save_uri">自動填充並儲存應用或網站資訊</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">自己的資料由自己負責。</string>
+    <string name="backup_disclaimer_text">為了確保資料永不遺失，請遵循 3-2-1 備份規則：在兩種不同的儲存媒體上保留三份資料副本，並將其中一份存放在異地且安全的空間。</string>
     <string name="passkey">通行金鑰</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">建立登入</string>
+    <string name="credential_password_create_header">建立密碼</string>
     <string name="passkey_create_header">建立通行金鑰</string>
     <string name="passkey_unlock_header">解鎖 Keyguard</string>
     <string name="passkey_auth_via_header">正在確認認證請求…</string>
@@ -191,7 +191,7 @@
     <string name="one_time_password">一次性密碼（OTP）</string>
     <string name="one_time_password_authenticator_key">驗證器金鑰</string>
     <string name="passkey_use_short">使用</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">儲存密碼</string>
     <string name="passkey_save">儲存通行金鑰</string>
     <string name="passkey_available">通行金鑰可用</string>
     <string name="twofa_available">雙因素認證可用</string>
@@ -207,7 +207,7 @@
     <string name="requested_verification_email">已請求電子郵件驗證</string>
     <string name="web_vault">網頁密碼庫</string>
     <string name="launch_web_vault">開啟網頁密碼庫</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">本地密碼庫</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">記住登入狀態</string>
     <!-- A Trash screen -->
@@ -228,13 +228,13 @@
     <string name="encryption_random_bits_data">隨機的 <xliff:g id="length" example="64">%1$d</xliff:g> 位資料</string>
     <string name="none">無</string>
     <string name="text">文字</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">關聯的應用程式</string>
     <string name="linked_apps">關聯的應用</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">關聯的 URI</string>
     <string name="linked_uris">關聯的 URI</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">自訂欄位</string>
     <string name="custom_fields">自定義欄位</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">觸發值</string>
     <string name="reveal_secure_note">顯示安全筆記</string>
     <string name="hide_secure_note">隱藏安全筆記</string>
     <string name="master_password_hint">主密碼提示</string>
@@ -244,7 +244,7 @@
     <string name="key_type">金鑰型別</string>
     <string name="key_pair">金鑰對</string>
     <string name="key_ssh">SSH 金鑰</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">這裡看起來空空如也。建立一個 SSH 金鑰作為起始點！</string>
     <string name="fingerprint_phrase">指紋短語</string>
     <string name="fingerprint_phrase_help_title">什麼是指紋？</string>
     <string name="filter_auth_reprompt_items">身份驗證重新提示</string>
@@ -253,17 +253,17 @@
     <string name="bitwarden_premium">Bitwarden 高階版</string>
     <string name="bitwarden_premium_required">需要 Bitwarden 高階版</string>
     <string name="bitwarden_unofficial_server">非官方的 Bitwarden 伺服器</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">伺服器版本 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">資料庫版本 <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">清除</string>
+    <string name="replace_key_file">取代金鑰檔案</string>
+    <string name="select_key_file">選擇金鑰檔案</string>
+    <string name="select_database_file">選擇資料庫檔案</string>
+    <string name="replace_database_file">取代資料庫檔案</string>
+    <string name="open_database">開啟資料庫</string>
+    <string name="create_database">建立資料庫</string>
+    <string name="qr_wifi_description_text">使用其他裝置掃描這個二維條碼加入這個 Wi-Fi 網路。</string>
+    <string name="qr_generate_button">建立二維條碼</string>
     <string name="pro_tip">專業提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">生成獨特的電子郵件地址以更好地保護隱私。</string>
     <string name="account_last_synced_at">上次同步於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -298,8 +298,8 @@
     <string name="ciphers_history_empty">暫無歷史記錄</string>
     <string name="ciphers_view_details">檢視詳情</string>
     <string name="ciphers_save_to">儲存至</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">新增密碼金鑰</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">取代使用者名稱和密碼</string>
     <string name="ciphers_action_add_to_favorites_title">新增到收藏夾</string>
     <string name="ciphers_action_remove_from_favorites_title">從收藏夾中刪除</string>
     <string name="ciphers_action_enable_auth_reprompt_title">啟用身份驗證二次確認</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">複製 URI</string>
     <string name="copy_send">複製 Send</string>
     <string name="copy_package_name">複製包名</string>
+    <string name="copy_bundle_id">複製應用程式識別碼</string>
     <string name="copy_password">複製密碼</string>
     <string name="copy_username">複製使用者名稱</string>
     <string name="copy_email">複製電子郵件</string>
@@ -459,7 +460,7 @@
     <string name="copied_value">已複製值</string>
     <string name="copied_url">已複製網址</string>
     <string name="copied_uri">已複製 URI</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">複製標籤</string>
     <string name="copied_package_name">已複製包名</string>
     <string name="copied_key">已複製金鑰</string>
     <string name="copied_fingerprint">已複製指紋</string>
@@ -476,8 +477,8 @@
     <string name="copied_cvv_code">已複製安全碼（CVV）</string>
     <string name="copied_otp_code">複製一次性密碼</string>
     <string name="copied_otp_secret_code">複製私鑰</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">找到一次性密碼</string>
+    <string name="found_value">找到值</string>
     <string name="autofill_unlock_keyguard">解鎖 Keyguard</string>
     <string name="autofill_open_keyguard">開啟 Keyguard</string>
     <string name="january">一月</string>
@@ -532,30 +533,31 @@
     <string name="error_invalid_uri">URI 無效</string>
     <string name="error_invalid_card_number">卡號無效</string>
     <string name="error_incorrect_password">密碼錯誤</string>
+    <string name="error_not_found">未找到</string>
     <string name="error_otp_key_must_not_be_empty">一次性密碼的金鑰不能為空</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">無法建立檔案。不允許取代現有檔案</string>
     <string name="error_failed_generate_kdf_hash_oom">建立金鑰失敗，記憶體不足。請檢查您的 KDF 伺服器設定。</string>
     <string name="error_failed_generate_otp_code">生成一次性驗證碼失敗</string>
     <string name="error_failed_create_passkey">建立通行金鑰失敗</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">建立密碼失敗</string>
     <string name="error_failed_use_passkey">授權請求失敗</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">授權請求失敗</string>
     <string name="error_failed_open_uri">無法開啟 URI</string>
     <string name="error_failed_format_placeholder">格式化佔位符失敗</string>
     <string name="error_failed_open_app_for">沒有已安裝的應用可以處理此請求</string>
     <string name="error_failed_unknown">出錯了</string>
     <string name="error_failed_encrypt_biometric_key">加密生物識別金鑰失敗</string>
     <string name="error_failed_decrypt_biometric_key">解密生物識別金鑰失敗</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_credential_calling_app_not_privileged">呼叫的應用程式不在特權列表內，而且無法代表其他應用程式請求身份認證。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">授予特權並繼續</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">信任應用程式允許它請求任何服務的憑據。惡意應用程式可能會利用此漏洞試圖且取您的憑據。</string>
     <string name="scanqr_title">掃描 QR Code</string>
     <string name="scanqr_load_from_image_note">從影象檔案載入並解析 QR Code。</string>
     <string name="scanqr_camera_permission_required_text">請授予相機權限以掃描 QR Code。</string>
@@ -662,22 +664,22 @@
     <string name="urloverride_delete_one_confirmation_title">確定要刪除此 URL 覆寫嗎？</string>
     <string name="urloverride_delete_many_confirmation_title">確定要刪除這些 URL 覆寫嗎？</string>
     <string name="urloverride_empty_label">暫無 URL 覆寫</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="urlblock_header_title">URI 封鎖</string>
+    <string name="urlblock_list_header_title">已封鎖的 URI</string>
+    <string name="urlblock_list_section_title">已封鎖的 URI</string>
+    <string name="urlblock_delete_one_confirmation_title">刪除已封鎖的 URI？</string>
+    <string name="urlblock_delete_many_confirmation_title">刪除已封鎖的 URI？</string>
+    <string name="urlblock_empty_label">無封鎖的 URI</string>
+    <string name="urlblock_expose_title">在解鎖密碼庫之前先暴露資料給自動填入框架</string>
+    <string name="urlblock_expose_text">如果啟用，該項目將儲存在密碼庫之外，即使密碼庫被鎖定也可以完全隱藏自動填入建議</string>
+    <string name="privilegedapps_header_title">特權應用程式</string>
+    <string name="privilegedapps_list_header_title">特權應用程式</string>
+    <string name="privilegedapps_list_section_title">特權應用程式</string>
+    <string name="privilegedapps_delete_one_confirmation_title">刪除特權應用程式？</string>
+    <string name="privilegedapps_delete_many_confirmation_title">刪除特權應用程式？</string>
+    <string name="privilegedapps_empty_label">無特權應用程式</string>
+    <string name="privilegedapps_user_apps">使用者應用程式</string>
+    <string name="privilegedapps_community_apps">社群應用程式</string>
     <string name="setup_header_text">建立加密密碼庫以儲存本地資料。</string>
     <string name="setup_free_text">繼續使用此應用意味著您確認您已購買 Keyguard 或有一個可用的 Keyguard 授權。</string>
     <string name="setup_field_app_password_label">應用專用密碼</string>
@@ -718,10 +720,10 @@
     <string name="addsend_hide_text_by_default_title">訪問條目時，將預設隱藏文字</string>
     <string name="addsend_hide_email_title">隱藏電子郵件地址</string>
     <string name="addsend_max_access_count_note">設定後，當達到最大訪問次數時使用者將不再能夠訪問此條目。</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_promo_title">您的密碼庫是空的。連線到一個帳號開始：</string>
+    <string name="addaccount_promo_features">想取得最佳體驗？我們已在下方未您列出了該應用程式所有主要的功能。請檢視以下內容，了解它如何為您服務。</string>
+    <string name="addaccount_description_short_bitwarden_text">將加密的密碼庫存到雲端。</string>
+    <string name="addaccount_description_short_keepass_text">使用 KDBX 檔案格式在本地儲存加密的資料庫。</string>
     <string name="addaccount_header_title">新增 Bitwarden 帳號</string>
     <string name="addaccount_disclaimer_bitwarden_label">我們與 Bitwarden, Inc. 和其任何子公司或附屬機構均無隸屬、關聯、授權、許可關係，或任何形式的官方聯絡。</string>
     <!--
@@ -755,9 +757,9 @@
     <string name="addaccount2fa_otp_note">請輸入您的身份驗證器應用中的驗證碼</string>
     <string name="addaccount2fa_email_note">輸入傳送給 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> 的驗證碼。</string>
     <string name="addaccount2fa_yubikey_manual_text">手動輸入 YubiKey 驗證碼，將游標放在下方輸入框並按下 YubiKey 的按鈕。</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_title">新增 KeePass 帳號</string>
+    <string name="addkeepass_header_body">將您所有密碼直接儲存在一個高度加密的 KDBX 檔案到您的裝置。您可以完全掌控自己的資料。您可以將資料儲存在電腦、USB 儲存裝置或使用 Google 雲端硬碟或是 Dropbox 等雲端服務自行同步。</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass 的實現處於測試階段而且尚未與 KeePass 客戶端相容。請您自行承擔風險。請確保您的備份的資料庫經過驗證再繼續。</string>
     <string name="provider_2fa_authenticator">身份驗證器</string>
     <string name="provider_2fa_duo_organization">Duo（組織）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份驗證</string>
@@ -859,7 +861,7 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">安全碼</string>
     <string name="vault_view_saved_to_label">儲存到 <xliff:g id="email" example="username@example.com">%1$s</xliff:g> <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">已儲存到 <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">密碼最後修改於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">通行金鑰創建於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">最後修改於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -946,7 +948,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">這將從歷史記錄中刪除所有密碼。</string>
     <string name="passwordhistory_delete_one_confirmation_title">確定要從歷史記錄中刪除密碼嗎？</string>
     <string name="passwordhistory_delete_many_confirmation_title">確定要從歷史記錄中刪除這些密碼嗎？</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">封鎖自動填入</string>
     <string name="watchtower_header_title">概況</string>
     <string name="watchtower_section_password_strength_label">密碼強度</string>
     <string name="watchtower_section_security_label">安全性</string>
@@ -1150,14 +1152,14 @@
     <string name="pref_item_autofill_respect_autofill_disabled_text">禁用存在禁止自動填充標籤的瀏覽器欄位</string>
     <string name="pref_item_autofill_respect_autofill_disabled_note">請注意，有些網站會禁用密碼欄位的自動填寫功能，有些瀏覽器也會忽略禁用自動填寫功能的標記。</string>
     <string name="pref_item_autofill_save_request_title">請求儲存資料</string>
-    <string name="pref_item_autofill_save_request_text">填寫表單時詢問是否更新密碼庫</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_save_request_text">填寫完成後提示更新保險庫</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">密碼金鑰支援</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">向憑證管理器宣告支援密碼金鑰支援，以允許應用程式處理驗證請求</string>
     <string name="pref_item_autofill_auto_save_source_title">自動儲存應用或網站資訊</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_block_uri_title">封鎖自動填入</string>
+    <string name="pref_item_autofill_block_uri_text">阻止為這些 URI 提供自動填入</string>
+    <string name="pref_item_autofill_privileged_apps_title">特權應用程式</string>
+    <string name="pref_item_autofill_privileged_apps_text">特權應用程式可以代表其他服務提出憑據請求</string>
     <string name="pref_item_clipboard_auto_clear_title">自動清除剪貼簿</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">從不</string>

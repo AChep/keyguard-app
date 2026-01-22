@@ -262,7 +262,7 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
+    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Mẹo xịn: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Tạo email duy nhất để bảo mật tốt hơn.</string>
@@ -440,6 +440,7 @@
     <string name="copy_uri">Sao chép đường dẫn</string>
     <string name="copy_send">Sao chép gửi</string>
     <string name="copy_package_name">Sao chép tên gói</string>
+    <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_password">Sao chép mật khẩu</string>
     <string name="copy_username">Sao chép tên người dùng</string>
     <string name="copy_email">Sao chép email</string>
@@ -532,6 +533,7 @@
     <string name="error_invalid_uri">URI không hợp lệ</string>
     <string name="error_invalid_card_number">Số thẻ không hợp lệ</string>
     <string name="error_incorrect_password">Mật khẩu không đúng</string>
+    <string name="error_not_found">Not found</string>
     <string name="error_otp_key_must_not_be_empty">Khóa bí mật của mật khẩu dùng một lần không được để trống</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Không tạo được một chìa khóa, không đủ bộ nhớ. Vui lòng kiểm tra các thiết đặt máy chủ KDF của bạn.</string>
@@ -1155,7 +1157,7 @@
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make a credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Tự động dọn dẹp clipboard</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Ngay lập tức</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Không bao giờ</string>

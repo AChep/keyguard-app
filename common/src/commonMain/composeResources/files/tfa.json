@@ -5690,14 +5690,20 @@
     "domain": "epicgames.com",
     "additional-domains": [
       "fortnite.com",
-      "fallguys.com"
+      "fallguys.com",
+      "rocketleague.com"
     ],
     "tfa": [
       "sms",
       "email",
-      "totp"
+      "totp",
+      "custom-software"
     ],
-    "documentation": "https://www.epicgames.com/help/en-US/c74/c112/a3218",
+    "custom-software": [
+      "Epic Games app",
+      "Epic Games Store app"
+    ],
+    "documentation": "https://www.epicgames.com/help/c74/c112/a3218",
     "name": "Epic Games"
   },
   {
@@ -14460,6 +14466,29 @@
     "name": "Santa Clara University"
   },
   {
+    "domain": "sdccd.edu",
+    "additional-domains": [
+      "sdcity.edu",
+      "sdmesa.edu",
+      "sdmiramar.edu",
+      "sdcce.edu"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "custom-software",
+      "custom-hardware"
+    ],
+    "custom-software": [
+      "Microsoft Authenticator"
+    ],
+    "custom-hardware": [
+      "SafeID token"
+    ],
+    "documentation": "https://www.sdccd.edu/students/student-email.aspx",
+    "name": "San Diego Community College District"
+  },
+  {
     "domain": "sdfcu.org",
     "additional-domains": [
       "sdfcuib.org"
@@ -17643,6 +17672,16 @@
     ],
     "documentation": "https://support.uphold.com/hc/en-us/articles/360023791072",
     "name": "Uphold"
+  },
+  {
+    "domain": "ups.com",
+    "url": "https://www.ups.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://www.ups.com/us/en/support/manage-your-profile#faq",
+    "name": "UPS"
   },
   {
     "domain": "uptimerobot.com",

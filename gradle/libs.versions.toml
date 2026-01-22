@@ -70,7 +70,7 @@ crashlyticsPlugin = "3.0.6"
 dbusJava = "5.1.1"
 # https://github.com/gmethvin/directory-watcher
 directoryWatcher = "0.19.1"
-firebase = "34.7.0"
+firebase = "34.8.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 googleServicesPlugin = "4.4.4"

@@ -101,6 +101,26 @@ compose.desktop {
             jvmArgs(
                 "-Dapple.awt.application.appearance=system",
             )
+
+            // Support system Keychain as thrust store:
+            // https://github.com/AChep/keyguard-app/issues/1227
+            val platformJvmArgs = when {
+                Os.isFamily(Os.FAMILY_MAC) -> {
+                    arrayOf(
+                        "-Djavax.net.ssl.trustStore=/dev/null",
+                        "-Djavax.net.ssl.trustStoreType=KeychainStore",
+                    )
+                }
+                Os.isFamily(Os.FAMILY_WINDOWS) -> {
+                    arrayOf(
+                        "-Djavax.net.ssl.trustStore=NONE",
+                        "-Djavax.net.ssl.trustStoreType=Windows-ROOT",
+                    )
+                }
+                else -> arrayOf()
+            }
+            jvmArgs(*platformJvmArgs)
+
             includeAllModules = true
             val formats = listOfNotNull(
                 TargetFormat.Dmg,

@@ -164,7 +164,7 @@ private const val PASSWORD_EXCLUDE_AMBIGUOUS_CHARS = true
 
 private const val PASSPHRASE_LENGTH_DEFAULT = 5L
 private const val PASSPHRASE_LENGTH_MIN = 1
-private const val PASSPHRASE_LENGTH_MAX = 10
+private const val PASSPHRASE_LENGTH_MAX = 20
 private const val PASSPHRASE_DELIMITER_DEFAULT = "-"
 private const val PASSPHRASE_CAPITALIZE_DEFAULT = false
 private const val PASSPHRASE_NUMBER_DEFAULT = false

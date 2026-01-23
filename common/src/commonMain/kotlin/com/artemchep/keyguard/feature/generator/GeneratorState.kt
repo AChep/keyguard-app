@@ -129,6 +129,7 @@ data class GeneratorState(
         val password: String,
         val source: GetPasswordResult,
         val strength: Boolean,
+        val length: Boolean,
         val actions: ImmutableList<FlatItemAction>,
         val dropdown: ImmutableList<ContextItem>,
         val onCopy: (() -> Unit)?,

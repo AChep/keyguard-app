@@ -1637,6 +1637,7 @@ fun produceGeneratorState(
                     password = "",
                     source = GetPasswordResult.Value(""),
                     strength = type.password && args.password,
+                    length = type.password && args.password,
                     dropdown = persistentListOf(),
                     actions = persistentListOf(),
                     onCopy = null,
@@ -1680,6 +1681,8 @@ fun produceGeneratorState(
                             source = passwordw,
                             strength = type.password && args.password &&
                                     type !is GeneratorType2.PinCode,
+                            length = type is GeneratorType2.Passphrase ||
+                                    type is GeneratorType2.Username,
                             dropdown = if (password.isNotEmpty()) {
                                 dropdown
                             } else {
@@ -1723,6 +1726,7 @@ fun produceGeneratorState(
                             password = keyPair.publicKey.fingerprint,
                             source = passwordw,
                             strength = false,
+                            length = false,
                             dropdown = dropdown,
                             actions = persistentListOf(),
                             onCopy = null,

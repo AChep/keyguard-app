@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -108,6 +109,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
@@ -150,6 +152,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -396,6 +399,9 @@ private fun GeneratorPaneMaster(
             val strengthState = remember {
                 mutableStateOf(false)
             }
+            val lengthState = remember {
+                mutableStateOf(false)
+            }
             val passwordState = remember {
                 mutableStateOf<String?>(null)
             }
@@ -403,12 +409,14 @@ private fun GeneratorPaneMaster(
                 val state = loadableGeneratorState.getOrNull()
                     ?: kotlin.run {
                         strengthState.value = false
+                        lengthState.value = false
                         passwordState.value = null
                         return@LaunchedEffect
                     }
                 state.valueState
                     .onEach { value ->
                         strengthState.value = value?.strength == true
+                        lengthState.value = value?.length == true
                         passwordState.value = value?.password
                             ?.takeIf { it.isNotEmpty() }
                     }
@@ -462,13 +470,13 @@ private fun GeneratorPaneMaster(
                         modifier = Modifier
                             .height(4.dp),
                     )
-                    ExpandedIfNotEmpty(
-                        valueOrNull = password.takeIf { strengthState.value },
-                    ) { pwd ->
-                        PasswordStrengthBadge(
-                            password = pwd,
-                        )
-                    }
+                    GeneratorBadgesRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        value = password,
+                        showStrength = strengthState.value,
+                        showLength = lengthState.value,
+                    )
                 }
             }
         },
@@ -609,6 +617,53 @@ fun ColumnScope.GeneratorType(
     )
 }
 
+@Composable
+fun GeneratorBadgesRow(
+    modifier: Modifier = Modifier,
+    value: String,
+    showStrength: Boolean,
+    showLength: Boolean,
+) {
+    ExpandedIfNotEmpty(
+        modifier = modifier,
+        valueOrNull = Unit
+            .takeIf { showStrength || showLength },
+    ) {
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ExpandedIfNotEmptyForRow(
+                valueOrNull = value.takeIf { showStrength },
+            ) { pwd ->
+                PasswordStrengthBadge(
+                    password = pwd,
+                )
+            }
+            ExpandedIfNotEmptyForRow(
+                valueOrNull = value.takeIf { showLength },
+            ) { pwd ->
+                AhContainer(
+                    score = 1f,
+                ) {
+                    val length = pwd.length
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp),
+                        text = pluralStringResource(
+                            Res.plurals.character_count_plural,
+                            length,
+                            length
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColumnScope.GeneratorValue(
@@ -648,15 +703,13 @@ fun ColumnScope.GeneratorValue(
                         modifier = Modifier
                             .height(4.dp),
                     )
-
-                    val visible = value.strength
-                    ExpandedIfNotEmpty(
-                        valueOrNull = value.password.takeIf { visible },
-                    ) { password ->
-                        PasswordStrengthBadge(
-                            password = password,
-                        )
-                    }
+                    GeneratorBadgesRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        value = value.password,
+                        showStrength = value.strength,
+                        showLength = value.length,
+                    )
                 },
                 trailing = {
                     ExpandedIfNotEmptyForRow(

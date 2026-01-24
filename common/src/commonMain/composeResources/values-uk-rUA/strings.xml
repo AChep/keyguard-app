@@ -440,7 +440,7 @@
     <string name="copy_uri">Скопіювати URI</string>
     <string name="copy_send">Скопіювати відправлення</string>
     <string name="copy_package_name">Скопіювати назву пакета</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Скопіювати ідентифікатор пакета</string>
     <string name="copy_password">Копіювати пароль</string>
     <string name="copy_username">Скопіювати ім'я користувача</string>
     <string name="copy_email">Скопіювати ел. пошту</string>

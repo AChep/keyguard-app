@@ -440,7 +440,7 @@
     <string name="copy_uri">复制 URI</string>
     <string name="copy_send">复制 Send</string>
     <string name="copy_package_name">复制包名</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">复制捆绑 ID</string>
     <string name="copy_password">复制密码</string>
     <string name="copy_username">复制用户名</string>
     <string name="copy_email">复制电子邮件</string>
@@ -533,7 +533,7 @@
     <string name="error_invalid_uri">URI 无效</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">未找到</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
     <string name="error_failed_file_already_exists">无法创建文件。不允许替换现有文件</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
@@ -548,7 +548,7 @@
     <string name="error_failed_unknown">出错了</string>
     <string name="error_failed_encrypt_biometric_key">加密生物识别密钥失败</string>
     <string name="error_failed_decrypt_biometric_key">解密生物识别密钥失败</string>
-    <string name="error_credential_calling_app_not_privileged">调用应用程序不在特权列表中，无法代表其他应用程序请求身份验证。</string>
+    <string name="error_credential_calling_app_not_privileged">发起调用的应用程序不在特权列表中，因此不能代表其他应用程序请求身份验证。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
@@ -557,7 +557,7 @@
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">信任应用程序允许它请求任何服务的凭据。恶意应用程序可能会利用此漏洞试图窃取您的凭据。</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">信任某个应用就意味着它有权请求任何服务的凭据。恶意应用可能会利用这一点来窃取您的凭据。</string>
     <string name="scanqr_title">扫描二维码</string>
     <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
     <string name="scanqr_camera_permission_required_text">请授予相机权限以扫描二维码。</string>
@@ -720,7 +720,7 @@
     <string name="addsend_hide_text_by_default_title">访问条目时，将默认隐藏文本</string>
     <string name="addsend_hide_email_title">隐藏电子邮件地址</string>
     <string name="addsend_max_access_count_note">设置后，当达到最大访问次数时用户将不再能够访问此条目。</string>
-    <string name="addaccount_promo_title">您的密码库是空的。连接一个帐户以开始：</string>
+    <string name="addaccount_promo_title">您的密码库是空的。连接一个账户以开始：</string>
     <string name="addaccount_promo_features">想获得最佳体验？我们已在下方为您列出了该应用的所有主要功能。请查看以下内容，了解它如何为您服务。</string>
     <string name="addaccount_description_short_bitwarden_text">将加密的密码库存储在云端。</string>
     <string name="addaccount_description_short_keepass_text">使用 KDBX 文件格式在本地存储加密的密码库。</string>
@@ -732,7 +732,7 @@
     <string name="addaccount_captcha_need_client_secret_note">要通过非官方 Bitwarden 客户端上的验证码验证，您必须指定客户端密钥。 请访问 网页密码库 / 设置 / 安全 / API 密钥以找到它。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">客户端密钥</string>
-    <string name="addaccount_create_an_account_title">创建帐户</string>
+    <string name="addaccount_create_an_account_title">创建账户</string>
     <string name="addaccount_sign_in_button">登录</string>
     <string name="addaccount_region_section">选择区域</string>
     <string name="addaccount_region_us_type">美国</string>
@@ -759,7 +759,7 @@
     <string name="addaccount2fa_yubikey_manual_text">手动输入 YubiKey 验证码，将光标放在下方输入框并按下 YubiKey 的按钮。</string>
     <string name="addkeepass_header_title">添加 KeePass 帐户</string>
     <string name="addkeepass_header_body">将所有密码保存在一个高度加密的 KDBX 文件中，该文件直接存储在您的设备上。您可以完全掌控自己的数据。您可以将数据存储在电脑、U 盘上，或使用 Google Drive 或 Dropbox 等云服务自行同步。</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass 实现处于测试阶段，尚未完全与 KeePass 客户端兼容。 使用风险自担。请确保您的数据库备份经过验证，然后继续。</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass 的实现目前处于测试阶段，尚未与标准 KeePass 客户端完全兼容。使用风险自负。请务必在操作前备份您的数据库。</string>
     <string name="provider_2fa_authenticator">身份验证器</string>
     <string name="provider_2fa_duo_organization">Duo（组织）</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web 身份验证</string>
@@ -1153,13 +1153,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">请注意，有些网站会禁用密码字段的自动填写功能，有些浏览器也会忽略禁用自动填写功能的标记。</string>
     <string name="pref_item_autofill_save_request_title">请求保存数据</string>
     <string name="pref_item_autofill_save_request_text">填写完成后提示更新保险库</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">密钥支持</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">向凭证管理器广播密钥支持，允许应用程序完成请求</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">通行密钥支持</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">向凭证管理器声明支持通行密钥，从而允许应用程序满足请求</string>
     <string name="pref_item_autofill_auto_save_source_title">自动保存应用或网站信息</string>
     <string name="pref_item_autofill_block_uri_title">阻止自动填充</string>
     <string name="pref_item_autofill_block_uri_text">阻止为这些 URI 提供自动填充</string>
     <string name="pref_item_autofill_privileged_apps_title">特权应用</string>
-    <string name="pref_item_autofill_privileged_apps_text">特权应用可以代表其他服务提出凭据请求</string>
+    <string name="pref_item_autofill_privileged_apps_text">特权应用可以代表其他服务发出凭证请求</string>
     <string name="pref_item_clipboard_auto_clear_title">自动清除剪贴板</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">立即清除</string>
     <string name="pref_item_clipboard_auto_clear_never_text">从不</string>

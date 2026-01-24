@@ -381,7 +381,7 @@ jobs:
         run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
       - name: 'Upload .apk'
         uses: actions/upload-artifact@v6
-        if: matrix.os == 'assemble'
+        if: matrix.config.os == 'assemble'
         with:
           name: app-android-apk
           path: |
@@ -390,7 +390,7 @@ jobs:
           retention-days: 1
       - name: 'Upload .aab'
         uses: actions/upload-artifact@v6
-        if: matrix.os == 'bundle'
+        if: matrix.config.os == 'bundle'
         with:
           name: app-android-aab
           path: |

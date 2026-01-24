@@ -125,8 +125,6 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v6
-        with:
-          path: keyguard-app
       - uses: ./.github/actions/setup_python
       - name: "Prepare env"
         run: |

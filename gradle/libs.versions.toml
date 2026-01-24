@@ -75,7 +75,7 @@ firebase = "34.8.0"
 flowPreferences = "1.9.1"
 googleServicesPlugin = "4.4.4"
 # https://github.com/ch4rl3x/HtmlText
-htmlText = "2.0.0-beta01"
+htmlText = "3.0.0-beta02"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
@@ -251,7 +251,7 @@ halilibo-richtext-commonmark = { module = "com.halilibo.compose-richtext:richtex
 halilibo-richtext-markdown = { module = "com.halilibo.compose-richtext:richtext-markdown", version.ref = "richtext" }
 halilibo-richtext-ui-material3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
-html-text = { module = "de.charlex.compose.material3:material3-html-text", version.ref = "htmlText" }
+html-text = { module = "de.charlex.compose:html-text-material3", version.ref = "htmlText" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }
 kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }

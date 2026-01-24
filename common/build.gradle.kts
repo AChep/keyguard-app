@@ -135,6 +135,7 @@ kotlin {
                 api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
                 api(libs.mm2d.touchicon)
+                api(libs.html.text)
                 api(libs.ksoup.html)
                 api(libs.kdroidfilter.platformtools.darkmodedetector)
             }
@@ -238,7 +239,6 @@ kotlin {
                 api(libs.sqlcipher.android)
                 api(libs.kotlinx.coroutines.android)
                 api(libs.kodein.kodein.di.framework.android.x.viewmodel.savedstate)
-                api(libs.html.text)
                 api(libs.yubico.yubikit.android)
                 api(libs.cash.sqldelight.android.driver)
                 api(libs.osipxd.security.crypto.datastore.preferences)

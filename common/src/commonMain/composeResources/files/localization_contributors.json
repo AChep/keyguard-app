@@ -121,11 +121,11 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 11567,
-    "target": 10821,
+    "translated": 11610,
+    "target": 10858,
     "approved": 1049,
     "voted": 0,
-    "positiveVotes": 62,
+    "positiveVotes": 63,
     "negativeVotes": 1,
     "winning": 558
   },
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 759,
-    "target": 859,
+    "translated": 779,
+    "target": 877,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -705,10 +705,10 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2836,
-    "target": 4516,
+    "translated": 3083,
+    "target": 4934,
     "approved": 0,
-    "voted": 11,
+    "voted": 16,
     "positiveVotes": 7,
     "negativeVotes": 0,
     "winning": 0
@@ -903,8 +903,8 @@
         "name": "Spanish"
       }
     ],
-    "translated": 1380,
-    "target": 1606,
+    "translated": 1403,
+    "target": 1628,
     "approved": 0,
     "voted": 7,
     "positiveVotes": 0,
@@ -1510,7 +1510,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
-    "negativeVotes": 0,
+    "negativeVotes": 3,
     "winning": 0
   },
   {
@@ -1883,8 +1883,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 6193,
-    "target": 6811,
+    "translated": 6213,
+    "target": 6829,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

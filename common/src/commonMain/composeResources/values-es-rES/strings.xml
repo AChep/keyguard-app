@@ -440,7 +440,7 @@
     <string name="copy_uri">Copiar URI</string>
     <string name="copy_send">Copiar envío</string>
     <string name="copy_package_name">Copiar el nombre del paquete</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Copiar ID del paquete</string>
     <string name="copy_password">Copiar contraseña</string>
     <string name="copy_username">Copiar nombre de usuario</string>
     <string name="copy_email">Copiar correo electrónico</string>

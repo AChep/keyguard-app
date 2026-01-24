@@ -101,6 +101,13 @@ compose.desktop {
             jvmArgs(
                 "-Dapple.awt.application.appearance=system",
             )
+            // We want to explicitly include the jdk crypto module,
+            // so if the JDK is missing that we are going to get an error
+            // instead of silently building the app and failing in runtime.
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                jvmArgs("--add-modules=jdk.crypto.mscapi")
+            }
+
             includeAllModules = true
             val formats = listOfNotNull(
                 TargetFormat.Dmg,

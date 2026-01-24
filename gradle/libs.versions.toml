@@ -108,6 +108,8 @@ kotpass = "0.13.0"
 ksoup = "0.6.0"
 # https://github.com/java-native-access/jna
 jna = "5.18.1"
+# https://github.com/kdroidFilter/Platform-Tool
+platformtools = "0.7.4"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
 # https://github.com/cashapp/licensee
@@ -276,6 +278,7 @@ ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx
 keemobile-kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+kdroidfilter-platformtools-darkmodedetector = { module = "io.github.kdroidfilter:platformtools.darkmodedetector", version.ref = "platformtools" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }

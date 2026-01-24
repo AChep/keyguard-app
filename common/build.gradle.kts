@@ -136,6 +136,7 @@ kotlin {
                 api(libs.devsrsouza.feather)
                 api(libs.mm2d.touchicon)
                 api(libs.ksoup.html)
+                api(libs.kdroidfilter.platformtools.darkmodedetector)
             }
         }
         commonTest.dependencies {

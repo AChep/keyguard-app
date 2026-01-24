@@ -11,9 +11,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
@@ -31,8 +33,10 @@ import com.artemchep.keyguard.platform.theme.hasDarkThemeEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.m3.dynamicColorScheme
+import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.Font
 import org.kodein.di.compose.rememberInstance
+import kotlin.Boolean
 
 val ColorScheme.selectedContainer
     @ReadOnlyComposable
@@ -259,32 +263,33 @@ val robotoSansFontFamily: FontFamily
         return FontFamily(Font(res))
     }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 @Composable
 fun KeyguardTheme(
     content: @Composable () -> Unit,
 ) {
-    val getTheme by rememberInstance<GetTheme>()
-    val getThemeUseAmoledDark by rememberInstance<GetThemeUseAmoledDark>()
-    val getThemeExpressive by rememberInstance<GetThemeExpressive>()
-    val getColors by rememberInstance<GetColors>()
-    val expressive by remember(getThemeExpressive) {
-        getThemeExpressive()
-    }.collectAsState(true)
-    val theme by remember(getTheme) {
-        getTheme()
-    }.collectAsState(initial = null)
-    val themeBlack by remember(getThemeUseAmoledDark) {
-        getThemeUseAmoledDark()
-    }.collectAsState(initial = false)
-    val colors by remember(getColors) {
-        getColors()
-    }.collectAsState(initial = null)
-    val isDarkColorScheme = when (theme) {
-        AppTheme.DARK -> true
-        AppTheme.LIGHT -> false
-        null -> CurrentPlatform.hasDarkThemeEnabled()
-    }
+    val theme = rememberThemeConfigState()
+    val dark = rememberThemeDarkState(
+        config = theme.value,
+    )
+    KeyguardTheme(
+        config = theme.value,
+        dark = dark.value,
+        content = content,
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun KeyguardTheme(
+    config: ThemeConfig,
+    dark: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val expressive = config.expressive
+    val themeBlack = config.useAmoledBlack
+    val colors = config.colors
+    val isDarkColorScheme = dark
 
     val scheme = kotlin.run {
         val scheme = appColorScheme(
@@ -358,6 +363,65 @@ fun KeyguardTheme(
             }
         }
     }
+}
+
+data class ThemeConfig(
+    val expressive: Boolean,
+    val colors: AppColors?,
+    val mode: AppTheme?,
+    val useAmoledBlack: Boolean,
+)
+
+@Composable
+fun rememberThemeConfigState(): State<ThemeConfig> {
+    val getTheme by rememberInstance<GetTheme>()
+    val getThemeUseAmoledDark by rememberInstance<GetThemeUseAmoledDark>()
+    val getThemeExpressive by rememberInstance<GetThemeExpressive>()
+    val getColors by rememberInstance<GetColors>()
+    return remember(
+        getTheme,
+        getThemeUseAmoledDark,
+        getThemeExpressive,
+        getColors,
+    ) {
+        val themeExpressiveFlow = getThemeExpressive()
+        val themeColorsFlow = getColors()
+        val themeModeFlow = getTheme()
+        val themeModeAmoledBlackFlow = getThemeUseAmoledDark()
+        combine(
+            themeExpressiveFlow,
+            themeColorsFlow,
+            themeModeFlow,
+            themeModeAmoledBlackFlow,
+        ) { expressive, colors, mode, modeAmoledBlack ->
+            ThemeConfig(
+                expressive = expressive,
+                colors = colors,
+                mode = mode,
+                useAmoledBlack = modeAmoledBlack,
+            )
+        }
+    }.collectAsState(
+        // use sane defaults
+        initial = ThemeConfig(
+            expressive = true,
+            colors = null,
+            mode = null,
+            useAmoledBlack = false,
+        )
+    )
+}
+
+@Composable
+fun rememberThemeDarkState(
+    config: ThemeConfig,
+): State<Boolean> {
+    val dark = when (config.mode) {
+        AppTheme.DARK -> true
+        AppTheme.LIGHT -> false
+        null -> CurrentPlatform.hasDarkThemeEnabled()
+    }
+    return rememberUpdatedState(dark)
 }
 
 @Composable

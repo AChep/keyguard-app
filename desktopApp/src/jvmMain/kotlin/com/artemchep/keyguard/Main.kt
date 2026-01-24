@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -50,7 +51,6 @@ import com.artemchep.keyguard.desktop.util.navigateToEmail
 import com.artemchep.keyguard.desktop.util.navigateToFile
 import com.artemchep.keyguard.desktop.util.navigateToFileInFileManager
 import com.artemchep.keyguard.feature.favicon.Favicon
-import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
@@ -69,7 +69,6 @@ import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
-import io.ktor.http.Url
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -310,21 +309,11 @@ private fun ApplicationScope.KeyguardWindow(
     windowStateManager: WindowStateManager,
     onCloseRequest: () -> Unit,
 ) {
-    val windowState = windowStateManager.rememberWindowState()
-    val keyboardShortcutsService by rememberInstance<KeyboardShortcutsService>()
-    Window(
+    KeyguardWindow(
+        processLifecycleProvider = processLifecycleProvider,
+        windowStateManager = windowStateManager,
         onCloseRequest = onCloseRequest,
-        icon = painterResource(Res.drawable.ic_keyguard),
-        state = windowState,
-        title = "Keyguard",
-        onKeyEvent = { event ->
-            keyboardShortcutsService.handle(event)
-        },
     ) {
-        LaunchLifecycleProviderEffect(
-            processLifecycleProvider = processLifecycleProvider,
-        )
-
         KeyguardTheme {
             val containerColor = LocalBackgroundManager.current.colorHighest
             val containerColorAnimatedState = animateColorAsState(containerColor)
@@ -341,7 +330,6 @@ private fun ApplicationScope.KeyguardWindow(
             ) {
                 CompositionLocalProvider(
                     LocalSurfaceColor provides containerColor,
-                    LocalComposeWindow provides this.window,
                 ) {
                     Navigation(
                         exitApplication = ::exitApplication,
@@ -350,6 +338,36 @@ private fun ApplicationScope.KeyguardWindow(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ApplicationScope.KeyguardWindow(
+    processLifecycleProvider: LePlatformLifecycleProvider,
+    windowStateManager: WindowStateManager,
+    onCloseRequest: () -> Unit,
+    content: @Composable FrameWindowScope.() -> Unit,
+) {
+    val windowState = windowStateManager.rememberWindowState()
+    val keyboardShortcutsService by rememberInstance<KeyboardShortcutsService>()
+    Window(
+        onCloseRequest = onCloseRequest,
+        icon = painterResource(Res.drawable.ic_keyguard),
+        state = windowState,
+        title = "Keyguard",
+        onKeyEvent = { event ->
+            keyboardShortcutsService.handle(event)
+        },
+    ) {
+        CompositionLocalProvider(
+            LocalComposeWindow provides this.window,
+        ) {
+            LaunchLifecycleProviderEffect(
+                processLifecycleProvider = processLifecycleProvider,
+            )
+
+            content()
         }
     }
 }

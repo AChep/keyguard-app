@@ -117,6 +117,27 @@ jobs:
         with:
           name: versions
           path: keyguard-version/versions.json
+  generate-versions-code-google-play-store:
+    name: "Generate versions code for Google Play Store"
+    runs-on: ubuntu-slim
+    outputs:
+      version-code: ${{ steps.producer.outputs.version_code }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v6
+        with:
+          path: keyguard-app
+      - uses: ./.github/actions/setup_python
+      - name: "Prepare env"
+        run: |
+          echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat > service-account-google.json
+      - name: "Produce version code"
+        id: producer
+        run: |
+          pip -r .github/scripts/versioning/requirements.txt
+          python .github/scripts/versioning/fetch_version.py --package-name com.artemchep.keyguard --credentials service-account-google.json --output play-store-versions.json
+          VERSION_CODE=$(jq -r '.next_version_code' play-store-versions.json)
+          echo "version_code=VERSION_CODE" >> $GITHUB_OUTPUT
   build-macos-app:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -323,6 +344,14 @@ jobs:
           retention-days: 1
   build-android-app:
     runs-on: ubuntu-latest
+    needs:
+      - generate-versions-code-google-play-store
+    strategy:
+      fail-fast: true
+      matrix:
+        config:
+          - { flavor: None, build-type: assemble }
+          - { flavor: PlayStore, build-type: bundle }
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -332,27 +361,41 @@ jobs:
           lfs: true
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/setup_python
       - name: "Prepare env"
         run: |
-          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
-          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
-          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > androidApp/keyguard-release.keystore
+          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat > androidApp/keyguard-release.properties
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat > androidApp/google-services.json
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+      - name: "Prepare version code"
+        run: |
+          echo "" >> gradle.properties
+          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.version-code }}" >> gradle.properties
       - uses: ./.github/actions/build_android_licenses
         with:
-          build-flavor: "None"
+          build-flavor: ${{ matrix.config.flavor }}
       - uses: ./.github/actions/build_android_baseline_profiles
         with:
-          build-flavor: "None"
+          build-flavor: ${{ matrix.config.flavor }}
       - name: "Build"
-        run: ./gradlew androidApp:assembleNoneRelease
+        run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
       - name: 'Upload .apk'
         uses: actions/upload-artifact@v6
+        if: matrix.os == 'assemble'
         with:
-          name: app-android
+          name: app-android-apk
           path: |
             androidApp/build/outputs/apk/**/*.apk
             androidApp/build/outputs/mapping/**/mapping.txt
+          retention-days: 1
+      - name: 'Upload .aab'
+        uses: actions/upload-artifact@v6
+        if: matrix.os == 'bundle'
+        with:
+          name: app-android-aab
+          path: |
+            androidApp/build/outputs/bundle/**/*.aab
           retention-days: 1
   dist:
     runs-on: ubuntu-latest
@@ -406,10 +449,15 @@ jobs:
         with:
           name: app-windows
           path: artifacts
-      - name: "Download Android app"
+      - name: "Download Android app (apk)"
         uses: actions/download-artifact@v7
         with:
-          name: app-android
+          name: app-android-apk
+          path: artifacts
+      - name: "Download Android app (aab)"
+        uses: actions/download-artifact@v7
+        with:
+          name: app-android-aab
           path: artifacts
       - name: "Create release"
         uses: softprops/action-gh-release@v2
@@ -462,6 +510,34 @@ jobs:
 
           # Push
           git push
+  deploy-play-store:
+    name: Deploy Play Store
+    runs-on: ubuntu-latest
+    needs:
+      - generate-changelog
+      - dist
+    steps:
+      - name: "Download Android app (aab)"
+        uses: actions/download-artifact@v7
+        with:
+          name: app-android-aab
+          path: artifacts
+      - name: "Download changelog"
+        uses: actions/download-artifact@v7
+        with:
+          name: changelog
+          path: artifacts-changelog
+      - name: "Prepare env"
+        run: |
+          mkdir whatsnew
+          mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
+      - name: "Distribute on Play Store"
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJson: service-account-google.json
+          whatsNewDirectory: whatsnew
+          packageName: com.artemchep.keyguard
+          releaseFiles: artifacts/**/*.aab
   deploy-flathub:
     name: Deploy Flathub
     runs-on: ubuntu-slim

@@ -31,8 +31,16 @@ fun Project.createVersionInfo(
     }
     // Max date:
     // (999 * 500 + 356) * 10000 + 9999
-    val codeVersion =
+    val codeVersion = kotlin.run {
+        val suppliedVersionCode = project.properties["versionCode"]
+            ?.let { it as? String }
+            ?.toIntOrNull()
+        if (suppliedVersionCode != null) {
+            return@run suppliedVersionCode
+        }
+
         ((calendar.get(Calendar.YEAR) % 1000) * 500 + calendar.get(Calendar.DAY_OF_YEAR)) * 10000 + logicalVersion
+    }
     val buildDate = dateFormat.format(calendar.time)
     return VersionInfo(
         marketingVersion = marketingVersion,

@@ -416,6 +416,7 @@ import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorImpl
 import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
+import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
@@ -1575,6 +1576,7 @@ fun globalModuleJvm() = DI.Module(
     bindSingleton<OkHttpClient> {
         OkHttpClient
             .Builder()
+            .installPlatformTrustManager()
             .apply {
                 if (!isRelease) {
                     val logRepository: LogRepository = instance()

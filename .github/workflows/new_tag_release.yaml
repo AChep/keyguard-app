@@ -376,6 +376,7 @@ jobs:
       - uses: ./.github/actions/build_android_baseline_profiles
         with:
           build-flavor: ${{ matrix.config.flavor }}
+          artifact-prefix: android-${{ matrix.config.flavor }}-
       - name: "Build"
         run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
       - name: 'Upload .apk'

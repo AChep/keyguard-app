@@ -3,6 +3,10 @@ inputs:
   build-flavor:
     description: 'Build Flavor'
     required: true
+  artifact-prefix:
+    description: 'Artifact Tag'
+    required: true
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -25,7 +29,7 @@ runs:
       uses: actions/upload-artifact@v5
       if: always()
       with:
-        name: baselineprofile-screen-recordings
+        name: ${{ inputs.artifact-prefix }}baselineprofile-screen-recordings
         path: |
           artifactsScreenRecording/
         retention-days: 7
@@ -33,7 +37,7 @@ runs:
       uses: actions/upload-artifact@v5
       if: always()
       with:
-        name: baselineprofile-logs
+        name: ${{ inputs.artifact-prefix }}baselineprofile-logs
         path: |
           androidBenchmark/build/outputs/androidTest-results/
         retention-days: 7

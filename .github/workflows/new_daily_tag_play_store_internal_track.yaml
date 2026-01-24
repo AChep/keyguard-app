@@ -20,7 +20,7 @@ jobs:
           python .github/setup_gradle_properties_release.py tag="d$(date +%Y%m%d)"
       - name: "Prepare version code"
         run: |
-          pip -r .github/scripts/versioning/requirements.txt
+          pip install -r .github/scripts/versioning/requirements.txt
           python .github/scripts/versioning/fetch_version.py --package-name com.artemchep.keyguard --credentials service-account-google.json --output play-store-versions.json
           VERSION_CODE=$(jq -r '.next_version_code' play-store-versions.json)
           echo "" >> gradle.properties

@@ -134,7 +134,7 @@ jobs:
       - name: "Produce version code"
         id: producer
         run: |
-          pip -r .github/scripts/versioning/requirements.txt
+          pip install -r .github/scripts/versioning/requirements.txt
           python .github/scripts/versioning/fetch_version.py --package-name com.artemchep.keyguard --credentials service-account-google.json --output play-store-versions.json
           VERSION_CODE=$(jq -r '.next_version_code' play-store-versions.json)
           echo "version_code=VERSION_CODE" >> $GITHUB_OUTPUT

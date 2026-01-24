@@ -101,27 +101,6 @@ compose.desktop {
             jvmArgs(
                 "-Dapple.awt.application.appearance=system",
             )
-
-            // Support system Keychain as trust store:
-            // https://github.com/AChep/keyguard-app/issues/1227
-            val platformJvmArgs = when {
-                Os.isFamily(Os.FAMILY_MAC) -> {
-                    // We resort to runtime trust manager:
-                    // - KeychainStore      is empty.
-                    // - KeychainStore-ROOT does not exist.
-                    arrayOf(
-                    )
-                }
-                Os.isFamily(Os.FAMILY_WINDOWS) -> {
-                    arrayOf(
-                        "-Djavax.net.ssl.trustStore=NONE",
-                        "-Djavax.net.ssl.trustStoreType=Windows-ROOT",
-                    )
-                }
-                else -> arrayOf()
-            }
-            jvmArgs(*platformJvmArgs)
-
             includeAllModules = true
             val formats = listOfNotNull(
                 TargetFormat.Dmg,

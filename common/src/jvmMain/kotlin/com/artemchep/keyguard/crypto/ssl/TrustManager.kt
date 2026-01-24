@@ -19,6 +19,10 @@ fun OkHttpClient.Builder.installMacOsTrustManager() = installHybridTrustManager 
     getMacOsTrustManager()
 }
 
+fun OkHttpClient.Builder.installWindowsTrustManager() = installHybridTrustManager {
+    getWindowsTrustManager()
+}
+
 private inline fun OkHttpClient.Builder.installHybridTrustManager(
     fallback: () -> X509TrustManager = { getDefaultTrustManager() },
     primary: () -> X509TrustManager,
@@ -55,6 +59,16 @@ private fun getMacOsTrustManager() = run {
     appleTm
 }
 
+private fun getWindowsTrustManager() = run {
+    val winFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+    val winKeyStore = KeyStore.getInstance("Windows-MY")
+    winKeyStore.load(null, null)
+    winFactory.init(winKeyStore)
+    val winTm = winFactory.trustManagers
+        .first { it is X509TrustManager } as X509TrustManager
+    winTm
+}
+
 /**
  * A TrustManager that delegates to a primary manager, and falls back
  * to a secondary manager if the primary fails validation.
@@ -65,8 +79,10 @@ private class HybridTrustManager(
 ) : X509TrustManager {
     override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
         try {
+            println("??? BEFORE")
             primary.checkServerTrusted(chain, authType)
         } catch (_: CertificateException) {
+            println("??? CHECK FAILED")
             secondary.checkServerTrusted(chain, authType)
         }
     }

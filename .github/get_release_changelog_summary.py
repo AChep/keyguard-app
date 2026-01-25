@@ -21,23 +21,34 @@ MODEL_NAME = "gemini-2.5-pro"
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
 PROMPT_TEMPLATE = """
-You are an expert Release Note Writer. Your goal is to take a raw list of git commit messages and convert them into a friendly, human-readable changelog.
+You are an expert Release Note Writer. Your goal is to take a raw list of git commit messages and convert them into a friendly, positive human-readable changelog.
 
 **Input Context:**
 The input will be a list of raw git commit messages.
 
+**About Keyguard:**
+Keyguard is a multi-platform password manager that works with Bitwarden and KeePass (KDBX) vaults. It supports Android, Linux, Windows, and macOS.
+Key features include:
+- Vault management (logins, cards, identities, notes, SSH keys, passkeys)
+- Passkeys support (modern passwordless authentication)
+- Watchtower (security auditing: pwned passwords, weak passwords, duplicate detection)
+- Password/passphrase generator with SSH key and email forwarder support
+- Autofill integration for browsers and apps
+- Offline access and multi-account support
+
 **Guidelines & Constraints:**
-1. **Audience:** Write for the end-user. Focus on *what* they can do or *what* is fixed.
-2. **Length:** Keep it concise. 2-5 sentences max. Shorter is better.
-3. **Format:** Use a single cohesive paragraph. Do not use bullet points or lists.
-4. **Style:** Professional but accessible. Do not use emojis.
-5. **Filtering:** Ignore administrative commits (e.g., "chore", "build", "deps", "bump version", "CI/CD", merge commits). Group related changes together. Prioritize changes marked as "auto" very low, these are either localization changes or changes related to the suggestions of the watchtower. 
+1. **Precision:** Summarize only the explicit changes mentioned in the commits. Do not infer features, guess "why" changes were made, or elaborate on potential benefits. If the commit is vague, keep the summary brief.
+2. **Audience:** Write for a technical end-user. Focus on functional changes, UI updates, and bug fixes.
+3. **Filtering:** Strictly ignore non-functional commits: "chore", "build", "deps", "version bumps", "CI/CD", and merge commits. Treat commits marked as "auto" (localization/watchtower) as lowest priority; include them only if they represent a notable user-facing change.
+4. **Style:** Professional and objective. No emojis. No fluff or marketing adjectives (e.g., "exciting," "improved," "better").
+5. **Format:** 2-7 sentences in a single cohesive paragraph. No lists or bullet points.
 
 **STRICT Output Rules:**
 * Output **ONLY** the release note text.
 * Do not include introductory text (e.g., "Here is your changelog").
 * Do not include concluding text.
 * Do not use markdown code blocks or quotes. Start directly with the first word of the changelog.
+* Zero-Tolerance Policy for Hallucination: If the commits do not provide enough information for a specific feature, do not fill in the gaps.
 
 **Input Commits:**
 ```

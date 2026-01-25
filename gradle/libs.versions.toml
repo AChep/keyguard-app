@@ -83,7 +83,7 @@ m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines
@@ -92,7 +92,7 @@ kotlinCoroutines = "1.10.2"
 kotlinDatetime = "0.7.1-0.6.x-compat"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinSerialization = "1.9.0"
+kotlinSerialization = "1.10.0"
 # https://github.com/google/ksp/releases
 kspPlugin = "2.3.4"
 # https://github.com/pinterest/ktlint/releases
@@ -101,7 +101,7 @@ ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
 ktlintPlugin = "14.0.1"
 # https://github.com/ktorio/ktor
-ktor = "3.3.3"
+ktor = "3.4.0"
 # https://github.com/keemobile/kotpass
 kotpass = "0.13.0"
 # https://github.com/MohamedRejeb/Ksoup

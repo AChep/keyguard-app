@@ -366,6 +366,7 @@ private suspend fun BitwardenCipher.Companion.of(
         }
 
     val tags = request.tags
+        .filter { it.isNotBlank() }
         .map { tag ->
             BitwardenCipher.Tag(
                 name = tag,

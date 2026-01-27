@@ -10,8 +10,8 @@ abstract class GenerateResLocaleConfigBaseTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val composeResourcesDir: DirectoryProperty
 
-    protected fun collectLocalesFromComposeResources(dir: File): List<String> {
-        val locales = mutableListOf<String>()
+    protected fun collectLocalesFromComposeResources(dir: File): Collection<String> {
+        val locales = mutableSetOf<String>()
         locales += "en-US" // the default locale!
 
         // Find all the locales that the

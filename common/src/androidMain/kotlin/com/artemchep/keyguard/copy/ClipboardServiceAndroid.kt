@@ -30,9 +30,15 @@ class ClipboardServiceAndroid(
             description.extras = PersistableBundle().apply {
                 // Do not show the plain value if it
                 // should be concealed.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, concealed)
+                val extraIsSensitiveKey = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    ClipDescription.EXTRA_IS_SENSITIVE
+                } else {
+                    // Some of the OS versions do still check for the
+                    // extra, namely:
+                    // https://github.com/AChep/keyguard-app/issues/1239
+                    "android.content.extra.IS_SENSITIVE"
                 }
+                putBoolean(extraIsSensitiveKey, concealed)
             }
         }
         clipboardManager.setPrimaryClip(clip)

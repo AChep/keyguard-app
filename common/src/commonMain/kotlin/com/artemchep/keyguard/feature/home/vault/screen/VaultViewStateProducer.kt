@@ -2398,14 +2398,16 @@ private fun RememberStateFlowScope.oh(
             }
 
             val hidden = field.type == DSecret.Field.Type.Hidden
+            val concealed = hidden && concealFields
             val m = create(
                 copy = copy,
                 id = "custom.$index",
                 accountId = account.id,
                 title = field.name.orEmpty(),
                 value = field.value.orEmpty(),
+                verify = verify.takeIf { concealed },
                 visibility = Visibility(
-                    concealed = hidden && concealFields,
+                    concealed = concealed,
                     transformUserEvent = visibilityGlobalUserTransform,
                     globalConfig = visibilityGlobalConfig,
                 ),

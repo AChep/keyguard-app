@@ -19,7 +19,7 @@ jobs:
   check-desktop-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
@@ -34,7 +34,7 @@ jobs:
           - 30
           - 26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
@@ -48,7 +48,7 @@ jobs:
           build-flavor: "PlayStore"
       - name: "Run integration tests"
         id: baseline-profiles
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
@@ -61,7 +61,7 @@ jobs:
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
             exit $RESULT
       - name: 'Upload screen recordings'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
           name: android-${{ matrix.api-level }}-screen-recordings
@@ -69,7 +69,7 @@ jobs:
             artifactsScreenRecording/
           retention-days: 7
       - name: 'Upload logs'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
           name: android-${{ matrix.api-level }}-logs

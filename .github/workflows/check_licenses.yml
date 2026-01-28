@@ -20,7 +20,7 @@ jobs:
     name: Check Licenses
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: ./.github/actions/setup_gradle
       - name: "Check licenses"
         run: ./gradlew licensee
@@ -50,7 +50,7 @@ jobs:
           file_content="$(cat $file_path)"
           echo "paths=$file_content" >> "$GITHUB_OUTPUT"
       - name: "Upload results"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
           name: reports

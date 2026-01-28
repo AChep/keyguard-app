@@ -13,7 +13,7 @@ runs:
     - uses: ./.github/actions/prepare_kvm
     - name: "Generate baseline profiles"
       id: baseline-profiles
-      uses: reactivecircus/android-emulator-runner@v2
+      uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b
       with:
         api-level: 30
         arch: x86_64
@@ -26,7 +26,7 @@ runs:
           adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
           exit $RESULT
     - name: 'Upload baseline profile screen recordings'
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
       if: always()
       with:
         name: ${{ inputs.artifact-prefix }}baselineprofile-screen-recordings
@@ -34,7 +34,7 @@ runs:
           artifactsScreenRecording/
         retention-days: 7
     - name: 'Upload baseline profile logs'
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
       if: always()
       with:
         name: ${{ inputs.artifact-prefix }}baselineprofile-logs

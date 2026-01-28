@@ -9,7 +9,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: ./.github/actions/setup_gradle
       - name: "Prepare env"
         run: |
@@ -25,7 +25,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:assembleNoneRelease
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-android
           path: |

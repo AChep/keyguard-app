@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           submodules: recursive
       - name: "Generate changelog"
         id: changelog
-        uses: metcalfc/changelog-generator@v4.6.2
+        uses: metcalfc/changelog-generator@3f82cef08fe5dcf57c591fe165e70e1d5032e15a
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
       - name: "Print changelog"
@@ -49,7 +49,7 @@ jobs:
             cat changelog-raw.md
           } > changelog-full.md
       - name: "Upload"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: changelog
           path: |
@@ -77,18 +77,18 @@ jobs:
       release-name: ${{ steps.producer.outputs.release_name }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           path: keyguard-app
           submodules: recursive
       - name: "Checkout AChep/keyguard-version"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Download changelog"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: changelog
           path: artifacts-changelog
@@ -113,7 +113,7 @@ jobs:
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
             --changelog_raw_file artifacts-changelog/changelog-raw.md
       - name: "Upload versions.json"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: versions
           path: keyguard-version/versions.json
@@ -124,7 +124,7 @@ jobs:
       version-code: ${{ steps.producer.outputs.version_code }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: ./.github/actions/setup_python
       - name: "Prepare env"
         run: |
@@ -150,7 +150,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           lfs: true
           submodules: recursive
@@ -162,7 +162,7 @@ jobs:
         run: |
           echo ${{ secrets.CERT_B64 }} | base64 -d | zcat > desktopApp/macos-dev.cer
       - name: "Import signing certificate"
-        uses: apple-actions/import-codesign-certs@v6
+        uses: apple-actions/import-codesign-certs@b610f78488812c1e56b20e6df63ec42d833f2d14
         with:
           p12-filepath: desktopApp/macos-dev.cer
           p12-password: ${{ secrets.CERT_PASSWD }}
@@ -182,14 +182,14 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseDmg :desktopApp:notarizeReleaseDmg
       - name: "Upload logs"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()
         with:
           name: logs-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: binaries-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/**
@@ -199,7 +199,7 @@ jobs:
           cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
       - name: "Upload .dmg"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
@@ -214,7 +214,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           lfs: true
           submodules: recursive
@@ -222,13 +222,13 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopLibNative:linkReleaseSharedLinuxX64 :desktopLibNative:linkReleaseSharedLinuxArm64
       - name: 'Upload .so (x86_64)'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-linux-lib-native-x86_64
           path: |
             desktopLibNative/build/bin/linuxX64/releaseShared/libkeyguard.so
       - name: 'Upload .so (aarch64)'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-linux-lib-native-aarch64
           path: |
@@ -247,13 +247,13 @@ jobs:
             arch: aarch64
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           lfs: true
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - name: "Download lib native"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-linux-lib-native-${{ matrix.arch }}
           path: libnative-${{ matrix.arch }}
@@ -266,7 +266,7 @@ jobs:
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
       - name: "Download versions"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: versions
           path: artifacts-changelog
@@ -282,7 +282,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseDistributable -x :desktopLibNative:linkReleaseSharedUniversal
       - name: 'Upload .tar'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-linux-${{ matrix.arch }}
           path: |
@@ -308,7 +308,7 @@ jobs:
           flatpak-builder --force-clean --state-dir=build/flatpak-builder --repo=build/flatpak-repo build/flatpak-target com.artemchep.keyguard.yml
           flatpak build-bundle build/flatpak-repo "Keyguard-$(find ../build/distributions -type f -name '*.tar.gz' | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')-${{ matrix.arch }}.flatpak" com.artemchep.keyguard
       - name: 'Upload .flatpak'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-linux-flatpak-${{ matrix.arch }}
           path: |
@@ -319,7 +319,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           lfs: true
           submodules: recursive
@@ -335,7 +335,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseMsi
       - name: 'Upload .msi'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
@@ -354,7 +354,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           lfs: true
           submodules: recursive
@@ -380,7 +380,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: matrix.config.build-type == 'assemble'
         with:
           name: app-android-apk
@@ -389,7 +389,7 @@ jobs:
             androidApp/build/outputs/mapping/**/mapping.txt
           retention-days: 1
       - name: 'Upload .aab'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: matrix.config.build-type == 'bundle'
         with:
           name: app-android-aab
@@ -409,57 +409,57 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Download changelog"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: changelog
           path: changelog
       - name: "Download Mac app (Intel)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-mac-intel
           path: artifacts
       - name: "Download Mac app (Apple Silicon)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-mac-apple
           path: artifacts
       - name: "Download Linux app (x86_64)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-linux-x86_64
           path: artifacts
       - name: "Download Linux app (aarch64)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-linux-aarch64
           path: artifacts
       - name: "Download Linux app (flatpak-x86_64)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-linux-flatpak-x86_64
           path: artifacts
       - name: "Download Linux app (flatpak-aarch64)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-linux-flatpak-aarch64
           path: artifacts
       - name: "Download Windows app"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-windows
           path: artifacts
       - name: "Download Android app (apk)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-android-apk
           path: artifacts
       - name: "Download Android app (aab)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-android-aab
           path: artifacts
       - name: "Create release"
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: Release ${{ needs.generate-versions.outputs.release-name }}
@@ -476,13 +476,13 @@ jobs:
       - dist
     steps:
       - name: "Checkout AChep/keyguard-version"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
           token: ${{ secrets.PERSONAL_TOKEN }}
       - name: "Download versions.json"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: versions
           path: artifacts-versions
@@ -517,12 +517,12 @@ jobs:
       - dist
     steps:
       - name: "Download Android app (aab)"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: app-android-aab
           path: artifacts
       - name: "Download changelog"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: changelog
           path: artifacts-changelog
@@ -532,7 +532,7 @@ jobs:
           mkdir whatsnew
           mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
       - name: "Distribute on Play Store"
-        uses: r0adkll/upload-google-play@v1.1.3
+        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
         with:
           serviceAccountJson: service-account-google.json
           whatsNewDirectory: whatsnew
@@ -567,7 +567,7 @@ jobs:
           - new_release_deploy_scoop.yml
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: "Trigger Workflow"
         uses: ./.github/actions/github_trigger_wf
         with:

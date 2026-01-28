@@ -7,7 +7,7 @@ jobs:
   build-play-store-internal:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
       - uses: ./.github/actions/prepare_disk_space
@@ -34,14 +34,14 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:bundlePlayStoreRelease
       - name: 'Upload .aab'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: app-android
           path: |
             androidApp/build/outputs/bundle/playStoreRelease/androidApp-playStore-release.aab
           retention-days: 7
       - name: "Distribute on Play Store"
-        uses: r0adkll/upload-google-play@v1.1.3
+        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
         with:
           serviceAccountJson: service-account-google.json
           packageName: com.artemchep.keyguard

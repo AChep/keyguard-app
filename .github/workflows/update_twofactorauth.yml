@@ -14,7 +14,7 @@ jobs:
     name: Synchronize Two-factor authentication
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: "Update library"
         run: |
           python .github/update_twofactorauth.py

@@ -11,7 +11,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@63b9213ab301419de3ea477f3f190af01f9a7818
         with:
           token: ${{ secrets.DEPLOY_HOMEBREW_GITHUB_TOKEN }}
       - name: Set up Git

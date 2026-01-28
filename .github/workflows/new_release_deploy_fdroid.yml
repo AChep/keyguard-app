@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout main repo"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: "Checkout F-Droid repo"
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           repository: AChep/keyguard-repo-fdroid
           fetch-depth: 0
@@ -23,7 +23,7 @@ jobs:
       - name: "Prepare dependencies declaration"
         run: |
           mv .github/deploy_fdroid.requirements.txt requirements.txt
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: '3.10'
           cache: 'pip'

@@ -75,7 +75,7 @@
         android:fullBackupContent="@xml/backup_full_backup_content">
         <activity
             android:name="com.artemchep.keyguard.android.MainActivity"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">

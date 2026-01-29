@@ -553,6 +553,20 @@ jobs:
             --repo AChep/keyguard-app \
             --ref master \
             -f version-semantic=${{ needs.generate-versions.outputs.version-semantic }}
+  deploy-aur:
+    name: Deploy AUR
+    runs-on: ubuntu-slim
+    needs:
+      - generate-versions
+      - dist
+    steps:
+      - name: "Trigger Workflow"
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+        run: |
+          gh workflow run update-keyguard-bin.yml \
+            --repo AChep/keyguard-repo-aur \
+            --ref master
   deploy:
     name: Deploy ${{ matrix.wf-file }}
     runs-on: ubuntu-slim

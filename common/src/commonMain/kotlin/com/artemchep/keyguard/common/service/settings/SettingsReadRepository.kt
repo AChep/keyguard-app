@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.settings
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
@@ -64,7 +65,7 @@ interface SettingsReadRepository {
 
     fun getConcealFields(): Flow<Boolean>
 
-    fun getAllowScreenshots(): Flow<Boolean>
+    fun getAllowScreenshots(): Flow<AllowScreenshots>
 
     fun getOnboardingLastVisitInstant(): Flow<Instant?>
 

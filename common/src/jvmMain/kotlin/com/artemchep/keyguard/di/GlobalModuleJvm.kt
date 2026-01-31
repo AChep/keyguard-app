@@ -400,10 +400,12 @@ import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
+import com.artemchep.keyguard.common.usecase.GetAllowScreenshotsVariants
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
@@ -1012,6 +1014,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GetClipboardAutoRefreshVariants> {
         GetClipboardAutoRefreshVariantsImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetAllowScreenshotsVariants> {
+        GetAllowScreenshotsVariantsImpl(
             directDI = this,
         )
     }

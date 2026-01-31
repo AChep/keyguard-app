@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.settings
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
@@ -91,7 +92,7 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     ): IO<Unit>
 
     fun setAllowScreenshots(
-        allowScreenshots: Boolean,
+        allowScreenshots: AllowScreenshots,
     ): IO<Unit>
 
     fun setCheckPwnedPasswords(

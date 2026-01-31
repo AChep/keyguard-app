@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
@@ -26,6 +27,8 @@ import com.artemchep.keyguard.common.service.settings.entity.toDomain
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
@@ -60,6 +63,7 @@ class SettingsRepositoryImpl(
         private const val KEY_CLIPBOARD_UPDATE_DURATION = "clipboard_update_duration"
         private const val KEY_CONCEAL_FIELDS = "conceal_fields"
         private const val KEY_ALLOW_SCREENSHOTS = "allow_screenshots"
+        private const val KEY_ALLOW_SCREENSHOTS_ENUM = "allow_screenshots2"
         private const val KEY_CHECK_PWNED_PASSWORDS = "watchtower_check_pwned_passwords"
         private const val KEY_CHECK_PWNED_SERVICES = "watchtower_check_pwned_services"
         private const val KEY_CHECK_TWO_FA = "watchtower_check_two_fa"
@@ -145,6 +149,9 @@ class SettingsRepositoryImpl(
         val default = !isRelease
         store.getBoolean(KEY_ALLOW_SCREENSHOTS, default)
     }
+
+    private val allowScreenshotsEnumPref =
+        store.getEnumNullable(KEY_ALLOW_SCREENSHOTS_ENUM, lens = AllowScreenshots::key)
 
     private val checkPwnedPasswordsPref =
         store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, true)
@@ -454,10 +461,24 @@ class SettingsRepositoryImpl(
 
     override fun getConcealFields() = concealFieldsPref
 
-    override fun setAllowScreenshots(allowScreenshots: Boolean) = allowScreenshotsPref
+    override fun setAllowScreenshots(allowScreenshots: AllowScreenshots) = allowScreenshotsEnumPref
         .setAndCommit(allowScreenshots)
 
-    override fun getAllowScreenshots() = allowScreenshotsPref
+    override fun getAllowScreenshots() = allowScreenshotsEnumPref
+        .flatMapLatest { value ->
+            if (value != null) {
+                return@flatMapLatest flowOf(value)
+            }
+
+            // Take the default value
+            // from the old boolean.
+            allowScreenshotsPref
+                .map { allowed ->
+                    if (allowed) {
+                        AllowScreenshots.LIMITED
+                    } else AllowScreenshots.DISABLED
+                }
+        }
 
     override fun setCheckPwnedPasswords(checkPwnedPasswords: Boolean) = checkPwnedPasswordsPref
         .setAndCommit(checkPwnedPasswords)

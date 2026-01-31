@@ -45,6 +45,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BadgedBox
@@ -104,11 +105,16 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
+import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
+import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
@@ -149,12 +155,15 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.ok
+import com.artemchep.keyguard.ui.theme.onWarningContainer
+import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.time.rememberLocalizedRelativeTime
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -301,6 +310,15 @@ fun HomeScreenContent(
             modifier = Modifier
                 .windowInsetsPadding(horizontalInsets),
         ) {
+            val putAllowScreenshots by rememberInstance<PutAllowScreenshots>()
+            val getAllowScreenshots by rememberInstance<GetAllowScreenshots>()
+            val allowScreenshotsState = remember(getAllowScreenshots) {
+                getAllowScreenshots()
+                    .map { allowScreenshots ->
+                        allowScreenshots == AllowScreenshots.LIMITED
+                    }
+            }.collectAsState(false)
+
             val getNavLabel by rememberInstance<GetNavLabel>()
             val navLabelState = remember(getNavLabel) {
                 getNavLabel()
@@ -476,6 +494,38 @@ fun HomeScreenContent(
 //                            } else Modifier
 //                        ),
 //                )
+                AnimatedVisibility(
+                    visible = allowScreenshotsState.value,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.warningContainer)
+                            .clickable {
+                                putAllowScreenshots(AllowScreenshots.DISABLED)
+                                    .attempt()
+                                    .launchIn(GlobalScope)
+                            }
+                            .padding(
+                                horizontal = Dimens.textHorizontalPadding,
+                                vertical = 8.dp,
+                            ),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(16.dp),
+                            imageVector = Icons.Outlined.Screenshot,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onWarningContainer,
+                        )
+                        Text(
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onWarningContainer,
+                            text = stringResource(Res.string.pref_item_allow_screenshots_badge),
+                        )
+                    }
+                }
                 AnimatedVisibility(
                     visible = bottomNavBarVisible,
                 ) {

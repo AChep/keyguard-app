@@ -69,6 +69,7 @@ import org.kodein.di.android.closestDI
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.instance
 import androidx.core.net.toUri
+import com.artemchep.keyguard.common.model.AllowScreenshots
 
 abstract class BaseActivity : AppCompatActivity(), DIAware {
     override val di by closestDI()
@@ -100,7 +101,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         val getAllowScreenshots by instance<GetAllowScreenshots>()
         getAllowScreenshots()
             .onEach { allowScreenshots ->
-                if (allowScreenshots) {
+                if (allowScreenshots >= AllowScreenshots.LIMITED) {
                     window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 } else {
                     window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)

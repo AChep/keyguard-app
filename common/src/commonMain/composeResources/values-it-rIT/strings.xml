@@ -153,7 +153,7 @@
     <string name="autofill">Riempimento automatico</string>
     <string name="autofill_and_save_uri">Salvataggio automatico dell'app o informazioni del sito</string>
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_text">Per garantire che non sia mai perso, adotta la regola di backup 3-2-1: mantieni tre copie della tua cassaforte su due tipi di supporto differenti e tieni una copia in un luogo separato e sicuro.</string>
     <string name="passkey">Passkey</string>
     <string name="credential_login_create_header">Create a login</string>
     <string name="credential_password_create_header">Create a password</string>
@@ -191,7 +191,7 @@
     <string name="one_time_password">One-Time Password</string>
     <string name="one_time_password_authenticator_key">Chiave di autenticazione</string>
     <string name="passkey_use_short">Usa</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Salva password</string>
     <string name="passkey_save">Salva passkey</string>
     <string name="passkey_available">Passkey disponibile</string>
     <string name="twofa_available">Autenticazione a due fattori disponibile</string>
@@ -354,7 +354,7 @@
     <string name="file_action_send_with_title">Invia con…</string>
     <string name="file_action_open_in_file_manager_title">Apri in un file manager</string>
     <string name="file_action_delete_local_title">Elimina file locale</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
+    <string name="file_action_delete_local_many_title">Elimina file locali</string>
     <string name="file_action_view_cipher_title">Visualizza elemento genitore</string>
     <string name="file_action_reveal_title">Reveal</string>
     <string name="vault_action_always_show_keyboard_title">Mostra sempre tastiera</string>
@@ -558,7 +558,7 @@
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
-    <string name="scanqr_title">Scan QR code</string>
+    <string name="scanqr_title">Scansiona codice QR</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
     <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
     <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
@@ -784,7 +784,7 @@
     <string name="home_watchtower_label">Torre di Guardia</string>
     <string name="home_settings_label">Impostazioni</string>
     <string name="lock_reason_inactivity">Bloccato per inattività</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">Bloccato per schermo spento</string>
     <string name="lock_reason_manually">Bloccato manualmente</string>
     <string name="send_type_text">Testo</string>
     <string name="send_type_file">File</string>
@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Consenti screenshot</string>
     <string name="pref_item_allow_screenshots_text_on">Mostra il contenuto dell'app quando si passa tra le app recenti e consente di catturare uno screenshot</string>
     <string name="pref_item_allow_screenshots_text_off">Nascondi il contenuto dell'app quando si passa tra le app recenti e proibisci di catturare uno screenshot</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Sicurezza dei dati</string>
     <string name="pref_item_logs_title">Registri</string>
     <string name="pref_item_lock_vault_title">Blocca cassaforte</string>

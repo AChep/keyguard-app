@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Autoriser captures d'écran</string>
     <string name="pref_item_allow_screenshots_text_on">Afficher le contenu de l'application lors du basculement entre les applications récentes et permettre la capture d'écran</string>
     <string name="pref_item_allow_screenshots_text_off">Masquer le contenu de l'application lors du basculement entre les applications récentes et interdire la capture d'écran</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Sécurité des données</string>
     <string name="pref_item_logs_title">Activité</string>
     <string name="pref_item_lock_vault_title">Verrouiller le coffre-fort</string>

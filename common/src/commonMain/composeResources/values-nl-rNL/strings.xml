@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Schermafbeeldingen toestaan</string>
     <string name="pref_item_allow_screenshots_text_on">Laat de inhoud van de app zien wanneer u schakelt tussen recente apps en sta het maken van schermopnames toe</string>
     <string name="pref_item_allow_screenshots_text_off">Verberg de inhoud van de app wanneer u schakelt tussen recente apps en verbied het maken van schermopnames</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Veiligheid van gegevens</string>
     <string name="pref_item_logs_title">Logboeken</string>
     <string name="pref_item_lock_vault_title">Kluis vergrendelen</string>

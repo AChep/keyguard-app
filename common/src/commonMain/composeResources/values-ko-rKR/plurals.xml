@@ -10,7 +10,7 @@
         <item quantity="other">단어 <xliff:g id="number">%1$s</xliff:g>개</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 글자</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="other">결과 <xliff:g id="number">%1$s</xliff:g>개</item>

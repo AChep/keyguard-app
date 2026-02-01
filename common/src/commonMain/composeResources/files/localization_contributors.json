@@ -341,8 +341,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5705,
-    "target": 4910,
+    "translated": 5801,
+    "target": 5000,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -541,6 +541,28 @@
     ],
     "translated": 254,
     "target": 231,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "13984249",
+      "username": "K0RR",
+      "fullName": "K0RR",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13984249/medium/228e06d62686939bca9ea39233a4806d_default.png",
+      "joined": "2026-01-24 13:58:12"
+    },
+    "languages": [
+      {
+        "id": "pl",
+        "name": "Polish"
+      }
+    ],
+    "translated": 347,
+    "target": 338,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1061,8 +1083,8 @@
         "name": "Italian"
       }
     ],
-    "translated": 761,
-    "target": 816,
+    "translated": 804,
+    "target": 863,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 3,

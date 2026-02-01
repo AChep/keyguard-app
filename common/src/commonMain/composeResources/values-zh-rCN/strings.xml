@@ -1109,6 +1109,11 @@
     <string name="pref_item_allow_screenshots_title">允许截图</string>
     <string name="pref_item_allow_screenshots_text_on">在最近任务和截图中允许显示应用内容</string>
     <string name="pref_item_allow_screenshots_text_off">在最近任务和截图中隐藏应用内容</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">数据安全</string>
     <string name="pref_item_logs_title">日志</string>
     <string name="pref_item_lock_vault_title">锁定密码库</string>

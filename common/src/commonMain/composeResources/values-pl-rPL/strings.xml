@@ -9,9 +9,9 @@
     <string name="show_keyguard">Pokaż klawiaturę</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nazwa</string>
-    <string name="description">Description</string>
+    <string name="description">Opis</string>
     <string name="account_name">Nazwa konta</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Nazwa bazy danych</string>
     <string name="enabled">Aktywne</string>
     <string name="disabled">Wyłączone</string>
     <string name="wordlist">Lista słów</string>
@@ -21,7 +21,7 @@
     <string name="current_password">Obecne hasło</string>
     <string name="new_password">Nowe hasło</string>
     <string name="no_password">Brak hasła</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Zaawansowane</string>
     <string name="email">Adres e-mail</string>
     <string name="email_verified">Zweryfikowane</string>
     <string name="email_not_verified">Nie zweryfikowane</string>
@@ -31,7 +31,7 @@
     <string name="conceal_value">Ukryj wartość</string>
     <string name="field_label">Etykietka</string>
     <string name="field_value">Wartość</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">Wartość</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Ilość dostępów</string>
     <!--
@@ -40,7 +40,7 @@
         -->
     <string name="max_access_count">Maksymalna liczba dostępów</string>
     <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Dowiedz się więcej</string>
     <string name="phone_number">Numer telefonu</string>
     <string name="passport_number">Numer paszportu</string>
@@ -101,10 +101,10 @@
     <string name="folder">Folder</string>
     <string name="folders">Foldery</string>
     <string name="folders_empty_label">Brak folderów</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">Brak znacznika</string>
+    <string name="tag">Znacznik</string>
+    <string name="tags">Znaczniki</string>
+    <string name="tags_empty_label">Brak znaczników</string>
     <string name="collection_none">Brak kolekcji</string>
     <string name="collection">Kolekcja</string>
     <string name="collections">Kolekcje</string>
@@ -119,7 +119,7 @@
     <string name="category">Kategoria</string>
     <string name="command">Polecenie</string>
     <string name="execute_command">Wykonaj</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Propozycje oparte na kontekstach</string>
     <!-- Add (something) -->
     <string name="add">Dodaj</string>
     <string name="add_integration">Dodaj integrację</string>
@@ -152,11 +152,11 @@
     <string name="select_file">Wybierz plik</string>
     <string name="autofill">Autouzupełnienie</string>
     <string name="autofill_and_save_uri">Autouzupełnienie i zapisanie informacji o aplikacji lub witrynie</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Twoje dane to twoja odpowiedzialność.</string>
+    <string name="backup_disclaimer_text">Aby upewnić się, że nigdy ich nie utracisz, przyjmij zasadę kopii zapasowych 3-2-1: zachowaj trzy kopie swojego sejfu na dwóch różnych nośnikach danych, i przechowuj jedną kopię w oddzielnym, bezpiecznym miejscu.</string>
     <string name="passkey">Passkey</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Utwórz login</string>
+    <string name="credential_password_create_header">Utwórz hasło</string>
     <string name="passkey_create_header">Utwórz passkey</string>
     <string name="passkey_unlock_header">Odblokuj Keyguard</string>
     <string name="passkey_auth_via_header">Potwierdzanie autoryzacji…</string>
@@ -191,7 +191,7 @@
     <string name="one_time_password">Hasło jednorazowe</string>
     <string name="one_time_password_authenticator_key">Klucz uwierzytelniający</string>
     <string name="passkey_use_short">Użyj</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Zapisz hasło</string>
     <string name="passkey_save">Zapisz passkey</string>
     <string name="passkey_available">Passkey dostępny</string>
     <string name="twofa_available">Uwierzytelnianie dwuskładnikowe dostępne</string>
@@ -207,7 +207,7 @@
     <string name="requested_verification_email">Poproszono o e-mail weryfikacyjny</string>
     <string name="web_vault">Sejf internetowy</string>
     <string name="launch_web_vault">Uruchom sejf internetowy</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Lokalny sejf</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Zapamiętaj mnie</string>
     <!-- A Trash screen -->
@@ -223,18 +223,18 @@
     <!-- Encryption key -->
     <string name="encryption_key">Klucz</string>
     <string name="encryption_hash">Hasz</string>
-    <string name="encryption_salt">Salt</string>
+    <string name="encryption_salt">Sól</string>
     <string name="encryption_algorithm_256bit_aes">256-bitowy AES</string>
     <string name="encryption_random_bits_data">Losowe <xliff:g id="length" example="64">%1$d</xliff:g>- bity danych</string>
     <string name="none">Brak</string>
     <string name="text">Tekst</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">Powiązana aplikacja</string>
     <string name="linked_apps">Połączone aplikacje</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">Powiązany URI</string>
     <string name="linked_uris">Powiązane adresy URL</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Pole niestandardowe</string>
     <string name="custom_fields">Pola niestandardowe</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Przełącz wartość</string>
     <string name="reveal_secure_note">Pokaż zabezpieczoną notatkę</string>
     <string name="hide_secure_note">Ukryj zabezpieczoną notatkę</string>
     <string name="master_password_hint">Podpowiedź do hasła głównego</string>
@@ -244,7 +244,7 @@
     <string name="key_type">Typ klucza</string>
     <string name="key_pair">Para kluczy</string>
     <string name="key_ssh">Klucz SSH</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Pusto tutaj. Wygeneruj klucz SSH, aby rozpocząć!</string>
     <string name="fingerprint_phrase">Unikalny identyfikator konta</string>
     <string name="fingerprint_phrase_help_title">Czym jest unikalny identyfikator konta?</string>
     <string name="filter_auth_reprompt_items">Ponownie zapytaj o autoryzację</string>
@@ -253,17 +253,17 @@
     <string name="bitwarden_premium">Bitwarden premium</string>
     <string name="bitwarden_premium_required">Wymaga Bitwarden premium</string>
     <string name="bitwarden_unofficial_server">Nieoficjalny serwer Bitwarden</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">Wersja serwera <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Wersja bazy danych <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Wyczyść</string>
+    <string name="replace_key_file">Zastąp plik klucza</string>
+    <string name="select_key_file">Wybierz plik klucza</string>
+    <string name="select_database_file">Wybierz plik bazy danych</string>
+    <string name="replace_database_file">Zastąp plik bazy danych</string>
+    <string name="open_database">Otwórz bazę danych</string>
+    <string name="create_database">Utwórz bazę danych</string>
+    <string name="qr_wifi_description_text">Zeskanuj ten kod QR za pomocą innego urządzenia, aby dołączyć do tej sieci Wi-Fi.</string>
+    <string name="qr_generate_button">Wygeneruj kod QR</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generuj unikalne e-maile dla lepszej prywatności.</string>
     <string name="account_last_synced_at">Ostatnio zsynchronizowano <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -298,8 +298,8 @@
     <string name="ciphers_history_empty">Nie ma jeszcze historii</string>
     <string name="ciphers_view_details">Pokaż szczegóły</string>
     <string name="ciphers_save_to">Zapisz do</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Dodaj passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Zastępuje nazwę użytkownika i hasło</string>
     <string name="ciphers_action_add_to_favorites_title">Dodaj do ulubionych</string>
     <string name="ciphers_action_remove_from_favorites_title">Usuń z ulubionych</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Włącz ponowny monit o autoryzację</string>
@@ -420,9 +420,9 @@
     <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> powiązany z numerem paszportu</string>
     <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> powiązany z numerem licencji</string>
     <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> połączony z imieniem</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> powiązany z nazwiskiem</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> powiązany z pełnym imieniem</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> powiązany z nieznanym polem</string>
     <string name="text_action_share_with_title">Udostępnij z…</string>
     <string name="text_action_send_title">Utwórz wysłanie</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Zapisz niezaszyfrowane klucze</string>
@@ -433,14 +433,14 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Niezaszyfrowany klucz prywatny zapisany do Pobranych</string>
     <string name="ssh_key_action_add_key_title">Dodaj klucze</string>
     <string name="ssh_key_action_replace_key_title">Zastąp klucze</string>
-    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> wybrany</string>
     <string name="copy">Kopiuj</string>
     <string name="copy_value">Kopiuj wartość</string>
     <string name="copy_url">Kopiuj adres URL</string>
     <string name="copy_uri">Kopiuj URI</string>
     <string name="copy_send">Kopiuj wysłanie</string>
     <string name="copy_package_name">Kopiuj nazwę pakietu</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Kopiuj ID pakietu</string>
     <string name="copy_password">Kopiuj hasło</string>
     <string name="copy_username">Kopiuj nazwę użytkownika</string>
     <string name="copy_email">Kopiuj e-mail</string>
@@ -460,7 +460,7 @@
     <string name="copied_value">Skopiowano wartość</string>
     <string name="copied_url">Skopiowany adres URL</string>
     <string name="copied_uri">Skopiowany URI</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">Skopiowano znacznik</string>
     <string name="copied_package_name">Skopiowano nazwę pakietu</string>
     <string name="copied_key">Skopiowano klucz</string>
     <string name="copied_fingerprint">Skopiowano odcisk palca</string>
@@ -477,8 +477,8 @@
     <string name="copied_cvv_code">Skopiowano kod bezpieczeństwa</string>
     <string name="copied_otp_code">Skopiowano jednorazowe hasło</string>
     <string name="copied_otp_secret_code">Skopiowano tajny klucz</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Znaleziono hasło jednorazowe</string>
+    <string name="found_value">Znaleziono wartość</string>
     <string name="autofill_unlock_keyguard">Odblokuj Keyguard</string>
     <string name="autofill_open_keyguard">Otwórz klawiaturę</string>
     <string name="january">Styczeń</string>
@@ -496,7 +496,7 @@
     <string name="tolerance">Tolerancja</string>
     <string name="tolerance_min">Min</string>
     <string name="tolerance_low">Niska</string>
-    <string name="tolerance_normal">Normal</string>
+    <string name="tolerance_normal">Zwykła</string>
     <string name="tolerance_high">High</string>
     <string name="tolerance_max">Max</string>
     <string name="list_move_up">Przenieś w górę</string>
@@ -707,12 +707,12 @@
     <string name="additem_header_merge_title">Scal elementy</string>
     <string name="additem_merge_remove_origin_ciphers_title">Przenieś pozycje początkowe do kosza</string>
     <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
+    <string name="additem_note_placeholder">Dodaj tutaj dowolne notatki o tym elemencie</string>
     <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
     <string name="additem_markdown_note_italic">Kursywa</string>
     <string name="additem_markdown_note_bold">Pogrubienie</string>
-    <string name="additem_markdown_render_preview">Render preview</string>
-    <string name="additem_auth_reprompt_title">Auth re-prompt</string>
+    <string name="additem_markdown_render_preview">Wygeneruj podgląd</string>
+    <string name="additem_auth_reprompt_title">Autoryzuj ponownie</string>
     <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
     <string name="addsend_header_new_title">Nowa wysyłka</string>
     <string name="addsend_header_edit_title">Edytuj wysyłkę</string>
@@ -722,8 +722,8 @@
     <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
     <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_description_short_bitwarden_text">Przechowuj zaszyfrowany sejf w chmurze.</string>
+    <string name="addaccount_description_short_keepass_text">Przechowuj zaszyfrowany sejf lokalnie przy użyciu formatu pliku KDBX.</string>
     <string name="addaccount_header_title">Dodaj konto Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
     <!--
@@ -731,7 +731,7 @@
         we need a user to get and type his client secret in a field below -->
     <string name="addaccount_captcha_need_client_secret_note">To pass the captcha verification on an unofficial Bitwarden client, you must specify the client secret. To find it, visit Web vault / Settings / API Key.</string>
     <!-- A label on top of the Client secret field -->
-    <string name="addaccount_captcha_need_client_secret_label">Client secret</string>
+    <string name="addaccount_captcha_need_client_secret_label">Sekret klienta</string>
     <string name="addaccount_create_an_account_title">Utwórz konto</string>
     <string name="addaccount_sign_in_button">Zaloguj się</string>
     <string name="addaccount_region_section">Region</string>
@@ -757,7 +757,7 @@
     <string name="addaccount2fa_otp_note">Wprowadź kod weryfikacyjny z aplikacji uwierzytelniającej.</string>
     <string name="addaccount2fa_email_note">Wprowadź kod weryfikacyjny, który został wysłany do <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Wprowadź kod uwierzytelniający YubiKey ręcznie. Umieść kursor w polu poniżej i uruchom YubiKey.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
+    <string name="addkeepass_header_title">Dodaj konto KeePass</string>
     <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
     <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
     <string name="provider_2fa_authenticator">Uwierzytelnianie</string>
@@ -784,7 +784,7 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Ustawienia</string>
     <string name="lock_reason_inactivity">Zablokowane z powodu braku aktywności</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">Zablokowane z powodu wyłączenia ekranu</string>
     <string name="lock_reason_manually">Zablokowane ręcznie</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Plik</string>
@@ -809,12 +809,12 @@
     <string name="password_strength_weak_label">Słabe</string>
     <string name="passwords_very_strong_label">Bardzo silne hasła</string>
     <string name="passwords_strong_label">Silne hasła</string>
-    <string name="passwords_good_label">Good passwords</string>
-    <string name="passwords_fair_label">Fair passwords</string>
-    <string name="passwords_weak_label">Weak passwords</string>
-    <string name="customfilters_header_title">Custom filters</string>
-    <string name="customfilters_search_placeholder">Search filters</string>
-    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="passwords_good_label">Dobre hasła</string>
+    <string name="passwords_fair_label">Wystarczające hasła</string>
+    <string name="passwords_weak_label">Słabe hasła</string>
+    <string name="customfilters_header_title">Filtry niestandardowe</string>
+    <string name="customfilters_search_placeholder">Filtry wyszukiwania</string>
+    <string name="customfilters_dynamic_shortcut_tip">Możesz szybko zastosować filtry, dodając skrót na ekranie głównym.</string>
     <string name="customfilters_delete_one_confirmation_title">Usunąć filtr?</string>
     <string name="customfilters_delete_many_confirmation_title">Usunąć filtry?</string>
     <string name="customfilters_edit_filter_title">Edytuj niestandardowy filtr</string>
@@ -826,7 +826,7 @@
     <string name="sortby_title_title">Tytuł</string>
     <string name="sortby_title_normal_mode">Alfabetycznie</string>
     <string name="sortby_title_reverse_mode">Alfabetycznie w odwrotnej kolejności</string>
-    <string name="sortby_access_count_title">Access count</string>
+    <string name="sortby_access_count_title">Ilość dostępów</string>
     <string name="sortby_access_count_normal_mode">Od największych</string>
     <string name="sortby_access_count_reverse_mode">Od najmniejszych</string>
     <string name="sortby_modification_date_title">Data modyfikacji</string>
@@ -871,9 +871,9 @@
     <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deletion_scheduled_at_label">Deletion scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
-    <string name="vault_view_call_phone_action">Call</string>
+    <string name="vault_view_call_phone_action">Zadzwoń</string>
     <!-- Text the phone number (SMS). The text should be as short as possible! -->
-    <string name="vault_view_text_phone_action">Text</string>
+    <string name="vault_view_text_phone_action">Tekst</string>
     <!-- Compose an email. The text should be as short as possible! -->
     <string name="vault_view_email_action">Email</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
@@ -881,7 +881,7 @@
     <string name="send_main_header_title">Wysyłki</string>
     <string name="send_main_search_placeholder">Szukaj w wysyłkach</string>
     <string name="send_main_new_item_button">Nowy element</string>
-    <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
+    <string name="send_password_is_required_to_access_label">Aby uzyskać dostęp do tego współdzielenia, wymagane jest hasło</string>
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Generator nazwy użytkownika</string>
     <string name="generator_header_password_title">Generator hasła</string>
@@ -895,19 +895,19 @@
     <string name="generator_passphrase_delimiter_title">Separator</string>
     <string name="generator_passphrase_capitalize_title">Wielkie litery</string>
     <string name="generator_passphrase_number_title">Liczby</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
+    <string name="generator_passphrase_wordlist_title">Lista słów</string>
     <string name="generator_pin_code_type">PIN</string>
     <string name="generator_pin_code_note">Prawie jedna na 10 osób używa tego samego czterocyfrowego kodu PIN. Wygeneruj kody PIN, aby uniknąć częstych kombinacji.</string>
-    <string name="generator_username_type">Username</string>
-    <string name="generator_username_delimiter_title">Delimiter</string>
-    <string name="generator_username_custom_word_title">Custom word</string>
-    <string name="generator_username_capitalize_title">Capitalize</string>
-    <string name="generator_username_number_title">Number</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
-    <string name="generator_password_type">Random symbols</string>
-    <string name="generator_password_note">A strong password has at least <xliff:g id="length" example="15">%1$d</xliff:g> characters, uppercase &amp; lowercase letters, digits and symbols.</string>
-    <string name="generator_password_numbers_title">Digits</string>
-    <string name="generator_password_symbols_title">Symbols</string>
+    <string name="generator_username_type">Nazwa użytkownika</string>
+    <string name="generator_username_delimiter_title">Separator</string>
+    <string name="generator_username_custom_word_title">Własne słowo</string>
+    <string name="generator_username_capitalize_title">Wielkie litery</string>
+    <string name="generator_username_number_title">Liczba</string>
+    <string name="generator_username_wordlist_title">Lista słów</string>
+    <string name="generator_password_type">Losowe symbole</string>
+    <string name="generator_password_note">Silne hasło ma co najmniej <xliff:g id="length" example="15">%1$d</xliff:g> znaków: wielkich i małych liter, cyfr i symboli.</string>
+    <string name="generator_password_numbers_title">Cyfry</string>
+    <string name="generator_password_symbols_title">Symbole</string>
     <string name="generator_password_uppercase_letters_title">Uppercase letters</string>
     <string name="generator_password_lowercase_letters_title">Lowercase letters</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Allow screenshots</string>
     <string name="pref_item_allow_screenshots_text_on">Show the content of the app when switching between recent apps and allow capturing a screen</string>
     <string name="pref_item_allow_screenshots_text_off">Hide the content of the app when switching between recent apps and forbid capturing a screen</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Data safety</string>
     <string name="pref_item_logs_title">Logs</string>
     <string name="pref_item_lock_vault_title">Lock vault</string>

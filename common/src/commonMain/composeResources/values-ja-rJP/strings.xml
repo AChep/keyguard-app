@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">スクリーンショットを許可</string>
     <string name="pref_item_allow_screenshots_text_on">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを許可します。</string>
     <string name="pref_item_allow_screenshots_text_off">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを禁止します。</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">データセーフティ</string>
     <string name="pref_item_logs_title">ログ</string>
     <string name="pref_item_lock_vault_title">保管庫をロック</string>

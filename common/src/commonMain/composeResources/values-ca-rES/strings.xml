@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Permet captures de pantalla</string>
     <string name="pref_item_allow_screenshots_text_on">Mostra el contingut de l'aplicació quan es canviï entre aplicacions recents, i permet fer captures de pantalla</string>
     <string name="pref_item_allow_screenshots_text_off">Amaga el contingut de l'aplicació quan es canviï entre aplicacions recents, i prohibeix fer captures de pantalla</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Seguretat de Dades</string>
     <string name="pref_item_logs_title">Registres</string>
     <string name="pref_item_lock_vault_title">Bloqueja la caixa forta</string>

@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Screenshots erlauben</string>
     <string name="pref_item_allow_screenshots_text_on">Zeige den Inhalt der App beim Wechsel zwischen den letzten Apps und erlaubt das Erfassen des Bildschirms</string>
     <string name="pref_item_allow_screenshots_text_off">Den Inhalt der App ausblenden, wenn zwischen den letzten Apps gewechselt wird und verbietet das Erfassen des Bildschirms</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Datensicherheit</string>
     <string name="pref_item_logs_title">Protokolle</string>
     <string name="pref_item_lock_vault_title">Tresor sperren</string>

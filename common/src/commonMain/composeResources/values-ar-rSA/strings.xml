@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">السماح بلقطات الشاشة</string>
     <string name="pref_item_allow_screenshots_text_on">اعرض محتوى التطبيق عند التبديل بين التطبيقات الحديثة واسمح بالتقاط الشاشة</string>
     <string name="pref_item_allow_screenshots_text_off">إخفاء محتوى التطبيق عند التبديل بين التطبيقات الحديثة ومنع التقاط الشاشة</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">سلامة البيانات</string>
     <string name="pref_item_logs_title">سجلات</string>
     <string name="pref_item_lock_vault_title">قفل قبو</string>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_summary">Manage passwords</string>
+    <string name="listing_summary">비밀번호 관리</string>
     <string name="listing_summary_long">Manage passwords with ease</string>
     <string name="listing_description_title">Multi-client for the Bitwarden® platform and KeePass (KDBX), designed to provide the best user experience possible.</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</string>
@@ -14,11 +14,11 @@
     <string name="listing_description_highlight_generator">Generator: Create passwords, SSH keys and email forwarders, with support for custom wordlists.</string>
     <string name="listing_description_highlight_other">Advanced Features: Support for shortcuts, Field placeholders, URL overrides, and smart conflict resolution.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
-    <string name="listing_screenshot_home_default">Home screen</string>
+    <string name="listing_screenshot_home_default">홈 화면</string>
     <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
-    <string name="listing_screenshot_home_dark">Home screen, dark theme</string>
+    <string name="listing_screenshot_home_dark">홈 화면, 다크 테마</string>
     <!-- A content description shown below the Generator screenshort, made with the default settings -->
-    <string name="listing_screenshot_generator_default">Generator screen</string>
+    <string name="listing_screenshot_generator_default">생성기 화면</string>
     <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
-    <string name="listing_screenshot_watchtower_default">Watchtower screen</string>
+    <string name="listing_screenshot_watchtower_default">감시탑 화면</string>
 </resources>

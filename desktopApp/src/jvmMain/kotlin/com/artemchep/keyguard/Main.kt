@@ -1,6 +1,8 @@
 package com.artemchep.keyguard
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -13,11 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.FrameWindowScope
-import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
-import androidx.compose.ui.window.rememberTrayState
 import coil3.SingletonImageLoader
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.imageLoaderModule
@@ -46,6 +46,7 @@ import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
+import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
 import com.artemchep.keyguard.desktop.util.navigateToBrowser
 import com.artemchep.keyguard.desktop.util.navigateToEmail
 import com.artemchep.keyguard.desktop.util.navigateToFile
@@ -69,6 +70,9 @@ import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
+import com.kdroid.composetray.tray.api.Tray
+import com.kdroid.composetray.utils.IconRenderProperties
+import com.kdroid.composetray.utils.SingleInstanceManager
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -247,7 +251,23 @@ fun main() {
                 // lambda
                 {
                     isWindowOpenState.value = true
+                    // If the window is minimized then clicking
+                    // the tray should also bring the window back
+                    // to the front.
+                    windowStateManager.requestForeground()
                 }
+            }
+
+            // Single instance check - restore existing window
+            // if another instance is attempted.
+            val isSingleInstance = SingleInstanceManager.isSingleInstance(
+                onRestoreRequest = {
+                    onWindowOpen()
+                },
+            )
+            if (!isSingleInstance) {
+                exitApplication()
+                return@withDI
             }
 
             // Show a tray icon and allow the app to be collapsed into
@@ -263,42 +283,42 @@ fun main() {
                 }
             }
             if (getCloseToTrayState.value) {
-                val trayState = rememberTrayState()
+                val showKeyguardLabel = stringResource(Res.string.show_keyguard)
+                val quitLabel = stringResource(Res.string.quit)
                 Tray(
-                    icon = when (CurrentPlatform) {
-                        is Platform.Desktop.MacOS -> painterResource(Res.drawable.ic_tray_macos)
-                        else -> painterResource(Res.drawable.ic_keyguard)
-                    },
-                    state = trayState,
-                    onAction = onWindowOpen,
-                    menu = {
-                        Item(
-                            stringResource(Res.string.show_keyguard),
-                            onClick = onWindowOpen,
-                        )
-                        Item(
-                            stringResource(Res.string.quit),
-                            onClick = ::exitApplication,
-                        )
-                    },
-                )
+                    windowsIcon = painterResource(Res.drawable.ic_keyguard),
+                    macLinuxIcon = Icons.Outlined.Lock,
+                    tooltip = "Keyguard",
+                    primaryAction = onWindowOpen,
+                ) {
+                    Item(
+                        label = showKeyguardLabel,
+                    ) { onWindowOpen() }
+                    Divider()
+                    Item(
+                        label = quitLabel,
+                    ) {
+                        dispose()
+                        exitApplication()
+                    }
+                }
             } else {
                 isWindowOpenState.value = true
             }
-            if (isWindowOpenState.value) {
-                KeyguardWindow(
-                    processLifecycleProvider = processLifecycleProvider,
-                    windowStateManager = windowStateManager,
-                    onCloseRequest = {
-                        val shouldCloseToTray = getCloseToTrayState.value
-                        if (shouldCloseToTray) {
-                            isWindowOpenState.value = false
-                        } else {
-                            exitApplication()
-                        }
-                    },
-                )
-            }
+            KeyguardWindow(
+                processLifecycleProvider = processLifecycleProvider,
+                stateManager = windowStateManager,
+                visible = isWindowOpenState.value,
+                onReopenRequest = onWindowOpen,
+                onCloseRequest = {
+                    val shouldCloseToTray = getCloseToTrayState.value
+                    if (shouldCloseToTray) {
+                        isWindowOpenState.value = false
+                    } else {
+                        exitApplication()
+                    }
+                },
+            )
         }
     }
 }
@@ -306,14 +326,25 @@ fun main() {
 @Composable
 private fun ApplicationScope.KeyguardWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
-    windowStateManager: WindowStateManager,
+    stateManager: WindowStateManager,
+    visible: Boolean,
+    onReopenRequest: () -> Unit,
     onCloseRequest: () -> Unit,
 ) {
     KeyguardWindow(
         processLifecycleProvider = processLifecycleProvider,
-        windowStateManager = windowStateManager,
+        stateManager = stateManager,
+        visible = visible,
         onCloseRequest = onCloseRequest,
     ) {
+        window.toFront()
+
+        // If you click on a closed to tray app's icon then
+        // that will trigger an event here.
+        AppReopenedListenerEffect {
+            onReopenRequest()
+        }
+
         KeyguardTheme {
             val containerColor = LocalBackgroundManager.current.colorHighest
             val containerColorAnimatedState = animateColorAsState(containerColor)
@@ -345,16 +376,18 @@ private fun ApplicationScope.KeyguardWindow(
 @Composable
 private fun ApplicationScope.KeyguardWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
-    windowStateManager: WindowStateManager,
+    stateManager: WindowStateManager,
+    visible: Boolean,
     onCloseRequest: () -> Unit,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
-    val windowState = windowStateManager.rememberWindowState()
+    val state = stateManager.rememberWindowState()
     val keyboardShortcutsService by rememberInstance<KeyboardShortcutsService>()
     Window(
         onCloseRequest = onCloseRequest,
         icon = painterResource(Res.drawable.ic_keyguard),
-        state = windowState,
+        state = state,
+        visible = visible,
         title = "Keyguard",
         onKeyEvent = { event ->
             keyboardShortcutsService.handle(event)

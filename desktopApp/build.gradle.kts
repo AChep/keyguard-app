@@ -19,6 +19,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.jetbrains.compose.components.resources)
+                implementation(libs.kdroidfilter.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.bouncycastle.bcprov)

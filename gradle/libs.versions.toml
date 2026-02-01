@@ -65,6 +65,8 @@ composeMaterialIconsExtended = "1.7.3"
 composeOpenIcons = "1.1.1"
 # https://github.com/coil-kt/coil
 coil3 = "3.3.0"
+# https://github.com/kdroidFilter/ComposeNativeTray
+composeNativeTray = "1.0.4"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.6"
 dbusJava = "5.1.1"
@@ -278,6 +280,7 @@ ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx
 keemobile-kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+kdroidfilter-composenativetray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "composeNativeTray" }
 kdroidfilter-platformtools-darkmodedetector = { module = "io.github.kdroidfilter:platformtools.darkmodedetector", version.ref = "platformtools" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }

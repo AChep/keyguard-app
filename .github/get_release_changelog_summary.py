@@ -41,13 +41,14 @@ Key features include:
 2. **Audience:** Write for a technical end-user. Focus on functional changes, UI updates, and bug fixes.
 3. **Filtering:** Strictly ignore non-functional commits: "chore", "build", "deps", "version bumps", "CI/CD", and merge commits. Treat commits marked as "auto" (localization/watchtower) as lowest priority; include them only if they represent a notable user-facing change.
 4. **Style:** Professional and objective. No emojis. No fluff or marketing adjectives (e.g., "exciting," "improved," "better").
-5. **Format:** 2-7 sentences in a single cohesive paragraph. No lists or bullet points.
+5. **Format:** 2-7 sentences in a single cohesive paragraph. No lists or bullet points. You are allowed to use a column and a semicolumn.
 
 **STRICT Output Rules:**
 * Output **ONLY** the release note text.
 * Do not include introductory text (e.g., "Here is your changelog").
 * Do not include concluding text.
 * Do not use markdown code blocks or quotes. Start directly with the first word of the changelog.
+* Limit the output by 500 characters at max.
 * Zero-Tolerance Policy for Hallucination: If the commits do not provide enough information for a specific feature, do not fill in the gaps.
 
 **Input Commits:**

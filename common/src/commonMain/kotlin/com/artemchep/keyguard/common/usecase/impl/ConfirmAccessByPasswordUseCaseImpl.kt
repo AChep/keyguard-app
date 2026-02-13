@@ -31,7 +31,8 @@ class ConfirmAccessByPasswordUseCaseImpl(
             }
             val salt = fingerprint.master.salt
             val hash = fingerprint.master.hash
-            authConfirmMasterKeyUseCase(salt, hash)
+            val version = fingerprint.version
+            authConfirmMasterKeyUseCase(salt, hash, version)
                 .compose { password: String ->
                     MasterPassword.of(password)
                 }

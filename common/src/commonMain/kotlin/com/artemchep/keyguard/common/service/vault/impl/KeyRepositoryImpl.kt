@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.vault.impl
 
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.service.Files
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -67,8 +67,11 @@ class KeyRepositoryImpl(
 
     override fun put(session: PersistedSession?) = ioEffect {
         val entity = if (session != null) {
-            val masterKeyBase64 = base64Service.encodeToString(session.masterKey.byteArray)
+            val masterKeyVersion = session.masterKey.version.raw
+            val masterKeyBase64 = base64Service
+                .encodeToString(session.masterKey.byteArray)
             PersistedSessionEntity(
+                masterKeyVersion = masterKeyVersion,
                 masterKeyBase64 = masterKeyBase64,
                 createdAt = session.createdAt,
                 persistedAt = session.persistedAt,
@@ -82,9 +85,13 @@ class KeyRepositoryImpl(
     override fun get(): Flow<PersistedSession?> = dataPref
         .map { entity ->
             if (entity != null) {
-                val masterKey = base64Service.decode(entity.masterKeyBase64)
+                val masterKeyVersion = MasterKdfVersion.fromRaw(entity.masterKeyVersion)
+                val masterKeyBytes = base64Service.decode(entity.masterKeyBase64)
                 PersistedSession(
-                    masterKey = MasterKey(masterKey),
+                    masterKey = MasterKey(
+                        version = masterKeyVersion,
+                        byteArray = masterKeyBytes,
+                    ),
                     createdAt = entity.createdAt,
                     persistedAt = entity.persistedAt,
                 )
@@ -97,6 +104,7 @@ class KeyRepositoryImpl(
 @Serializable
 data class PersistedSessionEntity(
     val masterKeyBase64: String,
+    val masterKeyVersion: Int = MasterKdfVersion.V0.raw,
     val createdAt: Instant,
     val persistedAt: Instant,
 )

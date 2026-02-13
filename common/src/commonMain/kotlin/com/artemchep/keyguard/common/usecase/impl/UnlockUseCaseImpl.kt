@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DKey
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterSession
@@ -90,10 +91,23 @@ class UnlockUseCaseImpl(
         private const val TAG = "UnlockFlow"
     }
 
-    private val generateMasterKey = authGenerateMasterKeyUseCase()
-        .compose { password: String ->
-            MasterPassword.of(password)
-        }
+    /**
+     * Generates a master key of a specific version from the
+     * given password.
+     */
+    private val generateMasterKey: (String, MasterKdfVersion) -> IO<AuthResult> = { password, version ->
+        val masterPassword = MasterPassword.of(password)
+        authGenerateMasterKeyUseCase(version)(masterPassword)
+    }
+
+    /**
+     * Generates a master key of a specific version from the
+     * given password.
+     */
+    private val generateMasterKeyWithLatestVersion: (String) -> IO<AuthResult> = { password ->
+        val version = MasterKdfVersion.LATEST
+        generateMasterKey(password, version)
+    }
 
     private val sharedFlow = combine(
         keyReadWriteRepository.get()
@@ -200,7 +214,7 @@ class UnlockUseCaseImpl(
         return VaultState.Create(
             createWithMasterPassword = VaultState.Create.WithPassword(
                 getCreateIo = { password ->
-                    generateMasterKey(password)
+                    generateMasterKeyWithLatestVersion(password)
                         .flatMap { result ->
                             create(
                                 result = result,
@@ -230,7 +244,7 @@ class UnlockUseCaseImpl(
                 VaultState.Create.WithBiometric(
                     getCipher = getCipherForEncryption,
                     getCreateIo = { password ->
-                        generateMasterKey(password)
+                        generateMasterKeyWithLatestVersion(password)
                             .flatMap { result ->
                                 val masterKey = result.key
                                 val cipherIo = ioEffect {
@@ -277,7 +291,11 @@ class UnlockUseCaseImpl(
         biometric: BiometricStatus,
         lockInfo: MasterSession.Empty.LockInfo?,
     ): VaultState {
-        val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
+        val unlockMasterKey = authConfirmMasterKeyUseCase(
+            tokens.master.salt,
+            tokens.master.hash,
+            tokens.version,
+        )
             .compose { password: String ->
                 MasterPassword.of(password)
             }
@@ -322,6 +340,12 @@ class UnlockUseCaseImpl(
                                 }
                         }
                         decryptBiometricKeyUseCase(cipherIo, encryptedMasterKey)
+                            .map { masterKeyBytes ->
+                                MasterKey(
+                                    version = tokens.version,
+                                    byteArray = masterKeyBytes,
+                                )
+                            }
                             .handleErrorWith { e ->
                                 val newException = BiometricKeyDecryptException(e)
                                 ioRaise(newException)
@@ -353,14 +377,18 @@ class UnlockUseCaseImpl(
         di: DI,
     ): VaultState {
         val databaseManager by di.instance<VaultDatabaseManager>()
-        val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
+        val unlockMasterKey = authConfirmMasterKeyUseCase(
+            tokens.master.salt,
+            tokens.master.hash,
+            tokens.version,
+        )
             .compose { password: String ->
                 MasterPassword.of(password)
             }
         val getCreateIo: (String, String) -> IO<Unit> = { currentPassword, newPassword ->
             unlockMasterKey(currentPassword) // verify current password is valid
                 .flatMap {
-                    generateMasterKey(newPassword)
+                    generateMasterKeyWithLatestVersion(newPassword)
                 }
                 .flatMap { result ->
                     val newMasterKey = result.key
@@ -408,7 +436,7 @@ class UnlockUseCaseImpl(
                     getCreateIo = { currentPassword, newPassword ->
                         unlockMasterKey(currentPassword) // verify current password is valid
                             .flatMap {
-                                generateMasterKey(newPassword)
+                                generateMasterKeyWithLatestVersion(newPassword)
                             }
                             .flatMap { result ->
                                 val newMasterKey = result.key
@@ -490,6 +518,7 @@ class UnlockUseCaseImpl(
         biometricTokens: FingerprintBiometric? = null,
     ): IO<Unit> {
         val token = Fingerprint(
+            version = result.version,
             master = result.token,
             biometric = biometricTokens,
         )

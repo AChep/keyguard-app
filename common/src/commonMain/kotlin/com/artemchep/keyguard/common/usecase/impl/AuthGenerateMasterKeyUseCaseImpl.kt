@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.AuthResult
 import com.artemchep.keyguard.common.model.FingerprintPassword
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.usecase.AuthGenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
@@ -23,14 +24,17 @@ class AuthGenerateMasterKeyUseCaseImpl(
         generateMasterSaltUseCase = directDI.instance(),
     )
 
-    override fun invoke() = { password: MasterPassword ->
+    override fun invoke(
+        version: MasterKdfVersion,
+    ) = { password: MasterPassword ->
         // Generate a hash from the given password and known
         // salt, to identify if the password is valid.
         generateMasterSaltUseCase()
             .effectMap { salt ->
-                val hash = generateMasterHashUseCase(password, salt).bind()
+                val hash = generateMasterHashUseCase(password, salt, version).bind()
                 val key = generateMasterKeyUseCase(password, hash).bind()
                 AuthResult(
+                    version = version,
                     key = key,
                     token = FingerprintPassword(
                         hash = hash,

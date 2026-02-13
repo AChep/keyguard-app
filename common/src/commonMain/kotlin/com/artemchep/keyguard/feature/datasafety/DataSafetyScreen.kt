@@ -183,7 +183,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.textHorizontalPadding),
                 title = labelHash,
-                value = "PBKDF2($labelAppPassword, $labelSalt)",
+                value = "Argon2id($labelAppPassword, $labelSalt)",
             )
             HorizontalDivider(
                 modifier = Modifier
@@ -195,7 +195,7 @@ private fun ColumnScope.DataSafetyScreenContent() {
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.textHorizontalPadding),
                 title = labelKey,
-                value = "PBKDF2($labelAppPassword, $labelHash)",
+                value = "Argon2id($labelAppPassword, $labelHash)",
             )
             Spacer(
                 modifier = Modifier

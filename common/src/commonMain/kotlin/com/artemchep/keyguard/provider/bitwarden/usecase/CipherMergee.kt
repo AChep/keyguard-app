@@ -32,6 +32,7 @@ import com.artemchep.keyguard.common.model.postalCode
 import com.artemchep.keyguard.common.model.reprompt
 import com.artemchep.keyguard.common.model.ssn
 import com.artemchep.keyguard.common.model.state
+import com.artemchep.keyguard.common.model.tags
 import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.totp
 import com.artemchep.keyguard.common.model.type
@@ -74,6 +75,10 @@ class CipherMergeImpl() : CipherMerge {
             Node.Leaf(
                 lens = DSecret.attachments,
                 strategy = PickAttachmentStrategy(),
+            ),
+            Node.Leaf(
+                lens = DSecret.tags,
+                strategy = PickTagStrategy(),
             ),
             // types
             Node.Group<DSecret, DSecret.Login>(
@@ -196,6 +201,14 @@ class CipherMergeImpl() : CipherMerge {
         override fun pick(
             list: List<List<DSecret.Attachment>>,
         ): List<DSecret.Attachment> = emptyList()
+    }
+
+    private class PickTagStrategy : PickStrategy<List<String>> {
+        override fun pick(
+            list: List<List<String>>,
+        ): List<String> = list
+            .flatten()
+            .distinct()
     }
 
     private class PickCardStrategy : PickStrategy<DSecret.Card> {

@@ -34,7 +34,6 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.KeyPair
-import com.artemchep.keyguard.common.model.KeyPairDecor
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.ToastMessage
@@ -123,7 +122,6 @@ import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
-import com.artemchep.keyguard.feature.home.vault.add.AddStateItemPasskeyFactory.PasskeyHolder
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
@@ -174,12 +172,10 @@ import kotlinx.coroutines.flow.update
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.encodeToString
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.io.Serializable
-import kotlin.math.sin
 import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
@@ -519,18 +515,29 @@ fun produceAddScreenState(
                 DSecret.Type.None -> flowOf(emptyList())
             }
         }
-    val miscItems by lazy {
-        listOf(
-            AddStateItem.Section(
-                id = "misc",
-            ),
-            AddStateItem.Note(
-                id = "misc.note",
-                state = noteHolder.note.state,
-                markdown = markdown,
-            ),
-        )
-    }
+    val noteItem = AddStateItem.Note(
+        id = "misc.note",
+        state = noteHolder.note.state,
+        markdown = markdown,
+    )
+    val noteSuggestionsItem = createItem2(
+        prefix = "misc.note",
+        key = "note",
+        args = args,
+        getSuggestion = { it.notes },
+        selectedFlow = noteItem.state.flow.map { it.text },
+        concealed = false,
+        onClick = {
+            noteItem.state.flow.value.onChange?.invoke(it)
+        },
+    )
+    val miscItems = listOfNotNull(
+        AddStateItem.Section(
+            id = "misc",
+        ),
+        noteItem,
+        noteSuggestionsItem,
+    )
     val miscFlow = typeFlow
         .map { type ->
             val hasNotes = when (type) {

@@ -1,18 +1,18 @@
 # Placeholders
 
-Keyguard replaces placeholders when performing an action with the field (copying, opening in a browser and more). The feature is largely based on the [Keepass's specification](https://keepass.info/help/base/placeholders.html). 
+Keyguard replaces placeholders when performing an action with the field (copying, opening in a browser and more). The feature is largely based on the [KeePass specification](https://keepass.info/help/base/placeholders.html).
 
-**At this moment placeholders are supported in**:
+**At this moment, placeholders are supported in**:
 
 - URL field;
 - URL override commands.
 
 **Basics**:
 
-- placeholders and their basics parameters are _case-insensitive_;
-- placeholders are resolved using the shared constant time, all time-sensitive placeholders will be synced;
-- if no value is found, the placeholder will be replaced with an empty string: `{otp}` will be replaced with an empty string if an entry doesn't have one-time password configured;
-- if no placeholder is found, the placeholder will be kept in it's original form: `{keyguard}` will be replaced with `{keyguard}`.
+- placeholders and their basic parameters are _case-insensitive_;
+- placeholders are resolved using the shared constant time; all time-sensitive placeholders will be synced;
+- if no value is found, the placeholder will be replaced with an empty string: `{otp}` will be replaced with an empty string if an entry doesn't have a one-time password configured;
+- if no placeholder is found, the placeholder will be kept in its original form: `{keyguard}` will be replaced with `{keyguard}`.
 
 ### Types
 #### Entry Core
@@ -49,7 +49,7 @@ https://example.com?license=12345678ABCD
 #### Entry URL
 \***URL override specific**\*
 
-This is useful in URL override command field. You can extract data from the URL for your new *command*.
+This is useful in the URL override command field. You can extract data from the URL for your new *command*.
 
 Note: `{base}` supports exactly the same parts as `{url}` and is identical to it.  
 
@@ -74,27 +74,27 @@ Note: `{base}` supports exactly the same parts as `{url}` and is identical to it
 ```
 t-replace-rx:/text/search/replace/
 ```
-the first symbol after `:` defines the separator. It may be any symbol except `{` and `}`. Trailing separator symbol is required.
+The first symbol after `:` defines the separator. It may be any symbol except `{` and `}`. Trailing separator symbol is required.
 
 _Example_:
 
-Let the username field contain the email address 'username@example.com', then:
+If the username field contains the email address 'username@example.com', then:
 ```
 > {t-replace-rx:/{username}/.*@(.*)/$1/}
 example.com
 ```
 
-for more info how it works, see the [underlying implementation's documentation](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex/replace.html)
+For more information on how it works, see the [underlying implementation's documentation](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex/replace.html).
 
 ##### Convert text to the other representation
 
 ```
 t-conv:/value/type/
 ```
-the first symbol after `:` defines the separator. It may be any symbol except `{` and `}`. Trailing separator symbol is required.
+The first symbol after `:` defines the separator. It may be any symbol except `{` and `}`. Trailing separator symbol is required.
 
-- `u` or `upper` - transforms 'value' component into the uppercase basing on the English locale;
-- `l` or `lower` - transforms 'value' component into the lowercase basing on the English locale;
+- `u` or `upper` - transforms 'value' component into the uppercase based on the English locale;
+- `l` or `lower` - transforms 'value' component into the lowercase based on the English locale;
 - `base64` - encodes 'value' component into the Base64 (no padding, no wrap, URL safe) representation of the text;
 - `hex` - encodes 'value' component into the HEX (lowercase) representation of the text;
 - `uri` - encodes 'value' component into the URI representation of the text;

@@ -142,6 +142,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
         }
 
         // Share jvm code between different JVM platforms, see:

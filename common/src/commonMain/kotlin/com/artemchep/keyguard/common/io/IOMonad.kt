@@ -9,6 +9,10 @@ fun <T> List<IO<T>>.parallel(
     context: CoroutineContext = EmptyCoroutineContext,
     parallelism: Int = 4,
 ): IO<List<T>> = {
+    require(parallelism > 0) {
+        "The `parallelism` must be greater than 0!"
+    }
+
     val window = size.div(parallelism).coerceAtLeast(1)
     coroutineScope {
         this@parallel

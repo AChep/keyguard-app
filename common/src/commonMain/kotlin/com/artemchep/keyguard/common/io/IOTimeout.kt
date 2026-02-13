@@ -14,6 +14,12 @@ fun <T> IO<T>.timeout(millis: Long): IO<T> = {
             invoke()
         }
     } catch (e: TimeoutCancellationException) {
-        throw TimeoutException()
+        throw TimeoutException(e)
     }
 }
+
+@Suppress("FunctionName")
+private fun TimeoutException(e: Exception) =
+    TimeoutException(e.message).apply {
+        initCause(e)
+    }

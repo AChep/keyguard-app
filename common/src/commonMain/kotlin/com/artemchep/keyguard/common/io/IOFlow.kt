@@ -12,7 +12,8 @@ fun <T> Flow<T>.toIO(): IO<T> = ioEffect { first() }
 
 fun <T> Flow<T>.attempt(): Flow<Either<Throwable, T>> = this
     .map<T, Either<Throwable, T>> { it.right() }
-    .catch {
-        val value = it.left()
+    .catch { e ->
+        e.throwIfFatalOrCancellation()
+        val value = e.left()
         emit(value)
     }

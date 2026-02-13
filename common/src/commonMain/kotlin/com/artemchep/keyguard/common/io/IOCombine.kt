@@ -9,6 +9,10 @@ fun <T> List<IO<T>>.combine(
     bucket: Int,
     context: CoroutineContext = EmptyCoroutineContext,
 ): IO<List<T>> = ioEffect {
+    require(bucket > 0) {
+        "The `bucket` must be greater than 0!"
+    }
+
     if (size >= bucket * 2) {
         coroutineScope {
             val bucketSize = size /

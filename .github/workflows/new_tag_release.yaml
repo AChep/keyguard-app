@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           submodules: recursive
       - name: "Generate changelog"
@@ -77,12 +77,12 @@ jobs:
       release-name: ${{ steps.producer.outputs.release_name }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           path: keyguard-app
           submodules: recursive
       - name: "Checkout AChep/keyguard-version"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
@@ -124,7 +124,7 @@ jobs:
       version-code: ${{ steps.producer.outputs.version_code }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: ./.github/actions/setup_python
       - name: "Prepare env"
         run: |
@@ -150,7 +150,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           lfs: true
           submodules: recursive
@@ -214,7 +214,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           lfs: true
           submodules: recursive
@@ -247,7 +247,7 @@ jobs:
             arch: aarch64
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           lfs: true
           submodules: recursive
@@ -319,7 +319,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           lfs: true
           submodules: recursive
@@ -354,7 +354,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           lfs: true
           submodules: recursive
@@ -476,7 +476,7 @@ jobs:
       - dist
     steps:
       - name: "Checkout AChep/keyguard-version"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
@@ -581,7 +581,7 @@ jobs:
           - new_release_deploy_scoop.yml
     steps:
       - name: "Checkout"
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: "Trigger Workflow"
         uses: ./.github/actions/github_trigger_wf
         with:

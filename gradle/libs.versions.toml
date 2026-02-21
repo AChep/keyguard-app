@@ -69,7 +69,7 @@ coil3 = "3.3.0"
 composeNativeTray = "1.0.4"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.6"
-dbusJava = "5.1.1"
+dbusJava = "5.2.0"
 # https://github.com/gmethvin/directory-watcher
 directoryWatcher = "0.19.1"
 firebase = "34.8.0"

@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Tillad skærmfotos</string>
     <string name="pref_item_allow_screenshots_text_on">Vis indholdet af appen, når der skiftes mellem seneste apps og tillad skærmoptagelse</string>
     <string name="pref_item_allow_screenshots_text_off">Vis indholdet af appen, når der skiftes mellem seneste apps og forbyd skærmoptagelse</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Datasikkerhed</string>
     <string name="pref_item_logs_title">Logger</string>
     <string name="pref_item_lock_vault_title">Lås boks</string>

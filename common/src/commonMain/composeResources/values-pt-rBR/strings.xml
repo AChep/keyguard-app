@@ -1107,6 +1107,11 @@
     <string name="pref_item_allow_screenshots_title">Permitir capturas de tela</string>
     <string name="pref_item_allow_screenshots_text_on">Mostrar o conteúdo do aplicativo ao alternar entre aplicativos recentes e permitir a captura de tela</string>
     <string name="pref_item_allow_screenshots_text_off">Ocultar o conteúdo do aplicativo ao alternar entre aplicativos recentes e proíba a captura de tela</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Segurança dos dados</string>
     <string name="pref_item_logs_title">Registros</string>
     <string name="pref_item_lock_vault_title">Bloquear Cofre</string>

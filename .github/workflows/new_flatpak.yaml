@@ -55,6 +55,10 @@ jobs:
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
         with:
           toolchain: stable
+      - name: "Setup Protobuf Compiler"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
       - uses: ./.github/actions/setup_python
       - name: "Download lib native"
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131

@@ -161,6 +161,10 @@ jobs:
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
         with:
           toolchain: stable
+      - name: "Setup Protobuf Compiler"
+        run: |
+          brew install protobuf
+          protoc --version
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
         run: |
@@ -260,6 +264,10 @@ jobs:
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
         with:
           toolchain: stable
+      - name: "Setup Protobuf Compiler"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
       - name: "Download lib native"
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -345,6 +353,11 @@ jobs:
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
         with:
           toolchain: stable
+      - name: "Setup Protobuf Compiler"
+        shell: pwsh
+        run: |
+          choco install protoc --yes
+          protoc --version
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         run: |

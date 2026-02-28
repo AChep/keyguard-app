@@ -621,6 +621,19 @@
     "created_at": "2023-05-24T11:03:39+00:00"
   },
   {
+    "id": "923653151820eda03acb7bcfd2460442",
+    "name": "ChatGPT",
+    "domain": "chat.openai.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.openai.com/en/articles/20001039-passkeys-to-secure-your-openai-account",
+    "setup": "https://chatgpt.com/#settings/Security",
+    "category": "Productivity",
+    "created_at": "2026-02-03T09:27:18+00:00",
+    "notes": "Sign in to your OpenAI account via website.\n\nOpen ChatGPT Security Settings.\n\nFind the Passkeys section.\n\nSelect Add passkey and follow the on-screen instructions."
+  },
+  {
     "id": "51bb256a0f5d44ce4a5de9a92170978d",
     "name": "Chek",
     "domain": "chekspend.com",
@@ -3216,6 +3229,20 @@
     "notes": "Only available through the mobile app and on consumer accounts. \n\nPasskeys only work with 1Password in the iOS and Android app, not the walmart.com website"
   },
   {
+    "id": "435095630179759b6e27bade9062058a",
+    "name": "Wealthsimple",
+    "domain": "wealthsimple.com",
+    "features": [
+      "mfa",
+      "signin"
+    ],
+    "documentation": "https://help.wealthsimple.com/hc/en-ca/articles/45953732950939-Log-in-with-a-passkey",
+    "setup": "https://my.wealthsimple.com/app/settings/security",
+    "category": "Finance",
+    "created_at": "2026-02-17T20:57:52+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log in to your Wealthsimple profile\n2. From the Home tab, click the Profile icon in the top right corner\n3. Click the Settings (gear) icon\n4. Click Login and security\n5. Under Passkeys, click Add a passkey\n6. Click Get started\n7. Enter a name for your passkey\n8. Click Next\n9. Complete the 2FA prompt\n10. Follow your device's prompts to finish the setup\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on February 17, 2026</sub></sup></p>"
+  },
+  {
     "id": "ffe0c8cc238d5545af34bcdde2e1c523",
     "name": "WebAuthn.io",
     "domain": "webauthn.io",
@@ -3262,6 +3289,18 @@
     "category": "Information Technology",
     "created_at": "2023-04-09T07:00:20.568068+00:00",
     "notes": "Saving and signing in with a passkey on Whatsapp is currently limited to the iOS and Android apps. Signing in to the Mac desktop version or on the web browser version of Whatsapp still requires using the \"Linked Devices\" feature or scanning the QR code using your mobile device.\n\n#### To set up a passkey on your Whatsapp account:\n1. Go to your WhatsApp settings.\n2. Tap Passkeys > Create a passkey.\n3. Tap Continue.\n- You may be asked to tap Use screen lock to create your passkey."
+  },
+  {
+    "id": "8f431b7129fb3b1b9c7419b4d690f2e5",
+    "name": "Wikipedia",
+    "domain": "wikipedia.org",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://auth.wikimedia.org/enwiki/wiki/Special:AccountSecurity",
+    "category": "Other",
+    "created_at": "2026-01-23T17:35:27+00:00",
+    "notes": "To add a passkey you must first set up two-factor authentication."
   },
   {
     "id": "9c97455a834cf176b8c398b3016475c2",

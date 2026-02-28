@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - run: pip install -r .github/update_localization_contributors.requirements.txt
-      - uses: crowdin/github-action@b4b468cffefb50bdd99dd83e5d2eaeb63c880380
+      - uses: crowdin/github-action@5587c43063e52090026857d386174d2599ad323b
         with:
           upload_sources: true
           # We only want to upload the sources, nothing else is

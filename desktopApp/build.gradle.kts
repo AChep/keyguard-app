@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.internal.file.DefaultFilePermissions
 import org.gradle.api.tasks.Sync
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
@@ -217,7 +218,18 @@ fun Tar.installPackageDistributable(
         else -> prop
     }
 
-    from(tasks.named(dependency))
+    from(tasks.named(dependency)) {
+        // Keep helper binaries executable inside the tarball even if
+        // their source mode was normalized by an upstream packaging step.
+        eachFile {
+            if (
+                name == "keyguard-ssh-agent" ||
+                name == "keyguard-lib"
+            ) {
+                permissions = DefaultFilePermissions("755".toInt(8))
+            }
+        }
+    }
 
     // Pack additional platform-specific files. For example for
     // Linux we want to include the Flatpak files.

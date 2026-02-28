@@ -187,8 +187,23 @@ jobs:
           echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}" >> gradle.properties
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
-      - name: "Build"
-        run: ./gradlew :desktopApp:packageReleaseDmg :desktopApp:notarizeReleaseDmg
+      - name: "Build release app image"
+        run: ./gradlew :desktopApp:createReleaseDistributable
+      - name: "Mark bundled helpers executable"
+        run: |
+          set -euo pipefail
+
+          APP_RESOURCES_DIR="desktopApp/build/compose/binaries/main-release/app/Keyguard.app/Contents/app/resources"
+          SSH_AGENT_BINARY="$APP_RESOURCES_DIR/keyguard-ssh-agent"
+          DESKTOP_LIB_BINARY="$APP_RESOURCES_DIR/keyguard-lib"
+
+          test -f "$SSH_AGENT_BINARY"
+          test -f "$DESKTOP_LIB_BINARY"
+
+          chmod +x "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY"
+          ls -l "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY"
+      - name: "Build and notarize DMG"
+        run: ./gradlew :desktopApp:packageReleaseDmg :desktopApp:notarizeReleaseDmg -x :desktopApp:createReleaseDistributable
       - name: "Upload logs"
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         if: always()

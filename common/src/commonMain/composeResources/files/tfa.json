@@ -296,7 +296,7 @@
       "Adobe Account Access"
     ],
     "documentation": "https://helpx.adobe.com/manage-account/using/secure-your-adobe-account.html",
-    "name": "Adobe ID"
+    "name": "Adobe"
   },
   {
     "domain": "adt.com",
@@ -1529,6 +1529,16 @@
     ],
     "documentation": "https://beget.com/ru/kb/manual/nastrojki-akkaunta#security",
     "name": "Beget"
+  },
+  {
+    "domain": "bell.ca",
+    "tfa": [
+      "sms",
+      "call",
+      "email"
+    ],
+    "documentation": "https://support.bell.ca/billing-and-accounts/security_and_privacy/mybell_mfa",
+    "name": "Bell"
   },
   {
     "domain": "belong.com.au",
@@ -6850,6 +6860,13 @@
     "name": "Getscreen.me"
   },
   {
+    "domain": "gitguardian.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "GitGuardian"
+  },
+  {
     "domain": "github.com",
     "tfa": [
       "sms",
@@ -11934,7 +11951,8 @@
       "chatgpt.com"
     ],
     "tfa": [
-      "totp"
+      "totp",
+      "sms"
     ],
     "documentation": "https://help.openai.com/articles/7967234",
     "name": "OpenAI (ChatGPT)"
@@ -12535,6 +12553,20 @@
     ],
     "documentation": "https://www.pcloud.com/help/general-help-center/how-can-i-set-up-two-factor-authentication",
     "name": "PCloud"
+  },
+  {
+    "domain": "penfed.org",
+    "tfa": [
+      "sms",
+      "email",
+      "totp",
+      "custom-software"
+    ],
+    "documentation": "https://home.penfed.org/help/s/article/PenFed-Security-Center",
+    "custom-software": [
+      "PenFed App"
+    ],
+    "name": "PenFed"
   },
   {
     "domain": "perimeter81.com",
@@ -18162,6 +18194,15 @@
     ],
     "documentation": "https://uk.virginmoney.com/sca",
     "name": "Virgin Money"
+  },
+  {
+    "domain": "virginplus.ca",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.virginplus.ca/en/support/myaccount-mfa.html",
+    "name": "Virgin Plus"
   },
   {
     "domain": "virginpulse.com",

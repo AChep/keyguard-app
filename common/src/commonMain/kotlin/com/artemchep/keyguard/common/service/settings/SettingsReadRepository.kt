@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlinx.coroutines.flow.Flow
@@ -90,6 +91,10 @@ interface SettingsReadRepository {
     fun getWebsiteIcons(): Flow<Boolean>
 
     fun getMarkdown(): Flow<Boolean>
+
+    fun getSshAgent(): Flow<Boolean>
+
+    fun getSshAgentFilter(): Flow<SshAgentFilter>
 
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
 

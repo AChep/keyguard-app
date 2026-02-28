@@ -1,0 +1,57 @@
+[package]
+name = "keyguard-ssh-agent"
+version = "0.1.0"
+edition = "2021"
+description = "SSH agent for Keyguard password manager"
+
+[[bin]]
+name = "keyguard-ssh-agent"
+path = "src/main.rs"
+
+[dependencies]
+# SSH agent protocol
+ssh-agent-lib = "0.5"
+ssh-key = { version = "0.6", features = ["ed25519", "rsa", "crypto"] }
+ssh-encoding = "0.2"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+futures = "0.3"
+async-trait = "0.1"
+
+# Protobuf IPC
+prost = "0.13"
+bytes = "1"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Error handling
+anyhow = "1"
+thiserror = "2"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Hex encoding for auth token
+hex = "0.4"
+
+# Platform directories
+dirs = "6"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[build-dependencies]
+prost-build = "0.13"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["test-util", "io-util", "macros", "rt"] }
+tempfile = "3"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

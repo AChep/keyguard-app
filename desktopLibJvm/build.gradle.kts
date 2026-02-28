@@ -1,8 +1,9 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
+
+// The library itself doesn't bundle the actual native binaries
+// and relies on the @desktopApp module to do so!
 
 kotlin {
     explicitApi()
@@ -18,17 +19,10 @@ kotlin {
                 implementation(libs.dbus.java.core)
                 implementation(libs.dbus.java.transport)
             }
-
-            resources.srcDir(rootDir.resolve("desktopLibNative/build/bin/universal"))
         }
     }
 }
 
 kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
-}
-
-afterEvaluate {
-    val resourcesTask = tasks.named("jvmProcessResources")
-    resourcesTask.dependsOn(":desktopLibNative:${Tasks.compileNativeUniversal}")
 }

@@ -45,6 +45,9 @@ import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
+import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
+import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -147,14 +150,17 @@ private fun UnlockScreen(
         UnlockScreenContainer(
             top = {
                 UnlockScreenTheVaultIsLockedTitle()
+                val infoOrNull = LocalAuthScreen.current.reason
+                    ?: unlockState.lockReason
+                        ?.let(TextHolder::Value)
                 ExpandedIfNotEmpty(
-                    valueOrNull = unlockState.lockReason,
-                ) { lockReason ->
+                    valueOrNull = infoOrNull,
+                ) { info ->
                     Text(
                         modifier = Modifier
                             .padding(top = 16.dp),
                         textAlign = TextAlign.Center,
-                        text = lockReason,
+                        text = textResource(info),
                         color = LocalContentColor.current
                             .combineAlpha(MediumEmphasisAlpha),
                         style = MaterialTheme.typography.bodyMedium,

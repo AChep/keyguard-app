@@ -8,16 +8,17 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
+import arrow.core.throwIfFatal
 import coil3.SingletonImageLoader
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.imageLoaderModule
@@ -29,14 +30,22 @@ import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.app.AppIconFetcher
 import com.artemchep.keyguard.common.service.app.AppIconKeyer
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
+import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
+import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
+import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.feature.sshagent.rememberSshAgentRequestUiState
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
+import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
@@ -46,20 +55,18 @@ import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
+import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
-import com.artemchep.keyguard.desktop.util.navigateToBrowser
-import com.artemchep.keyguard.desktop.util.navigateToEmail
-import com.artemchep.keyguard.desktop.util.navigateToFile
-import com.artemchep.keyguard.desktop.util.navigateToFileInFileManager
+import com.artemchep.keyguard.desktop.util.handleNavigationIntent
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.keyguard.AppRoute
+import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
@@ -71,9 +78,11 @@ import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.kdroid.composetray.tray.api.Tray
-import com.kdroid.composetray.utils.IconRenderProperties
 import com.kdroid.composetray.utils.SingleInstanceManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -83,6 +92,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
@@ -148,6 +159,8 @@ fun main() {
         cryptoGenerator = appDi.direct.instance(),
     )
 
+    val logRepository by appDi.di.instance<LogRepository>()
+    val cryptoGenerator by appDi.di.instance<CryptoGenerator>()
     val getVaultSession by appDi.di.instance<GetVaultSession>()
     val putVaultSession by appDi.di.instance<PutVaultSession>()
     val getVaultPersist by appDi.di.instance<GetVaultPersist>()
@@ -240,6 +253,14 @@ fun main() {
         .launchIn(GlobalScope)
 
     val getCloseToTray: GetCloseToTray = appDi.direct.instance()
+    val getSshAgent: GetSshAgent = appDi.direct.instance()
+    val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
+    val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
+
+    val translatorScope by lazy {
+        val context = LeContext()
+        TranslatorScope.of(context)
+    }
 
     val windowStateManager by appDi.di.instance<WindowStateManager>()
     application(exitProcessOnExit = true) {
@@ -268,6 +289,86 @@ fun main() {
             if (!isSingleInstance) {
                 exitApplication()
                 return@withDI
+            }
+
+            // SSH Agent: Start the SSH agent if the binary is available.
+            // The binary is bundled in the app resources during distribution.
+            // This is placed after the single-instance check so that a
+            // second app instance never touches the shared SSH socket.
+            val sshAgentManager = remember {
+                SshAgentManager(
+                    logRepository = logRepository,
+                    cryptoGenerator = cryptoGenerator,
+                    getVaultSession = getVaultSession,
+                    getSshAgentFilter = getSshAgentFilter,
+                )
+            }
+            val showMessage by rememberInstance<ShowMessage>()
+            val getSshAgentState = remember { getSshAgent() }
+                .collectAsState(false)
+            LaunchedEffect(
+                sshAgentManager,
+                getSshAgentState.value,
+            ) {
+                val binaryPath = sshAgentManager.defaultBinaryPath
+                if (binaryPath == null) {
+                    sshAgentStatusService.set(SshAgentStatus.Unsupported)
+                    return@LaunchedEffect
+                }
+                if (!getSshAgentState.value) {
+                    sshAgentStatusService.set(SshAgentStatus.Stopped)
+                    return@LaunchedEffect
+                }
+
+                coroutineScope {
+                    var failed = false
+                    try {
+                        sshAgentStatusService.set(SshAgentStatus.Starting)
+                        val process = sshAgentManager.start(
+                            scope = this,
+                            binaryPath = binaryPath,
+                        )
+                        sshAgentStatusService.set(SshAgentStatus.Ready)
+                        val exitCode = runInterruptible(Dispatchers.IO) {
+                            process.waitFor()
+                        }
+                        throw IllegalStateException("SSH agent process exited unexpectedly: $exitCode")
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        e.throwIfFatal()
+                        e.printStackTrace()
+                        failed = true
+                        sshAgentStatusService.set(SshAgentStatus.Failed)
+
+                        val text = getErrorReadableMessage(e, translatorScope)
+                            .title
+                        val msg = ToastMessage(
+                            type = ToastMessage.Type.ERROR,
+                            title = translatorScope.translate(Res.string.error_failed_ssh_agent_start),
+                            text = text,
+                        )
+                        showMessage.copy(msg)
+                    } finally {
+                        withContext(NonCancellable) {
+                            sshAgentManager.stop()
+                        }
+                        if (!failed) {
+                            sshAgentStatusService.set(SshAgentStatus.Stopped)
+                        }
+                    }
+                }
+            }
+            // We want to collect all the requests into
+            // a single model.
+            val sshAgentRequestUiState = rememberSshAgentRequestUiState(
+                requestsFlow = sshAgentManager.requestsFlow,
+            )
+            if (sshAgentRequestUiState != null) {
+                SshRequestWindow(
+                    processLifecycleProvider = processLifecycleProvider,
+                    sshAgentRequestUiState = sshAgentRequestUiState,
+                )
             }
 
             // Show a tray icon and allow the app to be collapsed into
@@ -305,7 +406,7 @@ fun main() {
             } else {
                 isWindowOpenState.value = true
             }
-            KeyguardWindow(
+            KeyguardMainWindow(
                 processLifecycleProvider = processLifecycleProvider,
                 stateManager = windowStateManager,
                 visible = isWindowOpenState.value,
@@ -324,14 +425,14 @@ fun main() {
 }
 
 @Composable
-private fun ApplicationScope.KeyguardWindow(
+private fun ApplicationScope.KeyguardMainWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     stateManager: WindowStateManager,
     visible: Boolean,
     onReopenRequest: () -> Unit,
     onCloseRequest: () -> Unit,
 ) {
-    KeyguardWindow(
+    KeyguardMainWindow(
         processLifecycleProvider = processLifecycleProvider,
         stateManager = stateManager,
         visible = visible,
@@ -346,35 +447,15 @@ private fun ApplicationScope.KeyguardWindow(
         }
 
         KeyguardTheme {
-            val containerColor = LocalBackgroundManager.current.colorHighest
-            val containerColorAnimatedState = animateColorAsState(containerColor)
-            val contentColor = contentColorFor(containerColor)
-            Surface(
-                modifier = Modifier.semantics {
-                    // Allows to use testTag() for UiAutomator's resource-id.
-                    // It can be enabled high in the compose hierarchy,
-                    // so that it's enabled for the whole subtree
-                    // testTagsAsResourceId = true
-                },
-                color = containerColorAnimatedState.value,
-                contentColor = contentColor,
-            ) {
-                CompositionLocalProvider(
-                    LocalSurfaceColor provides containerColor,
-                ) {
-                    Navigation(
-                        exitApplication = ::exitApplication,
-                    ) {
-                        Content()
-                    }
-                }
+            KeyguardWindowScaffold {
+                Content()
             }
         }
     }
 }
 
 @Composable
-private fun ApplicationScope.KeyguardWindow(
+private fun ApplicationScope.KeyguardMainWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     stateManager: WindowStateManager,
     visible: Boolean,
@@ -393,14 +474,49 @@ private fun ApplicationScope.KeyguardWindow(
             keyboardShortcutsService.handle(event)
         },
     ) {
-        CompositionLocalProvider(
-            LocalComposeWindow provides this.window,
-        ) {
-            LaunchLifecycleProviderEffect(
-                processLifecycleProvider = processLifecycleProvider,
-            )
+        KeyguardWindowEssentials(
+            processLifecycleProvider = processLifecycleProvider,
+            content = content,
+        )
+    }
+}
 
-            content()
+@Composable
+internal fun FrameWindowScope.KeyguardWindowEssentials(
+    processLifecycleProvider: LePlatformLifecycleProvider,
+    content: @Composable FrameWindowScope.() -> Unit,
+) {
+    CompositionLocalProvider(
+        LocalComposeWindow provides this.window,
+    ) {
+        LaunchLifecycleProviderEffect(
+            processLifecycleProvider = processLifecycleProvider,
+        )
+
+        content()
+    }
+}
+
+@Composable
+internal fun ApplicationScope.KeyguardWindowScaffold(
+    content: @Composable () -> Unit,
+) {
+    val containerColor = LocalBackgroundManager.current.colorHighest
+    val containerColorAnimatedState = animateColorAsState(containerColor)
+    val contentColor = contentColorFor(containerColor)
+    Surface(
+        modifier = Modifier,
+        color = containerColorAnimatedState.value,
+        contentColor = contentColor,
+    ) {
+        CompositionLocalProvider(
+            LocalSurfaceColor provides containerColor,
+        ) {
+            Navigation(
+                exitApplication = ::exitApplication,
+            ) {
+                content()
+            }
         }
     }
 }
@@ -451,132 +567,4 @@ private fun Navigation(
 
         block()
     }
-}
-
-private fun handleNavigationIntent(
-    exitApplication: () -> Unit,
-    intent: NavigationIntent,
-    showMessage: ShowMessage,
-) = runCatching {
-    when (intent) {
-        is NavigationIntent.NavigateToPreview -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToPreviewInFileManager -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToSend -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToLargeType -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToShare -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToApp -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToPhone -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToSms -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToEmail -> handleNavigationIntent(intent, showMessage)
-        is NavigationIntent.NavigateToBrowser -> handleNavigationIntent(intent, showMessage)
-        // Should never be called, because we should disable
-        // custom back button handling if we have nothing to
-        // handle.
-        is NavigationIntent.Pop -> {
-            val msg = "Called Activity.finish() manually. We should have stopped " +
-                    "intercepting back button presses."
-            exitApplication()
-        }
-        // Exit.
-        is NavigationIntent.Exit -> {
-            exitApplication()
-        }
-
-        else -> return@runCatching intent
-    }
-    null // handled
-}.onFailure { e ->
-    showMessage.internalShowNavigationErrorMessage(e)
-}.getOrNull()
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToPreview,
-    showMessage: ShowMessage,
-) {
-    navigateToFile(
-        uri = intent.uri,
-    )
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToPreviewInFileManager,
-    showMessage: ShowMessage,
-) {
-    navigateToFileInFileManager(
-        uri = intent.uri,
-    )
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToSend,
-    showMessage: ShowMessage,
-) {
-    TODO()
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToLargeType,
-    showMessage: ShowMessage,
-) {
-    TODO()
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToShare,
-    showMessage: ShowMessage,
-) {
-    TODO()
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToApp,
-    showMessage: ShowMessage,
-) {
-    TODO()
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToPhone,
-    showMessage: ShowMessage,
-) {
-    TODO()
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToSms,
-    showMessage: ShowMessage,
-) {
-    TODO()
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToEmail,
-    showMessage: ShowMessage,
-) {
-    navigateToEmail(
-        email = intent.email,
-        subject = intent.subject,
-        body = intent.body,
-    )
-}
-
-private fun handleNavigationIntent(
-    intent: NavigationIntent.NavigateToBrowser,
-    showMessage: ShowMessage,
-) {
-    navigateToBrowser(
-        uri = intent.url,
-    )
-}
-
-private fun ShowMessage.internalShowNavigationErrorMessage(e: Throwable) {
-    e.printStackTrace()
-
-    val model = ToastMessage(
-        type = ToastMessage.Type.ERROR,
-        title = when (e) {
-            else -> "Something went wrong"
-        },
-    )
-    copy(model)
 }

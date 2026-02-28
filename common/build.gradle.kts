@@ -145,6 +145,13 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
         }
 
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+
         // Share jvm code between different JVM platforms, see:
         // https://youtrack.jetbrains.com/issue/KT-28194
         // for a proper implementation.

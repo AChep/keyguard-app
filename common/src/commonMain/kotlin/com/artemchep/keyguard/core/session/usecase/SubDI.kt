@@ -107,6 +107,8 @@ import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
+import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
@@ -168,6 +170,8 @@ import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerBroadUris

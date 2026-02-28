@@ -17,6 +17,7 @@ out/
 
 # Gradle files
 .gradle/
+.gradle-local/
 build/
 
 # Kotlin files

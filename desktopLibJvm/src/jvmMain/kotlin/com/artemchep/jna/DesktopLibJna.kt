@@ -6,45 +6,48 @@ import com.sun.jna.Native
 import com.sun.jna.Platform
 import com.sun.jna.Pointer
 import java.io.File
-import java.nio.file.Files
+import kotlin.io.path.Path
+import kotlin.io.path.isExecutable
 
-private const val RES_FILENAME = "libkeyguard"
+private const val BINARY_FILE_NAME_UNIX = "keyguard-lib"
+private const val BINARY_FILE_NAME_WINDOWS = "keyguard-lib.dll"
 
-private const val OS_DIR_PREFIX = "libkeyguard"
-
-private const val OS_FILE_FILENAME = "libkeyguard"
-private const val OS_FILE_FILENAME_WINDOWS = "libkeyguard.dll"
+private val binaryFileName: String
+    get() = if (Platform.isWindows() || Platform.isWindowsCE()) {
+        BINARY_FILE_NAME_WINDOWS
+    } else {
+        BINARY_FILE_NAME_UNIX
+    }
 
 private val libraryFile by lazy {
-    val filename = RES_FILENAME
-    extractLibrary(filename)
+    findLibBinaryFile()
 }
 
-private class Extractor
+/**
+ * Attempts to locate the keyguard-lib binary.
+ */
+internal fun findLibBinaryPathOrNull(): java.nio.file.Path? {
+    val appDirProp = System.getProperty("compose.application.resources.dir")
+        ?.takeIf { it.isNotBlank() }
+        ?: return null
+    val appDirPath = Path(appDirProp)
 
-private fun extractLibrary(filename: String): File {
-    val outDir = Files
-        .createTempDirectory(OS_DIR_PREFIX)
-        .toFile()
-    val outFile = run {
-        val suffix = if (Platform.isWindows() || Platform.isWindowsCE()) {
-            OS_FILE_FILENAME_WINDOWS
-        } else {
-            OS_FILE_FILENAME
-        }
-        outDir
-            .resolve(suffix)
+    val binaryName = binaryFileName
+    val binaryPath = appDirPath.resolve(binaryName)
+    if (binaryPath.isExecutable()) {
+        return binaryPath
     }
-    outFile.deleteOnExit()
-    // Copy the binary into the
-    // output file.
-    outFile.outputStream().use {
-        Extractor::class.java.classLoader
-            .getResourceAsStream(filename)!!
-            .copyTo(it)
+    return null
+}
+
+private fun findLibBinaryFile(): File {
+    val path = findLibBinaryPathOrNull()
+    if (path != null) {
+        return path.toFile()
     }
-    outFile.setExecutable(true, false)
-    return outFile
+
+    val errorMessage = "Could not locate native desktop lib binary in app resources"
+    throw IllegalStateException(errorMessage)
 }
 
 public interface DesktopLibJna : Library {

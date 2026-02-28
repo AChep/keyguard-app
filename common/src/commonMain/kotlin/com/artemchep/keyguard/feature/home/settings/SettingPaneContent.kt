@@ -91,6 +91,9 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenDelay
 import com.artemchep.keyguard.feature.home.settings.component.settingScreenshotsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
@@ -188,6 +191,9 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val SSH_AGENT = "ssh_agent"
+    const val SSH_AGENT_SETUP = "ssh_agent_setup"
+    const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -285,6 +291,9 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.SSH_AGENT to ::settingSshAgentProvider,
+    Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
+    Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,
@@ -336,14 +345,9 @@ fun SettingPaneContent(
                     args = args,
                     content = content
                         ?.takeIf {
-                            if (
-                                it.platformClass != null &&
-                                !it.platformClass.isInstance(platform)
-                            ) {
-                                return@takeIf false
-                            }
-
-                            true
+                            val isValid = it.platformClasses.isEmpty() ||
+                                it.platformClasses.any { clazz -> clazz.isInstance(platform) }
+                            isValid
                         }
                         ?.content,
                 )

@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package keyguard.sshagent;
+
+// ============================================================
+// IPC Protocol between keyguard-ssh-agent (Rust) and
+// Keyguard desktop app (JVM).
+//
+// The Rust agent is the CLIENT, the JVM app is the SERVER.
+// Messages are length-prefixed (4 bytes big-endian) followed
+// by the serialized protobuf bytes.
+// ============================================================
+
+// --- Top-level envelope messages ---
+
+message IpcRequest {
+  // Monotonically increasing request ID for correlating
+  // responses with requests.
+  uint64 id = 1;
+
+  oneof request {
+    AuthenticateRequest authenticate = 2;
+    ListKeysRequest list_keys = 3;
+    SignDataRequest sign_data = 4;
+  }
+}
+
+message IpcResponse {
+  // Matches the request ID.
+  uint64 id = 1;
+
+  oneof response {
+    AuthenticateResponse authenticate = 2;
+    ListKeysResponse list_keys = 3;
+    SignDataResponse sign_data = 4;
+    ErrorResponse error = 15;
+  }
+}
+
+// --- Authentication ---
+// Must be the first message sent after connecting.
+// The token is a 256-bit random value passed to the agent
+// via stdin by the parent process.
+
+message AuthenticateRequest {
+  bytes token = 1;
+}
+
+message AuthenticateResponse {
+  bool success = 1;
+}
+
+// --- Caller identity ---
+// Best-effort identity of the SSH client process that triggered the request.
+// On Unix, this is derived from the peer credentials of the SSH agent socket.
+// Some fields may be missing depending on platform and OS permissions.
+
+message CallerIdentity {
+  // Direct connecting process (SSH client) identifiers.
+  uint32 pid = 1;
+  uint32 uid = 2;
+  uint32 gid = 3;
+
+  // Direct connecting process details.
+  string process_name = 4;
+  string executable_path = 5;
+
+  // Best-effort "app" identity (macOS): first parent process whose executable
+  // resides inside a .app bundle.
+  uint32 app_pid = 6;
+  string app_name = 7;
+  string app_bundle_path = 8;
+}
+
+// --- Key listing ---
+// Agent requests the list of available SSH keys from the vault.
+
+message ListKeysRequest {
+  CallerIdentity caller = 1;
+}
+
+message ListKeysResponse {
+  repeated SshKey keys = 1;
+}
+
+message SshKey {
+  // Human-readable name of the vault entry.
+  string name = 1;
+  // SSH public key in OpenSSH authorized_keys format
+  // (e.g., "ssh-ed25519 AAAA... comment").
+  string public_key = 2;
+  // SSH key type (e.g., "ssh-ed25519", "ssh-rsa").
+  string key_type = 3;
+  // SHA-256 fingerprint.
+  string fingerprint = 4;
+}
+
+// --- Signing ---
+// Agent asks Keyguard to sign data with a specific key.
+// Keyguard may prompt the user for approval before responding.
+
+message SignDataRequest {
+  // The public key identifying which key to sign with,
+  // in OpenSSH authorized_keys format.
+  string public_key = 1;
+  // The data to sign (SSH agent protocol payload).
+  bytes data = 2;
+  // SSH agent sign flags.
+  uint32 flags = 3;
+  // Best-effort identity of the SSH client process that triggered the request.
+  CallerIdentity caller = 4;
+}
+
+message SignDataResponse {
+  // The SSH signature blob (raw, not wire-encoded).
+  bytes signature = 1;
+  // The SSH algorithm name (e.g., "ssh-ed25519", "rsa-sha2-256").
+  string algorithm = 2;
+}
+
+// --- Error ---
+
+message ErrorResponse {
+  string message = 1;
+  // Optional error code for programmatic handling.
+  ErrorCode code = 2;
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  // The vault is locked; no keys are available.
+  ERROR_CODE_VAULT_LOCKED = 1;
+  // The user denied the signing request.
+  ERROR_CODE_USER_DENIED = 2;
+  // The requested key was not found.
+  ERROR_CODE_KEY_NOT_FOUND = 3;
+  // Authentication failed (bad token).
+  ERROR_CODE_AUTH_FAILED = 4;
+  // Not authenticated yet (must authenticate first).
+  ERROR_CODE_NOT_AUTHENTICATED = 5;
+}

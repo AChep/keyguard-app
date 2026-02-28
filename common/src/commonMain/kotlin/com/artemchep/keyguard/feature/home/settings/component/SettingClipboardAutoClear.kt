@@ -66,7 +66,9 @@ fun settingClipboardAutoClearProvider(
         }
 
     SettingIi(
-        platformClass = Platform.Mobile::class,
+        platformClasses = listOf(
+            Platform.Mobile::class,
+        ),
     ) {
         SettingClipboardAutoClear(
             text = text,

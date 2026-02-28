@@ -31,4 +31,4 @@ include ':androidTest'
 include ':desktopApp'
 include ':desktopLibJvm'
 include ':desktopLibNative'
-
+include ':desktopSshAgent'

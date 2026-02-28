@@ -51,6 +51,8 @@ jobs:
           lfs: true
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
+      - name: "Setup Rust toolchain"
+        uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
       - uses: ./.github/actions/setup_python
       - name: "Download lib native"
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
@@ -62,7 +64,12 @@ jobs:
           find libnative-${{ matrix.arch }}
       - name: "Move binaries into the libnative directory"
         run: |
-          install -D libnative-${{ matrix.arch }}/libkeyguard.so desktopLibNative/build/bin/universal/libkeyguard
+          if [ "${{ matrix.arch }}" = "aarch64" ]; then
+            LIBNATIVE_DIR="linux-arm64"
+          else
+            LIBNATIVE_DIR="linux-x64"
+          fi
+          install -D libnative-${{ matrix.arch }}/libkeyguard.so desktopLibNative/build/bin/${LIBNATIVE_DIR}/keyguard-lib
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseDistributable -x :desktopLibNative:linkReleaseSharedUniversal

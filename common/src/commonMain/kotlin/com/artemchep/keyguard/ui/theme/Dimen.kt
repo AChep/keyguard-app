@@ -6,7 +6,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-internal val Dimens
+val Dimens
     @Composable
     @ReadOnlyComposable
     get() = LocalDimens.current

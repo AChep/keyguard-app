@@ -18,8 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
@@ -27,6 +29,7 @@ import com.artemchep.keyguard.feature.keyguard.main.MainRoute
 import com.artemchep.keyguard.feature.keyguard.setup.SetupRoute
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockRoute
 import com.artemchep.keyguard.feature.loading.LoadingScreen
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
@@ -38,8 +41,19 @@ import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.lifecycle.LocalLifecycleStateFlow
 import com.artemchep.keyguard.platform.lifecycle.flowWithLifecycle
 import com.artemchep.keyguard.ui.ToastMessageHost
+import com.artemchep.keyguard.ui.theme.Dimen
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
+
+val LocalAuthScreen = staticCompositionLocalOf {
+    AuthScreen(
+        reason = null,
+    )
+}
+
+data class AuthScreen(
+    val reason: TextHolder?,
+)
 
 @Composable
 fun AppScreen() {
@@ -158,7 +172,10 @@ fun ManualAppScreenOnUnlock(
 @Composable
 fun ManualAppScreenOnLoading(
     state: VaultState.Loading,
-) {
+) = ManualAppScreenOnLoading()
+
+@Composable
+fun ManualAppScreenOnLoading() {
     LoadingScreen()
 }
 

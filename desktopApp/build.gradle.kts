@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.tasks.Sync
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -70,10 +71,26 @@ val macExtraPlistKeys: String
       </array>
     """
 
+val bundledAppResourcesDir = layout.buildDirectory.dir("app-resources")
+
+val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResources") {
+    dependsOn(
+        ":desktopSshAgent:${Tasks.compileSshAgentUniversal}",
+        ":desktopLibNative:${Tasks.compileNativeUniversal}",
+    )
+    from(rootProject.layout.projectDirectory.dir("desktopSshAgent/build/bin"))
+    from(rootProject.layout.projectDirectory.dir("desktopLibNative/build/bin"))
+    into(bundledAppResourcesDir)
+}
+
 compose.desktop {
     application {
         mainClass = "com.artemchep.keyguard.MainKt"
         nativeDistributions {
+            // This tells Compose to bundle everything inside 'app-resources'
+            // alongside your application in the final install image.
+            appResourcesRootDir.set(bundledAppResourcesDir)
+
             macOS {
                 iconFile.set(project.file("icon.icns"))
                 entitlementsFile.set(project.file("default.entitlements"))
@@ -108,6 +125,12 @@ compose.desktop {
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 jvmArgs("--add-modules=jdk.crypto.mscapi")
             }
+
+            // Disabling core dumps
+            jvmArgs(
+                "-XX:-CreateCoredumpOnCrash",
+                "-XX:-HeapDumpOnOutOfMemoryError",
+            )
 
             includeAllModules = true
             val formats = listOfNotNull(
@@ -169,6 +192,12 @@ compose.desktop {
                 }
             }
         }
+    }
+}
+
+afterEvaluate {
+    tasks.named("prepareAppResources") {
+        dependsOn(prepareBundledAppResources)
     }
 }
 

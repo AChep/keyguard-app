@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlin.time.Instant
 import kotlin.time.Duration
@@ -137,6 +138,14 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setMarkdown(
         markdown: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgent(
+        sshAgent: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgentFilter(
+        filter: SshAgentFilter,
     ): IO<Unit>
 
     fun setAppVersionLog(

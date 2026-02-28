@@ -56,106 +56,74 @@ fun Dialog(
         },
         expanded = !LocalNavigationNodeFinishing.current,
     ) {
-        val scrollState = rememberScrollState()
-        val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+        DialogContent(
+            icon = icon,
+            title = title,
+            content = content,
+            contentScrollable = contentScrollable,
+            actions = actions,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun DialogContent(
+    icon: (@Composable () -> Unit)? = null,
+    title: (@Composable ColumnScope.() -> Unit)?,
+    content: (@Composable BoxScope.() -> Unit)?,
+    contentScrollable: Boolean = true,
+    fill: Boolean = false,
+    actions: @Composable FlowRowScope.() -> Unit,
+) {
+    val scrollState = rememberScrollState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    Column(
+        modifier = Modifier,
+    ) {
         Column(
-            modifier = Modifier,
+            modifier = Modifier
+                .weight(1f, fill = fill)
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-            ) {
-                if (title != null) {
-                    Spacer(
-                        modifier = Modifier
-                            .height(24.dp),
-                    )
-                    val centerAlign = icon != null
-                    Column(
-                        modifier = Modifier
-                            .padding(horizontal = Dimens.horizontalPadding)
-                            .fillMaxWidth(),
-                        horizontalAlignment = if (centerAlign) {
-                            Alignment.CenterHorizontally
-                        } else {
-                            Alignment.Start
-                        },
-                    ) {
-                        if (icon != null) {
-                            CompositionLocalProvider(
-                                LocalContentColor provides MaterialTheme.colorScheme.secondary,
-                            ) {
-                                icon()
-                            }
-                            Spacer(
-                                modifier = Modifier
-                                    .height(16.dp),
-                            )
-                        }
-                        ProvideTextStyle(
-                            MaterialTheme.typography.titleLarge
-                                .copy(
-                                    textAlign = if (centerAlign) {
-                                        TextAlign.Center
-                                    } else {
-                                        TextAlign.Start
-                                    },
-                                ),
+            if (title != null) {
+                Spacer(
+                    modifier = Modifier
+                        .height(24.dp),
+                )
+                val centerAlign = icon != null
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.horizontalPadding)
+                        .fillMaxWidth(),
+                    horizontalAlignment = if (centerAlign) {
+                        Alignment.CenterHorizontally
+                    } else {
+                        Alignment.Start
+                    },
+                ) {
+                    if (icon != null) {
+                        CompositionLocalProvider(
+                            LocalContentColor provides MaterialTheme.colorScheme.secondary,
                         ) {
-                            title()
+                            icon()
                         }
                         Spacer(
                             modifier = Modifier
                                 .height(16.dp),
                         )
                     }
-                }
-                if (content != null) {
-                    Box {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(
-                                    if (contentScrollable) {
-                                        Modifier
-                                            .verticalScroll(scrollState)
-                                    } else {
-                                        Modifier
-                                    },
-                                )
-                                .then(
-                                    if (title == null) {
-                                        Modifier
-                                            .padding(top = 24.dp)
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
-                            contentAlignment = Alignment.TopStart,
-                        ) {
-                            CompositionLocalProvider(
-                                LocalTextStyle provides MaterialTheme.typography.bodyMedium,
-                            ) {
-                                content()
-                            }
-                        }
-                        androidx.compose.animation.AnimatedVisibility(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .fillMaxWidth(),
-                            visible = scrollState.canScrollBackward && contentScrollable && title != null,
-                        ) {
-                            HorizontalDivider(transparency = false)
-                        }
-                        androidx.compose.animation.AnimatedVisibility(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth(),
-                            visible = scrollState.canScrollForward && contentScrollable,
-                        ) {
-                            HorizontalDivider(transparency = false)
-                        }
+                    ProvideTextStyle(
+                        MaterialTheme.typography.titleLarge
+                            .copy(
+                                textAlign = if (centerAlign) {
+                                    TextAlign.Center
+                                } else {
+                                    TextAlign.Start
+                                },
+                            ),
+                    ) {
+                        title()
                     }
                     Spacer(
                         modifier = Modifier
@@ -163,22 +131,73 @@ fun Dialog(
                     )
                 }
             }
-            FlowRow(
-                modifier = Modifier
-                    .padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                    )
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            ) {
-                actions()
+            if (content != null) {
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (contentScrollable) {
+                                    Modifier
+                                        .verticalScroll(scrollState)
+                                } else {
+                                    Modifier
+                                },
+                            )
+                            .then(
+                                if (title == null) {
+                                    Modifier
+                                        .padding(top = 24.dp)
+                                } else {
+                                    Modifier
+                                },
+                            ),
+                        contentAlignment = Alignment.TopStart,
+                    ) {
+                        CompositionLocalProvider(
+                            LocalTextStyle provides MaterialTheme.typography.bodyMedium,
+                        ) {
+                            content()
+                        }
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth(),
+                        visible = scrollState.canScrollBackward && contentScrollable && title != null,
+                    ) {
+                        HorizontalDivider(transparency = false)
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth(),
+                        visible = scrollState.canScrollForward && contentScrollable,
+                    ) {
+                        HorizontalDivider(transparency = false)
+                    }
+                }
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp),
+                )
             }
-            Spacer(
-                modifier = Modifier
-                    .height(16.dp),
-            )
         }
+        FlowRow(
+            modifier = Modifier
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                )
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        ) {
+            actions()
+        }
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
     }
 }

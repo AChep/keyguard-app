@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 typealias SettingComponent = Flow<SettingIi?>
 
 data class SettingIi(
-    val platformClass: KClass<out Platform>? = null,
+    val platformClasses: List<KClass<out Platform>> = emptyList(),
     val search: Search? = null,
     val content: @Composable () -> Unit,
 ) {

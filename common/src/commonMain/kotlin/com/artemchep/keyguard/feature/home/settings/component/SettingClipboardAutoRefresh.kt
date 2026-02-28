@@ -74,7 +74,9 @@ fun settingClipboardAutoRefreshProvider(
         }
 
     SettingIi(
-        platformClass = Platform.Mobile::class,
+        platformClasses = listOf(
+            Platform.Mobile::class,
+        ),
     ) {
         SettingClipboardAutoRefresh(
             text = text,

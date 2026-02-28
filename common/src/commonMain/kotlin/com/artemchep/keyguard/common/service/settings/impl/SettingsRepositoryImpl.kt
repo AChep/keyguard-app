@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -75,6 +76,8 @@ class SettingsRepositoryImpl(
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
+        private const val KEY_SSH_AGENT = "ssh_agent"
+        private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
@@ -185,6 +188,16 @@ class SettingsRepositoryImpl(
 
     private val markdownPref =
         store.getBoolean(KEY_MARKDOWN, true)
+
+    private val sshAgentPref =
+        store.getBoolean(KEY_SSH_AGENT, false)
+
+    private val sshAgentFilterPref =
+        store.getSerializable(
+            json,
+            KEY_SSH_AGENT_FILTER,
+            defaultValue = SshAgentFilter(),
+        )
 
     private val themeUseAmoledDarkPref =
         store.getBoolean(KEY_THEME_USE_AMOLED_DARK, false)
@@ -305,6 +318,8 @@ class SettingsRepositoryImpl(
             appIconsPref,
             websiteIconsPref,
             markdownPref,
+            sshAgentPref,
+            sshAgentFilterPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
             gravatarPref,
@@ -534,6 +549,16 @@ class SettingsRepositoryImpl(
         .setAndCommit(markdown)
 
     override fun getMarkdown() = markdownPref
+
+    override fun setSshAgent(sshAgent: Boolean) = sshAgentPref
+        .setAndCommit(sshAgent)
+
+    override fun getSshAgent() = sshAgentPref
+
+    override fun setSshAgentFilter(filter: SshAgentFilter) = sshAgentFilterPref
+        .setAndCommit(filter)
+
+    override fun getSshAgentFilter() = sshAgentFilterPref
 
     override fun setAppVersionLog(log: List<AppVersionLog>) =
         ioEffect {

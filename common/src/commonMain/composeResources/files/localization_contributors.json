@@ -121,9 +121,9 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 11610,
-    "target": 10858,
-    "approved": 1049,
+    "translated": 11760,
+    "target": 10989,
+    "approved": 1050,
     "voted": 0,
     "positiveVotes": 63,
     "negativeVotes": 1,
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 779,
-    "target": 877,
+    "translated": 796,
+    "target": 897,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -341,8 +341,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 5705,
-    "target": 4910,
+    "translated": 5801,
+    "target": 5000,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -549,6 +549,28 @@
   },
   {
     "user": {
+      "id": "13984249",
+      "username": "K0RR",
+      "fullName": "K0RR",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13984249/medium/228e06d62686939bca9ea39233a4806d_default.png",
+      "joined": "2026-01-24 13:58:12"
+    },
+    "languages": [
+      {
+        "id": "pl",
+        "name": "Polish"
+      }
+    ],
+    "translated": 347,
+    "target": 338,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "14282172",
       "username": "tommynok",
       "fullName": "tommynok",
@@ -705,8 +727,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 3083,
-    "target": 4934,
+    "translated": 3105,
+    "target": 4965,
     "approved": 0,
     "voted": 16,
     "positiveVotes": 7,
@@ -903,10 +925,10 @@
         "name": "Spanish"
       }
     ],
-    "translated": 1403,
-    "target": 1628,
+    "translated": 1446,
+    "target": 1678,
     "approved": 0,
-    "voted": 7,
+    "voted": 8,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -1021,7 +1043,7 @@
     "target": 432,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 5,
+    "positiveVotes": 6,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1052,7 +1074,7 @@
       "id": "16028760",
       "username": "AndreStork",
       "fullName": "AndreStork",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16028760/medium/285184c15c18d970e91a0f15e762f096.jpg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16028760/medium/14867e54125d5db60a696608a549bf3d.jpg",
       "joined": "2023-09-27 13:13:27"
     },
     "languages": [
@@ -1061,8 +1083,8 @@
         "name": "Italian"
       }
     ],
-    "translated": 761,
-    "target": 816,
+    "translated": 805,
+    "target": 864,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 3,
@@ -1351,8 +1373,8 @@
         "name": "French"
       }
     ],
-    "translated": 1017,
-    "target": 1211,
+    "translated": 1547,
+    "target": 1831,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 12,
@@ -1739,6 +1761,28 @@
   },
   {
     "user": {
+      "id": "16765387",
+      "username": "VodoLast",
+      "fullName": "\u0410\u043b\u0435\u043a\u0441\u0435\u0439 \u0421\u043c\u0438\u0440\u043d\u043e\u0432 (VodoLast)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16765387/medium/27bd5e44515aff119b6c2a681d7ee194.png",
+      "joined": "2026-02-20 02:37:24"
+    },
+    "languages": [
+      {
+        "id": "ru",
+        "name": "Russian"
+      }
+    ],
+    "translated": 248,
+    "target": 217,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "17064036",
       "username": "krychtor",
       "fullName": "krychtor",
@@ -1883,8 +1927,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 6213,
-    "target": 6829,
+    "translated": 6230,
+    "target": 6849,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

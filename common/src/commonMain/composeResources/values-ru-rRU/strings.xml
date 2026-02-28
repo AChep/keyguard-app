@@ -9,9 +9,9 @@
     <string name="show_keyguard">Показать Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Название</string>
-    <string name="description">Description</string>
+    <string name="description">Описание</string>
     <string name="account_name">Название учетной записи</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Название базы данных</string>
     <string name="enabled">Включено</string>
     <string name="disabled">Отключено</string>
     <string name="wordlist">Список слов</string>
@@ -21,7 +21,7 @@
     <string name="current_password">Текущий пароль</string>
     <string name="new_password">Новый пароль</string>
     <string name="no_password">Нет паролей</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Дополнительно</string>
     <string name="email">Эл. почта</string>
     <string name="email_verified">Подтверждено</string>
     <string name="email_not_verified">Не подтверждено</string>
@@ -31,7 +31,7 @@
     <string name="conceal_value">Скрыть значение</string>
     <string name="field_label">Метка</string>
     <string name="field_value">Значение</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">Значение</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Количество посещений</string>
     <!--
@@ -39,8 +39,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Максимальное количество посещений</string>
-    <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_beta">Бета</string>
+    <string name="ready_status_alpha">Альфа</string>
     <string name="learn_more">Узнать больше</string>
     <string name="phone_number">Номер телефона</string>
     <string name="passport_number">Номер паспорта</string>
@@ -101,10 +101,10 @@
     <string name="folder">Папка</string>
     <string name="folders">Папки</string>
     <string name="folders_empty_label">Нет папок</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">Нет тегов</string>
+    <string name="tag">Тег</string>
+    <string name="tags">Теги</string>
+    <string name="tags_empty_label">Нет тегов</string>
     <string name="collection_none">Без коллекции</string>
     <string name="collection">Коллекция</string>
     <string name="collections">Коллекции</string>
@@ -119,7 +119,7 @@
     <string name="category">Категория</string>
     <string name="command">Команда</string>
     <string name="execute_command">Выполнить</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Контекстные предложения</string>
     <!-- Add (something) -->
     <string name="add">Добавить</string>
     <string name="add_integration">Добавить интеграцию</string>
@@ -142,6 +142,8 @@
     <string name="address1">Адрес, строка 1</string>
     <string name="address2">Адрес, строка 2</string>
     <string name="address3">Адрес, строка 3</string>
+    <string name="ssh_agent">SSH agent</string>
+    <string name="ssh_client">SSH client</string>
     <string name="rename">Переименовать</string>
     <string name="deletion_date">Дата удаления</string>
     <string name="deletion_date_custom">Пользовательское</string>
@@ -152,11 +154,11 @@
     <string name="select_file">Выберите файл</string>
     <string name="autofill">Автозаполнение</string>
     <string name="autofill_and_save_uri">Заполнить и сохранить информацию о приложении или сайте</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Ваши данные - ваша ответственность.</string>
+    <string name="backup_disclaimer_text">Чтобы не потерять данные, придерживайтесь правила 3-2-1: храните три копии хранилища на двух разных типах носителей и одну копию — в отдельном, безопасном месте.</string>
     <string name="passkey">Ключ доступа</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Создать логин</string>
+    <string name="credential_password_create_header">Создать пароль</string>
     <string name="passkey_create_header">Создать passkey</string>
     <string name="passkey_unlock_header">Разблокировать Keyguard</string>
     <string name="passkey_auth_via_header">Подтверждение запроса авторизации…</string>
@@ -191,7 +193,7 @@
     <string name="one_time_password">Одноразовый пароль</string>
     <string name="one_time_password_authenticator_key">Ключ аутентификатора</string>
     <string name="passkey_use_short">Использовать</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Сохранить пароль</string>
     <string name="passkey_save">Сохранить ключ доступа</string>
     <string name="passkey_available">Доступен Passkey</string>
     <string name="twofa_available">Доступна двухфакторная аутентификация</string>
@@ -207,7 +209,7 @@
     <string name="requested_verification_email">Запрошено письмо с подтверждением</string>
     <string name="web_vault">Веб-хранилище</string>
     <string name="launch_web_vault">Запустить веб-хранилище</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Локальное хранилище</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Запомнить меня</string>
     <!-- A Trash screen -->
@@ -228,13 +230,13 @@
     <string name="encryption_random_bits_data">Случайные <xliff:g id="length" example="64">%1$d</xliff:g>-битные данные</string>
     <string name="none">Нет</string>
     <string name="text">Текст</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">Связанный сервис</string>
     <string name="linked_apps">Связанные приложения</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">Связанная ссылка</string>
     <string name="linked_uris">Связанные URI</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Своё поле</string>
     <string name="custom_fields">Пользовательские поля</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Изменить значение</string>
     <string name="reveal_secure_note">Показать защищенную заметку</string>
     <string name="hide_secure_note">Скрыть защищенную заметку</string>
     <string name="master_password_hint">Подсказка к мастер-паролю</string>
@@ -244,7 +246,7 @@
     <string name="key_type">Тип ключа</string>
     <string name="key_pair">Пара ключей</string>
     <string name="key_ssh">SSH-ключ</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Здесь пока пусто. Создайте SSH ключ, что бы начать!</string>
     <string name="fingerprint_phrase">Фраза отпечатка</string>
     <string name="fingerprint_phrase_help_title">Что такое фраза отпечатка?</string>
     <string name="filter_auth_reprompt_items">Повторная аутентификация</string>
@@ -253,17 +255,17 @@
     <string name="bitwarden_premium">Bitwarden премиум</string>
     <string name="bitwarden_premium_required">Требуется премиум Bitwarden</string>
     <string name="bitwarden_unofficial_server">Неофициальный Bitwarden сервер</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">Версия сервера <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Версия базы данных <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Очистить</string>
+    <string name="replace_key_file">Заменить файл ключа</string>
+    <string name="select_key_file">Выберите файл ключа</string>
+    <string name="select_database_file">Выберите файл базы данных</string>
+    <string name="replace_database_file">Замените файл базы данных </string>
+    <string name="open_database">Открыть базу данных</string>
+    <string name="create_database">Создать базу данных</string>
+    <string name="qr_wifi_description_text">Отсканируйте этот QR-код с другого устройства, чтобы присоединиться к этой сети Wi-Fi.</string>
+    <string name="qr_generate_button">Создать QR-код</string>
     <string name="pro_tip">На заметку: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Генерируйте уникальные письма для лучшей конфиденциальности.</string>
     <string name="account_last_synced_at">Последний раз синхронизировано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -298,8 +300,8 @@
     <string name="ciphers_history_empty">Истории пока нет</string>
     <string name="ciphers_view_details">Подробнее</string>
     <string name="ciphers_save_to">Сохранить в</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Добавляет passkey</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Заменяет имя пользователя и пароль</string>
     <string name="ciphers_action_add_to_favorites_title">Добавить в избранное</string>
     <string name="ciphers_action_remove_from_favorites_title">Удалить из избранного</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Включить повторную аутентификацию</string>
@@ -440,7 +442,7 @@
     <string name="copy_uri">Скопировать URI</string>
     <string name="copy_send">Скопировать отправку</string>
     <string name="copy_package_name">Скопировать имя пакета</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Скопировать ID пакета</string>
     <string name="copy_password">Скопировать пароль</string>
     <string name="copy_username">Скопировать имя пользователя</string>
     <string name="copy_email">Скопировать email</string>
@@ -460,7 +462,7 @@
     <string name="copied_value">Скопировано значение</string>
     <string name="copied_url">Скопирован URL</string>
     <string name="copied_uri">Скопирован URI</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">Тег скопирован</string>
     <string name="copied_package_name">Скопировано имя пакета</string>
     <string name="copied_key">Скопирован ключ</string>
     <string name="copied_fingerprint">Скопирован отпечаток</string>
@@ -477,8 +479,8 @@
     <string name="copied_cvv_code">Скопирован защитный код</string>
     <string name="copied_otp_code">Скопирован одноразовый пароль</string>
     <string name="copied_otp_secret_code">Скопирован секретный ключ</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Найден одноразовый пароль</string>
+    <string name="found_value">Значение найдено</string>
     <string name="autofill_unlock_keyguard">Разблокировать Keyguard</string>
     <string name="autofill_open_keyguard">Открыть Keyguard</string>
     <string name="january">Январь</string>
@@ -533,31 +535,32 @@
     <string name="error_invalid_uri">Неверный URI</string>
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_incorrect_password">Неверный пароль</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">Не найдено</string>
     <string name="error_otp_key_must_not_be_empty">Секретный ключ одноразового пароля не должен быть пустым</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">Ошибка при создании файла. Заменить существующий файл нельзя</string>
     <string name="error_failed_generate_kdf_hash_oom">Не удалось создать ключ, недостаточно памяти. Проверьте настройки KDF сервера.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">Ошибка при копировании пароля</string>
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">Ошибка при авторизации запроса</string>
     <string name="error_failed_open_uri">Не удалось открыть URI</string>
     <string name="error_failed_format_placeholder">Не удалось форматировать поле</string>
     <string name="error_failed_open_app_for">Ни одно установленное приложение не может обработать этот запрос</string>
     <string name="error_failed_unknown">Произошла ошибка</string>
     <string name="error_failed_encrypt_biometric_key">Не удалось зашифровать биометрический ключ</string>
     <string name="error_failed_decrypt_biometric_key">Не удалось расшифровать биометрический ключ</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
+    <string name="error_credential_calling_app_not_privileged">Приложение, выполняющее запрос, не входит в список доверенных и не может запрашивать аутентификацию от имени других приложений.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Предоставить разрешение и продолжить</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Доверие к приложению позволяет ему запрашивать учетные данные для любых сервисов. Вредоносное приложение может воспользоваться этим, чтобы похитить ваши учетные данные.</string>
     <string name="scanqr_title">Сканировать QR-код</string>
     <string name="scanqr_load_from_image_note">Загрузить и обработать QR-код из изображения.</string>
     <string name="scanqr_camera_permission_required_text">Разрешение на камеру требуется для сканирования QR-кодов.</string>
@@ -664,12 +667,12 @@
     <string name="urloverride_delete_one_confirmation_title">Удалить переопределение URL-адреса?</string>
     <string name="urloverride_delete_many_confirmation_title">Удалить переопределение URL-адреса?</string>
     <string name="urloverride_empty_label">Нет переопределённых URL-адресов</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
+    <string name="urlblock_header_title">Блокировка URI</string>
+    <string name="urlblock_list_header_title">Заблокированные URI</string>
+    <string name="urlblock_list_section_title">Заблокированные URI</string>
+    <string name="urlblock_delete_one_confirmation_title">Удалить URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Удалить URI?</string>
+    <string name="urlblock_empty_label">Нет заблокированных URI</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
     <string name="privilegedapps_header_title">Privileged apps</string>
@@ -821,6 +824,27 @@
     <string name="customfilters_add_filter_title">Добавить пользовательский фильтр</string>
     <string name="filter_header_title">Фильтр</string>
     <string name="filter_empty_label">Нет доступных фильтров</string>
+    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
+    <string name="ssh_agent_setup_header_title">SSH client setup</string>
+    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
+    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_setup_option_env_tab">Env</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
+    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
+    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_windows_title">Windows</string>
+    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
+    <string name="ssh_client_request">SSH client request</string>
     <string name="sort_header_title">Сортировка</string>
     <string name="sort_empty_label">Нет доступных сортировок</string>
     <string name="sortby_title_title">Название</string>
@@ -1107,6 +1131,11 @@
     <string name="pref_item_allow_screenshots_title">Разрешить скриншоты</string>
     <string name="pref_item_allow_screenshots_text_on">Показывать содержимое приложения при переключении между недавними приложениями и отображении экрана</string>
     <string name="pref_item_allow_screenshots_text_off">Скрыть содержимое приложения при переключении между недавними приложениями и запретить создание скриншотов</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Безопасность данных</string>
     <string name="pref_item_logs_title">Логи</string>
     <string name="pref_item_lock_vault_title">Заблокировать хранилище</string>
@@ -1124,6 +1153,18 @@
     <string name="pref_item_permissions_title">Разрешения</string>
     <string name="pref_item_features_overview_title">Обзор возможностей</string>
     <string name="pref_item_url_override_title">Переопределение URL-адреса</string>
+    <string name="pref_item_ssh_agent_title">SSH agent</string>
+    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
+    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
+    <string name="pref_item_ssh_agent_status_starting">Starting</string>
+    <string name="pref_item_ssh_agent_status_ready">Ready</string>
+    <string name="pref_item_ssh_agent_status_failed">Failed</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
+    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Требовать подтверждение</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Запрашивать дополнительное подтверждение после успешного входа по биометрии</string>

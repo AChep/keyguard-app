@@ -95,7 +95,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elementos</string>
     <string name="items_all">Todos los elementos</string>
     <string name="items_empty_label">Sin elementos</string>
-    <string name="sends">Envía</string>
+    <string name="sends">Sends</string>
     <string name="folder_none">Sin carpeta</string>
     <string name="folder_new">Nueva carpeta</string>
     <string name="folder">Carpeta</string>
@@ -129,7 +129,7 @@
     <string name="account_none">Sin cuenta</string>
     <string name="type">Tipo</string>
     <string name="options">Opciones</string>
-    <string name="send">Enviar</string>
+    <string name="send">Send</string>
     <string name="reset">Restablecer</string>
     <string name="length">Longitud</string>
     <string name="security">Seguridad</string>
@@ -142,6 +142,8 @@
     <string name="address1">Dirección (línea 1)</string>
     <string name="address2">Dirección (línea 2)</string>
     <string name="address3">Dirección (línea 3)</string>
+    <string name="ssh_agent">SSH agent</string>
+    <string name="ssh_client">SSH client</string>
     <string name="rename">Renombrar</string>
     <string name="deletion_date">Fecha de eliminación</string>
     <string name="deletion_date_custom">Personalizado</string>
@@ -342,10 +344,10 @@
     <string name="sends_action_hide_email_title">Ocultar correo electrónico</string>
     <string name="sends_action_show_email_title">Mostrar correo</string>
     <string name="sends_action_enable_title">Activar</string>
-    <string name="sends_action_enable_text">El envío activo es accesible por una URL pública</string>
+    <string name="sends_action_enable_text">El send activo es accesible por una URL pública</string>
     <string name="sends_action_enable_confirmation_title">¿Activar?</string>
     <string name="sends_action_disable_title">Desactivar</string>
-    <string name="sends_action_disable_text">El envío desactivado es inaccesible por una URL pública</string>
+    <string name="sends_action_disable_text">El send desactivado es inaccesible por una URL pública</string>
     <string name="sends_action_disable_confirmation_title">¿Desactivar?</string>
     <string name="sends_action_disabled_note">Este envío está desactivado, nadie puede acceder a él.</string>
     <string name="sends_action_delete_title">Eliminar para siempre</string>
@@ -424,7 +426,7 @@
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado al nombre completo</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> vinculado a un campo desconocido</string>
     <string name="text_action_share_with_title">Compartir con…</string>
-    <string name="text_action_send_title">Crear un envío</string>
+    <string name="text_action_send_title">Crear un send</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Guardar claves sin cifrar</string>
     <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Claves guardadas en Descargas</string>
     <string name="ssh_key_action_save_public_key_title">Guardar clave pública</string>
@@ -548,6 +550,7 @@
     <string name="error_failed_unknown">Algo salió mal</string>
     <string name="error_failed_encrypt_biometric_key">Error al cifrar la clave biométrica</string>
     <string name="error_failed_decrypt_biometric_key">Error al descifrar la clave biométrica</string>
+    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
     <string name="error_credential_calling_app_not_privileged">La aplicación que llama no está en la lista de privilegios y no puede solicitar autenticación en nombre de las otras aplicaciones.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -714,8 +717,8 @@
     <string name="additem_markdown_render_preview">Vista previa</string>
     <string name="additem_auth_reprompt_title">Re-autenticación</string>
     <string name="additem_auth_reprompt_text">Solicitar que se autentifique de nuevo cuando vea o rellene automáticamente un cifrado</string>
-    <string name="addsend_header_new_title">Nuevo envío</string>
-    <string name="addsend_header_edit_title">Editar envío</string>
+    <string name="addsend_header_new_title">Nuevo send</string>
+    <string name="addsend_header_edit_title">Editar send</string>
     <string name="addsend_text_hide_by_default_title">Al acceder al elemento, oculta el texto por defecto</string>
     <string name="addsend_hide_text_by_default_title">Al acceder al elemento, oculta el texto por defecto</string>
     <string name="addsend_hide_email_title">Ocultar dirección de correo electrónico</string>
@@ -779,7 +782,7 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Usa la autenticación biométrica para confirmar su acceso y desbloquear estos datos.</string>
     <string name="home_vault_label">Caja fuerte</string>
-    <string name="home_send_label">Enviar</string>
+    <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generador</string>
     <string name="home_watchtower_label">Informes</string>
     <string name="home_settings_label">Ajustes</string>
@@ -821,6 +824,27 @@
     <string name="customfilters_add_filter_title">Añadir un filtro personalizado</string>
     <string name="filter_header_title">Filtro</string>
     <string name="filter_empty_label">No hay filtros disponibles</string>
+    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
+    <string name="ssh_agent_setup_header_title">SSH client setup</string>
+    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
+    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_setup_option_env_tab">Env</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
+    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
+    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_windows_title">Windows</string>
+    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
+    <string name="ssh_client_request">SSH client request</string>
     <string name="sort_header_title">Ordenar por</string>
     <string name="sort_empty_label">No hay ordenamiento disponible</string>
     <string name="sortby_title_title">Título</string>
@@ -879,7 +903,7 @@
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Direcciones</string>
     <string name="send_main_header_title">Sends</string>
-    <string name="send_main_search_placeholder">Buscar envíos</string>
+    <string name="send_main_search_placeholder">Buscar Sends</string>
     <string name="send_main_new_item_button">Nuevo elemento</string>
     <string name="send_password_is_required_to_access_label">Se requiere una contraseña para acceder a esta parte</string>
     <string name="generator_header_title">Generador</string>
@@ -1107,6 +1131,11 @@
     <string name="pref_item_allow_screenshots_title">Permitir capturas de pantalla</string>
     <string name="pref_item_allow_screenshots_text_on">Mostrar el contenido de la aplicación al cambiar entre aplicaciones recientes y permitir la captura de una pantalla</string>
     <string name="pref_item_allow_screenshots_text_off">Ocultar el contenido de la app al cambiar entre aplicaciones recientes y restringir las capturas de pantalla</string>
+    <string name="pref_item_allow_screenshots_badge">Se permiten capturas de pantalla, toque para desactivar</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Las capturas de pantalla han sido desactivadas</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Desactivado</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Permitido, con una capa visual</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Permitido</string>
     <string name="pref_item_data_safety_title">Seguridad de los datos</string>
     <string name="pref_item_logs_title">Registros</string>
     <string name="pref_item_lock_vault_title">Bloquear caja fuerte</string>
@@ -1124,6 +1153,18 @@
     <string name="pref_item_permissions_title">Permisos</string>
     <string name="pref_item_features_overview_title">Vista de las características</string>
     <string name="pref_item_url_override_title">Anulación de URL</string>
+    <string name="pref_item_ssh_agent_title">SSH agent</string>
+    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
+    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
+    <string name="pref_item_ssh_agent_status_starting">Starting</string>
+    <string name="pref_item_ssh_agent_status_ready">Ready</string>
+    <string name="pref_item_ssh_agent_status_failed">Failed</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
+    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueo biométrico</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Requiere confirmación</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Requiere un toque adicional del botón de confirmación después de una autenticación biométrica exitosa</string>

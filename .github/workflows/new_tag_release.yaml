@@ -159,6 +159,8 @@ jobs:
           java-distribution: "liberica"
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
+        with:
+          toolchain: stable
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
         run: |
@@ -256,6 +258,8 @@ jobs:
       - uses: ./.github/actions/setup_gradle
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
+        with:
+          toolchain: stable
       - name: "Download lib native"
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
@@ -339,6 +343,8 @@ jobs:
             21
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
+        with:
+          toolchain: stable
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         run: |

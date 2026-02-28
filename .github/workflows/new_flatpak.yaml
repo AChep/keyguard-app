@@ -53,6 +53,8 @@ jobs:
       - uses: ./.github/actions/setup_gradle
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@efa25f7f19611383d5b0ccf2d1c8914531636bf9
+        with:
+          toolchain: stable
       - uses: ./.github/actions/setup_python
       - name: "Download lib native"
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131

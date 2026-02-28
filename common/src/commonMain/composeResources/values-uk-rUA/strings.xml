@@ -142,6 +142,8 @@
     <string name="address1">Адресний рядок 1</string>
     <string name="address2">Адресний рядок 2</string>
     <string name="address3">Адресний рядок 3</string>
+    <string name="ssh_agent">SSH агент</string>
+    <string name="ssh_client">SSH клієнт</string>
     <string name="rename">Перейменувати</string>
     <string name="deletion_date">Дата видалення</string>
     <string name="deletion_date_custom">Користувацька</string>
@@ -548,6 +550,7 @@
     <string name="error_failed_unknown">Сталася помилка</string>
     <string name="error_failed_encrypt_biometric_key">Не вдалося зашифрувати біометричний ключ</string>
     <string name="error_failed_decrypt_biometric_key">Не вдалося розшифрувати біометричний ключ</string>
+    <string name="error_failed_ssh_agent_start">Не вдалося запустити SSH агент</string>
     <string name="error_credential_calling_app_not_privileged">Застосунок, що надіслав запит, відсутній у списку привілейованих і не може запитувати автентифікацію від імені інших застосунків.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -821,6 +824,27 @@
     <string name="customfilters_add_filter_title">Додати користувацький фільтр</string>
     <string name="filter_header_title">Фільтр</string>
     <string name="filter_empty_label">Немає доступних фільтрів</string>
+    <string name="ssh_agent_filters_header_title">Фільтри SSH агента</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Зміни застосовуються тільки після збереження.</string>
+    <string name="ssh_agent_setup_header_title">Налаштування SSH клієнта</string>
+    <string name="ssh_agent_setup_intro">Налаштуйте SSH-клієнт для підключення до SSH-агента Keyguard, щоб він міг виконувати автентифікацію або підписування вашими затвердженими ключами без розкриття даних закритого ключа.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
+    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_setup_option_env_tab">Env</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
+    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
+    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_windows_title">Windows</string>
+    <string name="ssh_agent_setup_windows_text">SSH-агент поки що недоступний для Windows, тому налаштування тут наведені лише для ознайомлення.</string>
+    <string name="ssh_agent_request_approval_sign_title">Запит на підпис від SSH клієнта</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> хоче використати цей SSH-ключ для підпису даних:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Застосунок хоче використати цей SSH-ключ для підпису даних:</string>
+    <string name="ssh_client_request">Запит від SSH клієнта</string>
     <string name="sort_header_title">Упорядкувати за</string>
     <string name="sort_empty_label">Сортування недоступне</string>
     <string name="sortby_title_title">Назвою</string>
@@ -1107,6 +1131,11 @@
     <string name="pref_item_allow_screenshots_title">Дозволити знімки екрана</string>
     <string name="pref_item_allow_screenshots_text_on">Показувати вміст програми при перемиканні між нещодавніми додатками та дозволити запис екрану</string>
     <string name="pref_item_allow_screenshots_text_off">Приховувати вміст програми при перемиканні між нещодавніми додатками та заборонити запис екрану</string>
+    <string name="pref_item_allow_screenshots_badge">Знімки екрана дозволено; натисніть, щоб вимкнути</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Знімки екрана вимкнено</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Вимкнено</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Дозволено, з візуальним нагадуванням</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Дозволено</string>
     <string name="pref_item_data_safety_title">Безпека даних</string>
     <string name="pref_item_logs_title">Журнал подій</string>
     <string name="pref_item_lock_vault_title">Заблокувати сховище</string>
@@ -1124,6 +1153,18 @@
     <string name="pref_item_permissions_title">Дозволи</string>
     <string name="pref_item_features_overview_title">Перегляд можливостей</string>
     <string name="pref_item_url_override_title">Перевизначення URL-адреси</string>
+    <string name="pref_item_ssh_agent_title">SSH агент</string>
+    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Не підтримується</string>
+    <string name="pref_item_ssh_agent_status_stopped">Зупинено</string>
+    <string name="pref_item_ssh_agent_status_starting">Запускається</string>
+    <string name="pref_item_ssh_agent_status_ready">Готовий</string>
+    <string name="pref_item_ssh_agent_status_failed">Помилка</string>
+    <string name="pref_item_ssh_agent_setup_title">Налаштування SSH клієнта</string>
+    <string name="pref_item_ssh_agent_filters_title">Фільтри SSH агента</string>
+    <string name="pref_item_ssh_agent_filters_text">Виберіть, які ключі доступні для SSH агента</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Всі ключі доступні</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Фільтри активні</string>
     <string name="pref_item_biometric_unlock_title">Біометричне розблокування</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Вимагати підтвердження</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Вимагати додаткового підтвердження після успішної біометричної автентифікації</string>

@@ -1,8 +1,10 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import org.gradle.api.tasks.testing.Test
 import tasks.GenerateResHashesTask
 import tasks.GenerateResLocaleConfigKtTask
 import tasks.GenerateResLocaleConfigResTask
+import java.time.Duration
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -60,6 +62,10 @@ val generateResLocaleConfigResTask = tasks.register<GenerateResLocaleConfigResTa
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
     dependsOn(generateResHashesKtTask)
     dependsOn(generateResLocaleConfigKtTask)
+}
+
+tasks.withType<Test>().configureEach {
+    timeout.set(Duration.ofMinutes(10))
 }
 
 kotlin {

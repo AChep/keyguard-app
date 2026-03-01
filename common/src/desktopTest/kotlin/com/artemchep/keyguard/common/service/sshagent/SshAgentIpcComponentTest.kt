@@ -81,7 +81,7 @@ class SshAgentIpcComponentTest {
             }
 
             // Wait for server to be ready.
-            ready.await()
+            awaitServerReady(ready, "authentication test")
 
             // Connect client.
             val client = withContext(Dispatchers.IO) {
@@ -97,15 +97,16 @@ class SshAgentIpcComponentTest {
                     authenticate = SshAgentMessages.AuthenticateRequest(token = authToken.copyOf()),
                 )
                 sendMessage(client, authRequest)
-                val authResponse = readResponse(client)
+                val authResponse = readResponseWithTimeout(client, "authenticate response")
 
                 assertEquals(1L, authResponse.id)
                 assertNotNull(authResponse.authenticate)
                 assertTrue(authResponse.authenticate!!.success)
             } finally {
                 client.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -128,7 +129,7 @@ class SshAgentIpcComponentTest {
                 server.start(socketPath, onReady = ready)
             }
 
-            ready.await()
+            awaitServerReady(ready, "list keys test")
 
             val client = withContext(Dispatchers.IO) {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
@@ -147,7 +148,7 @@ class SshAgentIpcComponentTest {
                         ),
                     ),
                 )
-                val authResponse = readResponse(client)
+                val authResponse = readResponseWithTimeout(client, "authenticate response")
                 assertTrue(authResponse.authenticate!!.success)
 
                 // Now request list keys.
@@ -158,7 +159,7 @@ class SshAgentIpcComponentTest {
                         listKeys = SshAgentMessages.ListKeysRequest(),
                     ),
                 )
-                val listResponse = readResponse(client)
+                val listResponse = readResponseWithTimeout(client, "list keys response")
 
                 assertEquals(2L, listResponse.id)
                 assertNotNull(listResponse.error)
@@ -168,8 +169,9 @@ class SshAgentIpcComponentTest {
                 )
             } finally {
                 client.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -192,7 +194,7 @@ class SshAgentIpcComponentTest {
                 server.start(socketPath, onReady = ready)
             }
 
-            ready.await()
+            awaitServerReady(ready, "bad token test")
 
             val client = withContext(Dispatchers.IO) {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
@@ -210,15 +212,16 @@ class SshAgentIpcComponentTest {
                         authenticate = SshAgentMessages.AuthenticateRequest(token = badToken),
                     ),
                 )
-                val authResponse = readResponse(client)
+                val authResponse = readResponseWithTimeout(client, "authenticate response")
 
                 assertEquals(1L, authResponse.id)
                 assertNotNull(authResponse.authenticate)
                 assertTrue(!authResponse.authenticate!!.success)
             } finally {
                 client.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -241,7 +244,7 @@ class SshAgentIpcComponentTest {
                 server.start(socketPath, onReady = ready)
             }
 
-            ready.await()
+            awaitServerReady(ready, "unauthenticated request test")
 
             val client = withContext(Dispatchers.IO) {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
@@ -258,7 +261,7 @@ class SshAgentIpcComponentTest {
                         listKeys = SshAgentMessages.ListKeysRequest(),
                     ),
                 )
-                val response = readResponse(client)
+                val response = readResponseWithTimeout(client, "unauthenticated response")
 
                 assertEquals(1L, response.id)
                 assertNotNull(response.error)
@@ -268,8 +271,9 @@ class SshAgentIpcComponentTest {
                 )
             } finally {
                 client.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -292,7 +296,7 @@ class SshAgentIpcComponentTest {
                 server.start(socketPath, onReady = ready)
             }
 
-            ready.await()
+            awaitServerReady(ready, "sequential requests test")
 
             val client = withContext(Dispatchers.IO) {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
@@ -311,7 +315,7 @@ class SshAgentIpcComponentTest {
                         ),
                     ),
                 )
-                val r1 = readResponse(client)
+                val r1 = readResponseWithTimeout(client, "first authenticate response")
                 assertTrue(r1.authenticate!!.success)
 
                 // List keys (should get vault locked).
@@ -322,7 +326,7 @@ class SshAgentIpcComponentTest {
                         listKeys = SshAgentMessages.ListKeysRequest(),
                     ),
                 )
-                val r2 = readResponse(client)
+                val r2 = readResponseWithTimeout(client, "list keys response")
                 assertEquals(2L, r2.id)
                 assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, r2.error!!.code)
 
@@ -338,13 +342,14 @@ class SshAgentIpcComponentTest {
                         ),
                     ),
                 )
-                val r3 = readResponse(client)
+                val r3 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(3L, r3.id)
                 assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, r3.error!!.code)
             } finally {
                 client.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -368,7 +373,7 @@ class SshAgentIpcComponentTest {
                 server.start(socketPath, onReady = ready)
             }
 
-            ready.await()
+            awaitServerReady(ready, "user denied sign data test")
 
             val client = withContext(Dispatchers.IO) {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
@@ -387,7 +392,7 @@ class SshAgentIpcComponentTest {
                         ),
                     ),
                 )
-                val r1 = readResponse(client)
+                val r1 = readResponseWithTimeout(client, "authenticate response")
                 assertTrue(r1.authenticate!!.success)
 
                 // Sign data should be denied by approval callback.
@@ -402,13 +407,14 @@ class SshAgentIpcComponentTest {
                         ),
                     ),
                 )
-                val r2 = readResponse(client)
+                val r2 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(2L, r2.id)
                 assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, r2.error!!.code)
             } finally {
                 client.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -432,7 +438,7 @@ class SshAgentIpcComponentTest {
                 server.start(socketPath, onReady = ready)
             }
 
-            ready.await()
+            awaitServerReady(ready, "max concurrent connections test")
 
             val firstClient = withContext(Dispatchers.IO) {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
@@ -444,9 +450,6 @@ class SshAgentIpcComponentTest {
                 SocketChannel.open(StandardProtocolFamily.UNIX).also {
                     it.connect(UnixDomainSocketAddress.of(socketPath))
                 }
-            }
-            withContext(Dispatchers.IO) {
-                secondClient.configureBlocking(false)
             }
 
             try {
@@ -460,34 +463,33 @@ class SshAgentIpcComponentTest {
                         ),
                     ),
                 )
-                val firstAuth = readResponse(firstClient)
+                val firstAuth = readResponseWithTimeout(firstClient, "first client authenticate response")
                 assertTrue(firstAuth.authenticate?.success == true)
 
-                val secondRejected = withTimeoutOrNull(1_500L) {
-                    val probe = ByteBuffer.allocate(1)
-                    while (isActive) {
-                        val bytesRead = try {
-                            withContext(Dispatchers.IO) {
-                                secondClient.read(probe)
-                            }
-                        } catch (_: IOException) {
-                            return@withTimeoutOrNull true
+                val secondRejected = try {
+                    withTimeout(5_000L) {
+                        withContext(Dispatchers.IO) {
+                            secondClient.configureBlocking(true)
+                            val probe = ByteBuffer.allocate(1)
+                            secondClient.read(probe) < 0
                         }
-                        if (bytesRead < 0) {
-                            return@withTimeoutOrNull true
-                        }
-                        probe.clear()
-                        delay(25L)
                     }
-                    false
-                } ?: false
+                } catch (_: IOException) {
+                    true
+                } catch (e: TimeoutCancellationException) {
+                    throw AssertionError(
+                        "Timed out waiting for second connection rejection within 5000 ms",
+                        e,
+                    )
+                }
 
                 assertTrue(secondRejected, "Second connection should be rejected when at capacity")
             } finally {
                 secondClient.close()
                 firstClient.close()
+                server.stop()
                 serverScope.cancel()
-                serverJob.cancelAndJoin()
+                awaitServerStopped(serverJob)
             }
         }
     }
@@ -512,6 +514,51 @@ class SshAgentIpcComponentTest {
                 Files.deleteIfExists(socketPath)
                 Files.deleteIfExists(tempDir)
             }
+        }
+    }
+
+    private suspend fun awaitServerReady(
+        ready: CompletableDeferred<Unit>,
+        operation: String,
+    ) {
+        try {
+            withTimeout(5_000L) {
+                ready.await()
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw AssertionError(
+                "Timed out waiting for server readiness in $operation within 5000 ms",
+                e,
+            )
+        }
+    }
+
+    private suspend fun readResponseWithTimeout(
+        channel: SocketChannel,
+        operation: String,
+    ): SshAgentMessages.IpcResponse {
+        return try {
+            withTimeout(5_000L) {
+                readResponse(channel)
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw AssertionError(
+                "Timed out waiting for $operation within 5000 ms",
+                e,
+            )
+        }
+    }
+
+    private suspend fun awaitServerStopped(serverJob: Job) {
+        try {
+            withTimeout(5_000L) {
+                serverJob.join()
+            }
+        } catch (e: TimeoutCancellationException) {
+            throw AssertionError(
+                "Timed out waiting for server job to stop within 5000 ms",
+                e,
+            )
         }
     }
 

@@ -26,6 +26,8 @@ import java.io.EOFException
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousCloseException
+import java.nio.channels.ClosedChannelException
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.SocketChannel
 import java.nio.file.Files
@@ -86,6 +88,19 @@ class SshAgentIpcServer(
     private val sshAgentFilterState = getSshAgentFilter()
         .stateIn(scope, SharingStarted.Eagerly, SshAgentFilter())
 
+    private val serverChannelLock = Any()
+    private var serverChannelRef: ServerSocketChannel? = null
+
+    internal fun stop() {
+        val channel = synchronized(serverChannelLock) {
+            serverChannelRef
+        }
+        try {
+            channel?.close()
+        } catch (_: Exception) {
+        }
+    }
+
     /**
      * Starts the IPC server on the given Unix domain socket path.
      *
@@ -115,7 +130,12 @@ class SshAgentIpcServer(
 
         val address = UnixDomainSocketAddress.of(socketPath)
         val serverChannel = ServerSocketChannel.open(StandardProtocolFamily.UNIX)
+        synchronized(serverChannelLock) {
+            serverChannelRef = serverChannel
+        }
         serverChannel.bind(address)
+        val cancellationHandler = currentCoroutineContext()[Job]
+            ?.invokeOnCompletion { stop() }
 
         // Restrict socket permissions to owner-only (0600) to prevent
         // other local users from connecting to the IPC socket.
@@ -141,9 +161,15 @@ class SshAgentIpcServer(
         try {
             logRepository.post(TAG, "IPC server listening on $socketPath", LogLevel.INFO)
 
-            while (scope.isActive) {
-                val clientChannel = withContext(Dispatchers.IO) {
-                    serverChannel.accept()
+            while (scope.isActive && currentCoroutineContext().isActive) {
+                val clientChannel = try {
+                    withContext(Dispatchers.IO) {
+                        serverChannel.accept()
+                    }
+                } catch (_: AsynchronousCloseException) {
+                    break
+                } catch (_: ClosedChannelException) {
+                    break
                 }
                 if (!connectionSemaphore.tryAcquire()) {
                     val errorMessage = "Connection rejected: too many concurrent IPC connections " +
@@ -166,8 +192,12 @@ class SshAgentIpcServer(
                 }
             }
         } finally {
-            serverChannel.close()
+            cancellationHandler?.dispose()
+            stop()
             Files.deleteIfExists(socketPath)
+            synchronized(serverChannelLock) {
+                serverChannelRef = null
+            }
         }
     }
 
@@ -194,6 +224,10 @@ class SshAgentIpcServer(
                     }
                 }
             }
+        } catch (_: AsynchronousCloseException) {
+            // Normal during server shutdown.
+        } catch (_: ClosedChannelException) {
+            // Normal during server shutdown.
         } catch (_: EOFException) {
             logRepository.post(TAG, "Client disconnected", LogLevel.INFO)
         } catch (e: Exception) {

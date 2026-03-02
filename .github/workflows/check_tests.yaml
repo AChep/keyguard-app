@@ -61,7 +61,7 @@ jobs:
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
             exit $RESULT
       - name: 'Upload screen recordings'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         if: always()
         with:
           name: android-${{ matrix.api-level }}-screen-recordings
@@ -69,7 +69,7 @@ jobs:
             artifactsScreenRecording/
           retention-days: 7
       - name: 'Upload logs'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         if: always()
         with:
           name: android-${{ matrix.api-level }}-logs

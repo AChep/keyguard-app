@@ -24,7 +24,15 @@ fun Throwable.getHttpCode(): Int {
         return BitwardenService.Error.CODE_UNKNOWN_HOST
     }
     if (this is ProtocolException) {
-        return BitwardenService.Error.CODE_PROTOCOL_EXCEPTION
+        val regex = "^Expected HTTP \\d+ .* was '(\\d+).*'.*".toRegex()
+        val code = this.message
+            ?.let { msg ->
+                val match = regex.matchEntire(msg)
+                    ?: return@let null
+                match.groupValues.getOrNull(1)?.toIntOrNull()
+            }
+        return code
+            ?: BitwardenService.Error.CODE_PROTOCOL_EXCEPTION
     }
     if (this is SocketTimeoutException) {
         return BitwardenService.Error.CODE_UNKNOWN_HOST

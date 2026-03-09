@@ -12,29 +12,35 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.util.canRetry
+import com.artemchep.keyguard.common.util.getHttpCode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.provider.bitwarden.api.notificationsHub
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
+import com.artemchep.keyguard.common.util.ReconnectBackoff
+import com.artemchep.keyguard.common.util.ReconnectFatalException
+import com.artemchep.keyguard.common.util.withRunForever
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRetry
 import io.ktor.client.HttpClient
-import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -58,6 +64,8 @@ class NotificationsImpl(
 ) : NotificationsWorker {
     companion object {
         private const val TAG = "Notifications"
+
+        private const val ACCOUNT_REMOVAL_DELAY_MS = 5_000L
     }
 
     constructor(directDI: DirectDI) : this(
@@ -73,10 +81,86 @@ class NotificationsImpl(
         queueSyncAll = directDI.instance(),
     )
 
-    private class FooBar(
-        val key: Any,
+    private class ActiveAccountEntry(
+        val key: ServiceToken,
         val job: Job,
     )
+
+    internal class ActiveAccountsController(
+        private val scope: CoroutineScope,
+        private val removalDelayMs: Long = ACCOUNT_REMOVAL_DELAY_MS,
+        private val launchJob: (ServiceToken) -> Job,
+    ) {
+        private val mutex = Mutex()
+
+        private val activeEntries = mutableMapOf<String, ActiveAccountEntry>()
+
+        private val pendingRemovalJobs = mutableMapOf<String, Job>()
+
+        suspend fun reconcile(accounts: List<ServiceToken>) {
+            val jobsToCancel = mutableListOf<Job>()
+            val accountIds = accounts
+                .mapTo(mutableSetOf()) { it.id }
+
+            mutex.withLock {
+                accounts.forEach { account ->
+                    pendingRemovalJobs
+                        .remove(account.id)
+                        ?.cancel()
+
+                    val existingEntry = activeEntries[account.id]
+                    if (existingEntry?.key == account) {
+                        return@forEach
+                    }
+
+                    existingEntry?.job?.let(jobsToCancel::add)
+                    activeEntries[account.id] = ActiveAccountEntry(
+                        key = account,
+                        job = launchJob(account),
+                    )
+                }
+
+                activeEntries.entries
+                    .toList()
+                    .forEach { (id, entry) ->
+                        val removed = id !in accountIds
+                        if (!removed || id in pendingRemovalJobs) {
+                            return@forEach
+                        }
+
+                        pendingRemovalJobs[id] = scope.launch {
+                            delay(removalDelayMs)
+                            cancelIfStillRemoved(id, entry)
+                        }
+                    }
+            }
+
+            jobsToCancel.forEach { it.cancel() }
+        }
+
+        private suspend fun cancelIfStillRemoved(
+            id: String,
+            entry: ActiveAccountEntry,
+        ) {
+            val self = currentCoroutineContext()[Job] ?: return
+            var jobToCancel: Job? = null
+
+            mutex.withLock {
+                if (pendingRemovalJobs[id] !== self) {
+                    return
+                }
+
+                pendingRemovalJobs.remove(id)
+                val currentEntry = activeEntries[id]
+                if (currentEntry === entry) {
+                    activeEntries.remove(id)
+                    jobToCancel = entry.job
+                }
+            }
+
+            jobToCancel?.cancel()
+        }
+    }
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
         val subScope = this + SupervisorJob()
@@ -84,6 +168,12 @@ class NotificationsImpl(
         fun launchJob(
             user: BitwardenToken,
         ): Job = subScope.launch {
+            fun launchSyncById(latestUser: BitwardenToken) {
+                val accountId = AccountId(latestUser.id)
+                queueSyncById(accountId)
+                    .launchIn(GlobalScope)
+            }
+
             val result = runCatching {
                 withRefreshableAccessToken(
                     base64Service = base64Service,
@@ -101,19 +191,41 @@ class NotificationsImpl(
                         delay(1500L)
                     }
 
-                    withRetry {
+                    val reconnectBackoff = ReconnectBackoff()
+                    reconnectBackoff.withRunForever {
                         // We must have internet access to connect to the
                         // notifications service.
                         connectivityService.awaitAvailable()
 
-                        notificationsHub(
-                            user = latestUser,
-                            onMessage = {
-                                val accountId = AccountId(latestUser.id)
-                                queueSyncById(accountId)
-                                    .launchIn(GlobalScope)
-                            },
-                        )
+                        try {
+                            notificationsHub(
+                                user = latestUser,
+                                onMessage = {
+                                    this.reset()
+                                    launchSyncById(latestUser)
+                                },
+                                onHeartbeat = {
+                                    // After a successful re-connect we want to immediately
+                                    // sync the account. We do not know what has happened in-between
+                                    // the syncs.
+                                    if (attempt > 0) {
+                                        launchSyncById(latestUser)
+                                    }
+
+                                    this.reset()
+                                },
+                            )
+                        } catch (e: Exception) {
+                            val canReconnect = kotlin.run {
+                                val statusCode = e.getHttpCode()
+                                statusCode.canRetry()
+                            }
+                            if (!canReconnect) {
+                                throw ReconnectFatalException(e)
+                            }
+
+                            throw e
+                        }
                     }
                 }
             }
@@ -139,69 +251,39 @@ class NotificationsImpl(
                 logRepository.post(TAG, msg)
                 return@launch
             }
-            val result = runCatching {
-                fileWatcherService.fileChangedFlow(databaseFile)
+
+            val reconnectBackoff = ReconnectBackoff()
+            reconnectBackoff.withRunForever {
+                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile)
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
+                dbChangedFlow
                     .onEach {
+                        this.reset()
+
                         val accountId = AccountId(user.id)
                         queueSyncById(accountId)
                             .launchIn(GlobalScope)
                     }
                     .collect()
             }
-            result.onFailure {
-                if (it is CancellationException) {
-                    return@onFailure
-                }
-
-                recordException(it)
-            }
         }
+
+        val accountsController = ActiveAccountsController(
+            scope = subScope,
+            launchJob = { account ->
+                when (account) {
+                    is BitwardenToken -> launchJob(account)
+                    is KeePassToken -> launchJob(account)
+                }
+            },
+        )
 
         // Connect to each account's notifications service. Try to
         // keep the not-changed accounts active.
         tokenRepository
             .get()
-            .scan(
-                initial = persistentMapOf<String, FooBar>(),
-            ) { state, new ->
-                var newState = state
-                // Find if a new entry has a different
-                // key comparing to the old one.
-                new.forEach { account ->
-                    val existingEntry = state[account.id]
-                    if (existingEntry != null) {
-                        val existingKey = existingEntry.key
-                        if (existingKey == account) {
-                            // keep the old entity.
-                            return@forEach
-                        }
-
-                        // Cancel old job.
-                        existingEntry.job.cancel()
-                    }
-
-                    val job = when (account) {
-                        is BitwardenToken -> launchJob(account)
-                        is KeePassToken -> launchJob(account)
-                    }
-                    val entry = FooBar(
-                        key = account,
-                        job = job,
-                    )
-                    newState = newState.put(account.id, entry)
-                }
-                // Clean-up removed entries.
-                newState.forEach { (id, _) ->
-                    val removed = new.none { it.id == id }
-                    if (removed) {
-                        newState = newState.remove(id)
-                    }
-                }
-
-                newState
-            }
+            .onEach { accountsController.reconcile(it) }
             .launchIn(this)
 
         // On start sync all the accounts.

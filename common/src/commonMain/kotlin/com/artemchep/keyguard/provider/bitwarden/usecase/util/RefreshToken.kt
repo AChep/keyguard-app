@@ -3,10 +3,9 @@ package com.artemchep.keyguard.provider.bitwarden.usecase.util
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.common.util.ReconnectBackoff
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.api.refresh
-import com.artemchep.keyguard.common.util.canRetry
 import com.artemchep.keyguard.common.util.getHttpCode
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
@@ -15,50 +14,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
 import kotlinx.serialization.json.Json
-import kotlin.math.pow
 
 private val mutex = Mutex()
 
 private val mutexPerUserId = mutableMapOf<String, Mutex>()
-
-class RetryDelayStrategy {
-    private var _attempt: Int = 0
-
-    val attempt get() = _attempt
-
-    suspend fun dl() {
-        // If the server is broken and doesn't not recognized our token,
-        // e.g. https://github.com/dani-garcia/vaultwarden/issues/3776
-        // then artificially delay each request so we don't span the
-        // refresh token too much.
-        val ms = 100L * (3f.pow(attempt.coerceAtMost(6)) - 1f).toLong()
-        delay(ms)
-        // Increment the attempt.
-        _attempt += 1
-    }
-}
-
-internal suspend fun <T> withRetry(
-    block: suspend () -> T,
-): T {
-    val retryDelayStrategy = RetryDelayStrategy()
-    while (true) {
-        try {
-            return block()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            val statusCode = e.getHttpCode()
-
-            val canRetry = statusCode.canRetry() &&
-                    statusCode != BitwardenService.Error.CODE_UNKNOWN
-            if (!canRetry) {
-                throw e
-            }
-        }
-
-        retryDelayStrategy.dl()
-    }
-}
 
 internal suspend fun <T> withRefreshableAccessToken(
     base64Service: Base64Service,
@@ -87,7 +46,8 @@ internal suspend fun <T> withRefreshableAccessToken(
         }
     }
 
-    val retryDelayStrategy = RetryDelayStrategy()
+    val reconnectBackoff = ReconnectBackoff()
+
     var latestToken = user
     while (true) {
         val token = user.token
@@ -110,7 +70,7 @@ internal suspend fun <T> withRefreshableAccessToken(
             }
         }
 
-        retryDelayStrategy.dl()
+        delay(reconnectBackoff.nextDelayMs())
     }
 }
 

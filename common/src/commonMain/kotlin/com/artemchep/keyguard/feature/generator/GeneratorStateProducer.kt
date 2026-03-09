@@ -996,7 +996,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.exclude_similar_chars",
                 title = translate(Res.string.generator_password_exclude_similar_symbols_title),
-                text = "il1Lo0O",
+                text = "il|1Lo0O",
                 model = SwitchFieldModel(
                     checked = config.excludeSimilarCharacters,
                     onChange = passwordExcludeSimilarCharactersSink::value::set,

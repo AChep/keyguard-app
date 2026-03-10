@@ -1,4 +1,4 @@
 object Tasks {
-    const val compileNativeUniversal = "linkReleaseSharedUniversal"
+    const val compileNativeUniversal = "compileNativeUniversal"
     const val compileSshAgentUniversal = "compileSshAgentUniversal"
 }

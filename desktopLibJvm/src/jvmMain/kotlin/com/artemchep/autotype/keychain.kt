@@ -7,27 +7,18 @@ public suspend fun keychainAddPassword(
     id: String,
     password: String,
 ): Unit = withDesktopLib { lib ->
-    lib.keychainAddPassword(
-        id = id
-            .asMemory()
-            .let(::register),
-        password = password
-            .asMemory()
-            .let(::register),
+    keychainAddPasswordOrThrow(
+        lib = lib,
+        id = id,
+        password = password,
     )
 }
 
 public suspend fun keychainGetPassword(id: String): String = withDesktopLib { lib ->
-    val result = lib.keychainGetPassword(
-        id = id
-            .asMemory()
-            .let(::register),
+    keychainGetPasswordOrThrow(
+        lib = lib,
+        id = id,
     )
-    try {
-        result.getString(0)
-    } finally {
-        lib.free(result)
-    }
 }
 
 public suspend fun keychainDeletePassword(id: String): Boolean = withDesktopLib { lib ->

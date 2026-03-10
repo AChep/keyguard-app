@@ -4,39 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  # This step can be skipped once the Kotlin Native compiler
-  # gains an ability to be run on a Linux ARM64 host:
-  # https://kotlinlang.org/docs/native-target-support.html#hosts
-  #
-  # After that is done you should be able to just run
-  # ./gradlew :desktopApp:packageDistributable
-  build-linux-lib-native:
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          lfs: true
-          submodules: recursive
-      - uses: ./.github/actions/setup_gradle
-      - name: "Build"
-        run: ./gradlew :desktopLibNative:linkReleaseSharedLinuxX64 :desktopLibNative:linkReleaseSharedLinuxArm64
-      - name: 'Upload .so (x86_64)'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
-        with:
-          name: app-linux-lib-native-x86_64
-          path: |
-            desktopLibNative/build/bin/linuxX64/releaseShared/libkeyguard.so
-      - name: 'Upload .so (aarch64)'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
-        with:
-          name: app-linux-lib-native-aarch64
-          path: |
-            desktopLibNative/build/bin/linuxArm64/releaseShared/libkeyguard.so
   build-linux-app:
     runs-on: ${{ matrix.runner }}
-    needs:
-      - build-linux-lib-native
     strategy:
       matrix:
         include:
@@ -60,25 +29,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
       - uses: ./.github/actions/setup_python
-      - name: "Download lib native"
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
-        with:
-          name: app-linux-lib-native-${{ matrix.arch }}
-          path: libnative-${{ matrix.arch }}
-      - name: "Verify directory structure"
-        run: |
-          find libnative-${{ matrix.arch }}
-      - name: "Move binaries into the libnative directory"
-        run: |
-          if [ "${{ matrix.arch }}" = "aarch64" ]; then
-            LIBNATIVE_DIR="linux-arm64"
-          else
-            LIBNATIVE_DIR="linux-x64"
-          fi
-          install -D libnative-${{ matrix.arch }}/libkeyguard.so desktopLibNative/build/bin/${LIBNATIVE_DIR}/keyguard-lib
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"
-        run: ./gradlew :desktopApp:packageReleaseDistributable -x :desktopLibNative:linkReleaseSharedUniversal
+        run: ./gradlew :desktopApp:packageReleaseDistributable
       - name: 'Upload .tar'
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:

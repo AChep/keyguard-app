@@ -70,7 +70,7 @@ public interface DesktopLibJna : Library {
         }
     }
 
-    public fun autoType(payload: Pointer)
+    public fun autoType(payload: Pointer): Boolean
 
     // Biometrics
 
@@ -88,9 +88,9 @@ public interface DesktopLibJna : Library {
 
     // Keychain
 
-    public fun keychainAddPassword(id: Pointer, password: Pointer)
+    public fun keychainAddPassword(id: Pointer, password: Pointer): Boolean
 
-    public fun keychainGetPassword(id: Pointer): Pointer
+    public fun keychainGetPassword(id: Pointer): Pointer?
 
     public fun keychainDeletePassword(id: Pointer): Boolean
 
@@ -107,5 +107,5 @@ public interface DesktopLibJna : Library {
     // Other
 
     /** Frees given pointer */
-    public fun free(ptr: Pointer)
+    public fun freePointer(ptr: Pointer)
 }

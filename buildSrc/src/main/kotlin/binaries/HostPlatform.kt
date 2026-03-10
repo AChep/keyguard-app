@@ -3,48 +3,42 @@ package binaries
 enum class HostPlatform(
     val composeResourceDir: String,
     val sshAgentRustTarget: String,
-    val desktopLibNativeLinkTaskName: String,
-    val desktopLibNativeBinaryPath: String,
+    val desktopLibRustTarget: String,
     val isMacOs: Boolean,
     val isWindows: Boolean,
 ) {
     LinuxX64(
         composeResourceDir = "linux-x64",
         sshAgentRustTarget = "x86_64-unknown-linux-gnu",
-        desktopLibNativeLinkTaskName = "linkReleaseSharedLinuxX64",
-        desktopLibNativeBinaryPath = "linuxX64/releaseShared/libkeyguard.so",
+        desktopLibRustTarget = "x86_64-unknown-linux-gnu",
         isMacOs = false,
         isWindows = false,
     ),
     LinuxArm64(
         composeResourceDir = "linux-arm64",
         sshAgentRustTarget = "aarch64-unknown-linux-gnu",
-        desktopLibNativeLinkTaskName = "linkReleaseSharedLinuxArm64",
-        desktopLibNativeBinaryPath = "linuxArm64/releaseShared/libkeyguard.so",
+        desktopLibRustTarget = "aarch64-unknown-linux-gnu",
         isMacOs = false,
         isWindows = false,
     ),
     MacosX64(
         composeResourceDir = "macos-x64",
         sshAgentRustTarget = "x86_64-apple-darwin",
-        desktopLibNativeLinkTaskName = "linkReleaseSharedMacosX64",
-        desktopLibNativeBinaryPath = "macosX64/releaseShared/libkeyguard.dylib",
+        desktopLibRustTarget = "x86_64-apple-darwin",
         isMacOs = true,
         isWindows = false,
     ),
     MacosArm64(
         composeResourceDir = "macos-arm64",
         sshAgentRustTarget = "aarch64-apple-darwin",
-        desktopLibNativeLinkTaskName = "linkReleaseSharedMacosArm64",
-        desktopLibNativeBinaryPath = "macosArm64/releaseShared/libkeyguard.dylib",
+        desktopLibRustTarget = "aarch64-apple-darwin",
         isMacOs = true,
         isWindows = false,
     ),
     WindowsX64(
         composeResourceDir = "windows-x64",
         sshAgentRustTarget = "x86_64-pc-windows-msvc",
-        desktopLibNativeLinkTaskName = "linkReleaseSharedMingwX64",
-        desktopLibNativeBinaryPath = "mingwX64/releaseShared/keyguard.dll",
+        desktopLibRustTarget = "x86_64-pc-windows-msvc",
         isMacOs = false,
         isWindows = true,
     ),
@@ -73,3 +67,9 @@ fun detectHostPlatform(
 
 fun HostPlatform.binaryName(base: String): String =
     if (isWindows) "$base.exe" else base
+
+fun HostPlatform.dynamicLibraryName(base: String): String = when {
+    isWindows -> "$base.dll"
+    isMacOs -> "lib$base.dylib"
+    else -> "lib$base.so"
+}

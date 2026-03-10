@@ -561,6 +561,7 @@ fun FlatTextField(
     modifier: Modifier = Modifier,
     fieldModifier: Modifier = Modifier,
     boxModifier: Modifier = Modifier,
+    focusRequester: FocusRequester2? = null,
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = null,
@@ -586,7 +587,7 @@ fun FlatTextField(
         mutableStateOf(false)
     }
 
-    val fieldFocusRequester = remember {
+    val fieldFocusRequester = focusRequester ?: remember {
         FocusRequester2()
     }
 

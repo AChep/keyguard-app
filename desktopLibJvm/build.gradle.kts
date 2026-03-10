@@ -20,6 +20,12 @@ kotlin {
                 implementation(libs.dbus.java.transport)
             }
         }
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
     }
 }
 

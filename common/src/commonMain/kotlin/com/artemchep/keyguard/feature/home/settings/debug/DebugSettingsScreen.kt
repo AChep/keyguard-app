@@ -27,6 +27,7 @@ fun DebugSettingsScreen() {
                     SettingPaneItem.Item(Setting.LAUNCH_APP_PICKER),
                     SettingPaneItem.Item(Setting.LAUNCH_YUBIKEY),
                     SettingPaneItem.Item(Setting.CRASH),
+                    SettingPaneItem.Item(Setting.AUTOTYPE_TEST),
                     SettingPaneItem.Item(Setting.SCREEN_DELAY),
                 ),
             ),

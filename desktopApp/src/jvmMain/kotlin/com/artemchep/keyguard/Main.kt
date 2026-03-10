@@ -30,6 +30,7 @@ import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.app.AppIconFetcher
 import com.artemchep.keyguard.common.service.app.AppIconKeyer
+import com.artemchep.keyguard.common.service.autotype.AutotypeService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
@@ -53,6 +54,7 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.WindowStateManager
+import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
@@ -140,6 +142,11 @@ fun main() {
         }
         bindSingleton<KeychainRepository> {
             KeychainRepositoryNative(
+                directDI = this,
+            )
+        }
+        bindSingleton<AutotypeService> {
+            AutotypeServiceNative(
                 directDI = this,
             )
         }

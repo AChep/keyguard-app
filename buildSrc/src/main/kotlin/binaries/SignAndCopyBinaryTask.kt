@@ -36,12 +36,19 @@ abstract class SignAndCopyBinaryTask : DefaultTask() {
 
     @TaskAction
     fun action() {
-        val bin = sourceBinary.get().asFile
+        val source = sourceBinary.get().asFile
         val identity = certIdentity.orNull
 
-        require(bin.exists()) {
+        require(source.exists()) {
             "Binary must exist before sign-and-copy task is started!"
         }
+
+        val destination = destinationBinary.get().asFile
+        destination.parentFile.mkdirs()
+        source.copyTo(
+            target = destination,
+            overwrite = true,
+        )
 
         if (platformMacOs.get() && identity != null) {
             logger.lifecycle("Signing binary with identity ${identity.take(2)}****")
@@ -51,17 +58,10 @@ abstract class SignAndCopyBinaryTask : DefaultTask() {
                     "--force",
                     "--options", "runtime",
                     "--sign", identity,
-                    bin.absolutePath,
+                    destination.absolutePath,
                 )
             }
         }
-
-        val destination = destinationBinary.get().asFile
-        destination.parentFile.mkdirs()
-        bin.copyTo(
-            target = destination,
-            overwrite = true,
-        )
 
         if (markExecutable.get() && !platformWindows.get()) {
             require(destination.setExecutable(true, false)) {

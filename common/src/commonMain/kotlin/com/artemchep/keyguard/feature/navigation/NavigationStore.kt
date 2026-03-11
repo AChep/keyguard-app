@@ -15,6 +15,6 @@ class NavigationStore {
     fun pop(navPileId: String) = piles.remove(navPileId)
 }
 
-internal val LocalNavigationStore = staticCompositionLocalOf<NavigationStore> {
+val LocalNavigationStore = staticCompositionLocalOf<NavigationStore> {
     NavigationStore()
 }

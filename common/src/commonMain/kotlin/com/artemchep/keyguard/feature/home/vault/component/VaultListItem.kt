@@ -287,6 +287,7 @@ fun VaultListItemText(
     val onClick = localState.selectableItemState.onClick
     // fallback to default
         ?: when (item.action) {
+            VaultItem2.Item.Action.None -> null
             is VaultItem2.Item.Action.Dropdown -> dropdownExpand
             is VaultItem2.Item.Action.Go -> item.action.onClick
         }.takeIf { localState.selectableItemState.can }
@@ -552,9 +553,9 @@ fun VaultListItemText(
 }
 
 @Composable
-private inline fun <T : Any> SmartBadgeList(
+inline fun <T : Any> SmartBadgeList(
     modifier: Modifier = Modifier,
-    items: ImmutableList<T>,
+    items: List<T>,
     crossinline key: (T) -> Any,
     crossinline item: @Composable (T) -> Unit,
 ) {
@@ -574,7 +575,7 @@ private inline fun <T : Any> SmartBadgeList(
 }
 
 @Composable
-private fun SmartBadgeListContainer(
+fun SmartBadgeListContainer(
     modifier: Modifier = Modifier,
     content: @Composable FlowRowScope.() -> Unit,
 ) {
@@ -588,16 +589,22 @@ private fun SmartBadgeListContainer(
 }
 
 @Composable
-private fun SmartBadge(
+fun SmartBadge(
     modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit,
+    icon: (@Composable () -> Unit)? = null,
     title: String?,
     text: String?,
+    selected: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     val updatedOnClick by rememberUpdatedState(onClick)
 
-    val backgroundModifier = if (updatedOnClick != null) {
+    val backgroundModifier = if (selected) {
+        val tintColor = MaterialTheme.colorScheme
+            .surfaceColorAtElevationSemi(4.dp)
+        Modifier
+            .background(tintColor)
+    } else if (updatedOnClick != null) {
         val tintColor = MaterialTheme.colorScheme
             .surfaceColorAtElevationSemi(1.dp)
         Modifier
@@ -620,16 +627,18 @@ private fun SmartBadge(
             ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .size(16.dp),
-        ) {
-            icon()
+        if (icon != null) {
+            Box(
+                modifier = Modifier
+                    .size(16.dp),
+            ) {
+                icon()
+            }
+            Spacer(
+                modifier = Modifier
+                    .width(8.dp),
+            )
         }
-        Spacer(
-            modifier = Modifier
-                .width(8.dp),
-        )
         Text(
             modifier = Modifier
                 .widthIn(max = 128.dp)

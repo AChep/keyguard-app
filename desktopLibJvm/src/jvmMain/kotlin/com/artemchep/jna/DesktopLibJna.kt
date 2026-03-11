@@ -104,6 +104,20 @@ public interface DesktopLibJna : Library {
         text: Pointer
     ): Int
 
+    // Global hotkeys
+
+    public fun registerNativeGlobalHotKey(
+        nativeKeyCode: Int,
+        nativeModifiers: Int,
+        callback: GlobalHotKeyCallback,
+    ): Int
+
+    public fun unregisterNativeGlobalHotKey(id: Int): Boolean
+
+    public interface GlobalHotKeyCallback : Callback {
+        public fun invoke(id: Int)
+    }
+
     // Other
 
     /** Frees given pointer */

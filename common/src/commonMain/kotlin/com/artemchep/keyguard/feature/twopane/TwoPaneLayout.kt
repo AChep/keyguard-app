@@ -213,43 +213,52 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
                                 }
                             } else {
                                 val insets = scaffoldContentWindowInsets
-                                Box(
+                                EmptyKeyguardBox(
                                     modifier = Modifier
-                                        .padding(insets.asPaddingValues())
-                                        .fillMaxSize(),
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .alpha(0.035f),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier
-                                                .size(48.dp),
-                                            imageVector = Icons.Outlined.Lock,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onBackground,
-                                        )
-                                        val textStyle = MaterialTheme.typography.displayLarge
-                                        AutoSizeText(
-                                            text = remember {
-                                                keyguardSpan()
-                                            },
-                                            minTextSize = MaterialTheme.typography.displayMedium.fontSize,
-                                            maxTextSize = textStyle.fontSize,
-                                            style = textStyle,
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                            maxLines = 1,
-                                        )
-                                    }
-                                }
+                                        .padding(insets.asPaddingValues()),
+                                )
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun EmptyKeyguardBox(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+    ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .alpha(0.035f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(48.dp),
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onBackground,
+            )
+            val textStyle = MaterialTheme.typography.displayLarge
+            AutoSizeText(
+                text = remember {
+                    keyguardSpan()
+                },
+                minTextSize = MaterialTheme.typography.displayMedium.fontSize,
+                maxTextSize = textStyle.fontSize,
+                style = textStyle,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+            )
         }
     }
 }

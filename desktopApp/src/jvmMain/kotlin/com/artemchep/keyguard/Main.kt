@@ -1,6 +1,9 @@
 package com.artemchep.keyguard
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Surface
@@ -13,6 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
@@ -36,6 +41,9 @@ import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
+import com.artemchep.keyguard.common.service.quicksearch.DesktopLibGlobalHotKeyRegistrar
+import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyService
+import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
@@ -57,6 +65,8 @@ import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
+import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
+import com.artemchep.keyguard.desktop.ui.requestAppForeground
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
 import com.artemchep.keyguard.desktop.util.handleNavigationIntent
@@ -78,7 +88,10 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LocalComposeWindow
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
+import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
+import com.artemchep.keyguard.ui.theme.LocalExpressive
+import com.artemchep.keyguard.ui.util.DividerColor
 import com.kdroid.composetray.tray.api.Tray
 import com.kdroid.composetray.utils.SingleInstanceManager
 import kotlinx.coroutines.Dispatchers
@@ -139,6 +152,9 @@ fun main() {
         import(imageLoaderModule)
         bindSingleton {
             WindowStateManager(this)
+        }
+        bindSingleton {
+            QuickSearchWindowManager()
         }
         bindSingleton<KeychainRepository> {
             KeychainRepositoryNative(
@@ -298,6 +314,26 @@ fun main() {
                 return@withDI
             }
 
+            val quickSearchWindowManager by rememberInstance<QuickSearchWindowManager>()
+            val quickSearchHotkeyRegistrar = remember {
+                DesktopLibGlobalHotKeyRegistrar()
+            }
+            DisposableEffect(
+                quickSearchWindowManager,
+                quickSearchHotkeyRegistrar,
+            ) {
+                val stop = QuickSearchHotkeyService(
+                    windowManager = quickSearchWindowManager,
+                    globalHotKeyRegistrar = quickSearchHotkeyRegistrar,
+                    beforeOpen = {
+                        requestAppForeground(
+                            tag = "QuickSearchHotkey",
+                        )
+                    },
+                ).start()
+                onDispose(stop)
+            }
+
             // SSH Agent: Start the SSH agent if the binary is available.
             // The binary is bundled in the app resources during distribution.
             // This is placed after the single-instance check so that a
@@ -377,6 +413,14 @@ fun main() {
                     sshAgentRequestUiState = sshAgentRequestUiState,
                 )
             }
+
+            val quickSearchWindowState = quickSearchWindowManager.stateFlow
+                .collectAsState()
+            QuickSearchWindow(
+                processLifecycleProvider = processLifecycleProvider,
+                windowState = quickSearchWindowState.value,
+                onDismissRequest = quickSearchWindowManager::dismiss,
+            )
 
             // Show a tray icon and allow the app to be collapsed into
             // the tray on supported platforms.
@@ -518,6 +562,39 @@ internal fun ApplicationScope.KeyguardWindowScaffold(
     ) {
         CompositionLocalProvider(
             LocalSurfaceColor provides containerColor,
+        ) {
+            Navigation(
+                exitApplication = ::exitApplication,
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+internal fun ApplicationScope.KeyguardPopupScaffold(
+    content: @Composable () -> Unit,
+) {
+    val containerColor = LocalBackgroundManager.current.colorHighest
+    val containerColorAnimatedState = animateColorAsState(containerColor)
+    val contentColor = contentColorFor(containerColor)
+    Surface(
+        modifier = Modifier
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = containerColorAnimatedState.value,
+        border = BorderStroke(
+            width = 1.dp,
+            color = DividerColor
+                .compositeOver(containerColorAnimatedState.value),
+        ),
+        shadowElevation = 8.dp,
+        contentColor = contentColor,
+    ) {
+        CompositionLocalProvider(
+            LocalSurfaceColor provides containerColor,
+            LocalExpressive provides GlobalExpressive.current,
         ) {
             Navigation(
                 exitApplication = ::exitApplication,

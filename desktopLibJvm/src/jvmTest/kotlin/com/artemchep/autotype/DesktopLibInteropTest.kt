@@ -154,6 +154,14 @@ class DesktopLibInteropTest {
             text: Pointer,
         ): Int = 0
 
+        override fun registerNativeGlobalHotKey(
+            nativeKeyCode: Int,
+            nativeModifiers: Int,
+            callback: DesktopLibJna.GlobalHotKeyCallback,
+        ): Int = 0
+
+        override fun unregisterNativeGlobalHotKey(id: Int): Boolean = false
+
         override fun freePointer(ptr: Pointer) {
             freedPointers += ptr
         }

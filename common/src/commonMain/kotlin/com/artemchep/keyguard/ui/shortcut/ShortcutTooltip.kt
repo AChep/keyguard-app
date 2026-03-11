@@ -28,7 +28,7 @@ fun ShortcutTooltip(
     )
 }
 
-private fun KeyShortcut.toText(): AnnotatedString {
+internal fun KeyShortcut.toText(): AnnotatedString {
     val mapping = when (CurrentPlatform) {
         is Platform.Desktop.MacOS -> ::buildMacOsKeyShortcut
         else -> ::buildGenericKeyShortcut

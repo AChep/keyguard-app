@@ -82,7 +82,7 @@ fun AppScreen() {
     }
 }
 
-private fun saveNavigationRouter(
+fun saveNavigationRouter(
     store: NavigationStore,
     node: NavigationRouterNode,
 ) {

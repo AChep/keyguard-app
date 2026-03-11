@@ -3,11 +3,12 @@
 mod autotype;
 mod biometrics;
 mod ffi;
+mod hotkey;
 mod keychain;
 mod notification;
 mod platform;
 
-use ffi::BiometricsVerifyCallback;
+use ffi::{BiometricsVerifyCallback, HotKeyPressedCallback};
 use std::ffi::c_char;
 use std::ffi::c_int;
 use std::ffi::c_void;
@@ -81,6 +82,33 @@ pub extern "C" fn postNotification(id: c_int, title: *const c_char, text: *const
 }
 
 #[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn registerNativeGlobalHotKey(
+    native_key_code: c_int,
+    native_modifiers: c_int,
+    callback: HotKeyPressedCallback,
+) -> c_int {
+    ffi::with_ffi_boundary(
+        "registerNativeGlobalHotKey",
+        hotkey::REGISTER_STATUS_INTERNAL_ERROR,
+        || {
+        let callback = callback.ok_or("callback pointer was null")?;
+        Ok(hotkey::register(
+            native_key_code as u32,
+            native_modifiers as u32,
+            Some(callback),
+        ) as c_int)
+        },
+    )
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn unregisterNativeGlobalHotKey(id: c_int) -> bool {
+    ffi::with_ffi_boundary("unregisterNativeGlobalHotKey", false, || {
+        Ok(hotkey::unregister(id))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn freePointer(ptr: *mut c_void) {
     if ptr.is_null() {
         return;
@@ -90,4 +118,16 @@ pub extern "C" fn freePointer(ptr: *mut c_void) {
         ffi::free_ptr(ptr);
         Ok(())
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::registerNativeGlobalHotKey;
+    use crate::hotkey::REGISTER_STATUS_INTERNAL_ERROR;
+
+    #[test]
+    fn register_native_global_hotkey_rejects_null_callback() {
+        let result = registerNativeGlobalHotKey(49, 0, None);
+        assert_eq!(REGISTER_STATUS_INTERNAL_ERROR, result);
+    }
 }

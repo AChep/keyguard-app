@@ -25,3 +25,16 @@ pub(crate) mod notification;
 #[cfg(not(target_os = "macos"))]
 #[path = "stub/notification.rs"]
 pub(crate) mod notification;
+
+#[cfg(target_os = "macos")]
+#[path = "macos/hotkey.rs"]
+pub(crate) mod hotkey;
+#[cfg(target_os = "windows")]
+#[path = "windows/hotkey.rs"]
+pub(crate) mod hotkey;
+#[cfg(target_os = "linux")]
+#[path = "linux/hotkey.rs"]
+pub(crate) mod hotkey;
+#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
+#[path = "stub/hotkey.rs"]
+pub(crate) mod hotkey;

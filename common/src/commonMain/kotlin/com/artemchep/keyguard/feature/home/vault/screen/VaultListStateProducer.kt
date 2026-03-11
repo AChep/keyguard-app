@@ -418,6 +418,7 @@ fun vaultListScreenState(
                     {
                         val autofill = when (mode) {
                             is AppMode.Main -> null
+                            is AppMode.QuickSearch -> null
                             is AppMode.SavePasskey -> null
                             is AppMode.PickPasskey -> null
                             is AppMode.SavePassword -> null
@@ -978,6 +979,9 @@ fun vaultListScreenState(
                                     return@toVaultListItem VaultItem2.Item.Action.Go(
                                         onClick = cipherSink::emit.partially1(secret),
                                     )
+
+                                is AppMode.QuickSearch ->
+                                    return@toVaultListItem VaultItem2.Item.Action.None
                             }
                             VaultItem2.Item.Action.Dropdown(
                                 actions = dropdown,
@@ -1034,139 +1038,7 @@ fun vaultListScreenState(
                             }
                         },
                     )
-                    val indexed = mutableListOf<SearchToken>()
-                    //indexed += SearchToken(
-                    //    priority = 2f,
-                    //    value = secret.name,
-                    //)
-                    if (secret.login != null) {
-                        // Make username searchable
-                        if (secret.login.username != null) {
-                            indexed += SearchToken(
-                                priority = 1f,
-                                value = secret.login.username,
-                            )
-                        }
-                        // Make password searchable
-                        if (!secret.reprompt && secret.login.password != null) {
-                            indexed += SearchToken(
-                                priority = 0.5f,
-                                value = secret.login.password,
-                            )
-                        }
-                        secret.login.fido2Credentials.forEach {
-                            if (it.userDisplayName != null) {
-                                indexed += SearchToken(
-                                    priority = 0.8f,
-                                    value = it.userDisplayName,
-                                )
-                            }
-                            indexed += SearchToken(
-                                priority = 0.5f,
-                                value = it.rpId,
-                            )
-                        }
-                    }
-                    if (secret.card != null) {
-                        // Make card holder name &
-                        // card brand searchable
-                        if (secret.card.cardholderName != null) {
-                            indexed += SearchToken(
-                                priority = 1f,
-                                value = secret.card.cardholderName,
-                            )
-                        }
-                        if (secret.card.brand != null) {
-                            indexed += SearchToken(
-                                priority = 0.5f,
-                                value = secret.card.brand,
-                            )
-                        }
-                        if (!secret.reprompt && secret.card.number != null) {
-                            indexed += SearchToken(
-                                priority = 0.5f,
-                                value = secret.card.number,
-                            )
-                        }
-                    }
-                    if (secret.identity != null) {
-                        // Name
-                        if (secret.identity.firstName != null) {
-                            indexed += SearchToken(
-                                priority = 1f,
-                                value = secret.identity.firstName,
-                            )
-                        }
-                        if (secret.identity.middleName != null) {
-                            indexed += SearchToken(
-                                priority = 0.5f,
-                                value = secret.identity.middleName,
-                            )
-                        }
-                        if (secret.identity.lastName != null) {
-                            indexed += SearchToken(
-                                priority = 1f,
-                                value = secret.identity.lastName,
-                            )
-                        }
-                        // Contacts
-                        if (secret.identity.email != null) {
-                            indexed += SearchToken(
-                                priority = 1f,
-                                value = secret.identity.email,
-                            )
-                        }
-                        if (secret.identity.phone != null) {
-                            indexed += SearchToken(
-                                priority = 0.5f,
-                                value = secret.identity.phone,
-                            )
-                        }
-                        if (secret.identity.username != null) {
-                            indexed += SearchToken(
-                                priority = 1f,
-                                value = secret.identity.username,
-                            )
-                        }
-                    }
-                    if (!secret.reprompt && secret.notes.isNotBlank()) {
-                        indexed += SearchToken(
-                            priority = 0.8f,
-                            value = secret.notes,
-                        )
-                    }
-                    secret.uris.forEach { uri ->
-                        @Suppress("MoveVariableDeclarationIntoWhen")
-                        val matchType = uri.match ?: DSecret.Uri.MatchType.default
-                        val priority = when (matchType) {
-                            DSecret.Uri.MatchType.Domain -> 0.5f
-                            DSecret.Uri.MatchType.Host -> 0.5f
-                            DSecret.Uri.MatchType.StartsWith -> 0.5f
-                            DSecret.Uri.MatchType.Exact -> 0.5f
-                            DSecret.Uri.MatchType.RegularExpression -> 0f // can't type regex...
-                            DSecret.Uri.MatchType.Never -> 0.1f
-                        }
-                        if (priority > 0f) {
-                            indexed += SearchToken(
-                                priority = priority,
-                                value = uri.uri,
-                            )
-                        }
-                    }
-                    secret.fields.forEach { field ->
-                        val priority = when (field.type) {
-                            DSecret.Field.Type.Text -> 0.5f
-                            DSecret.Field.Type.Hidden -> 0f
-                            DSecret.Field.Type.Boolean -> 0f
-                            DSecret.Field.Type.Linked -> 0f
-                        }
-                        if (priority > 0f && field.value != null) {
-                            indexed += SearchToken(
-                                priority = priority,
-                                value = field.value,
-                            )
-                        }
-                    }
+                    val indexed = buildSearchTokens(secret)
                     IndexedModel(
                         model = item,
                         indexedText = IndexedText(item.title.text),
@@ -1668,6 +1540,7 @@ fun vaultListScreenState(
             onClick = {
                 val autofill = when (mode) {
                     is AppMode.Main -> null
+                    is AppMode.QuickSearch -> null
                     is AppMode.SavePasskey -> null
                     is AppMode.PickPasskey -> null
                     is AppMode.SavePassword -> null
@@ -1795,7 +1668,7 @@ fun vaultListScreenState(
     }
 }
 
-private data class SearchToken(
+internal data class SearchToken(
     val priority: Float,
     val tokens: List<String>,
 ) {
@@ -1810,7 +1683,142 @@ private data class SearchToken(
     }
 }
 
-private class IndexedModel<T>(
+internal fun buildSearchTokens(
+    secret: DSecret,
+): List<SearchToken> {
+    val indexed = mutableListOf<SearchToken>()
+    if (secret.login != null) {
+        // Make username searchable
+        if (secret.login.username != null) {
+            indexed += SearchToken(
+                priority = 1f,
+                value = secret.login.username,
+            )
+        }
+        // Make password searchable
+        if (!secret.reprompt && secret.login.password != null) {
+            indexed += SearchToken(
+                priority = 0.5f,
+                value = secret.login.password,
+            )
+        }
+        secret.login.fido2Credentials.forEach {
+            if (it.userDisplayName != null) {
+                indexed += SearchToken(
+                    priority = 0.8f,
+                    value = it.userDisplayName,
+                )
+            }
+            indexed += SearchToken(
+                priority = 0.5f,
+                value = it.rpId,
+            )
+        }
+    }
+    if (secret.card != null) {
+        // Make card holder name &
+        // card brand searchable
+        if (secret.card.cardholderName != null) {
+            indexed += SearchToken(
+                priority = 1f,
+                value = secret.card.cardholderName,
+            )
+        }
+        if (secret.card.brand != null) {
+            indexed += SearchToken(
+                priority = 0.5f,
+                value = secret.card.brand,
+            )
+        }
+        if (!secret.reprompt && secret.card.number != null) {
+            indexed += SearchToken(
+                priority = 0.5f,
+                value = secret.card.number,
+            )
+        }
+    }
+    if (secret.identity != null) {
+        // Name
+        if (secret.identity.firstName != null) {
+            indexed += SearchToken(
+                priority = 1f,
+                value = secret.identity.firstName,
+            )
+        }
+        if (secret.identity.middleName != null) {
+            indexed += SearchToken(
+                priority = 0.5f,
+                value = secret.identity.middleName,
+            )
+        }
+        if (secret.identity.lastName != null) {
+            indexed += SearchToken(
+                priority = 1f,
+                value = secret.identity.lastName,
+            )
+        }
+        // Contacts
+        if (secret.identity.email != null) {
+            indexed += SearchToken(
+                priority = 1f,
+                value = secret.identity.email,
+            )
+        }
+        if (secret.identity.phone != null) {
+            indexed += SearchToken(
+                priority = 0.5f,
+                value = secret.identity.phone,
+            )
+        }
+        if (secret.identity.username != null) {
+            indexed += SearchToken(
+                priority = 1f,
+                value = secret.identity.username,
+            )
+        }
+    }
+    if (!secret.reprompt && secret.notes.isNotBlank()) {
+        indexed += SearchToken(
+            priority = 0.8f,
+            value = secret.notes,
+        )
+    }
+    secret.uris.forEach { uri ->
+        @Suppress("MoveVariableDeclarationIntoWhen")
+        val matchType = uri.match ?: DSecret.Uri.MatchType.default
+        val priority = when (matchType) {
+            DSecret.Uri.MatchType.Domain -> 0.5f
+            DSecret.Uri.MatchType.Host -> 0.5f
+            DSecret.Uri.MatchType.StartsWith -> 0.5f
+            DSecret.Uri.MatchType.Exact -> 0.5f
+            DSecret.Uri.MatchType.RegularExpression -> 0f // can't type regex...
+            DSecret.Uri.MatchType.Never -> 0.1f
+        }
+        if (priority > 0f) {
+            indexed += SearchToken(
+                priority = priority,
+                value = uri.uri,
+            )
+        }
+    }
+    secret.fields.forEach { field ->
+        val priority = when (field.type) {
+            DSecret.Field.Type.Text -> 0.5f
+            DSecret.Field.Type.Hidden -> 0f
+            DSecret.Field.Type.Boolean -> 0f
+            DSecret.Field.Type.Linked -> 0f
+        }
+        if (priority > 0f && field.value != null) {
+            indexed += SearchToken(
+                priority = priority,
+                value = field.value,
+            )
+        }
+    }
+    return indexed
+}
+
+internal class IndexedModel<T>(
     val model: T,
     val indexedText: IndexedText,
     val indexedOther: List<SearchToken>,
@@ -2159,7 +2167,7 @@ private class PasswordStrengthDecorator : Decorator {
     }
 }
 
-private suspend fun List<IndexedModel<VaultItem2.Item>>.search(
+internal suspend fun List<IndexedModel<VaultItem2.Item>>.search(
     query: IndexedText,
     highlightBackgroundColor: Color,
     highlightContentColor: Color,

@@ -3,6 +3,7 @@ use std::ffi::c_void;
 use std::panic::UnwindSafe;
 
 pub(crate) type BiometricsVerifyCallback = Option<unsafe extern "C" fn(bool, *const c_char)>;
+pub(crate) type HotKeyPressedCallback = Option<unsafe extern "C" fn(i32)>;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum FailureLogDetail {
@@ -77,9 +78,7 @@ pub(crate) fn free_ptr(ptr: *mut c_void) {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        format_failure_log, free_ptr, require_non_null, require_string, FailureLogDetail,
-    };
+    use super::{format_failure_log, free_ptr, require_non_null, require_string, FailureLogDetail};
     use std::ffi::CString;
 
     #[test]

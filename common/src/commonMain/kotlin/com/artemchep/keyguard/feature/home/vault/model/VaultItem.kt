@@ -132,6 +132,9 @@ sealed interface VaultItem2 {
         @Immutable
         sealed interface Action {
             @Immutable
+            data object None : Action
+
+            @Immutable
             data class Dropdown(
                 val actions: List<ContextItem>,
             ) : Action

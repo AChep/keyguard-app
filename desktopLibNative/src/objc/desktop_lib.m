@@ -1,4 +1,6 @@
 #import <ApplicationServices/ApplicationServices.h>
+#import <AppKit/AppKit.h>
+#import <Carbon/Carbon.h>
 #import <Foundation/Foundation.h>
 #import <LocalAuthentication/LocalAuthentication.h>
 #import <Security/Security.h>
@@ -11,8 +13,21 @@
 #include <string.h>
 
 typedef void (*kg_biometrics_callback_t)(bool success, const char *error);
+typedef void (*kg_hotkey_callback_t)(int32_t hotkey_id);
 
 static NSString *const KGAccountName = @"com.artemchep.keyguard";
+static const OSType KGHotKeySignature = 'KGHK';
+static const int32_t KGHotKeyUnavailable = -4;
+static const int32_t KGHotKeyInternalError = -5;
+
+@interface KGHotKeyEntry : NSObject
+@property(nonatomic, assign) EventHotKeyRef ref;
+@property(nonatomic, assign) kg_hotkey_callback_t callback;
+@property(nonatomic, assign, getter=isPressed) BOOL pressed;
+@end
+
+@implementation KGHotKeyEntry
+@end
 
 static void kg_log_keychain_error(NSString *prefix, OSStatus status) {
     NSString *message = CFBridgingRelease(SecCopyErrorMessageString(status, NULL));
@@ -29,6 +44,196 @@ static NSString *kg_string_from_utf8(const char *value) {
     }
 
     return [NSString stringWithUTF8String:value];
+}
+
+static NSMutableDictionary<NSNumber *, KGHotKeyEntry *> *kg_hotkey_registry(void) {
+    static NSMutableDictionary<NSNumber *, KGHotKeyEntry *> *registry = nil;
+    static dispatch_once_t once_token;
+    dispatch_once(&once_token, ^{
+        registry = [[NSMutableDictionary alloc] init];
+    });
+    return registry;
+}
+
+static EventHandlerRef kg_hotkey_event_handler = NULL;
+static int32_t kg_hotkey_next_id = 1;
+
+static OSStatus kg_on_hotkey_event(
+        EventHandlerCallRef _next_handler,
+        EventRef event,
+        void *_user_data
+) {
+    (void) _next_handler;
+    (void) _user_data;
+
+    if (GetEventClass(event) != kEventClassKeyboard) {
+        return noErr;
+    }
+
+    const UInt32 event_kind = GetEventKind(event);
+    if (event_kind != kEventHotKeyPressed && event_kind != kEventHotKeyReleased) {
+        return noErr;
+    }
+
+    EventHotKeyID hotkey_id;
+    const OSStatus status = GetEventParameter(
+            event,
+            kEventParamDirectObject,
+            typeEventHotKeyID,
+            NULL,
+            sizeof(hotkey_id),
+            NULL,
+            &hotkey_id
+    );
+    if (status != noErr) {
+        return status;
+    }
+
+    if (hotkey_id.signature != KGHotKeySignature) {
+        return noErr;
+    }
+
+    KGHotKeyEntry *entry = kg_hotkey_registry()[@((int32_t) hotkey_id.id)];
+    if (entry == nil) {
+        return noErr;
+    }
+
+    if (event_kind == kEventHotKeyReleased) {
+        entry.pressed = NO;
+        return noErr;
+    }
+
+    if (!entry.isPressed && entry.callback != NULL) {
+        entry.pressed = YES;
+        entry.callback((int32_t) hotkey_id.id);
+    }
+
+    return noErr;
+}
+
+static bool kg_install_hotkey_handler(void) {
+    if (kg_hotkey_event_handler != NULL) {
+        return true;
+    }
+
+    const EventTypeSpec specs[] = {
+            {
+            .eventClass = kEventClassKeyboard,
+            .eventKind = kEventHotKeyPressed,
+            },
+            {
+                    .eventClass = kEventClassKeyboard,
+                    .eventKind = kEventHotKeyReleased,
+            },
+    };
+    const OSStatus status = InstallApplicationEventHandler(
+            &kg_on_hotkey_event,
+            2,
+            specs,
+            NULL,
+            &kg_hotkey_event_handler
+    );
+    if (status != noErr) {
+        NSLog(@"HotKey Register: Failed to install event handler: %d", (int) status);
+        return false;
+    }
+
+    return true;
+}
+
+static int32_t kg_register_global_hotkey_inner(
+        uint32_t key_code,
+        uint32_t modifiers,
+        kg_hotkey_callback_t callback
+) {
+    if (callback == NULL) {
+        return KGHotKeyInternalError;
+    }
+
+    if (!kg_install_hotkey_handler()) {
+        return KGHotKeyInternalError;
+    }
+
+    const int32_t hotkey_id = kg_hotkey_next_id++;
+    const EventHotKeyID event_hotkey_id = {
+            .signature = KGHotKeySignature,
+            .id = (UInt32) hotkey_id,
+    };
+    EventHotKeyRef hotkey_ref = NULL;
+    const OSStatus status = RegisterEventHotKey(
+            key_code,
+            modifiers,
+            event_hotkey_id,
+            GetApplicationEventTarget(),
+            0,
+            &hotkey_ref
+    );
+    if (status != noErr || hotkey_ref == NULL) {
+        NSLog(@"HotKey Register: Failed to register hotkey: %d", (int) status);
+        return KGHotKeyUnavailable;
+    }
+
+    KGHotKeyEntry *entry = [[KGHotKeyEntry alloc] init];
+    entry.ref = hotkey_ref;
+    entry.callback = callback;
+    entry.pressed = NO;
+    kg_hotkey_registry()[@(hotkey_id)] = entry;
+    return hotkey_id;
+}
+
+static bool kg_unregister_global_hotkey_inner(int32_t hotkey_id) {
+    NSNumber *key = @(hotkey_id);
+    KGHotKeyEntry *entry = kg_hotkey_registry()[key];
+    if (entry == nil) {
+        return false;
+    }
+
+    const OSStatus status = UnregisterEventHotKey(entry.ref);
+    if (status != noErr) {
+        NSLog(@"HotKey Unregister: Failed to unregister hotkey: %d", (int) status);
+        return false;
+    }
+
+    [kg_hotkey_registry() removeObjectForKey:key];
+    return true;
+}
+
+int32_t kg_register_native_global_hotkey(
+        uint32_t native_key_code,
+        uint32_t native_modifiers,
+        kg_hotkey_callback_t callback
+) {
+    __block int32_t result = KGHotKeyInternalError;
+    void (^block)(void) = ^{
+        result = kg_register_global_hotkey_inner(
+                native_key_code,
+                native_modifiers,
+                callback
+        );
+    };
+
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
+
+    return result;
+}
+
+bool kg_unregister_native_global_hotkey(int32_t hotkey_id) {
+    __block bool result = false;
+    void (^block)(void) = ^{
+        result = kg_unregister_global_hotkey_inner(hotkey_id);
+    };
+
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
+
+    return result;
 }
 
 bool kg_post_keyboard_event(uint16_t key_code, bool key_down, uint64_t flags) {

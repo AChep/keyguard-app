@@ -17,6 +17,8 @@ sealed interface AppMode {
 
     data object Main : AppMode
 
+    data object QuickSearch : AppMode
+
     @optics
     data class Pick(
         override val type: DSecret.Type? = null,

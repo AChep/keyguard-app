@@ -1053,6 +1053,7 @@ fun vaultViewScreenState(
                 } else when (mode) {
                     is AppMode.PickPasskey -> null
                     is AppMode.Main -> null
+                    is AppMode.QuickSearch -> null
                     is AppMode.Pick -> {
                         FlatItemAction(
                             title = Res.string.autofill.wrap(),

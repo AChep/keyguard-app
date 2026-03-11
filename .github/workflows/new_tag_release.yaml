@@ -49,7 +49,7 @@ jobs:
             cat changelog-raw.md
           } > changelog-full.md
       - name: "Upload"
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: changelog
           path: |
@@ -113,7 +113,7 @@ jobs:
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
             --changelog_raw_file artifacts-changelog/changelog-raw.md
       - name: "Upload versions.json"
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: versions
           path: keyguard-version/versions.json
@@ -205,14 +205,14 @@ jobs:
       - name: "Build and notarize DMG"
         run: ./gradlew :desktopApp:packageReleaseDmg :desktopApp:notarizeReleaseDmg -x :desktopApp:createReleaseDistributable
       - name: "Upload logs"
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         if: always()
         with:
           name: logs-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: binaries-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/**
@@ -222,7 +222,7 @@ jobs:
           cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
       - name: "Upload .dmg"
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: app-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
@@ -275,7 +275,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseDistributable
       - name: 'Upload .tar'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: app-linux-${{ matrix.arch }}
           path: |
@@ -301,7 +301,7 @@ jobs:
           flatpak-builder --force-clean --state-dir=build/flatpak-builder --repo=build/flatpak-repo build/flatpak-target com.artemchep.keyguard.yml
           flatpak build-bundle build/flatpak-repo "Keyguard-$(find ../build/distributions -type f -name '*.tar.gz' | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')-${{ matrix.arch }}.flatpak" com.artemchep.keyguard
       - name: 'Upload .flatpak'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: app-linux-flatpak-${{ matrix.arch }}
           path: |
@@ -337,7 +337,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseMsi
       - name: 'Upload .msi'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: app-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
@@ -382,7 +382,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         if: matrix.config.build-type == 'assemble'
         with:
           name: app-android-apk
@@ -391,7 +391,7 @@ jobs:
             androidApp/build/outputs/mapping/**/mapping.txt
           retention-days: 1
       - name: 'Upload .aab'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         if: matrix.config.build-type == 'bundle'
         with:
           name: app-android-aab

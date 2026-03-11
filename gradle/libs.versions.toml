@@ -57,9 +57,9 @@ commonsCodec = "1.21.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.20.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.11.0-alpha03"
+composeMultiplatform = "1.11.0-alpha04"
 # https://mvnrepository.com/artifact/org.jetbrains.compose.material3/material3
-composeMaterial3 = "1.11.0-alpha03"
+composeMaterial3 = "1.11.0-alpha04"
 composeMaterialIconsExtended = "1.7.3"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"

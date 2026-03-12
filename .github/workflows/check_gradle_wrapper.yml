@@ -22,4 +22,4 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: "Check Gradle wrapper"
-        uses: gradle/actions/wrapper-validation@f29f5a9d7b09a7c6b29859002d29d24e1674c884
+        uses: gradle/actions/wrapper-validation@0723195856401067f7a2779048b490ace7a47d7c

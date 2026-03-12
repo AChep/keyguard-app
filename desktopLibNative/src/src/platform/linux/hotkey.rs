@@ -144,7 +144,7 @@ struct HotKeyThread {
 static HOTKEY_THREAD: OnceLock<Mutex<Option<HotKeyThread>>> = OnceLock::new();
 static X11_ERROR_CODE: AtomicI32 = AtomicI32::new(0);
 static X11_ERROR_LOCK: Mutex<()> = Mutex::new(());
-static X11_PREVIOUS_ERROR_HANDLER: Mutex<Option<XErrorHandler>> = Mutex::new(None);
+static X11_PREVIOUS_ERROR_HANDLER: Mutex<XErrorHandler> = Mutex::new(None);
 
 fn hotkey_thread_slot() -> &'static Mutex<Option<HotKeyThread>> {
     HOTKEY_THREAD.get_or_init(|| Mutex::new(None))

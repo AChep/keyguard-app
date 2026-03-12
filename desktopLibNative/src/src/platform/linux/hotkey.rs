@@ -146,6 +146,10 @@ static X11_ERROR_CODE: AtomicI32 = AtomicI32::new(0);
 static X11_ERROR_LOCK: Mutex<()> = Mutex::new(());
 static X11_PREVIOUS_ERROR_HANDLER: Mutex<XErrorHandler> = Mutex::new(None);
 
+fn log_linux_hotkey(message: &str) {
+    eprintln!("keyguard-lib::linuxHotKey {message}");
+}
+
 fn hotkey_thread_slot() -> &'static Mutex<Option<HotKeyThread>> {
     HOTKEY_THREAD.get_or_init(|| Mutex::new(None))
 }
@@ -232,21 +236,18 @@ fn hotkey_thread_main(
     callback_dispatcher: CallbackDispatcher,
 ) {
     if !supports_global_hotkeys_in_session(
+        env::var("DISPLAY").ok().as_deref(),
         env::var("WAYLAND_DISPLAY").ok().as_deref(),
         env::var("XDG_SESSION_TYPE").ok().as_deref(),
     ) {
-        eprintln!(
-            "keyguard-lib::registerNativeGlobalHotKey failed: Linux global hotkeys require an X11 session"
-        );
+        log_linux_hotkey("startup failed: Linux global hotkeys require an X11 session");
         let _ = ready_tx.send(Err(REGISTER_STATUS_UNSUPPORTED_SESSION));
         return;
     }
 
     let display = unsafe { XOpenDisplay(ptr::null()) };
     if display.is_null() {
-        eprintln!(
-            "keyguard-lib::registerNativeGlobalHotKey failed: Linux global hotkeys require an X11 session"
-        );
+        log_linux_hotkey("startup failed: XOpenDisplay returned null");
         let _ = ready_tx.send(Err(REGISTER_STATUS_UNSUPPORTED_SESSION));
         return;
     }
@@ -291,9 +292,14 @@ fn hotkey_thread_main(
 }
 
 fn supports_global_hotkeys_in_session(
+    display: Option<&str>,
     wayland_display: Option<&str>,
     session_type: Option<&str>,
 ) -> bool {
+    if display.is_some_and(|value| !value.is_empty()) {
+        return true;
+    }
+
     if wayland_display.is_some_and(|value| !value.is_empty()) {
         return false;
     }
@@ -317,12 +323,16 @@ fn handle_command(
             response_tx,
         } => {
             if callback.is_none() {
+                log_linux_hotkey("register failed: callback was null");
                 let _ = response_tx.send(REGISTER_STATUS_INTERNAL_ERROR);
                 return;
             }
 
             let keycode = unsafe { XKeysymToKeycode(display, keysym) } as c_int;
             if keycode == 0 {
+                log_linux_hotkey(&format!(
+                    "register failed: keysym={keysym} did not resolve to an X11 keycode"
+                ));
                 let _ = response_tx.send(REGISTER_STATUS_INVALID_SHORTCUT);
                 return;
             }
@@ -331,11 +341,17 @@ fn handle_command(
             if registrations.values().any(|registered| {
                 registered.keycode == keycode && registered.modifiers == modifiers
             }) {
+                log_linux_hotkey(&format!(
+                    "register failed: keycode={keycode} modifiers=0x{modifiers:x} already registered"
+                ));
                 let _ = response_tx.send(REGISTER_STATUS_UNAVAILABLE);
                 return;
             }
 
             if !grab_hotkey(display, root, keycode, modifiers) {
+                log_linux_hotkey(&format!(
+                    "register failed: XGrabKey rejected keycode={keycode} modifiers=0x{modifiers:x}"
+                ));
                 let _ = response_tx.send(REGISTER_STATUS_UNAVAILABLE);
                 return;
             }
@@ -354,7 +370,7 @@ fn handle_command(
         }
 
         Command::Unregister { id, response_tx } => {
-            let Some(registered) = registrations.get(&id) else {
+            let Some(registered) = registrations.get(&id).copied() else {
                 let _ = response_tx.send(false);
                 return;
             };
@@ -366,6 +382,11 @@ fn handle_command(
                     registered.modifiers,
                 ));
                 registrations.remove(&id);
+            } else {
+                log_linux_hotkey(&format!(
+                    "unregister failed: id={id} keycode={} modifiers=0x{:x}",
+                    registered.keycode, registered.modifiers
+                ));
             }
             let _ = response_tx.send(ok);
         }
@@ -473,19 +494,28 @@ fn grab_hotkey(display: *mut Display, root: Window, keycode: c_int, modifiers: c
         }
     });
     if !ok {
+        log_linux_hotkey(&format!(
+            "grab failed: keycode={keycode} modifiers=0x{modifiers:x}"
+        ));
         let _ = ungrab_hotkey(display, root, keycode, modifiers);
     }
     ok
 }
 
 fn ungrab_hotkey(display: *mut Display, root: Window, keycode: c_int, modifiers: c_uint) -> bool {
-    with_x11_error_boundary(display, || {
+    let ok = with_x11_error_boundary(display, || {
         for variant in modifier_variants(modifiers) {
             unsafe {
                 XUngrabKey(display, keycode, variant, root);
             }
         }
-    })
+    });
+    if !ok {
+        log_linux_hotkey(&format!(
+            "ungrab failed: keycode={keycode} modifiers=0x{modifiers:x}"
+        ));
+    }
+    ok
 }
 
 fn with_x11_error_boundary(display: *mut Display, operation: impl FnOnce()) -> bool {
@@ -507,7 +537,11 @@ fn with_x11_error_boundary(display: *mut Display, operation: impl FnOnce()) -> b
         .lock()
         .expect("x11 previous error handler mutex poisoned") = None;
 
-    X11_ERROR_CODE.load(Ordering::SeqCst) == 0
+    let error_code = X11_ERROR_CODE.load(Ordering::SeqCst);
+    if error_code != 0 {
+        log_linux_hotkey(&format!("x11 error boundary captured error_code={error_code}"));
+    }
+    error_code == 0
 }
 
 fn modifier_variants(modifiers: c_uint) -> [c_uint; 4] {
@@ -526,6 +560,10 @@ fn normalize_modifiers(modifiers: c_uint) -> c_uint {
 unsafe extern "C" fn x11_error_handler(display: *mut Display, event: *mut XErrorEvent) -> c_int {
     if let Some(event) = unsafe { event.as_ref() } {
         X11_ERROR_CODE.store(event.error_code as i32, Ordering::SeqCst);
+        log_linux_hotkey(&format!(
+            "x11 error: error_code={} request_code={} minor_code={} resource_id={}",
+            event.error_code, event.request_code, event.minor_code, event.resourceid
+        ));
     }
 
     let previous_handler = *X11_PREVIOUS_ERROR_HANDLER
@@ -731,15 +769,26 @@ mod tests {
     #[test]
     fn global_hotkeys_require_non_wayland_session() {
         assert!(!supports_global_hotkeys_in_session(
+            None,
             Some("wayland-0"),
             Some("wayland"),
         ));
-        assert!(!supports_global_hotkeys_in_session(None, Some("wayland")));
         assert!(!supports_global_hotkeys_in_session(
+            None,
+            None,
+            Some("wayland"),
+        ));
+        assert!(!supports_global_hotkeys_in_session(
+            None,
             Some("wayland-1"),
             Some("x11"),
         ));
-        assert!(supports_global_hotkeys_in_session(None, Some("x11")));
-        assert!(supports_global_hotkeys_in_session(None, None));
+        assert!(supports_global_hotkeys_in_session(
+            Some(":0"),
+            Some("wayland-0"),
+            Some("wayland"),
+        ));
+        assert!(supports_global_hotkeys_in_session(None, None, Some("x11")));
+        assert!(supports_global_hotkeys_in_session(None, None, None));
     }
 }

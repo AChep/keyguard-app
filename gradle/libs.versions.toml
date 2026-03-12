@@ -105,7 +105,7 @@ ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
 ktlintPlugin = "14.0.1"
 # https://github.com/ktorio/ktor
-ktor = "3.4.0"
+ktor = "3.4.1"
 # https://github.com/keemobile/kotpass
 kotpass = "0.13.0"
 # https://github.com/MohamedRejeb/Ksoup

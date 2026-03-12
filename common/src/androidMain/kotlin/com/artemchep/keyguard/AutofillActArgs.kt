@@ -61,6 +61,9 @@ actual val AppMode.autofillTarget: AutofillTarget?
         is AppMode.Main ->
             null
 
+        is AppMode.QuickSearch ->
+            null
+
         is AppMode.PickPasskey ->
             null
 
@@ -122,6 +125,12 @@ actual val AppMode.generatorTarget: GeneratorContext
         }
 
         is AppMode.Main -> {
+            GeneratorContext(
+                host = null,
+            )
+        }
+
+        is AppMode.QuickSearch -> {
             GeneratorContext(
                 host = null,
             )

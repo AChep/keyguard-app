@@ -115,6 +115,7 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)
+                api(libs.kotlinx.io.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.serialization.cbor)
                 api(libs.kotlinx.serialization.protobuf)

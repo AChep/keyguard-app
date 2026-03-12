@@ -36,6 +36,7 @@ import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.service.file.PureFileService
 import com.artemchep.keyguard.common.service.keychain.KeychainIds
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -66,7 +67,6 @@ import com.artemchep.keyguard.copy.DownloadClientDesktop
 import com.artemchep.keyguard.copy.DownloadManagerDesktop
 import com.artemchep.keyguard.copy.DownloadRepositoryDesktop
 import com.artemchep.keyguard.copy.DownloadTaskDesktop
-import com.artemchep.keyguard.copy.FileServiceJvm
 import com.artemchep.keyguard.copy.FileWatcherServiceJvm
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
@@ -80,7 +80,9 @@ import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.util.traverse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -260,14 +262,14 @@ class CacheDirProviderJvm(
         dataDirectory = directDI.instance(),
     )
 
-    override suspend fun get(): File {
+    override suspend fun get(): LocalPath {
         val path = dataDirectory.cache().bind()
-        return File(path)
+        return LocalPath(path)
     }
 
-    override fun getBlocking(): File {
+    override fun getBlocking(): LocalPath {
         val path = dataDirectory.cacheBlocking()
-        return File(path)
+        return LocalPath(path)
     }
 }
 
@@ -357,9 +359,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
         )
     }
     bindSingleton<FileService> {
-        FileServiceJvm(
-            directDI = this,
-        )
+        PureFileService()
     }
     bindSingleton<ReviewService> {
         ReviewServiceJvm(
@@ -398,7 +398,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bind<KeyValueStore>() with factory { key: Files ->
         val d = instance<DataDirectory>()
         val s = FileJsonKeyValueStoreStore(
-            fileIo = d.data().map { File(it, key.filename) },
+            fileIo = d.data().map { LocalPath(it).resolve(key.filename) },
             json = instance(),
         )
         JsonKeyValueStore(
@@ -438,4 +438,3 @@ fun diFingerprintRepositoryModule() = DI.Module(
         LogRepositoryKotlin()
     }
 }
-

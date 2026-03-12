@@ -113,7 +113,7 @@ class DownloadManagerDesktop(
 
                                 when {
                                     file.exists() -> {
-                                        val result = file.right()
+                                        val result = file.toURI().toString().right()
                                         DownloadProgress.Complete(result)
                                     }
 
@@ -165,7 +165,6 @@ class DownloadManagerDesktop(
         attempt: Int,
         worker: Boolean,
     ): DownloadManager.QueueResult = kotlin.run {
-        println("Queue??")
         val downloadInfo = getOrPutDownloadFileEntity(
             url = url,
             urlIsOneTime = urlIsOneTime,
@@ -174,12 +173,10 @@ class DownloadManagerDesktop(
             encryptionKey = key,
             error = null, // clears error field if existed
         )
-        println("File??")
         val file = getFilePath(
             downloadInfo.id,
             downloadInfo.name,
         )
-        println("File $file")
 
         val downloadCancelFlow = downloadRepository
             .getByIdFlow(id = downloadInfo.id)

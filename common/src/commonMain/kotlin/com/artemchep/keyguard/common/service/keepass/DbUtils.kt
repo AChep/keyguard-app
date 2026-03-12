@@ -5,6 +5,8 @@ import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.encode
+import com.artemchep.keyguard.common.io.toInputStream
+import com.artemchep.keyguard.common.io.toOutputStream
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -39,6 +41,7 @@ suspend fun openKeePassDatabase(
     // Try to decode a database and check that it is actually real
     // and readable with the given credentials.
     val database = fileService.readFromFile(token.files.databaseUri)
+        .toInputStream()
         .use { inputStream ->
             KeePassDatabase.decode(inputStream, credentials)
         }
@@ -51,6 +54,7 @@ suspend fun saveKeePassDatabase(
     database: KeePassDatabase,
 ): KeePassDatabase = withContext(Dispatchers.IO) {
     fileService.writeToFile(token.files.databaseUri)
+        .toOutputStream()
         .use { outputStream ->
             database.encode(outputStream)
         }

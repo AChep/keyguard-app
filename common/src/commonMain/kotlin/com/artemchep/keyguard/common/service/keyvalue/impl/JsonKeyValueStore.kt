@@ -9,12 +9,16 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
+import com.artemchep.keyguard.common.io.readText
+import com.artemchep.keyguard.common.io.writeText
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toKotlinxIoPath
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
@@ -29,10 +33,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import java.io.File
 import kotlin.reflect.KClass
 
 class DefaultJsonKeyValueStoreStore : JsonKeyValueStoreStore {
@@ -45,11 +49,11 @@ class DefaultJsonKeyValueStoreStore : JsonKeyValueStoreStore {
 }
 
 class FileJsonKeyValueStoreStore(
-    private val fileIo: IO<File>,
+    private val fileIo: IO<LocalPath>,
     private val json: Json,
 ) : JsonKeyValueStoreStore {
     override fun read(): IO<PersistentMap<String, Any?>> = fileIo
-        .effectMap { it.readText() }
+        .effectMap(LocalPath::readText)
         .map { text ->
             val el = json.decodeFromString<JsonObject>(text)
             el.toMap().toPersistentMap()
@@ -57,12 +61,12 @@ class FileJsonKeyValueStoreStore(
         .dispatchOn(Dispatchers.IO)
 
     override fun write(state: PersistentMap<String, Any?>): IO<Unit> = fileIo
-        .effectMap { file ->
+        .effectMap { path ->
             val text = json.encodeToString(state.toJson())
+            val file = path.toKotlinxIoPath()
             // Make sure the directory exists
-            file.parentFile.mkdirs()
-            // Overwrite the content of a file
-            file.writeText(text)
+            file.parent?.let(SystemFileSystem::createDirectories)
+            path.writeText(text)
         }
         .dispatchOn(Dispatchers.IO)
 }
@@ -168,7 +172,7 @@ class JsonKeyValueStore(
         flow = flow,
     )
 
-    override fun getFile(): IO<File> = ioEffect {
+    override fun getFile(): IO<LocalPath> = ioEffect {
         throw NotImplementedError()
     }
 

@@ -28,7 +28,7 @@ actual fun FilePickerEffect(
                     extension = null,
                 ) { file ->
                     val info = FilePickerResult(
-                        uri = leParseUri(file),
+                        uri = leParseUri(file.toURI().toString()),
                         name = file.name,
                         size = null,
                     )
@@ -59,7 +59,7 @@ actual fun FilePickerEffect(
                     type = type,
                 ) { file ->
                     val info = FilePickerResult(
-                        uri = leParseUri(file),
+                        uri = leParseUri(file.toURI().toString()),
                         name = file.name,
                         size = file.length(),
                     )

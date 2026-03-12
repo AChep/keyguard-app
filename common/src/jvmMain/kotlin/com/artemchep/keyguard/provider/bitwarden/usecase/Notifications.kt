@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.util.getHttpCode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.platform.toLocalPath
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.provider.bitwarden.api.notificationsHub
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
@@ -254,7 +255,7 @@ class NotificationsImpl(
 
             val reconnectBackoff = ReconnectBackoff()
             reconnectBackoff.withRunForever {
-                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile)
+                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile.toLocalPath())
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
                 dbChangedFlow

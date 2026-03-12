@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.common.service.zip
 
-import java.io.OutputStream
+import kotlinx.io.Sink
 
 interface ZipService {
     suspend fun zip(
-        outputStream: OutputStream,
+        outputStream: Sink,
         config: ZipConfig,
         entries: List<ZipEntry>,
     )

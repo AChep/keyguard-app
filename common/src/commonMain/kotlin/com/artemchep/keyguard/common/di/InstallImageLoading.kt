@@ -37,6 +37,7 @@ import org.kodein.di.bindMultiton
 import org.kodein.di.direct
 import org.kodein.di.instance
 import java.io.IOException
+import java.io.File
 
 fun imageLoaderModule(
     builder: ComponentRegistry.Builder.(directDI: DirectDI) -> Unit,
@@ -73,7 +74,7 @@ fun imageLoaderModule(
                 val cacheDirProvider = di.direct.instance<CacheDirProvider>()
                 val cacheDir = cacheDirProvider.getBlocking()
                 DiskCache.Builder()
-                    .directory(cacheDir.resolve("coil3_disk_cache"))
+                    .directory(File(cacheDir.value).resolve("coil3_disk_cache"))
                     .build()
             }
             .crossfade(true)

@@ -2,6 +2,9 @@ package com.artemchep.keyguard.copy
 
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toJavaFile
+import com.artemchep.keyguard.platform.toLocalPath
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import kotlinx.coroutines.Dispatchers
@@ -27,11 +30,12 @@ class FileWatcherServiceJvm(
     ) : this()
 
     override fun fileChangedFlow(
-        file: File,
+        file: LocalPath,
     ): Flow<FileWatchEvent> = flow {
-        val isDir = file.isDirectory
+        val javaFile = file.toJavaFile()
+        val isDir = javaFile.isDirectory
         if (isDir) {
-            file.watchDirectoryFlow()
+            javaFile.watchDirectoryFlow()
                 .collect(this)
             return@flow
         }
@@ -41,16 +45,16 @@ class FileWatcherServiceJvm(
         // dump checker.
 
         val single = kotlin.run {
-            val parent = file.parentFile
+            val parent = javaFile.parentFile
             parent?.list()?.size == 1
         }
         if (single) {
-            file.watchDirectoryFlow()
+            javaFile.watchDirectoryFlow()
                 .collect(this)
             return@flow
         }
 
-        file.watchFileFlow()
+        javaFile.watchFileFlow()
             .collect(this)
     }.flowOn(Dispatchers.IO)
 }
@@ -65,7 +69,7 @@ fun File.watchFileFlow(
 ) = callbackFlow<FileWatchEvent> {
     send(
         FileWatchEvent(
-            file = this@watchFileFlow,
+            path = this@watchFileFlow.toLocalPath(),
             tag = tag,
             kind = FileWatchEvent.Kind.INITIALIZED,
         ),
@@ -88,7 +92,7 @@ fun File.watchFileFlow(
             val curModifiedTime = getLastModifiedTime()
             if (curModifiedTime != lastModifiedTime) {
                 val fileEvent = FileWatchEvent(
-                    file = this@watchFileFlow,
+                    path = this@watchFileFlow.toLocalPath(),
                     tag = tag,
                     kind = FileWatchEvent.Kind.MODIFIED,
                 )
@@ -125,7 +129,7 @@ fun File.watchDirectoryFlow(
     ) = run {
         trySendBlocking(
             FileWatchEvent(
-                file = path.toFile(),
+                path = path.toLocalPath(),
                 tag = tag,
                 kind = kind,
             ),

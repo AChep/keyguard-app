@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.export.impl
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.toSource
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
@@ -65,7 +66,6 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.File
 import kotlin.concurrent.Volatile
 
 open class ExportManagerBase(
@@ -296,7 +296,7 @@ open class ExportManagerBase(
                     ZipEntry(
                         name = "vault.json",
                         data = ZipEntry.Data.In {
-                            json.byteInputStream()
+                            json.toSource()
                         },
                     ),
                 ) + entriesAttachments
@@ -316,7 +316,7 @@ open class ExportManagerBase(
             uri
         }
 
-        return DownloadProgress.Complete(File(".").right())
+        return DownloadProgress.Complete(fileUri.right())
     }
 
     private fun createDownloadFileZipEntry(
@@ -326,7 +326,7 @@ open class ExportManagerBase(
         val cipher = entry.cipher
         val attachment = entry.attachment
         val data = ZipEntry.Data.Out {
-            val writer = DownloadWriter.StreamWriter(it)
+            val writer = DownloadWriter.SinkWriter(it)
             val request = DownloadAttachmentRequest.ByLocalCipherAttachment(
                 localCipherId = cipher.id,
                 remoteCipherId = cipher.service.remote?.id,

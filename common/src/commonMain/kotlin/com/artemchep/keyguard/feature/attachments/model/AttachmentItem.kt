@@ -40,8 +40,10 @@ data class AttachmentItem(
                                     autoResume = autoResume,
                                 )
                             },
-                            ifRight = { file ->
-                                val uri = file.toURI().toString()
+                            ifRight = { uri ->
+                                if (uri == null) {
+                                    return@fold None
+                                }
                                 Downloaded(
                                     localUrl = uri,//leParseUri(file).toString(),
                                 )

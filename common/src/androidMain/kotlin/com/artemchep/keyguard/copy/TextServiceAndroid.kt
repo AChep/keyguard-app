@@ -1,13 +1,14 @@
 package com.artemchep.keyguard.copy
 
+import com.artemchep.keyguard.common.io.toSource
 import com.artemchep.keyguard.common.model.FileResource
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.res.Res
+import kotlinx.io.Source
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.InputStream
-import com.artemchep.keyguard.common.service.file.FileService
 
 class TextServiceAndroid(
     private val fileService: FileService,
@@ -21,8 +22,8 @@ class TextServiceAndroid(
     @OptIn(ExperimentalResourceApi::class)
     override suspend fun readFromResources(
         fileResource: FileResource,
-    ): InputStream = Res.readBytes(fileResource.name)
-        .inputStream()
+    ): Source = Res.readBytes(fileResource.name)
+        .toSource()
 
     override fun readFromFile(uri: String) = fileService.readFromFile(uri)
 }

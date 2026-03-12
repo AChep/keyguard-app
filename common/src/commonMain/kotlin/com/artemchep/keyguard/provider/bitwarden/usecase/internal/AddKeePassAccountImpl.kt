@@ -13,6 +13,9 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.measure
+import com.artemchep.keyguard.common.io.readByteArrayAndClose
+import com.artemchep.keyguard.common.io.toInputStream
+import com.artemchep.keyguard.common.io.toOutputStream
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.file.FileService
@@ -144,9 +147,8 @@ class AddKeePassAccountImpl(
         // Try to decode a database and check that it is actually real
         // and readable with the given credentials.
         fileService.writeToFile(params.dbUri)
-            .use { outputStream ->
-                database.encode(outputStream)
-            }
+            .toOutputStream()
+            .use(database::encode)
     }
 
     private suspend fun validateKeepassDbParams(
@@ -156,6 +158,7 @@ class AddKeePassAccountImpl(
         // Try to decode a database and check that it is actually real
         // and readable with the given credentials.
         val database = fileService.readFromFile(params.dbUri)
+            .toInputStream()
             .use { inputStream ->
                 KeePassDatabase.decode(inputStream, credentials)
             }
@@ -178,8 +181,6 @@ class AddKeePassAccountImpl(
         val keyUri = params.keyUri
         // if there's no key URI then there's no key data
             ?: return@withContext null
-        fileService.readFromFile(keyUri).use { inputStream ->
-            inputStream.readBytes()
-        }
+        fileService.readFromFile(keyUri).readByteArrayAndClose()
     }
 }

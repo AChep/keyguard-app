@@ -5,13 +5,16 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.core.net.toFile
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
-import java.io.InputStream
 import androidx.core.net.toUri
 import com.artemchep.keyguard.common.service.file.FileService
+import kotlinx.io.Source
+import kotlinx.io.Sink
 import kotlinx.io.IOException
-import java.io.OutputStream
+import kotlinx.io.asSink
+import kotlinx.io.asSource
+import kotlinx.io.buffered
+import org.kodein.di.DirectDI
+import org.kodein.di.instance
 
 class FileServiceAndroid(
     private val context: Context,
@@ -42,7 +45,7 @@ class FileServiceAndroid(
             return size > 0L
         }
 
-        var stream: InputStream? = null
+        var stream: Source? = null
         return try {
             stream = readFromFile(uri.toString())
             true // exists
@@ -67,13 +70,17 @@ class FileServiceAndroid(
             }
             ?: -1L
 
-    override fun readFromFile(uri: String): InputStream {
+    override fun readFromFile(uri: String): Source {
         val parsedUri = uri.toUri()
         return context.contentResolver.openInputStream(parsedUri)!!
+            .asSource()
+            .buffered()
     }
 
-    override fun writeToFile(uri: String): OutputStream {
+    override fun writeToFile(uri: String): Sink {
         val parsedUri = uri.toUri()
         return context.contentResolver.openOutputStream(parsedUri)!!
+            .asSink()
+            .buffered()
     }
 }

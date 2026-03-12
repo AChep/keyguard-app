@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.common.service.download
 
 import arrow.core.Either
-import java.io.File
 
 sealed interface DownloadProgress {
     data object None : DownloadProgress
@@ -20,6 +19,6 @@ sealed interface DownloadProgress {
     }
 
     data class Complete(
-        val result: Either<Throwable, File>,
+        val result: Either<Throwable, String?>,
     ) : DownloadProgress
 }

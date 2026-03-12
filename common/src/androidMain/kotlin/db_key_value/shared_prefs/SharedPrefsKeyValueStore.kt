@@ -8,6 +8,8 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toLocalPath
 import com.fredporciuncula.flow.preferences.FlowSharedPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -68,7 +70,9 @@ class SharedPrefsKeyValueStore(
 
     // Returns a file that this store is backed by. Should
     // only be used internally.
-    override fun getFile(): IO<File> = provideFile
+    override fun getFile(): IO<LocalPath> = {
+        provideFile().toLocalPath()
+    }
 
     override fun getAll(): IO<Map<String, Any?>> = {
         getFlowPrefs().sharedPreferences.all

@@ -73,6 +73,8 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toLocalPath
 import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
@@ -87,8 +89,6 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
-import java.io.File
-
 class CacheDirProviderAndroid(
     private val context: Context,
 ) : CacheDirProvider {
@@ -96,11 +96,11 @@ class CacheDirProviderAndroid(
         context = directDI.instance(),
     )
 
-    override suspend fun get(): File = withContext(Dispatchers.IO) {
+    override suspend fun get(): LocalPath = withContext(Dispatchers.IO) {
         getBlocking()
     }
 
-    override fun getBlocking(): File = context.cacheDir
+    override fun getBlocking(): LocalPath = context.cacheDir.toLocalPath()
 }
 
 fun diFingerprintRepositoryModule() = DI.Module(

@@ -23,6 +23,9 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toJavaFile
+import com.artemchep.keyguard.platform.toLocalPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -89,7 +92,7 @@ class DataStoreKeyValueStore(
                     store
                         .getFile()
                         .flatMap { f ->
-                            if (f.exists()) {
+                            if (f.toJavaFile().exists()) {
                                 return@flatMap store.getAll()
                             }
 
@@ -128,7 +131,9 @@ class DataStoreKeyValueStore(
         result.value
     }
 
-    override fun getFile(): IO<File> = provideFile
+    override fun getFile(): IO<LocalPath> = ioEffect {
+        provideFile().toLocalPath()
+    }
 
     override fun getAll(): IO<Map<String, Any?>> = getFlowPrefsIo()
         .effectMap { preferences ->

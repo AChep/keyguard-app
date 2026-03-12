@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
+import com.artemchep.keyguard.common.io.useLines
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
@@ -94,22 +95,19 @@ private suspend fun loadTld(
     textService: TextService,
 ) = withContext(Dispatchers.IO) {
     textService
-        .readFromResources(FileResource.publicSuffixList).use {
-            it
-                .bufferedReader()
-                .useLines { lines ->
-                    val root = Node()
-                    lines
-                        // Check
-                        // https://publicsuffix.org/list/
-                        // for formatting rules.
-                        .filter { it.isNotEmpty() && !it.startsWith("//") }
-                        .forEach { line ->
-                            val parts = line.trim().split(".").asReversed()
-                            root.append(parts)
-                        }
-                    root
+        .readFromResources(FileResource.publicSuffixList)
+        .useLines { lines ->
+            val root = Node()
+            lines
+                // Check
+                // https://publicsuffix.org/list/
+                // for formatting rules.
+                .filter { it.isNotEmpty() && !it.startsWith("//") }
+                .forEach { line ->
+                    val parts = line.trim().split(".").asReversed()
+                    root.append(parts)
                 }
+            root
         }
 }
 

@@ -3,13 +3,14 @@ package com.artemchep.keyguard.copy
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.useBufferedSink
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.Dispatchers
+import kotlinx.io.Sink
 import net.harawata.appdirs.AppDirsFactory
 import org.kodein.di.DirectDI
 import java.io.File
-import java.io.OutputStream
 
 class DataDirectory(
 ) : DirsService {
@@ -46,7 +47,7 @@ class DataDirectory(
 
     override fun saveToDownloads(
         fileName: String,
-        write: suspend (OutputStream) -> Unit,
+        write: suspend (Sink) -> Unit,
     ): IO<String?> = ioEffect {
         val downloadsDir = downloads()
             .bind()
@@ -55,10 +56,7 @@ class DataDirectory(
         // Ensure the parent directory does exist
         // before writing the file.
         file.parentFile?.mkdirs()
-        file.outputStream()
-            .use {
-                write(it)
-            }
+        file.outputStream().useBufferedSink(write)
         file.toURI().toString()
     }
 }

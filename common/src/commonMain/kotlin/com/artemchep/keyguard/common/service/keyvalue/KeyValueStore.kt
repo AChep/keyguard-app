@@ -3,15 +3,15 @@ package com.artemchep.keyguard.common.service.keyvalue
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.platform.LocalPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import java.io.File
 
 interface KeyValueStore {
-    fun getFile(): IO<File>
+    fun getFile(): IO<LocalPath>
 
     fun getAll(): IO<Map<String, Any?>>
 

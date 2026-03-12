@@ -3,16 +3,17 @@ package com.artemchep.keyguard.common.service.text
 import com.artemchep.keyguard.common.model.FileResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.InputStream
+import kotlinx.io.Source
+import kotlinx.io.readString
 
 interface TextService {
     suspend fun readFromResources(
         fileResource: FileResource,
-    ): InputStream
+    ): Source
 
     fun readFromFile(
         uri: String,
-    ): InputStream
+    ): Source
 }
 
 suspend fun TextService.readFromResourcesAsText(
@@ -27,8 +28,6 @@ suspend fun TextService.readFromFileAsText(
     readFromFile(uri).useReadAsText()
 }
 
-private fun InputStream.useReadAsText() = use { inputStream ->
-    inputStream
-        .bufferedReader()
-        .readText()
+private fun Source.useReadAsText() = use {
+    readString()
 }

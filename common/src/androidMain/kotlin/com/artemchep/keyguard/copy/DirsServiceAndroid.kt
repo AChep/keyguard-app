@@ -12,10 +12,11 @@ import androidx.annotation.RequiresApi
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.useBufferedSink
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import kotlinx.io.Sink
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.OutputStream
 
 class DirsServiceAndroid(
     private val context: Context,
@@ -28,7 +29,7 @@ class DirsServiceAndroid(
 
     override fun saveToDownloads(
         fileName: String,
-        write: suspend (OutputStream) -> Unit,
+        write: suspend (Sink) -> Unit,
     ): IO<String?> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         saveToDownloadsApi29(
             fileName = fileName,
@@ -43,7 +44,7 @@ class DirsServiceAndroid(
 
     private fun saveToDownloadsApi26(
         fileName: String,
-        write: suspend (OutputStream) -> Unit,
+        write: suspend (Sink) -> Unit,
     ) = ioEffect {
         val downloadsDir = Environment
             .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -53,9 +54,7 @@ class DirsServiceAndroid(
         file.parentFile?.mkdirs()
         try {
             file.outputStream()
-                .use {
-                    write(it)
-                }
+                .useBufferedSink(write)
         } catch (e: Exception) {
             file.delete()
             throw e
@@ -66,7 +65,7 @@ class DirsServiceAndroid(
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveToDownloadsApi29(
         fileName: String,
-        write: suspend (OutputStream) -> Unit,
+        write: suspend (Sink) -> Unit,
     ) = ioEffect {
         val mimeType = MimeTypeMap.getSingleton()
             .getMimeTypeFromExtension(fileName.substringAfterLast('.'))
@@ -87,7 +86,7 @@ class DirsServiceAndroid(
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun ah(
-        write: suspend (OutputStream) -> Unit,
+        write: suspend (Sink) -> Unit,
         configure: ContentValues.() -> Uri,
     ) = ioEffect {
         val contentResolver = context.contentResolver
@@ -107,10 +106,7 @@ class DirsServiceAndroid(
                 "File output stream is null."
             }
 
-            println("Before export")
-            os.use { outputStream ->
-                write(outputStream)
-            }
+            os.useBufferedSink(write)
 
             // Update the record, stating that we have completed
             // saving the file.

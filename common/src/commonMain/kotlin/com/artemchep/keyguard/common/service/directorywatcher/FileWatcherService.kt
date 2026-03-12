@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.common.service.directorywatcher
 
+import com.artemchep.keyguard.platform.LocalPath
 import kotlinx.coroutines.flow.Flow
-import java.io.File
 
 interface FileWatcherService {
     fun fileChangedFlow(
-        file: File,
+        file: LocalPath,
     ): Flow<FileWatchEvent>
 }

@@ -10,6 +10,8 @@ import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.platform.resolve
+import com.artemchep.keyguard.platform.toJavaFile
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.core.use
 import kotlinx.collections.immutable.persistentMapOf
@@ -218,7 +220,7 @@ abstract class DownloadClientJvm(
             // No need to download anything, the file is
             // already available locally.
             val f = flow<DownloadProgress> {
-                val result = file.right()
+                val result = file.toURI().toString().right()
                 emit(DownloadProgress.Complete(result))
             }
             emitAll(f)
@@ -230,7 +232,9 @@ abstract class DownloadClientJvm(
             val cacheFile = kotlin.runCatching {
                 val cacheFileName = cryptoGenerator.uuid() + ".download"
                 val cacheFileRelativePath = "download_cache/$cacheFileName"
-                cacheDirProvider.get().resolve(cacheFileRelativePath)
+                cacheDirProvider.get()
+                    .resolve(cacheFileRelativePath)
+                    .toJavaFile()
             }.getOrElse { e ->
                 // Report the download as failed if we could not
                 // resolve a cache file.
@@ -246,18 +250,27 @@ abstract class DownloadClientJvm(
                     cacheFile.delete()
                     cacheFile.parentFile?.mkdirs()
                     cacheFile.writeBytes(fileData)
-
-                    val result = cacheFile
-                        .right()
-                    DownloadProgress.Complete(
-                        result = result,
-                    )
                 } else {
-                    flap(
+                    downloadToFile(
                         src = url,
                         dst = cacheFile,
                     )
                 }
+
+                kotlin.runCatching {
+                    cacheFile.decryptAndMove(
+                        dst = file,
+                        key = fileKey,
+                    )
+                }.fold(
+                    onFailure = { e ->
+                        e.printStackTrace()
+                        DownloadProgress.Complete(e.left())
+                    },
+                    onSuccess = {
+                        DownloadProgress.Complete(file.toURI().toString().right())
+                    },
+                )
             } catch (e: Exception) {
                 // Delete cache file in case of
                 // an error.
@@ -274,45 +287,6 @@ abstract class DownloadClientJvm(
             }
             send(result)
         }
-            .flatMapConcat { event ->
-                println("events $event")
-                when (event) {
-                    is DownloadProgress.Complete ->
-                        event.result
-                            .fold(
-                                ifLeft = {
-                                    flowOf(event)
-                                },
-                                ifRight = { tmpFile ->
-                                    // Decrypt the file and move it to the final
-                                    // destination.
-                                    flow {
-                                        emit(DownloadProgress.Loading())
-                                        val result = kotlin
-                                            .runCatching {
-                                                tmpFile.decryptAndMove(
-                                                    dst = file,
-                                                    key = fileKey,
-                                                )
-                                            }
-                                            .fold(
-                                                onFailure = { e ->
-                                                    e.printStackTrace()
-                                                    e.left()
-                                                },
-                                                onSuccess = {
-                                                    file.right()
-                                                },
-                                            )
-                                        emit(DownloadProgress.Complete(result))
-                                    }
-                                },
-                            )
-
-                    is DownloadProgress.Loading -> flowOf(event)
-                    is DownloadProgress.None -> flowOf(event)
-                }
-            }
         emitAll(f)
     }
         .onStart {
@@ -355,10 +329,10 @@ abstract class DownloadClientJvm(
         if (!sameFile) this@decryptAndMove.delete()
     }
 
-    private suspend fun ProducerScope<DownloadProgress>.flap(
+    private suspend fun ProducerScope<DownloadProgress>.downloadToFile(
         src: String,
         dst: File,
-    ): DownloadProgress.Complete {
+    ): File {
         val response = kotlin.run {
             val request = Request.Builder()
                 .get()
@@ -367,14 +341,10 @@ abstract class DownloadClientJvm(
             okHttpClient.newCall(request).execute()
         }
         if (!response.isSuccessful) {
-            val exception = HttpException(
+            throw HttpException(
                 statusCode = HttpStatusCode.fromValue(response.code),
                 m = response.message,
                 e = null,
-            )
-            val result = exception.left()
-            return DownloadProgress.Complete(
-                result = result,
             )
         }
         val responseBody = response.body
@@ -387,10 +357,7 @@ abstract class DownloadClientJvm(
         val dstContentLength = dst.length()
         val srcContentLength = responseBody.contentLength()
         if (dstContentLength == srcContentLength) {
-            val result = dst.right()
-            return DownloadProgress.Complete(
-                result = result,
-            )
+            return dst
         }
 
         dst.delete()
@@ -432,9 +399,6 @@ abstract class DownloadClientJvm(
             monitorJob.cancelAndJoin()
         }
 
-        val result = dst.right()
-        return DownloadProgress.Complete(
-            result = result,
-        )
+        return dst
     }
 }

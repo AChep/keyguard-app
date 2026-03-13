@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Offline-hantering: Lägg till objekt och sends, ändra och visa ditt valv offline.</string>
     <string name="listing_description_highlight_export">Dataexport: Exportera individuella eller organisationsobjekt, inklusive bilagor.</string>
     <string name="listing_description_highlight_generator">Generator: Skapa lösenord, SSH-nycklar och e-postvidarebefordrare, med stöd för anpassade ordlistor.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Avancerade funktioner: Stöd för genvägar, fältplatshållare, URL-åsidosättningar och smart konfliktlösning.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Hemskärm</string>

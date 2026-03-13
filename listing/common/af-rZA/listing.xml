@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Vanlyn bestuur: Voeg items en sends by, wysig en bekyk jou kluis vanlyn.</string>
     <string name="listing_description_highlight_export">Data-uitvoer: Voer individuele of organisasie-items uit, insluitend aanhangsels.</string>
     <string name="listing_description_highlight_generator">Generator: Skep wagwoorde, SSH-sleutels en e-pos-aanstuurders, met ondersteuning vir pasgemaakte woordelyste.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Gevorderde kenmerke: Ondersteuning vir kortpaaie, veldplashouers, URL-oorskrywings en slim konflikoplossing.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Tuisskerm</string>

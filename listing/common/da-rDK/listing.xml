@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Offline administration: Tilføj elementer og sends, rediger og se din boks offline.</string>
     <string name="listing_description_highlight_export">Dataeksport: Eksporter individuelle eller organisations-elementer, inklusive vedhæftede filer.</string>
     <string name="listing_description_highlight_generator">Generator: Opret adgangskoder, SSH-nøgler og e-mail-videresendelser, med understøttelse af brugerdefinerede ordlister.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Avancerede funktioner: Understøttelse af genveje, feltpladsholdere, URL-tilsidesættelser og smart konfliktløsning.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Startskærm</string>

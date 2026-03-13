@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Gestionare offline: Adăugați elemente și trimiteri, modificați și vizualizați seiful offline.</string>
     <string name="listing_description_highlight_export">Export de date: Exportați elemente individuale sau de organizație, inclusiv atașamentele.</string>
     <string name="listing_description_highlight_generator">Generator: Creați parole, chei SSH și redirectoare de e-mail, cu suport pentru liste de cuvinte personalizate.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Funcții avansate: Suport pentru comenzi rapide, substituitori de câmpuri, suprascrieri URL și rezolvare inteligentă a conflictelor.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Ecran principal</string>

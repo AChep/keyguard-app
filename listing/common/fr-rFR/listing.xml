@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Gestion hors ligne : Ajouter des éléments et des envois, modifier et consulter votre coffre hors ligne.</string>
     <string name="listing_description_highlight_export">Export de données : Exporter des éléments individuels ou d\'organisation, y compris les pièces jointes.</string>
     <string name="listing_description_highlight_generator">Générateur : Créer des mots de passe, des clés SSH et des redirections d\'e-mails, avec support des listes de mots personnalisées.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Fonctionnalités avancées : Support des raccourcis, espaces réservés de champs, substitutions d\'URL et résolution intelligente des conflits.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Écran d\'accueil</string>

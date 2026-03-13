@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="listing_summary">Manage passwords</string>
-    <string name="listing_summary_long">Manage passwords with ease</string>
-    <string name="listing_description_title">Multi-client for the Bitwarden® platform and KeePass (KDBX), designed to provide the best user experience possible.</string>
-    <string name="listing_description_disclaimer_bitwarden_legal">Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Highlights:</string>
-    <string name="listing_description_highlight_design">Beautiful Interface: a rich, responsive Material You UI with Light/Dark themes.</string>
-    <string name="listing_description_highlight_search">Advanced Search: Powerful and fast search capabilities.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Detects pwned passwords, vulnerable accounts, reused passwords, inactive two-factor authentication, insecure websites, duplicate or expiring items and more.</string>
-    <string name="listing_description_highlight_multiple_accounts">Multi-Account Support: Simultaneously have multiple accounts signed in.</string>
-    <string name="listing_description_highlight_offline">Offline Management: Add items and sends, modify, and view your vault offline.</string>
-    <string name="listing_description_highlight_export">Data Export: Export individual or organization items, including attachments.</string>
-    <string name="listing_description_highlight_generator">Generator: Create passwords, SSH keys and email forwarders, with support for custom wordlists.</string>
-    <string name="listing_description_highlight_other">Advanced Features: Support for shortcuts, Field placeholders, URL overrides, and smart conflict resolution.</string>
+    <string name="listing_summary">Jelszavak kezelése</string>
+    <string name="listing_summary_long">Jelszavak egyszerű kezelése</string>
+    <string name="listing_description_title">Kliens a Bitwarden® platformhoz és a KeePass-hoz (KDBX), amely a lehető legjobb felhasználói élményre fókuszál.</string>
+    <string name="listing_description_disclaimer_bitwarden_legal">Bármely Bitwarden® telepítéssel használható. Ez a termék nem áll kapcsolatban a Bitwarden projekttel, sem a Bitwarden, Inc. vállalattal. A Bitwarden® a Bitwarden Inc. bejegyzett védjegye.</string>
+    <string name="listing_description_highlights">Kiemelkedő jellemzők:</string>
+    <string name="listing_description_highlight_design">Gyönyörű felület: Letisztult, reszponzív Material You felhasználói felület világos és sötét témával.</string>
+    <string name="listing_description_highlight_search">Fejlett keresés: Hatékony és gyors keresési funkciók.</string>
+    <string name="listing_description_highlight_watchtower">Őrtorony: Megtalálja a kiszivárgott és újrafelhasznált jelszavakat, a sebezhető fiókokat, az inaktív kétlépcsős azonosítást, a nem biztonságos weboldalakat, valamint a duplikált vagy lejáró elemeket és még sok mást.</string>
+    <string name="listing_description_highlight_multiple_accounts">Több fiók támogatása: Egyszerre több fiókba is bejelentkezhetsz.</string>
+    <string name="listing_description_highlight_offline">Offline kezelés: Elemek és küldések (Bitwarden Send) hozzáadása, módosítása és a széf megtekintése akár offline állapotban is.</string>
+    <string name="listing_description_highlight_export">Adatexportálás: Egyéni vagy szervezeti elemek exportálása, a mellékletekkel együtt.</string>
+    <string name="listing_description_highlight_generator">Generátor: Jelszavak, SSH-kulcsok és e-mail továbbítók létrehozása, egyéni szójegyzékek támogatásával.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
+    <string name="listing_description_highlight_other">Fejlett funkciók: Parancsikonok, mező-helyőrzők (placeholderek), URL-felülbírálások és intelligens ütközésfeloldás támogatása.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
-    <string name="listing_screenshot_home_default">Home screen</string>
+    <string name="listing_screenshot_home_default">Kezdőképernyő</string>
     <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
-    <string name="listing_screenshot_home_dark">Home screen, dark theme</string>
+    <string name="listing_screenshot_home_dark">Kezdőképernyő, sötét téma</string>
     <!-- A content description shown below the Generator screenshort, made with the default settings -->
-    <string name="listing_screenshot_generator_default">Generator screen</string>
+    <string name="listing_screenshot_generator_default">Generátor képernyő</string>
     <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
-    <string name="listing_screenshot_watchtower_default">Watchtower screen</string>
+    <string name="listing_screenshot_watchtower_default">Őrtorony képernyő</string>
 </resources>

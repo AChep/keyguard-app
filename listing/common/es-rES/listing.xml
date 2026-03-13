@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Gestión sin conexión: Añadir elementos y envíos, modificar y ver tu bóveda sin conexión.</string>
     <string name="listing_description_highlight_export">Exportación de datos: Exportar elementos individuales o de organización, incluyendo archivos adjuntos.</string>
     <string name="listing_description_highlight_generator">Generador: Crear contraseñas, claves SSH y reenviadores de correo, con soporte para listas de palabras personalizadas.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Funciones avanzadas: Soporte para atajos, marcadores de posición de campos, anulaciones de URL y resolución inteligente de conflictos.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Pantalla de inicio</string>

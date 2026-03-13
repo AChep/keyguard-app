@@ -9,7 +9,7 @@
     <string name="show_keyguard">Mostra Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nome</string>
-    <string name="description">Description</string>
+    <string name="description">Descrizione</string>
     <string name="account_name">Nome account</string>
     <string name="database_name">Nome del database</string>
     <string name="enabled">Attivato</string>
@@ -103,8 +103,8 @@
     <string name="folders_empty_label">Nessuna cartella</string>
     <string name="tag_none">Nessun tag</string>
     <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tags">Tag</string>
+    <string name="tags_empty_label">Nessun tag</string>
     <string name="collection_none">Nessuna collezione</string>
     <string name="collection">Collezione</string>
     <string name="collections">Collezioni</string>
@@ -119,7 +119,7 @@
     <string name="category">Categoria</string>
     <string name="command">Comando</string>
     <string name="execute_command">Esegui</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Suggerimenti in base al contesto</string>
     <!-- Add (something) -->
     <string name="add">Aggiungi</string>
     <string name="add_integration">Aggiungi integrazione</string>
@@ -203,7 +203,7 @@
     <string name="follow_system_settings">Segui le impostazioni di sistema</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">In arrivo</string>
-    <string name="powered_by">Powered by</string>
+    <string name="powered_by">Fornito da</string>
     <string name="verification_code">Codice di verifica</string>
     <string name="resend_verification_code">Re-invia il codice di verifica</string>
     <string name="requested_verification_email">Codice di verifica richiesto</string>
@@ -377,7 +377,7 @@
     <string name="uri_action_launch_in_app_title">Apri con <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">Apri con…</string>
     <string name="uri_action_how_to_delete_account_title">Come eliminare il mio account?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
+    <string name="uri_action_get_my_data_account_title">Come ottenere i miei dati?</string>
     <string name="uri_action_autofix_unsecure_title">Sistema automaticamente URL non sicuro</string>
     <string name="uri_action_autofix_unsecure_text">Cambia un protocollo in una variante sicura se disponibile</string>
     <string name="uri_unsecure">Non sicuro</string>
@@ -458,7 +458,7 @@
     <string name="copy_otp_secret_code">Copia chiave segreta</string>
     <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
     <string name="copy_ssh_public_key">Copy public key</string>
-    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
+    <string name="copy_ssh_fingerprint">Copia impronta digitale</string>
     <string name="copied_value">Valore copiato</string>
     <string name="copied_url">URL copiato</string>
     <string name="copied_uri">URI copiato</string>
@@ -524,7 +524,7 @@
         as the "Must not be empty" error. -->
     <string name="error_must_not_be_blank">Non può essere vuoto</string>
     <string name="error_must_be_custom_domain">Deve essere un dominio personalizzato</string>
-    <string name="error_must_be_number">Must be a number</string>
+    <string name="error_must_be_number">Deve essere un numero</string>
     <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
     <string name="error_must_contain_only_us_ascii_chars">Deve contenere solo caratteri US-ASCII</string>
     <string name="error_must_have_at_least_n_symbols">Deve avere almeno <xliff:g id="length" example="15">%1$d</xliff:g> simboli</string>
@@ -535,7 +535,7 @@
     <string name="error_invalid_uri">URI non valido</string>
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_incorrect_password">Password errata</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">Non trovato</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_failed_generate_kdf_hash_oom">Creazione di una chiave non riuscita, memoria insufficiente. Controlla le impostazioni del server KDF.</string>
@@ -675,9 +675,9 @@
     <string name="urlblock_empty_label">No blocked URIs</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
+    <string name="privilegedapps_header_title">App privilegiate</string>
+    <string name="privilegedapps_list_header_title">App privilegiate</string>
+    <string name="privilegedapps_list_section_title">App privilegiate</string>
     <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
     <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
@@ -717,8 +717,8 @@
     <string name="additem_markdown_render_preview">Anteprima</string>
     <string name="additem_auth_reprompt_title">Richiesta autorizzazione</string>
     <string name="additem_auth_reprompt_text">Chiedere di autenticarsi di nuovo quando si visualizza o riempie automaticamente un cifrario</string>
-    <string name="addsend_header_new_title">Nuovo invio</string>
-    <string name="addsend_header_edit_title">Modifica invio</string>
+    <string name="addsend_header_new_title">Nuovo Send</string>
+    <string name="addsend_header_edit_title">Modifica Send</string>
     <string name="addsend_text_hide_by_default_title">Quando si accede all'elemento, nascondi il testo di default</string>
     <string name="addsend_hide_text_by_default_title">Quando si accede all'elemento, nascondi il testo di default</string>
     <string name="addsend_hide_email_title">Nascondi l'indirizzo e-mail</string>
@@ -726,7 +726,7 @@
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
     <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_description_short_keepass_text">Memorizza la cassaforte crittografata localmente utilizzando il formato KDBX.</string>
     <string name="addaccount_header_title">Aggiungi account Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Non siamo affiliati, associati, autorizzati, approvati da, o in alcun modo ufficialmente connessi con il Bitwarden, Inc. o di una delle sue controllate o delle sue affiliate.</string>
     <!--
@@ -760,9 +760,9 @@
     <string name="addaccount2fa_otp_note">Inserisci il codice di verifica dalla tua app di autenticazione.</string>
     <string name="addaccount2fa_email_note">Inserisci il codice di verifica che è stato inviato via email a <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Inserisci il codice di autenticazione YubiKey manualmente. Posiziona il cursore sul campo sottostante e attiva YubiKey.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_title">Aggiungi account KeePass</string>
+    <string name="addkeepass_header_body">Salva tutte le tue password in un unico file KDBX altamente cifrato memorizzato direttamente sul tuo dispositivo. Hai il controllo completo sui tuoi dati. Conservalo sul tuo computer, un'unità USB o sincronizzalo usando un servizio come Syncthing, Google Drive o Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">L'implementazione KeePass è in beta e non è ancora pienamente compatibile con i client KeePass standard. Usala a tuo rischio e pericolo. Assicurati di avere un backup verificato del tuo database prima di procedere.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (Organizzazione)</string>
     <string name="provider_2fa_fido2_webauthn">Autenticazione Web FIDO2</string>
@@ -828,17 +828,17 @@
     <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
     <string name="ssh_agent_setup_header_title">SSH client setup</string>
     <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
+    <string name="ssh_agent_setup_step_1_title">1. Abilita l'agente SSH su Keyguard</string>
     <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
+    <string name="ssh_agent_setup_step_2_title">2. Configura il tuo client SSH</string>
     <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
     <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
     <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
     <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
     <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Verifica</string>
+    <string name="ssh_agent_setup_step_3_text">Esegui questi comandi nella stessa sessione di shell su cui è stato configurato l'agente.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
     <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
@@ -902,18 +902,18 @@
     <string name="vault_view_email_action">Email</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Indicazioni</string>
-    <string name="send_main_header_title">Sends</string>
+    <string name="send_main_header_title">Send</string>
     <string name="send_main_search_placeholder">Cerca send</string>
     <string name="send_main_new_item_button">Nuovo elemento</string>
     <string name="send_password_is_required_to_access_label">Una password è necessaria per accedere a questa condivisione</string>
     <string name="generator_header_title">Generatore</string>
     <string name="generator_header_username_title">Generatore nome utente</string>
     <string name="generator_header_password_title">Generatore password</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
+    <string name="generator_header_ssh_key_title">Generatore chiave SSH</string>
     <string name="generator_generate_button">Genera</string>
     <string name="generator_regenerate_button">Rigenera</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
+    <string name="generator_use_button">Usa</string>
     <string name="generator_passphrase_type">Frase d'accesso</string>
     <string name="generator_passphrase_note">Le frasi di accesso casuali forniscono la migliore combinazione di memorabilità e sicurezza.</string>
     <string name="generator_passphrase_delimiter_title">Separatore</string>
@@ -921,7 +921,7 @@
     <string name="generator_passphrase_number_title">Numeri</string>
     <string name="generator_passphrase_wordlist_title">Wordlist</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">Quasi una persona su 10 usa lo stesso PIN a quattro cifre. Genera i PIN per evitare varianti comuni.</string>
     <string name="generator_username_type">Nome utente</string>
     <string name="generator_username_delimiter_title">Separatore</string>
     <string name="generator_username_custom_word_title">Parola personalizzata</string>
@@ -949,7 +949,7 @@
     <string name="generator_email_subdomain_addressing_note">Subdomain addressing means any email sent to <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> is still sent to your account. This means you can have a lot of variations on your email address to give out to different people, sites, or mailing lists. Ensure that your email hosting supports this feature before using it.</string>
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Alias email inoltrate</string>
-    <string name="generator_key_length_title">Length</string>
+    <string name="generator_key_length_title">Lunghezza</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
     <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
     <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
@@ -972,7 +972,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Questo rimuoverà tutte le password dalla cronologia.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Delete the password from the history?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Delete the passwords from the history?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">Blocca riempimento automatico</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Sicurezza password</string>
     <string name="watchtower_section_security_label">Sicurezza</string>
@@ -1007,27 +1007,27 @@
     <string name="watchtower_item_duplicate_items_text">Ti aiuta a identificare ed eliminare gli elementi duplicati nella tua cassaforte.</string>
     <string name="watchtower_item_compromised_accounts_title">Account Compromessi</string>
     <string name="watchtower_item_compromised_accounts_text">Controlla le violazioni dei dati attraverso un nome utente o un indirizzo email.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
-    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">Nuovi avvisi Watchtower</string>
+    <string name="watchtower_alerts_header_title">Nuovi avvisi watchtower</string>
     <string name="watchtower_mark_all_as_read_title">Segna tutti come già letti</string>
     <string name="changepassword_header_title">Modifica password app</string>
     <string name="changepassword_change_password_button">Modifica password</string>
     <string name="changepassword_biometric_auth_checkbox">Autenticazione biometrica</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Modifica password app</string>
-    <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
-    <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover malware on the device, there is no need to change the password if it is a strong, unique password.</string>
-    <string name="changepassword_password_changed_successfully">Password changed successfully</string>
+    <string name="changepassword_disclaimer_local_note">La password dell'app non viene mai memorizzata sul dispositivo né inviata attraverso la rete. Viene utilizzata per generare una chiave segreta utilizzata per cifrare i dati locali.</string>
+    <string name="changepassword_disclaimer_abuse_note">A meno che non si sospetti l'accesso non autorizzato o la presenza di malware sul dispositivo, non è necessario cambiare la password se è forte e unica.</string>
+    <string name="changepassword_password_changed_successfully">Password cambiata con successo</string>
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
     <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
-    <string name="exportaccount_include_attachments_title">Export attachments</string>
-    <string name="exportaccount_export_button">Export</string>
+    <string name="exportaccount_include_attachments_title">Esporta allegati</string>
+    <string name="exportaccount_export_button">Esporta</string>
     <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>
     <string name="exportaccount_export_failure">Export failed</string>
-    <string name="contactus_header_title">Contact us</string>
+    <string name="contactus_header_title">Contattaci</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Usa l'inglese per assicurarti che il tuo feedback non venga frainteso.</string>
     <string name="contactus_thanks_note">We appreciate the time that you spend sending us a message. Your message goes directly to us and we use it to troubleshoot issues, make product improvements and fix problems. While we may not reply to every report, we're reviewing and working on improvements &amp; fixing issues as fast as we can.</string>
@@ -1133,9 +1133,9 @@
     <string name="pref_item_allow_screenshots_text_off">Nascondi il contenuto dell'app quando si passa tra le app recenti e proibisci di catturare uno screenshot</string>
     <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
     <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Disattivato</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Permesso, con avviso visivo</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Permesso</string>
     <string name="pref_item_data_safety_title">Sicurezza dei dati</string>
     <string name="pref_item_logs_title">Registri</string>
     <string name="pref_item_lock_vault_title">Blocca cassaforte</string>
@@ -1155,7 +1155,7 @@
     <string name="pref_item_url_override_title">Sovrascrivere URL</string>
     <string name="pref_item_ssh_agent_title">SSH agent</string>
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Non supportato</string>
     <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
     <string name="pref_item_ssh_agent_status_starting">Starting</string>
     <string name="pref_item_ssh_agent_status_ready">Ready</string>
@@ -1173,7 +1173,7 @@
         be able to use it to unlock the vault. -->
     <string name="pref_item_biometric_unlock_confirm_title">Sblocco biometrico</string>
     <string name="pref_item_keep_screen_on_title">Mantieni lo schermo acceso durante la visualizzazione degli elementi</string>
-    <string name="pref_item_autofill_service_title">Compilazione automatica</string>
+    <string name="pref_item_autofill_service_title">Servizio di compilazione automatica</string>
     <string name="pref_item_autofill_service_text">Utilizza il framework Android Autofill per aiutare a inserire le informazioni di accesso in altre applicazioni sul dispositivo</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Alcuni dispositivi Xiaomi richiedono di consentire manualmente il permesso "mostra finestre popup quando attive in background". Si prega di aprire le impostazioni e verificare che sia concesso.</string>
     <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome per supportare nativamente i servizi di riempimento automatico di terze parti</string>
@@ -1192,12 +1192,12 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Si noti che alcuni siti web sono noti per la disabilitazione del riempimento automatico per un campo di password così come alcuni browser sono noti per ignorare il flag di riempimento automatico disabilitato</string>
     <string name="pref_item_autofill_save_request_title">Chiedi di salvare i dati</string>
     <string name="pref_item_autofill_save_request_text">Chiede di aggiornare la cassaforte quando il modulo è stato compilato</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Supporto passkey</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvataggio automatico dell'app o informazioni del sito</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_title">Blocca riempimento automatico</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
+    <string name="pref_item_autofill_privileged_apps_title">App privilegiate</string>
     <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Cancella automaticamente gli appunti</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediatamente</string>

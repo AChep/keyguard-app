@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Управљање ван мреже: Додајте ставке и слања, мењајте и прегледајте сеф ван мреже.</string>
     <string name="listing_description_highlight_export">Извоз података: Извезите појединачне или организационе ставке, укључујући прилоге.</string>
     <string name="listing_description_highlight_generator">Генератор: Креирајте лозинке, SSH кључеве и прослеђиваче е-поште, са подршком за прилагођене листе речи.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Напредне функције: Подршка за пречице, чуваре места поља, URL замене и паметно решавање конфликата.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Почетни екран</string>

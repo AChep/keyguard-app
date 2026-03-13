@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">離線管理：新增項目並離線發送、修改和檢視您的保險庫。</string>
     <string name="listing_description_highlight_export">資料匯出：匯出個人或是組織項目，包含附件。</string>
     <string name="listing_description_highlight_generator">生成器：建立密碼、SSH 金鑰和電子郵件轉發器，支援自訂詞條。</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">進階功能：支援快捷方式、欄位提示文字、網址覆寫和智慧衝突解決。</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">首頁</string>

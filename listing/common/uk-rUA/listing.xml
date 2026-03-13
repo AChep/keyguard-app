@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Автономний доступ: Додавайте записи та надсилання (Sends), змінюйте та переглядайте своє сховище офлайн.</string>
     <string name="listing_description_highlight_export">Експорт даних: Експорт особистих записів або записів організації, включно з вкладеннями.</string>
     <string name="listing_description_highlight_generator">Генератор: Створюйте паролі, SSH-ключі та пересилачі пошти (email forwarders), з підтримкою власних словників.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Розширені функції: Підтримка клавіатури, перевизначення URL-адрес та розумне вирішення конфліктів.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Головний екран</string>

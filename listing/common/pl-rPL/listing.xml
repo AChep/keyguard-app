@@ -12,6 +12,7 @@
     <string name="listing_description_highlight_offline">Zarządzanie offline: Dodawaj elementy i wysyłki, modyfikuj i przeglądaj swój sejf offline.</string>
     <string name="listing_description_highlight_export">Eksport danych: Eksportuj pojedyncze lub organizacyjne elementy, w tym załączniki.</string>
     <string name="listing_description_highlight_generator">Generator: Twórz hasła, klucze SSH i przekierowania e-mail, z obsługą niestandardowych list słów.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Zaawansowane funkcje: Obsługa skrótów, symbol zastępczych pól, nadpisywania URL i inteligentnego rozwiązywania konfliktów.</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">Ekran główny</string>

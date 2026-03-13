@@ -2589,10 +2589,9 @@ private suspend fun RememberStateFlowScope.produceCardState(
                                 ),
                             ) { result ->
                                 if (result is DatePickerResult.Confirm) {
-                                    monthState.value = result.month.value
-                                        .toString()
-                                        .padStart(2, '0')
-                                    yearState.value = result.year.value.toString()
+                                    val (monthValue, yearValue) = result.toMonthAndYearStrings()
+                                    monthState.value = monthValue
+                                    yearState.value = yearValue
                                 }
                             }
                             val intent = NavigationIntent.NavigateToRoute(route)

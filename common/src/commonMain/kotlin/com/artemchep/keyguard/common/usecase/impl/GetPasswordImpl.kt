@@ -10,13 +10,14 @@ import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.listRandomOrThrow
+import com.artemchep.keyguard.common.service.crypto.listShuffled
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPinCode
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.security.SecureRandom
 import kotlin.math.absoluteValue
 
 
@@ -26,10 +27,6 @@ class GetPasswordImpl(
     private val getPassphrase: GetPassphrase,
     private val getPinCode: GetPinCode,
 ) : GetPassword {
-    private val secureRandom by lazy {
-        SecureRandom()
-    }
-
     constructor(directDI: DirectDI) : this(
         cryptoGenerator = directDI.instance(),
         keyPairGenerator = directDI.instance(),
@@ -101,12 +98,12 @@ class GetPasswordImpl(
                 } while (should)
 
                 repeat(config.length - output.size) {
-                    output += config.allChars.random()
+                    output += cryptoGenerator.listRandomOrThrow(config.allChars)
                 }
 
                 val r = output
                     .take(config.length)
-                    .shuffled(secureRandom)
+                    .let(cryptoGenerator::listShuffled)
                     .toCharArray()
                 val p = String(r)
                 GetPasswordResult.Value(p)

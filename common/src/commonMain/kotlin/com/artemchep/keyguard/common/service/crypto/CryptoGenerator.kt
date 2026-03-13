@@ -58,3 +58,25 @@ interface CryptoGenerator {
 
     fun random(range: IntRange): Int
 }
+
+fun <T> CryptoGenerator.listRandomOrThrow(list: List<T>) = kotlin.run {
+    val index = random(0..list.lastIndex)
+    list[index]
+}
+
+fun <T> CryptoGenerator.listShuffled(list: List<T>): List<T> = kotlin.run {
+    if (list.size < 2) {
+        return list
+    }
+
+    val output = list.toMutableList()
+    for (i in output.lastIndex downTo 1) {
+        val j = random(0..i)
+        if (i != j) {
+            val tmp = output[i]
+            output[i] = output[j]
+            output[j] = tmp
+        }
+    }
+    output
+}

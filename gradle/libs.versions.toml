@@ -141,7 +141,7 @@ bouncycastle = "1.83"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.13.0"
 # https://github.com/cashapp/sqldelight
-sqldelight = "2.2.1"
+sqldelight = "2.3.1"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.51.2.0"
 # https://github.com/vinceglb/FileKit

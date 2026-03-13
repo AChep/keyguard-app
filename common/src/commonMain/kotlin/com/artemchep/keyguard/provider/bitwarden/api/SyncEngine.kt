@@ -28,6 +28,7 @@ import com.artemchep.keyguard.core.store.bitwarden.fields
 import com.artemchep.keyguard.core.store.bitwarden.getMergeRules
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.core.store.bitwarden.login
+import com.artemchep.keyguard.core.store.bitwarden.name
 import com.artemchep.keyguard.core.store.bitwarden.tags
 import com.artemchep.keyguard.core.store.bitwarden.uris
 import com.artemchep.keyguard.data.Database
@@ -666,6 +667,10 @@ class SyncEngine(
             },
             localDecoder = { rawLocal, remote ->
                 var local = rawLocal
+                // De-nullify the name
+                local = BitwardenCipher.name.modify(local) { nameOrNull ->
+                    nameOrNull.orEmpty()
+                }
                 // Inject the URL checksums into the list of URLs before
                 // processing the entry.
                 local = BitwardenCipher.login.notNull.uris.modify(local) { uris ->

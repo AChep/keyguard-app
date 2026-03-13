@@ -24,7 +24,7 @@ data class CipherRequest(
     @SerialName("folderId")
     val folderId: String?,
     @SerialName("name")
-    val name: String?,
+    val name: String,
     @SerialName("notes")
     val notes: String?,
     @SerialName("favorite")
@@ -59,6 +59,12 @@ fun CipherRequest.Companion.of(
     model: BitwardenCipher,
     folders: Map<String, String?>,
 ) = kotlin.run {
+    // https://github.com/dani-garcia/vaultwarden/pull/6934
+    val name = model.name
+    if (name == null) {
+        val msg = "The name was not de-nullified before forming the request!"
+        throw IllegalStateException(msg)
+    }
     if (model.tags.isNotEmpty()) {
         val msg = "The tags were not transformed into the fields before forming the request!"
         throw IllegalStateException(msg)
@@ -113,7 +119,7 @@ fun CipherRequest.Companion.of(
             // Folders might not include the folder id of this cipher, and
             // that could be cause because the folder was deleted.
             ?.let { folders[it] },
-        name = model.name,
+        name = name,
         notes = model.notes,
         favorite = model.favorite,
         login = login,

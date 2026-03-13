@@ -252,7 +252,7 @@ jobs:
       - name: "Setup Protobuf Compiler"
         run: |
           sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          sudo apt-get install -y protobuf-compiler libx11-dev
       - name: "Setup build env"
         run: |
           pwd

@@ -1,5 +1,12 @@
 # Shortcuts
 
+##### Global shortcuts
+
+| Shortcut | macOS | Description |
+|:----|----|:----|
+| `Ctrl` `Shift` `Space` | `⌘` `Shift` `Space` | Open Quick search |
+
+
 ##### Local shortcuts
 
 | Shortcut           | macOS           | Description                                                                                                |

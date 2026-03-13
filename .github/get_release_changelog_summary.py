@@ -21,10 +21,10 @@ MODEL_NAME = "gemini-2.5-pro"
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
 PROMPT_TEMPLATE = """
-You are an expert Release Note Writer. Your goal is to take a raw list of git commit messages and convert them into a friendly, positive human-readable changelog.
+You are an expert Release Note Writer. Your goal is to take a raw list of git commit messages and convert them into a friendly, positive human-readable changelog. Prioritize the features, then improvements then other changes.
 
 **Input Context:**
-The input will be a list of raw git commit messages.
+The input will be a list of raw git commit messages, recent commits first. 
 
 **About Keyguard:**
 Keyguard is a multi-platform password manager that works with Bitwarden and KeePass (KDBX) vaults. It supports Android, Linux, Windows, and macOS.

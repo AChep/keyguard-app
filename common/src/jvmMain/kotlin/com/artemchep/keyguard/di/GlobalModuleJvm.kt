@@ -428,7 +428,7 @@ import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
-import com.artemchep.keyguard.crypto.FileEncryptorImpl
+import com.artemchep.keyguard.crypto.FileEncryptorJvm
 import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -1303,7 +1303,7 @@ fun globalModuleJvm() = DI.Module(
         )
     }
     bindSingleton<FileEncryptor> {
-        FileEncryptorImpl(
+        FileEncryptorJvm(
             directDI = this,
         )
     }

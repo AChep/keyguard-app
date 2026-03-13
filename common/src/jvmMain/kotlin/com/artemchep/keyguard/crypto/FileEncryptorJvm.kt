@@ -16,7 +16,7 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.InputStream
 
-class FileEncryptorImpl(
+class FileEncryptorJvm(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
 ) : FileEncryptor {

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.model.Argon2Mode
+import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.crypto.util.hkdfSha256
 import com.artemchep.keyguard.crypto.util.pbkdf2Sha256
@@ -72,14 +73,21 @@ class CryptoGeneratorJvm() : CryptoGenerator {
 
     override fun seed(length: Int): ByteArray = secureRandom.generateSeed(length)
 
-    override fun hmacSha256(
+    override fun hmac(
         key: ByteArray,
         data: ByteArray,
+        algorithm: CryptoHashAlgorithm,
     ): ByteArray {
-        val algorithm = "HmacSHA256"
-        val mac = Mac.getInstance(algorithm)
-        mac.init(SecretKeySpec(key, algorithm))
-        return mac.doFinal(data)
+        val algorithm = when (algorithm) {
+            CryptoHashAlgorithm.SHA_1 -> "HmacSHA1"
+            CryptoHashAlgorithm.SHA_256 -> "HmacSHA256"
+            CryptoHashAlgorithm.SHA_512 -> "HmacSHA512"
+            CryptoHashAlgorithm.MD5 -> "HmacMD5"
+        }
+        return Mac.getInstance(algorithm).run {
+            init(SecretKeySpec(key, algorithm))
+            doFinal(data)
+        }
     }
 
     override fun hashSha1(data: ByteArray): ByteArray = sha1(data)

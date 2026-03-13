@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.Argon2Mode
+import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 
 interface CryptoGenerator {
     fun hkdf(
@@ -30,10 +31,20 @@ interface CryptoGenerator {
         length: Int = 32,
     ): ByteArray
 
+    fun hmac(
+        key: ByteArray,
+        data: ByteArray,
+        algorithm: CryptoHashAlgorithm,
+    ): ByteArray
+
     fun hmacSha256(
         key: ByteArray,
         data: ByteArray,
-    ): ByteArray
+    ): ByteArray = hmac(
+        key = key,
+        data = data,
+        algorithm = CryptoHashAlgorithm.SHA_256,
+    )
 
     fun hashSha1(data: ByteArray): ByteArray
 

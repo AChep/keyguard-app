@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.exception.UnsupportedMasterKdfVersionException
 import com.artemchep.keyguard.common.io.bindBlocking
 import com.artemchep.keyguard.common.model.Argon2Mode
+import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
@@ -167,9 +168,10 @@ internal class RecordingCryptoGenerator : CryptoGenerator {
 
     override fun seed(length: Int): ByteArray = byteArrayOf()
 
-    override fun hmacSha256(
+    override fun hmac(
         key: ByteArray,
         data: ByteArray,
+        algorithm: CryptoHashAlgorithm,
     ): ByteArray = byteArrayOf()
 
     override fun hashSha1(data: ByteArray): ByteArray = byteArrayOf()

@@ -12,8 +12,6 @@ import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.util.Locale
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.and
 import kotlin.math.pow
 import kotlin.math.roundToLong
@@ -200,16 +198,11 @@ class TotpServiceImpl(
             val byte = counter and (0xFF.toLong() shl shift) shr shift
             byte.toByte()
         }
-        val algorithmName = when (algorithm) {
-            CryptoHashAlgorithm.SHA_1 -> "HmacSHA1"
-            CryptoHashAlgorithm.SHA_256 -> "HmacSHA256"
-            CryptoHashAlgorithm.SHA_512 -> "HmacSHA512"
-            CryptoHashAlgorithm.MD5 -> "MD5"
-        }
-        val hash = Mac.getInstance(algorithmName).run {
-            init(SecretKeySpec(key, "RAW")) // The hard-coded value 'RAW' is specified in the RFC
-            doFinal(message)
-        }
+        val hash = cryptoGenerator.hmac(
+            key = key,
+            data = message,
+            algorithm = algorithm,
+        )
 
         // The value of the offset is the lower 4 bits of the last byte of the hash
         // (0x0F = 0000 1111).

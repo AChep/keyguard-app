@@ -7333,9 +7333,9 @@
     "domains": [
       "fiverr.com"
     ],
-    "url": "https://www.fiverr.com/support_tickets/account-and-security/data-and-privacy/remove-personal-data",
-    "difficulty": "easy",
-    "notes": "Log-in, go to the link and make the request to **deactivate account**"
+    "url": "https://help.fiverr.com/hc/en-us/articles/37331887967761-How-to-deactivate-or-permanently-delete-your-account",
+    "difficulty": "hard",
+    "notes": "Follow the instructions on the link to first deactivate your account, you will then have to contact support and re-login through the automated bot to fully delete your account."
   },
   {
     "name": "Fixer.io",
@@ -15708,6 +15708,15 @@
     "email": "feedback@onefootball.com"
   },
   {
+    "name": "OnePiece Liveaction 2",
+    "domains": [
+      "one-piece-live-action-2-ep-1.raiselysite.com"
+    ],
+    "url": "https://one-piece-live-action-2-ep-1.raiselysite.com/",
+    "difficulty": "easy",
+    "notes": "Profile \u2b95 settings \u2b95 delete account \u2b95 confirm"
+  },
+  {
     "name": "OnePlus",
     "domains": [
       "oneplus.com"
@@ -22143,9 +22152,9 @@
     "domains": [
       "tradingview.com"
     ],
-    "url": "https://www.tradingview.com/u/account/#settings-profile",
+    "url": "https://www.tradingview.com/settings/#account-settings",
     "difficulty": "easy",
-    "notes": "Login to your account. Click on \"Learn more about Account Deletion\". Press \"Yes, delete account\". Fill in your password"
+    "notes": "Login to your account, go to the following link, in the \"Account deletion\" section, press \"Delete account\" then press \"Yes, delete account\", fill in your password"
   },
   {
     "name": "Traduc.com",

@@ -110,6 +110,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAf
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultPersistProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingYubiKeyUnlockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -158,6 +159,7 @@ object Setting {
     const val PERMISSION_POST_NOTIFICATION = "permission_post_notification"
     const val BIOMETRIC = "biometric"
     const val BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
+    const val YUBIKEY_UNLOCK = "yubikey_unlock"
     const val VAULT_PERSIST = "vault_persist"
     const val VAULT_LOCK = "vault_lock"
     const val VAULT_LOCK_AFTER_REBOOT = "vault_lock_after_reboot"
@@ -259,6 +261,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.PERMISSION_WRITE_EXTERNAL_STORAGE to ::settingPermissionWriteExternalStorageProvider,
     Setting.BIOMETRIC to ::settingBiometricsProvider,
     Setting.BIOMETRIC_REQUIRE_CONFIRMATION to ::settingBiometricsRequireConfirmationProvider,
+    Setting.YUBIKEY_UNLOCK to ::settingYubiKeyUnlockProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
     Setting.VAULT_LOCK to ::settingVaultLockProvider,
     Setting.VAULT_LOCK_AFTER_REBOOT to ::settingVaultLockAfterRebootProvider,

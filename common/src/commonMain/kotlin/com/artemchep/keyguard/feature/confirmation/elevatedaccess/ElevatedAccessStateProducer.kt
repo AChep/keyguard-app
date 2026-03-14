@@ -6,14 +6,17 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
+import com.artemchep.keyguard.common.usecase.ConfirmAccessByYubiKeyUseCase
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -48,6 +51,7 @@ fun produceElevatedAccessState(
         biometricStatusUseCase = instance(),
         getBiometricRequireConfirmation = instance(),
         confirmAccessByPasswordUseCase = instance(),
+        confirmAccessByYubiKeyUseCase = instance(),
         windowCoroutineScope = instance(),
     )
 }
@@ -58,6 +62,7 @@ fun produceElevatedAccessState(
     biometricStatusUseCase: BiometricStatusUseCase,
     getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
+    confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase,
     windowCoroutineScope: WindowCoroutineScope,
 ): ElevatedAccessState = produceScreenState(
     key = "elevated_access",
@@ -70,6 +75,10 @@ fun produceElevatedAccessState(
 
     val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
     val passwordState = mutableComposeState(passwordSink)
+    val grantAccess = {
+        navigatePopSelf()
+        transmitter(ElevatedAccessResult.Allow)
+    }
 
     val biometricPrompt = kotlin.run {
         val biometricStatus = biometricStatusUseCase()
@@ -84,16 +93,17 @@ fun produceElevatedAccessState(
                 createPromptOrNull(
                     executor = executor,
                     requireConfirmation = requireConfirmation,
-                    fn = {
-                        navigatePopSelf()
-                        transmitter(ElevatedAccessResult.Allow)
-                    },
+                    fn = grantAccess,
                 )
             }
 
             else -> null
         }
     }
+    val yubiKeyRequest = confirmAccessByYubiKeyUseCase()
+        .attempt()
+        .bind()
+        .getOrNull()
 
     val biometricPromptSink = EventFlow<PureBiometricAuthPrompt>()
     val biometricPromptFlow = biometricPromptSink
@@ -117,6 +127,45 @@ fun produceElevatedAccessState(
             onClick = null,
         )
     }
+    val yubiKeyPromptSink = EventFlow<YubiKeyAuthPrompt>()
+    val yubiKeyPromptFlow = yubiKeyPromptSink
+        .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
+    val yubiKeyStateEnabled = yubiKeyRequest?.let { request ->
+        ElevatedAccessState.YubiKey(
+            onClick = {
+                yubiKeyPromptSink.emit(
+                    YubiKeyAuthPrompt(
+                        slot = request.slot,
+                        challenge = request.challenge,
+                        onComplete = { result ->
+                            result.fold(
+                                ifLeft = { exception ->
+                                    if (exception is YubiKeyAuthCanceledException) {
+                                        return@fold
+                                    }
+
+                                    val io = ioRaise<Unit>(exception)
+                                    executor.execute(io)
+                                },
+                                ifRight = { response ->
+                                    val io = request.confirm(response)
+                                        .effectTap {
+                                            grantAccess()
+                                        }
+                                    executor.execute(io)
+                                },
+                            )
+                        },
+                    ),
+                )
+            },
+        )
+    }
+    val yubiKeyStateDisabled = yubiKeyRequest?.let {
+        ElevatedAccessState.YubiKey(
+            onClick = null,
+        )
+    }
 
     combine(
         passwordSink
@@ -131,8 +180,14 @@ fun produceElevatedAccessState(
             } else {
                 biometricStateEnabled
             },
+            yubiKey = if (taskExecuting) {
+                yubiKeyStateDisabled
+            } else {
+                yubiKeyStateEnabled
+            },
             sideEffects = UnlockState.SideEffects(
                 showBiometricPromptFlow = biometricPromptFlow,
+                showYubiKeyPromptFlow = yubiKeyPromptFlow,
             ),
             password = TextFieldModel2.of(
                 state = passwordState,

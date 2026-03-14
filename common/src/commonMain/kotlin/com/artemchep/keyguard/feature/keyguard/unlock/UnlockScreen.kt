@@ -2,8 +2,10 @@ package com.artemchep.keyguard.feature.keyguard.unlock
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,6 +51,7 @@ import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -58,6 +62,8 @@ import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
+import com.artemchep.keyguard.ui.icons.KeyguardPasskey
+import com.artemchep.keyguard.ui.icons.KeyguardYubiKey
 import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -80,12 +86,14 @@ fun UnlockScreen(
      */
     unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
+    unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
     lockInfo: VaultState.Unlock.LockInfo?,
 ) {
     val loadableState = unlockScreenState(
         clearData = localDI().direct.instance(),
         unlockVaultByMasterPassword = unlockVaultByMasterPassword,
         unlockVaultByBiometric = unlockVaultByBiometric,
+        unlockVaultByYubiKey = unlockVaultByYubiKey,
         lockInfo = lockInfo,
     )
     loadableState.fold(
@@ -130,18 +138,21 @@ private fun UnlockScreen(
         FocusRequester2()
     }
 
-    val updatedHasBiometric by rememberUpdatedState(unlockState.biometric != null)
+    val updatedHasHardwareUnlock by rememberUpdatedState(
+        unlockState.biometric != null || unlockState.yubiKey != null,
+    )
     LaunchedEffect(focusRequester) {
         delay(200L)
         // If we focus a password field and request the biometrics,
         // then the keyboard pops-up after we have successfully used
         // the biometrics to unlock. Looks super junky.
-        if (!updatedHasBiometric) {
+        if (!updatedHasHardwareUnlock) {
             focusRequester.requestFocus()
         }
     }
 
     BiometricPromptEffect(unlockState.sideEffects.showBiometricPromptFlow)
+    YubiKeyPromptEffect(unlockState.sideEffects.showYubiKeyPromptFlow)
     OtherScaffold(
         actions = {
             OptionsButton(actions = unlockState.actions)
@@ -235,27 +246,54 @@ private fun UnlockScreen(
                         text = stringResource(Res.string.unlock_button_unlock),
                     )
                 }
-                val onBiometricButtonClick by rememberUpdatedState(unlockState.biometric?.onClick)
                 ExpandedIfNotEmpty(
-                    valueOrNull = unlockState.biometric,
-                ) { b ->
-                    Button(
+                    valueOrNull = Unit.takeIf {
+                        unlockState.biometric != null || unlockState.yubiKey != null
+                    },
+                ) {
+                    val onBiometricButtonClick by rememberUpdatedState(unlockState.biometric?.onClick)
+                    val onYubiKeyButtonClick by rememberUpdatedState(unlockState.yubiKey?.onClick)
+                    Row(
                         modifier = Modifier
                             .padding(top = 32.dp),
-                        enabled = b.onClick != null,
-                        shapes = ButtonDefaults.shapes(),
-                        colors = ButtonDefaults.outlinedButtonColors(),
-                        elevation = null,
-                        border = ButtonDefaults.outlinedButtonBorder(),
-                        onClick = {
-                            onBiometricButtonClick?.invoke()
-                        },
-                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Fingerprint,
-                            contentDescription = null,
-                        )
+                        if (unlockState.biometric != null) {
+                            Button(
+                                enabled = unlockState.biometric.onClick != null,
+                                shapes = ButtonDefaults.shapes(),
+                                colors = ButtonDefaults.outlinedButtonColors(),
+                                elevation = null,
+                                border = ButtonDefaults.outlinedButtonBorder(),
+                                onClick = {
+                                    onBiometricButtonClick?.invoke()
+                                },
+                                contentPadding = PaddingValues(16.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Fingerprint,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                        if (unlockState.yubiKey != null) {
+                            Button(
+                                enabled = unlockState.yubiKey.onClick != null,
+                                shapes = ButtonDefaults.shapes(),
+                                colors = ButtonDefaults.outlinedButtonColors(),
+                                elevation = null,
+                                border = ButtonDefaults.outlinedButtonBorder(),
+                                onClick = {
+                                    onYubiKeyButtonClick?.invoke()
+                                },
+                                contentPadding = PaddingValues(16.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.KeyguardYubiKey,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
                     }
                 }
             },

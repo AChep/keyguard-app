@@ -16,11 +16,13 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.model.BiometricAuthException
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
@@ -56,6 +58,7 @@ fun unlockScreenState(
     clearData: ClearData,
     unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
+    unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
     lockInfo: VaultState.Unlock.LockInfo? = null,
 ): Loadable<UnlockState> = produceScreenState<Loadable<UnlockState>>(
     key = "unlock",
@@ -63,6 +66,7 @@ fun unlockScreenState(
     args = arrayOf(
         unlockVaultByMasterPassword,
         unlockVaultByBiometric,
+        unlockVaultByYubiKey,
     ),
 ) {
     val executor = screenExecutor()
@@ -74,6 +78,13 @@ fun unlockScreenState(
     val unlockVaultWithBiometricFn = unlockVaultByBiometric
         ?.let {
             UnlockVaultWithBiometric(
+                executor = executor,
+                options = it,
+            )
+        }
+    val unlockVaultWithYubiKeyFn = unlockVaultByYubiKey
+        ?.let {
+            UnlockVaultWithYubiKey(
                 executor = executor,
                 options = it,
             )
@@ -109,6 +120,9 @@ fun unlockScreenState(
                 }
             }
         }
+        .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
+    val yubiKeyPromptSink = EventFlow<YubiKeyAuthPrompt>()
+    val yubiKeyPromptFlow = yubiKeyPromptSink
         .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
 
     val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
@@ -151,6 +165,26 @@ fun unlockScreenState(
     } else {
         null
     }
+    val yubiKeyPrecomputed = if (unlockVaultWithYubiKeyFn != null) {
+        val requestYubiKeyAuthPrompt = yubiKeyPromptSink::emit
+            .andThen { true }
+        YubiKeyStatePrecomputed(
+            disabled = createYubiKeyState(
+                executor = executor,
+                fn = unlockVaultWithYubiKeyFn,
+                clickable = false,
+                requestYubiKeyAuthPrompt = requestYubiKeyAuthPrompt,
+            ),
+            enabled = createYubiKeyState(
+                executor = executor,
+                fn = unlockVaultWithYubiKeyFn,
+                clickable = true,
+                requestYubiKeyAuthPrompt = requestYubiKeyAuthPrompt,
+            ),
+        )
+    } else {
+        null
+    }
     combine(
         passwordSink
             .validatedTitle(this),
@@ -169,8 +203,14 @@ fun unlockScreenState(
             } else {
                 biometricPrecomputed?.enabled
             },
+            yubiKey = if (taskExecuting) {
+                yubiKeyPrecomputed?.disabled
+            } else {
+                yubiKeyPrecomputed?.enabled
+            },
             sideEffects = UnlockState.SideEffects(
                 showBiometricPromptFlow = biometricPromptFlow,
+                showYubiKeyPromptFlow = yubiKeyPromptFlow,
             ),
             isLoading = taskExecuting,
             unlockVaultByMasterPassword = if (canCreateVault) {
@@ -187,6 +227,11 @@ fun unlockScreenState(
 private class BiometricStatePrecomputed(
     val disabled: UnlockState.Biometric,
     val enabled: UnlockState.Biometric,
+)
+
+private class YubiKeyStatePrecomputed(
+    val disabled: UnlockState.YubiKey,
+    val enabled: UnlockState.YubiKey,
 )
 
 private fun RememberStateFlowScope.createBiometricState(
@@ -220,6 +265,38 @@ private fun RememberStateFlowScope.createBiometricState(
                 // Send it down the sink
                 requestBiometricAuthPrompt(prompt)
             }
+        }
+    },
+)
+
+private fun RememberStateFlowScope.createYubiKeyState(
+    executor: LoadingTask,
+    fn: UnlockVaultWithYubiKey,
+    clickable: Boolean,
+    requestYubiKeyAuthPrompt: (YubiKeyAuthPrompt) -> Boolean,
+) = UnlockState.YubiKey(
+    onClick = if (!clickable) {
+        null
+    } else {
+        fun() {
+            val prompt = YubiKeyAuthPrompt(
+                slot = fn.slot,
+                challenge = fn.challenge,
+                onComplete = { result ->
+                    result.fold(
+                        ifLeft = { exception ->
+                            if (exception is YubiKeyAuthCanceledException) {
+                                return@fold
+                            }
+
+                            val io = ioRaise<Unit>(exception)
+                            executor.execute(io)
+                        },
+                        ifRight = fn::invoke,
+                    )
+                },
+            )
+            requestYubiKeyAuthPrompt(prompt)
         }
     },
 )
@@ -305,6 +382,28 @@ private class UnlockVaultWithBiometric(
 
     override fun invoke() {
         val io = getCreateIo()
+        executor.execute(io)
+    }
+}
+
+private class UnlockVaultWithYubiKey(
+    private val executor: LoadingTask,
+    val slot: Int,
+    val challenge: ByteArray,
+    private val getCreateIo: (ByteArray) -> IO<Unit>,
+) : (ByteArray) -> Unit {
+    constructor(
+        executor: LoadingTask,
+        options: VaultState.Unlock.WithYubiKey,
+    ) : this(
+        executor = executor,
+        slot = options.slot,
+        challenge = options.challenge,
+        getCreateIo = options.getCreateIo,
+    )
+
+    override fun invoke(response: ByteArray) {
+        val io = getCreateIo(response)
         executor.execute(io)
     }
 }

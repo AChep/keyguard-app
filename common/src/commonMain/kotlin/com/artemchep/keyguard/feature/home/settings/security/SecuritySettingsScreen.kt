@@ -52,6 +52,12 @@ fun SecuritySettingsScreen() {
                 ),
             ),
             SettingPaneItem.Group(
+                key = "yubikey",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.YUBIKEY_UNLOCK),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "password",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.MASTER_PASSWORD),

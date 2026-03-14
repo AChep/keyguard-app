@@ -25,6 +25,7 @@ sealed interface VaultState {
     class Unlock(
         val unlockWithMasterPassword: WithPassword,
         val unlockWithBiometric: WithBiometric?,
+        val unlockWithYubiKey: WithYubiKey?,
         val lockInfo: LockInfo?,
     ) : VaultState {
         class WithPassword(
@@ -35,6 +36,12 @@ sealed interface VaultState {
             val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
             val getCreateIo: () -> IO<Unit>,
             val requireConfirmation: Boolean,
+        )
+
+        class WithYubiKey(
+            val slot: Int,
+            val challenge: ByteArray,
+            val getCreateIo: (ByteArray) -> IO<Unit>,
         )
 
         data class LockInfo(

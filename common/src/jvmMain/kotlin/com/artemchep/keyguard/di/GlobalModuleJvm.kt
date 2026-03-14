@@ -101,13 +101,16 @@ import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
+import com.artemchep.keyguard.common.usecase.ConfirmAccessByYubiKeyUseCase
 import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DeviceEncryptionKeyUseCase
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.DisableBiometric
+import com.artemchep.keyguard.common.usecase.DisableYubiKeyUnlock
 import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
 import com.artemchep.keyguard.common.usecase.EnableBiometric
+import com.artemchep.keyguard.common.usecase.EnableYubiKeyUnlock
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
@@ -250,10 +253,13 @@ import com.artemchep.keyguard.common.usecase.impl.AuthGenerateMasterKeyUseCaseIm
 import com.artemchep.keyguard.common.usecase.impl.BiometricKeyDecryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.BiometricKeyEncryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.ClearVaultSessionImpl
+import com.artemchep.keyguard.common.usecase.impl.ConfirmAccessByYubiKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.ConfirmAccessByPasswordUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.DisableBiometricImpl
+import com.artemchep.keyguard.common.usecase.impl.DisableYubiKeyUnlockImpl
 import com.artemchep.keyguard.common.usecase.impl.DismissNotificationsByChannelImpl
 import com.artemchep.keyguard.common.usecase.impl.EnableBiometricImpl
+import com.artemchep.keyguard.common.usecase.impl.EnableYubiKeyUnlockImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterHashUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterSaltUseCaseImpl
@@ -519,6 +525,16 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<DisableYubiKeyUnlock> {
+        DisableYubiKeyUnlockImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<EnableYubiKeyUnlock> {
+        EnableYubiKeyUnlockImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GenerateMasterHashUseCase> {
         GenerateMasterHashUseCaseImpl(
             directDI = this,
@@ -536,6 +552,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<ConfirmAccessByPasswordUseCase> {
         ConfirmAccessByPasswordUseCaseImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ConfirmAccessByYubiKeyUseCase> {
+        ConfirmAccessByYubiKeyUseCaseImpl(
             directDI = this,
         )
     }

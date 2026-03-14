@@ -255,6 +255,7 @@ kotlin {
                 api(libs.kotlinx.coroutines.android)
                 api(libs.kodein.kodein.di.framework.android.x.viewmodel.savedstate)
                 api(libs.yubico.yubikit.android)
+                api(libs.yubico.yubikit.yubiotp)
                 api(libs.cash.sqldelight.android.driver)
                 api(libs.osipxd.security.crypto.datastore.preferences)
                 api(libs.fredporciuncula.flow.preferences)

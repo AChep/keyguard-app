@@ -4,4 +4,5 @@ data class Fingerprint(
     val version: MasterKdfVersion,
     val master: FingerprintPassword,
     val biometric: FingerprintBiometric?,
+    val yubiKey: FingerprintYubiKey? = null,
 )

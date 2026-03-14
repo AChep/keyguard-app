@@ -41,6 +41,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
@@ -116,6 +117,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
         BiometricStatusUseCaseImpl(
             directDI = this,
         )
+    }
+    bindSingleton<YubiKeyUnlockAvailability> {
+        YubiKeyUnlockAvailability { true }
     }
     bindSingleton<KeychainRepository> {
         KeychainRepositoryNoOp(

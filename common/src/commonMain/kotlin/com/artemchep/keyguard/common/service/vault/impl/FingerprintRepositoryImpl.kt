@@ -3,9 +3,11 @@ package com.artemchep.keyguard.common.service.vault.impl
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.FingerprintPassword
+import com.artemchep.keyguard.common.model.FingerprintYubiKey
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
+import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
@@ -51,10 +53,20 @@ class FingerprintRepositoryImpl(
                         encryptedMasterKeyBase64 = encryptedMasterKeyBase64,
                     )
                 }
+                val yubiKey = tokens.yubiKey?.let {
+                    FingerprintEntity.YubiKey(
+                        slot = it.slot,
+                        challengeBase64 = base64Service.encodeToString(it.challenge),
+                        hkdfSaltBase64 = base64Service.encodeToString(it.hkdfSalt),
+                        encryptedMasterKey = it.encryptedMasterKey,
+                        cipherType = it.cipherType.type,
+                    )
+                }
                 FingerprintEntity(
                     version = tokens.version.raw,
                     master = master,
                     biometric = biometric,
+                    yubiKey = yubiKey,
                 )
             }
             json.encodeToString(entity)
@@ -145,10 +157,23 @@ private fun parseFingerprintJsonStringOrNull(
             encryptedMasterKey = encryptedMasterKey,
         )
     }
+    val yubiKey = entity.yubiKey?.let {
+        val cipherType = CipherEncryptor.Type.entries
+            .firstOrNull { entry -> entry.type == it.cipherType }
+            ?: CipherEncryptor.Type.AesCbc256_HmacSha256_B64
+        FingerprintYubiKey(
+            slot = it.slot,
+            challenge = base64Service.decode(it.challengeBase64),
+            hkdfSalt = base64Service.decode(it.hkdfSaltBase64),
+            encryptedMasterKey = it.encryptedMasterKey,
+            cipherType = cipherType,
+        )
+    }
     return Fingerprint(
         version = version,
         master = master,
         biometric = biometric,
+        yubiKey = yubiKey,
     )
 }
 
@@ -186,6 +211,7 @@ private fun parseFingerprintRawStringOrNull(
             salt = MasterPasswordSalt(masterSalt),
         ),
         biometric = biometric,
+        yubiKey = null,
     )
 }
 
@@ -194,6 +220,7 @@ data class FingerprintEntity(
     val version: Int,
     val master: Master,
     val biometric: Biometric?,
+    val yubiKey: YubiKey? = null,
 ) {
     @Serializable
     data class Master(
@@ -205,5 +232,14 @@ data class FingerprintEntity(
     data class Biometric(
         val ivBase64: String,
         val encryptedMasterKeyBase64: String,
+    )
+
+    @Serializable
+    data class YubiKey(
+        val slot: Int,
+        val challengeBase64: String,
+        val hkdfSaltBase64: String,
+        val encryptedMasterKey: String,
+        val cipherType: String = CipherEncryptor.Type.AesCbc256_HmacSha256_B64.type,
     )
 }

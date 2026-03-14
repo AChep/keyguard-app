@@ -11,6 +11,7 @@ class UnlockRoute(
      */
     val unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
     val unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
+    val unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
     val lockInfo: VaultState.Unlock.LockInfo?,
 ) : Route {
     @Composable
@@ -18,6 +19,7 @@ class UnlockRoute(
         UnlockScreen(
             unlockVaultByMasterPassword = unlockVaultByMasterPassword,
             unlockVaultByBiometric = unlockVaultByBiometric,
+            unlockVaultByYubiKey = unlockVaultByYubiKey,
             lockInfo = lockInfo,
         )
     }

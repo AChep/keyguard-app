@@ -311,6 +311,7 @@ vinceglb-filekit-core = { module = "io.github.vinceglb:filekit-core", version.re
 vinceglb-filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 vinceglb-filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 yubico-yubikit-android = { module = "com.yubico.yubikit:android", version.ref = "yubiKit" }
+yubico-yubikit-yubiotp = { module = "com.yubico.yubikit:yubiotp", version.ref = "yubiKit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidPlugin" }

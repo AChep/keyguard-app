@@ -6,6 +6,7 @@ import arrow.core.getOrElse
 import arrow.core.partially1
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
+import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -30,8 +31,11 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.model.YUBIKEY_UNLOCK_HKDF_INFO
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.service.vault.SessionMetadataReadWriteRepository
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
@@ -45,6 +49,7 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.util.catch
 import com.artemchep.keyguard.common.util.flow.measureTimeTillFirstEvent
 import com.artemchep.keyguard.common.util.memoize
@@ -52,6 +57,7 @@ import com.artemchep.keyguard.core.session.usecase.createSubDi
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeBiometricCipher
+import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -86,6 +92,9 @@ class UnlockUseCaseImpl(
     private val decryptBiometricKeyUseCase: BiometricKeyDecryptUseCase,
     private val authConfirmMasterKeyUseCase: AuthConfirmMasterKeyUseCase,
     private val authGenerateMasterKeyUseCase: AuthGenerateMasterKeyUseCase,
+    private val cryptoGenerator: CryptoGenerator,
+    private val cipherEncryptor: CipherEncryptor,
+    private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability,
 ) : UnlockUseCase {
     companion object {
         private const val TAG = "UnlockFlow"
@@ -177,6 +186,9 @@ class UnlockUseCaseImpl(
         decryptBiometricKeyUseCase = directDI.instance(),
         authConfirmMasterKeyUseCase = directDI.instance(),
         authGenerateMasterKeyUseCase = directDI.instance(),
+        cryptoGenerator = directDI.instance(),
+        cipherEncryptor = directDI.instance(),
+        yubiKeyUnlockAvailability = directDI.instance(),
     )
 
     override fun invoke() = sharedFlow
@@ -360,6 +372,24 @@ class UnlockUseCaseImpl(
             } else {
                 null
             },
+            unlockWithYubiKey = if (yubiKeyUnlockAvailability.isSupported()) {
+                tokens.yubiKey?.let { protector ->
+                    VaultState.Unlock.WithYubiKey(
+                        slot = protector.slot,
+                        challenge = protector.challenge,
+                        getCreateIo = { response ->
+                            decryptYubiKeyMasterKey(
+                                tokens = tokens,
+                                response = response,
+                            )
+                                .flatMap(::unlock)
+                                .dispatchOn(Dispatchers.Default)
+                        },
+                    )
+                }
+            } else {
+                null
+            },
             lockInfo = lockInfo?.run {
                 VaultState.Unlock.LockInfo(
                     type = type,
@@ -368,6 +398,29 @@ class UnlockUseCaseImpl(
                 )
             },
         )
+    }
+
+    private fun decryptYubiKeyMasterKey(
+        tokens: Fingerprint,
+        response: ByteArray,
+    ): IO<MasterKey> = ioEffect {
+        val protector = requireNotNull(tokens.yubiKey)
+        val wrappingKey = cryptoGenerator.hkdf(
+            seed = response,
+            salt = protector.hkdfSalt,
+            info = YUBIKEY_UNLOCK_HKDF_INFO.encodeToByteArray(),
+            length = 64,
+        )
+        val plainBytes = cipherEncryptor.decode2(
+            cipher = protector.encryptedMasterKey,
+            symmetricCryptoKey = SymmetricCryptoKey2(wrappingKey),
+        ).data
+        MasterKey(
+            version = tokens.version,
+            byteArray = plainBytes,
+        )
+    }.handleErrorWith { e ->
+        ioRaise(YubiKeyUnlockDecryptException(e))
     }
 
     private fun createMainVaultState(

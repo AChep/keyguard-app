@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.screen.verify
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
+import com.artemchep.keyguard.feature.home.vault.util.cipherArchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherCopyToAction
@@ -55,6 +56,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.localization.wrap
@@ -573,6 +575,19 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     actions += cipherExportAction(
         ciphers = selectedCiphers,
     )
+
+    if (canEdit && selectedCiphers.any { it.archivedDate != null }) {
+        actions += cipherUnarchiveAction(
+            unarchiveCipherById = toolbox.unarchiveCipherById,
+            ciphers = selectedCiphers,
+        )
+    }
+    if (canEdit && selectedCiphers.any { it.archivedDate == null }) {
+        actions += cipherArchiveAction(
+            archiveCipherById = toolbox.archiveCipherById,
+            ciphers = selectedCiphers,
+        )
+    }
 
     if (canDelete && selectedCiphers.any { it.deletedDate != null }) {
         actions += cipherRestoreAction(

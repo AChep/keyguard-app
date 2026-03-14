@@ -122,6 +122,7 @@ class SyncByKeePassTokenImpl(
     ) {
         AUTH_REPROMPT(key = "Authentication Re-Prompt"),
         PASSWORD_REVISION_DATE(key = "Password Revision Date"),
+        ARCHIVED_DATE(key = "Archived Date"),
         PASSWORD_N_TEMPLATE(key = "Password #%"),
         PASSWORD_N_LAST_USED_TEMPLATE(key = "Password #% Last Used"),
 
@@ -731,6 +732,13 @@ class SyncByKeePassTokenImpl(
         scope.setPlain(BasicField.Title(), local.name)
         scope.setPlain(BasicField.Notes(), local.notes?.takeIf { it.isNotEmpty() })
 
+        // Archived date
+        val archivedDate = local.archivedDate
+        if (archivedDate != null) {
+            val key = TranslationField.ARCHIVED_DATE.key
+            scope.setPlain(key, archivedDate.toString())
+        }
+
         // Type
         kotlin.run {
             val value = local.type.verboseKey
@@ -1170,6 +1178,19 @@ class SyncByKeePassTokenImpl(
         // import tool does in the KeePassXC. Makes sense to me.
         val favorite = scope.consumeTag(TranslationTag.FAVORITE.key) != null
 
+        // We encode the archived date as a plain field.
+        val archivedDate = scope
+            .consumeFieldAndReturnContent(TranslationField.ARCHIVED_DATE.key)
+            ?.let {
+                val parsedDate = Instant.parseOrNull(it)
+                if (parsedDate == null) {
+                    // Forget the field, let it be the custom field
+                    // as it was before.
+                    scope.spitField(TranslationField.ARCHIVED_DATE.key)
+                }
+                parsedDate
+            }
+
         val customFields = scope.getAvailableFields()
             .asSequence()
             .map { field ->
@@ -1300,6 +1321,7 @@ class SyncByKeePassTokenImpl(
             expiredDate = remote.times?.expiryTime
                 ?.takeIf { it.toEpochMilli() != 0L }
                 ?.toKotlinInstant(),
+            archivedDate = archivedDate,
             revisionDate = revisionDate,
         )
     }
@@ -1596,6 +1618,10 @@ class SyncByKeePassTokenImpl(
         private val consumedFieldsMapping = mutableMapOf<String, String>()
 
         private val consumedTags = mutableSetOf<String>()
+
+        fun spitField(key: String) {
+            consumedFields.remove(key)
+        }
 
         /**
          * Marks the field as consumed. This helps in a scenario where

@@ -51,6 +51,8 @@ data class CipherRequest(
     val attachments2: Map<String, AttachmentRequest>?,
     @SerialName("lastKnownRevisionDate")
     val lastKnownRevisionDate: Instant?,
+    @SerialName("archivedDate")
+    val archivedDate: Instant?,
     @SerialName("reprompt")
     val reprompt: CipherRepromptTypeEntity,
 ) {
@@ -136,6 +138,7 @@ fun CipherRequest.Companion.of(
         attachments = attachments,
         attachments2 = attachments2,
         lastKnownRevisionDate = model.service.remote?.revisionDate,
+        archivedDate = model.archivedDate,
         reprompt = reprompt,
     )
 }

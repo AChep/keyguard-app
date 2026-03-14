@@ -291,6 +291,7 @@ internal fun createSecret(
     collectionIds = emptySet(),
     revisionDate = TEST_INSTANT,
     createdDate = TEST_INSTANT,
+    archivedDate = null,
     deletedDate = null,
     service = BitwardenService(),
     name = "Example $id",

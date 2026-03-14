@@ -886,6 +886,7 @@ class SyncEngine(
                     folderId = folderId,
                     organizationId = remote.organizationId,
                     revisionDate = remote.revisionDate,
+                    archivedDate = remote.archivedDate,
                     deletedDate = remote.deletedDate,
                     // service fields
                     service = service,

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
@@ -530,6 +531,31 @@ fun vaultListScreenState(
 
     val filterResult = createFilter(directDI)
     val actionsFlow = kotlin.run {
+        val actionArchiveItem = FlatItemAction(
+            leading = {
+                Icon(Icons.Outlined.Archive, null)
+            },
+            title = Res.string.archive.wrap(),
+            trailing = {
+                ChevronIcon()
+            },
+            onClick = onClick {
+                val newArgs = args.copy(
+                    appBar = VaultRoute.Args.AppBar(
+                        subtitle = args.appBar?.subtitle
+                            ?: TextHolder.Res(Res.string.home_vault_label),
+                        title = translate(Res.string.archive),
+                    ),
+                    archive = true,
+                    preselect = false,
+                    canAddSecrets = false,
+                )
+                val route = VaultListRoute(newArgs)
+                val intent = NavigationIntent.NavigateToRoute(route)
+                navigate(intent)
+            },
+        )
+        val actionArchiveFlow = flowOf(actionArchiveItem)
         val actionTrashItem = FlatItemAction(
             leading = {
                 Icon(Icons.Outlined.Delete, null)
@@ -576,6 +602,7 @@ fun vaultListScreenState(
         )
         val actionFiltersFlow = flowOf(actionFiltersItem)
         val actionGroupFlow = combine(
+            actionArchiveFlow,
             actionTrashFlow,
             actionDownloadsFlow,
             actionFiltersFlow,
@@ -804,11 +831,17 @@ fun vaultListScreenState(
                     this
                 }
                 .filter {
-                    when (args.trash) {
+                    val passesTrashFilter = when (args.trash) {
                         true -> it.deletedDate != null
                         false -> it.deletedDate == null
                         null -> true
                     }
+                    val passesArchiveFilter = when (args.archive) {
+                        true -> it.archivedDate != null
+                        false -> it.archivedDate == null
+                        null -> true
+                    }
+                    passesTrashFilter && passesArchiveFilter
                 }
                 .map { secret ->
                     val selectableFlow = selectionHandle

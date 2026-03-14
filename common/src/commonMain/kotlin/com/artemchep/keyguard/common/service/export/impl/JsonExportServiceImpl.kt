@@ -144,6 +144,7 @@ class JsonExportServiceImpl(
             )
         put("revisionDate", revisionDate)
         put("creationDate", instant = createdDate ?: revisionDate)
+        put("archivedDate", archivedDate)
         put("deletedDate", deletedDate)
 
         run {

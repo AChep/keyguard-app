@@ -82,6 +82,9 @@ data class CipherEntity(
     @JsonNames("deletedDate")
     @SerialName("DeletedDate")
     val deletedDate: Instant? = null,
+    @JsonNames("archivedDate")
+    @SerialName("ArchivedDate")
+    val archivedDate: Instant? = null,
     @JsonNames("reprompt")
     @SerialName("Reprompt")
     val reprompt: CipherRepromptTypeEntity = CipherRepromptTypeEntity.None,

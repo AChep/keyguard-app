@@ -212,6 +212,8 @@
     <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Remember me</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archive</string>
     <!-- A Trash screen -->
     <string name="trash">Trash</string>
     <!-- To download something -->
@@ -325,10 +327,14 @@
     <string name="ciphers_action_change_password_title">Change password</string>
     <string name="ciphers_action_change_passwords_title">Change passwords</string>
     <string name="ciphers_action_view_password_history_title">View password history</string>
+    <string name="ciphers_action_archive_title">Archive</string>
+    <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
+    <string name="ciphers_action_unarchive_title">Restore from archive</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
     <string name="ciphers_action_trash_title">Trash</string>
     <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
     <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash for more than 30 days will be automatically deleted.</string>
-    <string name="ciphers_action_restore_title">Restore</string>
+    <string name="ciphers_action_restore_title">Restore from trash</string>
     <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
     <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
@@ -966,6 +972,7 @@
     <string name="vault_view_passkey_created_at_label">Passkey created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archived at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Expired at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>

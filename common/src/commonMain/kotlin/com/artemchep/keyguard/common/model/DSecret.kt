@@ -43,6 +43,7 @@ data class DSecret(
     val collectionIds: Set<String>,
     val revisionDate: Instant,
     val createdDate: Instant?,
+    val archivedDate: Instant?,
     val deletedDate: Instant?,
     val service: BitwardenService,
     // common
@@ -95,6 +96,8 @@ data class DSecret(
     }
 
     val hasError = service.error.exists(revisionDate)
+
+    val archived: Boolean get() = archivedDate != null
 
     val deleted: Boolean get() = deletedDate != null
 

@@ -106,7 +106,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         val ciphersFlow = ciphersRawFlow
             .map { ciphers ->
                 val filteredCiphers = ciphers
-                    .filter { !it.deleted }
+                    .filter { !it.deleted && !it.archived }
                 filteredCiphers
             }
         return ciphersFlow

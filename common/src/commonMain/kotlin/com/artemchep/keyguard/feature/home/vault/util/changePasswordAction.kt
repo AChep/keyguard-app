@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Edit
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Unarchive
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CipherMerge
@@ -40,6 +43,7 @@ import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -813,6 +817,84 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
                     itemId = cipher.id,
                 ),
             )
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherArchiveAction(
+    archiveCipherById: ArchiveCipherById,
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.Archive)
+    val title = Res.string.ciphers_action_archive_title.wrap()
+    FlatItemAction(
+        leading = icon,
+        title = title,
+        onClick = onClick {
+            before?.invoke()
+
+            val route = registerRouteResultReceiver(
+                route = ConfirmationRoute(
+                    args = ConfirmationRoute.Args(
+                        icon = icon(Icons.Outlined.Archive),
+                        title = translate(Res.string.ciphers_action_archive_confirmation_title.wrap()),
+                    ),
+                ),
+            ) { result ->
+                if (result is ConfirmationResult.Confirm) {
+                    val cipherIds = ciphers
+                        .map { it.id }
+                        .toSet()
+                    archiveCipherById(cipherIds)
+                        .launchIn(appScope)
+                }
+
+                val success = result is ConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherUnarchiveAction(
+    unarchiveCipherById: UnarchiveCipherById,
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.Unarchive)
+    val title = Res.string.ciphers_action_unarchive_title.wrap()
+    FlatItemAction(
+        leading = icon,
+        title = title,
+        onClick = onClick {
+            before?.invoke()
+
+            val route = registerRouteResultReceiver(
+                route = ConfirmationRoute(
+                    args = ConfirmationRoute.Args(
+                        icon = icon(Icons.Outlined.Unarchive),
+                        title = translate(Res.string.ciphers_action_unarchive_confirmation_title.wrap()),
+                    ),
+                ),
+            ) { result ->
+                if (result is ConfirmationResult.Confirm) {
+                    val cipherIds = ciphers
+                        .map { it.id }
+                        .toSet()
+                    unarchiveCipherById(cipherIds)
+                        .launchIn(appScope)
+                }
+
+                val success = result is ConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
             navigate(intent)
         },
     )

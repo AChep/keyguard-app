@@ -32,6 +32,7 @@ data class BitwardenCipher(
     val collectionIds: Set<String> = emptySet(),
     val revisionDate: Instant,
     val createdDate: Instant? = null,
+    val archivedDate: Instant? = null,
     val deletedDate: Instant? = null,
     val expiredDate: Instant? = null,
     // service fields

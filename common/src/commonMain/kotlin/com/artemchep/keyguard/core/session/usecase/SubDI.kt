@@ -56,6 +56,7 @@ import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.AddUrlBlock
 import com.artemchep.keyguard.common.usecase.AddUrlOverride
+import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.BackupSettings
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
@@ -152,6 +153,7 @@ import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.TrashCipherByFolderId
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.common.usecase.impl.AddWordlistImpl
@@ -214,6 +216,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddPrivilegedAppImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSendImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddUriCipherImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.ArchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherPasswordByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CheckPasswordLeakImpl
@@ -289,6 +292,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.SyncAllImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.SyncByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.TrashCipherByFolderIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.TrashCipherByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.UnarchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
@@ -490,11 +494,17 @@ fun DI.Builder.createSubDi2(
     bindSingleton<TrashCipherById> {
         TrashCipherByIdImpl(this)
     }
+    bindSingleton<ArchiveCipherById> {
+        ArchiveCipherByIdImpl(this)
+    }
     bindSingleton<TrashCipherByFolderId> {
         TrashCipherByFolderIdImpl(this)
     }
     bindSingleton<RestoreCipherById> {
         RestoreCipherByIdImpl(this)
+    }
+    bindSingleton<UnarchiveCipherById> {
+        UnarchiveCipherByIdImpl(this)
     }
     bindSingleton<MoveCipherToFolderById> {
         MoveCipherToFolderByIdImpl(this)

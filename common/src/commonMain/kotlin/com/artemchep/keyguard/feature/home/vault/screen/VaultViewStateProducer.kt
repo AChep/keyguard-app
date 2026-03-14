@@ -100,6 +100,7 @@ import com.artemchep.keyguard.common.service.placeholder.create
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
+import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
@@ -143,6 +144,7 @@ import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
@@ -170,6 +172,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
+import com.artemchep.keyguard.feature.home.vault.util.cipherArchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherCopyToAction
@@ -181,6 +184,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
@@ -306,6 +310,8 @@ fun vaultViewScreenState(
         copyCipherById = instance(),
         restoreCipherById = instance(),
         trashCipherById = instance(),
+        unarchiveCipherById = instance(),
+        archiveCipherById = instance(),
         removeCipherById = instance(),
         favouriteCipherById = instance(),
         downloadManager = instance(),
@@ -399,6 +405,8 @@ fun vaultViewScreenState(
     copyCipherById: CopyCipherById,
     restoreCipherById: RestoreCipherById,
     trashCipherById: TrashCipherById,
+    unarchiveCipherById: UnarchiveCipherById,
+    archiveCipherById: ArchiveCipherById,
     removeCipherById: RemoveCipherById,
     favouriteCipherById: FavouriteCipherById,
     downloadManager: DownloadManager,
@@ -1158,6 +1166,14 @@ fun vaultViewScreenState(
                         cipherExportAction(
                             ciphers = listOf(secretOrNull),
                         ),
+                        cipherArchiveAction(
+                            archiveCipherById = archiveCipherById,
+                            ciphers = listOf(secretOrNull),
+                        ).takeIf { canEdit && secretOrNull.archivedDate == null },
+                        cipherUnarchiveAction(
+                            unarchiveCipherById = unarchiveCipherById,
+                            ciphers = listOf(secretOrNull),
+                        ).takeIf { canEdit && secretOrNull.archivedDate != null },
                         cipherTrashAction(
                             trashCipherById = trashCipherById,
                             ciphers = listOf(secretOrNull),
@@ -2679,6 +2695,19 @@ private fun RememberStateFlowScope.oh(
         ),
     )
     emit(a)
+    val archivedDate = cipher.archivedDate
+    if (archivedDate != null) {
+        val b = VaultViewItem.Label(
+            id = "archived",
+            text = AnnotatedString(
+                translate(
+                    Res.string.vault_view_archived_at_label,
+                    dateFormatter.formatDateTime(archivedDate),
+                ),
+            ),
+        )
+        emit(b)
+    }
     val deletedDate = cipher.deletedDate
     if (deletedDate != null) {
         val b = VaultViewItem.Label(

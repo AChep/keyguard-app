@@ -170,7 +170,7 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
                     val ciphers = ciphersRawFlow
                         .map { ciphers ->
                             ciphers
-                                .filter { !it.deleted }
+                                .filter { !it.deleted && !it.archived }
                         }
                         .first()
                     val response = ioEffect {

@@ -153,7 +153,10 @@ class PasskeyBeginGetRequest(
         }
         return ciphers
             .flatMap { cipher ->
-                if (cipher.deleted) {
+                if (
+                    cipher.archived ||
+                    cipher.deleted
+                ) {
                     return@flatMap emptyList()
                 }
 

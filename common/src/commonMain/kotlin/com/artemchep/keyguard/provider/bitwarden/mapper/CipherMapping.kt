@@ -34,6 +34,7 @@ suspend fun BitwardenCipher.toDomain(
         collectionIds = collectionIds,
         revisionDate = revisionDate,
         createdDate = createdDate,
+        archivedDate = archivedDate,
         deletedDate = deletedDate,
         service = service,
         // common

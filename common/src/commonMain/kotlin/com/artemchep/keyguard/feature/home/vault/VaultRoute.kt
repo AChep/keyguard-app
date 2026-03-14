@@ -245,6 +245,11 @@ data class VaultRoute(
          * only active items, `null` to show both.
          */
         val trash: Boolean? = false,
+        /**
+         * `true` to show only archived items, `false` to show
+         * only active items, `null` to show both.
+         */
+        val archive: Boolean? = false,
         val preselect: Boolean = true,
         val canAddSecrets: Boolean = true,
     ) {

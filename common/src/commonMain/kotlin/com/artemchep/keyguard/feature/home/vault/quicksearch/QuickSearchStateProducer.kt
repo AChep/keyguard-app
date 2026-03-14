@@ -202,7 +202,7 @@ internal fun quickSearchScreenState(
     }
         .mapLatestScoped { (secrets, organizationsById, config) ->
             secrets
-                .filter { it.deletedDate == null }
+                .filter { !it.deleted && !it.archived }
                 .map { secret ->
                     val item = secret.toVaultListItem(
                         copy = copy,

@@ -4,14 +4,14 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.CHROME_MAJOR_VERSION
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
-import com.artemchep.keyguard.provider.bitwarden.api.entity.SyncResponse
+import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileRequestEntity
-import com.artemchep.keyguard.provider.bitwarden.entity.SyncSends
+import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.TwoFactorEmailRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
@@ -252,7 +252,7 @@ suspend fun ServerEnvApi.sync(
         parameter("excludeDomains", false)
         attributes.put(routeAttribute, "sync")
     }
-    .bodyOrApiException<SyncResponse>()
+    .bodyOrApiException<SyncEntity>()
 
 // Ciphers
 
@@ -449,7 +449,7 @@ suspend fun ServerEnvApi.Sends.post(
     env: ServerEnv,
     token: String,
     body: SendRequest,
-) = post().post<SendRequest, SyncSends>(
+) = post().post<SendRequest, SendEntity>(
     httpClient = httpClient,
     env = env,
     token = token,
@@ -467,14 +467,14 @@ suspend fun ServerEnvApi.Sends.Send.get(
         header("Authorization", "Bearer $token")
         attributes.put(routeAttribute, "get-send")
     }
-    .bodyOrApiException<SyncSends>()
+    .bodyOrApiException<SendEntity>()
 
 suspend fun ServerEnvApi.Sends.Send.put(
     httpClient: HttpClient,
     env: ServerEnv,
     token: String,
     body: SendRequest,
-) = url.put<SendRequest, SyncSends>(
+) = url.put<SendRequest, SendEntity>(
     httpClient = httpClient,
     env = env,
     token = token,
@@ -492,7 +492,7 @@ suspend fun ServerEnvApi.Sends.Send.removePassword(
         header("Authorization", "Bearer $token")
         attributes.put(routeAttribute, "remove-password-send")
     }
-    .bodyOrApiException<SyncSends>()
+    .bodyOrApiException<SendEntity>()
 
 suspend fun ServerEnvApi.Sends.Send.delete(
     httpClient: HttpClient,

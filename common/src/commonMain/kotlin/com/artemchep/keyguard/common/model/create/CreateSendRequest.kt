@@ -1,15 +1,9 @@
 package com.artemchep.keyguard.common.model.create
 
 import arrow.optics.optics
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
-import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
-import com.artemchep.keyguard.platform.LeUri
-import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 
 @optics
@@ -25,6 +19,8 @@ data class CreateSendRequest(
     val expirationDate: LocalDateTime? = null,
     val disabled: Boolean = false,
     val hideEmail: Boolean = false,
+    val authType: DSend.AuthType? = null,
+    val emails: List<String> = emptyList(),
     // types
     val type: DSend.Type? = null,
     val text: Text = Text(),

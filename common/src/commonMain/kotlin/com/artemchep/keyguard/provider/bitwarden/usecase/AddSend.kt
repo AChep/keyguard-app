@@ -1,36 +1,21 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.combine
-import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
-import com.artemchep.keyguard.common.io.flatTap
-import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.ioUnit
-import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
-import com.artemchep.keyguard.common.model.canDelete
-import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddSend
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
-import com.artemchep.keyguard.common.usecase.TrashCipherById
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
+import com.artemchep.keyguard.feature.auth.common.util.ValidationEmail
+import com.artemchep.keyguard.feature.auth.common.util.validateEmail
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
-import kotlinx.collections.immutable.toPersistentList
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -211,11 +196,43 @@ private suspend fun BitwardenSend.Companion.of(
         // must me less or equal to it.
         ?.coerceAtMost(deletedDate)
 
-    val passwordBase64 = request.password
+    val newPasswordBase64 = request.password
         ?.takeIf { it.isNotBlank() }
         ?.let {
             base64Service.encodeToString(it)
         }
+
+    val authType = kotlin.run {
+        request.authType?.toBitwarden()
+            // infer the auth type
+            ?: when {
+                // new items
+                newPasswordBase64 != null -> BitwardenSend.AuthType.Password
+                request.emails.isNotEmpty() -> BitwardenSend.AuthType.Email
+                // old items
+                old?.password != null -> BitwardenSend.AuthType.Password
+                !old?.emails.isNullOrEmpty() -> BitwardenSend.AuthType.Email
+                else -> BitwardenSend.AuthType.None
+            }
+    }
+
+    // Make sure we only take the email addresses that are valid.
+    val emails = request.emails
+        .filter { email ->
+            val validation = validateEmail(email)
+            validation == ValidationEmail.OK
+        }
+    if (authType == BitwardenSend.AuthType.Email && emails.isEmpty()) {
+        val msg = "A Send must have at least one email for the 'Specific people' " +
+                "access type!"
+        throw IllegalStateException(msg)
+    }
+
+    // Make sure that the password is set
+    if (authType == BitwardenSend.AuthType.Password && (newPasswordBase64 == null && old?.password == null)) {
+        val msg = "A Send must have a password for the 'Password' access type!"
+        throw IllegalStateException(msg)
+    }
 
     val maxAccessCount = request.maxAccessCount
         ?.toIntOrNull()
@@ -235,6 +252,7 @@ private suspend fun BitwardenSend.Companion.of(
         ),
         // common
         keyBase64 = keyBase64,
+        authType = authType,
         name = request.title,
         notes = request.note,
         maxAccessCount = maxAccessCount,
@@ -244,17 +262,24 @@ private suspend fun BitwardenSend.Companion.of(
         // Password is only used to reflect the changed on remote.
         password = old?.password,
         changes = BitwardenSend.Changes(
-            passwordBase64 = passwordBase64
+            passwordBase64 = newPasswordBase64
                 ?.let(BitwardenOptionalStringNullable::Some)
                 ?: BitwardenOptionalStringNullable.None,
         ),
         disabled = request.disabled,
         hideEmail = request.hideEmail,
+        emails = emails,
         // types
         type = type,
         text = text,
         file = file,
     )
+}
+
+private fun DSend.AuthType.toBitwarden() = when (this) {
+    DSend.AuthType.None -> BitwardenSend.AuthType.None
+    DSend.AuthType.Password -> BitwardenSend.AuthType.Password
+    DSend.AuthType.Email -> BitwardenSend.AuthType.Email
 }
 
 private suspend fun BitwardenSend.Text.Companion.of(

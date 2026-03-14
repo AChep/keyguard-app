@@ -47,6 +47,7 @@ data class BitwardenCipher(
     val name: String?,
     val notes: String?,
     val favorite: Boolean,
+    val encryptedFor: String? = null,
     val ignoredAlerts: Map<IgnoreAlertType, IgnoreAlertData> = emptyMap(),
     val tags: List<Tag> = emptyList(),
     val fields: List<Field> = emptyList(),

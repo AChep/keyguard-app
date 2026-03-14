@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoDelete
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -755,6 +756,11 @@ fun AccountListItemTextIcon(
         accent = accent,
         active = active,
         badge = {
+            if (item.hasEmailProtection) {
+                AvatarBadgeIcon(
+                    imageVector = Icons.Outlined.Email,
+                )
+            }
             if (item.hasPassword) {
                 AvatarBadgeIcon(
                     imageVector = Icons.Outlined.Key,

@@ -20,9 +20,11 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
+import com.artemchep.keyguard.common.model.create.authType
 import com.artemchep.keyguard.common.model.create.deletionDate
 import com.artemchep.keyguard.common.model.create.deletionDateAsDuration
 import com.artemchep.keyguard.common.model.create.disabled
+import com.artemchep.keyguard.common.model.create.emails
 import com.artemchep.keyguard.common.model.create.expirationDate
 import com.artemchep.keyguard.common.model.create.expirationDateAsDuration
 import com.artemchep.keyguard.common.model.create.hidden
@@ -60,6 +62,7 @@ import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.add.produceItemFlow
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
@@ -86,6 +89,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -122,6 +126,7 @@ data class TmpOptions(
     val deletionDate: AddStateItem.DateTime<CreateSendRequest>,
     val expirationDate: AddStateItem.DateTime<CreateSendRequest>,
     val password: AddStateItem.Password<CreateSendRequest>,
+    val emails: AddStateItem.Text<CreateSendRequest>,
     val items: Flow<List<AddStateItem>>,
 )
 
@@ -193,6 +198,18 @@ fun produceSendAddScreenState(
         getSends = getSends,
         getCiphers = getCiphers,
     )
+    val premiumFlow = ownershipFlow
+        .flatMapLatest { ownership ->
+            val accountId = ownership.data.accountId
+                ?: return@flatMapLatest flowOf(false)
+            getProfiles()
+                .map { profiles ->
+                    profiles
+                        .firstOrNull(accountId.let(::AccountId))
+                        ?.premium == true
+                }
+        }
+        .shareInScreenScope()
 
     val textHolder = produceTextState(
         args = args,
@@ -201,6 +218,7 @@ fun produceSendAddScreenState(
         args = args,
         markdown = markdown,
         dateFormatter = dateFormatter,
+        premiumFlow = premiumFlow,
     )
 
     val typeFlow = kotlin.run {
@@ -592,6 +610,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
     args: SendAddRoute.Args,
     markdown: Boolean,
     dateFormatter: DateFormatter,
+    premiumFlow: Flow<Boolean>,
 ): TmpOptions {
     val prefix = "options"
 
@@ -647,8 +666,74 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             state = state,
         )
     }
-    val passwordItem = kotlin.run {
-        val id = "$prefix.password"
+
+    val accessItem = kotlin.run {
+        val id = "$prefix.access"
+        val label = kotlin.run {
+            translate(Res.string.send_auth_title)
+        }
+        val sink = mutablePersistedFlow(id) {
+            val value = args.initialValue?.authType
+                ?: DSend.AuthType.None
+            value.name
+        }
+
+        fun buildDropdown(
+            premium: Boolean,
+        ) = buildContextItems {
+            val items = DSend.AuthType.entries
+                .filter { entry ->
+                    val requiresPremium = entry == DSend.AuthType.Email
+                    !requiresPremium || premium
+                }
+                .map { entry ->
+                    val titleRes = entry.titleH()
+                    FlatItemAction(
+                        title = TextHolder.Res(titleRes),
+                        onClick = sink::value::set
+                            .partially1(entry.name),
+                    )
+                }
+            section {
+                this += items
+            }
+        }
+
+        val dropdownFlow = premiumFlow
+            .map { premium ->
+                buildDropdown(
+                    premium = premium,
+                )
+            }
+        val state = LocalStateItem<AddStateItem.Enum.State, CreateSendRequest>(
+            flow = combine(
+                sink,
+                dropdownFlow,
+            ) { name, dropdown ->
+                val data = runCatching {
+                    DSend.AuthType.valueOf(name)
+                }.getOrElse { DSend.AuthType.None }
+                val value = translate(data.titleH())
+                AddStateItem.Enum.State(
+                    data = data,
+                    value = value,
+                    dropdown = dropdown,
+                )
+            }
+                .stateIn(screenScope),
+            populator = { state ->
+                val authType = state.data as DSend.AuthType?
+                CreateSendRequest.authType.set(this, authType)
+            },
+        )
+        AddStateItem.Enum(
+            id = id,
+            label = label,
+            state = state,
+        )
+    }
+    val accessPasswordItem = kotlin.run {
+        val id = "$prefix.access.password"
         val label = kotlin.run {
             val hasPassword = args.initialValue?.hasPassword == true
             if (hasPassword) {
@@ -683,6 +768,61 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         AddStateItem.Password(
             id = id,
             label = label,
+            state = state,
+        )
+    }
+    val accessEmailsItem = kotlin.run {
+        val id = "$prefix.access.emails"
+        val label = translate(Res.string.addsend_auth_emails_label)
+        val placeholder = translate(Res.string.addsend_auth_emails_placeholder)
+        val note = translate(Res.string.addsend_auth_emails_note)
+
+        val state = LocalStateItem<AddStateItem.Text.State, CreateSendRequest>(
+            flow = kotlin.run {
+                val sink = mutablePersistedFlow(id) {
+                    args.initialValue?.emails?.joinToString()
+                        .orEmpty()
+                }
+                val state = asComposeState<String>(id)
+                sink
+                    .map { text ->
+                        Validated.Success(
+                            model = text,
+                        )
+                    }
+                    .map { validatedText ->
+                        val textField = TextFieldModel2.of(
+                            state = state,
+                            hint = placeholder,
+                            validated = validatedText,
+                            onChange = state::value::set,
+                        )
+                        AddStateItem.Text.State(
+                            label = label,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email,
+                            ),
+                            value = textField,
+                        )
+                    }
+                    .persistingStateIn(
+                        scope = screenScope,
+                        started = SharingStarted.WhileSubscribed(1000L),
+                        initialValue = AddStateItem.Text.State(TextFieldModel2.empty),
+                    )
+            },
+            populator = { state ->
+                val emails = state.value.text
+                    .split(',')
+                    .map { email -> email.trim() }
+                    .filter { email -> email.isNotEmpty() }
+                CreateSendRequest.emails.set(this, emails)
+            },
+        )
+        AddStateItem.Text(
+            id = id,
+            note = note,
             state = state,
         )
     }
@@ -918,7 +1058,11 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             .state.flow
             .map { state -> state.data != null }
             .distinctUntilChanged(),
-    ) { hasDeletionDateDuration, hasExpirationDateDuration ->
+        accessItem
+            .state.flow
+            .map { state -> state.data as? DSend.AuthType }
+            .distinctUntilChanged(),
+    ) { hasDeletionDateDuration, hasExpirationDateDuration, access ->
         listOfNotNull<AddStateItem>(
             AddStateItem.Section(
                 id = "${prefix}.section.1",
@@ -927,7 +1071,9 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             AddStateItem.Section(
                 id = "${prefix}.section.2",
             ),
-            passwordItem,
+            accessItem,
+            accessPasswordItem.takeIf { access == DSend.AuthType.Password },
+            accessEmailsItem.takeIf { access == DSend.AuthType.Email },
             deletionDateAsDurationItem,
             deletionDateItem.takeIf { !hasDeletionDateDuration },
             expirationDateAsDurationItem,
@@ -946,7 +1092,8 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
     return TmpOptions(
         deletionDate = deletionDateItem,
         expirationDate = expirationDateItem,
-        password = passwordItem,
+        password = accessPasswordItem,
+        emails = accessEmailsItem,
         items = itemsFlow,
     )
 }

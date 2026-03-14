@@ -775,6 +775,9 @@
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_email_title">Hide email address</string>
     <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
 
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
     <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
@@ -856,6 +859,10 @@
     <string name="send_type_text">Text</string>
     <string name="send_type_file">File</string>
     <string name="send_type_unknown" translatable="false">Unknown</string>
+    <string name="send_auth_title">Who can view</string>
+    <string name="send_auth_type_none">Anyone with the link</string>
+    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_email">Specific people</string>
 
     <string name="cipher_type_login">Login</string>
     <string name="cipher_type_card">Card</string>
@@ -989,6 +996,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Search sends</string>
     <string name="send_main_new_item_button">New item</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
 
     <string name="generator_header_title">Generator</string>

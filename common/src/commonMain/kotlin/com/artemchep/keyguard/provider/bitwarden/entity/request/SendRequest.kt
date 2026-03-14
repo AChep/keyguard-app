@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.util.to6DigitsNanosOfSecond
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
+import com.artemchep.keyguard.provider.bitwarden.entity.SendAuthTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.of
 import kotlin.time.Clock
@@ -18,6 +19,8 @@ data class SendRequest(
     val key: String,
     @SerialName("type")
     val type: SendTypeEntity,
+    @SerialName("authType")
+    val authType: SendAuthTypeEntity? = null,
     @SerialName("name")
     val name: String,
     @SerialName("notes")
@@ -42,6 +45,8 @@ data class SendRequest(
     val text: SendTextRequest?,
     @SerialName("file")
     val file: SendFileRequest?,
+    @SerialName("emails")
+    val emails: String? = null,
 ) {
     companion object
 }
@@ -77,34 +82,30 @@ fun SendRequest.Companion.of(
     val deletionDate = model.deletedDate
         ?: Clock.System.now()
 
-    val passwordHashBase64 = when (val pwd = model.changes?.passwordBase64) {
-        is BitwardenOptionalStringNullable.Some -> run {
-            pwd.value
-                // Bitwarden doesn't allow us to remove the password
-                // within the PUT request.
-                ?: return@run null
-            val password = decode(pwd.value)
-            // Send the hash code of that password, instead of
-            // sending the actual password.
-            val passwordHash = pbkdf2(
-                seed = password,
-                salt = key,
-                iterations = 100_000,
-            )
-            encodeToString(passwordHash)
-        }
+    val authType = model.authTypeOrInferred
 
-        is BitwardenOptionalStringNullable.None,
-        null,
-        -> null
-    }
+    // Enforce the auth type by juggling the fields depending
+    // on the type.
+    val newEmails = if (authType == BitwardenSend.AuthType.Email) {
+        getNewEmails(
+            model = model,
+        )
+    } else null
+    val newPassword = if (authType == BitwardenSend.AuthType.Password) {
+        getNewPass(
+            model = model,
+            key = key,
+        ) // note that it returns `null` if the password has not been changed
+    } else null
+
     val keyBase64 = requireNotNull(model.keyBase64) { "Send request must have a cipher key!" }
     SendRequest(
         type = type,
         key = keyBase64,
+        authType = authType.let(SendAuthTypeEntity.Companion::of),
         name = requireNotNull(model.name) { "Send request must have a non-null name!" },
         notes = model.notes,
-        password = passwordHashBase64,
+        password = newPassword,
         disabled = model.disabled,
         hideEmail = model.hideEmail == true,
         deletionDate = deletionDate
@@ -114,7 +115,40 @@ fun SendRequest.Companion.of(
         maxAccessCount = model.maxAccessCount,
         text = text,
         file = file,
+        emails = newEmails,
     )
+}
+
+private fun getNewEmails(
+    model: BitwardenSend,
+) = model.emails
+    .takeUnless { it.isEmpty() }
+    ?.joinToString(",")
+
+context(CryptoGenerator, Base64Service)
+private fun getNewPass(
+    model: BitwardenSend,
+    key: ByteArray,
+) = when (val pwd = model.changes?.passwordBase64) {
+    is BitwardenOptionalStringNullable.Some -> run {
+        pwd.value
+        // Bitwarden doesn't allow us to remove the password
+        // within the PUT request.
+            ?: return@run null
+        val password = decode(pwd.value)
+        // Send the hash code of that password, instead of
+        // sending the actual password.
+        val passwordHash = pbkdf2(
+            seed = password,
+            salt = key,
+            iterations = 100_000,
+        )
+        encodeToString(passwordHash)
+    }
+
+    is BitwardenOptionalStringNullable.None,
+    null,
+        -> null
 }
 
 fun SendTextRequest.Companion.of(

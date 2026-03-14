@@ -33,6 +33,7 @@ data class DSend(
     val expirationDate: Instant?,
     val service: BitwardenService,
     // common
+    val authType: AuthType,
     val name: String,
     val notes: String,
     val accessCount: Int,
@@ -41,6 +42,7 @@ data class DSend(
     val synced: Boolean,
     val disabled: Boolean,
     val hideEmail: Boolean,
+    val emails: List<String>,
     val type: Type,
     val text: Text?,
     val file: File?,
@@ -57,10 +59,24 @@ data class DSend(
         accentDark = colors.dark
     }
 
+    /**
+     * Returns `true` if the Send is protected by an email access. Such a
+     * Send will ask a user to provide a code sent to their email.
+     */
+    val hasEmailProtection: Boolean get() = emails.isNotEmpty()
+
     enum class Type {
         None,
         File,
         Text,
+    }
+
+    // Order of items here affects the order of items
+    // shown on the new/edit interface.
+    enum class AuthType {
+        None,
+        Password,
+        Email,
     }
 
     data class File(
@@ -68,6 +84,7 @@ data class DSend(
         val fileName: String,
         val keyBase64: String?,
         val size: Long? = null,
+        val sizeName: String? = null,
     ) {
         companion object;
     }
@@ -94,6 +111,13 @@ val DSend.expiredFlow: StateFlow<Boolean>
 val DSend.expired: Boolean
     get() = expirationDate != null &&
             expirationDate <= Clock.System.now()
+
+
+fun DSend.AuthType.titleH() = when (this) {
+    DSend.AuthType.None -> Res.string.send_auth_type_none
+    DSend.AuthType.Password -> Res.string.send_auth_type_password
+    DSend.AuthType.Email -> Res.string.send_auth_type_email
+}
 
 fun DSend.Type.iconImageVector() = when (this) {
     DSend.Type.Text -> Icons.Outlined.KeyguardNote

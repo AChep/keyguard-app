@@ -43,7 +43,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.removePassword
 import com.artemchep.keyguard.provider.bitwarden.api.builder.restore
 import com.artemchep.keyguard.provider.bitwarden.api.builder.sync
 import com.artemchep.keyguard.provider.bitwarden.api.builder.trash
-import com.artemchep.keyguard.provider.bitwarden.api.entity.SyncResponse
+import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
@@ -61,8 +61,8 @@ import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.GlobalEquivalentDomainEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationEntity
-import com.artemchep.keyguard.provider.bitwarden.entity.SyncProfile
-import com.artemchep.keyguard.provider.bitwarden.entity.SyncSends
+import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.FolderUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendUpdate
@@ -1248,7 +1248,7 @@ class SyncEngine(
         //
 
         fun BitwardenCrCta.sendDecoder(
-            entity: SyncSends,
+            entity: SendEntity,
             codec2: BitwardenCrCta,
             localSyncId: String?,
         ) = kotlin.run {
@@ -1268,7 +1268,7 @@ class SyncEngine(
         )
 
         val sendDao = db.sendQueries
-        val sendRemoteLens = SyncManager.Lens<SyncSends>(
+        val sendRemoteLens = SyncManager.Lens<SendEntity>(
             getId = { it.id },
             getRevisionDate = { it.revisionDate },
         )
@@ -1339,7 +1339,10 @@ class SyncEngine(
                     globalCrypto,
                 ) = getCodecPairFromEncrypted(
                     mode = BitwardenCrCta.Mode.DECRYPT,
-                    keyCipherText = remote.key,
+                    keyCipherText =
+                        requireNotNull(remote.key) {
+                            "Bitwarden send key must be present before decryption."
+                        },
                 )
                 itemCrypto
                     .sendDecoder(
@@ -1454,7 +1457,7 @@ class SyncEngine(
     // User
 
     private fun crypto(
-        profile: SyncProfile,
+        profile: ProfileEntity,
     ): BitwardenCr = kotlin.run {
         val builder = BitwardenCrImpl(
             cipherEncryptor = cipherEncryptor,
@@ -1484,7 +1487,7 @@ class SyncEngine(
 
     private suspend fun requireSecurityStampMatchesOrNull(
         db: Database,
-        response: SyncResponse,
+        response: SyncEntity,
     ) {
         val existingProfile = db
             .profileQueries

@@ -8,17 +8,17 @@ import kotlinx.serialization.json.JsonNames
 data class SendFileEntity(
     @JsonNames("id")
     @SerialName("Id")
-    val id: String,
+    val id: String? = null,
     @JsonNames("fileName")
     @SerialName("FileName")
-    val fileName: String,
+    val fileName: String? = null,
     @JsonNames("key")
     @SerialName("Key")
     val key: String? = null,
     @JsonNames("size")
     @SerialName("Size")
-    val size: String,
+    val size: String? = null,
     @JsonNames("sizeName")
     @SerialName("SizeName")
-    val sizeName: String,
+    val sizeName: String? = null,
 )

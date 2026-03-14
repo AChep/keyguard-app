@@ -45,6 +45,7 @@ suspend fun DSend.toVaultListItem(
         groupId = groupId,
         revisionDate = revisionDate,
         createdDate = createdDate,
+        hasEmailProtection = emails.isNotEmpty(),
         hasPassword = hasPassword,
         hasFile = type == DSend.Type.File,
         icon = icon,

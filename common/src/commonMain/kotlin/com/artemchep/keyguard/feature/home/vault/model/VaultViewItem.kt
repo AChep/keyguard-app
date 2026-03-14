@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.app.parser.AppStoreListingInfo
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -67,6 +68,18 @@ sealed interface VaultViewItem {
         val actions: ImmutableList<ContextItem> = persistentListOf(),
     ) : VaultViewItem {
         companion object
+    }
+
+    data class QuickBadges(
+        override val id: String,
+        val actions: ImmutableList<Item> = persistentListOf(),
+    ) : VaultViewItem {
+        companion object;
+
+        data class Item(
+            val title: TextHolder,
+            val text: TextHolder? = null,
+        )
     }
 
     data class Action(

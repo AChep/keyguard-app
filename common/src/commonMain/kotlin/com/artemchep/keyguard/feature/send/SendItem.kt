@@ -38,6 +38,7 @@ sealed interface SendItem {
         val groupId: String?,
         val revisionDate: Instant,
         val createdDate: Instant?,
+        val hasEmailProtection: Boolean,
         val hasPassword: Boolean,
         val hasFile: Boolean,
         val type: String,

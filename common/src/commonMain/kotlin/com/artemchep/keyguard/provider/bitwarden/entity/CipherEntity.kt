@@ -15,7 +15,7 @@ data class CipherEntity(
     val organizationId: String? = null,
     @JsonNames("organizationUseTotp")
     @SerialName("OrganizationUseTotp")
-    val organizationUseTotp: Boolean,
+    val organizationUseTotp: Boolean = false,
     @JsonNames("folderId")
     @SerialName("FolderId")
     val folderId: String? = null,
@@ -76,16 +76,32 @@ data class CipherEntity(
     @JsonNames("passwordHistory")
     @SerialName("PasswordHistory")
     val passwordHistory: List<PasswordHistoryEntity>? = null,
+    @JsonNames("permissions")
+    @SerialName("Permissions")
+    val permissions: Permissions? = null,
     @JsonNames("collectionIds")
     @SerialName("CollectionIds")
     val collectionIds: List<String>? = null,
     @JsonNames("deletedDate")
     @SerialName("DeletedDate")
     val deletedDate: Instant? = null,
+    @JsonNames("encryptedFor")
+    @SerialName("EncryptedFor")
+    val encryptedFor: String? = null,
     @JsonNames("archivedDate")
     @SerialName("ArchivedDate")
     val archivedDate: Instant? = null,
     @JsonNames("reprompt")
     @SerialName("Reprompt")
     val reprompt: CipherRepromptTypeEntity = CipherRepromptTypeEntity.None,
-)
+) {
+    @Serializable
+    data class Permissions(
+        @JsonNames("delete")
+        @SerialName("Delete")
+        val delete: Boolean = false,
+        @JsonNames("restore")
+        @SerialName("Restore")
+        val restore: Boolean = false,
+    )
+}

@@ -38,6 +38,7 @@ fun BitwardenCipher.Companion.encrypted(
         name = entity.name,
         notes = entity.notes,
         favorite = entity.favorite,
+        encryptedFor = entity.encryptedFor,
         fields = entity.fields
             .orEmpty()
             .map {

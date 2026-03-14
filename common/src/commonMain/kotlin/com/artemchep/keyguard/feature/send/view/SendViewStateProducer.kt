@@ -77,6 +77,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.text.annotate
 import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import io.ktor.http.Url
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -508,6 +509,29 @@ private fun RememberStateFlowScope.oh(
         emit(section)
         emit(url)
 
+        if (send.hasEmailProtection) {
+            val emailProtectionLabel = VaultViewItem.Label(
+                id = "url.email",
+                text = AnnotatedString(
+                    text = translate(Res.string.send_email_is_required_to_access_label),
+                ),
+            )
+            emit(emailProtectionLabel)
+            // Then we want to show all the emails that
+            // have access to this send.
+            val emailProtectionsBadges = VaultViewItem.QuickBadges(
+                id = "url.email.all",
+                actions = buildList {
+                    val sortedEmails = send.emails.sorted()
+                    sortedEmails.forEach { email ->
+                        this += VaultViewItem.QuickBadges.Item(
+                            title = TextHolder.Value(email),
+                        )
+                    }
+                }.toImmutableList(),
+            )
+            emit(emailProtectionsBadges)
+        }
         if (send.hasPassword) {
             val w = VaultViewItem.Label(
                 id = "url.password",

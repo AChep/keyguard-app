@@ -412,6 +412,7 @@ private suspend fun BitwardenCipher.Companion.of(
     val cipherId = old?.cipherId ?: cryptoGenerator.uuid()
     val createdDate = old?.createdDate ?: request.now
     val deletedDate = old?.deletedDate
+    val archivedDate = old?.archivedDate
     return BitwardenCipher(
         accountId = accountId,
         cipherId = cipherId,
@@ -421,6 +422,7 @@ private suspend fun BitwardenCipher.Companion.of(
         revisionDate = now,
         createdDate = createdDate,
         deletedDate = deletedDate,
+        archivedDate = archivedDate,
         keyBase64 = keyBase64,
         // service fields
         service = BitwardenService(

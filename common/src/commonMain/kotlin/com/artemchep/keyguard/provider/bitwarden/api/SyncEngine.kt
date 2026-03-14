@@ -653,6 +653,9 @@ class SyncEngine(
             )
             .executeAsList()
             .map { it.data_ }
+        val encryptedFor = require(newProfile.profileId.isNotBlank()) {
+            "Bitwarden profile id must be present before uploading cipher changes."
+        }.let { newProfile.profileId }
         syncX(
             name = "cipher",
             localItems = existingCipher,
@@ -721,6 +724,7 @@ class SyncEngine(
                 CipherUpdate.of(
                     model = encryptedCipher,
                     folders = localToRemoteFolders,
+                    encryptedFor = encryptedFor,
                 ) to local
             },
             localDeleteById = { ids ->

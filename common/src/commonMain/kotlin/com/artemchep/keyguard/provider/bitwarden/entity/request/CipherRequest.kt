@@ -17,6 +17,8 @@ import kotlinx.serialization.Serializable
 data class CipherRequest(
     @SerialName("key")
     val key: String?,
+    @SerialName("encryptedFor")
+    val encryptedFor: String? = null,
     @SerialName("type")
     val type: CipherTypeEntity,
     @SerialName("organizationId")
@@ -58,6 +60,7 @@ data class CipherRequest(
 fun CipherRequest.Companion.of(
     model: BitwardenCipher,
     folders: Map<String, String?>,
+    encryptedFor: String,
 ) = kotlin.run {
     // https://github.com/dani-garcia/vaultwarden/pull/6934
     val name = model.name
@@ -113,6 +116,7 @@ fun CipherRequest.Companion.of(
     val keyBase64 = model.keyBase64
     CipherRequest(
         key = keyBase64,
+        encryptedFor = encryptedFor,
         type = type,
         organizationId = model.organizationId,
         folderId = model.folderId

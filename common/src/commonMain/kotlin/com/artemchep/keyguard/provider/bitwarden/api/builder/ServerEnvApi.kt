@@ -8,13 +8,16 @@ import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.CipherListEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.TwoFactorEmailRequestEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherArchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUnarchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.FolderRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendRequest
 import io.ktor.client.HttpClient
@@ -121,6 +124,10 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
         val url: String,
     ) {
         val create get() = url + "create"
+
+        val archive get() = url + "archive"
+
+        val unarchive get() = url + "unarchive"
 
         fun focus(id: String) = Cipher(url = url + id)
 
@@ -280,6 +287,32 @@ suspend fun ServerEnvApi.Ciphers.create(
     token = token,
     body = body,
     route = "post-create-cipher",
+)
+
+suspend fun ServerEnvApi.Ciphers.archive(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherArchiveRequest,
+) = archive.put<CipherArchiveRequest, CipherListEntity>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-archive-ciphers",
+)
+
+suspend fun ServerEnvApi.Ciphers.unarchive(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherUnarchiveRequest,
+) = archive.put<CipherUnarchiveRequest, CipherListEntity>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-unarchive-ciphers",
 )
 
 suspend fun ServerEnvApi.Ciphers.Cipher.get(

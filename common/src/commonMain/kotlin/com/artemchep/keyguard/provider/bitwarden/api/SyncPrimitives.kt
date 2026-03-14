@@ -5,21 +5,15 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.handleError
 import com.artemchep.keyguard.common.io.handleErrorTap
-import com.artemchep.keyguard.common.io.handleErrorWith
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
-import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager.Companion.roundToMillis
@@ -32,83 +26,6 @@ import kotlin.Throwable
 import kotlin.Unit
 import kotlin.let
 import kotlin.time.Instant
-
-suspend fun merge(
-    remote: BitwardenCipher,
-    local: BitwardenCipher?,
-    getPasswordStrength: GetPasswordStrength,
-): BitwardenCipher {
-    val attachments = remote.attachments.toMutableList()
-    local?.attachments?.forEachIndexed { localIndex, attachment ->
-        val localAttachment = attachment as? BitwardenCipher.Attachment.Local
-            ?: return@forEachIndexed
-
-        // Skip collisions.
-        val remoteIndex = attachments
-            .indexOfFirst { it.id == localAttachment.id }
-        if (remoteIndex >= 0) {
-            // This attachment already exists on remote, so
-            // we just keep it as is.
-            return@forEachIndexed
-        }
-
-        val parent = local.attachments
-            .getOrNull(localIndex - 1)
-        val parentIndex = attachments
-            .indexOfFirst { it.id == parent?.id }
-        if (parentIndex >= 0) {
-            attachments.add(parentIndex + 1, localAttachment)
-        } else {
-            if (parent != null) {
-                attachments.add(localAttachment)
-            } else {
-                attachments.add(0, localAttachment)
-            }
-        }
-    }
-
-    var login = remote.login
-    // Calculate or copy over the password strength of
-    // the password.
-    if (remote.login != null) run {
-        val password = remote.login.password
-            ?: return@run
-        val strength = local?.login?.passwordStrength
-            .takeIf { local?.login?.password == remote.login.password }
-        // Generate a password strength badge.
-            ?: getPasswordStrength(password)
-                .attempt()
-                .bind()
-                .getOrNull()
-                ?.let { ps ->
-                    BitwardenCipher.Login.PasswordStrength(
-                        password = password,
-                        crackTimeSeconds = ps.crackTimeSeconds,
-                        version = ps.version,
-                    )
-                }
-        login = login?.copy(
-            passwordStrength = strength,
-        )
-    }
-
-    val ignoredAlerts = local?.ignoredAlerts.orEmpty()
-    return remote.copy(
-        login = login,
-        attachments = attachments,
-        ignoredAlerts = ignoredAlerts,
-    )
-}
-
-suspend fun merge(
-    remote: BitwardenProfile,
-    local: BitwardenProfile?,
-): BitwardenProfile {
-    val hidden = local?.hidden == true
-    return remote.copy(
-        hidden = hidden,
-    )
-}
 
 interface RemotePutScope<Remote> {
     val force: Boolean

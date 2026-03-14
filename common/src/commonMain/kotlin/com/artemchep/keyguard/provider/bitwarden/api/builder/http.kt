@@ -142,7 +142,7 @@ private fun JsonObject.getIgnoreCase(key: String) = keys
     ?.let { this[it] }
 
 /**
- * Sanitize all of the primitives from the json object,
+ * Sanitize all the primitives from the json object,
  * making the response safe to be send to the crashlytics.
  */
 fun JsonElement.sanitize(): JsonElement = when (this) {

@@ -115,6 +115,31 @@
     <methods>;
 }
 
+#
+# yubikey, can be removed after the next release
+# https://github.com/Yubico/yubikit-android/pull/297
+#
+
+# PIV module (deprecated in 2.4.0)
+-dontwarn com.yubico.yubikit.piv.InvalidPinException
+-dontwarn com.yubico.yubikit.piv.Padding
+
+# FIDO module (deprecated in 2.x)
+-dontwarn com.yubico.yubikit.fido.webauthn.BasicWebAuthnClient
+-dontwarn com.yubico.yubikit.fido.client.PinInvalidClientError
+
+# Core module (deprecated in 2.3.0)
+-dontwarn com.yubico.yubikit.core.Logger
+
+# All modules
+-keepnames class com.yubico.yubikit.**
+
+# YubiKeyPromptActivity reflectively instantiates YubiKeyPromptAction subclasses
+# using getDeclaredConstructor().newInstance().
+-keep class * extends com.yubico.yubikit.android.ui.YubiKeyPromptAction {
+    public <init>();
+}
+
 ##
 ## dont warn
 ##
